@@ -30,14 +30,15 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 
 // GetBranchByCode godoc
 // @Summary Get branch by code
-// @Description Retrieve a specific branch by its branch code
+// @Description Retrieve a specific branch by its branch code.
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param branch_code path string true "Branch Code"
-// @Success 200 {object} map[string]interface{} "Branch retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param branch_code path string true "Branch Code" example(BR001)
+// @Success 200 {object} localization.StandardResponse{data=ab_dto.BranchResponse} "Branch retrieved"
+// @Failure 400 {object} localization.StandardResponse "Bad request"
+// @Failure 404 {object} localization.StandardResponse "Not found"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/branches/{branch_code} [get]
 func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Request) {
@@ -61,15 +62,16 @@ func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Req
 
 // GetAllBranches godoc
 // @Summary Get all branches
-// @Description Retrieve all branches with pagination
+// @Description Retrieve all branches with pagination and optional filters.
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} map[string]interface{} "Branches retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param page query int false "Page number" default(1) minimum(1) example(1)
+// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
+// @Param search query string false "Search term" example("Addis")
+// @Param filters query string false "JSON encoded filters (enabled, region, district)" example("{\"enabled\":true}")
+// @Success 200 {object} localization.StandardResponse "Branches retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/branches [get]
 func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Request) {
@@ -92,14 +94,15 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 
 // GetRegionByCode godoc
 // @Summary Get region by code
-// @Description Retrieve a specific region by its region code
+// @Description Retrieve a specific region by its region code.
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param region_code path string true "Region Code"
-// @Success 200 {object} map[string]interface{} "Region retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param region_code path string true "Region Code" example(RG001)
+// @Success 200 {object} localization.StandardResponse{data=ab_dto.RegionResponse} "Region retrieved"
+// @Failure 400 {object} localization.StandardResponse "Bad request"
+// @Failure 404 {object} localization.StandardResponse "Not found"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/regions/{region_code} [get]
 func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
@@ -123,15 +126,16 @@ func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Req
 
 // GetAllRegions godoc
 // @Summary Get all regions
-// @Description Retrieve all regions with pagination
+// @Description Retrieve all regions with pagination and optional filters.
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} map[string]interface{} "Regions retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param page query int false "Page number" default(1) minimum(1) example(1)
+// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
+// @Param search query string false "Search term" example("Addis")
+// @Param filters query string false "JSON encoded filters (enabled)" example("{\"enabled\":true}")
+// @Success 200 {object} localization.StandardResponse "Regions retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/regions [get]
 func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +143,7 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 
 	regions, err := a.accountBlockApplication.GetAllRegions(r.Context(), filterParams)
 	if err != nil {
-		a.logger.Errorf("GetAllRegion failed: %v", err)
+		a.logger.Errorf("GetAllRegions failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -155,20 +159,21 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 
 // GetDistrictByCode godoc
 // @Summary Get district by code
-// @Description Retrieve a specific district by its district code
+// @Description Retrieve a specific district by its district code.
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param district_code path string true "District Code"
-// @Success 200 {object} map[string]interface{} "District retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param district_code path string true "District Code" example(DS001)
+// @Success 200 {object} localization.StandardResponse{data=ab_dto.DistrictResponse} "District retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse "Bad request"
+// @Failure 404 {object} localization.StandardResponse "Not found"
+// @Failure 500 {object} localization.StandardResponse "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/districts/{district_code} [get]
 func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.Request) {
 	districtCode, ok := local_util.GetParam(r, "district_code")
 	if !ok {
-		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Type)
+		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
@@ -186,15 +191,16 @@ func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.R
 
 // GetAllDistricts godoc
 // @Summary Get all districts
-// @Description Retrieve all districts with pagination
+// @Description Retrieve all districts with pagination and optional filters.
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} map[string]interface{} "Districts retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param page query int false "Page number" default(1) minimum(1) example(1)
+// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
+// @Param search query string false "Search term" example("Bole")
+// @Param filters query string false "JSON encoded filters (enabled, region)" example("{\"enabled\":true,\"region_id\":\"RG001\"}")
+// @Success 200 {object} localization.StandardResponse "Districts retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/districts [get]
 func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Request) {
@@ -218,14 +224,15 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 
 // GetCityByCode godoc
 // @Summary Get city by code
-// @Description Retrieve a specific city by its city code
+// @Description Retrieve a specific city by its city code.
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param city_code path string true "City Code"
-// @Success 200 {object} map[string]interface{} "City retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param city_code path string true "City Code" example(CT001)
+// @Success 200 {object} localization.StandardResponse{data=ab_dto.CityResponse} "City retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse "Bad request"
+// @Failure 404 {object} localization.StandardResponse "Not found"
+// @Failure 500 {object} localization.StandardResponse "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/city/{city_code} [get]
 func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Request) {
@@ -249,15 +256,16 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 
 // GetAllCities godoc
 // @Summary Get all cities
-// @Description Retrieve all cities with pagination
+// @Description Retrieve all cities with pagination and optional filters.
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} map[string]interface{} "Cities retrieved successfully"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param page query int false "Page number" default(1) minimum(1) example(1)
+// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
+// @Param search query string false "Search term" example("Addis")
+// @Param filters query string false "JSON encoded filters (enabled, district)" example("{\"enabled\":true}")
+// @Success 200 {object} localization.StandardResponse "Cities retrieved"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/city [get]
 func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
@@ -265,7 +273,7 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 
 	cities, err := a.accountBlockApplication.GetAllCities(r.Context(), filterParams)
 	if err != nil {
-		a.logger.Errorf("GetAllCity failed: %v", err)
+		a.logger.Errorf("GetAllCities failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -280,15 +288,15 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 }
 
 // EnableBranches godoc
-// @Summary Enable branches
-// @Description Enable one or more branches by their branch codes
+// @Summary Enable multiple branches
+// @Description Enable multiple branches by codes.
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableBranches true "Branch codes to enable"
-// @Success 200 {object} map[string]interface{} "Branches enabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableBranches true "Branch codes" example({"branches_code":["BR001","BR002"]})
+// @Success 200 {object} localization.StandardResponse "Enable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/branches/enable [post]
 func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Request) {
@@ -316,15 +324,15 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 }
 
 // DisableBranches godoc
-// @Summary Disable branches
-// @Description Disable one or more branches by their branch codes
+// @Summary Disable multiple branches
+// @Description Disable multiple branches by codes.
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableBranches true "Branch codes to disable"
-// @Success 200 {object} map[string]interface{} "Branches disabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableBranches true "Branch codes" example({"branches_code":["BR001","BR002"]})
+// @Success 200 {object} localization.StandardResponse "Disable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/branches/disable [post]
 func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Request) {
@@ -352,15 +360,15 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 }
 
 // EnableRegions godoc
-// @Summary Enable regions
-// @Description Enable one or more regions by their region codes
+// @Summary Enable multiple regions
+// @Description Enable multiple regions by codes.
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableRegions true "Region codes to enable"
-// @Success 200 {object} map[string]interface{} "Regions enabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableRegions true "Region codes" example({"regions_code":["RG001","RG002"]})
+// @Success 200 {object} localization.StandardResponse "Enable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/regions/enable [post]
 func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Request) {
@@ -388,15 +396,15 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 }
 
 // DisableRegions godoc
-// @Summary Disable regions
-// @Description Disable one or more regions by their region codes
+// @Summary Disable multiple regions
+// @Description Disable multiple regions by codes.
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableRegions true "Region codes to disable"
-// @Success 200 {object} map[string]interface{} "Regions disabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableRegions true "Region codes" example({"regions_code":["RG001","RG002"]})
+// @Success 200 {object} localization.StandardResponse "Disable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/regions/disable [post]
 func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Request) {
@@ -425,15 +433,15 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 }
 
 // EnableDistricts godoc
-// @Summary Enable districts
-// @Description Enable one or more districts by their district codes
+// @Summary Enable multiple districts
+// @Description Enable multiple districts by codes.
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableDistricts true "District codes to enable"
-// @Success 200 {object} map[string]interface{} "Districts enabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableDistricts true "District codes" example({"districts_code":["DS001","DS002"]})
+// @Success 200 {object} localization.StandardResponse "Enable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/districts/enable [post]
 func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Request) {
@@ -461,15 +469,15 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 }
 
 // DisableDistricts godoc
-// @Summary Disable districts
-// @Description Disable one or more districts by their district codes
+// @Summary Disable multiple districts
+// @Description Disable multiple districts by codes.
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableDistricts true "District codes to disable"
-// @Success 200 {object} map[string]interface{} "Districts disabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableDistricts true "District codes" example({"districts_code":["DS001","DS002"]})
+// @Success 200 {object} localization.StandardResponse "Disable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/districts/disable [post]
 func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Request) {
@@ -497,15 +505,15 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 }
 
 // EnableCities godoc
-// @Summary Enable cities
-// @Description Enable one or more cities by their city codes
+// @Summary Enable multiple cities
+// @Description Enable multiple cities by codes.
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableCities true "City codes to enable"
-// @Success 200 {object} map[string]interface{} "Cities enabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableCities true "City codes" example({"city_code":["CT001","CT002"]})
+// @Success 200 {object} localization.StandardResponse "Enable request submitted"
+// @Failure 400 {object} localization.StandardResponse "Invalid request"
+// @Failure 500 {object} localization.StandardResponse "Server error"
 // @Security BearerAuth
 // @Router /account_block/city/enable [post]
 func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Request) {
@@ -532,15 +540,15 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 }
 
 // DisableCities godoc
-// @Summary Disable cities
-// @Description Disable one or more cities by their city codes
+// @Summary Disable multiple cities
+// @Description Disable multiple cities by codes.
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableCities true "City codes to disable"
-// @Success 200 {object} map[string]interface{} "Cities disabled successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Param request body ab_dto.EnableOrDisableCities true "City codes to disable"
+// @Success 200 {object} localization.StandardResponse "Cities disabled successfully"
+// @Failure 400 {object} localization.StandardResponse "Bad request"
+// @Failure 500 {object} localization.StandardResponse "Internal server error"
 // @Security BearerAuth
 // @Router /account_block/city/disable [post]
 func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Request) {

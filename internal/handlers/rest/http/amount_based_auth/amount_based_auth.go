@@ -28,6 +28,19 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 	}
 }
 
+// GetAllAmountBasedAuth godoc
+// @Summary List amount-based auth tiers
+// @Description Fetch all amount-based authentication tiers with pagination.
+// @Tags Amount-Based-Auth
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1) minimum(1) example(1)
+// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
+// @Param search query string false "Search by method or range" example("PIN")
+// @Success 200 {object} localization.StandardResponse "Fetched successfully"
+// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Security BearerAuth
+// @Router /amount_based_auth [get]
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 
@@ -40,6 +53,21 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customers)
 }
 
+// UpdateAmountBasedAuth godoc
+// @Summary Update an amount-based auth tier
+// @Description Update tier by ID and method. Validation depends on method: OPEN requires max_amount; PIN requires both min/max; OTP_PIN requires min_amount.
+// @Tags Amount-Based-Auth
+// @Accept json
+// @Produce json
+// @Param id path string true "Tier ID"
+// @Param method path string true "Method" Enums(OPEN,PIN,OTP_PIN)
+// @Param request body amountauthdto.UpdateAmountBasedAuthRequest true "Update payload" example({"min_amount":100,"max_amount":1000})
+// @Success 200 {object} localization.StandardResponse "Update request sent"
+// @Failure 400 {object} localization.StandardResponse "Invalid parameters or payload"
+// @Failure 404 {object} localization.StandardResponse "Tier not found"
+// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Security BearerAuth
+// @Router /amount_based_auth/update/{id}/{method} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
@@ -80,6 +108,18 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
 }
 
+// RejectAmountBasedAuth godoc
+// @Summary Reject an amount-based auth action
+// @Description Submit a rejection with CPS action payload.
+// @Tags Amount-Based-Auth
+// @Accept json
+// @Produce json
+// @Param id path string true "Action ID"
+// @Param request body model.CPSAction true "CPS Action payload"
+// @Success 200 {object} localization.StandardResponse "Rejected"
+// @Failure 400 {object} localization.StandardResponse "Invalid input"
+// @Security BearerAuth
+// @Router /amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	_, ok := common_util.GetParam(r, "id")
 	if !ok {

@@ -1,6 +1,87 @@
 basePath: /api/v1/cbesuperapp/cps_action
 definitions:
-  accountblock.EnableOrDisableBranches:
+  cbe-super-app-cps-action_internal_constants.AdvertFor:
+    enum:
+    - IFB
+    - CB
+    - ALL
+    type: string
+    x-enum-varnames:
+    - IFB_ADVERT_FOR
+    - CB_ADVERT_FOR
+    - BOTH_ADVERT_FOR
+  cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse:
+    properties:
+      branch_address:
+        type: string
+      branch_code:
+        type: string
+      branch_name:
+        type: string
+      branch_region:
+        type: string
+      created_at:
+        type: string
+      district_code:
+        type: string
+      district_name:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      record_stat:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse:
+    properties:
+      city_address:
+        type: string
+      city_code:
+        type: string
+      city_name:
+        type: string
+      created_at:
+        type: string
+      district_id:
+        type: string
+      district_name:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      region_id:
+        type: string
+      region_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse:
+    properties:
+      created_at:
+        type: string
+      district_address:
+        type: string
+      district_code:
+        type: string
+      district_name:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      region_id:
+        type: string
+      region_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches:
     properties:
       branches_code:
         example:
@@ -10,7 +91,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableCities:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities:
     properties:
       city_code:
         example:
@@ -20,7 +101,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableDistricts:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts:
     properties:
       districts_code:
         example:
@@ -30,7 +111,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableRegions:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions:
     properties:
       regions_code:
         example:
@@ -40,7 +121,24 @@ definitions:
           type: string
         type: array
     type: object
-  accountvalidation.ValidationRuleDTO:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse:
+    properties:
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      region_address:
+        type: string
+      region_code:
+        type: string
+      region_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO:
     properties:
       enabled:
         type: boolean
@@ -61,7 +159,93 @@ definitions:
       validation_for:
         type: string
     type: object
-  localization.ResponseCode:
+  cbe-super-app-cps-action_internal_constants_dto_ad.AdvertDate:
+    properties:
+      expired_at:
+        type: string
+      started_at:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse:
+    properties:
+      advert_for:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.AdvertFor'
+      banner_image:
+        type: string
+      created_at:
+        type: string
+      date:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertDate'
+      description:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      last_updated_at:
+        type: string
+      title:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_amount_based_auth.UpdateAmountBasedAuthRequest:
+    properties:
+      max_amount:
+        type: integer
+      min_amount:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_bank.UpdateBankRequest:
+    properties:
+      _id:
+        type: string
+      bic:
+        type: string
+      code:
+        type: string
+      name:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
+      id:
+        type: string
+      product_name:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_localization.ErrorDetail:
+    properties:
+      code:
+        type: string
+      details:
+        additionalProperties: true
+        type: object
+      field_errors:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.FieldError'
+        type: array
+      message:
+        type: string
+      status_code:
+        type: integer
+      type:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_localization.FieldError:
+    properties:
+      constraint:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      value:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_localization.ResponseCode:
     properties:
       code:
         type: string
@@ -75,12 +259,69 @@ definitions:
         description: '"success", "error", "warning", "info"'
         type: string
     type: object
-  model.ProductCode:
+  cbe-super-app-cps-action_internal_constants_localization.StandardResponse:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ErrorDetail'
+      message:
+        type: string
+      ok:
+        type: boolean
+      status:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_model.CPSAction:
+    properties:
+      action_code:
+        type: string
+      action_status:
+        type: string
+      action_type:
+        type: string
+      checker_action_time:
+        type: string
+      checker_id:
+        type: string
+      checker_name:
+        type: string
+      checker_phone_number:
+        type: string
+      created_at:
+        type: string
+      current_action: {}
+      department:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      last_modified_at:
+        type: string
+      maker_action_time:
+        type: string
+      maker_id:
+        type: string
+      maker_name:
+        type: string
+      maker_phone_number:
+        type: string
+      previous_action: {}
+      rejection_reason:
+        type: string
+      request_action:
+        type: string
+      unique_id:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_model.ProductCode:
     properties:
       cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
       cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
       created_at:
         type: string
       id:
@@ -90,7 +331,7 @@ definitions:
       service_name:
         type: string
     type: object
-  model.ProductCodes:
+  cbe-super-app-cps-action_internal_constants_model.ProductCodes:
     properties:
       prd:
         type: string
@@ -99,34 +340,6 @@ definitions:
       trxn:
         type: string
       vatprd:
-        type: string
-    type: object
-  productcode.ProductCodePaginatedResponse:
-    type: object
-  productcode.ProductCodeResponse:
-    properties:
-      cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      created_at:
-        type: string
-      id:
-        type: string
-      last_modified_at:
-        type: string
-      product_name:
-        type: string
-    type: object
-  productcode.UpdateProductCodeRequest:
-    properties:
-      cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      id:
-        type: string
-      product_name:
         type: string
     type: object
 host: localhost:8080
@@ -142,21 +355,32 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve all branches with pagination
+      description: Retrieve all branches with pagination and optional filters.
       parameters:
       - default: 1
         description: Page number
+        example: 1
         in: query
+        minimum: 1
         name: page
         type: integer
       - default: 10
         description: Items per page
+        example: 10
         in: query
+        maximum: 100
+        minimum: 1
         name: per_page
         type: integer
       - description: Search term
+        example: '"Addis"'
         in: query
         name: search
+        type: string
+      - description: JSON encoded filters (enabled, region, district)
+        example: '"{\"enabled\":true}"'
+        in: query
+        name: filters
         type: string
       produces:
       - application/json
@@ -164,13 +388,11 @@ paths:
         "200":
           description: Branches retrieved successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: internal Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get all branches
@@ -180,9 +402,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a specific branch by its branch code
+      description: Retrieve a specific branch by its branch code.
       parameters:
       - description: Branch Code
+        example: BR001
         in: path
         name: branch_code
         required: true
@@ -191,20 +414,26 @@ paths:
       - application/json
       responses:
         "200":
-          description: Branch retrieved successfully
+          description: Branch retrieved
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse'
+              type: object
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get branch by code
@@ -214,105 +443,108 @@ paths:
     post:
       consumes:
       - application/json
-      description: Disable one or more branches by their branch codes
+      description: Disable multiple branches by codes.
       parameters:
-      - description: Branch codes to disable
+      - description: Branch codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches'
       produces:
       - application/json
       responses:
         "200":
-          description: Branches disabled successfully
+          description: Disable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Disable branches
+      summary: Disable multiple branches
       tags:
       - Account Block - Branches
   /account_block/branches/enable:
     post:
       consumes:
       - application/json
-      description: Enable one or more branches by their branch codes
+      description: Enable multiple branches by codes.
       parameters:
-      - description: Branch codes to enable
+      - description: Branch codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches'
       produces:
       - application/json
       responses:
         "200":
-          description: Branches enabled successfully
+          description: Enable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Enable branches
+      summary: Enable multiple branches
       tags:
       - Account Block - Branches
   /account_block/city:
     get:
       consumes:
       - application/json
-      description: Retrieve all cities with pagination
+      description: Retrieve all cities with pagination and optional filters.
       parameters:
       - default: 1
         description: Page number
+        example: 1
         in: query
+        minimum: 1
         name: page
         type: integer
       - default: 10
         description: Items per page
+        example: 10
         in: query
+        maximum: 100
+        minimum: 1
         name: per_page
         type: integer
       - description: Search term
+        example: '"Addis"'
         in: query
         name: search
+        type: string
+      - description: JSON encoded filters (enabled, district)
+        example: '"{\"enabled\":true}"'
+        in: query
+        name: filters
         type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Cities retrieved successfully
+          description: Cities retrieved
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get all cities
@@ -322,9 +554,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a specific city by its city code
+      description: Retrieve a specific city by its city code.
       parameters:
       - description: City Code
+        example: CT001
         in: path
         name: city_code
         required: true
@@ -335,18 +568,24 @@ paths:
         "200":
           description: City retrieved successfully
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse'
+              type: object
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: internal Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get city by code
@@ -356,91 +595,96 @@ paths:
     post:
       consumes:
       - application/json
-      description: Disable one or more cities by their city codes
+      description: Disable multiple cities by codes.
       parameters:
       - description: City codes to disable
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities'
       produces:
       - application/json
       responses:
         "200":
           description: Cities disabled successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Disable cities
+      summary: Disable multiple cities
       tags:
       - Account Block - Cities
   /account_block/city/enable:
     post:
       consumes:
       - application/json
-      description: Enable one or more cities by their city codes
+      description: Enable multiple cities by codes.
       parameters:
-      - description: City codes to enable
+      - description: City codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities'
       produces:
       - application/json
       responses:
         "200":
-          description: Cities enabled successfully
+          description: Enable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Enable cities
+      summary: Enable multiple cities
       tags:
       - Account Block - Cities
   /account_block/districts:
     get:
       consumes:
       - application/json
-      description: Retrieve all districts with pagination
+      description: Retrieve all districts with pagination and optional filters.
       parameters:
       - default: 1
         description: Page number
+        example: 1
         in: query
+        minimum: 1
         name: page
         type: integer
       - default: 10
         description: Items per page
+        example: 10
         in: query
+        maximum: 100
+        minimum: 1
         name: per_page
         type: integer
       - description: Search term
+        example: '"Bole"'
         in: query
         name: search
+        type: string
+      - description: JSON encoded filters (enabled, region)
+        example: '"{\"enabled\":true,\"region_id\":\"RG001\"}"'
+        in: query
+        name: filters
         type: string
       produces:
       - application/json
@@ -448,13 +692,11 @@ paths:
         "200":
           description: Districts retrieved successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: internal Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get all districts
@@ -464,9 +706,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a specific district by its district code
+      description: Retrieve a specific district by its district code.
       parameters:
       - description: District Code
+        example: DS001
         in: path
         name: district_code
         required: true
@@ -477,18 +720,24 @@ paths:
         "200":
           description: District retrieved successfully
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse'
+              type: object
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: internal Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get district by code
@@ -498,91 +747,96 @@ paths:
     post:
       consumes:
       - application/json
-      description: Disable one or more districts by their district codes
+      description: Disable multiple districts by codes.
       parameters:
-      - description: District codes to disable
+      - description: District codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts'
       produces:
       - application/json
       responses:
         "200":
-          description: Districts disabled successfully
+          description: Disable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Disable districts
+      summary: Disable multiple districts
       tags:
       - Account Block - Districts
   /account_block/districts/enable:
     post:
       consumes:
       - application/json
-      description: Enable one or more districts by their district codes
+      description: Enable multiple districts by codes.
       parameters:
-      - description: District codes to enable
+      - description: District codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts'
       produces:
       - application/json
       responses:
         "200":
-          description: Districts enabled successfully
+          description: Enable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Enable districts
+      summary: Enable multiple districts
       tags:
       - Account Block - Districts
   /account_block/regions:
     get:
       consumes:
       - application/json
-      description: Retrieve all regions with pagination
+      description: Retrieve all regions with pagination and optional filters.
       parameters:
       - default: 1
         description: Page number
+        example: 1
         in: query
+        minimum: 1
         name: page
         type: integer
       - default: 10
         description: Items per page
+        example: 10
         in: query
+        maximum: 100
+        minimum: 1
         name: per_page
         type: integer
       - description: Search term
+        example: '"Addis"'
         in: query
         name: search
+        type: string
+      - description: JSON encoded filters (enabled)
+        example: '"{\"enabled\":true}"'
+        in: query
+        name: filters
         type: string
       produces:
       - application/json
@@ -590,13 +844,11 @@ paths:
         "200":
           description: Regions retrieved successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: internal Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get all regions
@@ -606,9 +858,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve a specific region by its region code
+      description: Retrieve a specific region by its region code.
       parameters:
       - description: Region Code
+        example: RG001
         in: path
         name: region_code
         required: true
@@ -617,20 +870,26 @@ paths:
       - application/json
       responses:
         "200":
-          description: Region retrieved successfully
+          description: Region retrieved
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse'
+              type: object
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get region by code
@@ -640,89 +899,90 @@ paths:
     post:
       consumes:
       - application/json
-      description: Disable one or more regions by their region codes
+      description: Disable multiple regions by codes.
       parameters:
-      - description: Region codes to disable
+      - description: Region codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions'
       produces:
       - application/json
       responses:
         "200":
-          description: Regions disabled successfully
+          description: Disable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Disable regions
+      summary: Disable multiple regions
       tags:
       - Account Block - Regions
   /account_block/regions/enable:
     post:
       consumes:
       - application/json
-      description: Enable one or more regions by their region codes
+      description: Enable multiple regions by codes.
       parameters:
-      - description: Region codes to enable
+      - description: Region codes
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions'
       produces:
       - application/json
       responses:
         "200":
-          description: Regions enabled successfully
+          description: Enable request submitted
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Enable regions
+      summary: Enable multiple regions
       tags:
       - Account Block - Regions
   /account_validation:
     get:
       consumes:
       - application/json
-      description: Retrieve all account validation rules with pagination
+      description: Retrieve account validation rules with pagination and optional
+        search.
       parameters:
       - default: 1
         description: Page number
+        example: 1
         in: query
+        minimum: 1
         name: page
         type: integer
       - default: 10
         description: Items per page
+        example: 10
         in: query
+        maximum: 100
+        minimum: 1
         name: per_page
         type: integer
       - description: Search term
+        example: '"ACCOUNT_NUMBER"'
         in: query
         name: search
         type: string
@@ -730,30 +990,27 @@ paths:
       - application/json
       responses:
         "200":
-          description: Validation rules retrieved successfully
+          description: Validation rules retrieved
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
-      summary: Get all account validation rules
+      summary: List account validation rules
       tags:
       - Account Validation
   /account_validation/{id}:
     get:
       consumes:
       - application/json
-      description: Retrieve a specific account validation rule by its ID
+      description: Retrieve a specific account validation rule by its ID.
       parameters:
       - description: Validation Rule ID
         in: path
@@ -764,20 +1021,26 @@ paths:
       - application/json
       responses:
         "200":
-          description: Validation rule retrieved successfully
+          description: Validation rule retrieved
           schema:
-            additionalProperties: true
-            type: object
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO'
+              type: object
         "400":
           description: Bad request
           schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Get account validation by ID
@@ -787,7 +1050,8 @@ paths:
     patch:
       consumes:
       - application/json
-      description: Update an existing account validation rule by its ID
+      description: Update an existing account validation rule. MinLength must not
+        exceed MaxLength.
       parameters:
       - description: Validation Rule ID
         in: path
@@ -799,30 +1063,1058 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountvalidation.ValidationRuleDTO'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO'
       produces:
       - application/json
       responses:
         "200":
-          description: Validation rule updated successfully
+          description: Validation rule updated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "400":
-          description: Bad request
+          description: Validation failed
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
         "500":
-          description: Internal server error
+          description: Server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
       security:
       - BearerAuth: []
       summary: Update account validation rule
       tags:
       - Account Validation
+  /adverts:
+    get:
+      consumes:
+      - application/json
+      description: Fetch adverts with pagination and optional text search.
+      parameters:
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        example: 10
+        in: query
+        maximum: 100
+        minimum: 1
+        name: per_page
+        type: integer
+      - description: Search by title/description
+        example: '"promo"'
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Adverts fetched successfully
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid pagination params
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: List adverts
+      tags:
+      - Adverts
+    post:
+      consumes:
+      - multipart/form-data
+      description: Submit an advert create request. Requires multipart/form-data with
+        optional banner image.
+      parameters:
+      - description: Title
+        example: '"New Promo"'
+        in: formData
+        maxLength: 20
+        minLength: 3
+        name: title
+        required: true
+        type: string
+      - description: Description
+        example: '"Enjoy our new promotion valid this weekend only."'
+        in: formData
+        maxLength: 100
+        minLength: 30
+        name: description
+        required: true
+        type: string
+      - description: Advert audience
+        enum:
+        - IFB
+        - CB
+        - ALL
+        example: ALL
+        in: formData
+        name: advert_for
+        required: true
+        type: string
+      - description: Start time (RFC3339)
+        example: '"2025-10-10T10:00:00Z"'
+        in: formData
+        name: started_at
+        type: string
+      - description: Expiry time (RFC3339)
+        example: '"2025-10-20T10:00:00Z"'
+        in: formData
+        name: expired_at
+        type: string
+      - description: Banner image (<=2MB; jpeg/png/gif/webp)
+        in: formData
+        name: banner_image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Advert create request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "409":
+          description: Duplicate or conflict
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new advert (maker)
+      tags:
+      - Adverts
+  /adverts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Submit an advert delete request.
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Delete request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Advert not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete advert (maker)
+      tags:
+      - Adverts
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single advert by its identifier.
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Advert fetched successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse'
+              type: object
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Advert not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Get advert by ID
+      tags:
+      - Adverts
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Submit an advert update request. Provide only fields to change.
+        Multipart/form-data supported for banner_image.
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Title
+        example: '"Weekend Promo"'
+        in: formData
+        maxLength: 20
+        minLength: 3
+        name: title
+        type: string
+      - description: Description
+        in: formData
+        maxLength: 100
+        minLength: 30
+        name: description
+        type: string
+      - description: Advert audience
+        enum:
+        - IFB
+        - CB
+        - ALL
+        in: formData
+        name: advert_for
+        type: string
+      - description: Start time (RFC3339)
+        in: formData
+        name: started_at
+        type: string
+      - description: Expiry time (RFC3339)
+        in: formData
+        name: expired_at
+        type: string
+      - description: Banner image (<=2MB; jpeg/png/gif/webp)
+        in: formData
+        name: banner_image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Advert update request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: No data provided for update / invalid payload
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Advert not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Update existing advert (maker)
+      tags:
+      - Adverts
+  /adverts/{id}/disable:
+    post:
+      consumes:
+      - application/json
+      description: Approve disable request for an advert.
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Disable request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Advert not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Disable advert (checker)
+      tags:
+      - Adverts
+  /adverts/{id}/enable:
+    post:
+      consumes:
+      - application/json
+      description: Approve enable request for an advert.
+      parameters:
+      - description: Advert ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enable request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Advert not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Enable advert (checker)
+      tags:
+      - Adverts
+  /amount_based_auth:
+    get:
+      consumes:
+      - application/json
+      description: Fetch all amount-based authentication tiers with pagination.
+      parameters:
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        example: 10
+        in: query
+        maximum: 100
+        minimum: 1
+        name: per_page
+        type: integer
+      - description: Search by method or range
+        example: '"PIN"'
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fetched successfully
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: List amount-based auth tiers
+      tags:
+      - Amount-Based-Auth
+  /amount_based_auth/reject/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Submit a rejection with CPS action payload.
+      parameters:
+      - description: Action ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: CPS Action payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rejected
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Reject an amount-based auth action
+      tags:
+      - Amount-Based-Auth
+  /amount_based_auth/update/{id}/{method}:
+    patch:
+      consumes:
+      - application/json
+      description: 'Update tier by ID and method. Validation depends on method: OPEN
+        requires max_amount; PIN requires both min/max; OTP_PIN requires min_amount.'
+      parameters:
+      - description: Tier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Method
+        enum:
+        - OPEN
+        - PIN
+        - OTP_PIN
+        in: path
+        name: method
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_amount_based_auth.UpdateAmountBasedAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Update request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid parameters or payload
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Tier not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Update an amount-based auth tier
+      tags:
+      - Amount-Based-Auth
+  /avatar:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve avatars with pagination.
+      parameters:
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        example: 10
+        in: query
+        maximum: 100
+        minimum: 1
+        name: per_page
+        type: integer
+      - description: Search term
+        example: '"Gold"'
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatars retrieved
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: List avatars
+      tags:
+      - Avatars
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an avatar image with a label.
+      parameters:
+      - description: Label
+        example: '"Gold"'
+        in: formData
+        name: label
+        required: true
+        type: string
+      - description: Avatar image (<=2MB; jpeg/png/gif)
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar create request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Create avatar (maker)
+      tags:
+      - Avatars
+  /avatar/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Submit delete request for an avatar by ID.
+      parameters:
+      - description: Avatar ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar delete request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Avatar not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete avatar (maker)
+      tags:
+      - Avatars
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single avatar by ID.
+      parameters:
+      - description: Avatar ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar retrieved
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Avatar not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Get avatar by ID
+      tags:
+      - Avatars
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update avatar label and/or image. Provide only fields to change.
+      parameters:
+      - description: Avatar ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Label
+        example: '"Silver"'
+        in: formData
+        name: label
+        type: string
+      - description: Avatar image (<=2MB; jpeg/png/gif)
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar update request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Avatar not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Update avatar (maker)
+      tags:
+      - Avatars
+  /avatar/disable/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Approve disable request for an avatar.
+      parameters:
+      - description: Avatar ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar disabled
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Avatar not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Disable avatar (checker)
+      tags:
+      - Avatars
+  /avatar/enable/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Approve enable request for an avatar.
+      parameters:
+      - description: Avatar ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Avatar enabled
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Avatar not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Enable avatar (checker)
+      tags:
+      - Avatars
+  /banks:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve banks with pagination and optional search.
+      parameters:
+      - default: 1
+        description: Page number
+        example: 1
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        example: 10
+        in: query
+        maximum: 100
+        minimum: 1
+        name: per_page
+        type: integer
+      - description: Search term
+        example: '"CBE"'
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Banks fetched
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: List banks
+      tags:
+      - Banks
+    post:
+      consumes:
+      - multipart/form-data
+      description: Submit a bank create request with logo.
+      parameters:
+      - description: Bank name
+        example: '"Commercial Bank"'
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Bank code
+        example: '"CBE"'
+        in: formData
+        name: code
+        required: true
+        type: string
+      - description: Bank BIC
+        example: '"CBETETAA"'
+        in: formData
+        name: bic
+        required: true
+        type: string
+      - description: Bank logo (<=2MB; jpeg/png/gif/webp)
+        in: formData
+        name: logo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank create request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid input or logo
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "409":
+          description: Duplicate
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Create bank (maker)
+      tags:
+      - Banks
+  /banks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Submit a delete request for a bank by ID.
+      parameters:
+      - description: Bank ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Delete request created
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Bank not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete bank (maker)
+      tags:
+      - Banks
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a single bank by ID.
+      parameters:
+      - description: Bank ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank fetched
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Bank not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Get bank by ID
+      tags:
+      - Banks
+    patch:
+      consumes:
+      - application/json
+      description: Update bank name/code/bic.
+      parameters:
+      - description: Bank ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_bank.UpdateBankRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank update request sent
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Bank not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Update bank (maker)
+      tags:
+      - Banks
+  /banks/{id}/disable:
+    post:
+      consumes:
+      - application/json
+      description: Approve disable request for a bank.
+      parameters:
+      - description: Bank ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank disable request created
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Bank not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Disable bank (checker)
+      tags:
+      - Banks
+  /banks/{id}/enable:
+    post:
+      consumes:
+      - application/json
+      description: Approve enable request for a bank.
+      parameters:
+      - description: Bank ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank enable request created
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Bank not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Enable bank (checker)
+      tags:
+      - Banks
+  /banks/{id}/logo:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a new logo for the bank.
+      parameters:
+      - description: Bank ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bank logo (<=2MB; jpeg/png/gif/webp)
+        in: formData
+        name: logo
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logo uploaded
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Invalid logo
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "404":
+          description: Bank not found
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+      security:
+      - BearerAuth: []
+      summary: Update bank logo (maker)
+      tags:
+      - Banks
   /productcodes:
     get:
       description: Retrieves a paginated list of product codes. Search using service_name.Filter
@@ -850,19 +2142,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/productcode.ProductCodePaginatedResponse'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
       security:
       - BearerAuth: []
       summary: Fetch all product codes
@@ -883,23 +2175,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/productcode.ProductCodeResponse'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
       security:
       - BearerAuth: []
       summary: Fetch a product code by ID
@@ -921,7 +2213,7 @@ paths:
         name: productCode
         required: true
         schema:
-          $ref: '#/definitions/productcode.UpdateProductCodeRequest'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest'
       produces:
       - application/json
       responses:
@@ -929,24 +2221,24 @@ paths:
           description: OK
           schema:
             additionalProperties:
-              $ref: '#/definitions/model.ProductCode'
+              $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode'
             type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
       security:
       - BearerAuth: []
       summary: Update a product code
