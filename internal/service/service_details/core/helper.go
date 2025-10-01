@@ -97,6 +97,7 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 			tiers := make([]types.Tier, len(dto.Tiers))
 			for i, tier := range dto.Tiers {
 				tiers[i] = types.Tier{
+					ID:        bson.NewObjectID(),
 					Min:       tier.Min,
 					Max:       tier.Max,
 					FeeAmount: tier.FeeAmount,
@@ -157,16 +158,19 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 	if v, ok := incoming["payment_type"].(string); ok && v != "" {
 		updatedService.PaymentType = v
 	}
-	if v, ok := incoming["above_amount"]; ok {
-		switch n := v.(type) {
-		case float64:
-			updatedService.AboveAmount = uint64(n)
-		case int:
-			updatedService.AboveAmount = uint64(n)
-		case int64:
-			updatedService.AboveAmount = uint64(n)
-		case uint64:
-			updatedService.AboveAmount = n
+	// Handle above_amount only if tiers are not provided
+	if _, hasTiers := incoming["tiers"]; !hasTiers {
+		if v, ok := incoming["above_amount"]; ok {
+			switch n := v.(type) {
+			case float64:
+				updatedService.AboveAmount = uint64(n)
+			case int:
+				updatedService.AboveAmount = uint64(n)
+			case int64:
+				updatedService.AboveAmount = uint64(n)
+			case uint64:
+				updatedService.AboveAmount = n
+			}
 		}
 	}
 	if v, ok := incoming["above_service_fee"]; ok {
@@ -317,12 +321,13 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 		}
 	}
 
-	// Map tiers with ID preservation
+	// Map tiers with ID generation
 	if v, ok := incoming["tiers"].([]interface{}); ok {
 		incomingTiers := make([]types.Tier, 0, len(v))
 		for _, it := range v {
 			if tierMap, ok := it.(map[string]interface{}); ok {
 				var t types.Tier
+				t.ID = bson.NewObjectID() // Generate new ObjectID for each tier
 				if min, ok := tierMap["min"].(float64); ok {
 					t.Min = uint64(min)
 				}
@@ -336,8 +341,13 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 			}
 		}
 
-		// Assign tiers as-is; persistence layer will omit any id fields during update
+		// Assign tiers with new ObjectIDs
 		updatedService.Tiers = incomingTiers
+
+		// Set above_amount to the last tier's max value
+		if len(incomingTiers) > 0 {
+			updatedService.AboveAmount = incomingTiers[len(incomingTiers)-1].Max
+		}
 	}
 
 	// Ensure the ID is preserved
