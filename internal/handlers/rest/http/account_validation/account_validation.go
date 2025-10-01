@@ -26,17 +26,18 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 }
 
 // FindById godoc
-// @Summary Get account validation by ID
-// @Description Retrieve a specific account validation rule by its ID
-// @Tags Account Validation
-// @Accept json
-// @Produce json
-// @Param id path string true "Validation Rule ID"
-// @Success 200 {object} map[string]interface{} "Validation rule retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Security BearerAuth
-// @Router /account_validation/{id} [get]
+//
+//	@Summary		Get account validation by ID
+//	@Description	Retrieve a specific account validation rule by its ID
+//	@Tags			Account Validation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string					true	"Validation Rule ID"
+//	@Success		200	{object}	map[string]interface{}	"Validation rule retrieved successfully"
+//	@Failure		400	{object}	map[string]interface{}	"Bad request"
+//	@Failure		500	{object}	map[string]interface{}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/account_validation/{id} [get]
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -55,18 +56,19 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 }
 
 // Update godoc
-// @Summary Update account validation rule
-// @Description Update an existing account validation rule by its ID
-// @Tags Account Validation
-// @Accept json
-// @Produce json
-// @Param id path string true "Validation Rule ID"
-// @Param request body accountvalidation.ValidationRuleDTO true "Validation rule data"
-// @Success 200 {object} map[string]interface{} "Validation rule updated successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Security BearerAuth
-// @Router /account_validation/update/{id} [patch]
+//
+//	@Summary		Update account validation rule
+//	@Description	Update an existing account validation rule by its ID
+//	@Tags			Account Validation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string								true	"Validation Rule ID"
+//	@Param			request	body		accountvalidation.ValidationRuleDTO	true	"Validation rule data"
+//	@Success		200		{object}	map[string]interface{}				"Validation rule updated successfully"
+//	@Failure		400		{object}	map[string]interface{}				"Bad request"
+//	@Failure		500		{object}	map[string]interface{}				"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/account_validation/update/{id} [patch]
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -102,19 +104,20 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 }
 
 // FindAllWithPagination godoc
-// @Summary Get all account validation rules
-// @Description Retrieve all account validation rules with pagination
-// @Tags Account Validation
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} map[string]interface{} "Validation rules retrieved successfully"
-// @Failure 400 {object} map[string]interface{} "Bad request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Security BearerAuth
-// @Router /account_validation [get]
+//
+//	@Summary		Get all account validation rules
+//	@Description	Retrieve all account validation rules with pagination
+//	@Tags			Account Validation
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int						false	"Page number"		default(1)
+//	@Param			per_page	query		int						false	"Items per page"	default(10)
+//	@Param			search		query		string					false	"Search term"
+//	@Success		200			{object}	map[string]interface{}	"Validation rules retrieved successfully"
+//	@Failure		400			{object}	map[string]interface{}	"Bad request"
+//	@Failure		500			{object}	map[string]interface{}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/account_validation [get]
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {

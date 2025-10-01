@@ -1,7 +1,5 @@
 package donation_category
 
-
-
 type DonationCategoryListResponse struct {
 	ID             string `json:"id" bson:"id"`
 	CategoryName   string `json:"category_name" bson:"category_name"`

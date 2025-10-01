@@ -1,15 +1,16 @@
 package donation
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	donation_interface "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	core "cbe-super-app-cps-action/internal/handlers/rest/http/donation/core"
 	"cbe-super-app-cps-action/internal/service"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
-	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 type donationAdapter struct {
@@ -84,7 +85,6 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	
 
 	donations, err := d.donationApp.FetchDonation(r.Context(), filterParams)
 	if err != nil {
@@ -152,7 +152,6 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	
 	var req dto.DonationImageDeleteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		d.logger.Errorf("Failed to decode JSON request: %v", err)
@@ -174,7 +173,6 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 
 	localization.SendSuccessResponse(w, localization.SuccessDonationImageDeleteRequestSent, nil)
 }
-
 
 func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Request) {
 	id := core.ExtractIDFromURL(r)

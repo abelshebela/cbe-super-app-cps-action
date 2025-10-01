@@ -13,8 +13,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"github.com/go-chi/chi/v5"
 	"log"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func Init(ctx context.Context) {
@@ -72,26 +73,23 @@ func Init(ctx context.Context) {
 	}()
 
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank,serviceLayer.Wallet,serviceLayer.ServiceDetails, logger)
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
 	srv := server.NewHTTPServer(cfg, r)
-	
-	grpcServer,lis := server.StartGrpcServer(grpcHandlers)
 
+	grpcServer, lis := server.StartGrpcServer(grpcHandlers)
 
-
-
-go func() {
-    if err := grpcServer.Serve(lis); err != nil {
-        log.Fatalf("gRPC serve error: %v", err)
-    }
-    done <- struct{}{}
-}()
-	go func(){
-		 srv.HTTPServerStart(ctx, logger)
-		done<- struct{}{}
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("gRPC serve error: %v", err)
+		}
+		done <- struct{}{}
+	}()
+	go func() {
+		srv.HTTPServerStart(ctx, logger)
+		done <- struct{}{}
 	}()
 	<-done
-logger.Infof("Shutdown signal received. Stopping servers...")
+	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer)
 }

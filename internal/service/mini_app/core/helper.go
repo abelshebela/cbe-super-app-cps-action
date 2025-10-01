@@ -36,7 +36,6 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 		})
 	}
 
-	
 	var miniAppID bson.ObjectID
 	if req.ID != "" {
 		miniAppID, _ = bson.ObjectIDFromHex(req.ID)

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	// "math/rand"
 	mathrand "math/rand"
 	"mime/multipart"
@@ -325,7 +326,6 @@ func NonEmptyNotificationFor(newFor string, oldFor constants.NotificationFor) co
 	return oldFor
 }
 
-
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 
 	id := chi.URLParam(r, "id")
@@ -423,8 +423,6 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-
-
 func RandomGenerator(length uint8) string {
 	if length <= 0 {
 		panic("length must be greater than 0")
@@ -514,6 +512,6 @@ func JsonUnmarshal[T any](data any) (*T, error) {
 	return jsonData, nil
 }
 
-func ExtraSpaceRemover(s string) string{
-	return strings.TrimSpace(strings.Join(strings.Split(s," ")," "))
+func ExtraSpaceRemover(s string) string {
+	return strings.TrimSpace(strings.Join(strings.Split(s, " "), " "))
 }

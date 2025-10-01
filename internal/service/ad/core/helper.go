@@ -20,5 +20,3 @@ func GenerateAdvert(advert model.Advert) *model.Advert {
 		DeletedAt:     advert.DeletedAt,
 	}
 }
-
-

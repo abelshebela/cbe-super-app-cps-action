@@ -3,7 +3,7 @@ package model
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
-	
+
 	"fmt"
 	"time"
 
@@ -40,7 +40,7 @@ func (pc *ProductCodes) Validate() error {
 	pc.VATPRD = utils.ExtraSpaceRemover(pc.VATPRD)
 	pc.SFPRD = utils.ExtraSpaceRemover(pc.SFPRD)
 	pc.TRXN = utils.ExtraSpaceRemover(pc.TRXN)
-	
+
 	err := validation.ValidateStruct(pc,
 		validation.Field(&pc.PRD, validation.By(utils.NoSpecialChars)),
 		validation.Field(&pc.VATPRD, validation.By(utils.NoSpecialChars)),
@@ -53,4 +53,3 @@ func (pc *ProductCodes) Validate() error {
 	}
 	return nil
 }
-

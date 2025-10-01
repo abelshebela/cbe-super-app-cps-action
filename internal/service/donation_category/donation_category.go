@@ -87,7 +87,6 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 
 }
 
-
 func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string, donationCategory dto.DonationCategoryRequest) (dto.DonationCategoryRequest, error) {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
@@ -170,7 +169,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCategory):
 		donationModel := core.MapToDonationCategory(donationCPS.CategoryName, donationCPS.Icon)
-		
+
 		err := d.DonationCategoryRepo.Create(ctx, donationModel)
 		if err != nil {
 			d.logger.Errorf("Failed to create donation category: %v", err)

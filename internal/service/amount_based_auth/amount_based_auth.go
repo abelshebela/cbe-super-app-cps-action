@@ -102,6 +102,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			s.logger.Errorf("Error occurred when converting open tier map to struct: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
+		s.logger.Infof("Processing OPEN tier update=======//////openTier//////============: %v", openTier)
 
 		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
 		if !ok {
@@ -113,6 +114,8 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			s.logger.Errorf("Failed to unmarshal PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
+		s.logger.Infof("Processing OPEN tier update=======//////pinTier//////============: %v", pinTier)
+		s.logger.Errorf("Error occurred when casting pin id to string-----------RESULT-------------: %v", result["open_id"])
 
 		if err := s.Repository.Update(ctx, result["open_id"].(string), openTier); err != nil {
 			s.logger.Errorf("Failed to update OPEN tier data: %v", err)
@@ -120,11 +123,22 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		}
 
 		s.logger.Infof("Processing OPEN tier update=======/////AAAAAAAAAAAAAAAAA///////============: %v", (*data)["open"])
+		s.logger.Errorf("Error occurred when casting pin id to string-----------RESULT-------------: %v", result["pin_id"])
 
-		if err := s.Repository.Update(ctx, result["pin_id"].(string), pinTier); err != nil {
+		res, ok := result["pin_id"].(*string)
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin id to string------------------------: %v", result["pin_id"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		if err := s.Repository.Update(ctx, *res, pinTier); err != nil {
 			s.logger.Errorf("Failed to update PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
+		s.logger.Infof("Processing OPEN tier update=======//////openTier//////============: %v", openTier)
+		s.logger.Infof("Processing OPEN tier update=======//////pinTier//////============: %v", pinTier)
+
+		s.logger.Infof("OPEN tier update request completed successfully")
 	case "PIN":
 		s.logger.Infof("Processing PIN tier update================")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])

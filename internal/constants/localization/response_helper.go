@@ -9,12 +9,12 @@ import (
 
 // StandardResponse represents the standardized API response structure
 type StandardResponse struct {
-	Ok        bool         `json:"ok"`
-	Status    int          `json:"status"`
-	TimeStamp time.Time    `json:"timestamp,omitempty"`
-	Message   string       `json:"message"`
-	Data      interface{}  `json:"data,omitempty"`
-	Error     *ErrorDetail `json:"error,omitempty"`
+	Ok        bool        `json:"ok"`
+	Status    int         `json:"status"`
+	TimeStamp time.Time   `json:"timestamp,omitempty"`
+	Message   string      `json:"message"`
+	Data      interface{} `json:"data,omitempty"`
+	// Error     *ErrorDetail `json:"error,omitempty"`
 }
 
 // ErrorDetail represents error details in the response

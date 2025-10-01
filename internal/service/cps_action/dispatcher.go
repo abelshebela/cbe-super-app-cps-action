@@ -97,10 +97,10 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "donationCategory"):
-		
+
 		return d.app.DonationCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "donationCompany"):
-		
+
 		return d.app.DonationCompanyContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Donation"):
 		return d.app.DonationContainer.Authorize(ctx, cpsAction)

@@ -115,6 +115,6 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 		return
 	}
 
-	d.logger.Infof("donation category update request submitted successfully",updatedDonationCategory)
+	d.logger.Infof("donation category update request submitted successfully", updatedDonationCategory)
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, nil)
 }
