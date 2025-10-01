@@ -171,6 +171,14 @@ const (
 	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
 	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
 
+	// vault group category sucess messages
+	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
+	MsgVaultGroupCategoriesRetrieved              = "Vault group categories retrieved successfully"
+	MsgVaultGroupCategoryRetrieved                = "Vault group category retrieved successfully"
+	MsgVaultGroupCategoryUpdateRequestSubmitted   = "Vault group category update request submitted successfully"
+	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
+	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
+	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
 
@@ -577,6 +585,14 @@ const (
 	MsgBPSUserUpdateFailed   = "Failed to update BPS user"
 	MsgBPSUserInvalidFormat  = "Invalid BPS user format"
 	MsgBPSUserRequired       = "BPS user is required"
+
+	// bank vault related error messages
+	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
+	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
+
+	// vault group category related error messages
+	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
+	MsgVaultGroupAlreadyDisabled = "Vault group category already disabled"
 
 	// Ad related error messages
 	MsgAdNotFound       = "Ad not found"

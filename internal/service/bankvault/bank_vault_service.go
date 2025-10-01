@@ -156,7 +156,7 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	}
 	if prev.IsActive {
 		s.logger.Infof("Bank vault already enabled: %s", id)
-		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
+		return errors.New(localization.ErrorBankVaultAlreadyEnabled.Code)
 	}
 	updated := prev
 	updated.IsActive = true
@@ -181,7 +181,7 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 		return err
 	}
 	if !prev.IsActive {
-		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
+		return errors.New(localization.ErrorBankVaultAlreadyDisabled.Code)
 	}
 	updated := prev
 	updated.IsActive = false

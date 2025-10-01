@@ -116,6 +116,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "BankVault"):
 		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VaultGroupCategory"):
+		return d.app.VaultGroupCategoryContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")

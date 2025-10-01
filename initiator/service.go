@@ -18,6 +18,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
+	vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
 
@@ -86,6 +87,7 @@ type ServiceLayer struct {
 
 	NotificationService service.NotificationService
 	BankVault           service.BankVaultService
+	VaultGroupCategory  service.VaultGroupCategoryService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -286,6 +288,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	serviceContainer.BankVaultContainer = bankVaultSvc
 
+	vaultGroupSvc := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger)
+	serviceContainer.VaultGroupCategoryContainer = vaultGroupSvc
+
 	// Rebuild dispatcher with the fully wired container so approvals route to BankVault
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
@@ -332,5 +337,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ProductCode:         productService,
 		NotificationService: notificationsvc,
 		BankVault:           bankVaultSvc,
+		VaultGroupCategory:  vaultGroupSvc,
 	}
 }

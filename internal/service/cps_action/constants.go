@@ -220,6 +220,13 @@ const (
 	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
 	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+
+	// for vault group category
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -228,6 +235,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteBankVault:  {},
 	RequestEnableBankVault:  {},
 	RequestDisAbleBankVault: {},
+
+	// for vault group category
+	RequestCreateVaultGroupCategory:  {},
+	RequestUpdateVaultGroupCategory:  {},
+	RequestDeleteVaultGroupCategory:  {},
+	RequestEnableVaultGroupCategory:  {},
+	RequestDisAbleVaultGroupCategory: {},
 
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
@@ -627,6 +641,13 @@ var RequestActionGroups = map[string][]RequestAction{
 	"donationCompany": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
+	},
+	"VaultGroupCategory": {
+		RequestCreateVaultGroupCategory,
+		RequestUpdateVaultGroupCategory,
+		RequestDeleteVaultGroupCategory,
+		RequestEnableVaultGroupCategory,
+		RequestDisAbleVaultGroupCategory,
 	},
 }
 

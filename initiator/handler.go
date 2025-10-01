@@ -13,6 +13,7 @@ import (
 	miniAppInbound "cbe-super-app-cps-action/internal/constants/interfaces/mini_app"
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
+	vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
 
 	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
@@ -37,6 +38,7 @@ import (
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
+
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget"
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
@@ -49,6 +51,7 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
+	vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
@@ -105,8 +108,9 @@ type Handler struct {
 	DonationCategoryHandler donation_category.DonationCategoryAdapter
 	DonationCompanyHandler  donation_company.DonationCompanyAdapter
 
-	NotificationHandler notificationInbound.NotificationHandler
-	BankVaultHandler    bankvaultInterface.BankVaultHandler
+	NotificationHandler       notificationInbound.NotificationHandler
+	BankVaultHandler          bankvaultInterface.BankVaultHandler
+	VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -137,6 +141,8 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 		NotificationHandler: notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
 		BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
+
+		VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
 
 		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 

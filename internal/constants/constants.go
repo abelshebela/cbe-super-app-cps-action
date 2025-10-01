@@ -269,7 +269,7 @@ const (
 	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINIAPP_MERCHANT"
 	RequestUpdateMiniAppMerchant  RequestAction = "UPDATE_MINIAPP_MERCHANT"
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINIAPP_MERCHANT"
-	RequestDeleteMiniAppMerchant    RequestAction  = "DELETE_MINI_APP_MERCHANT"
+	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINIAPP_MERCHANT"
 	RequestUpdateBlockTime        RequestAction = "UPDATE_BLOCK_TIME"
 	RequestCreateAvatar           RequestAction = "CREATE_AVATAR"
@@ -293,6 +293,13 @@ const (
 	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
 	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+
+	// for vault group category
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
 
 	// Newly added for block_account
 	// Branch
