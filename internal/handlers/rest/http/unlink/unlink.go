@@ -33,9 +33,9 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 // @Param page query int false "Page number"
 // @Param per_page query int false "Items per page"
 // @Param search query string false "Search term"
-// @Success 200 {object} model.APIResponse{data=[]model.User} "User retrieved successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedArchieveUserResponse} "User retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /unlink/archived_user [get]
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
@@ -61,10 +61,10 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 // @Accept json
 // @Produce json
 // @Param account_number path string true "Account number"
-// @Success 200 {object} model.APIResponse{data=model.User} "User retrieved successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "User not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=model.User} "User retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "User not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /unlink/user-by-account/{account_number} [get]
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {
@@ -89,10 +89,10 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param user_code path string true "User code"
-// @Success 200 {object} model.APIResponse{data=nil} "Unlink CIF request sent successfully "
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "User not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Unlink CIF request sent successfully "
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "User not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /unlink/user_cif/{user_code} [patch]
 func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {

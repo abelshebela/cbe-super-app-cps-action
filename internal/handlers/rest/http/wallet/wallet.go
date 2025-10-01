@@ -35,9 +35,9 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 // @Param name formData string true "Name of the wallet"
 // @Param code formData string true "Code of the wallet"
 // @Param avatar formData file true "Avatar image file"
-// @Success 200 {object} model.APIResponse{data=nil} "Wallet creation request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet creation request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets [post]
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
@@ -80,9 +80,9 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 // @Param name formData string true "Name of the wallet"
 // @Param code formData string true "Code of the wallet"
 // @Param avatar formData file true "Avatar image file"
-// @Success 200 {object} model.APIResponse{data=nil} "Wallet update request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet update request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
@@ -123,10 +123,10 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Wallet ID"
-// @Success 200 {object} model.APIResponse{data=nil} "Wallet deleted successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Wallet not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet deleted successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets/{id} [delete]
 func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
@@ -151,10 +151,10 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Wallet ID"
-// @Success 200 {object} model.APIResponse{data=nil} "Wallet enable request submitted"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Wallet not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet enable request submitted"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets/{id}/enable [patch]
 func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
@@ -179,10 +179,10 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Wallet ID"
-// @Success 200 {object} model.APIResponse{data=nil} "Wallet disable request submitted"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Wallet not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet disable request submitted"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets/{id}/disable [patch]
 func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
@@ -207,10 +207,10 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Wallet ID"
-// @Success 200 {object} model.APIResponse{data=model.Wallet} "Wallet retrieved successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Wallet not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=model.Wallet} "Wallet retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets/{id} [get]
 func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
@@ -238,8 +238,8 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} model.APIResponse{data=[]model.Wallet} "Wallets retrieved successfully"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedWalletResponse} "Wallets retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {

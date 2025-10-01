@@ -42,9 +42,9 @@ func NewDonationAdapter(donationApp service.DonationService, logger utils.Logger
 // @Param start_date formData string false "Start date (YYYY-MM-DD)"
 // @Param end_date formData string false "End date (YYYY-MM-DD)"
 // @Param enabled formData bool false "Enabled"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation creation request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation creation request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation [post]
 func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request) {
@@ -89,9 +89,9 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 // @Param start_date formData string false "Start date (YYYY-MM-DD)"
 // @Param end_date formData string false "End date (YYYY-MM-DD)"
 // @Param enabled formData bool false "Enabled"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation update request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation update request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/{id} [patch]
 func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request) {
@@ -134,8 +134,8 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} model.APIResponse{data=[]donation.DonationListResponse} "Donations retrieved successfully"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedDonationResponse} "Donations retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation [get]
 func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) {
@@ -163,10 +163,10 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation ID"
-// @Success 200 {object} model.APIResponse{data=donation.DonationResponse} "Donation retrieved successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=donation.DonationResponse} "Donation retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/{id} [get]
 func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Request) {
@@ -196,9 +196,9 @@ func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Reque
 // @Param id path string true "Donation ID"
 // @Param image_id formData string true "Image ID"
 // @Param donation_images formData file true "New image file"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation image update request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation image update request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/image/{id} [patch]
 func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Request) {
@@ -239,9 +239,9 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 // @Produce json
 // @Param id path string true "Donation ID"
 // @Param request body donation.DonationImageDeleteRequest true "Image delete request"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation image delete request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation image delete request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/image/{id} [delete]
 func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Request) {
@@ -283,9 +283,9 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 // @Produce json
 // @Param id path string true "Donation ID"
 // @Param donation_images formData file true "Donation images (allow multiple with the same field name)"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation image add request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation image add request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/image/{id} [post]
 func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Request) {
@@ -325,10 +325,10 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation ID"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation enable request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Donation not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation enable request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/enable/{id} [patch]
 func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request) {
@@ -355,10 +355,10 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation ID"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation disable request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Donation not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation disable request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation/disable/{id} [patch]
 func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request) {

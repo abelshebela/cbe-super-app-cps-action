@@ -34,8 +34,8 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} model.APIResponse{data=[]donation_company.DonationCompanyListResponse} "Donation companies retrieved successfully"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedDonationCompanyResponse} "Donation companies retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation_company [get]
 func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
@@ -62,10 +62,10 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation Company ID"
-// @Success 200 {object} model.APIResponse{data=donation_company.DonationCompanyResponse} "Donation company retrieved successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=donation_company.DonationCompanyResponse} "Donation company retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation_company/{id} [get]
 func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request) {
@@ -95,9 +95,9 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 // @Param company_name formData string true "Company name"
 // @Param company_logo formData file true "Company logo image file"
 // @Param account_number formData string true "Account number"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation company creation request sent successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation company creation request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation_company [post]
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
@@ -134,10 +134,10 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 // @Param company_name formData string false "Company name"
 // @Param company_logo formData file false "Company logo image file"
 // @Param account_number formData string false "Account number"
-// @Success 200 {object} model.APIResponse{data=nil} "Donation company updated successfully"
-// @Failure 400 {object} model.APIResponse{data=nil} "Bad request"
-// @Failure 404 {object} model.APIResponse{data=nil} "Not found"
-// @Failure 500 {object} model.APIResponse{data=nil} "Internal server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation company updated successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation_company/{id} [patch]
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {

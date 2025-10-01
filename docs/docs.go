@@ -1114,7 +1114,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1122,7 +1122,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/donation.DonationListResponse"
+                                                "$ref": "#/definitions/model.PaginatedDonationResponse"
                                             }
                                         }
                                     }
@@ -1135,7 +1135,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1253,7 +1253,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1271,7 +1271,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1289,7 +1289,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1338,7 +1338,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1356,7 +1356,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1374,7 +1374,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1392,7 +1392,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1441,7 +1441,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1459,7 +1459,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1477,7 +1477,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1495,7 +1495,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1551,7 +1551,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1569,7 +1569,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1587,7 +1587,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1643,7 +1643,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1661,7 +1661,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1679,7 +1679,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1740,7 +1740,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1758,7 +1758,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1776,7 +1776,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1825,7 +1825,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1843,7 +1843,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1861,7 +1861,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1879,7 +1879,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1998,7 +1998,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2016,7 +2016,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2034,7 +2034,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2096,7 +2096,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2104,7 +2104,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/donation_category.DonationCategoryListResponse"
+                                                "$ref": "#/definitions/model.PaginatedDonationCategoryResponse"
                                             }
                                         }
                                     }
@@ -2117,7 +2117,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2171,7 +2171,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2189,7 +2189,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2207,7 +2207,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2256,7 +2256,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2274,7 +2274,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2292,7 +2292,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2310,7 +2310,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2369,7 +2369,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2387,7 +2387,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2405,7 +2405,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2423,7 +2423,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2485,7 +2485,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2493,7 +2493,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/donation_company.DonationCompanyListResponse"
+                                                "$ref": "#/definitions/model.PaginatedDonationCompanyResponse"
                                             }
                                         }
                                     }
@@ -2506,7 +2506,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2567,7 +2567,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2585,7 +2585,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2603,7 +2603,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2652,7 +2652,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2670,7 +2670,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2688,7 +2688,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2706,7 +2706,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2771,7 +2771,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2789,7 +2789,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2807,7 +2807,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2825,7 +2825,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2887,7 +2887,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2895,7 +2895,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/notification.NotificationResponse"
+                                                "$ref": "#/definitions/model.PaginatedNotificationResponse"
                                             }
                                         }
                                     }
@@ -2908,7 +2908,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2957,7 +2957,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2975,7 +2975,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2993,7 +2993,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3042,7 +3042,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3060,7 +3060,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3078,7 +3078,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3096,7 +3096,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3145,7 +3145,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3163,7 +3163,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3181,7 +3181,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3199,7 +3199,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3248,7 +3248,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3266,7 +3266,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3284,7 +3284,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3302,7 +3302,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3349,7 +3349,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3367,7 +3367,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3385,7 +3385,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3403,7 +3403,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3459,7 +3459,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3477,7 +3477,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3495,7 +3495,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3513,7 +3513,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3771,7 +3771,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3779,7 +3779,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/model.User"
+                                                "$ref": "#/definitions/model.PaginatedArchieveUserResponse"
                                             }
                                         }
                                     }
@@ -3792,7 +3792,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3810,7 +3810,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3859,7 +3859,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3877,7 +3877,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3895,7 +3895,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3913,7 +3913,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3962,7 +3962,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3980,7 +3980,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3998,7 +3998,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4016,7 +4016,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4078,7 +4078,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4086,7 +4086,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/model.Wallet"
+                                                "$ref": "#/definitions/model.PaginatedWalletResponse"
                                             }
                                         }
                                     }
@@ -4099,7 +4099,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4160,7 +4160,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4178,7 +4178,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4196,7 +4196,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4245,7 +4245,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4263,7 +4263,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4281,7 +4281,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4299,7 +4299,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4346,7 +4346,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4364,7 +4364,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4382,7 +4382,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4400,7 +4400,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4461,7 +4461,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4479,7 +4479,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4497,7 +4497,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4546,7 +4546,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4564,7 +4564,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4582,7 +4582,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4600,7 +4600,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4649,7 +4649,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4667,7 +4667,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4685,7 +4685,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4703,7 +4703,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.APIResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4883,6 +4883,32 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "CBT",
                 "IFBT"
+            ]
+        },
+        "constants.NotificationFor": {
+            "type": "string",
+            "enum": [
+                "IFB",
+                "CB",
+                "ALL"
+            ],
+            "x-enum-varnames": [
+                "ForIFB",
+                "ForCB",
+                "ForAll"
+            ]
+        },
+        "constants.NotificationStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "SENT",
+                "SEEN"
+            ],
+            "x-enum-varnames": [
+                "StatusPending",
+                "StatusSent",
+                "StatusSeen"
             ]
         },
         "constants.Platform": {
@@ -5167,7 +5193,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.APIResponse": {
+        "localization.StandardResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -5182,6 +5208,395 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "string"
+                }
+            }
+        },
+        "model.ArchivedUser": {
+            "type": "object",
+            "properties": {
+                "account_branch_type": {
+                    "$ref": "#/definitions/constants.MemberType"
+                },
+                "account_linked": {
+                    "type": "boolean"
+                },
+                "account_status": {
+                    "$ref": "#/definitions/constants.AccountStatus"
+                },
+                "address": {
+                    "$ref": "#/definitions/types.Address"
+                },
+                "app_version": {
+                    "type": "string"
+                },
+                "application_installation_date": {
+                    "type": "string"
+                },
+                "avater": {
+                    "type": "string"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "blocked_on_cps": {
+                    "description": "default: false",
+                    "type": "boolean"
+                },
+                "bps_reject_failed": {
+                    "description": "questioned",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bps_reject_reason": {
+                    "type": "string"
+                },
+                "bps_reject_status": {
+                    "description": "questioned",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constants.BPSStatus"
+                        }
+                    ]
+                },
+                "branch_approved": {
+                    "type": "boolean"
+                },
+                "branch_code": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_number": {
+                    "type": "string"
+                },
+                "device_status": {
+                    "$ref": "#/definitions/constants.DeviceStatus"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "district_code": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "document_back": {
+                    "type": "string"
+                },
+                "document_front": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fayda": {
+                    "type": "object",
+                    "properties": {
+                        "employer_name": {
+                            "type": "string"
+                        },
+                        "employment_status": {
+                            "type": "string"
+                        },
+                        "fayda_access_token": {
+                            "type": "string"
+                        },
+                        "id_number": {
+                            "type": "string"
+                        },
+                        "issued_by": {
+                            "type": "string"
+                        },
+                        "monthly_incode": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "first_pin_set": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constants.Gender"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_linked_at": {
+                    "type": "string"
+                },
+                "initial_linked_date": {
+                    "type": "string"
+                },
+                "is_account_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked": {
+                    "description": "default: false",
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_self_register": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "issued_date": {
+                    "type": "string"
+                },
+                "kyc": {
+                    "type": "object",
+                    "properties": {
+                        "kyc_activity_by": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        },
+                        "kyc_approved": {
+                            "type": "boolean"
+                        },
+                        "kyc_reject_reason": {
+                            "type": "string"
+                        },
+                        "kyc_reject_reason_failed": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        },
+                        "kyc_status": {
+                            "$ref": "#/definitions/constants.KYCStatus"
+                        }
+                    }
+                },
+                "last_account_linked": {
+                    "type": "boolean"
+                },
+                "last_login": {
+                    "type": "string"
+                },
+                "last_login_attempt": {
+                    "type": "string"
+                },
+                "last_main_account": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "last_online_date": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "loan_score": {
+                    "type": "integer"
+                },
+                "login_attempt_count": {
+                    "type": "integer"
+                },
+                "login_pin": {
+                    "$ref": "#/definitions/types.LoginPIN"
+                },
+                "main_account": {
+                    "type": "string"
+                },
+                "mother_name": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "next_attempt_count": {
+                    "type": "string"
+                },
+                "otp_verify_count": {
+                    "type": "integer"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "pin_changed_at": {
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/constants.Platform"
+                },
+                "profile_theme_type": {
+                    "type": "string"
+                },
+                "push_token": {
+                    "type": "string"
+                },
+                "realm": {
+                    "$ref": "#/definitions/constants.Realm"
+                },
+                "register_by": {
+                    "type": "object"
+                },
+                "residential_status": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Notification": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "for": {
+                    "$ref": "#/definitions/constants.NotificationFor"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "last_modified": {
+                    "type": "string"
+                },
+                "notification_body": {
+                    "type": "string"
+                },
+                "notification_parts": {},
+                "notification_type": {
+                    "type": "string"
+                },
+                "seen": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "$ref": "#/definitions/constants.NotificationStatus"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.PaginatedArchieveUserResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ArchivedUser"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedDonationCategoryResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation_category.DonationCategoryListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedDonationCompanyResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation_company.DonationCompanyListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedDonationResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation.DonationListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedNotificationResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Notification"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedWalletResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Wallet"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
                 }
             }
         },
@@ -5671,6 +6086,38 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "types.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "has_prev_page": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "next_page": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "paging_counter": {
+                    "type": "integer"
+                },
+                "prev_page": {
+                    "type": "integer"
+                },
+                "total_docs": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
                 }
             }
         }
