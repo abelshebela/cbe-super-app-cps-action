@@ -4,6 +4,7 @@ import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
+	bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
 	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
@@ -35,6 +36,7 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
+	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget"
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
@@ -104,6 +106,7 @@ type Handler struct {
 	DonationCompanyHandler  donation_company.DonationCompanyAdapter
 
 	NotificationHandler notificationInbound.NotificationHandler
+	BankVaultHandler    bankvaultInterface.BankVaultHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -133,6 +136,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		Permission:          permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 		NotificationHandler: notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
+		BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
 
 		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 

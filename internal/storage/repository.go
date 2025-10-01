@@ -249,6 +249,14 @@ type CpsUserRepository interface {
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSUser], error)
 }
+type BankVaultRepository interface {
+	Create(ctx context.Context, bankVault *model.BankVaultProduct) (string, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error)
+	FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error)
+	Update(ctx context.Context, id string, bankVault *model.BankVaultProduct) error
+	Delete(ctx context.Context, id string) (string, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool)
+}
 
 type DonationRepository interface {
 	Create(ctx context.Context, donation *model.Donation) error

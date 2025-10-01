@@ -8,6 +8,7 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
+	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	"cbe-super-app-cps-action/internal/service/budget"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
@@ -84,11 +85,12 @@ type ServiceLayer struct {
 	Donation service.DonationService
 
 	NotificationService service.NotificationService
+	BankVault           service.BankVaultService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, oracle OraclePersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 	// Create CPS action service with the dispatcher
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
@@ -280,6 +282,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
+
+	bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
+	serviceContainer.BankVaultContainer = bankVaultSvc
+
+	// Rebuild dispatcher with the fully wired container so approvals route to BankVault
+	dispatcher = cpsaction.NewDispatcher(serviceContainer)
+	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+	serviceContainer.CPSActionContainer = cpsActionService
 	// Update miniAppMerchantService with the CPS action service
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
@@ -321,5 +331,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 		ProductCode:         productService,
 		NotificationService: notificationsvc,
+		BankVault:           bankVaultSvc,
 	}
 }

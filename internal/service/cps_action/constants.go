@@ -214,9 +214,21 @@ const (
 	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	// for bankvault
+	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
+	RequestCreateBankVault:  {},
+	RequestUpdateBankVault:  {},
+	RequestDeleteBankVault:  {},
+	RequestEnableBankVault:  {},
+	RequestDisAbleBankVault: {},
+
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
 	RequestCreateDonationCompany:  {},
@@ -588,6 +600,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableNotification,
 		RequestDisableNotification,
 		RequestMarkNotificationAsSeen,
+	},
+	"BankVault": {
+		RequestCreateBankVault,
+		RequestUpdateBankVault,
+		RequestDeleteBankVault,
+		RequestEnableBankVault,
+		RequestDisAbleBankVault,
 	},
 	"ProductCode": {
 		RequestUpdateProductCode,

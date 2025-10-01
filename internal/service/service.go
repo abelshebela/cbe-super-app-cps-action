@@ -2,6 +2,7 @@ package service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
@@ -82,6 +83,7 @@ type NotificationService interface {
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
 	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error)
 }
+
 type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
@@ -368,4 +370,15 @@ type ServiceContainer struct {
 	Unlink                    UnlinkService
 	DonationCategoryContainer DonationCategoryService
 	DonationCompanyContainer  DonationCompanyService
+	BankVaultContainer        BankVaultService
+}
+type BankVaultService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error)
+	FindAllBankVaults(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*bankvault.BankVaultProductResponse], error)
+	GetBankVault(ctx context.Context, id string) (*bankvault.BankVaultProductResponse, error)
+	UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error)
+	DeleteBankVault(ctx context.Context, id string) (string, error)
+	EnableBankVault(ctx context.Context, id string) error
+	DisableBankVault(ctx context.Context, id string) error
 }

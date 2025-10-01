@@ -924,6 +924,49 @@ var (
 		Message:    MsgEventsSuccessfullyRetrieved,
 		Type:       "success",
 	}
+	// bankvault related 
+	SuccessBankVaultCreationRequestSubmitted= ResponseCode{
+		Code: "SUCCESS_BANKVAULT_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message: MsgBankVaultCreationRequestSubmitted,	
+		Type: "success",
+	}
+	SuccessBankVaultsRetrieved= ResponseCode{
+		Code: "SUCCESS_BANKVAULTS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message: MsgBankVaultsRetrievedSuccessfully,
+		Type: "success",
+	}
+	SuccessBankVaultRetrieved= ResponseCode{
+		Code: "SUCCESS_BANKVAULT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message: MsgBankVaultRetrievedSuccessfully,
+		Type: "success",
+	}
+	SuccessBankVaultUpdateRequestSubmitted= ResponseCode{
+		Code: "SUCCESS_BANKVAULT_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message: MsgBankVaultUpdateRequestSubmitted,
+		Type: "success",
+	}
+	SuccessBankVaultDeleteRequestSubmitted= ResponseCode{
+		Code: "SUCCESS_BANKVAULT_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message: MsgBankVaultDeleteRequestSubmitted,
+		Type: "success",
+	}
+	SuccessBankVaultEnableRequestSubmitted= ResponseCode{
+		Code: "SUCCESS_BANKVAULT_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message: MsgBankVaultEnableRequestSubmitted,
+		Type: "success",
+	}
+	SuccessBankVaultDisableRequestSubmitted= ResponseCode{
+		Code: "SUCCESS_BANKVAULT_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message: MsgBankVaultDisableRequestSubmitted,
+		Type: "success",
+	}
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
 		StatusCode: StatusBadRequest,

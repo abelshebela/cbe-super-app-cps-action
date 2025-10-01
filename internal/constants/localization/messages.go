@@ -162,6 +162,15 @@ const (
 	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
+	// Bank Vault related success messages
+	MsgBankVaultCreationRequestSubmitted = "Bank vault creation request submitted successfully"
+	MsgBankVaultUpdateRequestSubmitted   = "Bank vault update request submitted successfully"
+	MsgBankVaultDeleteRequestSubmitted   = "Bank vault deleted  request submitted successfully"
+	MsgBankVaultDisableRequestSubmitted  = "Bank vault disabled request submitted successfully"
+	MsgBankVaultEnableRequestSubmitted   = "Bank vault enabled request submitted successfully"
+	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
+	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
+
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
 
