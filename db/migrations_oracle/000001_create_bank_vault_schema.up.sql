@@ -36,7 +36,7 @@ CREATE TABLE bank_vault_products (
     max_amount           NUMBER(19,4)    NOT NULL CHECK (max_amount > 0),
     early_unlock_fee_bps NUMBER(19,4)    DEFAULT 0 CHECK (early_unlock_fee_bps >= 0),
     is_active            NUMBER(1)       DEFAULT 0 CHECK (is_active IN (0,1)),
-    is_deleted           NUMBER(1)       DEFAULT 0 CHECK (is_deleted IN (0,1)),
+    is_deleted           NUMBER(1) DEFAULT 0 NOT NULL,
     created_at           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted_at           TIMESTAMP WITH TIME ZONE,

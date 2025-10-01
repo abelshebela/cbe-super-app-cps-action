@@ -25,12 +25,12 @@ type bankVaultRepositary struct {
 	logger  shared_utils.Logger
 }
 
-func sqlBoolToBool(nb sql.NullBool) bool {
-	if nb.Valid {
-		return nb.Bool
-	}
-	return false
-}
+// func sqlBoolToBool(nb sql.NullBool) bool {
+// 	if nb.Valid {
+// 		return nb.Bool
+// 	}
+// 	return false
+// }
 
 func NewBankVaultRepository(db *sql.DB, logger shared_utils.Logger) storage.BankVaultRepository {
 	return &bankVaultRepositary{
