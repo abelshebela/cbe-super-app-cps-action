@@ -191,11 +191,6 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		if err := s.Repository.Update(ctx, (*data)["open_id"].(string), pinTier); err != nil {
-			s.logger.Errorf("Failed to update PIN tier data: %v", err)
-			return nil, errors.New(localization.ErrorInvalidActionData.Code)
-		}
-
 		if err := s.Repository.Update(ctx, (*data)["otp_pin_id"].(string), otpPinTier); err != nil {
 			s.logger.Errorf("Failed to update OTP_PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
