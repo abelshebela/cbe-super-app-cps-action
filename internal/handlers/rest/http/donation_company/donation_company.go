@@ -62,7 +62,7 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation Company ID"
-// @Success 200 {object} localization.StandardResponse{data=donation_company.DonationCompanyResponse} "Donation company retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=donation_company.DonationCompanyListResponse} "Donation company retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"

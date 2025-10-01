@@ -2262,7 +2262,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/donation_category.DonationCategoryResponse"
+                                            "$ref": "#/definitions/donation_category.DonationCategoryListResponse"
                                         }
                                     }
                                 }
@@ -2658,7 +2658,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/donation_company.DonationCompanyResponse"
+                                            "$ref": "#/definitions/donation_company.DonationCompanyListResponse"
                                         }
                                     }
                                 }
@@ -5121,17 +5121,6 @@ const docTemplate = `{
                 }
             }
         },
-        "donation_category.DonationCategoryResponse": {
-            "type": "object",
-            "properties": {
-                "category_name": {
-                    "type": "string"
-                },
-                "donation_icon": {
-                    "type": "string"
-                }
-            }
-        },
         "donation_company.DonationCompanyListResponse": {
             "type": "object",
             "properties": {
@@ -5154,20 +5143,6 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "last_modified_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "donation_company.DonationCompanyResponse": {
-            "type": "object",
-            "properties": {
-                "account_number": {
-                    "type": "string"
-                },
-                "company_logo": {
-                    "type": "string"
-                },
-                "company_name": {
                     "type": "string"
                 }
             }

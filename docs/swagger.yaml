@@ -278,13 +278,6 @@ definitions:
       last_modified_at:
         type: string
     type: object
-  donation_category.DonationCategoryResponse:
-    properties:
-      category_name:
-        type: string
-      donation_icon:
-        type: string
-    type: object
   donation_company.DonationCompanyListResponse:
     properties:
       account_number:
@@ -300,15 +293,6 @@ definitions:
       is_deleted:
         type: boolean
       last_modified_at:
-        type: string
-    type: object
-  donation_company.DonationCompanyResponse:
-    properties:
-      account_number:
-        type: string
-      company_logo:
-        type: string
-      company_name:
         type: string
     type: object
   localization.ResponseCode:
@@ -2306,7 +2290,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/donation_category.DonationCategoryResponse'
+                  $ref: '#/definitions/donation_category.DonationCategoryListResponse'
               type: object
         "400":
           description: Bad request
@@ -2526,7 +2510,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/donation_company.DonationCompanyResponse'
+                  $ref: '#/definitions/donation_company.DonationCompanyListResponse'
               type: object
         "400":
           description: Bad request

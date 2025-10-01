@@ -62,7 +62,7 @@ func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation Category ID"
-// @Success 200 {object} localization.StandardResponse{data=donation_category.DonationCategoryResponse} "Donation category retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=donation_category.DonationCategoryListResponse} "Donation category retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
