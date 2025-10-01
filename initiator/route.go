@@ -106,5 +106,18 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
 
+	// Initialize Swagger documentation routes
+	swaggerHandler := NewSwaggerHandler(logger)
+	router.Get("/swagger/*", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/swagger/" || r.URL.Path == "/swagger" {
+			swaggerHandler.ServeSwaggerUI(w, r)
+		} else {
+			swaggerHandler.ServeSwaggerSpec(w, r)
+		}
+	})
+	router.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/swagger/", http.StatusMovedPermanently)
+	})
+
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 }

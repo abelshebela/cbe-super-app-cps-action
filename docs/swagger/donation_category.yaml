@@ -1,0 +1,392 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Donation Category Management API
+  description: |
+    This API provides endpoints for managing donation categories in the CBE Super App CPS Action module.
+    It allows creating, updating, and retrieving donation categories.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    DonationCategoryRequest:
+      type: object
+      required:
+        - category_name
+      properties:
+        category_name:
+          type: string
+          description: Name of the donation category
+          example: "Education"
+        donation_icon:
+          type: string
+          format: binary
+          description: Icon image file for the category
+    
+    DonationCategoryResponse:
+      type: object
+      properties:
+        category_name:
+          type: string
+          description: Name of the donation category
+          example: "Education"
+        donation_icon:
+          type: string
+          format: uri
+          description: URL of the category icon
+          example: "https://example.com/icons/education.png"
+    
+    DonationCategoryListResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          description: Unique identifier for the category
+          example: "507f1f77bcf86cd799439011"
+        category_name:
+          type: string
+          description: Name of the donation category
+          example: "Education"
+        donation_icon:
+          type: string
+          format: uri
+          description: URL of the category icon
+          example: "https://example.com/icons/education.png"
+        is_deleted:
+          type: boolean
+          description: Whether the category is marked as deleted
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: When the category was created
+          example: "2023-01-01T00:00:00Z"
+        last_modified_at:
+          type: string
+          format: date-time
+          description: When the category was last modified
+          example: "2023-01-01T12:30:00Z"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/DonationCategoryResponse'
+            - $ref: '#/components/schemas/DonationCategoryListResponse'
+            - type: array
+              items:
+                $ref: '#/components/schemas/DonationCategoryListResponse'
+            - $ref: '#/components/schemas/PaginatedResponse'
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_BAD_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DonationCategoryListResponse'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Donation Categories
+    description: Operations related to donation category management
+
+paths:
+  /donation-categories:
+    get:
+      tags:
+        - Donation Categories
+      summary: Get all donation categories
+      description: |
+        Retrieve a paginated list of all donation categories.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Donation categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation categories retrieved successfully"
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439011"
+                      category_name: "Education"
+                      donation_icon: "https://example.com/icons/education.png"
+                      is_deleted: false
+                      created_at: "2023-01-01T00:00:00Z"
+                      last_modified_at: "2023-01-01T12:30:00Z"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    post:
+      tags:
+        - Donation Categories
+      summary: Create a new donation category
+      description: |
+        Create a new donation category with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - category_name
+              properties:
+                category_name:
+                  type: string
+                  description: Name of the donation category
+                  example: "Education"
+                donation_icon:
+                  type: string
+                  format: binary
+                  description: Icon image file for the category
+      responses:
+        '200':
+          description: Donation category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation category created successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /donation-categories/{id}:
+    get:
+      tags:
+        - Donation Categories
+      summary: Get donation category by ID
+      description: |
+        Retrieve detailed information about a specific donation category by its ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the donation category to retrieve
+          schema:
+            type: string
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Donation category details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation category retrieved successfully"
+                data:
+                  id: "507f1f77bcf86cd799439011"
+                  category_name: "Education"
+                  donation_icon: "https://example.com/icons/education.png"
+                  is_deleted: false
+                  created_at: "2023-01-01T00:00:00Z"
+                  last_modified_at: "2023-01-01T12:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - Donation Categories
+      summary: Update a donation category
+      description: |
+        Update an existing donation category with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the donation category to update
+          schema:
+            type: string
+          example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                category_name:
+                  type: string
+                  description: Updated name of the donation category
+                  example: "Education Fund"
+                donation_icon:
+                  type: string
+                  format: binary
+                  description: Updated icon image file for the category
+      responses:
+        '200':
+          description: Donation category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation category updated successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found - The requested donation category does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

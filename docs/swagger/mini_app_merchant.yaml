@@ -1,0 +1,585 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Mini App Merchant Management API
+  description: |
+    This API provides endpoints for managing mini app merchants in the CBE Super App CPS Action module.
+    It allows creating, updating, deleting, enabling, disabling, and retrieving mini app merchants.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    MiniAppMerchantRequest:
+      type: object
+      required:
+        - type
+        - merchant_name
+        - merchant_representative_name
+        - phone_number
+        - email
+        - account_number
+      properties:
+        type:
+          type: string
+          description: Type of the merchant
+          example: "RETAIL"
+        merchant_name:
+          type: string
+          description: Name of the merchant
+          example: "ABC Trading PLC"
+        merchant_representative_name:
+          type: string
+          description: Name of the merchant's representative
+          example: "John Doe"
+        phone_number:
+          type: string
+          description: Contact phone number (Ethiopian format: 0912345678 or +251912345678)
+          example: "0912345678"
+        email:
+          type: string
+          format: email
+          description: Contact email address
+          example: "merchant@example.com"
+        account_number:
+          type: string
+          description: Bank account number
+          example: "1000234567890"
+    
+    KYCDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          description: KYC verification status
+          example: "VERIFIED"
+        representative:
+          $ref: '#/components/schemas/RepresentativeDTO'
+    
+    RepresentativeDTO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the representative
+          example: "John Doe"
+        phone:
+          type: string
+          description: Phone number of the representative
+          example: "0912345678"
+        email:
+          type: string
+          format: email
+          description: Email of the representative
+          example: "john.doe@example.com"
+    
+    MiniApp:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+        name:
+          type: string
+          example: "Food Delivery App"
+        icon_url:
+          type: string
+          example: "https://example.com/icons/app_icon.png"
+        is_active:
+          type: boolean
+          example: true
+    
+    MiniAppMerchantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the merchant
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+        code:
+          type: string
+          description: Merchant code
+          example: "MCH12345"
+        type:
+          type: string
+          description: Type of the merchant
+          example: "RETAIL"
+        merchant_name:
+          type: string
+          description: Name of the merchant
+          example: "ABC Trading PLC"
+        kyc:
+          $ref: '#/components/schemas/KYCDTO'
+        account_number:
+          type: string
+          description: Bank account number
+          example: "1000234567890"
+        mini_apps:
+          type: array
+          items:
+            $ref: '#/components/schemas/MiniApp'
+        enabled:
+          type: boolean
+          description: Whether the merchant is enabled
+          example: true
+        is_deleted:
+          type: boolean
+          description: Whether the merchant is soft-deleted
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: When the merchant was created
+          example: "2023-01-01T12:00:00Z"
+        last_modified:
+          type: string
+          format: date-time
+          description: When the merchant was last modified
+          example: "2023-01-01T12:00:00Z"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/MiniAppMerchantResponse'
+            - type: array
+              items:
+                $ref: '#/components/schemas/MiniAppMerchantResponse'
+            - type: object
+              properties: {}
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_INVALID_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Mini App Merchant
+    description: Operations related to mini app merchant management
+
+paths:
+  /mini-app-merchants:
+    post:
+      tags:
+        - Mini App Merchant
+      summary: Create a new mini app merchant
+      description: |
+        Create a new mini app merchant with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MiniAppMerchantRequest'
+      responses:
+        '200':
+          description: Mini app merchant created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchant created successfully"
+                data:
+                  id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                  code: "MCH12345"
+                  type: "RETAIL"
+                  merchant_name: "ABC Trading PLC"
+                  kyc:
+                    status: "PENDING"
+                    representative:
+                      name: "John Doe"
+                      phone: "0912345678"
+                      email: "john.doe@example.com"
+                  account_number: "1000234567890"
+                  mini_apps: []
+                  enabled: true
+                  is_deleted: false
+                  created_at: "2023-01-01T12:00:00Z"
+                  last_modified: "2023-01-01T12:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - Mini App Merchant
+      summary: List all mini app merchants with pagination
+      description: |
+        Retrieve a paginated list of all mini app merchants.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Mini app merchants retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchants retrieved successfully"
+                data:
+                  items:
+                    - id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                      code: "MCH12345"
+                      type: "RETAIL"
+                      merchant_name: "ABC Trading PLC"
+                      kyc:
+                        status: "VERIFIED"
+                        representative:
+                          name: "John Doe"
+                          phone: "0912345678"
+                          email: "john.doe@example.com"
+                      account_number: "1000234567890"
+                      mini_apps: []
+                      enabled: true
+                      is_deleted: false
+                      created_at: "2023-01-01T12:00:00Z"
+                      last_modified: "2023-01-01T12:00:00Z"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /mini-app-merchants/{id}:
+    get:
+      tags:
+        - Mini App Merchant
+      summary: Get mini app merchant by ID
+      description: |
+        Retrieve detailed information about a specific mini app merchant by its ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the mini app merchant to retrieve
+          schema:
+            type: string
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+      responses:
+        '200':
+          description: Mini app merchant details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchant retrieved successfully"
+                data:
+                  id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                  code: "MCH12345"
+                  type: "RETAIL"
+                  merchant_name: "ABC Trading PLC"
+                  kyc:
+                    status: "VERIFIED"
+                    representative:
+                      name: "John Doe"
+                      phone: "0912345678"
+                      email: "john.doe@example.com"
+                  account_number: "1000234567890"
+                  mini_apps: []
+                  enabled: true
+                  is_deleted: false
+                  created_at: "2023-01-01T12:00:00Z"
+                  last_modified: "2023-01-01T12:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - Mini App Merchant
+      summary: Update a mini app merchant
+      description: |
+        Update an existing mini app merchant with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the mini app merchant to update
+          schema:
+            type: string
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MiniAppMerchantRequest'
+      responses:
+        '200':
+          description: Mini app merchant updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchant updated successfully"
+                data:
+                  id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                  code: "MCH12345"
+                  type: "RETAIL"
+                  merchant_name: "ABC Trading PLC (Updated)"
+                  kyc:
+                    status: "VERIFIED"
+                    representative:
+                      name: "John Doe"
+                      phone: "0912345678"
+                      email: "john.doe@example.com"
+                  account_number: "1000234567890"
+                  mini_apps: []
+                  enabled: true
+                  is_deleted: false
+                  created_at: "2023-01-01T12:00:00Z"
+                  last_modified: "2023-01-01T12:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    delete:
+      tags:
+        - Mini App Merchant
+      summary: Delete a mini app merchant
+      description: |
+        Delete a mini app merchant by its ID (soft delete).
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the mini app merchant to delete
+          schema:
+            type: string
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+      responses:
+        '200':
+          description: Mini app merchant deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchant deleted successfully"
+                data:
+                  message: "Mini App Merchant 60d5f1f9e6b3f3b3f3b3f3b3 deleted successfully"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /mini-app-merchants/{id}/enable:
+    post:
+      tags:
+        - Mini App Merchant
+      summary: Enable a mini app merchant
+      description: |
+        Enable a mini app merchant by its ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the mini app merchant to enable
+          schema:
+            type: string
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+      responses:
+        '200':
+          description: Mini app merchant enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchant enabled successfully"
+                data: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /mini-app-merchants/{id}/disable:
+    post:
+      tags:
+        - Mini App Merchant
+      summary: Disable a mini app merchant
+      description: |
+        Disable a mini app merchant by its ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the mini app merchant to disable
+          schema:
+            type: string
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+      responses:
+        '200':
+          description: Mini app merchant disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Mini app merchant disabled successfully"
+                data: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found - The requested mini app merchant does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

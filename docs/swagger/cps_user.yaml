@@ -1,0 +1,572 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - CPS User Management API
+  description: |
+    This API provides endpoints for managing CPS (Check, Process, Submit) users
+    in the CBE Super App CPS Action module. It handles user creation, updates,
+    retrieval, and status management.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # Request/Response Schemas
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - full_name
+        - department
+        - phone_number
+        - role
+      properties:
+        username:
+          type: string
+          description: Unique username for the user
+          example: "johndoe"
+        full_name:
+          type: string
+          description: Full name of the user
+          example: "John Doe"
+        department:
+          type: string
+          format: ObjectId
+          description: ID of the department the user belongs to
+          example: "507f1f77bcf86cd799439011"
+        phone_number:
+          type: string
+          description: User's phone number
+          example: "+251911223344"
+        role:
+          type: string
+          description: User's role
+          example: "admin"
+        gender:
+          type: string
+          description: User's gender
+          example: "male"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        permission_category:
+          type: array
+          items:
+            type: string
+            format: ObjectId
+          description: List of permission category IDs
+          example: ["507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013"]
+        permission_groups:
+          type: array
+          items:
+            type: string
+            format: ObjectId
+          description: List of permission group IDs
+          example: ["507f1f77bcf86cd799439014"]
+    
+    UpdateUserRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateUserRequest'
+        - type: object
+          properties:
+            user_code:
+              type: string
+              description: Unique code of the user to update
+              example: "USR-12345"
+    
+    CPSUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          description: Unique identifier for the user
+          example: "507f1f77bcf86cd799439011"
+        user_code:
+          type: string
+          description: Unique user code
+          example: "USR-12345"
+        full_name:
+          type: string
+          description: Full name of the user
+          example: "John Doe"
+        role:
+          type: string
+          description: User's role
+          example: "admin"
+        department:
+          type: string
+          format: ObjectId
+          description: ID of the department the user belongs to
+          example: "507f1f77bcf86cd799439011"
+        gender:
+          type: string
+          description: User's gender
+          example: "male"
+        phone_number:
+          type: string
+          description: User's phone number
+          example: "+251911223344"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        realm:
+          type: string
+          description: Authentication realm
+          example: "cps"
+        permission_category:
+          type: array
+          items:
+            type: string
+            format: ObjectId
+          description: List of permission category IDs
+          example: ["507f1f77bcf86cd799439012"]
+        permission_group:
+          type: array
+          items:
+            type: string
+            format: ObjectId
+          description: List of permission group IDs
+          example: ["507f1f77bcf86cd799439014"]
+        enabled:
+          type: boolean
+          description: Whether the user account is enabled
+          example: true
+        date_joined:
+          type: string
+          format: date-time
+          description: When the user account was created
+          example: "2023-01-01T00:00:00Z"
+        last_modified:
+          type: string
+          format: date-time
+          description: When the user account was last modified
+          example: "2023-01-01T12:30:00Z"
+        country:
+          type: string
+          description: User's country
+          example: "Ethiopia"
+        region:
+          type: string
+          description: User's region
+          example: "Addis Ababa"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_BAD_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+            details:
+              type: object
+              nullable: true
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CPSUserResponse'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: CPS Users
+    description: Operations related to CPS user management
+
+paths:
+  /cps-users:
+    post:
+      tags:
+        - CPS Users
+      summary: Create a new CPS user
+      description: Create a new CPS user with the provided details
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: User creation request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS user creation request submitted successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - CPS Users
+      summary: Get all CPS users
+      description: Retrieve a paginated list of all CPS users
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of CPS users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS users retrieved successfully"
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439011"
+                      user_code: "USR-12345"
+                      full_name: "John Doe"
+                      role: "admin"
+                      department: "507f1f77bcf86cd799439011"
+                      phone_number: "+251911223344"
+                      email: "john.doe@example.com"
+                      username: "johndoe"
+                      enabled: true
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-users/{user_code}:
+    get:
+      tags:
+        - CPS Users
+      summary: Get a CPS user by user code
+      description: Retrieve details of a specific CPS user by their user code
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_code
+          in: path
+          required: true
+          description: The user code of the CPS user to retrieve
+          schema:
+            type: string
+          example: "USR-12345"
+      responses:
+        '200':
+          description: CPS user retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS user retrieved successfully"
+                data:
+                  id: "507f1f77bcf86cd799439011"
+                  user_code: "USR-12345"
+                  full_name: "John Doe"
+                  role: "admin"
+                  department: "507f1f77bcf86cd799439011"
+                  phone_number: "+251911223344"
+                  email: "john.doe@example.com"
+                  username: "johndoe"
+                  enabled: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - CPS Users
+      summary: Update a CPS user
+      description: Update an existing CPS user with the provided details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_code
+          in: path
+          required: true
+          description: The user code of the CPS user to update
+          schema:
+            type: string
+          example: "USR-12345"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User update request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS user update request submitted successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    delete:
+      tags:
+        - CPS Users
+      summary: Delete a CPS user
+      description: Delete a CPS user by their user code
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_code
+          in: path
+          required: true
+          description: The user code of the CPS user to delete
+          schema:
+            type: string
+          example: "USR-12345"
+      responses:
+        '200':
+          description: User deletion request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS user deletion request submitted successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-users/{user_code}/enable:
+    post:
+      tags:
+        - CPS Users
+      summary: Enable a CPS user
+      description: Enable a disabled CPS user account
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_code
+          in: path
+          required: true
+          description: The user code of the CPS user to enable
+          schema:
+            type: string
+          example: "USR-12345"
+      responses:
+        '200':
+          description: User enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS user enabled successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-users/{user_code}/disable:
+    post:
+      tags:
+        - CPS Users
+      summary: Disable a CPS user
+      description: Disable an enabled CPS user account
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_code
+          in: path
+          required: true
+          description: The user code of the CPS user to disable
+          schema:
+            type: string
+          example: "USR-12345"
+      responses:
+        '200':
+          description: User disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS user disabled successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

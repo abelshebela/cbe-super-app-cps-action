@@ -1,0 +1,322 @@
+openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Service Details API
+  description: |
+    This API provides endpoints for managing service details including service fees, 
+    transfer caps, and related configurations in the CBE Super App CPS Action module.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    # Core Models
+    TierDTO:
+      type: object
+      properties:
+        min: { type: integer, format: uint64, example: 1000 }
+        max: { type: integer, format: uint64, example: 5000 }
+        fee_amount: { type: integer, format: uint64, example: 50 }
+
+    GLAccount:
+      type: object
+      properties:
+        cbgl_product_account: { type: string, example: "1234567890" }
+        cbgl_product_branchcode: { type: string, example: "1000" }
+        cbgl_service_account: { type: string, example: "0987654321" }
+        cbgl_service_branchcode: { type: string, example: "1000" }
+
+    ServiceFeeDetailDTO:
+      type: object
+      properties:
+        service_type: { type: string, example: "TRANSFER" }
+        payment_type: { type: string, enum: [flat_fee, percentage], example: "flat_fee" }
+        single_cap_level_one: { type: integer, example: 50000 }
+        daily_cap_level_one: { type: integer, example: 150000 }
+        min_amount_virtual: { type: integer, example: 10 }
+        above_amount: { type: integer, format: uint64, example: 1000000 }
+        above_service_fee: { type: integer, format: uint64, example: 100 }
+        tiers: 
+          type: array
+          items: { $ref: '#/components/schemas/TierDTO' }
+        cbgl_entry: { $ref: '#/components/schemas/GLAccount' }
+
+    SingleMaxTransferRequest:
+      type: object
+      properties:
+        individual_single_cap: { type: integer, format: uint64, example: 50000 }
+        individual_daily_cap: { type: integer, format: uint64, example: 150000 }
+        corporate_single_cap: { type: integer, format: uint64, example: 250000 }
+        corporate_daily_cap: { type: integer, format: uint64, example: 1000000 }
+
+    TotalMaxTransferUpdateRequest:
+      type: object
+      properties:
+        total_cap: { type: integer, format: uint64, example: 10000000 }
+
+    MinimumTransferUpdateRequest:
+      type: object
+      properties:
+        min_amount: { type: integer, format: uint64, example: 10 }
+
+    # Response Models
+    ServiceFeeDetailResponse:
+      type: object
+      properties:
+        id: { type: string, example: "60d5f1f9e6b3f3b3f3b3f3b7" }
+        service_code: { type: string, example: "DT" }
+        service_name: { type: string, example: "Domestic Transfer" }
+        service_type: { type: string, example: "TRANSFER" }
+        payment_type: { type: string, example: "flat_fee" }
+        tiers: 
+          type: array
+          items: { $ref: '#/components/schemas/TierDTO' }
+        created_at: { type: string, format: date-time, example: "2023-01-01T00:00:00Z" }
+
+    # Common Models
+    SuccessResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: "Operation completed successfully" }
+        data: {}
+
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error: 
+          type: object
+          properties:
+            code: { type: string, example: "ERR_INVALID_REQUEST" }
+            message: { type: string, example: "Invalid request parameters" }
+  
+  parameters:
+    ServiceID:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, example: "60d5f1f9e6b3f3b3f3b3f3b3" }
+    
+    TierID:
+      name: tier_id
+      in: path
+      required: true
+      schema: { type: string, example: "60d5f1f9e6b3f3b3f3b3f3b4" }
+    
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Service Details
+    description: Operations related to service details management
+
+paths:
+  /service:
+    get:
+      tags: [Service Details]
+      summary: Get all services
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Services retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/minimum:
+    get:
+      tags: [Service Details]
+      summary: Get all minimum transfer caps
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Minimum transfer caps retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/maximum:
+    get:
+      tags: [Service Details]
+      summary: Get all maximum transfer caps
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Maximum transfer caps retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/service_fee:
+    get:
+      tags: [Service Details]
+      summary: Get all service fees
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Service fees retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/total/transfer_cap:
+    get:
+      tags: [Service Details]
+      summary: Get total transfer cap
+      security: [{ BearerAuth: [] }]
+      responses:
+        '200':
+          description: Total transfer cap retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    
+    patch:
+      tags: [Service Details]
+      summary: Update total transfer cap
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TotalMaxTransferUpdateRequest'
+      responses:
+        '200':
+          description: Total transfer cap updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/service_fee/detail/{id}:
+    get:
+      tags: [Service Details]
+      summary: Get service fee details by ID
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ServiceID'
+      responses:
+        '200':
+          description: Service fee details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/service_fee/update/{id}:
+    patch:
+      tags: [Service Details]
+      summary: Update service fee
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ServiceID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceFeeDetailDTO'
+      responses:
+        '200':
+          description: Service fee updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/single_transfer_max/update/{id}:
+    patch:
+      tags: [Service Details]
+      summary: Update single maximum transfer amounts
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ServiceID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SingleMaxTransferRequest'
+      responses:
+        '200':
+          description: Single maximum transfer amounts updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/minimum_transfer_cap/update/{id}:
+    patch:
+      tags: [Service Details]
+      summary: Update minimum transfer amount
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ServiceID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MinimumTransferUpdateRequest'
+      responses:
+        '200':
+          description: Minimum transfer amount updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  
+  /service/service_fee/tiers/{tier_id}:
+    delete:
+      tags: [Service Details]
+      summary: Delete service fee tier
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TierID'
+      responses:
+        '200':
+          description: Service fee tier deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'

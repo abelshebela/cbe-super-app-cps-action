@@ -90,15 +90,25 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			s.logger.Errorf("Error occurred when extracting data tier: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		s.logger.Infof("Processing OPEN tier update=======////////////============")
+		s.logger.Infof("Processing OPEN tier update=======////////////============: %v", (*data)["open"])
 
-		openTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["open"])
+		openTierMap, ok := (*data)["open"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting open tier to map: %v", (*data)["open"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		openTier, err := local_util.JsonUnmarshal[model.AuthTier](openTierMap)
 		if err != nil {
-			s.logger.Errorf("Error occurred when extracting open tier: %v", err)
+			s.logger.Errorf("Error occurred when converting open tier map to struct: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		pinTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["pin"])
+		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin tier to map: %v", (*data)["pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		pinTier, err := local_util.JsonUnmarshal[model.AuthTier](pinTierMap)
 		if err != nil {
 			s.logger.Errorf("Failed to unmarshal PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
@@ -108,6 +118,8 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			s.logger.Errorf("Failed to update OPEN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
+
+		s.logger.Infof("Processing OPEN tier update=======/////AAAAAAAAAAAAAAAAA///////============: %v", (*data)["open"])
 
 		if err := s.Repository.Update(ctx, result["pin_id"].(string), pinTier); err != nil {
 			s.logger.Errorf("Failed to update PIN tier data: %v", err)
@@ -121,19 +133,34 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		openTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["open"])
+		openTierMap, ok := (*data)["open"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting open tier to map: %v", (*data)["open"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		openTier, err := local_util.JsonUnmarshal[model.AuthTier](openTierMap)
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting open tier error: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		pinTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["pin"])
+		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin tier to map: %v", (*data)["pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		pinTier, err := local_util.JsonUnmarshal[model.AuthTier](pinTierMap)
 		if err != nil {
 			s.logger.Errorf("Failed to unmarshal PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["otp_pin"])
+		otpPinTierMap, ok := result["otp_pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting OTP_PIN tier to map: %v", result["otp_pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](otpPinTierMap)
 		if err != nil {
 			s.logger.Errorf("Failed to unmarshal OTP_PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
@@ -162,13 +189,24 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		pinTier, err := local_util.JsonUnmarshal[model.AuthTier]((*data)["pin"])
+		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin tier to map: %v", (*data)["pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		pinTier, err := local_util.JsonUnmarshal[model.AuthTier](pinTierMap)
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting pin tier error: %v", err)
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](result["otp_pin"])
+		otpPinTierMap, ok := (*data)["otp_pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting OTP_PIN tier to map: %v", (*data)["otp_pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](otpPinTierMap)
 		if err != nil {
 			s.logger.Errorf("Failed to unmarshal OTP_PIN tier data: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)

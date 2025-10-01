@@ -1,0 +1,458 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - CPS Action Handler API
+  description: |
+    This API provides endpoints for managing CPS (Check, Process, Submit) actions
+    in the CBE Super App CPS Action module. It handles approval, rejection, and
+    retrieval of CPS actions.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # Request/Response Schemas
+    ActionRequest:
+      type: object
+      required:
+        - rejection_reason
+      properties:
+        rejection_reason:
+          type: string
+          description: Reason for rejecting the CPS action
+          example: "Insufficient documentation provided"
+    
+    CPSActionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the CPS action
+          example: "5f9d7b3b9d5f3b2a1c9d5f3d"
+        action_code:
+          type: string
+          description: Unique action code for tracking
+          example: "ACT-12345"
+        unique_id:
+          type: string
+          description: Unique identifier for the related entity
+          example: "USER-123"
+        maker_id:
+          type: string
+          description: ID of the user who initiated the action
+          example: "user123"
+        maker_name:
+          type: string
+          description: Name of the user who initiated the action
+          example: "John Doe"
+        maker_phone_number:
+          type: string
+          description: Phone number of the user who initiated the action
+          example: "+251911223344"
+        checker_id:
+          type: string
+          description: ID of the user who approved/rejected the action
+          example: "checker123"
+        checker_name:
+          type: string
+          description: Name of the user who approved/rejected the action
+          example: "Jane Smith"
+        checker_phone_number:
+          type: string
+          description: Phone number of the user who approved/rejected the action
+          example: "+251922334455"
+        department:
+          type: string
+          description: Department handling the action
+          example: "finance"
+        rejection_reason:
+          type: string
+          description: Reason for rejection if the action was rejected
+          example: "Insufficient documentation"
+        previous_action:
+          type: object
+          description: Previous state of the entity before the action
+          nullable: true
+        current_action:
+          type: object
+          description: Current state of the entity after the action
+          nullable: true
+        action_status:
+          type: string
+          description: Status of the action (e.g., pending, approved, rejected)
+          example: "approved"
+        action_type:
+          type: string
+          description: Type of the action performed
+          example: "user_creation"
+        is_deleted:
+          type: boolean
+          description: Whether the action has been soft-deleted
+          example: false
+        request_action:
+          type: string
+          description: The requested action to be performed
+          example: "create"
+        created_at:
+          type: string
+          format: date-time
+          description: When the action was created
+          example: "2023-01-01T00:00:00Z"
+        last_modified_at:
+          type: string
+          format: date-time
+          description: When the action was last modified
+          example: "2023-01-01T12:30:00Z"
+        maker_action_time:
+          type: string
+          format: date-time
+          description: When the maker performed their action
+          example: "2023-01-01T10:00:00Z"
+        checker_action_time:
+          type: string
+          format: date-time
+          description: When the checker performed their action
+          example: "2023-01-01T12:30:00Z"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_BAD_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+            details:
+              type: object
+              nullable: true
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CPSActionResponse'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: CPS Actions
+    description: Operations related to CPS (Check, Process, Submit) actions
+
+paths:
+  /cps-actions/approve/{action_code}:
+    post:
+      tags:
+        - CPS Actions
+      summary: Approve a CPS action
+      description: Approve a pending CPS action by its action code
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action_code
+          in: path
+          required: true
+          description: The action code of the CPS action to approve
+          schema:
+            type: string
+          example: "ACT-12345"
+      responses:
+        '200':
+          description: CPS action approved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS action approved successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-actions/reject/{action_code}:
+    post:
+      tags:
+        - CPS Actions
+      summary: Reject a CPS action
+      description: Reject a pending CPS action by its action code
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action_code
+          in: path
+          required: true
+          description: The action code of the CPS action to reject
+          schema:
+            type: string
+          example: "ACT-12345"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '200':
+          description: CPS action rejected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS action rejected successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-actions:
+    get:
+      tags:
+        - CPS Actions
+      summary: Get CPS actions by department
+      description: Retrieve a paginated list of CPS actions filtered by the user's department
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of CPS actions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS actions retrieved successfully"
+                data:
+                  items:
+                    - id: "5f9d7b3b9d5f3b2a1c9d5f3d"
+                      action_code: "ACT-12345"
+                      maker_name: "John Doe"
+                      action_status: "pending"
+                      action_type: "user_creation"
+                      created_at: "2023-01-01T00:00:00Z"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-actions/id/{action_id}:
+    get:
+      tags:
+        - CPS Actions
+      summary: Get CPS action by ID
+      description: Retrieve a specific CPS action by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action_id
+          in: path
+          required: true
+          description: The ID of the CPS action to retrieve
+          schema:
+            type: string
+          example: "5f9d7b3b9d5f3b2a1c9d5f3d"
+      responses:
+        '200':
+          description: CPS action retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS action retrieved successfully"
+                data:
+                  id: "5f9d7b3b9d5f3b2a1c9d5f3d"
+                  action_code: "ACT-12345"
+                  maker_name: "John Doe"
+                  action_status: "pending"
+                  action_type: "user_creation"
+                  created_at: "2023-01-01T00:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /cps-actions/code/{action_code}:
+    get:
+      tags:
+        - CPS Actions
+      summary: Get CPS action by action code
+      description: Retrieve a specific CPS action by its action code
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action_code
+          in: path
+          required: true
+          description: The action code of the CPS action to retrieve
+          schema:
+            type: string
+          example: "ACT-12345"
+      responses:
+        '200':
+          description: CPS action retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "CPS action retrieved successfully"
+                data:
+                  id: "5f9d7b3b9d5f3b2a1c9d5f3d"
+                  action_code: "ACT-12345"
+                  maker_name: "John Doe"
+                  action_status: "pending"
+                  action_type: "user_creation"
+                  created_at: "2023-01-01T00:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

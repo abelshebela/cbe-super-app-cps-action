@@ -1,0 +1,352 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Customer Management API
+  description: |
+    This API provides endpoints for managing customer information in the CBE Super App CPS Action module.
+    It allows retrieving customer details, blocked customers, and customer information by ID.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          description: Unique identifier for the user
+          example: "507f1f77bcf86cd799439011"
+        user_code:
+          type: string
+          description: Unique user code
+          example: "USR-12345"
+        full_name:
+          type: string
+          description: Full name of the user
+          example: "John Doe"
+        phone_number:
+          type: string
+          description: User's phone number
+          example: "+251911223344"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        is_blocked:
+          type: boolean
+          description: Whether the user account is blocked
+          example: false
+        blocked_on_cps:
+          type: boolean
+          description: Whether the user is blocked on CPS
+          example: false
+        kyc:
+          type: object
+          properties:
+            kyc_status:
+              type: string
+              description: KYC verification status
+              example: "VERIFIED"
+            kyc_approved:
+              type: boolean
+              description: Whether KYC is approved
+              example: true
+        created_at:
+          type: string
+          format: date-time
+          description: When the user account was created
+          example: "2023-01-01T00:00:00Z"
+        last_modified_at:
+          type: string
+          format: date-time
+          description: When the user account was last modified
+          example: "2023-01-01T12:30:00Z"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/User'
+            - $ref: '#/components/schemas/PaginatedResponse'
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_BAD_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Customers
+    description: Operations related to customer management
+
+paths:
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: Get customer details
+      description: |
+        Retrieve a paginated list of customer details with optional KYC level filtering.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: kyc_level
+          in: query
+          description: Filter customers by KYC level
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            example: 1
+      responses:
+        '200':
+          description: Customer details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Customer details retrieved successfully"
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439011"
+                      user_code: "CUST-12345"
+                      full_name: "John Doe"
+                      phone_number: "+251911223344"
+                      email: "john.doe@example.com"
+                      is_blocked: false
+                      blocked_on_cps: false
+                      kyc:
+                        kyc_status: "VERIFIED"
+                        kyc_approved: true
+                      created_at: "2023-01-01T00:00:00Z"
+                      last_modified_at: "2023-01-01T12:30:00Z"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /customers/blocked:
+    get:
+      tags:
+        - Customers
+      summary: Get blocked customers
+      description: |
+        Retrieve a paginated list of blocked customers.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Blocked customers retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Blocked customers retrieved successfully"
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439012"
+                      user_code: "CUST-12346"
+                      full_name: "Jane Smith"
+                      phone_number: "+251922334455"
+                      is_blocked: true
+                      blocked_on_cps: true
+                      kyc:
+                        kyc_status: "PENDING"
+                        kyc_approved: false
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Get customer by ID
+      description: |
+        Retrieve detailed information about a specific customer by their ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the customer to retrieve
+          schema:
+            type: string
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Customer details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Customer details retrieved successfully"
+                data:
+                  id: "507f1f77bcf86cd799439011"
+                  user_code: "CUST-12345"
+                  full_name: "John Doe"
+                  phone_number: "+251911223344"
+                  email: "john.doe@example.com"
+                  is_blocked: false
+                  blocked_on_cps: false
+                  kyc:
+                    kyc_status: "VERIFIED"
+                    kyc_approved: true
+                  created_at: "2023-01-01T00:00:00Z"
+                  last_modified_at: "2023-01-01T12:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found - The requested customer does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

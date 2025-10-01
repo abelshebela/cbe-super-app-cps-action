@@ -1,0 +1,364 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Feedback Management API
+  description: |
+    This API provides endpoints for managing user feedback in the CBE Super App CPS Action module.
+    It allows users to submit feedback and administrators to retrieve feedback.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    FeedbackRequest:
+      type: object
+      required:
+        - responses
+      properties:
+        responses:
+          type: object
+          description: Key-value pairs of feedback questions and responses
+          additionalProperties:
+            type: object
+            properties:
+              question:
+                type: string
+                description: The feedback question
+                example: "How would you rate our service?"
+              answer:
+                type: string
+                description: The user's response to the question
+                example: "Very satisfied"
+              type:
+                type: string
+                description: Type of the response (e.g., text, rating, boolean)
+                example: "text"
+              required:
+                type: boolean
+                description: Whether the response is required
+                example: true
+          example:
+            question1:
+              question: "How would you rate our service?"
+              answer: "5"
+              type: "rating"
+              required: true
+            question2:
+              question: "Please provide additional comments"
+              answer: "Great service overall!"
+              type: "text"
+              required: false
+    
+    FeedbackResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the feedback
+          example: "507f1f77bcf86cd799439011"
+        user_id:
+          type: string
+          description: ID of the user who submitted the feedback
+          example: "user123"
+        responses:
+          type: object
+          description: The feedback responses
+          additionalProperties:
+            $ref: '#/components/schemas/FeedbackResponseItem'
+        status:
+          type: string
+          description: Status of the feedback
+          enum: ["submitted", "in_review", "resolved", "archived"]
+          example: "submitted"
+        created_at:
+          type: string
+          format: date-time
+          description: When the feedback was created
+          example: "2023-01-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the feedback was last updated
+          example: "2023-01-01T12:00:00Z"
+    
+    FeedbackResponseItem:
+      type: object
+      properties:
+        question:
+          type: string
+          description: The feedback question
+          example: "How would you rate our service?"
+        answer:
+          type: string
+          description: The user's response to the question
+          example: "Very satisfied"
+        type:
+          type: string
+          description: Type of the response (e.g., text, rating, boolean)
+          example: "rating"
+    
+    FeedbackListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedbackResponse'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/FeedbackResponse'
+            - $ref: '#/components/schemas/FeedbackListResponse'
+            - type: object
+              properties: {}
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_INVALID_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Feedback
+    description: Operations related to user feedback management
+
+paths:
+  /feedback:
+    post:
+      tags:
+        - Feedback
+      summary: Submit feedback
+      description: |
+        Submit user feedback.
+        This endpoint requires authentication, but can be used anonymously if allowed by the system.
+      security: []  # Public endpoint, no auth required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '200':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Feedback submitted successfully"
+                data: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - Feedback
+      summary: Get all feedback
+      description: |
+        Retrieve a paginated list of all feedback submissions.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Feedback retrieved successfully"
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439011"
+                      user_id: "user123"
+                      status: "submitted"
+                      created_at: "2023-01-01T12:00:00Z"
+                      updated_at: "2023-01-01T12:00:00Z"
+                      responses:
+                        question1:
+                          question: "How would you rate our service?"
+                          answer: "5"
+                          type: "rating"
+                        question2:
+                          question: "Please provide additional comments"
+                          answer: "Great service overall!"
+                          type: "text"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /feedback/{id}:
+    get:
+      tags:
+        - Feedback
+      summary: Get feedback by ID
+      description: |
+        Retrieve detailed information about a specific feedback submission by its ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the feedback to retrieve
+          schema:
+            type: string
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Feedback details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Feedback retrieved successfully"
+                data:
+                  id: "507f1f77bcf86cd799439011"
+                  user_id: "user123"
+                  status: "submitted"
+                  created_at: "2023-01-01T12:00:00Z"
+                  updated_at: "2023-01-01T12:00:00Z"
+                  responses:
+                    question1:
+                      question: "How would you rate our service?"
+                      answer: "5"
+                      type: "rating"
+                    question2:
+                      question: "Please provide additional comments"
+                      answer: "Great service overall!"
+                      type: "text"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found - The requested feedback does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

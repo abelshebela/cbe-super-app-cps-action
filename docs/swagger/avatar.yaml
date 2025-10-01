@@ -1,0 +1,470 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Avatar Management API
+  description: |
+    This API provides endpoints for managing user avatars in the CBE Super App CPS Action module.
+    It allows uploading, retrieving, updating, and deleting avatars, as well as enabling/disabling them.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # Request/Response Schemas
+    AvatarRequest:
+      type: object
+      required:
+        - label
+        - avatar
+      properties:
+        label:
+          type: string
+          description: A label or name for the avatar
+          example: User Profile Picture
+        avatar:
+          type: string
+          format: binary
+          description: Image file for the avatar (JPEG, PNG, etc.)
+    
+    AvatarResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the avatar
+          example: 5f9d7b3b9d5f3b2a1c9d5f3d
+        avatar:
+          type: string
+          description: URL to access the avatar image
+          example: https://example.com/avatars/5f9d7b3b9d5f3b2a1c9d5f3d.jpg
+        label:
+          type: string
+          description: Label or name of the avatar
+          example: User Profile Picture
+        enable:
+          type: boolean
+          description: Whether the avatar is enabled
+          example: true
+        is_deleted:
+          type: boolean
+          description: Whether the avatar is marked as deleted
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: When the avatar was created
+        last_modified_at:
+          type: string
+          format: date-time
+          description: When the avatar was last modified
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the avatar was deleted (if applicable)
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+        data:
+          type: object
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: ERR_BAD_REQUEST
+            message:
+              type: string
+              example: Invalid request parameters
+            details:
+              type: object
+              nullable: true
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Avatar Management
+    description: User avatar management operations
+
+paths:
+  /avatars:
+    post:
+      tags:
+        - Avatar Management
+      summary: Upload a new avatar
+      description: Upload a new avatar image with a label
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AvatarRequest'
+      responses:
+        '200':
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatar uploaded successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - Avatar Management
+      summary: List all avatars
+      description: Retrieve a paginated list of all avatars
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of avatars retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatars retrieved successfully
+                data:
+                  items:
+                    - id: 5f9d7b3b9d5f3b2a1c9d5f3d
+                      avatar: https://example.com/avatars/5f9d7b3b9d5f3b2a1c9d5f3d.jpg
+                      label: User Profile Picture
+                      enable: true
+                      is_deleted: false
+                      created_at: '2023-10-01T10:00:00Z'
+                      last_modified_at: '2023-10-01T10:00:00Z'
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /avatars/{id}:
+    get:
+      tags:
+        - Avatar Management
+      summary: Get avatar by ID
+      description: Retrieve detailed information about a specific avatar
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Avatar ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Avatar details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatar retrieved successfully
+                data:
+                  id: 5f9d7b3b9d5f3b2a1c9d5f3d
+                  avatar: https://example.com/avatars/5f9d7b3b9d5f3b2a1c9d5f3d.jpg
+                  label: User Profile Picture
+                  enable: true
+                  is_deleted: false
+                  created_at: '2023-10-01T10:00:00Z'
+                  last_modified_at: '2023-10-01T10:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - Avatar Management
+      summary: Update avatar
+      description: Update an existing avatar's image or label
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Avatar ID to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AvatarRequest'
+      responses:
+        '200':
+          description: Avatar updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatar updated successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    delete:
+      tags:
+        - Avatar Management
+      summary: Delete avatar
+      description: Delete an avatar by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Avatar ID to delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Avatar deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatar deleted successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /avatars/{id}/enable:
+    post:
+      tags:
+        - Avatar Management
+      summary: Enable avatar
+      description: Enable a disabled avatar
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Avatar ID to enable
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Avatar enabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatar enabled successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /avatars/{id}/disable:
+    post:
+      tags:
+        - Avatar Management
+      summary: Disable avatar
+      description: Disable an enabled avatar
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Avatar ID to disable
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Avatar disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Avatar disabled successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

@@ -1,0 +1,416 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Donation Company Management API
+  description: |
+    This API provides endpoints for managing donation companies in the CBE Super App CPS Action module.
+    It allows creating, updating, and retrieving donation companies.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    DonationCompanyRequest:
+      type: object
+      required:
+        - company_name
+        - account_number
+      properties:
+        company_name:
+          type: string
+          description: Name of the donation company
+          example: "Charity Foundation"
+        company_logo:
+          type: string
+          format: binary
+          description: Logo image file for the company
+        account_number:
+          type: string
+          description: Bank account number for donations
+          example: "1000000000001"
+    
+    DonationCompanyResponse:
+      type: object
+      properties:
+        company_name:
+          type: string
+          description: Name of the donation company
+          example: "Charity Foundation"
+        company_logo:
+          type: string
+          format: uri
+          description: URL of the company logo
+          example: "https://example.com/logos/charity.jpg"
+        account_number:
+          type: string
+          description: Bank account number for donations
+          example: "1000000000001"
+    
+    DonationCompanyListResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: ObjectId
+          description: Unique identifier for the company
+          example: "507f1f77bcf86cd799439011"
+        company_name:
+          type: string
+          description: Name of the donation company
+          example: "Charity Foundation"
+        company_logo:
+          type: string
+          format: uri
+          description: URL of the company logo
+          example: "https://example.com/logos/charity.jpg"
+        account_number:
+          type: string
+          description: Bank account number for donations
+          example: "1000000000001"
+        is_deleted:
+          type: boolean
+          description: Whether the company is marked as deleted
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: When the company was created
+          example: "2023-01-01T00:00:00Z"
+        last_modified_at:
+          type: string
+          format: date-time
+          description: When the company was last modified
+          example: "2023-01-01T12:30:00Z"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/DonationCompanyResponse'
+            - $ref: '#/components/schemas/DonationCompanyListResponse'
+            - type: array
+              items:
+                $ref: '#/components/schemas/DonationCompanyListResponse'
+            - $ref: '#/components/schemas/PaginatedResponse'
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_BAD_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DonationCompanyListResponse'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Donation Companies
+    description: Operations related to donation company management
+
+paths:
+  /donation-companies:
+    get:
+      tags:
+        - Donation Companies
+      summary: Get all donation companies
+      description: |
+        Retrieve a paginated list of all donation companies.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Donation companies retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation companies retrieved successfully"
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439011"
+                      company_name: "Charity Foundation"
+                      company_logo: "https://example.com/logos/charity.jpg"
+                      account_number: "1000000000001"
+                      is_deleted: false
+                      created_at: "2023-01-01T00:00:00Z"
+                      last_modified_at: "2023-01-01T12:30:00Z"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    post:
+      tags:
+        - Donation Companies
+      summary: Create a new donation company
+      description: |
+        Create a new donation company with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - company_name
+                - account_number
+              properties:
+                company_name:
+                  type: string
+                  description: Name of the donation company
+                  example: "Charity Foundation"
+                company_logo:
+                  type: string
+                  format: binary
+                  description: Logo image file for the company
+                account_number:
+                  type: string
+                  description: Bank account number for donations
+                  example: "1000000000001"
+      responses:
+        '200':
+          description: Donation company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation company created successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /donation-companies/{id}:
+    get:
+      tags:
+        - Donation Companies
+      summary: Get donation company by ID
+      description: |
+        Retrieve detailed information about a specific donation company by its ID.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the donation company to retrieve
+          schema:
+            type: string
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        '200':
+          description: Donation company details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation company retrieved successfully"
+                data:
+                  id: "507f1f77bcf86cd799439011"
+                  company_name: "Charity Foundation"
+                  company_logo: "https://example.com/logos/charity.jpg"
+                  account_number: "1000000000001"
+                  is_deleted: false
+                  created_at: "2023-01-01T00:00:00Z"
+                  last_modified_at: "2023-01-01T12:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - Donation Companies
+      summary: Update a donation company
+      description: |
+        Update an existing donation company with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the donation company to update
+          schema:
+            type: string
+          example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                company_name:
+                  type: string
+                  description: Updated name of the donation company
+                  example: "Charity Foundation Updated"
+                company_logo:
+                  type: string
+                  format: binary
+                  description: Updated logo image file for the company
+                account_number:
+                  type: string
+                  description: Updated bank account number for donations
+                  example: "1000000000002"
+      responses:
+        '200':
+          description: Donation company updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Donation company updated successfully"
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found - The requested donation company does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

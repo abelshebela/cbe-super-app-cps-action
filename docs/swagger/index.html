@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBE Super App - CPS Action API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.0/swagger-ui.css">
+  <style>
+    html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin: 0; background: #fafafa; }
+    .topbar { display: none; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.0/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.0/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function() {
+      const ui = SwaggerUIBundle({
+        urls: [
+          {url: "/swagger/account_block.yaml", name: "Account Block"},
+          {url: "/swagger/account_validation.yaml", name: "Account Validation"},
+          {url: "/swagger/ad.yaml", name: "Advertisement"},
+          {url: "/swagger/amount_based_auth.yaml", name: "Amount Based Auth"},
+          {url: "/swagger/avatar.yaml", name: "Avatar"},
+          {url: "/swagger/bank.yaml", name: "Bank"},
+          {url: "/swagger/bps_user.yaml", name: "BPS User"},
+          {url: "/swagger/budget.yaml", name: "Budget"},
+          {url: "/swagger/bulk_service.yaml", name: "Bulk Service"},
+          {url: "/swagger/cps_action_handler.yaml", name: "CPS Action"},
+          {url: "/swagger/cps_user.yaml", name: "CPS User"},
+          {url: "/swagger/customer.yaml", name: "Customer"},
+          {url: "/swagger/department.yaml", name: "Department"},
+          {url: "/swagger/donation.yaml", name: "Donation"},
+          {url: "/swagger/donation_category.yaml", name: "Donation Category"},
+          {url: "/swagger/donation_company.yaml", name: "Donation Company"},
+          {url: "/swagger/event.yaml", name: "Event"},
+          {url: "/swagger/fayda.yaml", name: "Fayda"},
+          {url: "/swagger/feedback.yaml", name: "Feedback"},
+          {url: "/swagger/hq.yaml", name: "HQ"},
+          {url: "/swagger/mini_app.yaml", name: "Mini App"},
+          {url: "/swagger/mini_app_merchant.yaml", name: "Mini App Merchant"},
+          {url: "/swagger/notifications.yaml", name: "Notifications"},
+          {url: "/swagger/password_rule.yaml", name: "Password Rule"},
+          {url: "/swagger/permission.yaml", name: "Permission"},
+          {url: "/swagger/portal_card.yaml", name: "Portal Card"},
+          {url: "/swagger/product_code.yaml", name: "Product Code"},
+          {url: "/swagger/service_details.yaml", name: "Service Details"},
+          {url: "/swagger/wallet.yaml", name: "Wallet"}
+        ],
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        persistAuthorization: true,
+        displayRequestDuration: true,
+        filter: true,
+        tryItOutEnabled: true
+      });
+      window.ui = ui;
+    };
+  </script>
+</body>
+</html>

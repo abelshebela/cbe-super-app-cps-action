@@ -1,0 +1,439 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Permissions API
+  description: |
+    This API provides endpoints for managing permissions and permission groups in the CBE Super App CPS Action module.
+    It allows creating, updating, and retrieving permission groups and categories.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    CreatePermissionGroupRequest:
+      type: object
+      required:
+        - group_name
+        - role
+        - permission_category_list
+      properties:
+        group_name:
+          type: string
+          description: Name of the permission group
+          minLength: 1
+          maxLength: 50
+          example: "admin_permissions"
+        role:
+          type: string
+          description: Role associated with the permission group
+          enum: ["MAKER", "CHECKER"]
+          example: "MAKER"
+        permission_category_list:
+          type: array
+          description: List of permission category IDs
+          items:
+            type: string
+            example: "category_id_123"
+    
+    UpdatePermissionGroupRequest:
+      type: object
+      required:
+        - old_group_name
+      properties:
+        old_group_name:
+          type: string
+          description: Current name of the permission group to update
+          example: "old_admin_permissions"
+        new_group_name:
+          type: string
+          description: New name for the permission group (optional)
+          minLength: 1
+          maxLength: 50
+          example: "new_admin_permissions"
+        role:
+          type: string
+          description: Updated role for the permission group
+          enum: ["MAKER", "CHECKER"]
+          example: "CHECKER"
+        permission_category_list:
+          type: array
+          description: Updated list of permission category IDs
+          items:
+            type: string
+            example: "updated_category_id_456"
+    
+    PermissionGroup:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for the permission group
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+        group_name:
+          type: string
+          description: Name of the permission group
+          example: "admin_permissions"
+        role:
+          type: string
+          description: Role associated with the permission group
+          example: "MAKER"
+        permission_category_list:
+          type: array
+          description: List of permission category IDs
+          items:
+            type: string
+          example: ["category_id_123", "category_id_456"]
+        created_at:
+          type: string
+          format: date-time
+          description: When the permission group was created
+          example: "2023-01-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the permission group was last updated
+          example: "2023-01-01T12:00:00Z"
+    
+    PermissionCategory:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique identifier for the permission category
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+        name:
+          type: string
+          description: Name of the permission category
+          example: "User Management"
+        description:
+          type: string
+          description: Description of the permission category
+          example: "Permissions related to user management"
+        permissions:
+          type: array
+          description: List of permissions in this category
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: Unique identifier for the permission
+                example: "60d5f1f9e6b3f3b3f3b3f3b4"
+              name:
+                type: string
+                description: Name of the permission
+                example: "user.create"
+              description:
+                type: string
+                description: Description of the permission
+                example: "Allows creating new users"
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/PermissionGroup'
+            - type: array
+              items:
+                $ref: '#/components/schemas/PermissionGroup'
+            - type: array
+              items:
+                $ref: '#/components/schemas/PermissionCategory'
+            - type: object
+              properties: {}
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_INVALID_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Permissions
+    description: Operations related to permission management
+
+paths:
+  /permission-groups:
+    post:
+      tags:
+        - Permissions
+      summary: Create a new permission group
+      description: |
+        Create a new permission group with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePermissionGroupRequest'
+      responses:
+        '200':
+          description: Permission group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Permission group created successfully"
+                data: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - Permissions
+      summary: Get all permission groups
+      description: |
+        Retrieve a list of all permission groups with pagination.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Permission groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Permission groups retrieved successfully"
+                data:
+                  - _id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                    group_name: "admin_permissions"
+                    role: "MAKER"
+                    permission_category_list: ["category_id_123", "category_id_456"]
+                    created_at: "2023-01-01T12:00:00Z"
+                    updated_at: "2023-01-01T12:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /permission-groups/{group_name}:
+    get:
+      tags:
+        - Permissions
+      summary: Get a permission group by name
+      description: |
+        Retrieve detailed information about a specific permission group by its name.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          description: The name of the permission group to retrieve
+          schema:
+            type: string
+          example: "admin_permissions"
+      responses:
+        '200':
+          description: Permission group retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Permission group retrieved successfully"
+                data:
+                  _id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                  group_name: "admin_permissions"
+                  role: "MAKER"
+                  permission_category_list: ["category_id_123", "category_id_456"]
+                  created_at: "2023-01-01T12:00:00Z"
+                  updated_at: "2023-01-01T12:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    put:
+      tags:
+        - Permissions
+      summary: Update a permission group
+      description: |
+        Update an existing permission group with the provided details.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: group_name
+          in: path
+          required: true
+          description: The current name of the permission group to update
+          schema:
+            type: string
+          example: "admin_permissions"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePermissionGroupRequest'
+      responses:
+        '200':
+          description: Permission group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Permission group updated successfully"
+                data: {}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /permission-categories:
+    get:
+      tags:
+        - Permissions
+      summary: Get all permission categories with permissions
+      description: |
+        Retrieve a list of all permission categories along with their associated permissions.
+        This endpoint requires authentication and appropriate permissions.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Permission categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Permission categories retrieved successfully"
+                data:
+                  - _id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                    name: "User Management"
+                    description: "Permissions related to user management"
+                    permissions:
+                      - _id: "60d5f1f9e6b3f3b3f3b3f3b4"
+                        name: "user.create"
+                        description: "Allows creating new users"
+                      - _id: "60d5f1f9e6b3f3b3f3b3f3b5"
+                        name: "user.edit"
+                        description: "Allows editing existing users"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found - The requested permission group does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

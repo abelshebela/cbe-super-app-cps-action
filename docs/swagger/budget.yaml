@@ -1,0 +1,496 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Budget Management API
+  description: |
+    This API provides endpoints for managing budget-related resources including icons and colors
+    used in the CBE Super App CPS Action module.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # Request/Response Schemas
+    BudgetCreateColorRequest:
+      type: object
+      required:
+        - color
+      properties:
+        color:
+          type: string
+          description: Color code in hex format (e.g., #FF5733)
+          example: "#FF5733"
+    
+    UpdateColorRequest:
+      type: object
+      required:
+        - color
+      properties:
+        color:
+          type: string
+          description: New color code in hex format (e.g., #33FF57)
+          example: "#33FF57"
+    
+    ColorResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the color
+          example: 5f9d7b3b9d5f3b2a1c9d5f3d
+        color:
+          type: string
+          description: Color code in hex format
+          example: "#FF5733"
+        enabled:
+          type: boolean
+          description: Whether the color is enabled
+          example: true
+    
+    IconResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the icon
+          example: 5f9d7b3b9d5f3b2a1c9d5f3e
+        icon:
+          type: string
+          description: URL or path to the icon image
+          example: "/uploads/icons/budget/category1.png"
+        enabled:
+          type: boolean
+          description: Whether the icon is enabled
+          example: true
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully
+        data:
+          type: object
+          nullable: true
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: ERR_BAD_REQUEST
+            message:
+              type: string
+              example: Invalid request parameters
+            details:
+              type: object
+              nullable: true
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 100
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 10
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Budget Icons
+    description: Operations related to budget category icons
+  - name: Budget Colors
+    description: Operations related to budget category colors
+
+paths:
+  /budget/icons:
+    post:
+      tags:
+        - Budget Icons
+      summary: Upload a new budget category icon
+      description: Upload a new icon image for budget categories
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                icons_image:
+                  type: string
+                  format: binary
+                  description: Icon image file (max 10MB)
+      responses:
+        '200':
+          description: Icon upload request submitted for approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget icon request submitted for approval
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - Budget Icons
+      summary: List all budget category icons
+      description: Retrieve a paginated list of all available budget category icons
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of budget icons retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget icons retrieved successfully
+                data:
+                  items:
+                    - id: 5f9d7b3b9d5f3b2a1c9d5f3e
+                      icon: "/uploads/icons/budget/category1.png"
+                      enabled: true
+                  meta:
+                    total: 15
+                    page: 1
+                    limit: 10
+                    total_pages: 2
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /budget/icons/{id}:
+    put:
+      tags:
+        - Budget Icons
+      summary: Update a budget category icon
+      description: Update an existing budget category icon with a new image
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the icon to update
+          schema:
+            type: string
+          example: 5f9d7b3b9d5f3b2a1c9d5f3e
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                icons_image:
+                  type: string
+                  format: binary
+                  description: New icon image file (max 10MB)
+      responses:
+        '200':
+          description: Icon update request submitted for approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget icon update submitted for approval
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /budget/colors:
+    post:
+      tags:
+        - Budget Colors
+      summary: Create a new budget category color
+      description: Create a new color option for budget categories
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BudgetCreateColorRequest'
+      responses:
+        '200':
+          description: Color creation request submitted for approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget color request submitted for approval
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    get:
+      tags:
+        - Budget Colors
+      summary: List all budget category colors
+      description: Retrieve a paginated list of all available budget category colors
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: List of budget colors retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget colors retrieved successfully
+                data:
+                  items:
+                    - id: 5f9d7b3b9d5f3b2a1c9d5f3d
+                      color: "#FF5733"
+                      enabled: true
+                  meta:
+                    total: 10
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /budget/colors/{id}:
+    put:
+      tags:
+        - Budget Colors
+      summary: Update a budget category color
+      description: Update an existing budget category color
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the color to update
+          schema:
+            type: string
+          example: 5f9d7b3b9d5f3b2a1c9d5f3d
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateColorRequest'
+      responses:
+        '200':
+          description: Color update request submitted for approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget color update submitted for approval
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /budget/checker-approval/{action_code}:
+    post:
+      tags:
+        - Budget Icons
+        - Budget Colors
+      summary: Approve/Reject budget resource
+      description: Approve or reject a pending budget icon or color change
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: action_code
+          in: path
+          required: true
+          description: Action code for the pending change
+          schema:
+            type: string
+          example: ACT-12345
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum: [approve, reject]
+                  description: Action to perform (approve or reject)
+                comment:
+                  type: string
+                  description: Optional comment for the action
+      responses:
+        '200':
+          description: Action processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: Budget resource action processed successfully
+                data: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+  
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

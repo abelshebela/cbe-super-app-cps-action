@@ -1,0 +1,397 @@
+﻿openapi: 3.0.3
+info:
+  title: CBE Super App CPS Action - Product Codes API
+  description: |
+    This API provides endpoints for managing product codes in the CBE Super App CPS Action module.
+    It allows retrieving, updating, and searching product codes with their associated CBE and CBE IFB product codes.
+  version: 1.0.0
+  contact:
+    name: CBE Super App Support
+    email: support@cbe.com.et
+
+servers:
+  - url: /api/v1/cbesuperapp/cps_action
+    description: CBE Super App CPS Action API
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    ProductCodes:
+      type: object
+      description: Product codes for different banking products
+      properties:
+        prd:
+          type: string
+          description: Product code
+          example: "123456"
+        vatprd:
+          type: string
+          description: VAT product code
+          example: "VAT001"
+        sfprd:
+          type: string
+          description: Service fee product code
+          example: "SF001"
+    
+    UpdateProductCodeRequest:
+      type: object
+      description: Request payload for updating a product code
+      properties:
+        id:
+          type: string
+          description: ID of the product code to update
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+        product_name:
+          type: string
+          description: Name of the product (2-100 characters)
+          example: "Premium Savings Account"
+          minLength: 2
+          maxLength: 100
+        cbe_product_codes:
+          $ref: '#/components/schemas/ProductCodes'
+        cbe_ifb_product_codes:
+          $ref: '#/components/schemas/ProductCodes'
+      required:
+        - id
+      
+    ProductCodeResponse:
+      type: object
+      description: Product code response
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the product code
+          example: "60d5f1f9e6b3f3b3f3b3f3b3"
+        product_name:
+          type: string
+          description: Name of the product
+          example: "Premium Savings Account"
+        cbe_product_codes:
+          $ref: '#/components/schemas/ProductCodes'
+        cbe_ifb_product_codes:
+          $ref: '#/components/schemas/ProductCodes'
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the product code was created
+          example: "2023-01-01T00:00:00Z"
+        last_modified_at:
+          type: string
+          format: date-time
+          description: Timestamp when the product code was last modified
+          example: "2023-01-01T00:00:00Z"
+    
+    PaginatedProductCodeResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          description: List of product codes
+          items:
+            $ref: '#/components/schemas/ProductCodeResponse'
+        meta:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items
+              example: 1
+            page:
+              type: integer
+              description: Current page number
+              example: 1
+            limit:
+              type: integer
+              description: Number of items per page
+              example: 10
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 1
+    
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/ProductCodeResponse'
+            - $ref: '#/components/schemas/PaginatedProductCodeResponse'
+    
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "ERR_INVALID_REQUEST"
+            message:
+              type: string
+              example: "Invalid request parameters"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Product Codes
+    description: Operations related to product code management
+
+paths:
+  /productcodes:
+    get:
+      tags:
+        - Product Codes
+      summary: Fetch all product codes
+      description: |
+        Retrieves a paginated list of product codes. 
+        Search using service_name. Filter using {_id, service_name, created_at, ...}
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/Filter'
+      responses:
+        '200':
+          description: Product codes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Product codes retrieved successfully"
+                data:
+                  items:
+                    - id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                      product_name: "Premium Savings Account"
+                      cbe_product_codes:
+                        prd: "123456"
+                        vatprd: "VAT001"
+                        sfprd: "SF001"
+                      cbe_ifb_product_codes:
+                        prd: "654321"
+                        vatprd: "VAT002"
+                        sfprd: "SF002"
+                      created_at: "2023-01-01T00:00:00Z"
+                      last_modified_at: "2023-01-01T00:00:00Z"
+                  meta:
+                    total: 1
+                    page: 1
+                    limit: 10
+                    total_pages: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  /productcodes/{id}:
+    get:
+      tags:
+        - Product Codes
+      summary: Fetch a product code by ID
+      description: Retrieves a single product code by its unique ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ID'
+      responses:
+        '200':
+          description: Product code retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Product code retrieved successfully"
+                data:
+                  id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                  product_name: "Premium Savings Account"
+                  cbe_product_codes:
+                    prd: "123456"
+                    vatprd: "VAT001"
+                    sfprd: "SF001"
+                  cbe_ifb_product_codes:
+                    prd: "654321"
+                    vatprd: "VAT002"
+                    sfprd: "SF002"
+                  created_at: "2023-01-01T00:00:00Z"
+                  last_modified_at: "2023-01-01T00:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    
+    patch:
+      tags:
+        - Product Codes
+      summary: Update a product code
+      description: |
+        Updates an existing product code by its ID. 
+        This is a pending action that requires approval.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductCodeRequest'
+            example:
+              product_name: "Updated Premium Savings"
+              cbe_product_codes:
+                prd: "123456"
+                vatprd: "VAT001"
+                sfprd: "SF001"
+      responses:
+        '200':
+          description: Product code updated successfully (pending approval)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                message: "Product code update request submitted for approval"
+                data:
+                  old:
+                    id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                    product_name: "Premium Savings Account"
+                    cbe_product_codes:
+                      prd: "123456"
+                      vatprd: "VAT001"
+                      sfprd: "SF001"
+                    cbe_ifb_product_codes:
+                      prd: "654321"
+                      vatprd: "VAT002"
+                      sfprd: "SF002"
+                    created_at: "2023-01-01T00:00:00Z"
+                    last_modified_at: "2023-01-01T00:00:00Z"
+                  new:
+                    id: "60d5f1f9e6b3f3b3f3b3f3b3"
+                    product_name: "Updated Premium Savings"
+                    cbe_product_codes:
+                      prd: "123456"
+                      vatprd: "VAT001"
+                      sfprd: "SF001"
+                    cbe_ifb_product_codes:
+                      prd: "654321"
+                      vatprd: "VAT002"
+                      sfprd: "SF002"
+                    created_at: "2023-01-01T00:00:00Z"
+                    last_modified_at: "2023-01-01T00:00:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  parameters:
+    ID:
+      name: id
+      in: path
+      description: Product Code ID
+      required: true
+      schema:
+        type: string
+        example: "60d5f1f9e6b3f3b3f3b3f3b3"
+    Page:
+      name: page
+      in: query
+      description: Page number for pagination (1-based)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PerPage:
+      name: per_page
+      in: query
+      description: Number of items per page
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    Search:
+      name: search
+      in: query
+      description: Search term (searches in service_name)
+      required: false
+      schema:
+        type: string
+    Filter:
+      name: filter
+      in: query
+      description: Filter criteria as JSON string
+      required: false
+      schema:
+        type: string
+        example: '{"created_at": {"$gte": "2023-01-01T00:00:00Z"}}'
+  
+  responses:
+    BadRequest:
+      description: Bad request - Invalid parameters or missing required fields
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized - Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions to access the resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not Found - The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

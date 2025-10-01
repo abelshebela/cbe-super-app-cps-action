@@ -31,9 +31,9 @@ reserve
 # Editor/IDE
 # .idea/
 # .vscode/
-
-docs/
-!docs/swagger/
-!docs/swagger.json
+swagger_main.go
+# docs/
+# !docs/swagger/
+# !docs/swagger.json
 donation_category.md
 DONATION_CATEGORY_PATTERN_GUIDE.md
