@@ -114,7 +114,7 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	projection := bson.M{
-		"tire": 1,
+		"tiers": 1,
 	}
 	serviceDetail, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
@@ -242,7 +242,7 @@ func (s *ServiceDetails) DeleteServiceFeeTire(ctx context.Context, id string) er
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	projection := bson.M{
-		"tier": 1,
+		"tiers": 1,
 	}
 	prev, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
@@ -278,8 +278,7 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 		s.logger.Errorf("Failed to map service details for update: %v", err)
 		return err
 	}
-
-	return s.serviceRepo.Update(ctx, updatedService.ID.Hex(), updatedService)
+	return s.serviceRepo.Update(ctx, serviceID, updatedService)
 }
 
 func (s *ServiceDetails) applyTotalCapUpdate(ctx context.Context, cpsAction *model.CPSAction) error {
