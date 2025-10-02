@@ -116,7 +116,7 @@ type ProductCodePaginatedResponse types.PaginatedResponse[[]*dto.ProductCodeResp
 // @Param per_page query int false "Items per page"
 // @Param search query string false "Search term"
 // @Param filter query string false "filter term"
-// @Success 200 {object} ProductCodePaginatedResponse
+// @Success 200 {object} localization.ResponseCode
 // @Failure 400 {object} localization.ResponseCode
 // @Failure 401 {object} localization.ResponseCode
 // @Failure 403 {object} localization.ResponseCode

@@ -9,10 +9,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	
-	"time"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"cbe-super-app-cps-action/internal/constants/types"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -183,7 +183,6 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 // Authorize validates and approves/rejects CPS actions related to mini-app merchants.
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	
 
 	miniAppMerchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
@@ -201,7 +200,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	case string(constants.RequestDisableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 	default:
-	
+
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 

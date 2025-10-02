@@ -2,9 +2,10 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"encoding/json"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, logger utils.Logger) bool {

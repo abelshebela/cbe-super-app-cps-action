@@ -214,9 +214,35 @@ const (
 	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	// for bankvault
+	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+
+	// for vault group category
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
+	RequestCreateBankVault:  {},
+	RequestUpdateBankVault:  {},
+	RequestDeleteBankVault:  {},
+	RequestEnableBankVault:  {},
+	RequestDisAbleBankVault: {},
+
+	// for vault group category
+	RequestCreateVaultGroupCategory:  {},
+	RequestUpdateVaultGroupCategory:  {},
+	RequestDeleteVaultGroupCategory:  {},
+	RequestEnableVaultGroupCategory:  {},
+	RequestDisAbleVaultGroupCategory: {},
+
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
 	RequestCreateDonationCompany:  {},
@@ -589,6 +615,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableNotification,
 		RequestMarkNotificationAsSeen,
 	},
+	"BankVault": {
+		RequestCreateBankVault,
+		RequestUpdateBankVault,
+		RequestDeleteBankVault,
+		RequestEnableBankVault,
+		RequestDisAbleBankVault,
+	},
 	"ProductCode": {
 		RequestUpdateProductCode,
 	},
@@ -608,6 +641,13 @@ var RequestActionGroups = map[string][]RequestAction{
 	"donationCompany": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
+	},
+	"VaultGroupCategory": {
+		RequestCreateVaultGroupCategory,
+		RequestUpdateVaultGroupCategory,
+		RequestDeleteVaultGroupCategory,
+		RequestEnableVaultGroupCategory,
+		RequestDisAbleVaultGroupCategory,
 	},
 }
 

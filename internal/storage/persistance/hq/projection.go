@@ -10,7 +10,7 @@ func BuildHQUpdateDoc(updates map[string]interface{}, now time.Time) bson.M {
 	updateDoc := bson.M{}
 
 	for field, value := range updates {
-		if value=="" {
+		if value == "" {
 			continue
 		}
 		updateDoc[field] = value

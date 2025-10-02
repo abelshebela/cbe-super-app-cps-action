@@ -2,11 +2,11 @@ package server
 
 import (
 	bankpb "cbe-super-app-cps-action/grpc/bank"
-	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
 	servicepb "cbe-super-app-cps-action/grpc/service/proto"
+	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
+	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"log"
@@ -23,23 +23,22 @@ type server struct {
 	bankpb.UnimplementedBankServiceServer
 	walletpb.UnimplementedWalletServiceServer
 	servicepb.UnimplementedServiceDetailsServiceServer
-	bankHandler   service.BankService
-	walletHandler service.WalletService
+	bankHandler    service.BankService
+	walletHandler  service.WalletService
 	serviceHandler service.ServiceService
-	logger        utils.Logger
+	logger         utils.Logger
 }
 
-func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService,serviceHandler service.ServiceService, logger utils.Logger) *server {
+func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServiceService, logger utils.Logger) *server {
 	return &server{
-		bankHandler:   bankHandler,
-		walletHandler: walletHandler,
-		serviceHandler :serviceHandler,
-		logger:        logger,
+		bankHandler:    bankHandler,
+		walletHandler:  walletHandler,
+		serviceHandler: serviceHandler,
+		logger:         logger,
 	}
 }
 
-
-////////////////////////bank/////////////////
+// //////////////////////bank/////////////////
 func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) (*bankpb.GetOneBankResponse, error) {
 	// TODO: Implement logic
 	data, err := s.bankHandler.GetOneBank(ctx, req.Id)
@@ -49,7 +48,6 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	}
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
-
 
 func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
@@ -101,7 +99,8 @@ func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-/////////////////////wallet///////////////////
+
+// ///////////////////wallet///////////////////
 func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletRequest) (*walletpb.GetAllWalletResponse, error) {
 	data, err := s.walletHandler.GetAllWallet(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
@@ -139,7 +138,7 @@ func (s *server) walletListMapper(data []*model.Wallet) []*walletpb.Wallet {
 	return wallets
 }
 
-////////////////////////////service Details//////////////
+// //////////////////////////service Details//////////////
 func (s *server) GetAllServices(ctx context.Context, req *servicepb.GetAllServiceDetailsRequest) (*servicepb.GetAllServiceDetailsResponse, error) {
 	data, err := s.serviceHandler.GetAllService(ctx, &types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
@@ -157,9 +156,6 @@ func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneS
 	}
 	return &servicepb.GetServiceDetailResponse{Service: s.MapOneServiceDetail(data)}, nil
 }
-
-
-
 
 func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 	return &servicepb.Meta{
@@ -179,33 +175,34 @@ func (s *server) serviceListMapper(data []*model.ServiceDetails) []*servicepb.Se
 	}
 	return services
 }
-func  (s *server)MapServiceDetails(data *model.ServiceDetails) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *model.ServiceDetails) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:          data.ID.Hex(),
-		ServiceCode: data.ServiceCode,
-		ServiceName: data.ServiceName,
-		ServiceType: data.ServiceType,
-		Key:         data.Key,
-		AboveAmount: data.AboveAmount,
+		Id:              data.ID.Hex(),
+		ServiceCode:     data.ServiceCode,
+		ServiceName:     data.ServiceName,
+		ServiceType:     data.ServiceType,
+		Key:             data.Key,
+		AboveAmount:     data.AboveAmount,
 		AboveServiceFee: data.AboveServiceFee,
-		PaymentType: data.PaymentType,
-		Enabled:     data.Enabled,
-		IsDeleted:   data.IsDeleted,
+		PaymentType:     data.PaymentType,
+		Enabled:         data.Enabled,
+		IsDeleted:       data.IsDeleted,
 	}
 }
-//dtoService.ServiceFeeDetailResponse
-func  (s *server)MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servicepb.ServiceDetails {
+
+// dtoService.ServiceFeeDetailResponse
+func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:          data.ID.Hex(),
-		ServiceCode: data.ServiceCode,
-		ServiceName: data.ServiceName,
-		ServiceType: data.ServiceType,
-		Key:         data.Key,
-		AboveAmount: data.AboveAmount,
+		Id:              data.ID.Hex(),
+		ServiceCode:     data.ServiceCode,
+		ServiceName:     data.ServiceName,
+		ServiceType:     data.ServiceType,
+		Key:             data.Key,
+		AboveAmount:     data.AboveAmount,
 		AboveServiceFee: data.AboveServiceFee,
-		PaymentType: data.PaymentType,
-		Enabled:     data.Enabled,
-		IsDeleted:   data.IsDeleted,
+		PaymentType:     data.PaymentType,
+		Enabled:         data.Enabled,
+		IsDeleted:       data.IsDeleted,
 	}
 }
 
@@ -218,9 +215,9 @@ func StartGrpcServer(s *server) (*grpc.Server, net.Listener) {
 	grpcServer := grpc.NewServer()
 	bankpb.RegisterBankServiceServer(grpcServer, s)
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
-	servicepb.RegisterServiceDetailsServiceServer(grpcServer,s)
+	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)
 	log.Println("gRPC server listening on port 50051")
-    return grpcServer,lis
+	return grpcServer, lis
 }
 
 func StopGrpcServer(grpcServer *grpc.Server) {

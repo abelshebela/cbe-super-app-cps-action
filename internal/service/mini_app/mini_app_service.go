@@ -64,6 +64,27 @@ func NewMiniAppService(
 }
 
 func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error {
+	s.logger.Infof("CreateMiniApp called, app_name: %s", req.AppName)
+
+	isValidMerchant, err := miniappcore.ValidMerchantChecker(ctx, req.MerchantID, s.merchantService)
+	if err != nil {
+		s.logger.Errorf("IsValidMerchant failed, error: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if !isValidMerchant {
+		s.logger.Errorf("Invalid merchant ID provided: %s", req.MerchantID)
+		return errors.New(localization.ErrorInvalidMerchantID.Code)
+	}
+
+	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, true, "", req.AppName)
+	if err != nil {
+		s.logger.Errorf("IsMiniAppNameUnique check failed, error: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if !isValidMMiniAppName {
+		s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
+		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
+	}
 	if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
 		s.logger.Errorf("SetMerchantDetails failed, error: %v", err)
 		return err
@@ -120,6 +141,28 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 
 func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error {
 	s.logger.Infof("UpdateMiniApp called, app_id: %s", req.ID)
+
+	isValidMerchant, err := miniappcore.ValidMerchantChecker(ctx, req.MerchantID, s.merchantService)
+	if err != nil {
+		s.logger.Errorf("IsValidMerchant failed, error: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	if !isValidMerchant {
+		s.logger.Errorf("Invalid merchant ID provided: %s", req.MerchantID)
+		return errors.New(localization.ErrorInvalidMerchantID.Code)
+	}
+
+	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
+	if err != nil {
+		s.logger.Errorf("IsMiniAppNameUnique check failed, error: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	if !isValidMMiniAppName {
+		s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
+		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
+	}
 
 	if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
 		s.logger.Errorf("SetMerchantDetails failed, app_id: %s, error: %v", req.ID, err)

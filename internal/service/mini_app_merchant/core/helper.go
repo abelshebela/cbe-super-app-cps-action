@@ -72,7 +72,7 @@ func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.C
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData,  prevData,curData, string(requestAction), string(actionType))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		log.Printf("Failed to create CPS action for Mini App Merchant: %v", err)

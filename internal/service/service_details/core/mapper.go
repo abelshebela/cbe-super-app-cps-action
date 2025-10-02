@@ -8,12 +8,12 @@ import (
 // MapToMinimumTransferCapResponse maps ServiceDetails to MinimumTransferCapResponse
 func MapToMinimumTransferCapResponse(service *model.ServiceDetails) *dto.MinimumTransferCapResponse {
 	return &dto.MinimumTransferCapResponse{
-		ID:          service.ID,
-		ServiceName: service.ServiceName,
-		ServiceCode: service.ServiceCode,
-		ServiceType: service.ServiceType,
-		MinimumAmount:service.Cap.MinAmount,
-		CreatedAt:   service.CreatedAt,
+		ID:            service.ID,
+		ServiceName:   service.ServiceName,
+		ServiceCode:   service.ServiceCode,
+		ServiceType:   service.ServiceType,
+		MinimumAmount: service.Cap.MinAmount,
+		CreatedAt:     service.CreatedAt,
 	}
 }
 

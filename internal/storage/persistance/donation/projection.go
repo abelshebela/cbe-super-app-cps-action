@@ -53,23 +53,21 @@ func MapToDonationListResponse(donation *model.Donation, company *model.Donation
 
 func DonationMapper(donation model.Donation) bson.M {
 	updateData := bson.M{
-		
-			"donation_code":        donation.DonationCode,
-			"company_id":           donation.CompanyID,
-			"category_id":          donation.CategoryID,
-			"title":                donation.Title,
-			"is_featured":          donation.IsFeatured,
-			"target":               donation.Target,
-			"donation_description": donation.DonationDescription,
-			"donation_images":      donation.DonationImages,
-			"cover_image":          donation.CoverImage,
-			"end_date":             donation.EndDate,
-			"start_date":           donation.StartDate,
-			"enabled":              donation.Enabled,
-			"last_modified_at":     donation.LastModifiedAt,
-		
+
+		"donation_code":        donation.DonationCode,
+		"company_id":           donation.CompanyID,
+		"category_id":          donation.CategoryID,
+		"title":                donation.Title,
+		"is_featured":          donation.IsFeatured,
+		"target":               donation.Target,
+		"donation_description": donation.DonationDescription,
+		"donation_images":      donation.DonationImages,
+		"cover_image":          donation.CoverImage,
+		"end_date":             donation.EndDate,
+		"start_date":           donation.StartDate,
+		"enabled":              donation.Enabled,
+		"last_modified_at":     donation.LastModifiedAt,
 	}
-	
 
 	return updateData
 }

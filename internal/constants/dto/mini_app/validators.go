@@ -27,13 +27,11 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 			validation.Field(&r.AppViewType, validation.Required.Error(localization.ErrorAppViewTypeRequired.Code), validation.By(ValidateAppViewType(r, isCreate))),
 			validation.Field(&r.URL, validation.Required.Error(localization.ErrorMiniAppURLRequired.Code), validation.By(validateURL)),
 			validation.Field(&r.BannerImage, validation.By(validateFile)),
-	
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.AppIcon, validation.By(validateFile)),
 			validation.Field(&r.BannerImage, validation.By(validateFile)),
-	
 		}
 	}
 

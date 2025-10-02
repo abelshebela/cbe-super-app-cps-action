@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"cbe-super-app-cps-action/pkgs/utils"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
-
 
 func (d DonationCategoryRequest) ValidateForUpdate() error {
 	// First check if at least one field is provided
@@ -57,7 +57,6 @@ func validateImage(value interface{}) error {
 
 	return nil
 }
-
 
 func hasAllowedExtension(filename string, allowed []string) bool {
 	if filename == "" {

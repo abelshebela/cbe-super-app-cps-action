@@ -10,7 +10,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -33,7 +32,7 @@ func NewDonationCompanyRepository(client *mongo.Client, dbName string, collectio
 }
 
 func (s *DonationCompanyStorage) Create(ctx context.Context, details *model.DonationCompany) error {
-	
+
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)

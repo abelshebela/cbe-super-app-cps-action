@@ -12,11 +12,12 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"cbe-super-app-cps-action/internal/constants/lib"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"cbe-super-app-cps-action/internal/constants/lib"
 )
 
 type DonationStorage struct {
@@ -105,7 +106,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
 
 	searchKeys := bson.M{}
-	allowedKeys := []string{"title", "is_featured", "enabled","donation_code","target","end_date"}
+	allowedKeys := []string{"title", "is_featured", "enabled", "donation_code", "target", "end_date"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -117,7 +118,6 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 			{"target": searchRegex},
 			{"end_date": searchRegex},
 			{"start_date": searchRegex},
-			
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)

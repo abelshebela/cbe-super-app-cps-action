@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -36,6 +37,7 @@ func StructToMap(data interface{}) (map[string]interface{}, error) {
 }
 
 func PasswordRuleDtoToModel(dto dto.PasswordRuleUpdate) model.PasswordRule {
+	fmt.Println("DTO:-----------------", dto)
 	return model.PasswordRule{
 		ID:             bson.NewObjectID(),
 		Name:           dto.Name,
