@@ -1,5 +1,10 @@
 package passwordrule
 
+import (
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+)
+
 type PasswordRuleUpdate struct {
 	Name           string `json:"name"`
 	MinLength      int    `json:"min_length"`
@@ -12,4 +17,9 @@ type PasswordRuleUpdate struct {
 
 type CheckPasswordDTO struct {
 	Password string `json:"password"`
+}
+
+type PaginatedPasswordRulesResponse struct {
+	Data []model.PasswordRule `json:"docs"`
+	Meta types.PaginationMeta `json:"meta"`
 }

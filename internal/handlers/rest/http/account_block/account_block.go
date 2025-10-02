@@ -285,7 +285,7 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableBranches true "Branch codes to enable"
+// @Param request body ab_dto.EnableOrDisableBranches true "Branch codes to enable"
 // @Success 200 {object} map[string]interface{} "Branches enabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -321,7 +321,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableBranches true "Branch codes to disable"
+// @Param request body ab_dto.EnableOrDisableBranches true "Branch codes to disable"
 // @Success 200 {object} map[string]interface{} "Branches disabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -357,7 +357,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableRegions true "Region codes to enable"
+// @Param request body ab_dto.EnableOrDisableRegions true "Region codes to enable"
 // @Success 200 {object} map[string]interface{} "Regions enabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -393,7 +393,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableRegions true "Region codes to disable"
+// @Param request body ab_dto.EnableOrDisableRegions true "Region codes to disable"
 // @Success 200 {object} map[string]interface{} "Regions disabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -430,7 +430,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableDistricts true "District codes to enable"
+// @Param request body ab_dto.EnableOrDisableDistricts true "District codes to enable"
 // @Success 200 {object} map[string]interface{} "Districts enabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -466,7 +466,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableDistricts true "District codes to disable"
+// @Param request body ab_dto.EnableOrDisableDistricts true "District codes to disable"
 // @Success 200 {object} map[string]interface{} "Districts disabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -502,7 +502,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableCities true "City codes to enable"
+// @Param request body ab_dto.EnableOrDisableCities true "City codes to enable"
 // @Success 200 {object} map[string]interface{} "Cities enabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -537,7 +537,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableCities true "City codes to disable"
+// @Param request body ab_dto.EnableOrDisableCities true "City codes to disable"
 // @Success 200 {object} map[string]interface{} "Cities disabled successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"

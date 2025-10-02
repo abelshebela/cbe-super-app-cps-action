@@ -1,6 +1,6 @@
 basePath: /api/v1/cbesuperapp/cps_action
 definitions:
-  accountblock.EnableOrDisableBranches:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches:
     properties:
       branches_code:
         example:
@@ -10,7 +10,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableCities:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities:
     properties:
       city_code:
         example:
@@ -20,7 +20,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableDistricts:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts:
     properties:
       districts_code:
         example:
@@ -30,7 +30,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableRegions:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions:
     properties:
       regions_code:
         example:
@@ -40,7 +40,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountvalidation.ValidationRuleDTO:
+  cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO:
     properties:
       enabled:
         type: boolean
@@ -61,26 +61,444 @@ definitions:
       validation_for:
         type: string
     type: object
-  localization.ResponseCode:
+  cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.KYCDTO:
     properties:
+      representative:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.RepresentativeDTO'
+      status:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO:
+    properties:
+      account_number:
+        type: string
+      email:
+        type: string
+      merchant_name:
+        type: string
+      merchant_representative_name:
+        type: string
+      phone_number:
+        type: string
+      type:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO:
+    properties:
+      account_number:
+        type: string
       code:
         type: string
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      kyc:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.KYCDTO'
+      last_modified:
+        type: string
+      merchant_name:
+        type: string
+      mini_apps:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.MiniApps'
+        type: array
+      type:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.PaginatedMiniAppResponseResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.RepresentativeDTO:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_password_rule.CheckPasswordDTO:
+    properties:
+      password:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_password_rule.PaginatedPasswordRulesResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.PasswordRule'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_password_rule.PasswordRuleUpdate:
+    properties:
+      capital_letters:
+        type: boolean
+      characters:
+        type: boolean
+      max_length:
+        type: integer
+      min_length:
+        type: integer
+      name:
+        type: string
+      numbers:
+        type: boolean
+      small_letters:
+        type: boolean
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_permission.CreatePermissionGroupRequest:
+    properties:
+      group_name:
+        type: string
+      permission_category_list:
+        items:
+          type: string
+        type: array
+      role:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PermissionCategoryResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_permission.PermissionCategoryResponse:
+    properties:
+      access:
+        type: string
+      categoryName:
+        type: string
+      createdAt:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      isDeleted:
+        type: boolean
+      permissions: {}
+      updatedAt:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_permission.UpdatePermissionGroupRequest:
+    properties:
+      new_group_name:
+        type: string
+      old_group_name:
+        type: string
+      permission_category_list:
+        items:
+          type: string
+        type: array
+      role:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
+      created_at:
+        type: string
+      id:
+        type: string
+      last_modified_at:
+        type: string
+      product_name:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
+      id:
+        type: string
+      product_name:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.CBglEntryDTO:
+    properties:
+      cbgl_product_account:
+        type: string
+      cbgl_product_branchcode:
+        type: string
+      cbgl_service_account:
+        type: string
+      cbgl_service_branchcode:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.IFBglEntryDTO:
+    properties:
+      ifbgl_product_account:
+        type: string
+      ifbgl_product_branchcode:
+        type: string
+      ifbgl_service_account:
+        type: string
+      ifbgl_service_branchcode:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.MaximumTransferCapResponse:
+    properties:
+      cap:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap'
+      created_at:
+        type: string
+      gl_entry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
+      id:
+        type: string
+      ifb_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      service_code:
+        type: string
+      service_key:
+        type: string
+      service_name:
+        type: string
+      service_type:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      min_amount:
+        type: integer
+      service_code:
+        type: string
+      service_name:
+        type: string
+      service_type:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest:
+    properties:
+      min_amount:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.PaymentType:
+    enum:
+    - flat_fee
+    - percentage
+    type: string
+    x-enum-varnames:
+    - PaymentTypeFlatFee
+    - PaymentTypePercentage
+  cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailDTO:
+    properties:
+      above_amount:
+        type: integer
+      above_service_fee:
+        type: integer
+      cbgl_entry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.CBglEntryDTO'
+      daily_cap_level_one:
+        type: integer
+      ifbgl_entry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.IFBglEntryDTO'
+      min_amount_virtual:
+        type: integer
+      payment_type:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.PaymentType'
+      service_type:
+        type: string
+      single_cap_level_one:
+        type: integer
+      tiers:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO'
+        type: array
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailResponse:
+    properties:
+      aboveAmount:
+        type: integer
+      aboveServiceFee:
+        type: integer
+      cap:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap'
+      cbeglentry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
+      cbeifbglentry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
+      cbeifbproductCodes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      cbeproductCodes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      isDeleted:
+        type: boolean
+      key:
+        type: string
+      lastModifiedAt:
+        type: string
+      paymentType:
+        type: string
+      serviceCode:
+        type: string
+      serviceName:
+        type: string
+      serviceType:
+        type: string
+      tiers:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier'
+        type: array
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse:
+    properties:
+      created_at:
+        type: string
+      gl_entry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
+      id:
+        type: string
+      ifb_product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      min_amount:
+        type: integer
+      payment_type:
+        type: string
+      product_codes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      service_key:
+        type: string
+      service_name:
+        type: string
+      service_type:
+        type: string
+      tiers:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier'
+        type: array
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest:
+    properties:
+      corporate_daily_cap:
+        type: integer
+      corporate_single_cap:
+        type: integer
+      individual_daily_cap:
+        type: integer
+      individual_single_cap:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO:
+    properties:
+      fee_amount:
+        type: integer
+      max:
+        type: integer
+      min:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest:
+    properties:
+      total_cap:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      total_cap:
+        type: integer
+      updated_at_total_cap:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_localization.StandardResponse:
+    properties:
+      data: {}
       message:
         type: string
-      status_code:
+      ok:
+        type: boolean
+      status:
         type: integer
       timestamp:
         type: string
-      type:
-        description: '"success", "error", "warning", "info"'
-        type: string
     type: object
-  model.ProductCode:
+  cbe-super-app-cps-action_internal_constants_model.Card:
+    properties:
+      card_name:
+        type: string
+      id:
+        type: string
+      sub_cards:
+        items:
+          type: string
+        type: array
+    type: object
+  cbe-super-app-cps-action_internal_constants_model.MiniApps:
+    properties:
+      enabled:
+        type: boolean
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+    type: object
+  cbe-super-app-cps-action_internal_constants_model.PasswordRule:
+    properties:
+      _id:
+        type: string
+      capital_letters:
+        type: boolean
+      characters:
+        type: boolean
+      created_at:
+        type: string
+      max_length:
+        type: integer
+      min_length:
+        type: integer
+      name:
+        type: string
+      numbers:
+        type: boolean
+      small_letters:
+        type: boolean
+    type: object
+  cbe-super-app-cps-action_internal_constants_model.ProductCode:
     properties:
       cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
       cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
       created_at:
         type: string
       id:
@@ -90,7 +508,7 @@ definitions:
       service_name:
         type: string
     type: object
-  model.ProductCodes:
+  cbe-super-app-cps-action_internal_constants_model.ProductCodes:
     properties:
       prd:
         type: string
@@ -101,33 +519,173 @@ definitions:
       vatprd:
         type: string
     type: object
-  productcode.ProductCodePaginatedResponse:
-    type: object
-  productcode.ProductCodeResponse:
+  cbe-super-app-cps-action_internal_constants_model.ServiceDetails:
     properties:
-      cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      created_at:
+      aboveAmount:
+        type: integer
+      aboveServiceFee:
+        type: integer
+      cap:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap'
+      cbeglentry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
+      cbeifbglentry:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
+      cbeifbproductCodes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      cbeproductCodes:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
+      createdAt:
         type: string
+      deletedAt:
+        type: string
+      enabled:
+        type: boolean
       id:
         type: string
-      last_modified_at:
+      isDeleted:
+        type: boolean
+      key:
         type: string
-      product_name:
+      lastModifiedAt:
+        type: string
+      paymentType:
+        type: string
+      serviceCode:
+        type: string
+      serviceName:
+        type: string
+      serviceType:
+        type: string
+      tiers:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier'
+        type: array
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.Cap:
+    properties:
+      corporate_daily_cap:
+        type: integer
+      corporate_single_cap:
+        type: integer
+      individual_daily_cap:
+        type: integer
+      individual_single_cap:
+        type: integer
+      kyc_level:
+        type: string
+      min_amount:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.GLEntry:
+    properties:
+      product_account:
+        type: string
+      product_branch_code:
+        type: string
+      service_account:
+        type: string
+      service_branch_code:
+        type: string
+      vat_account:
+        type: string
+      vat_branch_code:
         type: string
     type: object
-  productcode.UpdateProductCodeRequest:
+  cbe-super-app-cps-action_internal_constants_types.PaginationMeta:
     properties:
-      cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      id:
+      has_next_page:
+        type: boolean
+      has_prev_page:
+        type: boolean
+      limit:
+        type: integer
+      next_page:
+        type: integer
+      page:
+        type: integer
+      paging_counter:
+        type: integer
+      prev_page:
+        type: integer
+      total_docs:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.ProductCodes:
+    properties:
+      prd:
         type: string
-      product_name:
+      sfprd:
         type: string
+      trxn:
+        type: string
+      vatprd:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.Tier:
+    properties:
+      feeAmount:
+        type: integer
+      max:
+        type: integer
+      min:
+        type: integer
+    type: object
+  internal_handlers_rest_http_portal_card.PortalCardPaginatedResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Card'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_product_code.ProductCodePaginatedResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MaximumTransferCapResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_service_details.paginatedServiceDetails:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ServiceDetails'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_service_details.paginatedServiceFeeResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
     type: object
 host: localhost:8080
 info:
@@ -221,7 +779,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches'
       produces:
       - application/json
       responses:
@@ -256,7 +814,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches'
       produces:
       - application/json
       responses:
@@ -363,7 +921,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities'
       produces:
       - application/json
       responses:
@@ -398,7 +956,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities'
       produces:
       - application/json
       responses:
@@ -505,7 +1063,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts'
       produces:
       - application/json
       responses:
@@ -540,7 +1098,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts'
       produces:
       - application/json
       responses:
@@ -647,7 +1205,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions'
       produces:
       - application/json
       responses:
@@ -682,7 +1240,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions'
       produces:
       - application/json
       responses:
@@ -799,7 +1357,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountvalidation.ValidationRuleDTO'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO'
       produces:
       - application/json
       responses:
@@ -823,7 +1381,1072 @@ paths:
       summary: Update account validation rule
       tags:
       - Account Validation
-  /productcodes:
+  /maximum-transfer-caps:
+    get:
+      description: Retrieves all maximum transfer caps with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Maximum Transfer Caps
+      tags:
+      - ServiceDetails
+  /mini-app-merchants:
+    get:
+      description: Retrieves a paginated list of mini app merchants
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.PaginatedMiniAppResponseResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: List Mini App Merchants
+      tags:
+      - MiniAppMerchant
+    post:
+      consumes:
+      - application/json
+      description: Creates a new mini app merchant
+      parameters:
+      - description: Mini App Merchant DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Create Mini App Merchant
+      tags:
+      - MiniAppMerchant
+  /mini-app-merchants/{id}:
+    delete:
+      description: Deletes a mini app merchant by ID
+      parameters:
+      - description: Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Delete Mini App Merchant
+      tags:
+      - MiniAppMerchant
+    get:
+      description: Retrieves a mini app merchant by ID
+      parameters:
+      - description: Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get Mini App Merchant by ID
+      tags:
+      - MiniAppMerchant
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing mini app merchant
+      parameters:
+      - description: Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Mini App Merchant DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Update Mini App Merchant
+      tags:
+      - MiniAppMerchant
+  /mini-app-merchants/{id}/disable:
+    patch:
+      description: Disables a mini app merchant by ID
+      parameters:
+      - description: Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Disable Mini App Merchant
+      tags:
+      - MiniAppMerchant
+  /mini-app-merchants/{id}/enable:
+    patch:
+      description: Enables a mini app merchant by ID
+      parameters:
+      - description: Merchant ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Enable Mini App Merchant
+      tags:
+      - MiniAppMerchant
+  /minimum-transfer-cap/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates minimum transfer cap by service ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Minimum Transfer Update DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Update Minimum Transfer Cap
+      tags:
+      - ServiceDetails
+  /minimum-transfer-caps:
+    get:
+      description: Retrieves all minimum transfer caps with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Minimum Transfer Caps
+      tags:
+      - ServiceDetails
+  /password-rules:
+    get:
+      description: Retrieves all password rules with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_password_rule.PaginatedPasswordRulesResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Password Rules
+      tags:
+      - PasswordRule
+  /password-rules/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Requests an update to a password rule
+      parameters:
+      - description: Password Rule ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Password Rule Update DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_password_rule.PasswordRuleUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Request Password Rule Update
+      tags:
+      - PasswordRule
+  /password-rules/check:
+    post:
+      consumes:
+      - application/json
+      description: Checks if a password meets the rule
+      parameters:
+      - description: Check Password DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_password_rule.CheckPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                properties:
+                  valid:
+                    type: boolean
+                type: object
+              message:
+                type: string
+              status:
+                type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Check Password Rule
+      tags:
+      - PasswordRule
+  /permission-categories-with-permissions:
+    get:
+      description: Retrieves all permission categories with their permissions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Permission Categories With Permissions
+      tags:
+      - Permission
+  /permission-groups:
+    get:
+      description: Retrieves a paginated list of permission groups
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get Permission Groups
+      tags:
+      - Permission
+    post:
+      consumes:
+      - application/json
+      description: Creates a new permission group
+      parameters:
+      - description: Create Permission Group DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.CreatePermissionGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Create Permission Group
+      tags:
+      - Permission
+  /permission-groups/{group_name}:
+    get:
+      description: Retrieves a permission group by its name
+      parameters:
+      - description: Group Name
+        in: path
+        name: group_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PermissionCategoryResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get Permission Group by Name
+      tags:
+      - Permission
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing permission group
+      parameters:
+      - description: Group Name
+        in: path
+        name: group_name
+        required: true
+        type: string
+      - description: Update Permission Group DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.UpdatePermissionGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Update Permission Group
+      tags:
+      - Permission
+  /portal-cards:
+    get:
+      description: Retrieves all portal cards with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_portal_card.PortalCardPaginatedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Portal Cards
+      tags:
+      - PortalCard
+  /product-codes:
     get:
       description: Retrieves a paginated list of product codes. Search using service_name.Filter
         using {_id,service_name,created_at,...}
@@ -850,25 +2473,52 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/productcode.ProductCodePaginatedResponse'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
-      security:
-      - BearerAuth: []
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
       summary: Fetch all product codes
       tags:
-      - Product Code
-  /productcodes/{id}:
+      - ProductCode
+  /product-codes/{id}:
     get:
       description: Retrieves a single product code by its unique ID.
       parameters:
@@ -883,28 +2533,60 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/productcode.ProductCodeResponse'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse'
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
-      security:
-      - BearerAuth: []
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
       summary: Fetch a product code by ID
       tags:
-      - Product Code
+      - ProductCode
     patch:
       consumes:
       - application/json
@@ -921,37 +2603,495 @@ paths:
         name: productCode
         required: true
         schema:
-          $ref: '#/definitions/productcode.UpdateProductCodeRequest'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              $ref: '#/definitions/model.ProductCode'
-            type: object
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  additionalProperties:
+                    $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode'
+                  type: object
+              type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
-      security:
-      - BearerAuth: []
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
       summary: Update a product code
       tags:
-      - Product Code
+      - ProductCode
+  /service-fee-tire/{id}:
+    delete:
+      description: Deletes service fee tire by service ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Delete Service Fee Tire
+      tags:
+      - ServiceDetails
+  /service-fees:
+    get:
+      description: Retrieves all service fees with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedServiceFeeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Service Fees
+      tags:
+      - ServiceDetails
+  /service-fees/{id}:
+    get:
+      description: Retrieves service fee detail by service ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get Service Fee Detail
+      tags:
+      - ServiceDetails
+    put:
+      consumes:
+      - application/json
+      description: Updates service fee detail by service ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Service Fee Detail DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Update Service Fee
+      tags:
+      - ServiceDetails
+  /services:
+    get:
+      description: Retrieves all services with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedServiceDetails'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Services
+      tags:
+      - ServiceDetails
+  /single-max-transfer/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates single max transfer by service ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Single Max Transfer DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Update Single Max Transfer
+      tags:
+      - ServiceDetails
+  /total-max-transfer-cap:
+    put:
+      consumes:
+      - application/json
+      description: Updates total max transfer cap
+      parameters:
+      - description: Total Max Transfer Update DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Update Total Max Transfer Cap
+      tags:
+      - ServiceDetails
+  /total-transfer-caps:
+    get:
+      description: Retrieves all total transfer caps
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      summary: Get All Total Transfer Caps
+      tags:
+      - ServiceDetails
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
