@@ -69,7 +69,7 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Tier not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /amount_based_auth/update/{id}/{method} [patch]
+// @Router /amount_based_auth/update/{method}/{id} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {

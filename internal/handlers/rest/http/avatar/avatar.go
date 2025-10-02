@@ -102,7 +102,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Avatar not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /avatar/enable/{id} [post]
+// @Router /avatar/enable/{id} [patch]
 func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -130,7 +130,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Avatar not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /avatar/disable/{id} [post]
+// @Router /avatar/disable/{id} [patch]
 func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

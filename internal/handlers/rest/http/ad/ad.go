@@ -187,7 +187,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /adverts/{id} [delete]
+// @Router /advert/{id} [delete]
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -214,7 +214,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /adverts/{id}/enable [post]
+// @Router /adverts/{id}/enable [patch]
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -242,7 +242,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /adverts/{id}/disable [post]
+// @Router /adverts/{id}/disable [patch]
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {

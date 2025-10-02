@@ -119,7 +119,7 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /banks/{id}/disable [post]
+// @Router /banks/{id}/disable [patch]
 func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -149,7 +149,7 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /banks/{id}/enable [post]
+// @Router /banks/{id}/enable [patch]
 func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -239,7 +239,7 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /banks/{id}/logo [post]
+// @Router /banks/{id}/logo [patch]
 func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	var uploadLogo bank_dto.UpdateLogo
 	id := chi.URLParam(r, "id")
