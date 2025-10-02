@@ -9,7 +9,7 @@ import (
 )
 
 type Advert struct {
-	ID            bson.ObjectID       `json:"id,omitempty" bson:"_id"`
+	ID            bson.ObjectID       `json:"id,omitempty" bson:"_id,omitempty"`
 	Title         string              `json:"title" bson:"title"`
 	Description   string              `json:"description" bson:"description"`
 	BannerImage   string              `json:"banner_image" bson:"banner_image"`

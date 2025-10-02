@@ -49,7 +49,8 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 	req, err := core.ParseAndValidateAdvertRequest(r, false, a.logger)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
+		return
 	}
 
 	domainReq, err := core.ToAdvert(*req)
@@ -116,6 +117,7 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	data, err := a.advertApplication.FetchAdvertByID(r.Context(), id)
@@ -151,11 +153,13 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	req, err := core.ParseAndValidateAdvertRequest(r, true, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	domainReq, _ := core.ToAdvert(*req)
@@ -192,6 +196,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	err = a.advertApplication.DeleteAdvert(r.Context(), id)
@@ -219,6 +224,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
@@ -247,6 +253,7 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
 	}
 
 	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, false)

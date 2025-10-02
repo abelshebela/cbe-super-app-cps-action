@@ -84,7 +84,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Product Code ID"
-// @Success 200 {object} localization.ResponseCode
+// @Success 200 {object} dto.ProductCodeResponse
 // @Failure 400 {object} localization.ResponseCode
 // @Failure 401 {object} localization.ResponseCode
 // @Failure 403 {object} localization.ResponseCode
