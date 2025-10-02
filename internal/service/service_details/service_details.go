@@ -114,7 +114,7 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	projection := bson.M{
-		"tire": 1,
+		"tiers": 1,
 	}
 	serviceDetail, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
@@ -145,11 +145,11 @@ func (s *ServiceDetails) UpdateSingleMaxTransfer(ctx context.Context, id string,
 		"_id":       1,
 	}
 	hq, err := s.hqRepo.Find(ctx, nil, projection)
-	if err!=nil{
+	if err != nil {
 		s.logger.Errorf("error fetching HQ data for updat single transfer cap: %v", err)
 		return err
 	}
-	
+
 	if req.CDailyCap > hq.TotalCap || req.IDailyCap > hq.TotalCap {
 		return errors.New(localization.ErrorSingleTransferCanNotBeGreaterThanCap.Code)
 	}
@@ -220,12 +220,12 @@ func (s *ServiceDetails) UpdateMinimumTransferCap(ctx context.Context, id string
 		"_id":       1,
 	}
 	hq, err := s.hqRepo.Find(ctx, nil, projection)
-	if err!=nil{
+	if err != nil {
 		s.logger.Errorf("error fetching HQ data for update minimum: %v", err)
 		return err
 	}
-	
-	if req.Minimum >= hq.TotalCap  {
+
+	if req.Minimum >= hq.TotalCap {
 		return errors.New(localization.ErrorMinAmountCanNotBeGreaterThanTotal.Code)
 	}
 
@@ -242,7 +242,7 @@ func (s *ServiceDetails) DeleteServiceFeeTire(ctx context.Context, id string) er
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	projection := bson.M{
-		"tier": 1,
+		"tiers": 1,
 	}
 	prev, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
@@ -267,7 +267,6 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 		return errors.New("service ID is required (UniqueId field is empty)")
 	}
 
-
 	existingService, err := s.serviceRepo.FindByID(ctx, bson.M{}, serviceID)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch existing service details: %v", err)
@@ -279,19 +278,18 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 		s.logger.Errorf("Failed to map service details for update: %v", err)
 		return err
 	}
-
-	return s.serviceRepo.Update(ctx, updatedService.ID.Hex(), updatedService)
+	return s.serviceRepo.Update(ctx, serviceID, updatedService)
 }
 
 func (s *ServiceDetails) applyTotalCapUpdate(ctx context.Context, cpsAction *model.CPSAction) error {
-	projection:=bson.M{}
+	projection := bson.M{}
 	hq, err := s.hqRepo.Find(ctx, nil, projection)
-	if err!=nil{
+	if err != nil {
 		s.logger.Errorf("error fetching HQ data for updattotal maximum cap: %v", err)
 		return err
 	}
 
-	totalCap, err :=core.TotalCapMapper(hq,cpsAction.CurrentAction)
+	totalCap, err := core.TotalCapMapper(hq, cpsAction.CurrentAction)
 	if err != nil {
 		s.logger.Errorf("Failed to map service details for update: %v", err)
 		return err

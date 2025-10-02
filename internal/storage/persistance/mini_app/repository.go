@@ -165,7 +165,7 @@ func (m *MiniAppStorage) Find(ctx context.Context, name string) (*model.MiniApp,
 }
 
 func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error) {
-	allowedKeys := []string{"app_type", "enabled", "is_event_mini_app", "is_three_click"}
+	allowedKeys := []string{"app_type", "enabled", "is_event_mini_app", "is_three_click","app_name"}
 	searchKeys := bson.M{}
 
 	if filterParam.Search != "" {
