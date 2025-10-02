@@ -8,11 +8,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	_ "github.com/godror/godror"
+	// _ "github.com/godror/godror"
 	"go.uber.org/zap"
 )
 
-func InitOracle(url string, logger utils.Logger) *sql.DB {
+func InitOracle1(url string, logger utils.Logger) *sql.DB {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

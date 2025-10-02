@@ -38,12 +38,12 @@ func Init(ctx context.Context) {
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
 
-	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
-	logger.Infof("Oracle database initialized")
+	// oracleDB := InitOracle(cfg.OracleConnectionString, logger)
+	// logger.Infof("Oracle database initialized")
 
-	logger.Infof("Initializing Oracle DB client...")
-	OraclePersistence := InitOraclePersistence(oracleDB, logger)
-	logger.Infof("Oracle DB client initialized")
+	// logger.Infof("Initializing Oracle DB client...")
+	// OraclePersistence := InitOraclePersistence(oracleDB, logger)
+	// logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing account lookup service...")
 	accountLookupService := InitAccountLookupService(cfg, logger)
@@ -60,7 +60,8 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService)
+	// serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
