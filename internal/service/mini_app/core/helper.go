@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	cRand "crypto/rand"
@@ -127,4 +128,33 @@ func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, er
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
+}
+
+func ValidMerchantChecker(ctx context.Context, merchantId string, miniAppMerchantRepo service.MiniAppMerchantService) (bool, error) {
+	merchant, err := miniAppMerchantRepo.FindByID(ctx, merchantId)
+	if err != nil {
+		return false, err
+	}
+	if merchant.Enabled == false || merchant.IsDeleted == true {
+		return false, nil
+	}
+	return merchant != nil, nil
+}
+
+func ValidMiniAppChecker(ctx context.Context, miniAppRepo storage.MiniAppRepository, isCreate bool, id, miniAppName string) (bool, error) {
+	existedTitleFilter := types.Filter{
+		Filters: map[string]interface{}{
+			"app_name": miniAppName,
+		},
+	}
+
+	exists, err := miniAppRepo.FindAllWithPagination(ctx, existedTitleFilter)
+	if err != nil && err.Error() != localization.ErrorFileNotFound.Code {
+		return false, err
+	}
+	if len(exists.Data) > 0 {
+		return false, errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
+	}
+
+	return true, nil
 }

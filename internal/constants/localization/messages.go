@@ -353,10 +353,12 @@ const (
 	MsgFileTooLarge     = "file size is too large"
 	MsgFileInvalidType  = "invalid file type"
 	MsgFileUploadFailed = "file upload failed"
+
 	MsgFileNotFound     = "file not found"
 	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
+	MsgMiniAppNameAlreadyExists              = "Mini App name already exists"
 	MsgBankDeleteRequestFailed               = "Bank delete request failed"
 	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"

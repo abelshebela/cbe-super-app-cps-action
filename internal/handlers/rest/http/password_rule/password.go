@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -45,6 +46,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 	if !ok {
 		return
 	}
+	fmt.Println("Body:-----------------", r.Body)
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

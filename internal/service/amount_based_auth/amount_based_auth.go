@@ -134,9 +134,9 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		otpPinTierMap, ok := result["otp_pin"].(map[string]interface{})
+		otpPinTierMap, ok := (*data)["otp_pin"].(map[string]interface{})
 		if !ok {
-			s.logger.Errorf("Error occurred when casting OTP_PIN tier to map: %v", result["otp_pin"])
+			s.logger.Errorf("Error occurred when casting OTP_PIN tier to map: %v", (*data)["otp_pin"])
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](otpPinTierMap)

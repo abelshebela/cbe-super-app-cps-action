@@ -90,6 +90,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	req, err := core.ParseAndValidateAdvertRequest(r, true, a.logger)
 	if err != nil {
+		a.logger.Errorf("[event.UpdateAdvert] failed to parse and validate advert request, id: %s, error: %v", id, err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

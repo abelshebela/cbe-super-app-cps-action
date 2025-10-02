@@ -41,6 +41,7 @@ func (p *PasswordRuleStorage) Create(ctx context.Context, rule *model.PasswordRu
 func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *model.PasswordRule) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		p.logger.Errorf("Failed to convert id to ObjectID: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -49,8 +50,10 @@ func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *model
 	_, err = p.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			p.logger.Errorf("Failed to update password rule, id: %s, error: %v", id, err)
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		p.logger.Errorf("UpdateOne failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil

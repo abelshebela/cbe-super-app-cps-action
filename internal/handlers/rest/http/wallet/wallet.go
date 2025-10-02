@@ -3,7 +3,6 @@ package wallet
 import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-	"fmt"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -27,6 +26,20 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 	}
 }
 
+// CreateWallet godoc
+// @Summary Create a new wallet
+// @Description Create a new wallet with the provided information
+// @Tags Wallet
+// @Accept multipart/form-data
+// @Produce json
+// @Param name formData string true "Name of the wallet"
+// @Param code formData string true "Code of the wallet"
+// @Param avatar formData file true "Avatar image file"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet creation request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets [post]
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req walletDto.WalletRequest
@@ -42,7 +55,6 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	req.Code = r.FormValue("code")
 	req.Avatar = fileHeader
 
-	fmt.Println("wallet req", req)
 	if err := req.Validate(true); err != nil {
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -59,6 +71,20 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletCreationRequestSent, nil)
 }
 
+// UpdateWallet godoc
+// @Summary Update a wallet
+// @Description Update a wallet with the provided information
+// @Tags Wallet
+// @Accept multipart/form-data
+// @Produce json
+// @Param name formData string false "Name of the wallet"
+// @Param code formData string false "Code of the wallet"
+// @Param avatar formData file false "Avatar image file"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet update request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -90,6 +116,19 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 }
 
+// DeleteWallet godoc
+// @Summary Delete a wallet
+// @Description Permanently delete a wallet by ID
+// @Tags Wallet
+// @Accept json
+// @Produce json
+// @Param id path string true "Wallet ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet deleted successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets/{id} [delete]
 func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -105,6 +144,19 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletDeleted, nil)
 }
 
+// EnableWallet godoc
+// @Summary Enable a wallet
+// @Description Enable a wallet by ID
+// @Tags Wallet
+// @Accept json
+// @Produce json
+// @Param id path string true "Wallet ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet enable request submitted"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets/{id}/enable [patch]
 func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -120,6 +172,19 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletEnableRequestSubmitted, nil)
 }
 
+// DisableWallet godoc
+// @Summary Disable a wallet
+// @Description Disable a wallet by ID
+// @Tags Wallet
+// @Accept json
+// @Produce json
+// @Param id path string true "Wallet ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Wallet disable request submitted"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets/{id}/disable [patch]
 func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -135,6 +200,19 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletDisableRequestSubmitted, nil)
 }
 
+// GetWallet godoc
+// @Summary Get wallet by ID
+// @Description Retrieve a wallet's details by ID
+// @Tags Wallet
+// @Accept json
+// @Produce json
+// @Param id path string true "Wallet ID"
+// @Success 200 {object} localization.StandardResponse{data=model.Wallet} "Wallet retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Wallet not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets/{id} [get]
 func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -151,6 +229,19 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessWalletRetrieved, wallet)
 }
 
+// GetWallets godoc
+// @Summary List wallets
+// @Description Retrieve wallets with pagination and optional search
+// @Tags Wallet
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedWalletResponse} "Wallets retrieved successfully"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching wallets with filter: %+v", filter)

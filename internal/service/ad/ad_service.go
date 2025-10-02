@@ -67,7 +67,15 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 // CreateAdvert prepares a new advert without persisting
 func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Creating advert, title: %s", ad.Title)
-
+	isDuplicate, err := core.DuplicateAdvertChecker(ctx, *ad, s.Repository, true, "")
+	if err != nil {
+		s.logger.Errorf("Failed to check for duplicate advert, title: %s, error: %v", ad.Title, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if isDuplicate {
+		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
+		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
+	}
 	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
@@ -102,6 +110,16 @@ func (s *advertService) FetchAdvertByID(ctx context.Context, id string) (*model.
 // // UpdateAdvert updates an existing advert without persisting
 func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Updating advert, id: %s", id)
+
+	isDuplicate, err := core.DuplicateAdvertChecker(ctx, *ad, s.Repository, false, id)
+	if err != nil {
+		s.logger.Errorf("Failed to check for duplicate advert, title: %s, error: %v", ad.Title, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if isDuplicate {
+		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
+		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
+	}
 
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
