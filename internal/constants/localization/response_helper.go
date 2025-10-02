@@ -14,7 +14,7 @@ type StandardResponse struct {
 	TimeStamp time.Time    `json:"timestamp,omitempty"`
 	Message   string       `json:"message"`
 	Data      interface{}  `json:"data,omitempty"`
-	Error     *ErrorDetail `json:"error,omitempty"`
+	// Error     *ErrorDetail `json:"error,omitempty"`
 }
 
 // ErrorDetail represents error details in the response

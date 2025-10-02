@@ -6,6 +6,7 @@ import (
 	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	core "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -16,6 +17,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
+
+type cps_action_resp *model.CPSAction
+type cps_actions_paginated_resp *types.PaginatedResponse[[]*model.CPSAction]
 
 type cpsActionAdapter struct {
 	cpsActionApplication service.CPSActionService
@@ -29,6 +33,19 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 	}
 }
 
+// ApproveCPSAction approves a CPS action
+// @Summary Approve CPS action
+// @Description Approves a CPS action by action code
+// @Tags CPS Actions
+// @Accept json
+// @Produce json
+// @Param action_code path string true "Action Code"
+// @Success 200 {object} localization.StandardResponse{data=nil} "CPS action approved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid action code"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /actions/{action_code}/approve [patch]
 func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 
@@ -56,6 +73,20 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
 }
 
+// RejectCPSAction rejects a CPS action
+// @Summary Reject CPS action
+// @Description Rejects a CPS action by action code with rejection reason
+// @Tags CPS Actions
+// @Accept json
+// @Produce json
+// @Param action_code path string true "Action Code"
+// @Param request body cpsactionDto.ActionRequest true "Rejection request"
+// @Success 200 {object} localization.StandardResponse{data=nil} "CPS action rejected successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input or missing rejection reason"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /actions/{action_code}/reject [patch]
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	var req cpsactionDto.ActionRequest
@@ -90,6 +121,21 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionRejected, nil)
 }
+
+// GetCPSActionsByDepartment retrieves CPS actions by department
+// @Summary Get CPS actions by department
+// @Description Retrieves a paginated list of CPS actions for the user's department
+// @Tags CPS Actions
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} localization.StandardResponse{data=cps_actions_paginated_resp} "CPS actions retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /actions/ [get]
 func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -107,6 +153,20 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
 }
+
+// GetCPSActionByID retrieves a CPS action by ID
+// @Summary Get CPS action by ID
+// @Description Retrieves a specific CPS action by its ID
+// @Tags CPS Actions
+// @Accept json
+// @Produce json
+// @Param action_id path string true "Action ID"
+// @Success 200 {object} localization.StandardResponse{data=cps_action_resp} "CPS action retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid action ID"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /actions/by-id/{action_id} [get]
 func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Request) {
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -124,6 +184,20 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
 }
+
+// GetCPSActionByActionCode retrieves a CPS action by action code
+// @Summary Get CPS action by action code
+// @Description Retrieves a specific CPS action by its action code
+// @Tags CPS Actions
+// @Accept json
+// @Produce json
+// @Param action_code path string true "Action Code"
+// @Success 200 {object} localization.StandardResponse{data=cps_action_resp} "CPS action retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid action code"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /actions/by-action-code/{action_code} [get]
 func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request) {
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	userData, err := local_util.ParseUserContext(r)

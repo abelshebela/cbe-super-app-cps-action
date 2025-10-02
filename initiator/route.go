@@ -12,6 +12,8 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
+	vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
@@ -101,6 +103,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
+	bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
+	vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
 
 	donation.Init(r, handlerLayer.DonationHandler, authMiddleware)
 	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)

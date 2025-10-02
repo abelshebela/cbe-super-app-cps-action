@@ -48,5 +48,3 @@ type PaginatedEventResponse struct {
 	Docs []Event             `json:"docs"`
 	Meta types.PaginationMeta `json:"meta"`
 }
-
-

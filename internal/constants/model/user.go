@@ -58,7 +58,7 @@ type User struct {
 		KYCApproved          bool                `json:"kyc_approved,omitempty" bson:"kyc_approved,omitempty"`
 		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by,omitempty" bson:"kyc_activity_by,omitempty"`
 	} `json:"kyc,omitempty" bson:"kyc,omitempty"`
-	KYCLevel uint8 `json:"level,omitempty" bson:"level,omitempty"`
+	KYCLevel uint8 `json:"kyc_level" bson:"kyc_level,omitempty"`
 
 	BranchApproved    bool      `json:"branch_approved,omitempty" bson:"branch_approved,omitempty"`
 	IsVerified        bool      `json:"is_verified,omitempty" bson:"is_verified,omitempty"`

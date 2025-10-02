@@ -40,7 +40,8 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"gender", "branch_code", "level", "is_blocked", "enabled", "bps_reject_status"}
+	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
+
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
@@ -53,15 +54,29 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"user_code": searchRegex},
 		}
 	}
-	// If filterParam.Filters contains "kyc_level", change it to "level"
+	// Store kyc_level value for special handling (do not delete it from Filters)
+	var kycLevelValue interface{}
 	if filterParam.Filters != nil {
 		if val, ok := filterParam.Filters["kyc_level"]; ok {
-			filterParam.Filters["level"] = val
-			delete(filterParam.Filters, "kyc_level")
+			kycLevelValue = val
 		}
 	}
 	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	if kycLevelValue != nil {
+		if kycLevelValue == 0 || kycLevelValue == "0" {
+			
+			delete(filter, "kyc_level")
+			filter["$and"] = []bson.M{
+				{"kyc_level": bson.M{"$exists": true}},
+				{"kyc_level": bson.M{"$type": "number"}},
+				{"kyc_level": bson.M{"$eq": 0}},
+			}
+			fmt.Printf("DEBUG: Applied special kyc_level=0 $and filter: %+v\n", filter["$and"])
+		}
+	}
+	fmt.Printf("DEBUG: Final filter: %+v\n", filter)
 
 	// 5. Fetch data
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, UserProjection(), skip, limit)

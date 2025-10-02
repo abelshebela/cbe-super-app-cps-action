@@ -3,6 +3,7 @@ package department
 import (
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	_ "cbe-super-app-cps-action/internal/constants/model"
 	department_core "cbe-super-app-cps-action/internal/handlers/rest/http/department/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
