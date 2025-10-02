@@ -61,6 +61,149 @@ definitions:
       validation_for:
         type: string
     type: object
+  constants.AppType:
+    enum:
+    - URL
+    - UAT
+    - PRODUCATION
+    - TEST
+    - DEV
+    type: string
+    x-enum-varnames:
+    - URL
+    - UATApp
+    - Production
+    - Test
+    - Dev
+  constants.AppViewType:
+    enum:
+    - BOTH
+    - CB
+    - IFB
+    type: string
+    x-enum-varnames:
+    - AppViewTypeBoth
+    - AppViewTypeCB
+    - AppViewTypeIFB
+  constants.BranchType:
+    enum:
+    - IFB
+    - CB
+    type: string
+    x-enum-varnames:
+    - IFB
+    - CB
+  constants.EnvironmentType:
+    enum:
+    - UAT
+    - DEV
+    - TEST
+    - PRODUCTION
+    type: string
+    x-enum-varnames:
+    - UatEnvironment
+    - DevEnvironment
+    - TestEnvironment
+    - ProductionEnvironment
+  constants.EventStatus:
+    enum:
+    - UPCOMMING
+    - LIVE
+    - CLOSED
+    type: string
+    x-enum-varnames:
+    - EventUpcomming
+    - EventLive
+    - EventClosed
+  constants.RestrictionType:
+    enum:
+    - AGE_RESTRICTION
+    type: string
+    x-enum-varnames:
+    - AgeRestriction
+  constants.Stage:
+    enum:
+    - UAT
+    type: string
+    x-enum-varnames:
+    - StageUat
+  department_dto.CreateDepartmentRequest:
+    properties:
+      department:
+        type: string
+      permission_groups:
+        items:
+          type: string
+        type: array
+      portal_cards:
+        items:
+          type: string
+        type: array
+    type: object
+  department_dto.UpdateDepartmentRequest:
+    properties:
+      department:
+        type: string
+      permission_groups:
+        items:
+          type: string
+        type: array
+      portal_cards:
+        items:
+          type: string
+        type: array
+    type: object
+  feedback.FeedbackRequest:
+    properties:
+      responses:
+        additionalProperties:
+          $ref: '#/definitions/types.Response'
+        type: object
+    type: object
+  hqDto.UpdateArchiveTimeRequest:
+    properties:
+      archive_time:
+        type: integer
+    type: object
+  hqDto.UpdateBlockTimeRequest:
+    properties:
+      block_time:
+        type: integer
+    type: object
+  hqDto.UpdatePasswordExpiryRequest:
+    properties:
+      password_expiry:
+        type: integer
+    type: object
+  localization.ErrorDetail:
+    properties:
+      code:
+        type: string
+      details:
+        additionalProperties: true
+        type: object
+      field_errors:
+        items:
+          $ref: '#/definitions/localization.FieldError'
+        type: array
+      message:
+        type: string
+      status_code:
+        type: integer
+      type:
+        type: string
+    type: object
+  localization.FieldError:
+    properties:
+      constraint:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+      value:
+        type: string
+    type: object
   localization.ResponseCode:
     properties:
       code:
@@ -74,6 +217,149 @@ definitions:
       type:
         description: '"success", "error", "warning", "info"'
         type: string
+    type: object
+  localization.StandardResponse:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/localization.ErrorDetail'
+      message:
+        type: string
+      ok:
+        type: boolean
+      status:
+        type: integer
+      timestamp:
+        type: string
+    type: object
+  miniappdto.MiniAppResponse:
+    properties:
+      app_icon:
+        type: string
+      app_name:
+        type: string
+      app_type:
+        $ref: '#/definitions/constants.AppType'
+      app_view_type:
+        $ref: '#/definitions/constants.AppViewType'
+      banner_image:
+        type: string
+      commison_gl_account:
+        type: string
+      created_at:
+        type: string
+      credential:
+        $ref: '#/definitions/types.CredentialInformation'
+      enabled:
+        type: boolean
+      id:
+        type: string
+      is_event_mini_app:
+        type: boolean
+      is_three_click:
+        type: boolean
+      last_modified_at:
+        type: string
+      merchant_id:
+        type: string
+      product_code:
+        items:
+          $ref: '#/definitions/types.ProductCode'
+        type: array
+      stage:
+        $ref: '#/definitions/constants.Stage'
+      url:
+        type: string
+    type: object
+  model.Department:
+    properties:
+      created_at:
+        type: string
+      department:
+        type: string
+      department_code:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      last_modified:
+        type: string
+      portal_cards:
+        items:
+          type: string
+        type: array
+    type: object
+  model.Event:
+    properties:
+      accountNumber:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      enabled:
+        type: boolean
+      eventCity:
+        type: string
+      eventCode:
+        type: string
+      eventInformation:
+        $ref: '#/definitions/types.EventInformation'
+      eventName:
+        type: string
+      eventVenue:
+        type: string
+      hasRestriction:
+        type: boolean
+      id:
+        type: string
+      isDeleted:
+        type: boolean
+      lastModifiedAt:
+        type: string
+      merchantInformation:
+        $ref: '#/definitions/types.MerchantInformation'
+      micsinfo:
+        items:
+          type: string
+        type: array
+      refundPolicy:
+        items:
+          type: string
+        type: array
+      restriction:
+        $ref: '#/definitions/types.Restriction'
+      status:
+        $ref: '#/definitions/constants.EventStatus'
+      ticket:
+        items:
+          $ref: '#/definitions/types.Ticket'
+        type: array
+      ticketInformation:
+        $ref: '#/definitions/types.TicketInformation'
+      ticketStatistics:
+        $ref: '#/definitions/types.TicketStatistics'
+    type: object
+  model.PaginatedDepartmentResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/model.Department'
+        type: array
+      meta:
+        $ref: '#/definitions/types.PaginationMeta'
+    type: object
+  model.PaginatedEventResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/model.Event'
+        type: array
+      meta:
+        $ref: '#/definitions/types.PaginationMeta'
     type: object
   model.ProductCode:
     properties:
@@ -128,6 +414,134 @@ definitions:
         type: string
       product_name:
         type: string
+    type: object
+  types.CredentialInformation:
+    properties:
+      app_secret:
+        type: string
+      environment:
+        $ref: '#/definitions/constants.EnvironmentType'
+      fabric_app_id:
+        type: string
+      id:
+        type: string
+      merchant_app_id:
+        type: string
+      mini_app_code:
+        type: string
+      private_key:
+        type: string
+      public_key:
+        type: string
+      short_code:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  types.EventInformation:
+    properties:
+      cover:
+        type: string
+      description:
+        type: string
+      due_date:
+        type: string
+      start_date:
+        type: string
+      video_link:
+        type: string
+    type: object
+  types.MerchantInformation:
+    properties:
+      merchant_email:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_phone_number:
+        type: string
+    type: object
+  types.PaginationMeta:
+    properties:
+      has_next_page:
+        type: boolean
+      has_prev_page:
+        type: boolean
+      limit:
+        type: integer
+      next_page:
+        type: integer
+      page:
+        type: integer
+      paging_counter:
+        type: integer
+      prev_page:
+        type: integer
+      total_docs:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  types.ProductCode:
+    properties:
+      branchType:
+        $ref: '#/definitions/constants.BranchType'
+      id:
+        type: string
+      productCode:
+        type: string
+      serviceFeeCode:
+        type: string
+      vatcode:
+        type: string
+    type: object
+  types.Response:
+    properties:
+      answer: {}
+      options: {}
+      question:
+        type: string
+      type:
+        type: string
+    type: object
+  types.Restriction:
+    properties:
+      description:
+        type: string
+      type:
+        $ref: '#/definitions/constants.RestrictionType'
+    type: object
+  types.Ticket:
+    properties:
+      category:
+        type: string
+      name:
+        type: string
+      number_of_ticker:
+        type: integer
+      price:
+        type: integer
+      type:
+        type: string
+    type: object
+  types.TicketInformation:
+    properties:
+      total_number_of_available_ticket:
+        type: integer
+      total_number_of_ticket:
+        type: integer
+      total_number_of_unsold_ticket:
+        type: integer
+    type: object
+  types.TicketStatistics:
+    properties:
+      category:
+        type: string
+      number_of_sold_ticket:
+        type: integer
+      revenue:
+        type: integer
     type: object
 host: localhost:8080
 info:
@@ -823,6 +1237,1677 @@ paths:
       summary: Update account validation rule
       tags:
       - Account Validation
+  /departments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve departments with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Departments retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.PaginatedDepartmentResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List departments
+      tags:
+      - Department
+    post:
+      consumes:
+      - application/json
+      description: Create a new department with the provided information
+      parameters:
+      - description: Department information
+        in: body
+        name: department
+        required: true
+        schema:
+          $ref: '#/definitions/department_dto.CreateDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new department
+      tags:
+      - Department
+  /departments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a department's details by ID
+      parameters:
+      - description: Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Department'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Department not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get department by ID
+      tags:
+      - Department
+    patch:
+      consumes:
+      - application/json
+      description: Updates the details of an existing department by its ID.
+      parameters:
+      - description: Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update Department Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/department_dto.UpdateDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update Department
+      tags:
+      - Department
+  /departments/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a department by ID
+      parameters:
+      - description: Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department disable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Department not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable a department
+      tags:
+      - Department
+  /departments/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a department by ID
+      parameters:
+      - description: Department ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Department enable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Department not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable a department
+      tags:
+      - Department
+  /events:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve events with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Events retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.PaginatedEventResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List events
+      tags:
+      - Event
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new event with the provided information (multipart form
+        with ticket arrays)
+      parameters:
+      - description: Account number
+        in: formData
+        name: account_number
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        required: true
+        type: string
+      - description: Merchant name
+        in: formData
+        name: merchant_name
+        type: string
+      - description: Merchant phone number
+        in: formData
+        name: merchant_phone_number
+        type: string
+      - description: Merchant email
+        in: formData
+        name: merchant_email
+        type: string
+      - description: Event name
+        in: formData
+        name: event_name
+        required: true
+        type: string
+      - description: Event venue
+        in: formData
+        name: event_venue
+        required: true
+        type: string
+      - description: Event city
+        in: formData
+        name: event_city
+        required: true
+        type: string
+      - description: Event start date (RFC3339 format)
+        in: formData
+        name: start_date
+        required: true
+        type: string
+      - description: Event due date (RFC3339 format)
+        in: formData
+        name: due_date
+        required: true
+        type: string
+      - description: Event cover image
+        in: formData
+        name: cover_image
+        required: true
+        type: file
+      - description: Event description
+        in: formData
+        name: event_description
+        type: string
+      - description: Total ticket count
+        in: formData
+        name: total_ticket_count
+        required: true
+        type: integer
+      - description: Ticket name (e.g. VIP Ticket)
+        in: formData
+        name: ticket_name[0]
+        required: true
+        type: string
+      - description: Ticket category (e.g. VIP)
+        in: formData
+        name: ticket_category[0]
+        required: true
+        type: string
+      - description: Ticket type (e.g. Seated)
+        in: formData
+        name: ticket_type[0]
+        required: true
+        type: string
+      - description: Ticket price (e.g. 1000)
+        in: formData
+        name: ticket_price[0]
+        required: true
+        type: number
+      - description: Ticket quantity (e.g. 50)
+        in: formData
+        name: ticket_number_of_ticker[0]
+        required: true
+        type: integer
+      - description: Another Ticket name (e.g. Regular Ticket)
+        in: formData
+        name: ticket_name[1]
+        type: string
+      - description: Another Ticket category (e.g. Regular)
+        in: formData
+        name: ticket_category[1]
+        type: string
+      - description: Another Ticket type (e.g. Standing)
+        in: formData
+        name: ticket_type[1]
+        type: string
+      - description: Another Ticket price (e.g. 500)
+        in: formData
+        name: ticket_price[1]
+        type: number
+      - description: Another Ticket quantity (e.g. 250)
+        in: formData
+        name: ticket_number_of_ticker[1]
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Event created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new event
+      tags:
+      - Event
+  /events/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete an event
+      tags:
+      - Event
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an event's details by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Event'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get event by ID
+      tags:
+      - Event
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Updates event details (multipart form with optional tickets & cover
+        image)
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        required: true
+        type: string
+      - description: Event name
+        in: formData
+        name: event_name
+        required: true
+        type: string
+      - description: Account number
+        in: formData
+        name: account_number
+        type: string
+      - description: Merchant name
+        in: formData
+        name: merchant_name
+        type: string
+      - description: Merchant phone number
+        in: formData
+        name: merchant_phone_number
+        type: string
+      - description: Merchant email
+        in: formData
+        name: merchant_email
+        type: string
+      - description: Event venue
+        in: formData
+        name: event_venue
+        type: string
+      - description: Event city
+        in: formData
+        name: event_city
+        type: string
+      - description: Event start date (RFC3339 format)
+        in: formData
+        name: start_date
+        type: string
+      - description: Event due date (RFC3339 format)
+        in: formData
+        name: due_date
+        type: string
+      - description: Event cover image
+        in: formData
+        name: cover_image
+        type: file
+      - description: Event description
+        in: formData
+        name: event_description
+        type: string
+      - description: Total ticket count
+        in: formData
+        name: total_ticket_count
+        type: integer
+      - description: Ticket name (e.g. VIP Ticket)
+        in: formData
+        name: ticket_name[0]
+        type: string
+      - description: Ticket category (e.g. VIP)
+        in: formData
+        name: ticket_category[0]
+        type: string
+      - description: Ticket type (e.g. Seated)
+        in: formData
+        name: ticket_type[0]
+        type: string
+      - description: Ticket price (e.g. 1000)
+        in: formData
+        name: ticket_price[0]
+        type: number
+      - description: Ticket quantity (e.g. 50)
+        in: formData
+        name: ticket_number_of_ticker[0]
+        type: integer
+      - description: Another Ticket name (e.g. Regular Ticket)
+        in: formData
+        name: ticket_name[1]
+        type: string
+      - description: Another Ticket category (e.g. Regular)
+        in: formData
+        name: ticket_category[1]
+        type: string
+      - description: Another Ticket type (e.g. Standing)
+        in: formData
+        name: ticket_type[1]
+        type: string
+      - description: Another Ticket price (e.g. 500)
+        in: formData
+        name: ticket_price[1]
+        type: number
+      - description: Another Ticket quantity (e.g. 250)
+        in: formData
+        name: ticket_number_of_ticker[1]
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update an existing event
+      tags:
+      - Event
+  /events/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event disable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable an event
+      tags:
+      - Event
+  /events/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event enable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable an event
+      tags:
+      - Event
+  /fayda_account/disable/{user_code}:
+    post:
+      consumes:
+      - application/json
+      description: Initiates the process to disable a Fayda account for the given
+        user
+      parameters:
+      - description: User Code
+        in: path
+        name: user_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fayda account disabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Disable Fayda account
+      tags:
+      - FaydaAccount
+  /fayda_account/enable/{user_code}:
+    post:
+      consumes:
+      - application/json
+      description: Initiates the process to enable a Fayda account for the given user
+      parameters:
+      - description: User Code
+        in: path
+        name: user_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fayda account enabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Enable Fayda account
+      tags:
+      - FaydaAccount
+  /feedback:
+    get:
+      consumes:
+      - application/json
+      description: Fetch feedbacks with pagination and optional filters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: per_page
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feedbacks fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid query params
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get list of feedbacks
+      tags:
+      - Feedback
+  /feedback/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a single feedback by its ID
+      parameters:
+      - description: Feedback ID (24-char hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feedback fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid feedback ID
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Feedback not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get feedback by ID
+      tags:
+      - Feedback
+  /feedback/create:
+    post:
+      consumes:
+      - application/json
+      description: Allows a user (or anonymous) to submit feedback
+      parameters:
+      - description: Feedback creation payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/feedback.FeedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Feedback created successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Submit feedback
+      tags:
+      - Feedback
+  /hq:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a list of HQs with pagination and filters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: per_page
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQs fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get all HQs
+      tags:
+      - HQ
+  /hq/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch HQ details by ID
+      parameters:
+      - description: HQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: HQ ID required
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: HQ not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ by ID
+      tags:
+      - HQ
+  /hq/archive_time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current HQ archive time configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ archive time fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ archive time
+      tags:
+      - HQ
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to update HQ archive time
+      parameters:
+      - description: Update archive time request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hqDto.UpdateArchiveTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ archive time update request submitted
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update HQ archive time
+      tags:
+      - HQ
+  /hq/block_time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current HQ block time configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ block time fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ block time
+      tags:
+      - HQ
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to update HQ block time
+      parameters:
+      - description: Update block time request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hqDto.UpdateBlockTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ block time update request submitted
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update HQ block time
+      tags:
+      - HQ
+  /hq/password_expiry:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current HQ password expiry configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ password expiry fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ password expiry
+      tags:
+      - HQ
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to update HQ password expiry
+      parameters:
+      - description: Update password expiry request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hqDto.UpdatePasswordExpiryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ password expiry update request submitted
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update HQ password expiry
+      tags:
+      - HQ
+  /mini-apps:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of mini apps with optional filters
+      parameters:
+      - description: Filter params (e.g., status, type)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of mini apps
+          schema:
+            items:
+              $ref: '#/definitions/miniappdto.MiniAppResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: List mini apps
+      tags:
+      - MiniApps
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new mini app with form-data (supports file upload)
+      parameters:
+      - description: App name
+        in: formData
+        name: app_name
+        required: true
+        type: string
+      - description: App icon file
+        in: formData
+        name: app_icon
+        type: file
+      - description: Banner image file
+        in: formData
+        name: banner_image
+        type: file
+      - description: Commission GL account
+        in: formData
+        name: commission_gl_account
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        required: true
+        type: string
+      - description: Is event mini app
+        in: formData
+        name: is_event_mini_app
+        type: boolean
+      - description: Is three click app
+        in: formData
+        name: is_three_click
+        type: boolean
+      - description: App view type
+        in: formData
+        name: app_view_type
+        type: string
+      - description: Mini app URL
+        in: formData
+        name: url
+        type: string
+      - description: IFB product code
+        in: formData
+        name: ifb_product_code
+        type: string
+      - description: IFB VAT code
+        in: formData
+        name: ifb_vat_code
+        type: string
+      - description: IFB service fee code
+        in: formData
+        name: ifb_service_fee_code
+        type: string
+      - description: CB product code
+        in: formData
+        name: cb_product_code
+        type: string
+      - description: CB VAT code
+        in: formData
+        name: cb_vat_code
+        type: string
+      - description: CB service fee code
+        in: formData
+        name: cb_service_fee_code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Mini app created successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Create a new mini app
+      tags:
+      - MiniApps
+  /mini-apps/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a mini app by ID
+      parameters:
+      - description: Mini app ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mini app deleted successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Delete a mini app
+      tags:
+      - MiniApps
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of a mini app by its ID
+      parameters:
+      - description: Mini app ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mini app details
+          schema:
+            $ref: '#/definitions/miniappdto.MiniAppResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get mini app by ID
+      tags:
+      - MiniApps
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Updates an existing mini app with form-data (supports file upload)
+      parameters:
+      - description: Mini app ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: App name
+        in: formData
+        name: app_name
+        type: string
+      - description: App icon file
+        in: formData
+        name: app_icon
+        type: file
+      - description: Banner image file
+        in: formData
+        name: banner_image
+        type: file
+      - description: Commission GL account
+        in: formData
+        name: commission_gl_account
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        type: string
+      - description: Is event mini app
+        in: formData
+        name: is_event_mini_app
+        type: boolean
+      - description: Is three click app
+        in: formData
+        name: is_three_click
+        type: boolean
+      - description: App view type
+        in: formData
+        name: app_view_type
+        type: string
+      - description: Mini app URL
+        in: formData
+        name: url
+        type: string
+      - description: IFB product code
+        in: formData
+        name: ifb_product_code
+        type: string
+      - description: IFB VAT code
+        in: formData
+        name: ifb_vat_code
+        type: string
+      - description: IFB service fee code
+        in: formData
+        name: ifb_service_fee_code
+        type: string
+      - description: CB product code
+        in: formData
+        name: cb_product_code
+        type: string
+      - description: CB VAT code
+        in: formData
+        name: cb_vat_code
+        type: string
+      - description: CB service fee code
+        in: formData
+        name: cb_service_fee_code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mini app updated successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update a mini app
+      tags:
+      - MiniApps
+  /mini-apps/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disables a mini app by ID
+      parameters:
+      - description: Mini app ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mini app disabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Disable a mini app
+      tags:
+      - MiniApps
+  /mini-apps/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enables a mini app by ID
+      parameters:
+      - description: Mini app ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mini app enabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Enable a mini app
+      tags:
+      - MiniApps
   /productcodes:
     get:
       description: Retrieves a paginated list of product codes. Search using service_name.Filter

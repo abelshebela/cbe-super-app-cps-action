@@ -1062,6 +1062,2792 @@
                 }
             }
         },
+        "/departments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve departments with pagination and optional search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Department"
+                ],
+                "summary": "List departments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Departments retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.PaginatedDepartmentResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new department with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Department"
+                ],
+                "summary": "Create a new department",
+                "parameters": [
+                    {
+                        "description": "Department information",
+                        "name": "department",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/department_dto.CreateDepartmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Department created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/departments/disable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Disable a department by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Department"
+                ],
+                "summary": "Disable a department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Department disable request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Department not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/departments/enable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enable a department by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Department"
+                ],
+                "summary": "Enable a department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Department enable request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Department not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/departments/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a department's details by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Department"
+                ],
+                "summary": "Get department by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Department retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.Department"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Department not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates the details of an existing department by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Department"
+                ],
+                "summary": "Update Department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Department Request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/department_dto.UpdateDepartmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Department updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/events": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve events with pagination and optional search",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "List events",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.PaginatedEventResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new event with the provided information (multipart form with ticket arrays)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "Create a new event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Account number",
+                        "name": "account_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant ID",
+                        "name": "merchant_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant name",
+                        "name": "merchant_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant phone number",
+                        "name": "merchant_phone_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant email",
+                        "name": "merchant_email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event name",
+                        "name": "event_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event venue",
+                        "name": "event_venue",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event city",
+                        "name": "event_city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event start date (RFC3339 format)",
+                        "name": "start_date",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event due date (RFC3339 format)",
+                        "name": "due_date",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Event cover image",
+                        "name": "cover_image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event description",
+                        "name": "event_description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Total ticket count",
+                        "name": "total_ticket_count",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ticket name (e.g. VIP Ticket)",
+                        "name": "ticket_name[0]",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ticket category (e.g. VIP)",
+                        "name": "ticket_category[0]",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ticket type (e.g. Seated)",
+                        "name": "ticket_type[0]",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Ticket price (e.g. 1000)",
+                        "name": "ticket_price[0]",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ticket quantity (e.g. 50)",
+                        "name": "ticket_number_of_ticker[0]",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Another Ticket name (e.g. Regular Ticket)",
+                        "name": "ticket_name[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Another Ticket category (e.g. Regular)",
+                        "name": "ticket_category[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Another Ticket type (e.g. Standing)",
+                        "name": "ticket_type[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Another Ticket price (e.g. 500)",
+                        "name": "ticket_price[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Another Ticket quantity (e.g. 250)",
+                        "name": "ticket_number_of_ticker[1]",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Event created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/events/disable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Disable an event by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "Disable an event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event disable request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/events/enable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enable an event by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "Enable an event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event enable request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve an event's details by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "Get event by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.Event"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently delete an event by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "Delete an event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event deleted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates event details (multipart form with optional tickets \u0026 cover image)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "summary": "Update an existing event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant ID",
+                        "name": "merchant_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event name",
+                        "name": "event_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account number",
+                        "name": "account_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant name",
+                        "name": "merchant_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant phone number",
+                        "name": "merchant_phone_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant email",
+                        "name": "merchant_email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event venue",
+                        "name": "event_venue",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event city",
+                        "name": "event_city",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event start date (RFC3339 format)",
+                        "name": "start_date",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event due date (RFC3339 format)",
+                        "name": "due_date",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Event cover image",
+                        "name": "cover_image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event description",
+                        "name": "event_description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Total ticket count",
+                        "name": "total_ticket_count",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ticket name (e.g. VIP Ticket)",
+                        "name": "ticket_name[0]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ticket category (e.g. VIP)",
+                        "name": "ticket_category[0]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Ticket type (e.g. Seated)",
+                        "name": "ticket_type[0]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Ticket price (e.g. 1000)",
+                        "name": "ticket_price[0]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Ticket quantity (e.g. 50)",
+                        "name": "ticket_number_of_ticker[0]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Another Ticket name (e.g. Regular Ticket)",
+                        "name": "ticket_name[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Another Ticket category (e.g. Regular)",
+                        "name": "ticket_category[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Another Ticket type (e.g. Standing)",
+                        "name": "ticket_type[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Another Ticket price (e.g. 500)",
+                        "name": "ticket_price[1]",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Another Ticket quantity (e.g. 250)",
+                        "name": "ticket_number_of_ticker[1]",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Event updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Event not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/fayda_account/disable/{user_code}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initiates the process to disable a Fayda account for the given user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FaydaAccount"
+                ],
+                "summary": "Disable Fayda account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Code",
+                        "name": "user_code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fayda account disabled successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/fayda_account/enable/{user_code}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initiates the process to enable a Fayda account for the given user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "FaydaAccount"
+                ],
+                "summary": "Enable Fayda account",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Code",
+                        "name": "user_code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fayda account enabled successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/feedback": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch feedbacks with pagination and optional filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Get list of feedbacks",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc/desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Feedbacks fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query params",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/feedback/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allows a user (or anonymous) to submit feedback",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Submit feedback",
+                "parameters": [
+                    {
+                        "description": "Feedback creation payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/feedback.FeedbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Feedback created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/feedback/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch a single feedback by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feedback"
+                ],
+                "summary": "Get feedback by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Feedback ID (24-char hex)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Feedback fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid feedback ID",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Feedback not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/hq": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch a list of HQs with pagination and filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Get all HQs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc/desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HQs fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/hq/archive_time": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve current HQ archive time configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Get HQ archive time",
+                "responses": {
+                    "200": {
+                        "description": "HQ archive time fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submit a request to update HQ archive time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Update HQ archive time",
+                "parameters": [
+                    {
+                        "description": "Update archive time request payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/hqDto.UpdateArchiveTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HQ archive time update request submitted",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/hq/block_time": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve current HQ block time configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Get HQ block time",
+                "responses": {
+                    "200": {
+                        "description": "HQ block time fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submit a request to update HQ block time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Update HQ block time",
+                "parameters": [
+                    {
+                        "description": "Update block time request payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/hqDto.UpdateBlockTimeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HQ block time update request submitted",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/hq/password_expiry": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve current HQ password expiry configuration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Get HQ password expiry",
+                "responses": {
+                    "200": {
+                        "description": "HQ password expiry fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submit a request to update HQ password expiry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Update HQ password expiry",
+                "parameters": [
+                    {
+                        "description": "Update password expiry request payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/hqDto.UpdatePasswordExpiryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HQ password expiry update request submitted",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/hq/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch HQ details by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HQ"
+                ],
+                "summary": "Get HQ by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "HQ ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HQ fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "HQ ID required",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "HQ not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/mini-apps": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a list of mini apps with optional filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "List mini apps",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter params (e.g., status, type)",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of mini apps",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/miniappdto.MiniAppResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new mini app with form-data (supports file upload)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "Create a new mini app",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "App name",
+                        "name": "app_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "App icon file",
+                        "name": "app_icon",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Banner image file",
+                        "name": "banner_image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Commission GL account",
+                        "name": "commission_gl_account",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant ID",
+                        "name": "merchant_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is event mini app",
+                        "name": "is_event_mini_app",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is three click app",
+                        "name": "is_three_click",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "App view type",
+                        "name": "app_view_type",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mini app URL",
+                        "name": "url",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IFB product code",
+                        "name": "ifb_product_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IFB VAT code",
+                        "name": "ifb_vat_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IFB service fee code",
+                        "name": "ifb_service_fee_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CB product code",
+                        "name": "cb_product_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CB VAT code",
+                        "name": "cb_vat_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CB service fee code",
+                        "name": "cb_service_fee_code",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Mini app created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/mini-apps/disable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Disables a mini app by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "Disable a mini app",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mini app ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mini app disabled successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/mini-apps/enable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enables a mini app by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "Enable a mini app",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mini app ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mini app enabled successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/mini-apps/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the details of a mini app by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "Get mini app by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mini app ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mini app details",
+                        "schema": {
+                            "$ref": "#/definitions/miniappdto.MiniAppResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a mini app by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "Delete a mini app",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mini app ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mini app deleted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing mini app with form-data (supports file upload)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniApps"
+                ],
+                "summary": "Update a mini app",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Mini app ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "App name",
+                        "name": "app_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "App icon file",
+                        "name": "app_icon",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Banner image file",
+                        "name": "banner_image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Commission GL account",
+                        "name": "commission_gl_account",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Merchant ID",
+                        "name": "merchant_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is event mini app",
+                        "name": "is_event_mini_app",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Is three click app",
+                        "name": "is_three_click",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "App view type",
+                        "name": "app_view_type",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Mini app URL",
+                        "name": "url",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IFB product code",
+                        "name": "ifb_product_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IFB VAT code",
+                        "name": "ifb_vat_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "IFB service fee code",
+                        "name": "ifb_service_fee_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CB product code",
+                        "name": "cb_product_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CB VAT code",
+                        "name": "cb_vat_code",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "CB service fee code",
+                        "name": "cb_service_fee_code",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mini app updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
         "/productcodes": {
             "get": {
                 "security": [
@@ -1354,6 +4140,212 @@
                 }
             }
         },
+        "constants.AppType": {
+            "type": "string",
+            "enum": [
+                "URL",
+                "UAT",
+                "PRODUCATION",
+                "TEST",
+                "DEV"
+            ],
+            "x-enum-varnames": [
+                "URL",
+                "UATApp",
+                "Production",
+                "Test",
+                "Dev"
+            ]
+        },
+        "constants.AppViewType": {
+            "type": "string",
+            "enum": [
+                "BOTH",
+                "CB",
+                "IFB"
+            ],
+            "x-enum-varnames": [
+                "AppViewTypeBoth",
+                "AppViewTypeCB",
+                "AppViewTypeIFB"
+            ]
+        },
+        "constants.BranchType": {
+            "type": "string",
+            "enum": [
+                "IFB",
+                "CB"
+            ],
+            "x-enum-varnames": [
+                "IFB",
+                "CB"
+            ]
+        },
+        "constants.EnvironmentType": {
+            "type": "string",
+            "enum": [
+                "UAT",
+                "DEV",
+                "TEST",
+                "PRODUCTION"
+            ],
+            "x-enum-varnames": [
+                "UatEnvironment",
+                "DevEnvironment",
+                "TestEnvironment",
+                "ProductionEnvironment"
+            ]
+        },
+        "constants.EventStatus": {
+            "type": "string",
+            "enum": [
+                "UPCOMMING",
+                "LIVE",
+                "CLOSED"
+            ],
+            "x-enum-varnames": [
+                "EventUpcomming",
+                "EventLive",
+                "EventClosed"
+            ]
+        },
+        "constants.RestrictionType": {
+            "type": "string",
+            "enum": [
+                "AGE_RESTRICTION"
+            ],
+            "x-enum-varnames": [
+                "AgeRestriction"
+            ]
+        },
+        "constants.Stage": {
+            "type": "string",
+            "enum": [
+                "UAT"
+            ],
+            "x-enum-varnames": [
+                "StageUat"
+            ]
+        },
+        "department_dto.CreateDepartmentRequest": {
+            "type": "object",
+            "properties": {
+                "department": {
+                    "type": "string"
+                },
+                "permission_groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "portal_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "department_dto.UpdateDepartmentRequest": {
+            "type": "object",
+            "properties": {
+                "department": {
+                    "type": "string"
+                },
+                "permission_groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "portal_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "feedback.FeedbackRequest": {
+            "type": "object",
+            "properties": {
+                "responses": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/types.Response"
+                    }
+                }
+            }
+        },
+        "hqDto.UpdateArchiveTimeRequest": {
+            "type": "object",
+            "properties": {
+                "archive_time": {
+                    "type": "integer"
+                }
+            }
+        },
+        "hqDto.UpdateBlockTimeRequest": {
+            "type": "object",
+            "properties": {
+                "block_time": {
+                    "type": "integer"
+                }
+            }
+        },
+        "hqDto.UpdatePasswordExpiryRequest": {
+            "type": "object",
+            "properties": {
+                "password_expiry": {
+                    "type": "integer"
+                }
+            }
+        },
+        "localization.ErrorDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "field_errors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/localization.FieldError"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "localization.FieldError": {
+            "type": "object",
+            "properties": {
+                "constraint": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "localization.ResponseCode": {
             "type": "object",
             "properties": {
@@ -1372,6 +4364,223 @@
                 "type": {
                     "description": "\"success\", \"error\", \"warning\", \"info\"",
                     "type": "string"
+                }
+            }
+        },
+        "localization.StandardResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/localization.ErrorDetail"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "miniappdto.MiniAppResponse": {
+            "type": "object",
+            "properties": {
+                "app_icon": {
+                    "type": "string"
+                },
+                "app_name": {
+                    "type": "string"
+                },
+                "app_type": {
+                    "$ref": "#/definitions/constants.AppType"
+                },
+                "app_view_type": {
+                    "$ref": "#/definitions/constants.AppViewType"
+                },
+                "banner_image": {
+                    "type": "string"
+                },
+                "commison_gl_account": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "credential": {
+                    "$ref": "#/definitions/types.CredentialInformation"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_event_mini_app": {
+                    "type": "boolean"
+                },
+                "is_three_click": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "merchant_id": {
+                    "type": "string"
+                },
+                "product_code": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ProductCode"
+                    }
+                },
+                "stage": {
+                    "$ref": "#/definitions/constants.Stage"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Department": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "department_code": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified": {
+                    "type": "string"
+                },
+                "portal_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.Event": {
+            "type": "object",
+            "properties": {
+                "accountNumber": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "eventCity": {
+                    "type": "string"
+                },
+                "eventCode": {
+                    "type": "string"
+                },
+                "eventInformation": {
+                    "$ref": "#/definitions/types.EventInformation"
+                },
+                "eventName": {
+                    "type": "string"
+                },
+                "eventVenue": {
+                    "type": "string"
+                },
+                "hasRestriction": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "lastModifiedAt": {
+                    "type": "string"
+                },
+                "merchantInformation": {
+                    "$ref": "#/definitions/types.MerchantInformation"
+                },
+                "micsinfo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "refundPolicy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "restriction": {
+                    "$ref": "#/definitions/types.Restriction"
+                },
+                "status": {
+                    "$ref": "#/definitions/constants.EventStatus"
+                },
+                "ticket": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Ticket"
+                    }
+                },
+                "ticketInformation": {
+                    "$ref": "#/definitions/types.TicketInformation"
+                },
+                "ticketStatistics": {
+                    "$ref": "#/definitions/types.TicketStatistics"
+                }
+            }
+        },
+        "model.PaginatedDepartmentResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Department"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedEventResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Event"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
                 }
             }
         },
@@ -1455,6 +4664,202 @@
                 },
                 "product_name": {
                     "type": "string"
+                }
+            }
+        },
+        "types.CredentialInformation": {
+            "type": "object",
+            "properties": {
+                "app_secret": {
+                    "type": "string"
+                },
+                "environment": {
+                    "$ref": "#/definitions/constants.EnvironmentType"
+                },
+                "fabric_app_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "merchant_app_id": {
+                    "type": "string"
+                },
+                "mini_app_code": {
+                    "type": "string"
+                },
+                "private_key": {
+                    "type": "string"
+                },
+                "public_key": {
+                    "type": "string"
+                },
+                "short_code": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.EventInformation": {
+            "type": "object",
+            "properties": {
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "video_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.MerchantInformation": {
+            "type": "object",
+            "properties": {
+                "merchant_email": {
+                    "type": "string"
+                },
+                "merchant_id": {
+                    "type": "string"
+                },
+                "merchant_name": {
+                    "type": "string"
+                },
+                "merchant_phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "has_prev_page": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "next_page": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "paging_counter": {
+                    "type": "integer"
+                },
+                "prev_page": {
+                    "type": "integer"
+                },
+                "total_docs": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.ProductCode": {
+            "type": "object",
+            "properties": {
+                "branchType": {
+                    "$ref": "#/definitions/constants.BranchType"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "productCode": {
+                    "type": "string"
+                },
+                "serviceFeeCode": {
+                    "type": "string"
+                },
+                "vatcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Response": {
+            "type": "object",
+            "properties": {
+                "answer": {},
+                "options": {},
+                "question": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Restriction": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/constants.RestrictionType"
+                }
+            }
+        },
+        "types.Ticket": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number_of_ticker": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.TicketInformation": {
+            "type": "object",
+            "properties": {
+                "total_number_of_available_ticket": {
+                    "type": "integer"
+                },
+                "total_number_of_ticket": {
+                    "type": "integer"
+                },
+                "total_number_of_unsold_ticket": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.TicketStatistics": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "number_of_sold_ticket": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "integer"
                 }
             }
         }
