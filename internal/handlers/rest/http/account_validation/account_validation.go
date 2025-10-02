@@ -61,7 +61,7 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param id path string true "Validation Rule ID"
-// @Param request body accountvalidation.ValidationRuleDTO true "Validation rule data"
+// @Param request body dto.ValidationRuleDTO true "Validation rule data"
 // @Success 200 {object} map[string]interface{} "Validation rule updated successfully"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
