@@ -13,8 +13,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	"github.com/go-chi/chi/v5"
 	"log"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func Init(ctx context.Context) {
@@ -37,6 +38,13 @@ func Init(ctx context.Context) {
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
 
+	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
+	logger.Infof("Oracle database initialized")
+
+	logger.Infof("Initializing Oracle DB client...")
+	OraclePersistence := InitOraclePersistence(oracleDB, logger)
+	logger.Infof("Oracle DB client initialized")
+
 	logger.Infof("Initializing account lookup service...")
 	accountLookupService := InitAccountLookupService(cfg, logger)
 	logger.Infof("Account lookup service initialized")
@@ -52,7 +60,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
@@ -72,26 +80,23 @@ func Init(ctx context.Context) {
 	}()
 
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank,serviceLayer.Wallet,serviceLayer.ServiceDetails, logger)
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
 	srv := server.NewHTTPServer(cfg, r)
-	
-	grpcServer,lis := server.StartGrpcServer(grpcHandlers)
 
+	grpcServer, lis := server.StartGrpcServer(grpcHandlers)
 
-
-
-go func() {
-    if err := grpcServer.Serve(lis); err != nil {
-        log.Fatalf("gRPC serve error: %v", err)
-    }
-    done <- struct{}{}
-}()
-	go func(){
-		 srv.HTTPServerStart(ctx, logger)
-		done<- struct{}{}
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatalf("gRPC serve error: %v", err)
+		}
+		done <- struct{}{}
+	}()
+	go func() {
+		srv.HTTPServerStart(ctx, logger)
+		done <- struct{}{}
 	}()
 	<-done
-logger.Infof("Shutdown signal received. Stopping servers...")
+	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer)
 }
