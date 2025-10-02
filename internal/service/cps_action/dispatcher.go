@@ -76,6 +76,12 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Budget"):
 		return d.app.BudgetContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "BankVault"):
+		if d.app.BankVaultContainer == nil {
+			return nil, fmt.Errorf("BANKVAULT_SERVICE_NOT_WIRED")
+		}
+		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
+
 	// a
 
 	case IsActionInGroup(RequestAction(action), "BulkService"):
@@ -108,6 +114,11 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CPSUser"):
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "BankVault"):
+		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VaultGroupCategory"):
+		return d.app.VaultGroupCategoryContainer.Authorize(ctx, cpsAction)
+
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -514,4 +515,114 @@ func JsonUnmarshal[T any](data any) (*T, error) {
 
 func ExtraSpaceRemover(s string) string {
 	return strings.TrimSpace(strings.Join(strings.Split(s, " "), " "))
+}
+
+func ParseLockPeriod(s string) (time.Duration, error) {
+	if len(s) < 2 {
+		return 0, fmt.Errorf("invalid lock period format")
+	}
+
+	unit := s[len(s)-1]      // last character: 'd', 'm', 'y'
+	valueStr := s[:len(s)-1] // number part
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in lock period: %v", err)
+	}
+
+	switch strings.ToLower(string(unit)) {
+	case "d":
+		return time.Duration(value) * 24 * time.Hour, nil
+	case "m":
+		return time.Duration(value*30) * 24 * time.Hour, nil // approximate 1 month = 30 days
+	case "y":
+		return time.Duration(value*365) * 24 * time.Hour, nil // approximate 1 year = 365 days
+	default:
+		return 0, fmt.Errorf("invalid unit in lock period: %s", string(unit))
+	}
+}
+func NullStringToPtrLike(ns sql.NullString) *string {
+	if !ns.Valid {
+		return (*string)(nil)
+	}
+	s := "%" + strings.ToUpper(ns.String) + "%"
+	return &s
+}
+
+func NullStringToPtr(v any) *string {
+	switch x := v.(type) {
+	case string:
+		if x == "" {
+			return nil
+		}
+		return &x
+	case sql.NullString:
+		if !x.Valid {
+			return nil
+		}
+		return &x.String
+	default:
+		return nil
+	}
+}
+
+func NullInt64ToPtr(ni sql.NullInt64) *int64 {
+	if !ni.Valid {
+		return (*int64)(nil)
+	}
+	i := ni.Int64
+	return &i
+}
+func NullBoolToInt(nb sql.NullBool) interface{} {
+	if nb.Valid {
+		if nb.Bool {
+			return 1
+		}
+		return 0
+	}
+	return nil
+}
+func NullBoolToIntPtr(nb sql.NullBool) *int {
+	if !nb.Valid {
+		return nil
+	}
+	if nb.Bool {
+		i := 1
+		return &i
+	}
+	i := 0
+	return &i
+}
+
+func NullBoolToBool(nb sql.NullBool) bool {
+	return nb.Valid && nb.Bool
+}
+
+type PaginatedResponse[T any] struct {
+	Items       []T   `json:"items"`
+	Page        int64 `json:"page"`
+	Limit       int64 `json:"limit"`
+	Total       int64 `json:"total"`
+	TotalPages  int64 `json:"total_pages"`
+	HasNextPage bool  `json:"has_next_page"`
+	HasPrevPage bool  `json:"has_prev_page"`
+}
+
+func NewPaginatedResponse[T any](data []T, page, limit, total int64) PaginatedResponse[T] {
+	if limit <= 0 {
+		limit = 50
+	}
+	if page <= 0 {
+		page = 1
+	}
+	totalPages := (total + limit - 1) / limit
+
+	return PaginatedResponse[T]{
+		Items:       data,
+		Page:        page,
+		Limit:       limit,
+		Total:       total,
+		TotalPages:  totalPages,
+		HasNextPage: page < totalPages,
+		HasPrevPage: page > 1,
+	}
 }

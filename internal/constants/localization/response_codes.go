@@ -933,6 +933,106 @@ var (
 		Message:    MsgEventsSuccessfullyRetrieved,
 		Type:       "success",
 	}
+	// bankvault related
+	SuccessBankVaultCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgBankVaultCreationRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultsRetrieved = ResponseCode{
+		Code:       "SUCCESS_BANKVAULTS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankVaultRetrieved = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankVaultUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultDisableRequestSubmitted,
+		Type:       "success",
+	}
+	// vaultgroup category related
+	SuccessVaultGroupCategoryCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultGroupCategoryCreationRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoriesRetrieved = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORIES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoriesRetrieved,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryRetrieved = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryRetrieved,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
+		Type:       "success",
+	}
+	// Event related error response codes for bankvault
+	ErrorCannotDeleteActiveBankVault = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETE_ACTIVE_BANKVAULT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDeleteActiveBankVault,
+		Type:       "error",
+	}
+	ErrorBankVaultProductAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_BANKVAULT_PRODUCT_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankVaultProductAlreadyDeleted,
+		Type:       "error",
+	}
+
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -2750,6 +2850,31 @@ var (
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgBpsUserAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBankVaultAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BANK_VAULT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankVaultAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBankVaultAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BANK_VAULT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankVaultAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorVaultGroupAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgVaultGroupAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorVaultGroupAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgVaultGroupAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -4606,6 +4731,24 @@ var (
 		Code:       "ERROR_NO_CHANGES_DETECTED",
 		StatusCode: StatusBadRequest,
 		Message:    "no changes detected to update",
+		Type:       "error",
+	}
+	ErrorVaultGroupCategoryNotFound = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_CATEGORY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Vault group category not found.",
+		Type:       "error",
+	}
+	ErrorCannotDeleteActiveVaultGroupCategory = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETE_ACTIVE_VAULT_GROUP_CATEGORY",
+		StatusCode: StatusBadRequest,
+		Message:    "Cannot delete an active vault group category.",
+		Type:       "error",
+	}
+	ErrorVaultGroupCategooryAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    "Vault group category is already deleted.",
 		Type:       "error",
 	}
 )
