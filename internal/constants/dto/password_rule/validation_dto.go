@@ -27,17 +27,17 @@ func noSpecialChars(value any) error {
 }
 
 func (r PasswordRuleUpdate) Validate() error {
-	return validation.ValidateStruct(&r,
-		validation.Field(&r.Name,
+	return validation.ValidateStruct(&r.Rule,
+		validation.Field(&r.Rule.Name,
 			validation.By(noSpecialChars),
 		),
-		validation.Field(&r.MinLength,
+		validation.Field(&r.Rule.MinLength,
 			validation.Min(1),
 		),
-		validation.Field(&r.MaxLength,
+		validation.Field(&r.Rule.MaxLength,
 			validation.Min(1),
 			validation.By(func(value interface{}) error {
-				if r.MinLength > r.MaxLength {
+				if r.Rule.MinLength > r.Rule.MaxLength {
 					return validation.NewError("validation_max_length", "max_length must be greater than or equal to min_length")
 				}
 				return nil
