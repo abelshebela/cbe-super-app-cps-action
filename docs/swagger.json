@@ -95,7 +95,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableBranches"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches"
                         }
                     }
                 ],
@@ -149,7 +149,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableBranches"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches"
                         }
                     }
                 ],
@@ -313,7 +313,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableCities"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities"
                         }
                     }
                 ],
@@ -367,7 +367,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableCities"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities"
                         }
                     }
                 ],
@@ -531,7 +531,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableDistricts"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts"
                         }
                     }
                 ],
@@ -585,7 +585,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableDistricts"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts"
                         }
                     }
                 ],
@@ -749,7 +749,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableRegions"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions"
                         }
                     }
                 ],
@@ -803,7 +803,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountblock.EnableOrDisableRegions"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions"
                         }
                     }
                 ],
@@ -981,7 +981,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/accountvalidation.ValidationRuleDTO"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO"
                         }
                     }
                 ],
@@ -3568,25 +3568,25 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/productcode.ProductCodePaginatedResponse"
+                            "$ref": "#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     }
                 }
@@ -3620,31 +3620,31 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/productcode.ProductCodeResponse"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     }
                 }
@@ -3680,7 +3680,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/productcode.UpdateProductCodeRequest"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest"
                         }
                     }
                 ],
@@ -3690,26 +3690,26 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
-                                "$ref": "#/definitions/model.ProductCode"
+                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "404": {
@@ -4712,7 +4712,111 @@
         }
     },
     "definitions": {
-        "accountblock.EnableOrDisableBranches": {
+        "cbe-super-app-cps-action_internal_constants.AccountStatus": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "INACTIVE"
+            ],
+            "x-enum-varnames": [
+                "Active",
+                "InActive"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.BPSStatus": {
+            "type": "string",
+            "enum": [
+                "AUTHORIZED",
+                "DENIED",
+                "PENDING",
+                "INITIATED"
+            ],
+            "x-enum-varnames": [
+                "BPSStatusAuthorized",
+                "BPSStatusDenied",
+                "BPSStatusPending",
+                "BPSStatusInitiated"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.DeviceStatus": {
+            "type": "string",
+            "enum": [
+                "LINKED",
+                "UNLINKED"
+            ],
+            "x-enum-varnames": [
+                "Linked",
+                "UnLinked"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Gender": {
+            "type": "string",
+            "enum": [
+                "MALE",
+                "FEMALE"
+            ],
+            "x-enum-varnames": [
+                "Male",
+                "Female"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.KYCStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+            ],
+            "x-enum-varnames": [
+                "KYCStatusPending",
+                "KYCStatusApproved",
+                "KYCStatusRejected"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.MemberType": {
+            "type": "string",
+            "enum": [
+                "CB",
+                "IFB"
+            ],
+            "x-enum-varnames": [
+                "CBT",
+                "IFBT"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Platform": {
+            "type": "string",
+            "enum": [
+                "ANDROID",
+                "IOS"
+            ],
+            "x-enum-varnames": [
+                "Android",
+                "Ios"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Realm": {
+            "type": "string",
+            "enum": [
+                "ELST",
+                "BANK",
+                "DISTRICT",
+                "BRANCH",
+                "MERCHANT",
+                "COMPANY",
+                "MEMBER"
+            ],
+            "x-enum-varnames": [
+                "ELST_REALM",
+                "BANK_REALM",
+                "DISTRICT_REALM",
+                "BRANCH_REALM",
+                "MERCHANT_REALM",
+                "COMPANY_REALM",
+                "MEMBER_REALM"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches": {
             "type": "object",
             "properties": {
                 "branches_code": {
@@ -4727,7 +4831,7 @@
                 }
             }
         },
-        "accountblock.EnableOrDisableCities": {
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities": {
             "type": "object",
             "properties": {
                 "city_code": {
@@ -4742,7 +4846,7 @@
                 }
             }
         },
-        "accountblock.EnableOrDisableDistricts": {
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts": {
             "type": "object",
             "properties": {
                 "districts_code": {
@@ -4757,7 +4861,7 @@
                 }
             }
         },
-        "accountblock.EnableOrDisableRegions": {
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions": {
             "type": "object",
             "properties": {
                 "regions_code": {
@@ -4772,7 +4876,7 @@
                 }
             }
         },
-        "accountvalidation.ValidationRuleDTO": {
+        "cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO": {
             "type": "object",
             "properties": {
                 "enabled": {
@@ -5617,10 +5721,10 @@
             "type": "object",
             "properties": {
                 "cbe_ifb_product_codes": {
-                    "$ref": "#/definitions/model.ProductCodes"
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
                 },
                 "cbe_product_codes": {
-                    "$ref": "#/definitions/model.ProductCodes"
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
                 },
                 "created_at": {
                     "type": "string"
@@ -5636,7 +5740,7 @@
                 }
             }
         },
-        "model.ProductCodes": {
+        "cbe-super-app-cps-action_internal_constants_model.ProductCodes": {
             "type": "object",
             "properties": {
                 "prd": {
@@ -6019,34 +6123,371 @@
         "productcode.ProductCodeResponse": {
             "type": "object",
             "properties": {
-                "cbe_ifb_product_codes": {
-                    "$ref": "#/definitions/model.ProductCodes"
+                "city": {
+                    "type": "string"
                 },
-                "cbe_product_codes": {
-                    "$ref": "#/definitions/model.ProductCodes"
+                "house_number": {
+                    "type": "string"
+                },
+                "kebele": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "street_name": {
+                    "type": "string"
+                },
+                "sub_city": {
+                    "type": "string"
+                },
+                "wereda": {
+                    "type": "string"
+                },
+                "zone": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.LoginPIN": {
+            "type": "object",
+            "properties": {
+                "last_pin_created_at": {
+                    "type": "string"
+                },
+                "pin": {
+                    "type": "string"
+                },
+                "pin_history": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
+                    "type": "boolean"
+                },
+                "has_prev_page": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "next_page": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "paging_counter": {
+                    "type": "integer"
+                },
+                "prev_page": {
+                    "type": "integer"
+                },
+                "total_docs": {
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "type": "integer"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.Password": {
+            "type": "object",
+            "properties": {
+                "current_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "password_changed_at": {
+                    "type": "string"
+                },
+                "salt": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.SubAccessList": {
+            "type": "object",
+            "properties": {
+                "accessListName": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers_rest_http_bps_user.bps_user_resp": {
+            "type": "object",
+            "properties": {
+                "UserName": {
+                    "type": "string"
+                },
+                "branch_code": {
+                    "description": "IFB, CB, HomeBranch(CB == Homebranch) ice versa",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "branch_name": {
+                    "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "first_password_set": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "home_branch": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "last_modified_at": {
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_first_time_login": {
+                    "type": "boolean"
+                },
+                "last_login": {
                     "type": "string"
                 },
-                "product_name": {
+                "last_login_attempt": {
+                    "type": "string"
+                },
+                "last_modifed_at": {
+                    "type": "string"
+                },
+                "login_attempt_count": {
+                    "type": "integer"
+                },
+                "next_login_attempt": {
+                    "type": "string"
+                },
+                "otp_last_tried_at": {
+                    "type": "string"
+                },
+                "otp_last_verified_at": {
+                    "type": "string"
+                },
+                "otp_verfy_count": {
+                    "type": "integer"
+                },
+                "password": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Password"
+                },
+                "permission_group": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "role": {
+                    "description": "enum: maker, checker, aduditer",
+                    "type": "string"
+                },
+                "user_code": {
+                    "description": "generated",
                     "type": "string"
                 }
             }
         },
-        "productcode.UpdateProductCodeRequest": {
+        "internal_handlers_rest_http_bps_user.paginated_resp": {
             "type": "object",
             "properties": {
-                "cbe_ifb_product_codes": {
-                    "$ref": "#/definitions/model.ProductCodes"
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.BPSUser"
+                    }
                 },
-                "cbe_product_codes": {
-                    "$ref": "#/definitions/model.ProductCodes"
+                "meta": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                }
+            }
+        },
+        "internal_handlers_rest_http_budget.budget_colors_paginated_resp": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Color"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                }
+            }
+        },
+        "internal_handlers_rest_http_budget.budget_icons_paginated_resp": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Icon"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                }
+            }
+        },
+        "internal_handlers_rest_http_bulk_service.bulk_services_paginated_resp": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.APPAccessList"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                }
+            }
+        },
+        "internal_handlers_rest_http_cps_action_handler.cps_action_resp": {
+            "type": "object",
+            "properties": {
+                "action_code": {
+                    "type": "string"
+                },
+                "action_status": {
+                    "type": "string"
+                },
+                "action_type": {
+                    "type": "string"
+                },
+                "checker_action_time": {
+                    "type": "string"
+                },
+                "checker_id": {
+                    "type": "string"
+                },
+                "checker_name": {
+                    "type": "string"
+                },
+                "checker_phone_number": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_action": {},
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "maker_action_time": {
+                    "type": "string"
+                },
+                "maker_id": {
+                    "type": "string"
+                },
+                "maker_name": {
+                    "type": "string"
+                },
+                "maker_phone_number": {
+                    "type": "string"
+                },
+                "previous_action": {},
+                "rejection_reason": {
+                    "type": "string"
+                },
+                "request_action": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers_rest_http_cps_action_handler.cps_actions_paginated_resp": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                }
+            }
+        },
+        "internal_handlers_rest_http_cps_user.cps_user_resp": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string",
+                    "example": "Ethiopia"
+                },
+                "date_joined": {
+                    "type": "string",
+                    "example": "2024-01-15T10:30:00Z"
+                },
+                "department": {
+                    "type": "string",
+                    "example": "507f1f77bcf86cd799439011"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "gender": {
+                    "type": "string",
+                    "example": "Male"
                 },
                 "id": {
                     "type": "string"

@@ -1,6 +1,86 @@
 basePath: /api/v1/cbesuperapp/cps_action
 definitions:
-  accountblock.EnableOrDisableBranches:
+  cbe-super-app-cps-action_internal_constants.AccountStatus:
+    enum:
+    - ACTIVE
+    - INACTIVE
+    type: string
+    x-enum-varnames:
+    - Active
+    - InActive
+  cbe-super-app-cps-action_internal_constants.BPSStatus:
+    enum:
+    - AUTHORIZED
+    - DENIED
+    - PENDING
+    - INITIATED
+    type: string
+    x-enum-varnames:
+    - BPSStatusAuthorized
+    - BPSStatusDenied
+    - BPSStatusPending
+    - BPSStatusInitiated
+  cbe-super-app-cps-action_internal_constants.DeviceStatus:
+    enum:
+    - LINKED
+    - UNLINKED
+    type: string
+    x-enum-varnames:
+    - Linked
+    - UnLinked
+  cbe-super-app-cps-action_internal_constants.Gender:
+    enum:
+    - MALE
+    - FEMALE
+    type: string
+    x-enum-varnames:
+    - Male
+    - Female
+  cbe-super-app-cps-action_internal_constants.KYCStatus:
+    enum:
+    - PENDING
+    - APPROVED
+    - REJECTED
+    type: string
+    x-enum-varnames:
+    - KYCStatusPending
+    - KYCStatusApproved
+    - KYCStatusRejected
+  cbe-super-app-cps-action_internal_constants.MemberType:
+    enum:
+    - CB
+    - IFB
+    type: string
+    x-enum-varnames:
+    - CBT
+    - IFBT
+  cbe-super-app-cps-action_internal_constants.Platform:
+    enum:
+    - ANDROID
+    - IOS
+    type: string
+    x-enum-varnames:
+    - Android
+    - Ios
+  cbe-super-app-cps-action_internal_constants.Realm:
+    enum:
+    - ELST
+    - BANK
+    - DISTRICT
+    - BRANCH
+    - MERCHANT
+    - COMPANY
+    - MEMBER
+    type: string
+    x-enum-varnames:
+    - ELST_REALM
+    - BANK_REALM
+    - DISTRICT_REALM
+    - BRANCH_REALM
+    - MERCHANT_REALM
+    - COMPANY_REALM
+    - MEMBER_REALM
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches:
     properties:
       branches_code:
         example:
@@ -10,7 +90,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableCities:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities:
     properties:
       city_code:
         example:
@@ -20,7 +100,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableDistricts:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts:
     properties:
       districts_code:
         example:
@@ -30,7 +110,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountblock.EnableOrDisableRegions:
+  cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions:
     properties:
       regions_code:
         example:
@@ -40,7 +120,7 @@ definitions:
           type: string
         type: array
     type: object
-  accountvalidation.ValidationRuleDTO:
+  cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO:
     properties:
       enabled:
         type: boolean
@@ -611,9 +691,9 @@ definitions:
   model.ProductCode:
     properties:
       cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
       cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
       created_at:
         type: string
       id:
@@ -623,7 +703,7 @@ definitions:
       service_name:
         type: string
     type: object
-  model.ProductCodes:
+  cbe-super-app-cps-action_internal_constants_model.ProductCodes:
     properties:
       prd:
         type: string
@@ -882,22 +962,201 @@ definitions:
         $ref: '#/definitions/model.ProductCodes'
       created_at:
         type: string
+      enabled:
+        type: boolean
+      first_password_set:
+        type: boolean
+      full_name:
+        type: string
+      home_branch:
+        type: string
       id:
         type: string
-      last_modified_at:
+      is_deleted:
+        type: boolean
+      is_first_time_login:
+        type: boolean
+      last_login:
         type: string
-      product_name:
+      last_login_attempt:
+        type: string
+      last_modifed_at:
+        type: string
+      login_attempt_count:
+        type: integer
+      next_login_attempt:
+        type: string
+      otp_last_tried_at:
+        type: string
+      otp_last_verified_at:
+        type: string
+      otp_verfy_count:
+        type: integer
+      password:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Password'
+      permission_group:
+        items:
+          type: string
+        type: array
+      permissions:
+        items:
+          type: string
+        type: array
+      phone_number:
+        type: string
+      role:
+        description: 'enum: maker, checker, aduditer'
+        type: string
+      user_code:
+        description: generated
         type: string
     type: object
-  productcode.UpdateProductCodeRequest:
+  internal_handlers_rest_http_bps_user.paginated_resp:
     properties:
-      cbe_ifb_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
-      cbe_product_codes:
-        $ref: '#/definitions/model.ProductCodes'
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.BPSUser'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_budget.budget_colors_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Color'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_budget.budget_icons_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Icon'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_bulk_service.bulk_services_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.APPAccessList'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_cps_action_handler.cps_action_resp:
+    properties:
+      action_code:
+        type: string
+      action_status:
+        type: string
+      action_type:
+        type: string
+      checker_action_time:
+        type: string
+      checker_id:
+        type: string
+      checker_name:
+        type: string
+      checker_phone_number:
+        type: string
+      created_at:
+        type: string
+      current_action: {}
+      department:
+        type: string
       id:
         type: string
-      product_name:
+      is_deleted:
+        type: boolean
+      last_modified_at:
+        type: string
+      maker_action_time:
+        type: string
+      maker_id:
+        type: string
+      maker_name:
+        type: string
+      maker_phone_number:
+        type: string
+      previous_action: {}
+      rejection_reason:
+        type: string
+      request_action:
+        type: string
+      unique_id:
+        type: string
+    type: object
+  internal_handlers_rest_http_cps_action_handler.cps_actions_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_cps_user.cps_user_resp:
+    properties:
+      country:
+        example: Ethiopia
+        type: string
+      date_joined:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      department:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      email:
+        example: john.doe@example.com
+        type: string
+      enabled:
+        example: true
+        type: boolean
+      full_name:
+        example: John Doe
+        type: string
+      gender:
+        example: Male
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      last_modified:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      permission_category:
+        example:
+        - '["507f1f77bcf86cd799439011"]'
+        items:
+          type: string
+        type: array
+      permission_group:
+        example:
+        - '["507f1f77bcf86cd799439011"]'
+        items:
+          type: string
+        type: array
+      phone_number:
+        example: "+251911234567"
+        type: string
+      realm:
+        example: cps
+        type: string
+      region:
+        example: Addis Ababa
+        type: string
+      role:
+        example: Maker
+        type: string
+      user_code:
+        example: USR001
+        type: string
+      username:
+        example: john.doe
         type: string
     type: object
   types.Address:
@@ -1043,7 +1302,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches'
       produces:
       - application/json
       responses:
@@ -1078,7 +1337,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableBranches'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches'
       produces:
       - application/json
       responses:
@@ -1185,7 +1444,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities'
       produces:
       - application/json
       responses:
@@ -1220,7 +1479,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableCities'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities'
       produces:
       - application/json
       responses:
@@ -1327,7 +1586,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts'
       produces:
       - application/json
       responses:
@@ -1362,7 +1621,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableDistricts'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts'
       produces:
       - application/json
       responses:
@@ -1469,7 +1728,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions'
       produces:
       - application/json
       responses:
@@ -1504,7 +1763,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountblock.EnableOrDisableRegions'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions'
       produces:
       - application/json
       responses:
@@ -1621,7 +1880,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/accountvalidation.ValidationRuleDTO'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO'
       produces:
       - application/json
       responses:
@@ -3041,19 +3300,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/productcode.ProductCodePaginatedResponse'
+            $ref: '#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
       security:
       - BearerAuth: []
       summary: Fetch all product codes
@@ -3074,23 +3333,23 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/productcode.ProductCodeResponse'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
       security:
       - BearerAuth: []
       summary: Fetch a product code by ID
@@ -3112,7 +3371,7 @@ paths:
         name: productCode
         required: true
         schema:
-          $ref: '#/definitions/productcode.UpdateProductCodeRequest'
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest'
       produces:
       - application/json
       responses:
@@ -3120,24 +3379,24 @@ paths:
           description: OK
           schema:
             additionalProperties:
-              $ref: '#/definitions/model.ProductCode'
+              $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode'
             type: object
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/localization.ResponseCode'
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
       security:
       - BearerAuth: []
       summary: Update a product code
