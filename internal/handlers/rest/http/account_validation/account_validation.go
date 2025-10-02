@@ -4,6 +4,8 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/account_validation"
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
@@ -13,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type paginated_resp *types.PaginatedResponse[[]*model.ValidationRule]
 type accountValidationAdapter struct {
 	accountValidationService service.AccountValidationService
 	logger                   utils.Logger
@@ -33,9 +36,9 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 // @Produce json
 // @Param id path string true "Validation Rule ID"
 // @Success 200 {object} localization.StandardResponse{data=dto.ValidationRuleDTO} "Validation rule retrieved"
-// @Failure 400 {object} localization.StandardResponse "Bad request"
-// @Failure 404 {object} localization.StandardResponse "Not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /account_validation/{id} [get]
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +53,7 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	//note:we need to  convert model to dto
 
 	// Send the struct directly instead of converting to map
 	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, resp)
@@ -63,10 +67,10 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 // @Produce json
 // @Param id path string true "Validation Rule ID"
 // @Param request body dto.ValidationRuleDTO true "Validation rule data" example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
-// @Success 200 {object} localization.StandardResponse "Validation rule updated"
-// @Failure 400 {object} localization.StandardResponse "Validation failed"
-// @Failure 404 {object} localization.StandardResponse "Not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Validation rule updated"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Validation failed"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /account_validation/update/{id} [patch]
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
@@ -112,9 +116,9 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 // @Param page query int false "Page number" default(1) minimum(1) example(1)
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search term" example("ACCOUNT_NUMBER")
-// @Success 200 {object} localization.StandardResponse "Validation rules retrieved"
-// @Failure 400 {object} localization.StandardResponse "Bad request"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=paginated_resp} "Validation rules retrieved"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /account_validation [get]
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
@@ -130,6 +134,5 @@ func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
 	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, accountValidation)
 }

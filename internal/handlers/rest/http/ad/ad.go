@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type paginated_advert_response types.PaginatedResponse[[]*ad_dto.AdvertResponse]
 type advertAdapter struct {
 	advertApplication service.AdvertService
 	logger            utils.Logger
@@ -39,10 +40,10 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 // @Param started_at formData string false "Start time (RFC3339)" example("2025-10-10T10:00:00Z")
 // @Param expired_at formData string false "Expiry time (RFC3339)" example("2025-10-20T10:00:00Z")
 // @Param banner_image formData file false "Banner image (<=2MB; jpeg/png/gif/webp)"
-// @Success 200 {object} localization.StandardResponse "Advert create request sent"
-// @Failure 400 {object} localization.StandardResponse "Invalid request"
-// @Failure 409 {object} localization.StandardResponse "Duplicate or conflict"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Advert create request sent"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
+// @Failure 409 {object} localization.StandardResponse{data=nil} "Duplicate or conflict"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts [post]
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
@@ -77,9 +78,9 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "Page number" default(1) minimum(1) example(1)
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search by title/description" example("promo")
-// @Success 200 {object} localization.StandardResponse "Adverts fetched successfully"
-// @Failure 400 {object} localization.StandardResponse "Invalid pagination params"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=paginated_advert_response} "Adverts fetched successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid pagination params"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts [get]
 func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +92,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	docs := core.ToAdvertResponses(list.Data)
-	res := types.PaginatedResponse[[]*ad_dto.AdvertResponse]{
+	res := paginated_advert_response{
 		Data: docs,
 		Meta: list.Meta,
 	}
@@ -106,9 +107,9 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path string true "Advert ID"
 // @Success 200 {object} localization.StandardResponse{data=ad_dto.AdvertResponse} "Advert fetched successfully"
-// @Failure 400 {object} localization.StandardResponse "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse "Advert not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts/{id} [get]
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
@@ -140,10 +141,10 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 // @Param started_at formData string false "Start time (RFC3339)"
 // @Param expired_at formData string false "Expiry time (RFC3339)"
 // @Param banner_image formData file false "Banner image (<=2MB; jpeg/png/gif/webp)"
-// @Success 200 {object} localization.StandardResponse "Advert update request sent"
-// @Failure 400 {object} localization.StandardResponse "No data provided for update / invalid payload"
-// @Failure 404 {object} localization.StandardResponse "Advert not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Advert update request sent"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "No data provided for update / invalid payload"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts/{id} [patch]
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
@@ -181,10 +182,10 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse "Delete request sent"
-// @Failure 400 {object} localization.StandardResponse "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse "Advert not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Delete request sent"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts/{id} [delete]
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
@@ -208,10 +209,10 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse "Enable request sent"
-// @Failure 400 {object} localization.StandardResponse "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse "Advert not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Enable request sent"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts/{id}/enable [post]
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
@@ -236,10 +237,10 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse "Disable request sent"
-// @Failure 400 {object} localization.StandardResponse "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse "Advert not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Disable request sent"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /adverts/{id}/disable [post]
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {

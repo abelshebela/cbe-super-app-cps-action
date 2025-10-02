@@ -8,6 +8,7 @@ import (
 	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -16,6 +17,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type paginated_auth_tier_resp types.PaginatedResponse[[]*model.AuthTier]
 type AmountBasedAuthHandler struct {
 	Service service.AmountBasedAuthService
 	logger  utils.Logger
@@ -37,8 +39,8 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 // @Param page query int false "Page number" default(1) minimum(1) example(1)
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search by method or range" example("PIN")
-// @Success 200 {object} localization.StandardResponse "Fetched successfully"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=paginated_auth_tier_resp} "Fetched successfully"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /amount_based_auth [get]
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
@@ -62,10 +64,10 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 // @Param id path string true "Tier ID"
 // @Param method path string true "Method" Enums(OPEN,PIN,OTP_PIN)
 // @Param request body amountauthdto.UpdateAmountBasedAuthRequest true "Update payload" example({"min_amount":100,"max_amount":1000})
-// @Success 200 {object} localization.StandardResponse "Update request sent"
-// @Failure 400 {object} localization.StandardResponse "Invalid parameters or payload"
-// @Failure 404 {object} localization.StandardResponse "Tier not found"
-// @Failure 500 {object} localization.StandardResponse "Server error"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Update request sent"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid parameters or payload"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Tier not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /amount_based_auth/update/{id}/{method} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
@@ -116,8 +118,8 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 // @Produce json
 // @Param id path string true "Action ID"
 // @Param request body model.CPSAction true "CPS Action payload"
-// @Success 200 {object} localization.StandardResponse "Rejected"
-// @Failure 400 {object} localization.StandardResponse "Invalid input"
+// @Success 200 {object} localization.StandardResponse{data=model.CPSAction} "Rejected"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid input"
 // @Security BearerAuth
 // @Router /amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
