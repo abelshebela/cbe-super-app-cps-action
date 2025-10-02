@@ -23,6 +23,18 @@ func InitFaydaHandler(faydaService service.FaydaAccountService, logger utils.Log
 	}
 }
 
+// InitiateEnableFaydaAccount godoc
+// @Summary Enable Fayda account
+// @Description Initiates the process to enable a Fayda account for the given user
+// @Tags FaydaAccount
+// @Accept json
+// @Produce json
+// @Param user_code path string true "User Code"
+// @Success 200 {object} localization.ResponseCode "Fayda account enabled successfully"
+// @Failure 400 {object} localization.ResponseCode "Invalid request"
+// @Failure 500 {object} localization.ResponseCode "Internal server error"
+// @Security BearerAuth
+// @Router /fayda_account/enable/{user_code} [post]
 func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, r *http.Request) {
 	user_code, ok := core.ExtractID(w, r, f.logger)
 	if !ok {
@@ -38,6 +50,19 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 	localization.SendSuccessResponse(w, localization.SuccessFaydaEnableActionCreated, nil)
 }
 
+
+// InitiateDisableFaydaAccount godoc
+// @Summary Disable Fayda account
+// @Description Initiates the process to disable a Fayda account for the given user
+// @Tags FaydaAccount
+// @Accept json
+// @Produce json
+// @Param user_code path string true "User Code"
+// @Success 200 {object} localization.ResponseCode "Fayda account disabled successfully"
+// @Failure 400 {object} localization.ResponseCode "Invalid request"
+// @Failure 500 {object} localization.ResponseCode "Internal server error"
+// @Security BearerAuth
+// @Router /fayda_account/disable/{user_code} [post]
 func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter, r *http.Request) {
 	user_code, ok := core.ExtractID(w, r, f.logger)
 	if !ok {
