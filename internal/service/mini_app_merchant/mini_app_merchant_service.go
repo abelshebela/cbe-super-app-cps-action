@@ -233,7 +233,7 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 }
 
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	m.logger.Infof("Authorizing mini app merchant action, action: %s", cpsAction.RequestAction)
+
 
 	merchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
@@ -258,6 +258,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+
 	}
 
 	if err != nil {

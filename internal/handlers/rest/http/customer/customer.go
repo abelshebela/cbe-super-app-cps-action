@@ -3,6 +3,8 @@ package customer
 import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
@@ -13,6 +15,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
+
+type customer_resp *model.User
+type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
 
 type customerAdapter struct {
 	customerService service.CustomerService
@@ -26,6 +31,21 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 	}
 }
 
+// GetCustomerDetail retrieves customer details with optional KYC level filtering
+// @Summary Get customer details
+// @Description Retrieves a paginated list of customer details with optional KYC level filtering
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param kyc_level query int false "KYC Level filter" default(0)
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} localization.StandardResponse{data=customers_paginated_resp} "Customer details retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid KYC level parameter"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
 	var kycLevelInt int
 	var err error
@@ -51,6 +71,19 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customers)
 }
 
+// GetCustomerByID retrieves a specific customer by ID
+// @Summary Get customer by ID
+// @Description Retrieves detailed information for a specific customer by their ID
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} localization.StandardResponse{data=customer_resp} "Customer details retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Customer ID required"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Customer not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers/{id} [get]
 func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -69,6 +102,20 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 
 }
 
+// GetBlockedCustomer retrieves blocked customers
+// @Summary Get blocked customers
+// @Description Retrieves a paginated list of blocked customers
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} localization.StandardResponse{data=customers_paginated_resp} "Blocked customers retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers/blocked [get]
 func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {
 	filterParams := util.ExtractFilterParams(r)
 

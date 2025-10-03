@@ -35,7 +35,7 @@ func ParseMiniAppRequestFromMultipartForm(r *http.Request, isCreate bool) (minia
 			log.Println("Failed to upload banner_image: " + err.Error())
 			return req, errors.New(localization.ErrorInvalidFileUpload.Code)
 		}
-	
+
 		bannerFile = nil
 		bannerFileHeader = nil
 	}

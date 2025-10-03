@@ -11,6 +11,7 @@ const (
 	MsgAvatarDeletedSuccessfully   = "Avatar delete request sent successfully"
 	MsgAvatarRetrievedSuccessfully = "Avatar retrieved successfully"
 	MsgUserUpdatedSuccessfully     = "User update request sent successfully"
+	MsgAmountBasedSuccessfullySent = "Amount-based authentication update request sent successfully"
 	MsgUserDeletedSuccessfully     = "User delete request sent successfully"
 	MsgUserRetrievedSuccessfully   = "User retrieved successfully"
 	MsgUserLoginSuccessfully       = "User logged in successfully"
@@ -161,6 +162,23 @@ const (
 	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
+	// Bank Vault related success messages
+	MsgBankVaultCreationRequestSubmitted = "Bank vault creation request submitted successfully"
+	MsgBankVaultUpdateRequestSubmitted   = "Bank vault update request submitted successfully"
+	MsgBankVaultDeleteRequestSubmitted   = "Bank vault deleted  request submitted successfully"
+	MsgBankVaultDisableRequestSubmitted  = "Bank vault disabled request submitted successfully"
+	MsgBankVaultEnableRequestSubmitted   = "Bank vault enabled request submitted successfully"
+	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
+	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
+
+	// vault group category sucess messages
+	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
+	MsgVaultGroupCategoriesRetrieved              = "Vault group categories retrieved successfully"
+	MsgVaultGroupCategoryRetrieved                = "Vault group category retrieved successfully"
+	MsgVaultGroupCategoryUpdateRequestSubmitted   = "Vault group category update request submitted successfully"
+	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
+	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
+	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
 
@@ -352,10 +370,12 @@ const (
 	MsgFileTooLarge     = "file size is too large"
 	MsgFileInvalidType  = "invalid file type"
 	MsgFileUploadFailed = "file upload failed"
+
 	MsgFileNotFound     = "file not found"
 	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
+	MsgMiniAppNameAlreadyExists              = "Mini App name already exists"
 	MsgBankDeleteRequestFailed               = "Bank delete request failed"
 	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
@@ -567,6 +587,14 @@ const (
 	MsgBPSUserUpdateFailed   = "Failed to update BPS user"
 	MsgBPSUserInvalidFormat  = "Invalid BPS user format"
 	MsgBPSUserRequired       = "BPS user is required"
+
+	// bank vault related error messages
+	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
+	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
+
+	// vault group category related error messages
+	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
+	MsgVaultGroupAlreadyDisabled = "Vault group category already disabled"
 
 	// Ad related error messages
 	MsgAdNotFound       = "Ad not found"
@@ -881,6 +909,10 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// bank vault
+	MsgCannotDeleteActiveBankVault    = "Cannot delete active bank vault"
+	MsgBankVaultProductAlreadyDeleted = "Bank vault product already deleted"
 
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"

@@ -13,8 +13,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	mock "cbe-super-app-cps-action/internal/constants/mocks"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type accountAPIClient struct {
@@ -71,11 +72,11 @@ func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, acc
 				AccountNumber:      mockAccount.AccountNumber,
 				CustomerName:       mockAccount.AccountName,
 				AccountType:        mockAccount.AccountType,
-				AccountDormant:		mockAccount.AccountDormant,
+				AccountDormant:     mockAccount.AccountDormant,
 				AccountCurrency:    mockAccount.Currency,
 				AccountDescription: fmt.Sprintf("%s - %s", mockAccount.AccountType, mockAccount.Status),
-				AccountFrozen: mockAccount.AccountFrozen,
-				ActiveAccount:mockAccount.ActiveAccount,
+				AccountFrozen:      mockAccount.AccountFrozen,
+				ActiveAccount:      mockAccount.ActiveAccount,
 			}
 
 			return accountInfo, nil

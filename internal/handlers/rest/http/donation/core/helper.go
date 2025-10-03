@@ -2,7 +2,7 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
-	
+
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 
@@ -164,8 +164,6 @@ func ExtractIDFromURL(r *http.Request) string {
 	}
 	return ""
 }
-
-
 
 func validateDonationAmount(value interface{}) error {
 	amount, ok := value.(int32)

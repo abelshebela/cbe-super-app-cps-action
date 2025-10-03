@@ -1,6 +1,5 @@
 package donation_category
 
-
 import (
 	"net/http"
 
@@ -14,7 +13,7 @@ import (
 
 func Init(router chi.Router, handler donation_category.DonationCategoryAdapter, authMiddleware middleware.AuthMiddleware) {
 
-		routes := []glue.Route{
+	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
 			Path:    "/donation_category",
@@ -22,7 +21,6 @@ func Init(router chi.Router, handler donation_category.DonationCategoryAdapter, 
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				
 			},
 		},
 		{
@@ -32,7 +30,6 @@ func Init(router chi.Router, handler donation_category.DonationCategoryAdapter, 
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-			
 			},
 		},
 		{
@@ -53,9 +50,7 @@ func Init(router chi.Router, handler donation_category.DonationCategoryAdapter, 
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
-
 	}
-
 
 	glue.RegisterRoutes(router, routes)
 }

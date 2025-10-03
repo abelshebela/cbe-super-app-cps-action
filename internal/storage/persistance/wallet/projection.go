@@ -7,8 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-
-
 func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
 	if wallet.ID == bson.NilObjectID {
 		wallet.ID = bson.NewObjectID()

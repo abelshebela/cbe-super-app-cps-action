@@ -67,7 +67,9 @@ func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.C
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
+
 	cpsAction := lib.CpsModelBuilder(uniqueID, maker, prevData, curData, string(requestAction), string(actionType))
+
 
 	err := cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {

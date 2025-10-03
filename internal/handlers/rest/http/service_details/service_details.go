@@ -1,22 +1,23 @@
 package service_details
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/service"
-	"net/http"
-dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/service_details/core"
+	"cbe-super-app-cps-action/internal/service"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
-
 
 type serviceAdapter struct {
 	logger     utils.Logger
 	serviceApp service.ServiceService
 }
+
 func InitServiceAdapter(serviceApp service.ServiceService, logger utils.Logger) inbound.ServiceAdapter {
 	return &serviceAdapter{
 		logger:     logger,
@@ -40,7 +41,6 @@ func (s *serviceAdapter) GetAllService(w http.ResponseWriter, r *http.Request) {
 
 	localization.SendSuccessResponse(w, localization.SuccessServiceFeeDetailFetched, services)
 }
-
 
 func (s *serviceAdapter) GetAllMinimumTransferCap(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
@@ -112,7 +112,7 @@ func (s *serviceAdapter) GetServiceFeeDetail(w http.ResponseWriter, r *http.Requ
 	}
 	ctx := r.Context()
 
-	serviceFeeDetails, err := s.serviceApp.GetServiceFeeDetail(ctx,service_id)
+	serviceFeeDetails, err := s.serviceApp.GetServiceFeeDetail(ctx, service_id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -131,7 +131,7 @@ func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 
 	var req dto.ServiceFeeDetailDTO
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
-		return 
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -160,7 +160,7 @@ func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.
 
 	var req dto.SingleMaxTransferRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
-		return 
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -178,15 +178,13 @@ func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreatedForUpdateSingleMaxTransfer, nil)
 
-
 }
 
 func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *http.Request) {
 
-
 	var req dto.TotalMaxTransferUpdateRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
-		return 
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -196,7 +194,7 @@ func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *htt
 	}
 	ctx := r.Context()
 
-	err:= s.serviceApp.UpdateTotalMaxTransferCap(ctx, req)
+	err := s.serviceApp.UpdateTotalMaxTransferCap(ctx, req)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -216,7 +214,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 
 	var req dto.MinimumTransferUpdateRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
-		return 
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -226,7 +224,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 	}
 	ctx := r.Context()
 
-	err:= s.serviceApp.UpdateMinimumTransferCap(ctx, service_id, req)
+	err := s.serviceApp.UpdateMinimumTransferCap(ctx, service_id, req)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -243,7 +241,7 @@ func (s *serviceAdapter) DeleteServiceFeeTire(w http.ResponseWriter, r *http.Req
 		localization.SendErrorResponse(w, localization.ErrorServiceDetailIDRequired, nil, nil)
 		return
 	}
-	ctx:= r.Context()
+	ctx := r.Context()
 	err := s.serviceApp.DeleteServiceFeeTire(ctx, service_id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

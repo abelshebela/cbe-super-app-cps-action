@@ -2,7 +2,9 @@ package service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
@@ -82,6 +84,7 @@ type NotificationService interface {
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
 	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error)
 }
+
 type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
@@ -333,39 +336,61 @@ type KeyGeneratorService interface {
 }
 
 type ServiceContainer struct {
-	AccountBlockContainer     AccountBlockService
-	AccountContainer          AccountValidationService
-	ActionContainer           ActionService
-	AdContainer               AdvertService
-	AmountBasedAuthContainer  AmountBasedAuthService
-	AvatarDomian              AvatarService
-	BankContainer             BankService
-	BPSUserContainer          BPSUserService
-	BudgetCategoryContainer   BudgetCategoryService
-	BudgetContainer           BudgetService
-	CPSActionContainer        CPSActionService
-	CPSUserContainer          CPSUserService
-	CustomerContainer         CustomerService
-	DepartmentContainer       DepartmentService
-	EventContainer            EventService // fully not ready
-	FaydaContainer            FaydaAccountService
-	FeedbackContainer         FeedbackService
-	HQContainer               HQService
-	MiniAppContainer          MiniAppService
-	PasswordRuleContainer     PasswordRuleService
-	PermissionContainer       PermissionService
-	PortalCardContainer       PortalCardService
-	UnlinkContainer           UnlinkService
-	WalletContainer           WalletService
-	MiniAppMerchantContainer  MiniAppMerchantService
-	AccountLookup             AccountSearchService
-	BulkServiceContainer      BulkService
-	ServiceCheckContainer     ServiceService
-	KeyGenService             KeyGeneratorService
-	NotificationService       NotificationService
-	ProductCodeService        ProductCodeService
-	DonationContainer         DonationService
-	Unlink                    UnlinkService
-	DonationCategoryContainer DonationCategoryService
-	DonationCompanyContainer  DonationCompanyService
+	AccountBlockContainer       AccountBlockService
+	AccountContainer            AccountValidationService
+	ActionContainer             ActionService
+	AdContainer                 AdvertService
+	AmountBasedAuthContainer    AmountBasedAuthService
+	AvatarDomian                AvatarService
+	BankContainer               BankService
+	BPSUserContainer            BPSUserService
+	BudgetCategoryContainer     BudgetCategoryService
+	BudgetContainer             BudgetService
+	CPSActionContainer          CPSActionService
+	CPSUserContainer            CPSUserService
+	CustomerContainer           CustomerService
+	DepartmentContainer         DepartmentService
+	EventContainer              EventService // fully not ready
+	FaydaContainer              FaydaAccountService
+	FeedbackContainer           FeedbackService
+	HQContainer                 HQService
+	MiniAppContainer            MiniAppService
+	PasswordRuleContainer       PasswordRuleService
+	PermissionContainer         PermissionService
+	PortalCardContainer         PortalCardService
+	UnlinkContainer             UnlinkService
+	WalletContainer             WalletService
+	MiniAppMerchantContainer    MiniAppMerchantService
+	AccountLookup               AccountSearchService
+	BulkServiceContainer        BulkService
+	ServiceCheckContainer       ServiceService
+	KeyGenService               KeyGeneratorService
+	NotificationService         NotificationService
+	ProductCodeService          ProductCodeService
+	DonationContainer           DonationService
+	Unlink                      UnlinkService
+	DonationCategoryContainer   DonationCategoryService
+	DonationCompanyContainer    DonationCompanyService
+	BankVaultContainer          BankVaultService
+	VaultGroupCategoryContainer VaultGroupCategoryService
+}
+type BankVaultService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error)
+	FindAllBankVaults(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*bankvault.BankVaultProductResponse], error)
+	GetBankVault(ctx context.Context, id string) (*bankvault.BankVaultProductResponse, error)
+	UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error)
+	DeleteBankVault(ctx context.Context, id string) (string, error)
+	EnableBankVault(ctx context.Context, id string) error
+	DisableBankVault(ctx context.Context, id string) error
+}
+type VaultGroupCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateVaultGroupCategory(ctx context.Context, req *model.VaultGroupCategory) (string, error)
+	FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup.VaultGroupCategoryResponse], error)
+	GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup.VaultGroupCategoryResponse, error)
+	UpdateVaultGroupCategory(ctx context.Context, id string, req *model.VaultGroupCategory) (string, error)
+	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
+	EnableVaultGroupCategory(ctx context.Context, id string) error
+	DisableVaultGroupCategory(ctx context.Context, id string) error
 }

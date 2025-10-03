@@ -1,0 +1,201 @@
+package vaultgroupcategory
+
+import (
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/persistance/vaultgroup_category/gen/sqlc"
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+	"strings"
+
+	utils "cbe-super-app-cps-action/pkgs/utils"
+
+	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type VaultGroupCategoryRepository struct {
+	db     *sql.DB
+	logger shared_utils.Logger
+}
+
+func NewVaultGroupCategoryRepository(db *sql.DB, logger shared_utils.Logger) storage.VaultGroupCategoryRepository {
+	return &VaultGroupCategoryRepository{
+		db:     db,
+		logger: logger,
+	}
+}
+
+// Create creates a new vault group category in Oracle and returns its ID
+func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model.VaultGroupCategory) (string, error) {
+	// Duplicate name check via generated query
+	q := sqlc.New(r.db)
+	if _, err := q.FindVaultGroupCategoryByName(ctx, entity.Name); err == nil {
+		return "", fmt.Errorf("DUPLICATE_VAULT_GROUP_CATEGORY")
+	} else if !errors.Is(err, sql.ErrNoRows) {
+		return "", err
+	}
+
+	params := sqlc.SaveVaultGroupCategoryParams{
+		Name:        entity.Name,
+		Description: sql.NullString{String: entity.Description, Valid: entity.Description != ""},
+		IsActive:    sql.NullBool{Bool: entity.IsActive, Valid: true},
+	}
+	id, err := q.SaveVaultGroupCategory(ctx, params)
+	if err != nil {
+		return "", err
+	}
+	return strings.ToUpper(id), nil
+}
+
+// FindAllWithPagination lists categories with filters and pagination, including deleted ones
+func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error) {
+	q := sqlc.New(r.db)
+	params := sqlc.FindVaultGroupCategoryParams{}
+	if v, ok := filterParam.Filters["is_active"].(bool); ok {
+		params.IsActive = sql.NullBool{Bool: v, Valid: true}
+	}
+	if v, ok := filterParam.Filters["name"].(string); ok && v != "" {
+		params.NameQuery = sql.NullString{String: v, Valid: true}
+	}
+	if filterParam.Page > 0 && filterParam.PerPage > 0 {
+		params.Page = sql.NullInt64{Int64: int64(filterParam.Page), Valid: true}
+		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}
+	} else if filterParam.PerPage > 0 {
+		params.Page = sql.NullInt64{Int64: 1, Valid: true}
+		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}
+	}
+
+	rows, err := q.FindVaultGroupCategory(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]*model.VaultGroupCategory, 0, len(rows))
+	var total int64
+	for _, rrow := range rows {
+		e := &model.VaultGroupCategory{
+			ID:          rrow.ID,
+			Name:        rrow.Name,
+			Description: utils.NonEmptyString(rrow.Description.String, ""),
+			IsActive:    rrow.IsActive,
+			IsDeleted:   rrow.IsDeleted,
+		}
+		if rrow.CreatedAt.Valid {
+			e.CreatedAt = rrow.CreatedAt.Time
+		}
+		if rrow.UpdatedAt.Valid {
+			e.UpdatedAt = rrow.UpdatedAt.Time
+		}
+		if rrow.DeletedAt.Valid {
+			e.DeletedAt = &rrow.DeletedAt.Time
+		}
+		total = rrow.TotalCount
+		list = append(list, e)
+	}
+
+	limit := int(params.Limit.Int64)
+	if limit == 0 {
+		limit = 50
+	}
+	page := int(params.Page.Int64)
+	if page == 0 {
+		page = 1
+	}
+
+	resp := types.PaginatedResponse[[]*model.VaultGroupCategory]{
+		Data: list,
+		Meta: types.PaginationMeta{
+			TotalDocs:  total,
+			Limit:      limit,
+			Page:       page,
+			TotalPages: 0,
+		},
+	}
+	return &resp, nil
+}
+
+// FindByID fetches a single category by id, including deleted ones
+func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) (*model.VaultGroupCategory, error) {
+	q := sqlc.New(r.db)
+	rrow, err := q.FindVaultGroupCategoryById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	e := &model.VaultGroupCategory{
+		ID:          rrow.ID,
+		Name:        rrow.Name,
+		Description: utils.NonEmptyString(rrow.Description.String, ""),
+		IsActive:    rrow.IsActive,
+		IsDeleted:   rrow.IsDeleted,
+	}
+	if rrow.CreatedAt.Valid {
+		e.CreatedAt = rrow.CreatedAt.Time
+	}
+	if rrow.UpdatedAt.Valid {
+		e.UpdatedAt = rrow.UpdatedAt.Time
+	}
+	if rrow.DeletedAt.Valid {
+		e.DeletedAt = &rrow.DeletedAt.Time
+	}
+	return e, nil
+}
+
+// Update updates name/description; prevents updates on deleted records
+func (r *VaultGroupCategoryRepository) Update(ctx context.Context, id string, entity *model.VaultGroupCategory) error {
+	// Ensure not deleted
+	current, err := r.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if current.IsDeleted {
+		return fmt.Errorf("CANNOT_UPDATE_DELETED_VAULT_GROUP_CATEGORY %s", id)
+	}
+
+	// Use edited SQLC method (Oracle-compatible)
+	name := sql.NullString{String: entity.Name, Valid: entity.Name != ""}
+	desc := sql.NullString{String: entity.Description, Valid: entity.Description != ""}
+	params := sqlc.UpdateVaultGroupCategoryParams{Name: name, Description: desc, ID: id}
+	_, err = sqlc.New(r.db).UpdateVaultGroupCategory(ctx, params)
+	return err
+}
+
+// Delete performs a soft delete; prevents double delete
+func (r *VaultGroupCategoryRepository) Delete(ctx context.Context, id string) (string, error) {
+	current, err := r.FindByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if current.IsDeleted {
+		return "", fmt.Errorf("VAULT_GROUP_CATEGORY_ALREADY_DELETED %s", id)
+	}
+	q := sqlc.New(r.db)
+	ret, err := q.DeleteVaultGroupCategory(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	if ret == "" {
+		return "", fmt.Errorf("VAULT_GROUP_CATEGORY_ALREADY_DELETED %s", id)
+	}
+	return strings.ToUpper(ret), nil
+}
+
+// EnableOrDisable toggles active state; prevents toggling deleted records
+func (r *VaultGroupCategoryRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	current, err := r.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if current.IsDeleted {
+		return fmt.Errorf("CANNOT_ENABLE_DISABLE_DELETED_VAULT_GROUP_CATEGORY %s", id)
+	}
+	q := sqlc.New(r.db)
+	if enable {
+		_, err = q.ActivateVaultGroupCategory(ctx, id)
+		return err
+	}
+	_, err = q.DeactivateVaultGroupCategory(ctx, id)
+	return err
+}

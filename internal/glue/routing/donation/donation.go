@@ -1,6 +1,5 @@
 package donation
 
-
 import (
 	"net/http"
 
@@ -15,7 +14,7 @@ import (
 func Init(router chi.Router, handler donation.DonationHandler, authMiddleware middleware.AuthMiddleware) {
 
 	routes := []glue.Route{
-		
+
 		{
 			Method:  http.MethodPost,
 			Path:    "/donation",
@@ -23,7 +22,6 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				
 			},
 		},
 		{
@@ -33,7 +31,6 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				
 			},
 		},
 		{
@@ -61,7 +58,6 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				
 			},
 		},
 		{
@@ -71,7 +67,6 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				
 			},
 		},
 		{
@@ -81,10 +76,9 @@ func Init(router chi.Router, handler donation.DonationHandler, authMiddleware mi
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
-				
 			},
 		},
-			{
+		{
 			Method:  http.MethodPatch,
 			Path:    "/donation/enable/{id}",
 			Handler: handler.EnableDonation,
