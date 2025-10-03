@@ -66,7 +66,7 @@ func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
+	
 	dto, err := miniappcore.ToMiniAppCreateRequest(req, true)
 	if err != nil {
 		h.logger.Errorf("failed to convert request to DTO: %v", err)

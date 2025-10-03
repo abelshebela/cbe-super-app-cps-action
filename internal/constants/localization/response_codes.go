@@ -406,6 +406,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyNotFound,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
+	ErrorMiniAppMerchantEnableFailed,
+	ErrorMiniAppMerchantDisableFailed,
+	ErrorMiniAppMerchantDeleteFailed,
+	ErrorMiniAppMerchantUpdateFailed,
+	
 }
 
 // Success Response Codes
