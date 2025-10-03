@@ -1142,7 +1142,7 @@ var (
 	ErrorInvalidFileUpload = ResponseCode{
 		Code:       "IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
-		Message:    "image is required",
+		Message:    "App icon image is required",
 		Type:       "error",
 	}
 	ErrorInvalidBooleanFormat = ResponseCode{

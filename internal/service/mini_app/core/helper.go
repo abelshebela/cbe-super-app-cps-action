@@ -153,7 +153,7 @@ func ValidMiniAppChecker(ctx context.Context, miniAppRepo storage.MiniAppReposit
 		return false, err
 	}
 	if len(exists.Data) > 0 {
-		return false, errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
+		return false, nil
 	}
 
 	return true, nil
