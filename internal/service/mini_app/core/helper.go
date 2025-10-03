@@ -70,16 +70,24 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 
 func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, miniApp *miniappdto.MiniAppCreateRequest) error {
 	if miniApp.MerchantID == "" {
-		return nil
+		return errors.New(localization.ErrorMerchantIDRequired.Code)
 	}
 
-	_, err := merchantService.FindByID(ctx, miniApp.MerchantID)
+	merchant, err := merchantService.FindByID(ctx, miniApp.MerchantID)
 	if err != nil {
 		log.Println("Failed to get merchant details", "merchantID", miniApp.MerchantID, "error", err)
-		if err.Error() == "No Mini App merchant with these merchant!" {
-			return errors.New(localization.ErrorMerchantNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+
+	// Validate merchant status
+	if merchant.IsDeleted {
+		log.Println("Merchant is deleted", "merchantID", miniApp.MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+
+	if !merchant.Enabled {
+		log.Println("Merchant is disabled", "merchantID", miniApp.MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
 	}
 
 	return nil

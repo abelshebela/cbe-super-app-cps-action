@@ -39,6 +39,8 @@ func ToMiniAppMerchantDomainFromUpdateDTO(d *dto.MiniAppMerchantDTO) *model.Mini
 		MerchantType:      d.Type,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,
+		Email:             d.Email,
+		PhoneNumber:       d.PhoneNumber,
 		KYC: model.KYC{
 			Representative: model.KYCInformation{
 				Name:  d.MerchantRepresentativeName,
