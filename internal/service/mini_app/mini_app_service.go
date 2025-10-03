@@ -68,7 +68,6 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Errorf("SetMerchantDetails failed, error: %v", err)
 		return err
 	}
-
 	existing, err := s.repo.Find(ctx, req.AppName)
 	if err != nil {
 		s.logger.Errorf("Find failed: %v", err)
