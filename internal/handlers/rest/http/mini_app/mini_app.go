@@ -57,7 +57,7 @@ func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 	req, err := miniappcore.ParseMiniAppRequestFromMultipartForm(r, true)
 	if err != nil {
 		h.logger.Errorf("failed to parse mini app request from multipart form: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *HttpStore) CreateMiniApp(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
+	
 	dto, err := miniappcore.ToMiniAppCreateRequest(req, true)
 	if err != nil {
 		h.logger.Errorf("failed to convert request to DTO: %v", err)

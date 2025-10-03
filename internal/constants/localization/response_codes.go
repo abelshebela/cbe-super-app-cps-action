@@ -406,6 +406,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyNotFound,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
+	ErrorMiniAppMerchantEnableFailed,
+	ErrorMiniAppMerchantDisableFailed,
+	ErrorMiniAppMerchantDeleteFailed,
+	ErrorMiniAppMerchantUpdateFailed,
+	
 }
 
 // Success Response Codes
@@ -1142,7 +1147,7 @@ var (
 	ErrorInvalidFileUpload = ResponseCode{
 		Code:       "IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
-		Message:    "image is required",
+		Message:    "App icon image is required",
 		Type:       "error",
 	}
 	ErrorInvalidBooleanFormat = ResponseCode{
