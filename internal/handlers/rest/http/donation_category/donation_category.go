@@ -1,8 +1,10 @@
 package donation_category
 
 import (
+	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
 
@@ -13,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type paginatedDonationCategoryListResponse types.PaginatedResponse[[]donation_category.DonationCategoryListResponse]
 type donationCategoryAdapter struct {
 	logger              utils.Logger
 	donationCategoryApp service.DonationCategoryService
@@ -34,7 +37,7 @@ func InitDonationCategoryAdapter(donationCategoryApp service.DonationCategorySer
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedDonationCategoryResponse} "Donation categories fetched successfully"
+// @Success 200 {object} localization.StandardResponse{data=paginatedDonationCategoryListResponse} "Donation categories fetched successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation_category [get]
@@ -168,6 +171,6 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 		return
 	}
 
-	d.logger.Infof("donation category update request submitted successfully",updatedDonationCategory)
+	d.logger.Infof("donation category update request submitted successfully", updatedDonationCategory)
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, nil)
 }

@@ -3,6 +3,7 @@ package notifications
 import (
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants/dto/notification"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/notifications/core"
@@ -13,6 +14,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type notificationRequest notification.NotificationRequest
+type paginatedNotificationResponse types.PaginatedResponse[[]*notification.NotificationResponse]
 type handler struct {
 	service service.NotificationService
 	logger  utils.Logger
@@ -28,7 +31,7 @@ func InitNotificationHandler(svc service.NotificationService, logger utils.Logge
 // @Tags Notification
 // @Accept json
 // @Produce json
-// @Param request body notification.NotificationRequest true "Notification payload"
+// @Param request body notificationRequest true "Notification payload"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Notification creation request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
@@ -62,7 +65,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Notification ID"
-// @Param request body notification.NotificationRequest true "Notification payload"
+// @Param request body notificationRequest true "Notification payload"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Notification update request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Notification not found"
@@ -224,7 +227,7 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedNotificationResponse} "Notifications retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=paginatedNotificationResponse} "Notifications retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /notifications [get]
