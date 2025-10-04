@@ -105,5 +105,3 @@ func hasAllowedExtension(filename string, allowed []string) bool {
 	}
 	return false
 }
-
-

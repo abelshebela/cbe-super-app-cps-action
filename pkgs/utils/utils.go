@@ -596,6 +596,7 @@ func NullBoolToIntPtr(nb sql.NullBool) *int {
 func NullBoolToBool(nb sql.NullBool) bool {
 	return nb.Valid && nb.Bool
 }
+
 type PaginatedResponse[T any] struct {
 	Items       []T   `json:"items"`
 	Page        int64 `json:"page"`

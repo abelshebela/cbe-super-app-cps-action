@@ -8,7 +8,8 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
-	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
+
+	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	"cbe-super-app-cps-action/internal/service/budget"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
@@ -18,7 +19,8 @@ import (
 	"cbe-super-app-cps-action/internal/service/department"
 	"cbe-super-app-cps-action/internal/service/event"
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
-	vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
+
+	// vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
 
@@ -86,13 +88,14 @@ type ServiceLayer struct {
 	Donation service.DonationService
 
 	NotificationService service.NotificationService
-	BankVault           service.BankVaultService
-	VaultGroupCategory  service.VaultGroupCategoryService
+	// BankVault           service.BankVaultService
+	// VaultGroupCategory  service.VaultGroupCategoryService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, oracle OraclePersistence) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account) ServiceLayer {
+	// func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, oracle OraclePersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 	// Create CPS action service with the dispatcher
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
@@ -285,11 +288,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
 
-	bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
-	serviceContainer.BankVaultContainer = bankVaultSvc
+	// bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
+	// serviceContainer.BankVaultContainer = bankVaultSvc
 
-	vaultGroupSvc := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger)
-	serviceContainer.VaultGroupCategoryContainer = vaultGroupSvc
+	// vaultGroupSvc := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger)
+	// serviceContainer.VaultGroupCategoryContainer = vaultGroupSvc
 
 	// Rebuild dispatcher with the fully wired container so approvals route to BankVault
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
@@ -336,7 +339,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 		ProductCode:         productService,
 		NotificationService: notificationsvc,
-		BankVault:           bankVaultSvc,
-		VaultGroupCategory:  vaultGroupSvc,
+		// BankVault:           bankVaultSvc,
+		// VaultGroupCategory:  vaultGroupSvc,
 	}
 }

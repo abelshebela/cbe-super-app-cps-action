@@ -1,10 +1,8 @@
 package donation
 
-
 import "net/http"
 
 type DonationHandler interface {
-
 	CreateDonation(w http.ResponseWriter, r *http.Request)
 	UpdateDonation(w http.ResponseWriter, r *http.Request)
 	FetchDonation(w http.ResponseWriter, r *http.Request)
@@ -16,4 +14,3 @@ type DonationHandler interface {
 	EnableDonation(w http.ResponseWriter, r *http.Request)
 	DisableDonation(w http.ResponseWriter, r *http.Request)
 }
-

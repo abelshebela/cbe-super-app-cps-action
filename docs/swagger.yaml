@@ -527,7 +527,7 @@ definitions:
       service_type:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse:
+  cbe-super-app-cps-action_internal_constants_model.ProductCodes:
     properties:
       created_at:
         type: string
@@ -1169,7 +1169,261 @@ definitions:
       name:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.Address:
+  notification.NotificationRequest:
+    properties:
+      created_by:
+        type: string
+      for:
+        type: string
+      is_public:
+        type: boolean
+      notification_body:
+        type: string
+      notification_type:
+        type: string
+      title:
+        type: string
+    type: object
+  notification.NotificationResponse:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      deleted_at:
+        type: string
+      enabled:
+        type: boolean
+      for:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      is_public:
+        type: boolean
+      last_modified:
+        type: string
+      notification_body:
+        type: string
+      notification_parts: {}
+      notification_type:
+        type: string
+      seen:
+        type: boolean
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  productcode.ProductCodePaginatedResponse:
+    type: object
+  productcode.ProductCodeResponse:
+    properties:
+      cbe_ifb_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      cbe_product_codes:
+        $ref: '#/definitions/model.ProductCodes'
+      created_at:
+        type: string
+      enabled:
+        type: boolean
+      first_password_set:
+        type: boolean
+      full_name:
+        type: string
+      home_branch:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      is_first_time_login:
+        type: boolean
+      last_login:
+        type: string
+      last_login_attempt:
+        type: string
+      last_modifed_at:
+        type: string
+      login_attempt_count:
+        type: integer
+      next_login_attempt:
+        type: string
+      otp_last_tried_at:
+        type: string
+      otp_last_verified_at:
+        type: string
+      otp_verfy_count:
+        type: integer
+      password:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Password'
+      permission_group:
+        items:
+          type: string
+        type: array
+      permissions:
+        items:
+          type: string
+        type: array
+      phone_number:
+        type: string
+      role:
+        description: 'enum: maker, checker, aduditer'
+        type: string
+      user_code:
+        description: generated
+        type: string
+    type: object
+  internal_handlers_rest_http_bps_user.paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.BPSUser'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_budget.budget_colors_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Color'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_budget.budget_icons_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Icon'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_bulk_service.bulk_services_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.APPAccessList'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_cps_action_handler.cps_action_resp:
+    properties:
+      action_code:
+        type: string
+      action_status:
+        type: string
+      action_type:
+        type: string
+      checker_action_time:
+        type: string
+      checker_id:
+        type: string
+      checker_name:
+        type: string
+      checker_phone_number:
+        type: string
+      created_at:
+        type: string
+      current_action: {}
+      department:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      last_modified_at:
+        type: string
+      maker_action_time:
+        type: string
+      maker_id:
+        type: string
+      maker_name:
+        type: string
+      maker_phone_number:
+        type: string
+      previous_action: {}
+      rejection_reason:
+        type: string
+      request_action:
+        type: string
+      unique_id:
+        type: string
+    type: object
+  internal_handlers_rest_http_cps_action_handler.cps_actions_paginated_resp:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  internal_handlers_rest_http_cps_user.cps_user_resp:
+    properties:
+      country:
+        example: Ethiopia
+        type: string
+      date_joined:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      department:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      email:
+        example: john.doe@example.com
+        type: string
+      enabled:
+        example: true
+        type: boolean
+      full_name:
+        example: John Doe
+        type: string
+      gender:
+        example: Male
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      last_modified:
+        example: "2024-01-15T10:30:00Z"
+        type: string
+      permission_category:
+        example:
+        - '["507f1f77bcf86cd799439011"]'
+        items:
+          type: string
+        type: array
+      permission_group:
+        example:
+        - '["507f1f77bcf86cd799439011"]'
+        items:
+          type: string
+        type: array
+      phone_number:
+        example: "+251911234567"
+        type: string
+      realm:
+        example: cps
+        type: string
+      region:
+        example: Addis Ababa
+        type: string
+      role:
+        example: Maker
+        type: string
+      user_code:
+        example: USR001
+        type: string
+      username:
+        example: john.doe
+        type: string
+    type: object
+  types.Address:
     properties:
       city:
         type: string
@@ -1250,148 +1504,133 @@ definitions:
       total_pages:
         type: integer
     type: object
-  cbe-super-app-cps-action_internal_constants_types.ProductCodes:
+  types.CredentialInformation:
     properties:
-      prd:
+      app_secret:
         type: string
-      sfprd:
+      environment:
+        $ref: '#/definitions/constants.EnvironmentType'
+      fabric_app_id:
         type: string
-      trxn:
+      id:
         type: string
-      vatprd:
+      merchant_app_id:
+        type: string
+      mini_app_code:
+        type: string
+      private_key:
+        type: string
+      public_key:
+        type: string
+      short_code:
+        type: string
+      timestamp:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.Tier:
+  types.EventInformation:
     properties:
-      feeAmount:
-        type: integer
-      max:
-        type: integer
-      min:
-        type: integer
-    type: object
-  internal_handlers_rest_http_donation.paginatedDonationResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationListResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_donation_category.paginatedDonationCategoryListResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_donation_company.paginatedDonationCompanyListResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_notifications.notificationRequest:
-    properties:
-      created_by:
+      cover:
         type: string
-      for:
+      description:
         type: string
-      is_public:
+      due_date:
+        type: string
+      start_date:
+        type: string
+      video_link:
+        type: string
+    type: object
+  types.MerchantInformation:
+    properties:
+      merchant_email:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_phone_number:
+        type: string
+    type: object
+  types.PaginationMeta:
+    properties:
+      has_next_page:
         type: boolean
-      notification_body:
+      has_prev_page:
+        type: boolean
+      limit:
+        type: integer
+      next_page:
+        type: integer
+      page:
+        type: integer
+      paging_counter:
+        type: integer
+      prev_page:
+        type: integer
+      total_docs:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  types.ProductCode:
+    properties:
+      branchType:
+        $ref: '#/definitions/constants.BranchType'
+      id:
         type: string
-      notification_type:
+      productCode:
         type: string
-      title:
+      serviceFeeCode:
+        type: string
+      vatcode:
         type: string
     type: object
-  internal_handlers_rest_http_notifications.paginatedNotificationResponse:
+  types.Response:
     properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+      answer: {}
+      options: {}
+      question:
+        type: string
+      type:
+        type: string
     type: object
-  internal_handlers_rest_http_portal_card.PortalCardPaginatedResponse:
+  types.Restriction:
     properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Card'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+      description:
+        type: string
+      type:
+        $ref: '#/definitions/constants.RestrictionType'
     type: object
-  internal_handlers_rest_http_product_code.ProductCodePaginatedResponse:
+  types.Ticket:
     properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+      category:
+        type: string
+      name:
+        type: string
+      number_of_ticker:
+        type: integer
+      price:
+        type: integer
+      type:
+        type: string
     type: object
-  internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse:
+  types.TicketInformation:
     properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MaximumTransferCapResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+      total_number_of_available_ticket:
+        type: integer
+      total_number_of_ticket:
+        type: integer
+      total_number_of_unsold_ticket:
+        type: integer
     type: object
-  internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse:
+  types.TicketStatistics:
     properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_service_details.paginatedServiceDetails:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ServiceDetails'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_service_details.paginatedServiceFeeResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_unlink.PaginatedArchieveUserResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ArchivedUser'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  internal_handlers_rest_http_wallet.PaginatedWalletResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Wallet'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+      category:
+        type: string
+      number_of_sold_ticket:
+        type: integer
+      revenue:
+        type: integer
     type: object
 host: localhost:8080
 info:
@@ -2087,6 +2326,11 @@ paths:
       summary: Update account validation rule
       tags:
       - Account Validation
+  /departments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve departments with pagination and optional search
   /donation:
     get:
       consumes:
@@ -2111,6 +2355,7 @@ paths:
       - application/json
       responses:
         "200":
+          description: Departments retrieved successfully
           description: Donations retrieved successfully
           schema:
             allOf:
@@ -2118,7 +2363,8 @@ paths:
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/internal_handlers_rest_http_donation.paginatedDonationResponse'
+                    $ref: '#/definitions/model.PaginatedDepartmentResponse'
+                    $ref: '#/definitions/model.PaginatedDonationResponse'
                   type: array
               type: object
         "500":
@@ -2132,6 +2378,20 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: List departments
+      tags:
+      - Department
+    post:
+      consumes:
+      - application/json
+      description: Create a new department with the provided information
+      parameters:
+      - description: Department information
+        in: body
+        name: department
+        required: true
+        schema:
+          $ref: '#/definitions/department_dto.CreateDepartmentRequest'
       summary: List donations
       tags:
       - Donation
@@ -2198,6 +2458,7 @@ paths:
       - application/json
       responses:
         "200":
+          description: Department created successfully
           description: Donation creation request sent successfully
           schema:
             allOf:
@@ -2226,6 +2487,16 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: Create a new department
+      tags:
+      - Department
+  /departments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a department's details by ID
+      parameters:
+      - description: Department ID
       summary: Create a new donation
       tags:
       - Donation
@@ -2244,13 +2515,15 @@ paths:
       - application/json
       responses:
         "200":
+          description: Department retrieved successfully
           description: Donation retrieved successfully
           schema:
             allOf:
             - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationResponse'
+                  $ref: '#/definitions/model.Department'
+                  $ref: '#/definitions/donation.DonationResponse'
               type: object
         "400":
           description: Bad request
@@ -2262,6 +2535,7 @@ paths:
                   type: object
               type: object
         "404":
+          description: Department not found
           description: Not found
           schema:
             allOf:
@@ -2281,6 +2555,15 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: Get department by ID
+      tags:
+      - Department
+    patch:
+      consumes:
+      - application/json
+      description: Updates the details of an existing department by its ID.
+      parameters:
+      - description: Department ID
       summary: Get donation by ID
       tags:
       - Donation
@@ -2294,6 +2577,12 @@ paths:
         name: id
         required: true
         type: string
+      - description: Update Department Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/department_dto.UpdateDepartmentRequest'
       - description: Donation code
         in: formData
         name: donation_code
@@ -2508,6 +2797,7 @@ paths:
       - application/json
       responses:
         "200":
+          description: Department updated successfully
           description: Donation image delete request sent successfully
           schema:
             allOf:
@@ -2536,6 +2826,16 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: Update Department
+      tags:
+      - Department
+  /departments/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a department by ID
+      parameters:
+      - description: Department ID
       summary: Delete a donation image
       tags:
       - Donation
@@ -2563,6 +2863,7 @@ paths:
       - application/json
       responses:
         "200":
+          description: Department disable request submitted
           description: Donation image update request sent successfully
           schema:
             allOf:
@@ -2580,6 +2881,15 @@ paths:
                 data:
                   type: object
               type: object
+        "404":
+          description: Department not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "500":
           description: Internal server error
           schema:
@@ -2591,6 +2901,16 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: Disable a department
+      tags:
+      - Department
+  /departments/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a department by ID
+      parameters:
+      - description: Department ID
       summary: Update a donation image
       tags:
       - Donation
@@ -2613,6 +2933,7 @@ paths:
       - application/json
       responses:
         "200":
+          description: Department enable request submitted
           description: Donation image add request sent successfully
           schema:
             allOf:
@@ -2630,6 +2951,15 @@ paths:
                 data:
                   type: object
               type: object
+        "404":
+          description: Department not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "500":
           description: Internal server error
           schema:
@@ -2641,6 +2971,14 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: Enable a department
+      tags:
+      - Department
+  /events:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve events with pagination and optional search
       summary: Add donation image(s)
       tags:
       - Donation
@@ -2668,13 +3006,17 @@ paths:
       - application/json
       responses:
         "200":
+          description: Events retrieved successfully
           description: Donation categories fetched successfully
           schema:
             allOf:
             - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/internal_handlers_rest_http_donation_category.paginatedDonationCategoryListResponse'
+                  items:
+                    $ref: '#/definitions/model.PaginatedEventResponse'
+                    $ref: '#/definitions/model.PaginatedDonationCategoryResponse'
+                  type: array
               type: object
         "500":
           description: Internal server error
@@ -2687,6 +3029,15 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: List events
+      tags:
+      - Event
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new event with the provided information (multipart form
+        with ticket arrays)
+      parameters:
       summary: List donation categories
       tags:
       - Donation Category
@@ -3035,10 +3386,167 @@ paths:
         in: formData
         name: account_number
         type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        required: true
+        type: string
+      - description: Merchant name
+        in: formData
+        name: merchant_name
+        type: string
+      - description: Merchant phone number
+        in: formData
+        name: merchant_phone_number
+        type: string
+      - description: Merchant email
+        in: formData
+        name: merchant_email
+        type: string
+      - description: Event name
+        in: formData
+        name: event_name
+        required: true
+        type: string
+      - description: Event venue
+        in: formData
+        name: event_venue
+        required: true
+        type: string
+      - description: Event city
+        in: formData
+        name: event_city
+        required: true
+        type: string
+      - description: Event start date (RFC3339 format)
+        in: formData
+        name: start_date
+        required: true
+        type: string
+      - description: Event due date (RFC3339 format)
+        in: formData
+        name: due_date
+        required: true
+        type: string
+      - description: Event cover image
+        in: formData
+        name: cover_image
+        required: true
+        type: file
+      - description: Event description
+        in: formData
+        name: event_description
+        type: string
+      - description: Total ticket count
+        in: formData
+        name: total_ticket_count
+        required: true
+        type: integer
+      - description: Ticket name (e.g. VIP Ticket)
+        in: formData
+        name: ticket_name[0]
+        required: true
+        type: string
+      - description: Ticket category (e.g. VIP)
+        in: formData
+        name: ticket_category[0]
+        required: true
+        type: string
+      - description: Ticket type (e.g. Seated)
+        in: formData
+        name: ticket_type[0]
+        required: true
+        type: string
+      - description: Ticket price (e.g. 1000)
+        in: formData
+        name: ticket_price[0]
+        required: true
+        type: number
+      - description: Ticket quantity (e.g. 50)
+        in: formData
+        name: ticket_number_of_ticker[0]
+        required: true
+        type: integer
+      - description: Another Ticket name (e.g. Regular Ticket)
+        in: formData
+        name: ticket_name[1]
+        type: string
+      - description: Another Ticket category (e.g. Regular)
+        in: formData
+        name: ticket_category[1]
+        type: string
+      - description: Another Ticket type (e.g. Standing)
+        in: formData
+        name: ticket_type[1]
+        type: string
+      - description: Another Ticket price (e.g. 500)
+        in: formData
+        name: ticket_price[1]
+        type: number
+      - description: Another Ticket quantity (e.g. 250)
+        in: formData
+        name: ticket_number_of_ticker[1]
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Event created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new event
+      tags:
+      - Event
+  /events/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
+          description: Event deleted successfully
           description: Donation company updated successfully
           schema:
             allOf:
@@ -3057,6 +3565,7 @@ paths:
                   type: object
               type: object
         "404":
+          description: Event not found
           description: Not found
           schema:
             allOf:
@@ -3076,6 +3585,415 @@ paths:
               type: object
       security:
       - BearerAuth: []
+      summary: Delete an event
+      tags:
+      - Event
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an event's details by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Event'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get event by ID
+      tags:
+      - Event
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Updates event details (multipart form with optional tickets & cover
+        image)
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        required: true
+        type: string
+      - description: Event name
+        in: formData
+        name: event_name
+        required: true
+        type: string
+      - description: Account number
+        in: formData
+        name: account_number
+        type: string
+      - description: Merchant name
+        in: formData
+        name: merchant_name
+        type: string
+      - description: Merchant phone number
+        in: formData
+        name: merchant_phone_number
+        type: string
+      - description: Merchant email
+        in: formData
+        name: merchant_email
+        type: string
+      - description: Event venue
+        in: formData
+        name: event_venue
+        type: string
+      - description: Event city
+        in: formData
+        name: event_city
+        type: string
+      - description: Event start date (RFC3339 format)
+        in: formData
+        name: start_date
+        type: string
+      - description: Event due date (RFC3339 format)
+        in: formData
+        name: due_date
+        type: string
+      - description: Event cover image
+        in: formData
+        name: cover_image
+        type: file
+      - description: Event description
+        in: formData
+        name: event_description
+        type: string
+      - description: Total ticket count
+        in: formData
+        name: total_ticket_count
+        type: integer
+      - description: Ticket name (e.g. VIP Ticket)
+        in: formData
+        name: ticket_name[0]
+        type: string
+      - description: Ticket category (e.g. VIP)
+        in: formData
+        name: ticket_category[0]
+        type: string
+      - description: Ticket type (e.g. Seated)
+        in: formData
+        name: ticket_type[0]
+        type: string
+      - description: Ticket price (e.g. 1000)
+        in: formData
+        name: ticket_price[0]
+        type: number
+      - description: Ticket quantity (e.g. 50)
+        in: formData
+        name: ticket_number_of_ticker[0]
+        type: integer
+      - description: Another Ticket name (e.g. Regular Ticket)
+        in: formData
+        name: ticket_name[1]
+        type: string
+      - description: Another Ticket category (e.g. Regular)
+        in: formData
+        name: ticket_category[1]
+        type: string
+      - description: Another Ticket type (e.g. Standing)
+        in: formData
+        name: ticket_type[1]
+        type: string
+      - description: Another Ticket price (e.g. 500)
+        in: formData
+        name: ticket_price[1]
+        type: number
+      - description: Another Ticket quantity (e.g. 250)
+        in: formData
+        name: ticket_number_of_ticker[1]
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update an existing event
+      tags:
+      - Event
+  /events/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event disable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable an event
+      tags:
+      - Event
+  /events/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable an event by ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Event enable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Event not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable an event
+      tags:
+      - Event
+  /fayda_account/disable/{user_code}:
+    post:
+      consumes:
+      - application/json
+      description: Initiates the process to disable a Fayda account for the given
+        user
+      parameters:
+      - description: User Code
+        in: path
+        name: user_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fayda account disabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Disable Fayda account
+      tags:
+      - FaydaAccount
+  /fayda_account/enable/{user_code}:
+    post:
+      consumes:
+      - application/json
+      description: Initiates the process to enable a Fayda account for the given user
+      parameters:
+      - description: User Code
+        in: path
+        name: user_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fayda account enabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Enable Fayda account
+      tags:
+      - FaydaAccount
+  /feedback:
+    get:
+      consumes:
+      - application/json
+      description: Fetch feedbacks with pagination and optional filters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: per_page
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
       summary: Update a donation company
       tags:
       - Donation Company
@@ -3672,6 +4590,64 @@ paths:
       - application/json
       responses:
         "200":
+          description: Feedbacks fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid query params
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get list of feedbacks
+      tags:
+      - Feedback
+  /feedback/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a single feedback by its ID
+      parameters:
+      - description: Feedback ID (24-char hex)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Feedback fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid feedback ID
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Feedback not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get feedback by ID
+      tags:
+      - Feedback
+  /feedback/create:
+    post:
+      consumes:
+      - application/json
+      description: Allows a user (or anonymous) to submit feedback
+      parameters:
+      - description: Feedback creation payload
           description: Notifications retrieved successfully
           schema:
             allOf:
@@ -3704,11 +4680,391 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_handlers_rest_http_notifications.notificationRequest'
+          $ref: '#/definitions/feedback.FeedbackRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Feedback created successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Submit feedback
+      tags:
+      - Feedback
+  /hq:
+    get:
+      consumes:
+      - application/json
+      description: Fetch a list of HQs with pagination and filters
+      parameters:
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 100)
+        in: query
+        name: per_page
+        type: integer
+      - description: Sort field
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc/desc)
+        in: query
+        name: order
+        type: string
+          $ref: '#/definitions/notification.NotificationRequest'
       produces:
       - application/json
       responses:
         "200":
+          description: HQs fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get all HQs
+      tags:
+      - HQ
+  /hq/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetch HQ details by ID
+      parameters:
+      - description: HQ ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: HQ ID required
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: HQ not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ by ID
+      tags:
+      - HQ
+  /hq/archive_time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current HQ archive time configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ archive time fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ archive time
+      tags:
+      - HQ
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to update HQ archive time
+      parameters:
+      - description: Update archive time request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hqDto.UpdateArchiveTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ archive time update request submitted
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update HQ archive time
+      tags:
+      - HQ
+  /hq/block_time:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current HQ block time configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ block time fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ block time
+      tags:
+      - HQ
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to update HQ block time
+      parameters:
+      - description: Update block time request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hqDto.UpdateBlockTimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ block time update request submitted
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update HQ block time
+      tags:
+      - HQ
+  /hq/password_expiry:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve current HQ password expiry configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ password expiry fetched successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get HQ password expiry
+      tags:
+      - HQ
+    post:
+      consumes:
+      - application/json
+      description: Submit a request to update HQ password expiry
+      parameters:
+      - description: Update password expiry request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/hqDto.UpdatePasswordExpiryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: HQ password expiry update request submitted
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update HQ password expiry
+      tags:
+      - HQ
+  /mini-apps:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of mini apps with optional filters
+      parameters:
+      - description: Filter params (e.g., status, type)
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of mini apps
+          schema:
+            items:
+              $ref: '#/definitions/miniappdto.MiniAppResponse'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: List mini apps
+      tags:
+      - MiniApps
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new mini app with form-data (supports file upload)
+      parameters:
+      - description: App name
+        in: formData
+        name: app_name
+        required: true
+        type: string
+      - description: App icon file
+        in: formData
+        name: app_icon
+        type: file
+      - description: Banner image file
+        in: formData
+        name: banner_image
+        type: file
+      - description: Commission GL account
+        in: formData
+        name: commission_gl_account
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        required: true
+        type: string
+      - description: Is event mini app
+        in: formData
+        name: is_event_mini_app
+        type: boolean
+      - description: Is three click app
+        in: formData
+        name: is_three_click
+        type: boolean
+      - description: App view type
+        in: formData
+        name: app_view_type
+        type: string
+      - description: Mini app URL
+        in: formData
+        name: url
+        type: string
+      - description: IFB product code
+        in: formData
+        name: ifb_product_code
+        type: string
+      - description: IFB VAT code
+        in: formData
+        name: ifb_vat_code
+        type: string
+      - description: IFB service fee code
+        in: formData
+        name: ifb_service_fee_code
+        type: string
+      - description: CB product code
+        in: formData
+        name: cb_product_code
+        type: string
+      - description: CB VAT code
+        in: formData
+        name: cb_vat_code
+        type: string
+      - description: CB service fee code
+        in: formData
+        name: cb_service_fee_code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Mini app created successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Create a new mini app
+      tags:
+      - MiniApps
+  /mini-apps/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a mini app by ID
+      parameters:
+      - description: Mini app ID
           description: Notification creation request submitted
           schema:
             allOf:
@@ -3755,6 +5111,36 @@ paths:
       - application/json
       responses:
         "200":
+          description: Mini app deleted successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Delete a mini app
+      tags:
+      - MiniApps
+    get:
+      consumes:
+      - application/json
+      description: Retrieves the details of a mini app by its ID
+      parameters:
+      - description: Mini app ID
           description: Notification delete request submitted
           schema:
             allOf:
@@ -3809,6 +5195,135 @@ paths:
       - application/json
       responses:
         "200":
+          description: Mini app details
+          schema:
+            $ref: '#/definitions/miniappdto.MiniAppResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Get mini app by ID
+      tags:
+      - MiniApps
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Updates an existing mini app with form-data (supports file upload)
+      parameters:
+      - description: Mini app ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: App name
+        in: formData
+        name: app_name
+        type: string
+      - description: App icon file
+        in: formData
+        name: app_icon
+        type: file
+      - description: Banner image file
+        in: formData
+        name: banner_image
+        type: file
+      - description: Commission GL account
+        in: formData
+        name: commission_gl_account
+        type: string
+      - description: Merchant ID
+        in: formData
+        name: merchant_id
+        type: string
+      - description: Is event mini app
+        in: formData
+        name: is_event_mini_app
+        type: boolean
+      - description: Is three click app
+        in: formData
+        name: is_three_click
+        type: boolean
+      - description: App view type
+        in: formData
+        name: app_view_type
+        type: string
+      - description: Mini app URL
+        in: formData
+        name: url
+        type: string
+      - description: IFB product code
+        in: formData
+        name: ifb_product_code
+        type: string
+      - description: IFB VAT code
+        in: formData
+        name: ifb_vat_code
+        type: string
+      - description: IFB service fee code
+        in: formData
+        name: ifb_service_fee_code
+        type: string
+      - description: CB product code
+        in: formData
+        name: cb_product_code
+        type: string
+      - description: CB VAT code
+        in: formData
+        name: cb_vat_code
+        type: string
+      - description: CB service fee code
+        in: formData
+        name: cb_service_fee_code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mini app updated successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Update a mini app
+      tags:
+      - MiniApps
+  /mini-apps/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disables a mini app by ID
+      parameters:
+      - description: Mini app ID
           description: Notification retrieved successfully
           schema:
             allOf:
@@ -3869,6 +5384,37 @@ paths:
       - application/json
       responses:
         "200":
+          description: Mini app disabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Disable a mini app
+      tags:
+      - MiniApps
+  /mini-apps/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enables a mini app by ID
+      parameters:
+      - description: Mini app ID
           description: Notification update request submitted
           schema:
             allOf:
@@ -3924,6 +5470,30 @@ paths:
       - application/json
       responses:
         "200":
+          description: Mini app enabled successfully
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/localization.ResponseCode'
+      security:
+      - BearerAuth: []
+      summary: Enable a mini app
+      tags:
+      - MiniApps
           description: Notification disable request submitted
           schema:
             allOf:
@@ -4542,48 +6112,21 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse'
-              type: object
+            $ref: '#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse'
         "400":
           description: Bad Request
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
+      security:
+      - BearerAuth: []
       summary: Fetch all product codes
       tags:
       - ProductCode
@@ -4602,57 +6145,25 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse'
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse'
         "400":
           description: Bad Request
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "404":
           description: Not Found
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
+      security:
+      - BearerAuth: []
       summary: Fetch a product code by ID
       tags:
       - ProductCode
@@ -4679,59 +6190,27 @@ paths:
         "200":
           description: OK
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  additionalProperties:
-                    $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode'
-                  type: object
-              type: object
+            additionalProperties:
+              $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode'
+            type: object
         "400":
           description: Bad Request
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "401":
           description: Unauthorized
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "403":
           description: Forbidden
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
         "404":
           description: Not Found
           schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
+            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode'
+      security:
+      - BearerAuth: []
       summary: Update a product code
       tags:
       - ProductCode

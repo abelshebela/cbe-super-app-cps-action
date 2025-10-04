@@ -37,3 +37,14 @@ type PaginatedArchieveUserResponse struct {
 	Docs []ArchivedUser       `json:"docs"`
 	Meta types.PaginationMeta `json:"meta"`
 }
+
+type PaginatedDepartmentResponse struct {
+	Docs []Department             `json:"docs"`
+	Meta types.PaginationMeta `json:"meta"`
+}
+
+
+type PaginatedEventResponse struct {
+	Docs []Event             `json:"docs"`
+	Meta types.PaginationMeta `json:"meta"`
+}

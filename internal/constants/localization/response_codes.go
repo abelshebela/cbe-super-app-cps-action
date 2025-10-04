@@ -163,7 +163,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyEnabled,
 	ErrorAvatarAlreadyDisabled,
 	ErrorAdvertAlreadyEnabled,
+	ErrorTitleLength3To20,
+	ErrorDescriptionLength30To100,
 	ErrorAdvertAlreadyDisabled,
+	ErrorAdvertTitleAlreadyExists,
+	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
 	ErrorAccountNumberRequired,
@@ -195,6 +199,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventAlreadyEnabled,
 	ErrorEventAlreadyDisabled,
 	ErrorUnhandledServer,
+	ErrorInvalidMerchantID,
 	ErrorInvalidDateFormat,
 	ErrorInvalidFileUpload,
 	ErrorInvalidNumberFormat,
@@ -220,6 +225,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorSessionRetrievalFailed,
 	ErrorInvalidToken,
+	ErrorFileInvalidType,
+	ErrorFileUploadFailed,
+	ErrorMiniAppNameAlreadyExists,
+
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
 	ErrorInvalidInputParameters,
@@ -397,6 +406,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyNotFound,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
+	ErrorMiniAppMerchantEnableFailed,
+	ErrorMiniAppMerchantDisableFailed,
+	ErrorMiniAppMerchantDeleteFailed,
+	ErrorMiniAppMerchantUpdateFailed,
+	
 }
 
 // Success Response Codes
@@ -1102,6 +1116,28 @@ var (
 		Message:    "Unhandled server error",
 		Type:       "error",
 	}
+
+	ErrorInvalidMerchantID = ResponseCode{
+		Code:       "ERROR_INVALID_MERCHANT_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid merchant ID",
+		Type:       "error",
+	}
+
+	ErrorAdvertTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_ADVERT_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Advert title already exists",
+		Type:       "error",
+	}
+
+	ErrorAdvertTitleNotChanged = ResponseCode{
+		Code:       "ERROR_ADVERT_TITLE_NOT_CHANGED",
+		StatusCode: StatusBadRequest,
+		Message:    "Advert title not changed",
+		Type:       "error",
+	}
+
 	ErrorInvalidDateFormat = ResponseCode{
 		Code:       "ERROR_INVALID_DATE_FORMAT",
 		StatusCode: StatusBadRequest,
@@ -1111,7 +1147,7 @@ var (
 	ErrorInvalidFileUpload = ResponseCode{
 		Code:       "IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
-		Message:    "image is required",
+		Message:    "App icon image is required",
 		Type:       "error",
 	}
 	ErrorInvalidBooleanFormat = ResponseCode{
@@ -3137,6 +3173,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorMiniAppNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_MINI_APP_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgMiniAppNameAlreadyExists,
+		Type:       "error",
+	}
 	ErrorFileNotFound = ResponseCode{
 		Code:       "ERROR_FILE_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -4184,6 +4226,21 @@ var (
 		Message:    MsgAdvertAlreadyEnabled,
 		Type:       "error",
 	}
+
+	ErrorDescriptionLength30To100 = ResponseCode{
+		Code:       "DESCRIPTION_LENGTH_30_TO_100",
+		StatusCode: StatusBadRequest,
+		Message:    "Description length must be between 30 and 100 characters",
+		Type:       "error",
+	}
+
+	ErrorTitleLength3To20 = ResponseCode{
+		Code:       "TITLE_LENGTH_3_TO_20",
+		StatusCode: StatusBadRequest,
+		Message:    "Title length must be between 3 and 20 characters",
+		Type:       "error",
+	}
+
 	ErrorAdvertAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_ADVERT_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,

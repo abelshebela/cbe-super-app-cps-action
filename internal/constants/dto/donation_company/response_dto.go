@@ -16,5 +16,3 @@ type DonationCompanyListResponse struct {
 	CreatedAt      string `json:"created_at" bson:"created_at"`
 	LastModifiedAt string `json:"last_modified_at" bson:"last_modified_at"`
 }
-
-

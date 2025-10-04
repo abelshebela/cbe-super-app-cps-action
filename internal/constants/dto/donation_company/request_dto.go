@@ -17,5 +17,3 @@ type DonationCompanyCPSRequest struct {
 	CompanyLogo   string `json:"company_logo,omitempty" bson:"company_logo,omitempty"`
 	AccountNumber string `json:"account_number" bson:"account_number"`
 }
-
-

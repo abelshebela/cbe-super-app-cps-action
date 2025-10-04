@@ -210,7 +210,6 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Dona
 	}
 }
 
-
 func GenerateDonationCode() string {
 	return "DON" + bson.NewObjectID().Hex()[:8]
 }

@@ -36,7 +36,7 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 		a.logger.Errorf("Failed to convert id to ObjectID: %s, error: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	
+
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := AuthTierMapper(*authTier)
 
@@ -48,7 +48,7 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 		a.logger.Errorf("UpdateOne failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	
+
 	return nil
 }
 
@@ -58,7 +58,7 @@ func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, pro
 		a.logger.Errorf("FindAll failed with filter %v: %v", filter, err)
 		return nil, err
 	}
-	
+
 	return result, nil
 }
 

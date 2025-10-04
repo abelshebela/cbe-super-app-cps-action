@@ -122,14 +122,9 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	merchantReq := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
 
 	// Call service update
-	_, oldMerchant, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
+	_, _, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-
-	if oldMerchant == nil {
-		localization.SendErrorByCodeResponse(w, localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
 		return
 	}
 

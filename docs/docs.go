@@ -25,7 +25,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all branches with pagination",
+                "description": "Retrieve all branches with pagination and optional filters.",
                 "consumes": [
                     "application/json"
                 ],
@@ -38,23 +38,36 @@ const docTemplate = `{
                 "summary": "Get all branches",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "\"Addis\"",
                         "description": "Search term",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"{\\\"enabled\\\":true}\"",
+                        "description": "JSON encoded filters (enabled, region, district)",
+                        "name": "filters",
                         "in": "query"
                     }
                 ],
@@ -62,15 +75,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Branches retrieved successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "internal Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -83,7 +94,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Disable one or more branches by their branch codes",
+                "description": "Disable multiple branches by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -93,10 +104,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Branches"
                 ],
-                "summary": "Disable branches",
+                "summary": "Disable multiple branches",
                 "parameters": [
                     {
-                        "description": "Branch codes to disable",
+                        "description": "Branch codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -107,24 +118,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Branches disabled successfully",
+                        "description": "Disable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -137,7 +145,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enable one or more branches by their branch codes",
+                "description": "Enable multiple branches by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -147,10 +155,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Branches"
                 ],
-                "summary": "Enable branches",
+                "summary": "Enable multiple branches",
                 "parameters": [
                     {
-                        "description": "Branch codes to enable",
+                        "description": "Branch codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -161,24 +169,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Branches enabled successfully",
+                        "description": "Enable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -191,7 +196,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a specific branch by its branch code",
+                "description": "Retrieve a specific branch by its branch code.",
                 "consumes": [
                     "application/json"
                 ],
@@ -205,6 +210,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "BR001",
                         "description": "Branch Code",
                         "name": "branch_code",
                         "in": "path",
@@ -213,24 +219,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Branch retrieved successfully",
+                        "description": "Branch retrieved",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -243,7 +264,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all cities with pagination",
+                "description": "Retrieve all cities with pagination and optional filters.",
                 "consumes": [
                     "application/json"
                 ],
@@ -256,39 +277,50 @@ const docTemplate = `{
                 "summary": "Get all cities",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "\"Addis\"",
                         "description": "Search term",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"{\\\"enabled\\\":true}\"",
+                        "description": "JSON encoded filters (enabled, district)",
+                        "name": "filters",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cities retrieved successfully",
+                        "description": "Cities retrieved",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -301,7 +333,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Disable one or more cities by their city codes",
+                "description": "Disable multiple cities by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -311,7 +343,7 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Cities"
                 ],
-                "summary": "Disable cities",
+                "summary": "Disable multiple cities",
                 "parameters": [
                     {
                         "description": "City codes to disable",
@@ -327,22 +359,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Cities disabled successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -355,7 +384,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enable one or more cities by their city codes",
+                "description": "Enable multiple cities by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -365,10 +394,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Cities"
                 ],
-                "summary": "Enable cities",
+                "summary": "Enable multiple cities",
                 "parameters": [
                     {
-                        "description": "City codes to enable",
+                        "description": "City codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -379,24 +408,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cities enabled successfully",
+                        "description": "Enable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -409,7 +435,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a specific city by its city code",
+                "description": "Retrieve a specific city by its city code.",
                 "consumes": [
                     "application/json"
                 ],
@@ -423,6 +449,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "CT001",
                         "description": "City Code",
                         "name": "city_code",
                         "in": "path",
@@ -433,22 +460,37 @@ const docTemplate = `{
                     "200": {
                         "description": "City retrieved successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "internal Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -461,7 +503,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all districts with pagination",
+                "description": "Retrieve all districts with pagination and optional filters.",
                 "consumes": [
                     "application/json"
                 ],
@@ -474,23 +516,36 @@ const docTemplate = `{
                 "summary": "Get all districts",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "\"Bole\"",
                         "description": "Search term",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"{\\\"enabled\\\":true,\\\"region_id\\\":\\\"RG001\\\"}\"",
+                        "description": "JSON encoded filters (enabled, region)",
+                        "name": "filters",
                         "in": "query"
                     }
                 ],
@@ -498,15 +553,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Districts retrieved successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "internal Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -519,7 +572,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Disable one or more districts by their district codes",
+                "description": "Disable multiple districts by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -529,10 +582,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Districts"
                 ],
-                "summary": "Disable districts",
+                "summary": "Disable multiple districts",
                 "parameters": [
                     {
-                        "description": "District codes to disable",
+                        "description": "District codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -543,24 +596,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Districts disabled successfully",
+                        "description": "Disable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -573,7 +623,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enable one or more districts by their district codes",
+                "description": "Enable multiple districts by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -583,10 +633,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Districts"
                 ],
-                "summary": "Enable districts",
+                "summary": "Enable multiple districts",
                 "parameters": [
                     {
-                        "description": "District codes to enable",
+                        "description": "District codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -597,24 +647,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Districts enabled successfully",
+                        "description": "Enable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -627,7 +674,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a specific district by its district code",
+                "description": "Retrieve a specific district by its district code.",
                 "consumes": [
                     "application/json"
                 ],
@@ -641,6 +688,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "DS001",
                         "description": "District Code",
                         "name": "district_code",
                         "in": "path",
@@ -651,22 +699,37 @@ const docTemplate = `{
                     "200": {
                         "description": "District retrieved successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "internal Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -679,7 +742,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all regions with pagination",
+                "description": "Retrieve all regions with pagination and optional filters.",
                 "consumes": [
                     "application/json"
                 ],
@@ -692,23 +755,36 @@ const docTemplate = `{
                 "summary": "Get all regions",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "\"Addis\"",
                         "description": "Search term",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"{\\\"enabled\\\":true}\"",
+                        "description": "JSON encoded filters (enabled)",
+                        "name": "filters",
                         "in": "query"
                     }
                 ],
@@ -716,15 +792,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Regions retrieved successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "internal Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -737,7 +811,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Disable one or more regions by their region codes",
+                "description": "Disable multiple regions by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -747,10 +821,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Regions"
                 ],
-                "summary": "Disable regions",
+                "summary": "Disable multiple regions",
                 "parameters": [
                     {
-                        "description": "Region codes to disable",
+                        "description": "Region codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -761,24 +835,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Regions disabled successfully",
+                        "description": "Disable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -791,7 +862,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Enable one or more regions by their region codes",
+                "description": "Enable multiple regions by codes.",
                 "consumes": [
                     "application/json"
                 ],
@@ -801,10 +872,10 @@ const docTemplate = `{
                 "tags": [
                     "Account Block - Regions"
                 ],
-                "summary": "Enable regions",
+                "summary": "Enable multiple regions",
                 "parameters": [
                     {
-                        "description": "Region codes to enable",
+                        "description": "Region codes",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -815,24 +886,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Regions enabled successfully",
+                        "description": "Enable request submitted",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -845,7 +913,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a specific region by its region code",
+                "description": "Retrieve a specific region by its region code.",
                 "consumes": [
                     "application/json"
                 ],
@@ -859,6 +927,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "example": "RG001",
                         "description": "Region Code",
                         "name": "region_code",
                         "in": "path",
@@ -867,24 +936,39 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Region retrieved successfully",
+                        "description": "Region retrieved",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -897,7 +981,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve all account validation rules with pagination",
+                "description": "Retrieve account validation rules with pagination and optional search.",
                 "consumes": [
                     "application/json"
                 ],
@@ -907,24 +991,30 @@ const docTemplate = `{
                 "tags": [
                     "Account Validation"
                 ],
-                "summary": "Get all account validation rules",
+                "summary": "List account validation rules",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "example": "\"ACCOUNT_NUMBER\"",
                         "description": "Search term",
                         "name": "search",
                         "in": "query"
@@ -932,24 +1022,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Validation rules retrieved successfully",
+                        "description": "Validation rules retrieved",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -962,7 +1049,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update an existing account validation rule by its ID",
+                "description": "Update an existing account validation rule. MinLength must not exceed MaxLength.",
                 "consumes": [
                     "application/json"
                 ],
@@ -993,24 +1080,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Validation rule updated successfully",
+                        "description": "Validation rule updated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Validation failed",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -1023,7 +1113,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a specific account validation rule by its ID",
+                "description": "Retrieve a specific account validation rule by its ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1045,37 +1135,52 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Validation rule retrieved successfully",
+                        "description": "Validation rule retrieved",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
             }
         },
-        "/donation": {
+        "/adverts": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve donations with pagination and optional search",
+                "description": "Fetch adverts with pagination and optional text search.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1083,69 +1188,54 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation"
+                    "Adverts"
                 ],
-                "summary": "List donations",
+                "summary": "List adverts",
                 "parameters": [
                     {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Search term",
+                        "example": "\"promo\"",
+                        "description": "Search by title/description",
                         "name": "search",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donations retrieved successfully",
+                        "description": "Adverts fetched successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/internal_handlers_rest_http_donation.paginatedDonationResponse"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pagination params",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -1156,7 +1246,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new donation with the provided information",
+                "description": "Submit an advert create request. Requires multipart/form-data with optional banner image.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -1164,155 +1254,100 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation"
+                    "Adverts"
                 ],
-                "summary": "Create a new donation",
+                "summary": "Create a new advert (maker)",
                 "parameters": [
                     {
+                        "maxLength": 20,
+                        "minLength": 3,
                         "type": "string",
-                        "description": "Donation code",
-                        "name": "donation_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Company ID",
-                        "name": "company_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Category ID",
-                        "name": "category_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
+                        "example": "\"New Promo\"",
                         "description": "Title",
                         "name": "title",
                         "in": "formData",
                         "required": true
                     },
                     {
-                        "type": "boolean",
-                        "description": "Is featured",
-                        "name": "is_featured",
-                        "in": "formData"
+                        "maxLength": 100,
+                        "minLength": 30,
+                        "type": "string",
+                        "example": "\"Enjoy our new promotion valid this weekend only.\"",
+                        "description": "Description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Target amount",
-                        "name": "target",
+                        "enum": [
+                            "IFB",
+                            "CB",
+                            "ALL"
+                        ],
+                        "type": "string",
+                        "example": "ALL",
+                        "description": "Advert audience",
+                        "name": "advert_for",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Donation description",
-                        "name": "donation_description",
-                        "in": "formData",
-                        "required": true
+                        "example": "\"2025-10-10T10:00:00Z\"",
+                        "description": "Start time (RFC3339)",
+                        "name": "started_at",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2025-10-20T10:00:00Z\"",
+                        "description": "Expiry time (RFC3339)",
+                        "name": "expired_at",
+                        "in": "formData"
                     },
                     {
                         "type": "file",
-                        "description": "Donation images (allow multiple with the same field name)",
-                        "name": "donation_images",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Cover image",
-                        "name": "cover_image",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (YYYY-MM-DD)",
-                        "name": "start_date",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (YYYY-MM-DD)",
-                        "name": "end_date",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Enabled",
-                        "name": "enabled",
+                        "description": "Banner image (\u003c=2MB; jpeg/png/gif/webp)",
+                        "name": "banner_image",
                         "in": "formData"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donation creation request sent successfully",
+                        "description": "Advert create request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Duplicate or conflict",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
             }
         },
-        "/donation/disable/{id}": {
-            "patch": {
+        "/adverts/{id}": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Disable a donation by ID",
+                "description": "Retrieve a single advert by its identifier.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1320,13 +1355,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation"
+                    "Adverts"
                 ],
-                "summary": "Disable a donation",
+                "summary": "Get advert by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Donation ID",
+                        "description": "Advert ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1334,7 +1369,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donation disable request sent successfully",
+                        "description": "Advert fetched successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -1344,7 +1379,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object"
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse"
                                         }
                                     }
                                 }
@@ -1352,252 +1387,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "404": {
-                        "description": "Donation not found",
+                        "description": "Advert not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/donation/enable/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Enable a donation by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation"
-                ],
-                "summary": "Enable a donation",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation enable request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Donation not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/donation/image/{id}": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Add one or more images to a donation",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation"
-                ],
-                "summary": "Add donation image(s)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Donation images (allow multiple with the same field name)",
-                        "name": "donation_images",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation image add request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -1608,7 +1412,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Delete a specific donation image by ID",
+                "description": "Submit an advert delete request.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1616,204 +1420,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation"
+                    "Adverts"
                 ],
-                "summary": "Delete a donation image",
+                "summary": "Delete advert (maker)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Donation ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Image delete request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationImageDeleteRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation image delete request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update a specific donation image by ID",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation"
-                ],
-                "summary": "Update a donation image",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Image ID",
-                        "name": "image_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "New image file",
-                        "name": "donation_images",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation image update request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/donation/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a donation's details by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation"
-                ],
-                "summary": "Get donation by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation ID",
+                        "description": "Advert ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1821,75 +1434,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donation retrieved successfully",
+                        "description": "Delete request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "404": {
-                        "description": "Not found",
+                        "description": "Advert not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -1900,7 +1465,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update a donation with the provided information",
+                "description": "Submit an advert update request. Provide only fields to change. Multipart/form-data supported for banner_image.",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -1908,156 +1473,100 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation"
+                    "Adverts"
                 ],
-                "summary": "Update a donation",
+                "summary": "Update existing advert (maker)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Donation ID",
+                        "description": "Advert ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
+                        "maxLength": 20,
+                        "minLength": 3,
                         "type": "string",
-                        "description": "Donation code",
-                        "name": "donation_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Company ID",
-                        "name": "company_id",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Category ID",
-                        "name": "category_id",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
+                        "example": "\"Weekend Promo\"",
                         "description": "Title",
                         "name": "title",
                         "in": "formData"
                     },
                     {
-                        "type": "boolean",
-                        "description": "Is featured",
-                        "name": "is_featured",
+                        "maxLength": 100,
+                        "minLength": 30,
+                        "type": "string",
+                        "description": "Description",
+                        "name": "description",
                         "in": "formData"
                     },
                     {
-                        "type": "integer",
-                        "description": "Target amount",
-                        "name": "target",
+                        "enum": [
+                            "IFB",
+                            "CB",
+                            "ALL"
+                        ],
+                        "type": "string",
+                        "description": "Advert audience",
+                        "name": "advert_for",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "Donation description",
-                        "name": "donation_description",
+                        "description": "Start time (RFC3339)",
+                        "name": "started_at",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Expiry time (RFC3339)",
+                        "name": "expired_at",
                         "in": "formData"
                     },
                     {
                         "type": "file",
-                        "description": "Donation images (allow multiple with the same field name)",
-                        "name": "donation_images",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Cover image",
-                        "name": "cover_image",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Start date (YYYY-MM-DD)",
-                        "name": "start_date",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "End date (YYYY-MM-DD)",
-                        "name": "end_date",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Enabled",
-                        "name": "enabled",
+                        "description": "Banner image (\u003c=2MB; jpeg/png/gif/webp)",
+                        "name": "banner_image",
                         "in": "formData"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donation update request sent successfully",
+                        "description": "Advert update request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "No data provided for update / invalid payload",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Advert not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
             }
         },
-        "/donation_category": {
-            "get": {
+        "/adverts/{id}/disable": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve donation categories with pagination and optional search",
+                "description": "Approve disable request for an advert.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2065,1997 +1574,223 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Donation Category"
+                    "Adverts"
                 ],
-                "summary": "List donation categories",
+                "summary": "Disable advert (checker)",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Advert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Disable request sent",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Advert not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/adverts/{id}/enable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve enable request for an advert.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Adverts"
+                ],
+                "summary": "Enable advert (checker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Enable request sent",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Advert not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/amount_based_auth": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Fetch all amount-based authentication tiers with pagination.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Amount-Based-Auth"
+                ],
+                "summary": "List amount-based auth tiers",
+                "parameters": [
+                    {
+                        "minimum": 1,
                         "type": "integer",
                         "default": 1,
+                        "example": 1,
                         "description": "Page number",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
+                        "example": 10,
                         "description": "Items per page",
                         "name": "per_page",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Search term",
+                        "example": "\"PIN\"",
+                        "description": "Search by method or range",
                         "name": "search",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Donation categories fetched successfully",
+                        "description": "Fetched successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_donation_category.paginatedDonationCategoryListResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new donation category with the provided information",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation Category"
-                ],
-                "summary": "Create a new donation category",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Category name",
-                        "name": "category_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Donation icon image file",
-                        "name": "donation_icon",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation category creation request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
             }
         },
-        "/donation_category/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a donation category's details by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation Category"
-                ],
-                "summary": "Get donation category by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation Category ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation category retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
+        "/amount_based_auth/reject/{id}": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update a donation category with the provided information",
+                "description": "Submit a rejection with CPS action payload.",
                 "consumes": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Donation Category"
+                    "Amount-Based-Auth"
                 ],
-                "summary": "Update a donation category",
+                "summary": "Reject an amount-based auth action",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Donation Category ID",
+                        "description": "Action ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "Category name",
-                        "name": "category_name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Donation icon image file",
-                        "name": "donation_icon",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation category updated successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/donation_company": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve donation companies with pagination and optional search",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation Company"
-                ],
-                "summary": "List donation companies",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search term",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation companies retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_donation_company.paginatedDonationCompanyListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new donation company with the provided information",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation Company"
-                ],
-                "summary": "Create a new donation company",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Company name",
-                        "name": "company_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Company logo image file",
-                        "name": "company_logo",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Account number",
-                        "name": "account_number",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation company creation request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/donation_company/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a donation company's details by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation Company"
-                ],
-                "summary": "Get donation company by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation Company ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation company retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update a donation company with the provided information",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Donation Company"
-                ],
-                "summary": "Update a donation company",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Donation Company ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Company name",
-                        "name": "company_name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Company logo image file",
-                        "name": "company_logo",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Account number",
-                        "name": "account_number",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Donation company updated successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/maximum-transfer-caps": {
-            "get": {
-                "description": "Retrieves all maximum transfer caps with pagination",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Get All Maximum Transfer Caps",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-app-merchants": {
-            "get": {
-                "description": "Retrieves a paginated list of mini app merchants",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "List Mini App Merchants",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.PaginatedMiniAppResponseResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates a new mini app merchant",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Create Mini App Merchant",
-                "parameters": [
-                    {
-                        "description": "Mini App Merchant DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-app-merchants/{id}": {
-            "get": {
-                "description": "Retrieves a mini app merchant by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Get Mini App Merchant by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates an existing mini app merchant",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Update Mini App Merchant",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Mini App Merchant DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Deletes a mini app merchant by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Delete Mini App Merchant",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-app-merchants/{id}/disable": {
-            "patch": {
-                "description": "Disables a mini app merchant by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Disable Mini App Merchant",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-app-merchants/{id}/enable": {
-            "patch": {
-                "description": "Enables a mini app merchant by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Enable Mini App Merchant",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/minimum-transfer-cap/{id}": {
-            "put": {
-                "description": "Updates minimum transfer cap by service ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Update Minimum Transfer Cap",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Minimum Transfer Update DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/minimum-transfer-caps": {
-            "get": {
-                "description": "Retrieves all minimum transfer caps with pagination",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Get All Minimum Transfer Caps",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/notifications": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve notifications with pagination and optional search",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "List notifications",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search term",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Notifications retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_notifications.paginatedNotificationResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new notification with the provided information",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "Create a new notification",
-                "parameters": [
-                    {
-                        "description": "Notification payload",
+                        "description": "CPS Action payload",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers_rest_http_notifications.notificationRequest"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Notification creation request submitted",
+                        "description": "Rejected",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
             }
         },
-        "/notifications/disable/{id}": {
+        "/amount_based_auth/update/{id}/{method}": {
             "patch": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Disable a notification by ID",
+                "description": "Update tier by ID and method. Validation depends on method: OPEN requires max_amount; PIN requires both min/max; OTP_PIN requires min_amount.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4063,205 +1798,75 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Notification"
+                    "Amount-Based-Auth"
                 ],
-                "summary": "Disable a notification",
+                "summary": "Update an amount-based auth tier",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification ID",
+                        "description": "Tier ID",
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "enum": [
+                            "OPEN",
+                            "PIN",
+                            "OTP_PIN"
+                        ],
+                        "type": "string",
+                        "description": "Method",
+                        "name": "method",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_amount_based_auth.UpdateAmountBasedAuthRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Notification disable request submitted",
+                        "description": "Update request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid parameters or payload",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "404": {
-                        "description": "Notification not found",
+                        "description": "Tier not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
             }
         },
-        "/notifications/enable/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Enable a notification by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "Enable a notification",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Notification ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Notification enable request submitted",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Notification not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/notifications/{id}": {
+        "/avatar": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieve a notification's details by ID",
+                "description": "Retrieve avatars with pagination.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4269,13 +1874,130 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Notification"
+                    "Avatars"
                 ],
-                "summary": "Get notification by ID",
+                "summary": "List avatars",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "example": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Gold\"",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatars retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload an avatar image with a label.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Avatars"
+                ],
+                "summary": "Create avatar (maker)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification ID",
+                        "example": "\"Gold\"",
+                        "description": "Label",
+                        "name": "label",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Avatar image (\u003c=2MB; jpeg/png/gif)",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar create request sent",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/avatar/disable/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve disable request for an avatar.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Avatars"
+                ],
+                "summary": "Disable avatar (checker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Avatar ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4283,75 +2005,137 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Notification retrieved successfully",
+                        "description": "Avatar disabled",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "404": {
-                        "description": "Not found",
+                        "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/avatar/enable/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve enable request for an avatar.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Avatars"
+                ],
+                "summary": "Enable avatar (checker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Avatar ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar enabled",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/avatar/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a single avatar by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Avatars"
+                ],
+                "summary": "Get avatar by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Avatar ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar retrieved",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -4362,7 +2146,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Permanently delete a notification by ID",
+                "description": "Submit delete request for an avatar by ID.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4370,13 +2154,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Notification"
+                    "Avatars"
                 ],
-                "summary": "Delete a notification",
+                "summary": "Delete avatar (maker)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification ID",
+                        "description": "Avatar ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4384,75 +2168,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Notification delete request submitted",
+                        "description": "Avatar delete request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid ID",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "404": {
-                        "description": "Notification not found",
+                        "description": "Avatar not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -4463,7 +2199,75 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update an existing notification by ID",
+                "description": "Update avatar label and/or image. Provide only fields to change.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Avatars"
+                ],
+                "summary": "Update avatar (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Avatar ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Silver\"",
+                        "description": "Label",
+                        "name": "label",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Avatar image (\u003c=2MB; jpeg/png/gif)",
+                        "name": "avatar",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avatar update request sent",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Avatar not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/banks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve banks with pagination and optional search.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4471,98 +2275,467 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Notification"
+                    "Banks"
                 ],
-                "summary": "Update a notification",
+                "summary": "List banks",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "example": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "example": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"CBE\"",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Banks fetched",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submit a bank create request with logo.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Create bank (maker)",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Notification ID",
+                        "example": "\"Commercial Bank\"",
+                        "description": "Bank name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"CBE\"",
+                        "description": "Bank code",
+                        "name": "code",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"CBETETAA\"",
+                        "description": "Bank BIC",
+                        "name": "bic",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Bank logo (\u003c=2MB; jpeg/png/gif/webp)",
+                        "name": "logo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank create request sent",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or logo",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Duplicate",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/banks/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a single bank by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Get bank by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bank ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank fetched",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submit a delete request for a bank by ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Delete bank (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bank ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delete request created",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update bank name/code/bic.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Update bank (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bank ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Notification payload",
+                        "description": "Update payload",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers_rest_http_notifications.notificationRequest"
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_bank.UpdateBankRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Notification update request submitted",
+                        "description": "Bank update request sent",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad request",
+                        "description": "Invalid input",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "404": {
-                        "description": "Notification not found",
+                        "description": "Bank not found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Server error",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/banks/{id}/disable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve disable request for a bank.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Disable bank (checker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bank ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank disable request created",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/banks/{id}/enable": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve enable request for a bank.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Enable bank (checker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bank ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank enable request created",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/banks/{id}/logo": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload a new logo for the bank.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Banks"
+                ],
+                "summary": "Update bank logo (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bank ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Bank logo (\u003c=2MB; jpeg/png/gif/webp)",
+                        "name": "logo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logo uploaded",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid logo",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
                         }
                     }
                 }
@@ -5521,98 +3694,37 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     }
                 }
             }
         },
-        "/product-codes/{id}": {
+        "/productcodes/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieves a single product code by its unique ID.",
                 "produces": [
                     "application/json"
@@ -5634,114 +3746,41 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     }
                 }
             },
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Updates an existing product code by its ID. This is a pending action that requires approval.",
                 "consumes": [
                     "application/json"
@@ -5775,1883 +3814,34 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode"
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service-fee-tire/{id}": {
-            "delete": {
-                "description": "Deletes service fee tire by service ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Delete Service Fee Tire",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service-fees": {
-            "get": {
-                "description": "Retrieves all service fees with pagination",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Get All Service Fees",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedServiceFeeResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/service-fees/{id}": {
-            "get": {
-                "description": "Retrieves service fee detail by service ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Get Service Fee Detail",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Updates service fee detail by service ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Update Service Fee",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Service Fee Detail DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/services": {
-            "get": {
-                "description": "Retrieves all services with pagination",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Get All Services",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedServiceDetails"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/single-max-transfer/{id}": {
-            "put": {
-                "description": "Updates single max transfer by service ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Update Single Max Transfer",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Service ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Single Max Transfer DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/total-max-transfer-cap": {
-            "put": {
-                "description": "Updates total max transfer cap",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Update Total Max Transfer Cap",
-                "parameters": [
-                    {
-                        "description": "Total Max Transfer Update DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/total-transfer-caps": {
-            "get": {
-                "description": "Retrieves all total transfer caps",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ServiceDetails"
-                ],
-                "summary": "Get All Total Transfer Caps",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/unlink/archived_user": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get archived user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Unlink"
-                ],
-                "summary": "Get archived user",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search term",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_unlink.PaginatedArchieveUserResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/unlink/user-by-account/{account_number}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get user by account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Unlink"
-                ],
-                "summary": "Get user by account",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Account number",
-                        "name": "account_number",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.User"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/unlink/user_cif/{user_code}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Unlink user CIF",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Unlink"
-                ],
-                "summary": "Unlink user CIF",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User code",
-                        "name": "user_code",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Unlink CIF request sent successfully ",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/wallets": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve wallets with pagination and optional search",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "List wallets",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search term",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallets retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_wallet.PaginatedWalletResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Create a new wallet with the provided information",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "Create a new wallet",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the wallet",
-                        "name": "name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Code of the wallet",
-                        "name": "code",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "Avatar image file",
-                        "name": "avatar",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallet creation request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/wallets/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieve a wallet's details by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "Get wallet by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Wallet ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallet retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Wallet"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Wallet not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Permanently delete a wallet by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "Delete a wallet",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Wallet ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallet deleted successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Wallet not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Update a wallet with the provided information",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "Update a wallet",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the wallet",
-                        "name": "name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Code of the wallet",
-                        "name": "code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Avatar image file",
-                        "name": "avatar",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallet update request sent successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/wallets/{id}/disable": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Disable a wallet by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "Disable a wallet",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Wallet ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallet disable request submitted",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Wallet not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/wallets/{id}/enable": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Enable a wallet by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Wallet"
-                ],
-                "summary": "Enable a wallet",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Wallet ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Wallet enable request submitted",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Wallet not found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
                         }
                     }
                 }
@@ -7659,109 +3849,126 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "cbe-super-app-cps-action_internal_constants.AccountStatus": {
+        "cbe-super-app-cps-action_internal_constants.AdvertFor": {
             "type": "string",
             "enum": [
-                "ACTIVE",
-                "INACTIVE"
-            ],
-            "x-enum-varnames": [
-                "Active",
-                "InActive"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.BPSStatus": {
-            "type": "string",
-            "enum": [
-                "AUTHORIZED",
-                "DENIED",
-                "PENDING",
-                "INITIATED"
-            ],
-            "x-enum-varnames": [
-                "BPSStatusAuthorized",
-                "BPSStatusDenied",
-                "BPSStatusPending",
-                "BPSStatusInitiated"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.DeviceStatus": {
-            "type": "string",
-            "enum": [
-                "LINKED",
-                "UNLINKED"
-            ],
-            "x-enum-varnames": [
-                "Linked",
-                "UnLinked"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.Gender": {
-            "type": "string",
-            "enum": [
-                "MALE",
-                "FEMALE"
-            ],
-            "x-enum-varnames": [
-                "Male",
-                "Female"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.KYCStatus": {
-            "type": "string",
-            "enum": [
-                "PENDING",
-                "APPROVED",
-                "REJECTED"
-            ],
-            "x-enum-varnames": [
-                "KYCStatusPending",
-                "KYCStatusApproved",
-                "KYCStatusRejected"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.MemberType": {
-            "type": "string",
-            "enum": [
+                "IFB",
                 "CB",
-                "IFB"
+                "ALL"
             ],
             "x-enum-varnames": [
-                "CBT",
-                "IFBT"
+                "IFB_ADVERT_FOR",
+                "CB_ADVERT_FOR",
+                "BOTH_ADVERT_FOR"
             ]
         },
-        "cbe-super-app-cps-action_internal_constants.Platform": {
-            "type": "string",
-            "enum": [
-                "ANDROID",
-                "IOS"
-            ],
-            "x-enum-varnames": [
-                "Android",
-                "Ios"
-            ]
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse": {
+            "type": "object",
+            "properties": {
+                "branch_address": {
+                    "type": "string"
+                },
+                "branch_code": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "branch_region": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "district_code": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "record_stat": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
-        "cbe-super-app-cps-action_internal_constants.Realm": {
-            "type": "string",
-            "enum": [
-                "ELST",
-                "BANK",
-                "DISTRICT",
-                "BRANCH",
-                "MERCHANT",
-                "COMPANY",
-                "MEMBER"
-            ],
-            "x-enum-varnames": [
-                "ELST_REALM",
-                "BANK_REALM",
-                "DISTRICT_REALM",
-                "BRANCH_REALM",
-                "MERCHANT_REALM",
-                "COMPANY_REALM",
-                "MEMBER_REALM"
-            ]
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse": {
+            "type": "object",
+            "properties": {
+                "city_address": {
+                    "type": "string"
+                },
+                "city_code": {
+                    "type": "string"
+                },
+                "city_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "district_id": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "region_id": {
+                    "type": "string"
+                },
+                "region_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "district_address": {
+                    "type": "string"
+                },
+                "district_code": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "region_id": {
+                    "type": "string"
+                },
+                "region_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
         },
         "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches": {
             "type": "object",
@@ -7823,6 +4030,32 @@ const docTemplate = `{
                 }
             }
         },
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "region_address": {
+                    "type": "string"
+                },
+                "region_code": {
+                    "type": "string"
+                },
+                "region_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO": {
             "type": "object",
             "properties": {
@@ -7855,388 +4088,112 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.Category": {
+        "cbe-super-app-cps-action_internal_constants_dto_ad.AdvertDate": {
             "type": "object",
             "properties": {
-                "category_name": {
+                "expired_at": {
                     "type": "string"
                 },
-                "icon": {
-                    "type": "string"
-                },
-                "id": {
+                "started_at": {
                     "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.Company": {
+        "cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse": {
             "type": "object",
             "properties": {
-                "account_number": {
-                    "type": "string"
+                "advert_for": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AdvertFor"
                 },
-                "company_logo": {
-                    "type": "string"
-                },
-                "company_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationImage": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "photo_url": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationImageDeleteRequest": {
-            "type": "object",
-            "properties": {
-                "image_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationListResponse": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.Category"
-                },
-                "company": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.Company"
-                },
-                "cover_image": {
-                    "description": "URL for cover image",
+                "banner_image": {
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
-                "donation_code": {
-                    "type": "string"
+                "date": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertDate"
                 },
-                "donation_description": {
+                "description": {
                     "type": "string"
-                },
-                "donation_images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationImage"
-                    }
                 },
                 "enabled": {
                     "type": "boolean"
                 },
-                "end_date": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_featured": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
+                "last_updated_at": {
                     "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "target": {
-                    "type": "integer"
                 },
                 "title": {
                     "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationResponse": {
+        "cbe-super-app-cps-action_internal_constants_dto_amount_based_auth.UpdateAmountBasedAuthRequest": {
             "type": "object",
             "properties": {
-                "category_id": {
-                    "type": "string"
-                },
-                "company_id": {
-                    "type": "string"
-                },
-                "cover_image": {
-                    "description": "URL for cover image",
-                    "type": "string"
-                },
-                "donation_code": {
-                    "type": "string"
-                },
-                "donation_description": {
-                    "type": "string"
-                },
-                "donation_images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationImage"
-                    }
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "end_date": {
-                    "type": "string"
-                },
-                "is_featured": {
-                    "type": "boolean"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "target": {
+                "max_amount": {
                     "type": "integer"
                 },
-                "title": {
-                    "type": "string"
+                "min_amount": {
+                    "type": "integer"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse": {
+        "cbe-super-app-cps-action_internal_constants_dto_bank.UpdateBankRequest": {
             "type": "object",
             "properties": {
-                "category_name": {
+                "_id": {
                     "type": "string"
                 },
-                "created_at": {
-                    "type": "string"
-                },
-                "donation_icon": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse": {
-            "type": "object",
-            "properties": {
-                "account_number": {
-                    "type": "string"
-                },
-                "company_logo": {
-                    "type": "string"
-                },
-                "company_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.KYCDTO": {
-            "type": "object",
-            "properties": {
-                "representative": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.RepresentativeDTO"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO": {
-            "type": "object",
-            "properties": {
-                "account_number": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "merchant_name": {
-                    "type": "string"
-                },
-                "merchant_representative_name": {
-                    "type": "string"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO": {
-            "type": "object",
-            "properties": {
-                "account_number": {
+                "bic": {
                     "type": "string"
                 },
                 "code": {
                     "type": "string"
                 },
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "kyc": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.KYCDTO"
-                },
-                "last_modified": {
-                    "type": "string"
-                },
-                "merchant_name": {
-                    "type": "string"
-                },
-                "mini_apps": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.MiniApps"
-                    }
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.PaginatedMiniAppResponseResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.RepresentativeDTO": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
-                },
-                "phone": {
-                    "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse": {
+        "cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string"
+                "cbe_ifb_product_codes": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
                 },
-                "created_by": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
+                "cbe_product_codes": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
                 },
                 "enabled": {
                     "type": "boolean"
                 },
-                "for": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_public": {
-                    "type": "boolean"
-                },
-                "last_modified": {
-                    "type": "string"
-                },
-                "notification_body": {
-                    "type": "string"
-                },
-                "notification_parts": {},
-                "notification_type": {
-                    "type": "string"
-                },
-                "seen": {
-                    "type": "boolean"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "title": {
+                "product_name": {
                     "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_password_rule.CheckPasswordDTO": {
+        "cbe-super-app-cps-action_internal_constants_localization.ErrorDetail": {
             "type": "object",
             "properties": {
-                "password": {
+                "code": {
                     "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_password_rule.PaginatedPasswordRulesResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
+                },
+                "details": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "field_errors": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.PasswordRule"
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.FieldError"
                     }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_password_rule.PasswordRuleUpdate": {
-            "type": "object",
-            "properties": {
-                "capital_letters": {
-                    "type": "boolean"
                 },
                 "characters": {
                     "type": "boolean"
@@ -8468,7 +4425,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest": {
+        "cbe-super-app-cps-action_internal_constants_localization.FieldError": {
             "type": "object",
             "properties": {
                 "min_amount": {
@@ -8560,37 +4517,10 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
-                },
-                "isDeleted": {
-                    "type": "boolean"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "lastModifiedAt": {
-                    "type": "string"
-                },
-                "paymentType": {
-                    "type": "string"
-                },
-                "serviceCode": {
-                    "type": "string"
-                },
-                "serviceName": {
-                    "type": "string"
-                },
-                "serviceType": {
-                    "type": "string"
-                },
-                "tiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier"
-                    }
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse": {
+        "cbe-super-app-cps-action_internal_constants_localization.ResponseCode": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -8616,71 +4546,15 @@ const docTemplate = `{
                 },
                 "service_key": {
                     "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                },
-                "service_type": {
-                    "type": "string"
-                },
-                "tiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier"
-                    }
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest": {
+        "cbe-super-app-cps-action_internal_constants_localization.StandardResponse": {
             "type": "object",
             "properties": {
-                "corporate_daily_cap": {
-                    "type": "integer"
-                },
-                "corporate_single_cap": {
-                    "type": "integer"
-                },
-                "individual_daily_cap": {
-                    "type": "integer"
-                },
-                "individual_single_cap": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO": {
-            "type": "object",
-            "properties": {
-                "fee_amount": {
-                    "type": "integer"
-                },
-                "max": {
-                    "type": "integer"
-                },
-                "min": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "total_cap": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "total_cap": {
-                    "type": "integer"
+                "data": {},
+                "error": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ErrorDetail"
                 },
                 "updated_at_total_cap": {
                     "type": "string"
@@ -8705,323 +4579,67 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_model.ArchivedUser": {
+        "cbe-super-app-cps-action_internal_constants_model.CPSAction": {
             "type": "object",
             "properties": {
-                "account_branch_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.MemberType"
-                },
-                "account_linked": {
-                    "type": "boolean"
-                },
-                "account_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus"
-                },
-                "address": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Address"
-                },
-                "app_version": {
+                "action_code": {
                     "type": "string"
                 },
-                "application_installation_date": {
+                "action_status": {
                     "type": "string"
                 },
-                "avater": {
+                "action_type": {
                     "type": "string"
                 },
-                "birth_date": {
+                "checker_action_time": {
                     "type": "string"
                 },
-                "blocked_on_cps": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "bps_reject_failed": {
-                    "description": "questioned",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "bps_reject_reason": {
+                "checker_id": {
                     "type": "string"
                 },
-                "bps_reject_status": {
-                    "description": "questioned",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus"
-                        }
-                    ]
-                },
-                "branch_approved": {
-                    "type": "boolean"
-                },
-                "branch_code": {
+                "checker_name": {
                     "type": "string"
                 },
-                "branch_name": {
+                "checker_phone_number": {
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
-                "customer_number": {
+                "current_action": {},
+                "department": {
                     "type": "string"
-                },
-                "device_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus"
-                },
-                "device_uuid": {
-                    "type": "string"
-                },
-                "district_code": {
-                    "type": "string"
-                },
-                "district_name": {
-                    "type": "string"
-                },
-                "document_back": {
-                    "type": "string"
-                },
-                "document_front": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "first_pin_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Gender"
                 },
                 "id": {
                     "type": "string"
                 },
-                "initial_linked_at": {
-                    "type": "string"
-                },
-                "initial_linked_date": {
-                    "type": "string"
-                },
-                "is_account_blocked": {
-                    "type": "boolean"
-                },
-                "is_blocked": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
                 "is_deleted": {
                     "type": "boolean"
-                },
-                "is_self_register": {
-                    "type": "boolean"
-                },
-                "is_verified": {
-                    "type": "boolean"
-                },
-                "issued_date": {
-                    "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus"
-                        }
-                    }
-                },
-                "kyc_level": {
-                    "type": "integer"
-                },
-                "last_account_linked": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_main_account": {
-                    "type": "string"
                 },
                 "last_modified_at": {
                     "type": "string"
                 },
-                "last_online_date": {
+                "maker_action_time": {
                     "type": "string"
                 },
-                "loan_score": {
-                    "type": "integer"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "login_pin": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN"
-                },
-                "main_account": {
+                "maker_id": {
                     "type": "string"
                 },
-                "mother_name": {
+                "maker_name": {
                     "type": "string"
                 },
-                "nationality": {
+                "maker_phone_number": {
                     "type": "string"
                 },
-                "next_attempt_count": {
+                "previous_action": {},
+                "rejection_reason": {
                     "type": "string"
                 },
-                "otp_verify_count": {
-                    "type": "integer"
-                },
-                "phone_number": {
+                "request_action": {
                     "type": "string"
                 },
-                "photo": {
+                "unique_id": {
                     "type": "string"
-                },
-                "pin_changed_at": {
-                    "type": "string"
-                },
-                "platform": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Platform"
-                },
-                "profile_theme_type": {
-                    "type": "string"
-                },
-                "push_token": {
-                    "type": "string"
-                },
-                "realm": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Realm"
-                },
-                "register_by": {
-                    "type": "object"
-                },
-                "residential_status": {
-                    "type": "string"
-                },
-                "signature": {
-                    "type": "string"
-                },
-                "user_code": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Card": {
-            "type": "object",
-            "properties": {
-                "card_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "sub_cards": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.MiniApps": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.PasswordRule": {
-            "type": "object",
-            "properties": {
-                "_id": {
-                    "type": "string"
-                },
-                "capital_letters": {
-                    "type": "boolean"
-                },
-                "characters": {
-                    "type": "boolean"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "max_length": {
-                    "type": "integer"
-                },
-                "min_length": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "numbers": {
-                    "type": "boolean"
-                },
-                "small_letters": {
-                    "type": "boolean"
                 }
             }
         },
@@ -9033,61 +4651,6 @@ const docTemplate = `{
                 },
                 "cbe_product_codes": {
                     "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ProductCodes": {
-            "type": "object",
-            "properties": {
-                "prd": {
-                    "type": "string"
-                },
-                "sfprd": {
-                    "type": "string"
-                },
-                "trxn": {
-                    "type": "string"
-                },
-                "vatprd": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ServiceDetails": {
-            "type": "object",
-            "properties": {
-                "aboveAmount": {
-                    "type": "integer"
-                },
-                "aboveServiceFee": {
-                    "type": "integer"
-                },
-                "cap": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap"
-                },
-                "cbeglentry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "cbeifbglentry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "cbeifbproductCodes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "cbeproductCodes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
                 },
                 "createdAt": {
                     "type": "string"
@@ -9109,8 +4672,13 @@ const docTemplate = `{
                 },
                 "lastModifiedAt": {
                     "type": "string"
-                },
-                "paymentType": {
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_model.ProductCodes": {
+            "type": "object",
+            "properties": {
+                "prd": {
                     "type": "string"
                 },
                 "serviceCode": {
@@ -9127,641 +4695,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier"
                     }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.User": {
-            "type": "object",
-            "properties": {
-                "account_branch_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.MemberType"
-                },
-                "account_linked": {
-                    "type": "boolean"
-                },
-                "account_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus"
-                },
-                "address": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Address"
-                },
-                "app_version": {
-                    "type": "string"
-                },
-                "application_installation_date": {
-                    "type": "string"
-                },
-                "avater": {
-                    "type": "string"
-                },
-                "birth_date": {
-                    "type": "string"
-                },
-                "blocked_on_cps": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "bps_reject_failed": {
-                    "description": "questioned",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "bps_reject_reason": {
-                    "type": "string"
-                },
-                "bps_reject_status": {
-                    "description": "questioned",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus"
-                        }
-                    ]
-                },
-                "branch_approved": {
-                    "type": "boolean"
-                },
-                "branch_code": {
-                    "type": "string"
-                },
-                "branch_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "customer_number": {
-                    "type": "string"
-                },
-                "device_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus"
-                },
-                "device_uuid": {
-                    "type": "string"
-                },
-                "district_code": {
-                    "type": "string"
-                },
-                "district_name": {
-                    "type": "string"
-                },
-                "document_back": {
-                    "type": "string"
-                },
-                "document_front": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "first_pin_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Gender"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "initial_linked_at": {
-                    "type": "string"
-                },
-                "initial_linked_date": {
-                    "type": "string"
-                },
-                "is_account_blocked": {
-                    "type": "boolean"
-                },
-                "is_blocked": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_self_register": {
-                    "type": "boolean"
-                },
-                "is_verified": {
-                    "type": "boolean"
-                },
-                "issued_date": {
-                    "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus"
-                        }
-                    }
-                },
-                "kyc_level": {
-                    "type": "integer"
-                },
-                "last_account_linked": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_main_account": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "last_online_date": {
-                    "type": "string"
-                },
-                "loan_score": {
-                    "type": "integer"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "login_pin": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN"
-                },
-                "main_account": {
-                    "type": "string"
-                },
-                "mother_name": {
-                    "type": "string"
-                },
-                "nationality": {
-                    "type": "string"
-                },
-                "next_attempt_count": {
-                    "type": "string"
-                },
-                "otp_verify_count": {
-                    "type": "integer"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "photo": {
-                    "type": "string"
-                },
-                "pin_changed_at": {
-                    "type": "string"
-                },
-                "platform": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Platform"
-                },
-                "profile_theme_type": {
-                    "type": "string"
-                },
-                "push_token": {
-                    "type": "string"
-                },
-                "realm": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Realm"
-                },
-                "register_by": {
-                    "type": "object"
-                },
-                "residential_status": {
-                    "type": "string"
-                },
-                "signature": {
-                    "type": "string"
-                },
-                "user_code": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Wallet": {
-            "type": "object",
-            "properties": {
-                "avatar": {
-                    "type": "string"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.Address": {
-            "type": "object",
-            "properties": {
-                "city": {
-                    "type": "string"
-                },
-                "house_number": {
-                    "type": "string"
-                },
-                "kebele": {
-                    "type": "string"
-                },
-                "region": {
-                    "type": "string"
-                },
-                "street_name": {
-                    "type": "string"
-                },
-                "sub_city": {
-                    "type": "string"
-                },
-                "wereda": {
-                    "type": "string"
-                },
-                "zone": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.Cap": {
-            "type": "object",
-            "properties": {
-                "corporate_daily_cap": {
-                    "type": "integer"
-                },
-                "corporate_single_cap": {
-                    "type": "integer"
-                },
-                "individual_daily_cap": {
-                    "type": "integer"
-                },
-                "individual_single_cap": {
-                    "type": "integer"
-                },
-                "kyc_level": {
-                    "type": "string"
-                },
-                "min_amount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.GLEntry": {
-            "type": "object",
-            "properties": {
-                "product_account": {
-                    "type": "string"
-                },
-                "product_branch_code": {
-                    "type": "string"
-                },
-                "service_account": {
-                    "type": "string"
-                },
-                "service_branch_code": {
-                    "type": "string"
-                },
-                "vat_account": {
-                    "type": "string"
-                },
-                "vat_branch_code": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.LoginPIN": {
-            "type": "object",
-            "properties": {
-                "last_pin_created_at": {
-                    "type": "string"
-                },
-                "pin": {
-                    "type": "string"
-                },
-                "pin_history": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.PaginationMeta": {
-            "type": "object",
-            "properties": {
-                "has_next_page": {
-                    "type": "boolean"
-                },
-                "has_prev_page": {
-                    "type": "boolean"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "next_page": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "paging_counter": {
-                    "type": "integer"
-                },
-                "prev_page": {
-                    "type": "integer"
-                },
-                "total_docs": {
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.ProductCodes": {
-            "type": "object",
-            "properties": {
-                "prd": {
-                    "type": "string"
-                },
-                "sfprd": {
-                    "type": "string"
-                },
-                "trxn": {
-                    "type": "string"
-                },
-                "vatprd": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.Tier": {
-            "type": "object",
-            "properties": {
-                "feeAmount": {
-                    "type": "integer"
-                },
-                "max": {
-                    "type": "integer"
-                },
-                "min": {
-                    "type": "integer"
-                }
-            }
-        },
-        "internal_handlers_rest_http_donation.paginatedDonationResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationListResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_donation_category.paginatedDonationCategoryListResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_donation_company.paginatedDonationCompanyListResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_notifications.notificationRequest": {
-            "type": "object",
-            "properties": {
-                "created_by": {
-                    "type": "string"
-                },
-                "for": {
-                    "type": "string"
-                },
-                "is_public": {
-                    "type": "boolean"
-                },
-                "notification_body": {
-                    "type": "string"
-                },
-                "notification_type": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers_rest_http_notifications.paginatedNotificationResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_portal_card.PortalCardPaginatedResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Card"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_product_code.ProductCodePaginatedResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MaximumTransferCapResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedServiceDetails": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ServiceDetails"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedServiceFeeResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_unlink.PaginatedArchieveUserResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ArchivedUser"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_wallet.PaginatedWalletResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Wallet"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
                 }
             }
         }

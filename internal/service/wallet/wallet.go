@@ -191,7 +191,6 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
-
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
 		err = s.repo.Create(ctx, wallet)

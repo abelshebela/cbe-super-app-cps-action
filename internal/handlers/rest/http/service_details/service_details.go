@@ -11,6 +11,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -179,6 +181,7 @@ func (s *serviceAdapter) GetServiceFeeDetail(w http.ResponseWriter, r *http.Requ
 	ctx := r.Context()
 
 	serviceFeeDetails, err := s.serviceApp.GetServiceFeeDetail(ctx, service_id)
+	serviceFeeDetails, err := s.serviceApp.GetServiceFeeDetail(ctx, service_id)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -208,6 +211,7 @@ func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 
 	var req dto.ServiceFeeDetailDTO
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
+		return
 		return
 	}
 
@@ -249,6 +253,7 @@ func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.
 	var req dto.SingleMaxTransferRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
 		return
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -283,6 +288,7 @@ func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *htt
 	var req dto.TotalMaxTransferUpdateRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
 		return
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -292,6 +298,7 @@ func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *htt
 	}
 	ctx := r.Context()
 
+	err := s.serviceApp.UpdateTotalMaxTransferCap(ctx, req)
 	err := s.serviceApp.UpdateTotalMaxTransferCap(ctx, req)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -324,6 +331,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 	var req dto.MinimumTransferUpdateRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
 		return
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -333,6 +341,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 	}
 	ctx := r.Context()
 
+	err := s.serviceApp.UpdateMinimumTransferCap(ctx, service_id, req)
 	err := s.serviceApp.UpdateMinimumTransferCap(ctx, service_id, req)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -359,6 +368,7 @@ func (s *serviceAdapter) DeleteServiceFeeTire(w http.ResponseWriter, r *http.Req
 		localization.SendErrorResponse(w, localization.ErrorServiceDetailIDRequired, nil, nil)
 		return
 	}
+	ctx := r.Context()
 	ctx := r.Context()
 	err := s.serviceApp.DeleteServiceFeeTire(ctx, service_id)
 	if err != nil {

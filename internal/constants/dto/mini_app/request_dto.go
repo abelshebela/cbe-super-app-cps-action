@@ -25,8 +25,8 @@ const (
 
 type MiniAppRequest struct {
 	AppName             string                `form:"app_name"`
-	AppIcon             *multipart.FileHeader `form:"app_icon"`
-	BannerImage         *multipart.FileHeader `form:"banner_image"`
+	AppIcon             *multipart.FileHeader `form:"app_icon" swaggertype:"string" format:"binary"`
+	BannerImage         *multipart.FileHeader `form:"banner_image" swaggertype:"string" format:"binary"`
 	CommissionGLAccount string                `form:"commission_gl_account"`
 	MerchantID          string                `form:"merchant_id"`
 	IsEventMiniApp      bool                  `form:"is_event_mini_app"`

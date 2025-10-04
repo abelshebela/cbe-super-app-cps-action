@@ -34,7 +34,6 @@ func (d DonationRequest) Validate() error {
 		validation.Field(&d.DonationImages,
 			validation.Required.Error("cover image is required"),
 			validation.By(validateDonationImages),
-			
 		),
 		validation.Field(&d.CoverImage,
 			validation.Required.Error("cover image is required"),

@@ -370,10 +370,12 @@ const (
 	MsgFileTooLarge     = "file size is too large"
 	MsgFileInvalidType  = "invalid file type"
 	MsgFileUploadFailed = "file upload failed"
+
 	MsgFileNotFound     = "file not found"
 	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
+	MsgMiniAppNameAlreadyExists              = "Mini App name already exists"
 	MsgBankDeleteRequestFailed               = "Bank delete request failed"
 	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
@@ -445,7 +447,7 @@ const (
 	MsgCompanyNameAlreadyExists           = "Company name already exists"
 	MsgDonationTitleAlreadyExists         = "Donation title already exists"
 	MsgDonationAccountNumberAlreadyExists = "Account number already exists"
-	MsgAccountNumberAlreadyExists         = "Account number already exists"
+	MsgAccountNumberAlreadyExists         = "representative data already exists"
 	MsgLogoIsRequired                     = "Company logo is required"
 	MsgAccountNumberValidationFailed      = "Account number validation failed"
 	MsgDonationIconRequired               = "Icon is required"
@@ -544,8 +546,8 @@ const (
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
 	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
 	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantEnableFailed   = "Failed to enable mini app merchant"
-	MsgMiniAppMerchantDisableFailed  = "Failed to disable mini app merchant"
+	MsgMiniAppMerchantEnableFailed   = "mini app merchant already enabled"
+	MsgMiniAppMerchantDisableFailed  = "mini app merchant already disabled"
 	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
 	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
 

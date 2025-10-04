@@ -1,14 +1,12 @@
 package core
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"net/http"
-	dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
-
 )
-
 
 func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (dto.DonationCategoryRequest, error) {
 	var req dto.DonationCategoryRequest
@@ -19,7 +17,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (dto.Donation
 			if isCreate {
 				return req, errors.New(localization.ErrorInvalidFileUpload.Code)
 			}
-			
+
 		} else {
 			return req, nil
 		}
@@ -31,5 +29,3 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (dto.Donation
 
 	return req, nil
 }
-
-

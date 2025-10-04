@@ -66,7 +66,7 @@ func (s *ServiceDetailsStorage) Delete(ctx context.Context, id string) error {
 	return s.dal.DeleteOne(ctx, filter)
 }
 
-func (s *ServiceDetailsStorage) FindByID(ctx context.Context,projection bson.M, id string) (*model.ServiceDetails, error) {
+func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M, id string) (*model.ServiceDetails, error) {
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
 		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
@@ -82,17 +82,16 @@ func (s *ServiceDetailsStorage) FindByID(ctx context.Context,projection bson.M, 
 	}
 	s.logger.Infof("Successfully found ServiceDetails: %+v", result)
 	return result, nil
-	
+
 }
 
-
-func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context,projection  bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
+func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"payment_type", "min_amount", "enabled", "service_type","service_code","service_name"}
+	allowedKeys := []string{"payment_type", "min_amount", "enabled", "service_type", "service_code", "service_name"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
@@ -124,4 +123,3 @@ func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context,projec
 		Meta: meta,
 	}, nil
 }
-

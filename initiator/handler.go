@@ -4,7 +4,8 @@ import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
-	bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
+
+	// bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
 	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
@@ -13,7 +14,8 @@ import (
 	miniAppInbound "cbe-super-app-cps-action/internal/constants/interfaces/mini_app"
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
-	vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
+
+	// vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
 
 	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
@@ -37,7 +39,8 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
-	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
+
+	// bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget"
@@ -51,7 +54,8 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
-	vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
+
+	// vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
@@ -108,9 +112,9 @@ type Handler struct {
 	DonationCategoryHandler donation_category.DonationCategoryAdapter
 	DonationCompanyHandler  donation_company.DonationCompanyAdapter
 
-	NotificationHandler       notificationInbound.NotificationHandler
-	BankVaultHandler          bankvaultInterface.BankVaultHandler
-	VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
+	NotificationHandler notificationInbound.NotificationHandler
+	// BankVaultHandler          bankvaultInterface.BankVaultHandler
+	// VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -140,9 +144,9 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		Permission:          permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 		NotificationHandler: notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
-		BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
+		// BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
 
-		VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
+		// VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
 
 		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 

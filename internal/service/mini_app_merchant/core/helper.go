@@ -10,7 +10,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
-	"log"
 	"time"
 )
 
@@ -35,7 +34,6 @@ func NonZeroUint64(n, fallback uint64) uint64 {
 	return fallback
 }
 
-// MergeMiniAppMerchantData merges old and new data for an update
 func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMerchant {
 	now := time.Now()
 	return &model.MiniAppMerchant{
@@ -63,19 +61,18 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 	}
 }
 
-// HandleCPSActionForMiniAppMerchant creates a CPS action related to Mini App Merchant
 func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
-	userData := local_util.ExtractUserFromContext(ctx)
-
-	if incomplet := local_util.IsIncomplete(userData); incomplet {
-		log.Printf("User data incomplete for CPS action: %+v", userData)
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+	maker := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(maker) {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData,  prevData,curData, string(requestAction), string(actionType))
 
-	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		log.Printf("Failed to create CPS action for Mini App Merchant: %v", err)
+	cpsAction := lib.CpsModelBuilder(uniqueID, maker, prevData, curData, string(requestAction), string(actionType))
+
+
+	err := cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
 		return err
 	}
 	return nil

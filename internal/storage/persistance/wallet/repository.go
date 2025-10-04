@@ -128,8 +128,6 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	
-
 	return doc, nil
 }
 
@@ -174,8 +172,6 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		e.logger.Errorf("FindAllWithPagination Wallet failed", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
