@@ -123,6 +123,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBudgetIconRequestSubmittedForApproval,
 	SuccessBudgetIconRequestSubmittedForApproval,
 	ErrorMiniAppMerchantNotFound,
+	ErrorMiniAppMerchantDisabled,
 	// Error codes
 
 	// Error codes
@@ -3637,6 +3638,12 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "MiniApp merchant not found",
+		Type:       "error",
+	}
+	ErrorMiniAppMerchantDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "MiniApp merchant is Disabled",
 		Type:       "error",
 	}
 

@@ -60,7 +60,7 @@ func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *model.M
 		return errors.New(localization.ErrorUpdateMiniAppEmptyPayload.Code)
 	}
 
-	_, err = m.dal.UpdateOne(ctx, filter, bson.M{"$set": update})
+	_, err = m.dal.UpdateOne(ctx, filter,update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			m.logger.Warnf("MiniApp not found for ID: %s", id)
@@ -120,6 +120,8 @@ func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
+// cascading operations are handled in service layer
+
 func (m *MiniAppStorage) FindByID(ctx context.Context, id string) (*model.MiniApp, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -165,7 +167,7 @@ func (m *MiniAppStorage) Find(ctx context.Context, name string) (*model.MiniApp,
 }
 
 func (m *MiniAppStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error) {
-	allowedKeys := []string{"app_type", "enabled", "is_event_mini_app", "is_three_click","app_name"}
+	allowedKeys := []string{"app_type", "enabled", "is_event_mini_app", "is_three_click", "app_name"}
 	searchKeys := bson.M{}
 
 	if filterParam.Search != "" {

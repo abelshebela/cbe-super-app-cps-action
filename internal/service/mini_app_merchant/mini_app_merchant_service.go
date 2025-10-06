@@ -10,7 +10,6 @@ import (
 	"context"
 	"errors"
 
-
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"time"
@@ -22,13 +21,15 @@ import (
 type miniAppMerchantService struct {
 	repo       storage.MiniAppMerchantRepository
 	cpsService service.CPSActionService
+	miniRepo   storage.MiniAppRepository
 	logger     utils.Logger
 }
 
-func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, logger utils.Logger) service.MiniAppMerchantService {
+func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, miniRepo storage.MiniAppRepository, logger utils.Logger) service.MiniAppMerchantService {
 	return &miniAppMerchantService{
 		repo:       repo,
 		cpsService: cpsService,
+		miniRepo:   miniRepo,
 		logger:     logger,
 	}
 }
@@ -36,44 +37,14 @@ func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsServic
 func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
 	m.logger.Infof("Creating mini app merchant, name: %s", data.MerchantName)
 
-	if data.MerchantName == "" {
-		m.logger.Warnf("Merchant name is required")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
-	}
-
-	if data.MerchantType == "" {
-		m.logger.Warnf("Merchant type is required")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
-	}
-
-	if data.BankAccountNumber == "" {
-		m.logger.Warnf("Bank account number is required")
-		return nil, errors.New(localization.ErrorAccountNumberRequired.Code)
-	}
-
-	if data.KYC.Representative.Name == "" {
-		m.logger.Warnf("Representative name is required")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
-	}
-
-	if data.KYC.Representative.Email == "" {
-		m.logger.Warnf("Representative email is required")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
-	}
-
-	if data.KYC.Representative.Phone == "" {
-		m.logger.Warnf("Representative phone is required")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
-	}
-
-	exist, err := m.repo.Exists(ctx, &model.CheckMiniAppMerchant{
+	exist, err := core.CheckMerchantExists(ctx, m.repo, &model.CheckMiniAppMerchant{
 		BankAccountNumber: data.BankAccountNumber,
 		Email:             data.KYC.Representative.Email,
 		PhoneNumber:       data.KYC.Representative.Phone,
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
 	}
 	if exist {
 		m.logger.Warnf("Merchant already exists with bank account: %s", data.BankAccountNumber)
@@ -95,7 +66,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	err = core.HandleCPSActionForMiniAppMerchant(
 		ctx,
 		m.cpsService,
-		data.ID.Hex(),
+		"",
 		constants.RequestCreateMiniAppMerchant,
 		data,
 		nil,
@@ -125,29 +96,27 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 
 	var check model.CheckMiniAppMerchant
 
-if updated.BankAccountNumber != old.BankAccountNumber {
-	check.BankAccountNumber = updated.BankAccountNumber
-}
-if updated.KYC.Representative.Email != old.KYC.Representative.Email {
-	check.Email = updated.KYC.Representative.Email
-}
-if updated.KYC.Representative.Phone != old.KYC.Representative.Phone {
-	check.PhoneNumber = updated.KYC.Representative.Phone
-}
-
-// only check if there’s at least one changed field
-if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
-	exist, err := m.repo.Exists(ctx, &check, &model.MiniAppMerchantExistOptions{ExcludeID: id})
-	if err != nil {
-		m.logger.Errorf("Failed to check merchant existence for update: %v", err)
-		return nil, nil, errors.New(localization.ErrorUnexpectedError.Code)
+	if updated.BankAccountNumber != old.BankAccountNumber {
+		check.BankAccountNumber = updated.BankAccountNumber
 	}
-	if exist {
-		m.logger.Warnf("Merchant with updated data already exists, id: %s", id)
-		return nil, nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	if updated.KYC.Representative.Email != old.KYC.Representative.Email {
+		check.Email = updated.KYC.Representative.Email
 	}
-}
+	if updated.KYC.Representative.Phone != old.KYC.Representative.Phone {
+		check.PhoneNumber = updated.KYC.Representative.Phone
+	}
 
+	if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
+		exist, err := core.CheckMerchantExists(ctx, m.repo, &check, &model.MiniAppMerchantExistOptions{ExcludeID: id})
+		if err != nil {
+			m.logger.Errorf("Failed to check merchant existence for update: %v", err)
+			return nil, nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
+		}
+		if exist {
+			m.logger.Warnf("Merchant with updated data already exists, id: %s", id)
+			return nil, nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+		}
+	}
 
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate)
 	if err != nil {
@@ -234,7 +203,6 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 
-
 	merchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		m.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
@@ -251,10 +219,16 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
 	case string(constants.RequestDeleteMiniAppMerchant):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
+		if err == nil {
+			_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
+		}
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 	case string(constants.RequestDisableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+		if err == nil {
+			_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
+		}
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
@@ -274,19 +248,4 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
 	m.logger.Infof("Getting mini app merchant details, id: %s", id)
 	return m.repo.FindByID(ctx, id)
-}
-
-func (s *miniAppMerchantService) AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error {
-	s.logger.Infof("Adding mini app to merchant, merchant_id: %s, mini_app_id: %s", merchantID, miniApp.ID)
-	return s.repo.AddMiniApp(ctx, merchantID, miniApp)
-}
-
-func (s *miniAppMerchantService) UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error {
-	s.logger.Infof("Updating mini app enabled state, merchant_id: %s, mini_app_id: %s, enabled: %v", merchantID, miniAppID, enabled)
-	return s.repo.UpdateMiniAppEnabledState(ctx, merchantID, miniAppID, enabled)
-}
-
-func (s *miniAppMerchantService) SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error {
-	s.logger.Infof("Soft deleting mini app, merchant_id: %s, mini_app_id: %s", merchantID, miniAppID)
-	return s.repo.SoftDeleteMiniApp(ctx, merchantID, miniAppID)
 }

@@ -34,9 +34,7 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if data.PhoneNumber != "" {
 		result["phone_number"] = data.PhoneNumber
 	}
-	if len(data.MiniApps) > 0 {
-		result["mini_apps"] = data.MiniApps
-	}
+	// mini apps are not embedded in merchant
 
 	// MUST include enabled and is_deleted
 	result["enabled"] = data.Enabled
@@ -47,17 +45,6 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 
 func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.MiniAppMerchant {
 
-	miniApps := []model.MiniApps{}
-	for _, app := range miniAppMerchant.MiniApps {
-
-		res := model.MiniApps{
-			ID:        app.ID,
-			Enabled:   app.Enabled,
-			IsDeleted: app.IsDeleted,
-		}
-
-		miniApps = append(miniApps, res)
-	}
 	return &model.MiniAppMerchant{
 		ID:           miniAppMerchant.ID,
 		Code:         miniAppMerchant.Code,
@@ -75,12 +62,12 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		Branches:          convertBranchesModelToDomain(miniAppMerchant.Branches),
 		Email:             miniAppMerchant.Email,
 		PhoneNumber:       miniAppMerchant.PhoneNumber,
-		MiniApps:          miniApps,
-		Enabled:           miniAppMerchant.Enabled,
-		IsDeleted:         miniAppMerchant.IsDeleted,
-		CreatedAt:         miniAppMerchant.CreatedAt,
-		LastModifiedAt:    miniAppMerchant.LastModifiedAt,
-		DeletedAt:         miniAppMerchant.DeletedAt,
+
+		Enabled:        miniAppMerchant.Enabled,
+		IsDeleted:      miniAppMerchant.IsDeleted,
+		CreatedAt:      miniAppMerchant.CreatedAt,
+		LastModifiedAt: miniAppMerchant.LastModifiedAt,
+		DeletedAt:      miniAppMerchant.DeletedAt,
 	}
 }
 func convertBranchesModelToDomain(branches []model.BranchInformation) []model.BranchInformation {
