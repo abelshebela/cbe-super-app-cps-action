@@ -20,7 +20,7 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.AppName,
 				validation.Required.Error(localization.ErrorMiniAppNameRequired.Code),
-				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error(localization.ErrorInvalidAppNameFormat.Code),
+				// validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error(localization.ErrorInvalidAppNameFormat.Code),
 			),
 			validation.Field(&r.MerchantID, validation.Required.Error(localization.ErrorMiniAppMerchantIDRequired.Code)),
 			validation.Field(&r.AppIcon, validation.Required.Error(localization.ErrorAppIconRequired.Code), validation.By(validateFile)),
