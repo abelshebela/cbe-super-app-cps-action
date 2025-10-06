@@ -89,12 +89,7 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	data := core.ToBranchesResponse(branches.Data)
-	res := paginated_branch_resp{
-		Data: data,
-		Meta: branches.Meta,
-	}
-	localization.SendSuccessResponse(w, localization.SuccessBranchesRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessBranchesRetrieved, branches)
 }
 
 // GetRegionByCode godoc
@@ -153,13 +148,7 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	data := core.ToRegionsResponse(regions.Data)
-	res := paginated_region_resp{
-		Data: data,
-		Meta: regions.Meta,
-	}
-
-	localization.SendSuccessResponse(w, localization.SuccessRegionsRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessRegionsRetrieved, regions)
 }
 
 // GetDistrictByCode godoc
@@ -189,9 +178,7 @@ func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	data := core.ToDistrictResponse(district)
-
-	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, data)
+	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, district)
 }
 
 // GetAllDistricts godoc
@@ -218,13 +205,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	data := core.ToDistrictsResponse(districts.Data)
-	res := paginated_district_resp{
-		Data: data,
-		Meta: districts.Meta,
-	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDistrictsRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessDistrictsRetrieved, districts)
 }
 
 // GetCityByCode godoc
@@ -254,9 +235,7 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	data := core.ToCityResponse(city)
-
-	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, data)
+	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, city)
 }
 
 // GetAllCities godoc
@@ -283,13 +262,7 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	data := core.ToCitiesResponse(cities.Data)
-	res := paginated_city_resp{
-		Data: data,
-		Meta: cities.Meta,
-	}
-
-	localization.SendSuccessResponse(w, localization.SuccessCitiesRetrieved, res)
+	localization.SendSuccessResponse(w, localization.SuccessCitiesRetrieved, cities)
 }
 
 // EnableBranches godoc
