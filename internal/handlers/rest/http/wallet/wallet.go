@@ -3,6 +3,8 @@ package wallet
 import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -13,6 +15,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
+
+type PaginatedWalletResponse types.PaginatedResponse[[]*model.Wallet]
 
 type walletAdapter struct {
 	walletApp service.WalletService
@@ -238,7 +242,7 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedWalletResponse} "Wallets retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=PaginatedWalletResponse} "Wallets retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /wallets [get]

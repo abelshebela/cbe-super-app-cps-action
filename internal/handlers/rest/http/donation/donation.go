@@ -4,6 +4,7 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	donation_interface "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	core "cbe-super-app-cps-action/internal/handlers/rest/http/donation/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -13,6 +14,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type paginatedDonationResponse types.PaginatedResponse[[]dto.DonationListResponse]
 type donationAdapter struct {
 	donationApp service.DonationService
 	logger      utils.Logger
@@ -135,7 +137,7 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedDonationResponse} "Donations retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=[]paginatedDonationResponse} "Donations retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation [get]
@@ -163,7 +165,7 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation ID"
-// @Success 200 {object} localization.StandardResponse{data=donation.DonationResponse} "Donation retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=dto.DonationResponse} "Donation retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
@@ -238,7 +240,7 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 // @Accept json
 // @Produce json
 // @Param id path string true "Donation ID"
-// @Param request body donation.DonationImageDeleteRequest true "Image delete request"
+// @Param request body dto.DonationImageDeleteRequest true "Image delete request"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Donation image delete request sent successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
