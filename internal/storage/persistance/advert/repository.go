@@ -49,6 +49,7 @@ func (a *AdvertStorage) Update(ctx context.Context, id string, advert *model.Adv
 
 	_, err = a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
+		a.logger.Errorf("UpdateOne failed: %v for filter:%v", err, filter)
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}

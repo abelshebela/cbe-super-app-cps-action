@@ -3,6 +3,8 @@ package unlink
 import (
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
 
@@ -12,6 +14,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type PaginatedArchieveUserResponse types.PaginatedResponse[[]*model.ArchivedUser]
 type unlinkAdapter struct {
 	logger    utils.Logger
 	unlinkApp service.UnlinkService
@@ -33,7 +36,7 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 // @Param page query int false "Page number"
 // @Param per_page query int false "Items per page"
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedArchieveUserResponse} "User retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=PaginatedArchieveUserResponse} "User retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth

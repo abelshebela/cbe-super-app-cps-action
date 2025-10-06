@@ -79,7 +79,7 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 		return errors.New(localization.ErrorMerchantNotFound.Code)
 	}
 
-	// Validate merchant status
+	
 	if merchant.IsDeleted {
 		log.Println("Merchant is deleted", "merchantID", miniApp.MerchantID)
 		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
@@ -138,15 +138,29 @@ func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, er
 	return result, nil
 }
 
-func ValidMerchantChecker(ctx context.Context, merchantId string, miniAppMerchantRepo service.MiniAppMerchantService) (bool, error) {
-	merchant, err := miniAppMerchantRepo.FindByID(ctx, merchantId)
-	if err != nil {
-		return false, err
+
+
+func ValidateParentMerchantForEnableEntity(merchant *model.MiniAppMerchant) error {
+	if merchant == nil {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 	}
-	if merchant.Enabled == false || merchant.IsDeleted == true {
-		return false, nil
+	if merchant.IsDeleted {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 	}
-	return merchant != nil, nil
+	if !merchant.Enabled {
+		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+	}
+	return nil
+}
+
+func ValidateParentMerchantForOperationEntity(merchant *model.MiniAppMerchant) error {
+	if merchant == nil {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	if merchant.IsDeleted {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	return nil
 }
 
 func ValidMiniAppChecker(ctx context.Context, miniAppRepo storage.MiniAppRepository, isCreate bool, id, miniAppName string) (bool, error) {

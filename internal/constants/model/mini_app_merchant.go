@@ -49,7 +49,6 @@ type MiniAppMerchant struct {
 	Branches          []BranchInformation `json:"branches" bson:"branches"`
 	Email             string              `json:"email" bson:"email"`
 	PhoneNumber       string              `json:"phone_number" bson:"phone_number"`
-	MiniApps          []MiniApps          `json:"mini_apps" bson:"mini_apps"`
 	Enabled           bool                `json:"enabled" bson:"enabled"`
 	IsDeleted         bool                `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt         time.Time           `json:"created_at" bson:"created_at"`

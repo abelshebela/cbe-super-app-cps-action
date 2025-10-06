@@ -379,10 +379,7 @@ type MiniAppMerchantRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	Exists(ctx context.Context, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (bool, error)
-	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
-	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
-	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
+	FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error)
 }
 
 type NotificationRepository interface {
