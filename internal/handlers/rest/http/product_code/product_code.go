@@ -35,7 +35,7 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 // @Accept json
 // @Produce json
 // @Param id path string true "Product Code ID"
-// @Param productCode body dto.UpdateProductCodeRequest true "Update Product Code Request"
+// @Param productCode body productcode.UpdateProductCodeRequest true "Update Product Code Request"
 // @Success 200 {object} localization.StandardResponse{data=map[string]model.ProductCode}
 // @Failure 400,401,403,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /product-codes/{id} [patch]
@@ -83,7 +83,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "Product Code ID"
-// @Success 200 {object} localization.StandardResponse{data=dto.ProductCodeResponse}
+// @Success 200 {object} localization.StandardResponse{data=productcode.ProductCodeResponse}
 // @Failure 400,401,403,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /product-codes/{id} [get]
 func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http.Request) {
