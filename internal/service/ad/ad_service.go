@@ -149,7 +149,7 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		LastUpdatedAt: time.Now(),
 	}
 
-	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
+	err = s.handleCPSAction(ctx, id, cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert update, id: %s, error: %v", id, err)
 		return err
