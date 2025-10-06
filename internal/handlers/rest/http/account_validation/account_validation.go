@@ -1,7 +1,7 @@
 package accountvalidation
 
 import (
-	dto "cbe-super-app-cps-action/internal/constants/dto/account_validation"
+	account_validation_dto "cbe-super-app-cps-action/internal/constants/dto/account_validation"
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -35,7 +35,7 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 // @Accept json
 // @Produce json
 // @Param id path string true "Validation Rule ID"
-// @Success 200 {object} localization.StandardResponse{data=accountvalidation.ValidationRuleDTO} "Validation rule retrieved"
+// @Success 200 {object} localization.StandardResponse{data=account_validation_dto.ValidationRuleDTO} "Validation rule retrieved"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -66,7 +66,7 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param id path string true "Validation Rule ID"
-// @Param request body accountvalidation.ValidationRuleDTO true "Validation rule data" example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
+// @Param request body account_validation_dto.ValidationRuleDTO true "Validation rule data" example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Validation rule updated"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Validation failed"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
@@ -77,7 +77,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 	id := chi.URLParam(r, "id")
 
 	// ─── Parse Request Body ───────────────────────────────────────────────
-	var req dto.ValidationRuleDTO
+	var req account_validation_dto.ValidationRuleDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorValidationRuleConvertIDFailed, nil, nil)
 		return
@@ -96,7 +96,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 	}
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
-	rule := dto.ToModel(req)
+	rule := account_validation_dto.ToModel(req)
 
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

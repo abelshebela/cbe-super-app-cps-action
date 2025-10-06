@@ -5,7 +5,7 @@ import (
 
 	"net/http"
 
-	dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	product_code_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -35,7 +35,7 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 // @Accept json
 // @Produce json
 // @Param id path string true "Product Code ID"
-// @Param productCode body productcode.UpdateProductCodeRequest true "Update Product Code Request"
+// @Param productCode body product_code_dto.UpdateProductCodeRequest true "Update Product Code Request"
 // @Success 200 {object} localization.StandardResponse{data=map[string]model.ProductCode}
 // @Failure 400,401,403,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /product-codes/{id} [patch]
@@ -47,7 +47,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	var req dto.UpdateProductCodeRequest
+	var req product_code_dto.UpdateProductCodeRequest
 	req.ID = id
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -63,7 +63,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	domainReq := dto.ToDomainProductCodeRequest(req)
+	domainReq := product_code_dto.ToDomainProductCodeRequest(req)
 
 	old, new, err := h.productCodeApplication.UpdateProductCode(r.Context(), domainReq)
 	if err != nil {
@@ -83,7 +83,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 // @Security BearerAuth
 // @Produce json
 // @Param id path string true "Product Code ID"
-// @Success 200 {object} localization.StandardResponse{data=productcode.ProductCodeResponse}
+// @Success 200 {object} localization.StandardResponse{data=product_code_dto.ProductCodeResponse}
 // @Failure 400,401,403,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /product-codes/{id} [get]
 func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http.Request) {
@@ -97,11 +97,11 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	res := dto.ToProductCodeResponse(*data)
+	res := product_code_dto.ToProductCodeResponse(*data)
 	localization.SendSuccessResponse(w, localization.SuccessProductCodeFetched, res)
 }
 
-type ProductCodePaginatedResponse types.PaginatedResponse[[]*dto.ProductCodeResponse]
+type ProductCodePaginatedResponse types.PaginatedResponse[[]*product_code_dto.ProductCodeResponse]
 
 // Get All Product Codes
 // @Summary Fetch all product codes
@@ -123,8 +123,8 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	docs := dto.ToProductCodeResponses(list.Data)
-	res := types.PaginatedResponse[[]*dto.ProductCodeResponse]{
+	docs := product_code_dto.ToProductCodeResponses(list.Data)
+	res := types.PaginatedResponse[[]*product_code_dto.ProductCodeResponse]{
 		Data: docs,
 		Meta: list.Meta,
 	}
