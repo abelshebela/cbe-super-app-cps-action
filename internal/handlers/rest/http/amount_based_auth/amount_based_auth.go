@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+	amount_based_auth_dto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -63,7 +63,7 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 // @Produce json
 // @Param id path string true "Tier ID"
 // @Param method path string true "Method" Enums(OPEN,PIN,OTP_PIN)
-// @Param request body amount_based_auth.UpdateAmountBasedAuthRequest true "Update payload" example({"min_amount":100,"max_amount":1000})
+// @Param request body amount_based_auth_dto.UpdateAmountBasedAuthRequest true "Update payload" example({"min_amount":100,"max_amount":1000})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Update request sent"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid parameters or payload"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Tier not found"
@@ -83,7 +83,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		return
 	}
 
-	var request amountauthdto.UpdateAmountBasedAuthRequest
+	var request amount_based_auth_dto.UpdateAmountBasedAuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
 		return
