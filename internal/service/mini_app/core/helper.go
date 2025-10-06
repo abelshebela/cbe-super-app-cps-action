@@ -79,16 +79,15 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 		return errors.New(localization.ErrorMerchantNotFound.Code)
 	}
 
-	
 	if merchant.IsDeleted {
 		log.Println("Merchant is deleted", "merchantID", miniApp.MerchantID)
 		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 	}
 
-	if !merchant.Enabled {
-		log.Println("Merchant is disabled", "merchantID", miniApp.MerchantID)
-		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
-	}
+	// if !merchant.Enabled {
+	// 	log.Println("Merchant is disabled", "merchantID", miniApp.MerchantID)
+	// 	return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+	// }
 
 	return nil
 }
@@ -137,8 +136,6 @@ func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, er
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
 }
-
-
 
 func ValidateParentMerchantForEnableEntity(merchant *model.MiniAppMerchant) error {
 	if merchant == nil {
