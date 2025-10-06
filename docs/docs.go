@@ -9978,27 +9978,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Events retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/model.PaginatedEventResponse"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -10499,24 +10478,6 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Event retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/model.Event"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
                     "400": {
                         "description": "Bad request",
                         "schema": {
@@ -17130,7 +17091,202 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "accountblock.BranchResponse": {
+        "cbe-super-app-cps-action_internal_constants.AccountStatus": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "INACTIVE"
+            ],
+            "x-enum-varnames": [
+                "Active",
+                "InActive"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.AdvertFor": {
+            "type": "string",
+            "enum": [
+                "IFB",
+                "CB",
+                "ALL"
+            ],
+            "x-enum-varnames": [
+                "IFB_ADVERT_FOR",
+                "CB_ADVERT_FOR",
+                "BOTH_ADVERT_FOR"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.AppType": {
+            "type": "string",
+            "enum": [
+                "URL",
+                "UAT",
+                "PRODUCATION",
+                "TEST",
+                "DEV"
+            ],
+            "x-enum-varnames": [
+                "URL",
+                "UATApp",
+                "Production",
+                "Test",
+                "Dev"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.AppViewType": {
+            "type": "string",
+            "enum": [
+                "BOTH",
+                "CB",
+                "IFB"
+            ],
+            "x-enum-varnames": [
+                "AppViewTypeBoth",
+                "AppViewTypeCB",
+                "AppViewTypeIFB"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.BPSStatus": {
+            "type": "string",
+            "enum": [
+                "AUTHORIZED",
+                "DENIED",
+                "PENDING",
+                "INITIATED"
+            ],
+            "x-enum-varnames": [
+                "BPSStatusAuthorized",
+                "BPSStatusDenied",
+                "BPSStatusPending",
+                "BPSStatusInitiated"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.BranchType": {
+            "type": "string",
+            "enum": [
+                "IFB",
+                "CB"
+            ],
+            "x-enum-varnames": [
+                "IFB",
+                "CB"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.DeviceStatus": {
+            "type": "string",
+            "enum": [
+                "LINKED",
+                "UNLINKED"
+            ],
+            "x-enum-varnames": [
+                "Linked",
+                "UnLinked"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.EnvironmentType": {
+            "type": "string",
+            "enum": [
+                "UAT",
+                "DEV",
+                "TEST",
+                "PRODUCTION"
+            ],
+            "x-enum-varnames": [
+                "UatEnvironment",
+                "DevEnvironment",
+                "TestEnvironment",
+                "ProductionEnvironment"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Gender": {
+            "type": "string",
+            "enum": [
+                "MALE",
+                "FEMALE"
+            ],
+            "x-enum-varnames": [
+                "Male",
+                "Female"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.KYCStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+            ],
+            "x-enum-varnames": [
+                "KYCStatusPending",
+                "KYCStatusApproved",
+                "KYCStatusRejected"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.MemberType": {
+            "type": "string",
+            "enum": [
+                "CB",
+                "IFB"
+            ],
+            "x-enum-varnames": [
+                "CBT",
+                "IFBT"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Method": {
+            "type": "string",
+            "enum": [
+                "OPEN",
+                "PIN",
+                "OTP_PIN"
+            ],
+            "x-enum-varnames": [
+                "OPEN",
+                "PIN",
+                "OTPANDPIN"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Platform": {
+            "type": "string",
+            "enum": [
+                "ANDROID",
+                "IOS"
+            ],
+            "x-enum-varnames": [
+                "Android",
+                "Ios"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Realm": {
+            "type": "string",
+            "enum": [
+                "ELST",
+                "BANK",
+                "DISTRICT",
+                "BRANCH",
+                "MERCHANT",
+                "COMPANY",
+                "MEMBER"
+            ],
+            "x-enum-varnames": [
+                "ELST_REALM",
+                "BANK_REALM",
+                "DISTRICT_REALM",
+                "BRANCH_REALM",
+                "MERCHANT_REALM",
+                "COMPANY_REALM",
+                "MEMBER_REALM"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.Stage": {
+            "type": "string",
+            "enum": [
+                "UAT"
+            ],
+            "x-enum-varnames": [
+                "StageUat"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse": {
             "type": "object",
             "properties": {
                 "branch_address": {
@@ -19136,12 +19292,14 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                },
-                "refundPolicy": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_model.Icon": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
                 },
                 "restriction": {
                     "$ref": "#/definitions/types.Restriction"
@@ -19191,21 +19349,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.PaginatedEventResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Event"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/types.PaginationMeta"
-                }
-            }
-        },
-        "model.PasswordRule": {
+        "cbe-super-app-cps-action_internal_constants_model.PasswordRule": {
             "type": "object",
             "properties": {
                 "_id": {
@@ -19603,10 +19747,15 @@ const docTemplate = `{
                 "notification_type": {
                     "type": "string"
                 },
-                "seen": {
-                    "type": "boolean"
-                },
-                "status": {
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.GLEntry": {
+            "type": "object",
+            "properties": {
+                "product_account": {
                     "type": "string"
                 },
                 "title": {
@@ -19623,7 +19772,18 @@ const docTemplate = `{
                 "for": {
                     "type": "string"
                 },
-                "is_public": {
+                "pin_history": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.PaginationMeta": {
+            "type": "object",
+            "properties": {
+                "has_next_page": {
                     "type": "boolean"
                 },
                 "notification_body": {
@@ -19648,7 +19808,48 @@ const docTemplate = `{
                 }
             }
         },
-        "passwordrule.PaginatedPasswordRulesResponse": {
+        "cbe-super-app-cps-action_internal_constants_types.Response": {
+            "type": "object",
+            "properties": {
+                "answer": {},
+                "options": {},
+                "question": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.SubAccessList": {
+            "type": "object",
+            "properties": {
+                "accessListName": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.Tier": {
+            "type": "object",
+            "properties": {
+                "feeAmount": {
+                    "type": "integer"
+                },
+                "max": {
+                    "type": "integer"
+                },
+                "min": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handlers_rest_http_account_block.paginated_branch_resp": {
             "type": "object",
             "properties": {
                 "docs": {
