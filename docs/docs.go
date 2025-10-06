@@ -77,13 +77,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_account_block.paginated_branch_resp"
+                                            "$ref": "#/definitions/accountblock.paginated_branch_resp"
                                         }
                                     }
                                 }
@@ -95,7 +95,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -136,7 +136,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableBranches"
                         }
                     }
                 ],
@@ -146,7 +146,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -164,7 +164,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -182,7 +182,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -223,7 +223,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableBranches"
                         }
                     }
                 ],
@@ -233,7 +233,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -251,7 +251,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -269,7 +269,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -319,13 +319,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse"
+                                            "$ref": "#/definitions/accountblock.BranchResponse"
                                         }
                                     }
                                 }
@@ -337,7 +337,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -355,7 +355,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -373,7 +373,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -448,13 +448,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_account_block.paginated_city_resp"
+                                            "$ref": "#/definitions/accountblock.paginated_city_resp"
                                         }
                                     }
                                 }
@@ -466,7 +466,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -507,7 +507,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableCities"
                         }
                     }
                 ],
@@ -517,7 +517,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -535,7 +535,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -553,7 +553,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -594,7 +594,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableCities"
                         }
                     }
                 ],
@@ -604,7 +604,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -622,7 +622,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -640,7 +640,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -690,13 +690,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse"
+                                            "$ref": "#/definitions/accountblock.CityResponse"
                                         }
                                     }
                                 }
@@ -708,7 +708,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -726,7 +726,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -744,7 +744,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -819,13 +819,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_account_block.paginated_district_resp"
+                                            "$ref": "#/definitions/accountblock.paginated_district_resp"
                                         }
                                     }
                                 }
@@ -837,7 +837,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -878,7 +878,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableDistricts"
                         }
                     }
                 ],
@@ -888,7 +888,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -906,7 +906,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -924,7 +924,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -965,7 +965,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableDistricts"
                         }
                     }
                 ],
@@ -975,7 +975,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -993,7 +993,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1011,7 +1011,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1061,13 +1061,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse"
+                                            "$ref": "#/definitions/accountblock.DistrictResponse"
                                         }
                                     }
                                 }
@@ -1079,7 +1079,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1097,7 +1097,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1115,7 +1115,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1190,13 +1190,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_account_block.paginated_region_resp"
+                                            "$ref": "#/definitions/accountblock.paginated_region_resp"
                                         }
                                     }
                                 }
@@ -1208,7 +1208,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1249,7 +1249,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableRegions"
                         }
                     }
                 ],
@@ -1259,7 +1259,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1277,7 +1277,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1295,7 +1295,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1336,7 +1336,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions"
+                            "$ref": "#/definitions/accountblock.EnableOrDisableRegions"
                         }
                     }
                 ],
@@ -1346,7 +1346,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1364,7 +1364,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1382,7 +1382,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1432,13 +1432,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse"
+                                            "$ref": "#/definitions/accountblock.RegionResponse"
                                         }
                                     }
                                 }
@@ -1450,7 +1450,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1468,7 +1468,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1486,7 +1486,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1554,13 +1554,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_account_validation.paginated_resp"
+                                            "$ref": "#/definitions/accountvalidation.paginated_resp"
                                         }
                                     }
                                 }
@@ -1572,7 +1572,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1590,7 +1590,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1638,7 +1638,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO"
+                            "$ref": "#/definitions/accountvalidation.ValidationRuleDTO"
                         }
                     }
                 ],
@@ -1648,7 +1648,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1666,7 +1666,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1684,7 +1684,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1702,7 +1702,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1751,13 +1751,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO"
+                                            "$ref": "#/definitions/accountvalidation.ValidationRuleDTO"
                                         }
                                     }
                                 }
@@ -1769,7 +1769,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1787,7 +1787,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1805,7 +1805,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1867,13 +1867,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_cps_action_handler.cps_actions_paginated_resp"
+                                            "$ref": "#/definitions/cpsactionhandler.cps_actions_paginated_resp"
                                         }
                                     }
                                 }
@@ -1885,7 +1885,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1903,7 +1903,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1952,13 +1952,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_cps_action_handler.cps_action_resp"
+                                            "$ref": "#/definitions/cpsactionhandler.cps_action_resp"
                                         }
                                     }
                                 }
@@ -1970,7 +1970,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -1988,7 +1988,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2006,7 +2006,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2055,13 +2055,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_cps_action_handler.cps_action_resp"
+                                            "$ref": "#/definitions/cpsactionhandler.cps_action_resp"
                                         }
                                     }
                                 }
@@ -2073,7 +2073,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2091,7 +2091,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2109,7 +2109,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2158,7 +2158,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2176,7 +2176,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2194,7 +2194,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2212,7 +2212,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2260,7 +2260,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_cps_action.ActionRequest"
+                            "$ref": "#/definitions/cpsaction.ActionRequest"
                         }
                     }
                 ],
@@ -2270,7 +2270,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2288,7 +2288,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2306,7 +2306,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2324,7 +2324,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2373,7 +2373,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2391,7 +2391,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2409,7 +2409,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2427,7 +2427,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2495,13 +2495,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_ad.paginated_advert_response"
+                                            "$ref": "#/definitions/ad.paginated_advert_response"
                                         }
                                     }
                                 }
@@ -2513,7 +2513,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2531,7 +2531,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2624,7 +2624,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2642,7 +2642,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2660,7 +2660,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2678,7 +2678,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2727,13 +2727,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse"
+                                            "$ref": "#/definitions/ad.AdvertResponse"
                                         }
                                     }
                                 }
@@ -2745,7 +2745,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2763,7 +2763,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2781,7 +2781,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2874,7 +2874,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2892,7 +2892,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2910,7 +2910,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2928,7 +2928,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2977,7 +2977,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -2995,7 +2995,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3013,7 +3013,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3031,7 +3031,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3080,7 +3080,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3098,7 +3098,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3116,7 +3116,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3134,7 +3134,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3202,13 +3202,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_amount_based_auth.paginated_auth_tier_resp"
+                                            "$ref": "#/definitions/amount_based_auth.paginated_auth_tier_resp"
                                         }
                                     }
                                 }
@@ -3220,7 +3220,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3268,7 +3268,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction"
+                            "$ref": "#/definitions/model.CPSAction"
                         }
                     }
                 ],
@@ -3278,13 +3278,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction"
+                                            "$ref": "#/definitions/model.CPSAction"
                                         }
                                     }
                                 }
@@ -3296,7 +3296,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3356,7 +3356,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_amount_based_auth.UpdateAmountBasedAuthRequest"
+                            "$ref": "#/definitions/amount_based_auth.UpdateAmountBasedAuthRequest"
                         }
                     }
                 ],
@@ -3366,7 +3366,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3384,7 +3384,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3402,7 +3402,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3420,7 +3420,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3488,13 +3488,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_avatar.paginatedAvatarResp"
+                                            "$ref": "#/definitions/avatar.paginatedAvatarResp"
                                         }
                                     }
                                 }
@@ -3506,7 +3506,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3561,7 +3561,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3579,7 +3579,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3597,7 +3597,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3646,7 +3646,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3664,7 +3664,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3682,7 +3682,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3700,7 +3700,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3749,7 +3749,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3767,7 +3767,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3785,7 +3785,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3803,7 +3803,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3852,13 +3852,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Avatar"
+                                            "$ref": "#/definitions/model.Avatar"
                                         }
                                     }
                                 }
@@ -3870,7 +3870,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3888,7 +3888,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3906,7 +3906,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3953,7 +3953,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3971,7 +3971,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -3989,7 +3989,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4007,7 +4007,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4067,7 +4067,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4085,7 +4085,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4103,7 +4103,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4121,7 +4121,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4189,13 +4189,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_bank.paginatedBankResp"
+                                            "$ref": "#/definitions/bankHandler.paginatedBankResp"
                                         }
                                     }
                                 }
@@ -4207,7 +4207,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4278,7 +4278,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4296,7 +4296,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4314,7 +4314,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4332,7 +4332,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4381,13 +4381,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_bank.BankResponse"
+                                            "$ref": "#/definitions/bank_dto.BankResponse"
                                         }
                                     }
                                 }
@@ -4399,7 +4399,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4417,7 +4417,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4435,7 +4435,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4482,7 +4482,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4500,7 +4500,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4518,7 +4518,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4536,7 +4536,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4582,7 +4582,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_bank.UpdateBankRequest"
+                            "$ref": "#/definitions/bank_dto.UpdateBankRequest"
                         }
                     }
                 ],
@@ -4592,7 +4592,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4610,7 +4610,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4628,7 +4628,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4646,7 +4646,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4695,7 +4695,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4713,7 +4713,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4731,7 +4731,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4749,7 +4749,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4798,7 +4798,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4816,7 +4816,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4834,7 +4834,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4852,7 +4852,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4908,7 +4908,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4926,7 +4926,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4944,7 +4944,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -4962,7 +4962,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5024,13 +5024,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_bps_user.paginated_resp"
+                                            "$ref": "#/definitions/bpsmakerhandler.paginated_resp"
                                         }
                                     }
                                 }
@@ -5042,7 +5042,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5060,7 +5060,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5109,7 +5109,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5130,7 +5130,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5148,7 +5148,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5166,7 +5166,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5215,7 +5215,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5236,7 +5236,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5254,7 +5254,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5272,7 +5272,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5321,13 +5321,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_bps_user.bps_user_resp"
+                                            "$ref": "#/definitions/bpsmakerhandler.bps_user_resp"
                                         }
                                     }
                                 }
@@ -5339,7 +5339,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5357,7 +5357,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5375,7 +5375,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5424,7 +5424,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5442,7 +5442,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5460,7 +5460,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5478,7 +5478,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5496,7 +5496,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5514,7 +5514,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5576,13 +5576,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_budget.budget_colors_paginated_resp"
+                                            "$ref": "#/definitions/budget.budget_colors_paginated_resp"
                                         }
                                     }
                                 }
@@ -5594,7 +5594,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5612,7 +5612,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5630,7 +5630,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5648,7 +5648,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5687,7 +5687,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_budget.BudgetCreateColor"
+                            "$ref": "#/definitions/budget.BudgetCreateColor"
                         }
                     }
                 ],
@@ -5697,7 +5697,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5715,7 +5715,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5733,7 +5733,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5751,7 +5751,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5769,7 +5769,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5817,7 +5817,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_budget.UpdateColorRequest"
+                            "$ref": "#/definitions/budget.UpdateColorRequest"
                         }
                     }
                 ],
@@ -5827,7 +5827,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5845,7 +5845,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5863,7 +5863,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5881,7 +5881,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5899,7 +5899,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5917,7 +5917,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -5979,13 +5979,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_budget.budget_icons_paginated_resp"
+                                            "$ref": "#/definitions/budget.budget_icons_paginated_resp"
                                         }
                                     }
                                 }
@@ -5997,7 +5997,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6015,7 +6015,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6033,7 +6033,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6051,7 +6051,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6098,7 +6098,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6116,7 +6116,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6134,7 +6134,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6152,7 +6152,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6170,7 +6170,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6226,7 +6226,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6244,7 +6244,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6262,7 +6262,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6280,7 +6280,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6298,7 +6298,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6316,7 +6316,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6378,13 +6378,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_bulk_service.bulk_services_paginated_resp"
+                                            "$ref": "#/definitions/bulk_service.bulk_services_paginated_resp"
                                         }
                                     }
                                 }
@@ -6396,7 +6396,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6414,7 +6414,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6455,7 +6455,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_bulk_service.BulkServiceDTO"
+                            "$ref": "#/definitions/bulk_service.BulkServiceDTO"
                         }
                     }
                 ],
@@ -6465,7 +6465,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6483,7 +6483,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6501,7 +6501,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6542,7 +6542,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_bulk_service.BulkServiceDTO"
+                            "$ref": "#/definitions/bulk_service.BulkServiceDTO"
                         }
                     }
                 ],
@@ -6552,7 +6552,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6570,7 +6570,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6588,7 +6588,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6650,13 +6650,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_cps_user.cps_users_paginated_resp"
+                                            "$ref": "#/definitions/cps_user.cps_users_paginated_resp"
                                         }
                                     }
                                 }
@@ -6668,7 +6668,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6686,7 +6686,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6727,7 +6727,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_cps_user.CreateUserRequest"
+                            "$ref": "#/definitions/cpsuser.CreateUserRequest"
                         }
                     }
                 ],
@@ -6737,7 +6737,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6755,7 +6755,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6773,7 +6773,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6822,7 +6822,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6840,7 +6840,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6858,7 +6858,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6876,7 +6876,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6925,7 +6925,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6943,7 +6943,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6961,7 +6961,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -6979,7 +6979,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7028,7 +7028,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7046,7 +7046,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7064,7 +7064,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7082,7 +7082,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7130,7 +7130,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_cps_user.UpdateUserRequest"
+                            "$ref": "#/definitions/cpsuser.UpdateUserRequest"
                         }
                     }
                 ],
@@ -7140,7 +7140,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7158,7 +7158,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7176,7 +7176,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7225,13 +7225,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_cps_user.cps_user_resp"
+                                            "$ref": "#/definitions/cps_user.cps_user_resp"
                                         }
                                     }
                                 }
@@ -7243,7 +7243,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7261,7 +7261,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7279,7 +7279,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7348,13 +7348,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_customer.customers_paginated_resp"
+                                            "$ref": "#/definitions/customer.customers_paginated_resp"
                                         }
                                     }
                                 }
@@ -7366,7 +7366,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7384,7 +7384,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7446,13 +7446,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_customer.customers_paginated_resp"
+                                            "$ref": "#/definitions/customer.customers_paginated_resp"
                                         }
                                     }
                                 }
@@ -7464,7 +7464,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7482,7 +7482,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7531,13 +7531,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_customer.customer_resp"
+                                            "$ref": "#/definitions/customer.customer_resp"
                                         }
                                     }
                                 }
@@ -7549,7 +7549,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7567,7 +7567,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7585,7 +7585,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7647,7 +7647,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7655,7 +7655,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.PaginatedDepartmentResponse"
+                                                "$ref": "#/definitions/model.PaginatedDepartmentResponse"
                                             }
                                         }
                                     }
@@ -7668,7 +7668,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7707,7 +7707,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_department.CreateDepartmentRequest"
+                            "$ref": "#/definitions/department_dto.CreateDepartmentRequest"
                         }
                     }
                 ],
@@ -7717,7 +7717,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7735,7 +7735,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7753,7 +7753,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7802,7 +7802,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7820,7 +7820,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7838,7 +7838,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7856,7 +7856,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7905,7 +7905,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7923,7 +7923,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7941,7 +7941,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -7959,7 +7959,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8008,13 +8008,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Department"
+                                            "$ref": "#/definitions/model.Department"
                                         }
                                     }
                                 }
@@ -8026,7 +8026,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8044,7 +8044,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8062,7 +8062,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8108,7 +8108,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_department.UpdateDepartmentRequest"
+                            "$ref": "#/definitions/department_dto.UpdateDepartmentRequest"
                         }
                     }
                 ],
@@ -8118,7 +8118,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8136,7 +8136,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8154,7 +8154,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8216,7 +8216,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8224,7 +8224,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/internal_handlers_rest_http_donation.paginatedDonationResponse"
+                                                "$ref": "#/definitions/donation.paginatedDonationResponse"
                                             }
                                         }
                                     }
@@ -8237,7 +8237,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8355,7 +8355,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8373,7 +8373,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8391,7 +8391,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8440,7 +8440,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8458,7 +8458,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8476,7 +8476,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8494,7 +8494,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8543,7 +8543,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8561,7 +8561,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8579,7 +8579,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8597,7 +8597,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8653,7 +8653,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8671,7 +8671,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8689,7 +8689,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8735,7 +8735,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationImageDeleteRequest"
+                            "$ref": "#/definitions/donation.DonationImageDeleteRequest"
                         }
                     }
                 ],
@@ -8745,7 +8745,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8763,7 +8763,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8781,7 +8781,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8842,7 +8842,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8860,7 +8860,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8878,7 +8878,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8927,13 +8927,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationResponse"
+                                            "$ref": "#/definitions/donation.DonationResponse"
                                         }
                                     }
                                 }
@@ -8945,7 +8945,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8963,7 +8963,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -8981,7 +8981,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9100,7 +9100,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9118,7 +9118,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9136,7 +9136,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9198,13 +9198,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_donation_category.paginatedDonationCategoryListResponse"
+                                            "$ref": "#/definitions/donation_category.paginatedDonationCategoryListResponse"
                                         }
                                     }
                                 }
@@ -9216,7 +9216,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9270,7 +9270,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9288,7 +9288,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9306,7 +9306,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9355,13 +9355,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse"
+                                            "$ref": "#/definitions/donation_category.DonationCategoryListResponse"
                                         }
                                     }
                                 }
@@ -9373,7 +9373,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9391,7 +9391,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9409,7 +9409,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9468,7 +9468,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9486,7 +9486,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9504,7 +9504,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9522,7 +9522,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9584,13 +9584,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_donation_company.paginatedDonationCompanyListResponse"
+                                            "$ref": "#/definitions/donation_company.paginatedDonationCompanyListResponse"
                                         }
                                     }
                                 }
@@ -9602,7 +9602,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9663,7 +9663,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9681,7 +9681,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9699,7 +9699,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9748,13 +9748,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse"
+                                            "$ref": "#/definitions/donation_company.DonationCompanyListResponse"
                                         }
                                     }
                                 }
@@ -9766,7 +9766,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9784,7 +9784,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9802,7 +9802,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9867,7 +9867,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9885,7 +9885,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9903,7 +9903,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9921,7 +9921,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -9978,12 +9978,33 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.PaginatedEventResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10174,7 +10195,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10192,7 +10213,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10210,7 +10231,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10228,7 +10249,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10277,7 +10298,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10295,7 +10316,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10313,7 +10334,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10331,7 +10352,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10380,7 +10401,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10398,7 +10419,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10416,7 +10437,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10434,7 +10455,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10478,12 +10499,30 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Event retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.Event"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "400": {
                         "description": "Bad request",
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10501,7 +10540,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10519,7 +10558,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10566,7 +10605,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10584,7 +10623,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10602,7 +10641,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10620,7 +10659,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10807,7 +10846,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10825,7 +10864,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10843,7 +10882,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10861,7 +10900,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10879,7 +10918,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -10926,19 +10965,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Fayda account disabled successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -10975,19 +11014,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Fayda account enabled successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11041,19 +11080,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Feedbacks fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid query params",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11084,7 +11123,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_feedback.FeedbackRequest"
+                            "$ref": "#/definitions/feedback.FeedbackRequest"
                         }
                     }
                 ],
@@ -11092,19 +11131,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Feedback created successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid request payload",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11141,25 +11180,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Feedback fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid feedback ID",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Feedback not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11213,13 +11252,13 @@ const docTemplate = `{
                     "200": {
                         "description": "HQs fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11247,13 +11286,13 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ archive time fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11282,7 +11321,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_hq.UpdateArchiveTimeRequest"
+                            "$ref": "#/definitions/hqDto.UpdateArchiveTimeRequest"
                         }
                     }
                 ],
@@ -11290,19 +11329,19 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ archive time update request submitted",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid request payload",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11330,13 +11369,13 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ block time fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11365,7 +11404,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_hq.UpdateBlockTimeRequest"
+                            "$ref": "#/definitions/hqDto.UpdateBlockTimeRequest"
                         }
                     }
                 ],
@@ -11373,19 +11412,19 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ block time update request submitted",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid request payload",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11413,13 +11452,13 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ password expiry fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11448,7 +11487,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_hq.UpdatePasswordExpiryRequest"
+                            "$ref": "#/definitions/hqDto.UpdatePasswordExpiryRequest"
                         }
                     }
                 ],
@@ -11456,19 +11495,19 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ password expiry update request submitted",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Invalid request payload",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11505,25 +11544,25 @@ const docTemplate = `{
                     "200": {
                         "description": "HQ fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "HQ ID required",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "HQ not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -11564,13 +11603,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.PaginatedMiniAppResponseResponse"
+                                            "$ref": "#/definitions/miniappmerchant.PaginatedMiniAppResponseResponse"
                                         }
                                     }
                                 }
@@ -11582,7 +11621,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11600,7 +11639,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11618,7 +11657,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11657,7 +11696,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO"
+                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantDTO"
                         }
                     }
                 ],
@@ -11667,13 +11706,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO"
+                                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantDTO"
                                         }
                                     }
                                 }
@@ -11685,7 +11724,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11703,7 +11742,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11721,7 +11760,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11739,7 +11778,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11783,7 +11822,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                            "$ref": "#/definitions/localization.StandardResponse"
                         }
                     },
                     "400": {
@@ -11791,7 +11830,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11809,7 +11848,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11827,7 +11866,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11845,7 +11884,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11889,7 +11928,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                            "$ref": "#/definitions/localization.StandardResponse"
                         }
                     },
                     "400": {
@@ -11897,7 +11936,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11915,7 +11954,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11933,7 +11972,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11951,7 +11990,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -11997,13 +12036,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO"
+                                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantResponseDTO"
                                         }
                                     }
                                 }
@@ -12015,7 +12054,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12033,7 +12072,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12051,7 +12090,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12069,7 +12108,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12115,7 +12154,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO"
+                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantDTO"
                         }
                     }
                 ],
@@ -12123,7 +12162,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                            "$ref": "#/definitions/localization.StandardResponse"
                         }
                     },
                     "400": {
@@ -12131,7 +12170,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12149,7 +12188,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12167,7 +12206,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12185,7 +12224,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12203,7 +12242,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12245,7 +12284,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                            "$ref": "#/definitions/localization.StandardResponse"
                         }
                     },
                     "400": {
@@ -12253,7 +12292,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12271,7 +12310,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12289,7 +12328,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12307,7 +12346,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -12355,26 +12394,26 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app.MiniAppResponse"
+                                "$ref": "#/definitions/miniappdto.MiniAppResponse"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12494,25 +12533,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Mini app created successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12549,31 +12588,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Mini app disabled successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12610,31 +12649,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Mini app enabled successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12671,31 +12710,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Mini app details",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app.MiniAppResponse"
+                            "$ref": "#/definitions/miniappdto.MiniAppResponse"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12730,31 +12769,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Mini app deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12879,31 +12918,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Mini app updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.ResponseCode"
+                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -12955,13 +12994,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_notifications.paginatedNotificationResponse"
+                                            "$ref": "#/definitions/notifications.paginatedNotificationResponse"
                                         }
                                     }
                                 }
@@ -12973,7 +13012,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13012,7 +13051,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers_rest_http_notifications.notificationRequest"
+                            "$ref": "#/definitions/notifications.notificationRequest"
                         }
                     }
                 ],
@@ -13022,7 +13061,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13040,7 +13079,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13058,7 +13097,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13107,7 +13146,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13125,7 +13164,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13143,7 +13182,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13161,7 +13200,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13210,7 +13249,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13228,7 +13267,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13246,7 +13285,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13264,7 +13303,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13313,13 +13352,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse"
+                                            "$ref": "#/definitions/notification.NotificationResponse"
                                         }
                                     }
                                 }
@@ -13331,7 +13370,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13349,7 +13388,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13367,7 +13406,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13414,7 +13453,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13432,7 +13471,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13450,7 +13489,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13468,7 +13507,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13514,7 +13553,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers_rest_http_notifications.notificationRequest"
+                            "$ref": "#/definitions/notifications.notificationRequest"
                         }
                     }
                 ],
@@ -13524,7 +13563,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13542,7 +13581,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13560,7 +13599,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13578,7 +13617,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13629,13 +13668,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_password_rule.PaginatedPasswordRulesResponse"
+                                            "$ref": "#/definitions/passwordrule.PaginatedPasswordRulesResponse"
                                         }
                                     }
                                 }
@@ -13647,7 +13686,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13665,7 +13704,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13683,7 +13722,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13724,7 +13763,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_password_rule.CheckPasswordDTO"
+                            "$ref": "#/definitions/passwordrule.CheckPasswordDTO"
                         }
                     }
                 ],
@@ -13756,7 +13795,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13774,7 +13813,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13792,7 +13831,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13810,7 +13849,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13858,7 +13897,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_password_rule.PasswordRuleUpdate"
+                            "$ref": "#/definitions/passwordrule.PasswordRuleUpdate"
                         }
                     }
                 ],
@@ -13868,7 +13907,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13886,7 +13925,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13904,7 +13943,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13922,7 +13961,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13940,7 +13979,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -13991,13 +14030,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse"
+                                            "$ref": "#/definitions/permission.PaginatedPermissionGroupResponse"
                                         }
                                     }
                                 }
@@ -14009,7 +14048,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14027,7 +14066,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14066,7 +14105,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.CreatePermissionGroupRequest"
+                            "$ref": "#/definitions/permission.CreatePermissionGroupRequest"
                         }
                     }
                 ],
@@ -14076,7 +14115,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14094,7 +14133,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14112,7 +14151,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14130,7 +14169,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14148,7 +14187,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14185,13 +14224,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse"
+                                            "$ref": "#/definitions/permission.PaginatedPermissionGroupResponse"
                                         }
                                     }
                                 }
@@ -14203,7 +14242,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14221,7 +14260,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14267,13 +14306,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PermissionCategoryResponse"
+                                            "$ref": "#/definitions/permission.PermissionCategoryResponse"
                                         }
                                     }
                                 }
@@ -14285,7 +14324,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14303,7 +14342,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14321,7 +14360,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14367,7 +14406,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.UpdatePermissionGroupRequest"
+                            "$ref": "#/definitions/permission.UpdatePermissionGroupRequest"
                         }
                     }
                 ],
@@ -14377,7 +14416,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14395,7 +14434,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14413,7 +14452,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14431,7 +14470,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14449,7 +14488,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14500,13 +14539,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_portal_card.PortalCardPaginatedResponse"
+                                            "$ref": "#/definitions/portalcard.PortalCardPaginatedResponse"
                                         }
                                     }
                                 }
@@ -14518,7 +14557,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14536,7 +14575,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14582,13 +14621,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse"
+                                            "$ref": "#/definitions/productcode.ProductCodeResponse"
                                         }
                                     }
                                 }
@@ -14600,7 +14639,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14618,7 +14657,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14636,7 +14675,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14654,7 +14693,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14672,7 +14711,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14718,7 +14757,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest"
+                            "$ref": "#/definitions/productcode.UpdateProductCodeRequest"
                         }
                     }
                 ],
@@ -14728,7 +14767,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14736,7 +14775,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "object",
                                             "additionalProperties": {
-                                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCode"
+                                                "$ref": "#/definitions/model.ProductCode"
                                             }
                                         }
                                     }
@@ -14749,7 +14788,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14767,7 +14806,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14785,7 +14824,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14803,7 +14842,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14821,7 +14860,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14884,13 +14923,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse"
+                                            "$ref": "#/definitions/productcode.ProductCodePaginatedResponse"
                                         }
                                     }
                                 }
@@ -14902,7 +14941,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14920,7 +14959,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14938,7 +14977,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -14956,7 +14995,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15007,13 +15046,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedServiceDetails"
+                                            "$ref": "#/definitions/service_details.paginatedServiceDetails"
                                         }
                                     }
                                 }
@@ -15025,7 +15064,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15043,7 +15082,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15094,13 +15133,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse"
+                                            "$ref": "#/definitions/service_details.paginatedMaximumTransferCapResponse"
                                         }
                                     }
                                 }
@@ -15112,7 +15151,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15130,7 +15169,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15181,13 +15220,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse"
+                                            "$ref": "#/definitions/service_details.paginatedMinimumTransferCapResponse"
                                         }
                                     }
                                 }
@@ -15199,7 +15238,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15217,7 +15256,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15265,7 +15304,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest"
+                            "$ref": "#/definitions/dto.MinimumTransferUpdateRequest"
                         }
                     }
                 ],
@@ -15275,7 +15314,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15293,7 +15332,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15311,7 +15350,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15329,7 +15368,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15347,7 +15386,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15398,13 +15437,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_service_details.paginatedServiceFeeResponse"
+                                            "$ref": "#/definitions/service_details.paginatedServiceFeeResponse"
                                         }
                                     }
                                 }
@@ -15416,7 +15455,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15434,7 +15473,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15480,7 +15519,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15498,7 +15537,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15516,7 +15555,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15534,7 +15573,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15580,13 +15619,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailResponse"
+                                            "$ref": "#/definitions/dto.ServiceFeeDetailResponse"
                                         }
                                     }
                                 }
@@ -15598,7 +15637,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15616,7 +15655,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15634,7 +15673,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15682,7 +15721,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailDTO"
+                            "$ref": "#/definitions/dto.ServiceFeeDetailDTO"
                         }
                     }
                 ],
@@ -15692,7 +15731,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15710,7 +15749,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15728,7 +15767,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15746,7 +15785,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15764,7 +15803,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15812,7 +15851,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest"
+                            "$ref": "#/definitions/dto.SingleMaxTransferRequest"
                         }
                     }
                 ],
@@ -15822,7 +15861,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15840,7 +15879,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15858,7 +15897,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15876,7 +15915,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15894,7 +15933,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15931,13 +15970,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse"
+                                            "$ref": "#/definitions/dto.TotalTransferCapResponse"
                                         }
                                     }
                                 }
@@ -15949,7 +15988,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -15967,7 +16006,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16008,7 +16047,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest"
+                            "$ref": "#/definitions/dto.TotalMaxTransferUpdateRequest"
                         }
                     }
                 ],
@@ -16018,7 +16057,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16036,7 +16075,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16054,7 +16093,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16072,7 +16111,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16090,7 +16129,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16150,13 +16189,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_unlink.PaginatedArchieveUserResponse"
+                                            "$ref": "#/definitions/unlink.PaginatedArchieveUserResponse"
                                         }
                                     }
                                 }
@@ -16168,7 +16207,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16186,7 +16225,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16235,13 +16274,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.User"
+                                            "$ref": "#/definitions/model.User"
                                         }
                                     }
                                 }
@@ -16253,7 +16292,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16271,7 +16310,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16289,7 +16328,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16338,7 +16377,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16356,7 +16395,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16374,7 +16413,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16392,7 +16431,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16454,13 +16493,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_handlers_rest_http_wallet.PaginatedWalletResponse"
+                                            "$ref": "#/definitions/wallet.PaginatedWalletResponse"
                                         }
                                     }
                                 }
@@ -16472,7 +16511,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16533,7 +16572,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16551,7 +16590,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16569,7 +16608,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16618,13 +16657,13 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Wallet"
+                                            "$ref": "#/definitions/model.Wallet"
                                         }
                                     }
                                 }
@@ -16636,7 +16675,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16654,7 +16693,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16672,7 +16711,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16719,7 +16758,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16737,7 +16776,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16755,7 +16794,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16773,7 +16812,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16831,7 +16870,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16849,7 +16888,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16867,7 +16906,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16916,7 +16955,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16934,7 +16973,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16952,7 +16991,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -16970,7 +17009,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -17019,7 +17058,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -17037,7 +17076,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -17055,7 +17094,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -17073,7 +17112,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                    "$ref": "#/definitions/localization.StandardResponse"
                                 },
                                 {
                                     "type": "object",
@@ -17091,202 +17130,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "cbe-super-app-cps-action_internal_constants.AccountStatus": {
-            "type": "string",
-            "enum": [
-                "ACTIVE",
-                "INACTIVE"
-            ],
-            "x-enum-varnames": [
-                "Active",
-                "InActive"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.AdvertFor": {
-            "type": "string",
-            "enum": [
-                "IFB",
-                "CB",
-                "ALL"
-            ],
-            "x-enum-varnames": [
-                "IFB_ADVERT_FOR",
-                "CB_ADVERT_FOR",
-                "BOTH_ADVERT_FOR"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.AppType": {
-            "type": "string",
-            "enum": [
-                "URL",
-                "UAT",
-                "PRODUCATION",
-                "TEST",
-                "DEV"
-            ],
-            "x-enum-varnames": [
-                "URL",
-                "UATApp",
-                "Production",
-                "Test",
-                "Dev"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.AppViewType": {
-            "type": "string",
-            "enum": [
-                "BOTH",
-                "CB",
-                "IFB"
-            ],
-            "x-enum-varnames": [
-                "AppViewTypeBoth",
-                "AppViewTypeCB",
-                "AppViewTypeIFB"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.BPSStatus": {
-            "type": "string",
-            "enum": [
-                "AUTHORIZED",
-                "DENIED",
-                "PENDING",
-                "INITIATED"
-            ],
-            "x-enum-varnames": [
-                "BPSStatusAuthorized",
-                "BPSStatusDenied",
-                "BPSStatusPending",
-                "BPSStatusInitiated"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.BranchType": {
-            "type": "string",
-            "enum": [
-                "IFB",
-                "CB"
-            ],
-            "x-enum-varnames": [
-                "IFB",
-                "CB"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.DeviceStatus": {
-            "type": "string",
-            "enum": [
-                "LINKED",
-                "UNLINKED"
-            ],
-            "x-enum-varnames": [
-                "Linked",
-                "UnLinked"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.EnvironmentType": {
-            "type": "string",
-            "enum": [
-                "UAT",
-                "DEV",
-                "TEST",
-                "PRODUCTION"
-            ],
-            "x-enum-varnames": [
-                "UatEnvironment",
-                "DevEnvironment",
-                "TestEnvironment",
-                "ProductionEnvironment"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.Gender": {
-            "type": "string",
-            "enum": [
-                "MALE",
-                "FEMALE"
-            ],
-            "x-enum-varnames": [
-                "Male",
-                "Female"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.KYCStatus": {
-            "type": "string",
-            "enum": [
-                "PENDING",
-                "APPROVED",
-                "REJECTED"
-            ],
-            "x-enum-varnames": [
-                "KYCStatusPending",
-                "KYCStatusApproved",
-                "KYCStatusRejected"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.MemberType": {
-            "type": "string",
-            "enum": [
-                "CB",
-                "IFB"
-            ],
-            "x-enum-varnames": [
-                "CBT",
-                "IFBT"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.Method": {
-            "type": "string",
-            "enum": [
-                "OPEN",
-                "PIN",
-                "OTP_PIN"
-            ],
-            "x-enum-varnames": [
-                "OPEN",
-                "PIN",
-                "OTPANDPIN"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.Platform": {
-            "type": "string",
-            "enum": [
-                "ANDROID",
-                "IOS"
-            ],
-            "x-enum-varnames": [
-                "Android",
-                "Ios"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.Realm": {
-            "type": "string",
-            "enum": [
-                "ELST",
-                "BANK",
-                "DISTRICT",
-                "BRANCH",
-                "MERCHANT",
-                "COMPANY",
-                "MEMBER"
-            ],
-            "x-enum-varnames": [
-                "ELST_REALM",
-                "BANK_REALM",
-                "DISTRICT_REALM",
-                "BRANCH_REALM",
-                "MERCHANT_REALM",
-                "COMPANY_REALM",
-                "MEMBER_REALM"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants.Stage": {
-            "type": "string",
-            "enum": [
-                "UAT"
-            ],
-            "x-enum-varnames": [
-                "StageUat"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse": {
+        "accountblock.BranchResponse": {
             "type": "object",
             "properties": {
                 "branch_address": {
@@ -17324,7 +17168,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse": {
+        "accountblock.CityResponse": {
             "type": "object",
             "properties": {
                 "city_address": {
@@ -17362,7 +17206,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse": {
+        "accountblock.DistrictResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -17394,7 +17238,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableBranches": {
+        "accountblock.EnableOrDisableBranches": {
             "type": "object",
             "properties": {
                 "branches_code": {
@@ -17409,7 +17253,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableCities": {
+        "accountblock.EnableOrDisableCities": {
             "type": "object",
             "properties": {
                 "city_code": {
@@ -17424,7 +17268,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableDistricts": {
+        "accountblock.EnableOrDisableDistricts": {
             "type": "object",
             "properties": {
                 "districts_code": {
@@ -17439,7 +17283,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.EnableOrDisableRegions": {
+        "accountblock.EnableOrDisableRegions": {
             "type": "object",
             "properties": {
                 "regions_code": {
@@ -17454,7 +17298,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse": {
+        "accountblock.RegionResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -17480,7 +17324,19 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_account_validation.ValidationRuleDTO": {
+        "accountblock.paginated_branch_resp": {
+            "type": "object"
+        },
+        "accountblock.paginated_city_resp": {
+            "type": "object"
+        },
+        "accountblock.paginated_district_resp": {
+            "type": "object"
+        },
+        "accountblock.paginated_region_resp": {
+            "type": "object"
+        },
+        "accountvalidation.ValidationRuleDTO": {
             "type": "object",
             "properties": {
                 "enabled": {
@@ -17512,7 +17368,10 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_ad.AdvertDate": {
+        "accountvalidation.paginated_resp": {
+            "type": "object"
+        },
+        "ad.AdvertDate": {
             "type": "object",
             "properties": {
                 "expired_at": {
@@ -17523,11 +17382,11 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse": {
+        "ad.AdvertResponse": {
             "type": "object",
             "properties": {
                 "advert_for": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AdvertFor"
+                    "$ref": "#/definitions/constants.AdvertFor"
                 },
                 "banner_image": {
                     "type": "string"
@@ -17536,7 +17395,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "date": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertDate"
+                    "$ref": "#/definitions/ad.AdvertDate"
                 },
                 "description": {
                     "type": "string"
@@ -17555,7 +17414,10 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_amount_based_auth.UpdateAmountBasedAuthRequest": {
+        "ad.paginated_advert_response": {
+            "type": "object"
+        },
+        "amount_based_auth.UpdateAmountBasedAuthRequest": {
             "type": "object",
             "properties": {
                 "max_amount": {
@@ -17566,7 +17428,16 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_bank.BankResponse": {
+        "amount_based_auth.paginated_auth_tier_resp": {
+            "type": "object"
+        },
+        "avatar.paginatedAvatarResp": {
+            "type": "object"
+        },
+        "bankHandler.paginatedBankResp": {
+            "type": "object"
+        },
+        "bank_dto.BankResponse": {
             "type": "object",
             "properties": {
                 "_id": {
@@ -17595,7 +17466,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_bank.UpdateBankRequest": {
+        "bank_dto.UpdateBankRequest": {
             "type": "object",
             "properties": {
                 "_id": {
@@ -17612,7 +17483,102 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_budget.BudgetCreateColor": {
+        "bpsmakerhandler.bps_user_resp": {
+            "type": "object",
+            "properties": {
+                "UserName": {
+                    "type": "string"
+                },
+                "branch_code": {
+                    "description": "IFB, CB, HomeBranch(CB == Homebranch) ice versa",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "first_password_set": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "home_branch": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_first_time_login": {
+                    "type": "boolean"
+                },
+                "last_login": {
+                    "type": "string"
+                },
+                "last_login_attempt": {
+                    "type": "string"
+                },
+                "last_modifed_at": {
+                    "type": "string"
+                },
+                "login_attempt_count": {
+                    "type": "integer"
+                },
+                "next_login_attempt": {
+                    "type": "string"
+                },
+                "otp_last_tried_at": {
+                    "type": "string"
+                },
+                "otp_last_verified_at": {
+                    "type": "string"
+                },
+                "otp_verfy_count": {
+                    "type": "integer"
+                },
+                "password": {
+                    "$ref": "#/definitions/types.Password"
+                },
+                "permission_group": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "role": {
+                    "description": "enum: maker, checker, aduditer",
+                    "type": "string"
+                },
+                "user_code": {
+                    "description": "generated",
+                    "type": "string"
+                }
+            }
+        },
+        "bpsmakerhandler.paginated_resp": {
+            "type": "object"
+        },
+        "budget.BudgetCreateColor": {
             "type": "object",
             "properties": {
                 "color": {
@@ -17621,7 +17587,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_budget.UpdateColorRequest": {
+        "budget.UpdateColorRequest": {
             "type": "object",
             "properties": {
                 "color": {
@@ -17630,7 +17596,13 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_bulk_service.BulkServiceDTO": {
+        "budget.budget_colors_paginated_resp": {
+            "type": "object"
+        },
+        "budget.budget_icons_paginated_resp": {
+            "type": "object"
+        },
+        "bulk_service.BulkServiceDTO": {
             "type": "object",
             "properties": {
                 "keys": {
@@ -17641,16 +17613,214 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_cps_action.ActionRequest": {
-            "type": "object",
-            "properties": {
-                "rejection_reason": {
-                    "type": "string",
-                    "example": "Insufficient documentation provided"
-                }
-            }
+        "bulk_service.bulk_services_paginated_resp": {
+            "type": "object"
         },
-        "cbe-super-app-cps-action_internal_constants_dto_cps_user.CPSUserDTO": {
+        "constants.AccountStatus": {
+            "type": "string",
+            "enum": [
+                "ACTIVE",
+                "INACTIVE"
+            ],
+            "x-enum-varnames": [
+                "Active",
+                "InActive"
+            ]
+        },
+        "constants.AdvertFor": {
+            "type": "string",
+            "enum": [
+                "IFB",
+                "CB",
+                "ALL"
+            ],
+            "x-enum-varnames": [
+                "IFB_ADVERT_FOR",
+                "CB_ADVERT_FOR",
+                "BOTH_ADVERT_FOR"
+            ]
+        },
+        "constants.AppType": {
+            "type": "string",
+            "enum": [
+                "URL",
+                "UAT",
+                "PRODUCATION",
+                "TEST",
+                "DEV"
+            ],
+            "x-enum-varnames": [
+                "URL",
+                "UATApp",
+                "Production",
+                "Test",
+                "Dev"
+            ]
+        },
+        "constants.AppViewType": {
+            "type": "string",
+            "enum": [
+                "BOTH",
+                "CB",
+                "IFB"
+            ],
+            "x-enum-varnames": [
+                "AppViewTypeBoth",
+                "AppViewTypeCB",
+                "AppViewTypeIFB"
+            ]
+        },
+        "constants.BPSStatus": {
+            "type": "string",
+            "enum": [
+                "AUTHORIZED",
+                "DENIED",
+                "PENDING",
+                "INITIATED"
+            ],
+            "x-enum-varnames": [
+                "BPSStatusAuthorized",
+                "BPSStatusDenied",
+                "BPSStatusPending",
+                "BPSStatusInitiated"
+            ]
+        },
+        "constants.BranchType": {
+            "type": "string",
+            "enum": [
+                "IFB",
+                "CB"
+            ],
+            "x-enum-varnames": [
+                "IFB",
+                "CB"
+            ]
+        },
+        "constants.DeviceStatus": {
+            "type": "string",
+            "enum": [
+                "LINKED",
+                "UNLINKED"
+            ],
+            "x-enum-varnames": [
+                "Linked",
+                "UnLinked"
+            ]
+        },
+        "constants.EnvironmentType": {
+            "type": "string",
+            "enum": [
+                "UAT",
+                "DEV",
+                "TEST",
+                "PRODUCTION"
+            ],
+            "x-enum-varnames": [
+                "UatEnvironment",
+                "DevEnvironment",
+                "TestEnvironment",
+                "ProductionEnvironment"
+            ]
+        },
+        "constants.EventStatus": {
+            "type": "string",
+            "enum": [
+                "UPCOMMING",
+                "LIVE",
+                "CLOSED"
+            ],
+            "x-enum-varnames": [
+                "EventUpcomming",
+                "EventLive",
+                "EventClosed"
+            ]
+        },
+        "constants.Gender": {
+            "type": "string",
+            "enum": [
+                "MALE",
+                "FEMALE"
+            ],
+            "x-enum-varnames": [
+                "Male",
+                "Female"
+            ]
+        },
+        "constants.KYCStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+            ],
+            "x-enum-varnames": [
+                "KYCStatusPending",
+                "KYCStatusApproved",
+                "KYCStatusRejected"
+            ]
+        },
+        "constants.MemberType": {
+            "type": "string",
+            "enum": [
+                "CB",
+                "IFB"
+            ],
+            "x-enum-varnames": [
+                "CBT",
+                "IFBT"
+            ]
+        },
+        "constants.Platform": {
+            "type": "string",
+            "enum": [
+                "ANDROID",
+                "IOS"
+            ],
+            "x-enum-varnames": [
+                "Android",
+                "Ios"
+            ]
+        },
+        "constants.Realm": {
+            "type": "string",
+            "enum": [
+                "ELST",
+                "BANK",
+                "DISTRICT",
+                "BRANCH",
+                "MERCHANT",
+                "COMPANY",
+                "MEMBER"
+            ],
+            "x-enum-varnames": [
+                "ELST_REALM",
+                "BANK_REALM",
+                "DISTRICT_REALM",
+                "BRANCH_REALM",
+                "MERCHANT_REALM",
+                "COMPANY_REALM",
+                "MEMBER_REALM"
+            ]
+        },
+        "constants.RestrictionType": {
+            "type": "string",
+            "enum": [
+                "AGE_RESTRICTION"
+            ],
+            "x-enum-varnames": [
+                "AgeRestriction"
+            ]
+        },
+        "constants.Stage": {
+            "type": "string",
+            "enum": [
+                "UAT"
+            ],
+            "x-enum-varnames": [
+                "StageUat"
+            ]
+        },
+        "cps_user.cps_user_resp": {
             "type": "object",
             "properties": {
                 "country": {
@@ -17733,7 +17903,86 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_cps_user.CreateUserRequest": {
+        "cps_user.cps_users_paginated_resp": {
+            "type": "object"
+        },
+        "cpsaction.ActionRequest": {
+            "type": "object",
+            "properties": {
+                "rejection_reason": {
+                    "type": "string",
+                    "example": "Insufficient documentation provided"
+                }
+            }
+        },
+        "cpsactionhandler.cps_action_resp": {
+            "type": "object",
+            "properties": {
+                "action_code": {
+                    "type": "string"
+                },
+                "action_status": {
+                    "type": "string"
+                },
+                "action_type": {
+                    "type": "string"
+                },
+                "checker_action_time": {
+                    "type": "string"
+                },
+                "checker_id": {
+                    "type": "string"
+                },
+                "checker_name": {
+                    "type": "string"
+                },
+                "checker_phone_number": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_action": {},
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "maker_action_time": {
+                    "type": "string"
+                },
+                "maker_id": {
+                    "type": "string"
+                },
+                "maker_name": {
+                    "type": "string"
+                },
+                "maker_phone_number": {
+                    "type": "string"
+                },
+                "previous_action": {},
+                "rejection_reason": {
+                    "type": "string"
+                },
+                "request_action": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "cpsactionhandler.cps_actions_paginated_resp": {
+            "type": "object"
+        },
+        "cpsuser.CreateUserRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -17784,7 +18033,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_cps_user.UpdateUserRequest": {
+        "cpsuser.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -17839,7 +18088,267 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_department.CreateDepartmentRequest": {
+        "customer.customer_resp": {
+            "type": "object",
+            "properties": {
+                "account_branch_type": {
+                    "$ref": "#/definitions/constants.MemberType"
+                },
+                "account_linked": {
+                    "type": "boolean"
+                },
+                "account_status": {
+                    "$ref": "#/definitions/constants.AccountStatus"
+                },
+                "address": {
+                    "$ref": "#/definitions/types.Address"
+                },
+                "app_version": {
+                    "type": "string"
+                },
+                "application_installation_date": {
+                    "type": "string"
+                },
+                "avater": {
+                    "type": "string"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "blocked_on_cps": {
+                    "description": "default: false",
+                    "type": "boolean"
+                },
+                "bps_reject_failed": {
+                    "description": "questioned",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bps_reject_reason": {
+                    "type": "string"
+                },
+                "bps_reject_status": {
+                    "description": "questioned",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constants.BPSStatus"
+                        }
+                    ]
+                },
+                "branch_approved": {
+                    "type": "boolean"
+                },
+                "branch_code": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_number": {
+                    "type": "string"
+                },
+                "device_status": {
+                    "$ref": "#/definitions/constants.DeviceStatus"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "district_code": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "document_back": {
+                    "type": "string"
+                },
+                "document_front": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fayda": {
+                    "type": "object",
+                    "properties": {
+                        "employer_name": {
+                            "type": "string"
+                        },
+                        "employment_status": {
+                            "type": "string"
+                        },
+                        "fayda_access_token": {
+                            "type": "string"
+                        },
+                        "id_number": {
+                            "type": "string"
+                        },
+                        "issued_by": {
+                            "type": "string"
+                        },
+                        "monthly_incode": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "first_pin_set": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constants.Gender"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_linked_at": {
+                    "type": "string"
+                },
+                "initial_linked_date": {
+                    "type": "string"
+                },
+                "is_account_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked": {
+                    "description": "default: false",
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_self_register": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "issued_date": {
+                    "type": "string"
+                },
+                "kyc": {
+                    "type": "object",
+                    "properties": {
+                        "kyc_activity_by": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        },
+                        "kyc_approved": {
+                            "type": "boolean"
+                        },
+                        "kyc_reject_reason": {
+                            "type": "string"
+                        },
+                        "kyc_reject_reason_failed": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        },
+                        "kyc_status": {
+                            "$ref": "#/definitions/constants.KYCStatus"
+                        }
+                    }
+                },
+                "kyc_level": {
+                    "type": "integer"
+                },
+                "last_account_linked": {
+                    "type": "boolean"
+                },
+                "last_login": {
+                    "type": "string"
+                },
+                "last_login_attempt": {
+                    "type": "string"
+                },
+                "last_main_account": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "last_online_date": {
+                    "type": "string"
+                },
+                "loan_score": {
+                    "type": "integer"
+                },
+                "login_attempt_count": {
+                    "type": "integer"
+                },
+                "login_pin": {
+                    "$ref": "#/definitions/types.LoginPIN"
+                },
+                "main_account": {
+                    "type": "string"
+                },
+                "mother_name": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "next_attempt_count": {
+                    "type": "string"
+                },
+                "otp_verify_count": {
+                    "type": "integer"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "pin_changed_at": {
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/constants.Platform"
+                },
+                "profile_theme_type": {
+                    "type": "string"
+                },
+                "push_token": {
+                    "type": "string"
+                },
+                "realm": {
+                    "$ref": "#/definitions/constants.Realm"
+                },
+                "register_by": {
+                    "type": "object"
+                },
+                "residential_status": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "customer.customers_paginated_resp": {
+            "type": "object"
+        },
+        "department_dto.CreateDepartmentRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -17859,7 +18368,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_department.UpdateDepartmentRequest": {
+        "department_dto.UpdateDepartmentRequest": {
             "type": "object",
             "properties": {
                 "department": {
@@ -17879,38 +18388,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.Category": {
-            "type": "object",
-            "properties": {
-                "category_name": {
-                    "type": "string"
-                },
-                "icon": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.Company": {
-            "type": "object",
-            "properties": {
-                "account_number": {
-                    "type": "string"
-                },
-                "company_logo": {
-                    "type": "string"
-                },
-                "company_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationImage": {
+        "donation.DonationImage": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -17924,7 +18402,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationImageDeleteRequest": {
+        "donation.DonationImageDeleteRequest": {
             "type": "object",
             "properties": {
                 "image_id": {
@@ -17932,64 +18410,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationListResponse": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.Category"
-                },
-                "company": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.Company"
-                },
-                "cover_image": {
-                    "description": "URL for cover image",
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "donation_code": {
-                    "type": "string"
-                },
-                "donation_description": {
-                    "type": "string"
-                },
-                "donation_images": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationImage"
-                    }
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "end_date": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_featured": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "target": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_donation.DonationResponse": {
+        "donation.DonationResponse": {
             "type": "object",
             "properties": {
                 "category_id": {
@@ -18011,7 +18432,7 @@ const docTemplate = `{
                 "donation_images": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationImage"
+                        "$ref": "#/definitions/donation.DonationImage"
                     }
                 },
                 "enabled": {
@@ -18034,7 +18455,10 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse": {
+        "donation.paginatedDonationResponse": {
+            "type": "object"
+        },
+        "donation_category.DonationCategoryListResponse": {
             "type": "object",
             "properties": {
                 "category_name": {
@@ -18057,7 +18481,10 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse": {
+        "donation_category.paginatedDonationCategoryListResponse": {
+            "type": "object"
+        },
+        "donation_company.DonationCompanyListResponse": {
             "type": "object",
             "properties": {
                 "account_number": {
@@ -18083,18 +18510,233 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_feedback.FeedbackRequest": {
+        "donation_company.paginatedDonationCompanyListResponse": {
+            "type": "object"
+        },
+        "dto.CBglEntryDTO": {
+            "type": "object",
+            "properties": {
+                "cbgl_product_account": {
+                    "type": "string"
+                },
+                "cbgl_product_branchcode": {
+                    "type": "string"
+                },
+                "cbgl_service_account": {
+                    "type": "string"
+                },
+                "cbgl_service_branchcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.IFBglEntryDTO": {
+            "type": "object",
+            "properties": {
+                "ifbgl_product_account": {
+                    "type": "string"
+                },
+                "ifbgl_product_branchcode": {
+                    "type": "string"
+                },
+                "ifbgl_service_account": {
+                    "type": "string"
+                },
+                "ifbgl_service_branchcode": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MinimumTransferUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "min_amount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PaymentType": {
+            "type": "string",
+            "enum": [
+                "flat_fee",
+                "percentage"
+            ],
+            "x-enum-varnames": [
+                "PaymentTypeFlatFee",
+                "PaymentTypePercentage"
+            ]
+        },
+        "dto.ServiceFeeDetailDTO": {
+            "type": "object",
+            "properties": {
+                "above_amount": {
+                    "type": "integer"
+                },
+                "above_service_fee": {
+                    "type": "integer"
+                },
+                "cbgl_entry": {
+                    "$ref": "#/definitions/dto.CBglEntryDTO"
+                },
+                "daily_cap_level_one": {
+                    "type": "integer"
+                },
+                "ifbgl_entry": {
+                    "$ref": "#/definitions/dto.IFBglEntryDTO"
+                },
+                "min_amount_virtual": {
+                    "type": "integer"
+                },
+                "payment_type": {
+                    "$ref": "#/definitions/dto.PaymentType"
+                },
+                "service_type": {
+                    "type": "string"
+                },
+                "single_cap_level_one": {
+                    "type": "integer"
+                },
+                "tiers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TierDTO"
+                    }
+                }
+            }
+        },
+        "dto.ServiceFeeDetailResponse": {
+            "type": "object",
+            "properties": {
+                "aboveAmount": {
+                    "type": "integer"
+                },
+                "aboveServiceFee": {
+                    "type": "integer"
+                },
+                "cap": {
+                    "$ref": "#/definitions/types.Cap"
+                },
+                "cbeglentry": {
+                    "$ref": "#/definitions/types.GLEntry"
+                },
+                "cbeifbglentry": {
+                    "$ref": "#/definitions/types.GLEntry"
+                },
+                "cbeifbproductCodes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "cbeproductCodes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "lastModifiedAt": {
+                    "type": "string"
+                },
+                "paymentType": {
+                    "type": "string"
+                },
+                "serviceCode": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "serviceType": {
+                    "type": "string"
+                },
+                "tiers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Tier"
+                    }
+                }
+            }
+        },
+        "dto.SingleMaxTransferRequest": {
+            "type": "object",
+            "properties": {
+                "corporate_daily_cap": {
+                    "type": "integer"
+                },
+                "corporate_single_cap": {
+                    "type": "integer"
+                },
+                "individual_daily_cap": {
+                    "type": "integer"
+                },
+                "individual_single_cap": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TierDTO": {
+            "type": "object",
+            "properties": {
+                "fee_amount": {
+                    "type": "integer"
+                },
+                "max": {
+                    "type": "integer"
+                },
+                "min": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TotalMaxTransferUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "total_cap": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.TotalTransferCapResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "total_cap": {
+                    "type": "integer"
+                },
+                "updated_at_total_cap": {
+                    "type": "string"
+                }
+            }
+        },
+        "feedback.FeedbackRequest": {
             "type": "object",
             "properties": {
                 "responses": {
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Response"
+                        "$ref": "#/definitions/types.Response"
                     }
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_hq.UpdateArchiveTimeRequest": {
+        "hqDto.UpdateArchiveTimeRequest": {
             "type": "object",
             "properties": {
                 "archive_time": {
@@ -18102,7 +18744,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_hq.UpdateBlockTimeRequest": {
+        "hqDto.UpdateBlockTimeRequest": {
             "type": "object",
             "properties": {
                 "block_time": {
@@ -18110,7 +18752,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_hq.UpdatePasswordExpiryRequest": {
+        "hqDto.UpdatePasswordExpiryRequest": {
             "type": "object",
             "properties": {
                 "password_expiry": {
@@ -18118,7 +18760,46 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app.MiniAppResponse": {
+        "localization.ResponseCode": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "\"success\", \"error\", \"warning\", \"info\"",
+                    "type": "string"
+                }
+            }
+        },
+        "localization.StandardResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "message": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "miniappdto.MiniAppResponse": {
             "type": "object",
             "properties": {
                 "app_icon": {
@@ -18128,10 +18809,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "app_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AppType"
+                    "$ref": "#/definitions/constants.AppType"
                 },
                 "app_view_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AppViewType"
+                    "$ref": "#/definitions/constants.AppViewType"
                 },
                 "banner_image": {
                     "type": "string"
@@ -18143,7 +18824,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "credential": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.CredentialInformation"
+                    "$ref": "#/definitions/types.CredentialInformation"
                 },
                 "enabled": {
                     "type": "boolean"
@@ -18166,29 +18847,29 @@ const docTemplate = `{
                 "product_code": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCode"
+                        "$ref": "#/definitions/types.ProductCode"
                     }
                 },
                 "stage": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Stage"
+                    "$ref": "#/definitions/constants.Stage"
                 },
                 "url": {
                     "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.KYCDTO": {
+        "miniappmerchant.KYCDTO": {
             "type": "object",
             "properties": {
                 "representative": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.RepresentativeDTO"
+                    "$ref": "#/definitions/miniappmerchant.RepresentativeDTO"
                 },
                 "status": {
                     "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantDTO": {
+        "miniappmerchant.MiniAppMerchantDTO": {
             "type": "object",
             "properties": {
                 "account_number": {
@@ -18211,7 +18892,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO": {
+        "miniappmerchant.MiniAppMerchantResponseDTO": {
             "type": "object",
             "properties": {
                 "account_number": {
@@ -18233,7 +18914,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "kyc": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.KYCDTO"
+                    "$ref": "#/definitions/miniappmerchant.KYCDTO"
                 },
                 "last_modified": {
                     "type": "string"
@@ -18244,7 +18925,7 @@ const docTemplate = `{
                 "mini_apps": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.MiniApps"
+                        "$ref": "#/definitions/model.MiniApps"
                     }
                 },
                 "type": {
@@ -18252,21 +18933,21 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.PaginatedMiniAppResponseResponse": {
+        "miniappmerchant.PaginatedMiniAppResponseResponse": {
             "type": "object",
             "properties": {
                 "docs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.MiniAppMerchantResponseDTO"
+                        "$ref": "#/definitions/miniappmerchant.MiniAppMerchantResponseDTO"
                     }
                 },
                 "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                    "$ref": "#/definitions/types.PaginationMeta"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_mini_app_merchant.RepresentativeDTO": {
+        "miniappmerchant.RepresentativeDTO": {
             "type": "object",
             "properties": {
                 "email": {
@@ -18280,7 +18961,612 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse": {
+        "model.Avatar": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "enable": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CPSAction": {
+            "type": "object",
+            "properties": {
+                "action_code": {
+                    "type": "string"
+                },
+                "action_status": {
+                    "type": "string"
+                },
+                "action_type": {
+                    "type": "string"
+                },
+                "checker_action_time": {
+                    "type": "string"
+                },
+                "checker_id": {
+                    "type": "string"
+                },
+                "checker_name": {
+                    "type": "string"
+                },
+                "checker_phone_number": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_action": {},
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "maker_action_time": {
+                    "type": "string"
+                },
+                "maker_id": {
+                    "type": "string"
+                },
+                "maker_name": {
+                    "type": "string"
+                },
+                "maker_phone_number": {
+                    "type": "string"
+                },
+                "previous_action": {},
+                "rejection_reason": {
+                    "type": "string"
+                },
+                "request_action": {
+                    "type": "string"
+                },
+                "unique_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Department": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "department": {
+                    "type": "string"
+                },
+                "department_code": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified": {
+                    "type": "string"
+                },
+                "portal_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.Event": {
+            "type": "object",
+            "properties": {
+                "accountNumber": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "eventCity": {
+                    "type": "string"
+                },
+                "eventCode": {
+                    "type": "string"
+                },
+                "eventInformation": {
+                    "$ref": "#/definitions/types.EventInformation"
+                },
+                "eventName": {
+                    "type": "string"
+                },
+                "eventVenue": {
+                    "type": "string"
+                },
+                "hasRestriction": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "lastModifiedAt": {
+                    "type": "string"
+                },
+                "merchantInformation": {
+                    "$ref": "#/definitions/types.MerchantInformation"
+                },
+                "micsinfo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "refundPolicy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "restriction": {
+                    "$ref": "#/definitions/types.Restriction"
+                },
+                "status": {
+                    "$ref": "#/definitions/constants.EventStatus"
+                },
+                "ticket": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Ticket"
+                    }
+                },
+                "ticketInformation": {
+                    "$ref": "#/definitions/types.TicketInformation"
+                },
+                "ticketStatistics": {
+                    "$ref": "#/definitions/types.TicketStatistics"
+                }
+            }
+        },
+        "model.MiniApps": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.PaginatedDepartmentResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Department"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PaginatedEventResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Event"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "model.PasswordRule": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "capital_letters": {
+                    "type": "boolean"
+                },
+                "characters": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "max_length": {
+                    "type": "integer"
+                },
+                "min_length": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "numbers": {
+                    "type": "boolean"
+                },
+                "small_letters": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.ProductCode": {
+            "type": "object",
+            "properties": {
+                "cbe_ifb_product_codes": {
+                    "$ref": "#/definitions/model.ProductCodes"
+                },
+                "cbe_product_codes": {
+                    "$ref": "#/definitions/model.ProductCodes"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ProductCodes": {
+            "type": "object",
+            "properties": {
+                "prd": {
+                    "type": "string"
+                },
+                "sfprd": {
+                    "type": "string"
+                },
+                "trxn": {
+                    "type": "string"
+                },
+                "vatprd": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "account_branch_type": {
+                    "$ref": "#/definitions/constants.MemberType"
+                },
+                "account_linked": {
+                    "type": "boolean"
+                },
+                "account_status": {
+                    "$ref": "#/definitions/constants.AccountStatus"
+                },
+                "address": {
+                    "$ref": "#/definitions/types.Address"
+                },
+                "app_version": {
+                    "type": "string"
+                },
+                "application_installation_date": {
+                    "type": "string"
+                },
+                "avater": {
+                    "type": "string"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "blocked_on_cps": {
+                    "description": "default: false",
+                    "type": "boolean"
+                },
+                "bps_reject_failed": {
+                    "description": "questioned",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bps_reject_reason": {
+                    "type": "string"
+                },
+                "bps_reject_status": {
+                    "description": "questioned",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/constants.BPSStatus"
+                        }
+                    ]
+                },
+                "branch_approved": {
+                    "type": "boolean"
+                },
+                "branch_code": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_number": {
+                    "type": "string"
+                },
+                "device_status": {
+                    "$ref": "#/definitions/constants.DeviceStatus"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "district_code": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "document_back": {
+                    "type": "string"
+                },
+                "document_front": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fayda": {
+                    "type": "object",
+                    "properties": {
+                        "employer_name": {
+                            "type": "string"
+                        },
+                        "employment_status": {
+                            "type": "string"
+                        },
+                        "fayda_access_token": {
+                            "type": "string"
+                        },
+                        "id_number": {
+                            "type": "string"
+                        },
+                        "issued_by": {
+                            "type": "string"
+                        },
+                        "monthly_incode": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "first_pin_set": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constants.Gender"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_linked_at": {
+                    "type": "string"
+                },
+                "initial_linked_date": {
+                    "type": "string"
+                },
+                "is_account_blocked": {
+                    "type": "boolean"
+                },
+                "is_blocked": {
+                    "description": "default: false",
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_self_register": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "issued_date": {
+                    "type": "string"
+                },
+                "kyc": {
+                    "type": "object",
+                    "properties": {
+                        "kyc_activity_by": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        },
+                        "kyc_approved": {
+                            "type": "boolean"
+                        },
+                        "kyc_reject_reason": {
+                            "type": "string"
+                        },
+                        "kyc_reject_reason_failed": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object"
+                            }
+                        },
+                        "kyc_status": {
+                            "$ref": "#/definitions/constants.KYCStatus"
+                        }
+                    }
+                },
+                "kyc_level": {
+                    "type": "integer"
+                },
+                "last_account_linked": {
+                    "type": "boolean"
+                },
+                "last_login": {
+                    "type": "string"
+                },
+                "last_login_attempt": {
+                    "type": "string"
+                },
+                "last_main_account": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "last_online_date": {
+                    "type": "string"
+                },
+                "loan_score": {
+                    "type": "integer"
+                },
+                "login_attempt_count": {
+                    "type": "integer"
+                },
+                "login_pin": {
+                    "$ref": "#/definitions/types.LoginPIN"
+                },
+                "main_account": {
+                    "type": "string"
+                },
+                "mother_name": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "next_attempt_count": {
+                    "type": "string"
+                },
+                "otp_verify_count": {
+                    "type": "integer"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "pin_changed_at": {
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/constants.Platform"
+                },
+                "profile_theme_type": {
+                    "type": "string"
+                },
+                "push_token": {
+                    "type": "string"
+                },
+                "realm": {
+                    "$ref": "#/definitions/constants.Realm"
+                },
+                "register_by": {
+                    "type": "object"
+                },
+                "residential_status": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Wallet": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "notification.NotificationResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -18328,7 +19614,33 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_password_rule.CheckPasswordDTO": {
+        "notifications.notificationRequest": {
+            "type": "object",
+            "properties": {
+                "created_by": {
+                    "type": "string"
+                },
+                "for": {
+                    "type": "string"
+                },
+                "is_public": {
+                    "type": "boolean"
+                },
+                "notification_body": {
+                    "type": "string"
+                },
+                "notification_type": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "notifications.paginatedNotificationResponse": {
+            "type": "object"
+        },
+        "passwordrule.CheckPasswordDTO": {
             "type": "object",
             "properties": {
                 "password": {
@@ -18336,21 +19648,21 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_password_rule.PaginatedPasswordRulesResponse": {
+        "passwordrule.PaginatedPasswordRulesResponse": {
             "type": "object",
             "properties": {
                 "docs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.PasswordRule"
+                        "$ref": "#/definitions/model.PasswordRule"
                     }
                 },
                 "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                    "$ref": "#/definitions/types.PaginationMeta"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_password_rule.PasswordRuleUpdate": {
+        "passwordrule.PasswordRuleUpdate": {
             "type": "object",
             "properties": {
                 "rule": {
@@ -18381,7 +19693,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_permission.CreatePermissionGroupRequest": {
+        "permission.CreatePermissionGroupRequest": {
             "type": "object",
             "properties": {
                 "group_name": {
@@ -18398,21 +19710,21 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse": {
+        "permission.PaginatedPermissionGroupResponse": {
             "type": "object",
             "properties": {
                 "docs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PermissionCategoryResponse"
+                        "$ref": "#/definitions/permission.PermissionCategoryResponse"
                     }
                 },
                 "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                    "$ref": "#/definitions/types.PaginationMeta"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_permission.PermissionCategoryResponse": {
+        "permission.PermissionCategoryResponse": {
             "type": "object",
             "properties": {
                 "access": {
@@ -18439,7 +19751,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_permission.UpdatePermissionGroupRequest": {
+        "permission.UpdatePermissionGroupRequest": {
             "type": "object",
             "properties": {
                 "new_group_name": {
@@ -18459,14 +19771,20 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse": {
+        "portalcard.PortalCardPaginatedResponse": {
+            "type": "object"
+        },
+        "productcode.ProductCodePaginatedResponse": {
+            "type": "object"
+        },
+        "productcode.ProductCodeResponse": {
             "type": "object",
             "properties": {
                 "cbe_ifb_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
+                    "$ref": "#/definitions/model.ProductCodes"
                 },
                 "cbe_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
+                    "$ref": "#/definitions/model.ProductCodes"
                 },
                 "created_at": {
                     "type": "string"
@@ -18482,14 +19800,14 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_productcode.UpdateProductCodeRequest": {
+        "productcode.UpdateProductCodeRequest": {
             "type": "object",
             "properties": {
                 "cbe_ifb_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
+                    "$ref": "#/definitions/model.ProductCodes"
                 },
                 "cbe_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
+                    "$ref": "#/definitions/model.ProductCodes"
                 },
                 "id": {
                     "type": "string"
@@ -18499,1438 +19817,19 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.CBglEntryDTO": {
-            "type": "object",
-            "properties": {
-                "cbgl_product_account": {
-                    "type": "string"
-                },
-                "cbgl_product_branchcode": {
-                    "type": "string"
-                },
-                "cbgl_service_account": {
-                    "type": "string"
-                },
-                "cbgl_service_branchcode": {
-                    "type": "string"
-                }
-            }
+        "service_details.paginatedMaximumTransferCapResponse": {
+            "type": "object"
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.IFBglEntryDTO": {
-            "type": "object",
-            "properties": {
-                "ifbgl_product_account": {
-                    "type": "string"
-                },
-                "ifbgl_product_branchcode": {
-                    "type": "string"
-                },
-                "ifbgl_service_account": {
-                    "type": "string"
-                },
-                "ifbgl_service_branchcode": {
-                    "type": "string"
-                }
-            }
+        "service_details.paginatedMinimumTransferCapResponse": {
+            "type": "object"
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.MaximumTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "cap": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "gl_entry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "ifb_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "service_code": {
-                    "type": "string"
-                },
-                "service_key": {
-                    "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                },
-                "service_type": {
-                    "type": "string"
-                }
-            }
+        "service_details.paginatedServiceDetails": {
+            "type": "object"
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "min_amount": {
-                    "type": "integer"
-                },
-                "service_code": {
-                    "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                },
-                "service_type": {
-                    "type": "string"
-                }
-            }
+        "service_details.paginatedServiceFeeResponse": {
+            "type": "object"
         },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "min_amount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.PaymentType": {
-            "type": "string",
-            "enum": [
-                "flat_fee",
-                "percentage"
-            ],
-            "x-enum-varnames": [
-                "PaymentTypeFlatFee",
-                "PaymentTypePercentage"
-            ]
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailDTO": {
-            "type": "object",
-            "properties": {
-                "above_amount": {
-                    "type": "integer"
-                },
-                "above_service_fee": {
-                    "type": "integer"
-                },
-                "cbgl_entry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.CBglEntryDTO"
-                },
-                "daily_cap_level_one": {
-                    "type": "integer"
-                },
-                "ifbgl_entry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.IFBglEntryDTO"
-                },
-                "min_amount_virtual": {
-                    "type": "integer"
-                },
-                "payment_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.PaymentType"
-                },
-                "service_type": {
-                    "type": "string"
-                },
-                "single_cap_level_one": {
-                    "type": "integer"
-                },
-                "tiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailResponse": {
-            "type": "object",
-            "properties": {
-                "aboveAmount": {
-                    "type": "integer"
-                },
-                "aboveServiceFee": {
-                    "type": "integer"
-                },
-                "cap": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap"
-                },
-                "cbeglentry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "cbeifbglentry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "cbeifbproductCodes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "cbeproductCodes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isDeleted": {
-                    "type": "boolean"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "lastModifiedAt": {
-                    "type": "string"
-                },
-                "paymentType": {
-                    "type": "string"
-                },
-                "serviceCode": {
-                    "type": "string"
-                },
-                "serviceName": {
-                    "type": "string"
-                },
-                "serviceType": {
-                    "type": "string"
-                },
-                "tiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "gl_entry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "ifb_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "min_amount": {
-                    "type": "integer"
-                },
-                "payment_type": {
-                    "type": "string"
-                },
-                "product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "service_key": {
-                    "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                },
-                "service_type": {
-                    "type": "string"
-                },
-                "tiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest": {
-            "type": "object",
-            "properties": {
-                "corporate_daily_cap": {
-                    "type": "integer"
-                },
-                "corporate_single_cap": {
-                    "type": "integer"
-                },
-                "individual_daily_cap": {
-                    "type": "integer"
-                },
-                "individual_single_cap": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO": {
-            "type": "object",
-            "properties": {
-                "fee_amount": {
-                    "type": "integer"
-                },
-                "max": {
-                    "type": "integer"
-                },
-                "min": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest": {
-            "type": "object",
-            "properties": {
-                "total_cap": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "total_cap": {
-                    "type": "integer"
-                },
-                "updated_at_total_cap": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_localization.ResponseCode": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "status_code": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "type": {
-                    "description": "\"success\", \"error\", \"warning\", \"info\"",
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_localization.StandardResponse": {
-            "type": "object",
-            "properties": {
-                "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "ok": {
-                    "type": "boolean"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.APPAccessList": {
-            "type": "object",
-            "properties": {
-                "access_list_name": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "sub_access_list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.SubAccessList"
-                    }
-                },
-                "ussd_enabled": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ArchivedUser": {
-            "type": "object",
-            "properties": {
-                "account_branch_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.MemberType"
-                },
-                "account_linked": {
-                    "type": "boolean"
-                },
-                "account_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus"
-                },
-                "address": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Address"
-                },
-                "app_version": {
-                    "type": "string"
-                },
-                "application_installation_date": {
-                    "type": "string"
-                },
-                "avater": {
-                    "type": "string"
-                },
-                "birth_date": {
-                    "type": "string"
-                },
-                "blocked_on_cps": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "bps_reject_failed": {
-                    "description": "questioned",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "bps_reject_reason": {
-                    "type": "string"
-                },
-                "bps_reject_status": {
-                    "description": "questioned",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus"
-                        }
-                    ]
-                },
-                "branch_approved": {
-                    "type": "boolean"
-                },
-                "branch_code": {
-                    "type": "string"
-                },
-                "branch_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "customer_number": {
-                    "type": "string"
-                },
-                "device_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus"
-                },
-                "device_uuid": {
-                    "type": "string"
-                },
-                "district_code": {
-                    "type": "string"
-                },
-                "district_name": {
-                    "type": "string"
-                },
-                "document_back": {
-                    "type": "string"
-                },
-                "document_front": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "first_pin_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Gender"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "initial_linked_at": {
-                    "type": "string"
-                },
-                "initial_linked_date": {
-                    "type": "string"
-                },
-                "is_account_blocked": {
-                    "type": "boolean"
-                },
-                "is_blocked": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_self_register": {
-                    "type": "boolean"
-                },
-                "is_verified": {
-                    "type": "boolean"
-                },
-                "issued_date": {
-                    "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus"
-                        }
-                    }
-                },
-                "kyc_level": {
-                    "type": "integer"
-                },
-                "last_account_linked": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_main_account": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "last_online_date": {
-                    "type": "string"
-                },
-                "loan_score": {
-                    "type": "integer"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "login_pin": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN"
-                },
-                "main_account": {
-                    "type": "string"
-                },
-                "mother_name": {
-                    "type": "string"
-                },
-                "nationality": {
-                    "type": "string"
-                },
-                "next_attempt_count": {
-                    "type": "string"
-                },
-                "otp_verify_count": {
-                    "type": "integer"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "photo": {
-                    "type": "string"
-                },
-                "pin_changed_at": {
-                    "type": "string"
-                },
-                "platform": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Platform"
-                },
-                "profile_theme_type": {
-                    "type": "string"
-                },
-                "push_token": {
-                    "type": "string"
-                },
-                "realm": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Realm"
-                },
-                "register_by": {
-                    "type": "object"
-                },
-                "residential_status": {
-                    "type": "string"
-                },
-                "signature": {
-                    "type": "string"
-                },
-                "user_code": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.AuthTier": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified": {
-                    "type": "string"
-                },
-                "max_amount": {
-                    "type": "integer"
-                },
-                "method": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Method"
-                },
-                "min_amount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Avatar": {
-            "type": "object",
-            "properties": {
-                "avatar": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
-                "enable": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "label": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.BPSUser": {
-            "type": "object",
-            "properties": {
-                "UserName": {
-                    "type": "string"
-                },
-                "branch_code": {
-                    "description": "IFB, CB, HomeBranch(CB == Homebranch) ice versa",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "branch_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "first_password_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "home_branch": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_first_time_login": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_modifed_at": {
-                    "type": "string"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "next_login_attempt": {
-                    "type": "string"
-                },
-                "otp_last_tried_at": {
-                    "type": "string"
-                },
-                "otp_last_verified_at": {
-                    "type": "string"
-                },
-                "otp_verfy_count": {
-                    "type": "integer"
-                },
-                "password": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Password"
-                },
-                "permission_group": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "role": {
-                    "description": "enum: maker, checker, aduditer",
-                    "type": "string"
-                },
-                "user_code": {
-                    "description": "generated",
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.CPSAction": {
-            "type": "object",
-            "properties": {
-                "action_code": {
-                    "type": "string"
-                },
-                "action_status": {
-                    "type": "string"
-                },
-                "action_type": {
-                    "type": "string"
-                },
-                "checker_action_time": {
-                    "type": "string"
-                },
-                "checker_id": {
-                    "type": "string"
-                },
-                "checker_name": {
-                    "type": "string"
-                },
-                "checker_phone_number": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "current_action": {},
-                "department": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "maker_action_time": {
-                    "type": "string"
-                },
-                "maker_id": {
-                    "type": "string"
-                },
-                "maker_name": {
-                    "type": "string"
-                },
-                "maker_phone_number": {
-                    "type": "string"
-                },
-                "previous_action": {},
-                "rejection_reason": {
-                    "type": "string"
-                },
-                "request_action": {
-                    "type": "string"
-                },
-                "unique_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Card": {
-            "type": "object",
-            "properties": {
-                "card_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "sub_cards": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Color": {
-            "type": "object",
-            "properties": {
-                "color": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Department": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "department": {
-                    "type": "string"
-                },
-                "department_code": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified": {
-                    "type": "string"
-                },
-                "portal_cards": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Icon": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "icon": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.MiniApps": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.PaginatedDepartmentResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Department"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.PasswordRule": {
-            "type": "object",
-            "properties": {
-                "_id": {
-                    "type": "string"
-                },
-                "capital_letters": {
-                    "type": "boolean"
-                },
-                "characters": {
-                    "type": "boolean"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "max_length": {
-                    "type": "integer"
-                },
-                "min_length": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "numbers": {
-                    "type": "boolean"
-                },
-                "small_letters": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ProductCode": {
-            "type": "object",
-            "properties": {
-                "cbe_ifb_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
-                },
-                "cbe_product_codes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "service_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ProductCodes": {
-            "type": "object",
-            "properties": {
-                "prd": {
-                    "type": "string"
-                },
-                "sfprd": {
-                    "type": "string"
-                },
-                "trxn": {
-                    "type": "string"
-                },
-                "vatprd": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ServiceDetails": {
-            "type": "object",
-            "properties": {
-                "aboveAmount": {
-                    "type": "integer"
-                },
-                "aboveServiceFee": {
-                    "type": "integer"
-                },
-                "cap": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap"
-                },
-                "cbeglentry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "cbeifbglentry": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry"
-                },
-                "cbeifbproductCodes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "cbeproductCodes": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deletedAt": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "isDeleted": {
-                    "type": "boolean"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "lastModifiedAt": {
-                    "type": "string"
-                },
-                "paymentType": {
-                    "type": "string"
-                },
-                "serviceCode": {
-                    "type": "string"
-                },
-                "serviceName": {
-                    "type": "string"
-                },
-                "serviceType": {
-                    "type": "string"
-                },
-                "tiers": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier"
-                    }
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.User": {
-            "type": "object",
-            "properties": {
-                "account_branch_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.MemberType"
-                },
-                "account_linked": {
-                    "type": "boolean"
-                },
-                "account_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus"
-                },
-                "address": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Address"
-                },
-                "app_version": {
-                    "type": "string"
-                },
-                "application_installation_date": {
-                    "type": "string"
-                },
-                "avater": {
-                    "type": "string"
-                },
-                "birth_date": {
-                    "type": "string"
-                },
-                "blocked_on_cps": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "bps_reject_failed": {
-                    "description": "questioned",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "bps_reject_reason": {
-                    "type": "string"
-                },
-                "bps_reject_status": {
-                    "description": "questioned",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus"
-                        }
-                    ]
-                },
-                "branch_approved": {
-                    "type": "boolean"
-                },
-                "branch_code": {
-                    "type": "string"
-                },
-                "branch_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "customer_number": {
-                    "type": "string"
-                },
-                "device_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus"
-                },
-                "device_uuid": {
-                    "type": "string"
-                },
-                "district_code": {
-                    "type": "string"
-                },
-                "district_name": {
-                    "type": "string"
-                },
-                "document_back": {
-                    "type": "string"
-                },
-                "document_front": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "first_pin_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Gender"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "initial_linked_at": {
-                    "type": "string"
-                },
-                "initial_linked_date": {
-                    "type": "string"
-                },
-                "is_account_blocked": {
-                    "type": "boolean"
-                },
-                "is_blocked": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_self_register": {
-                    "type": "boolean"
-                },
-                "is_verified": {
-                    "type": "boolean"
-                },
-                "issued_date": {
-                    "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus"
-                        }
-                    }
-                },
-                "kyc_level": {
-                    "type": "integer"
-                },
-                "last_account_linked": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_main_account": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "last_online_date": {
-                    "type": "string"
-                },
-                "loan_score": {
-                    "type": "integer"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "login_pin": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN"
-                },
-                "main_account": {
-                    "type": "string"
-                },
-                "mother_name": {
-                    "type": "string"
-                },
-                "nationality": {
-                    "type": "string"
-                },
-                "next_attempt_count": {
-                    "type": "string"
-                },
-                "otp_verify_count": {
-                    "type": "integer"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "photo": {
-                    "type": "string"
-                },
-                "pin_changed_at": {
-                    "type": "string"
-                },
-                "platform": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Platform"
-                },
-                "profile_theme_type": {
-                    "type": "string"
-                },
-                "push_token": {
-                    "type": "string"
-                },
-                "realm": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Realm"
-                },
-                "register_by": {
-                    "type": "object"
-                },
-                "residential_status": {
-                    "type": "string"
-                },
-                "signature": {
-                    "type": "string"
-                },
-                "user_code": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.ValidationRule": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "entity_type": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "identifier": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "max_length": {
-                    "type": "integer"
-                },
-                "min_length": {
-                    "type": "integer"
-                },
-                "service_id": {
-                    "type": "string"
-                },
-                "validation_for": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_model.Wallet": {
-            "type": "object",
-            "properties": {
-                "avatar": {
-                    "type": "string"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "cbe-super-app-cps-action_internal_constants_types.Address": {
+        "types.Address": {
             "type": "object",
             "properties": {
                 "city": {
@@ -19959,7 +19858,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.Cap": {
+        "types.Cap": {
             "type": "object",
             "properties": {
                 "corporate_daily_cap": {
@@ -19982,14 +19881,14 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.CredentialInformation": {
+        "types.CredentialInformation": {
             "type": "object",
             "properties": {
                 "app_secret": {
                     "type": "string"
                 },
                 "environment": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.EnvironmentType"
+                    "$ref": "#/definitions/constants.EnvironmentType"
                 },
                 "fabric_app_id": {
                     "type": "string"
@@ -20017,7 +19916,27 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.GLEntry": {
+        "types.EventInformation": {
+            "type": "object",
+            "properties": {
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "video_link": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.GLEntry": {
             "type": "object",
             "properties": {
                 "product_account": {
@@ -20040,7 +19959,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.LoginPIN": {
+        "types.LoginPIN": {
             "type": "object",
             "properties": {
                 "last_pin_created_at": {
@@ -20057,7 +19976,24 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.PaginationMeta": {
+        "types.MerchantInformation": {
+            "type": "object",
+            "properties": {
+                "merchant_email": {
+                    "type": "string"
+                },
+                "merchant_id": {
+                    "type": "string"
+                },
+                "merchant_name": {
+                    "type": "string"
+                },
+                "merchant_phone_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.PaginationMeta": {
             "type": "object",
             "properties": {
                 "has_next_page": {
@@ -20089,7 +20025,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.Password": {
+        "types.Password": {
             "type": "object",
             "properties": {
                 "current_password": {
@@ -20109,11 +20045,11 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.ProductCode": {
+        "types.ProductCode": {
             "type": "object",
             "properties": {
                 "branchType": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.BranchType"
+                    "$ref": "#/definitions/constants.BranchType"
                 },
                 "id": {
                     "type": "string"
@@ -20129,7 +20065,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.ProductCodes": {
+        "types.ProductCodes": {
             "type": "object",
             "properties": {
                 "prd": {
@@ -20146,7 +20082,7 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.Response": {
+        "types.Response": {
             "type": "object",
             "properties": {
                 "answer": {},
@@ -20159,21 +20095,66 @@ const docTemplate = `{
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.SubAccessList": {
+        "types.Restriction": {
             "type": "object",
             "properties": {
-                "accessListName": {
+                "description": {
                     "type": "string"
                 },
-                "enabled": {
-                    "type": "boolean"
+                "type": {
+                    "$ref": "#/definitions/constants.RestrictionType"
+                }
+            }
+        },
+        "types.Ticket": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
                 },
-                "key": {
+                "name": {
+                    "type": "string"
+                },
+                "number_of_ticker": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }
         },
-        "cbe-super-app-cps-action_internal_constants_types.Tier": {
+        "types.TicketInformation": {
+            "type": "object",
+            "properties": {
+                "total_number_of_available_ticket": {
+                    "type": "integer"
+                },
+                "total_number_of_ticket": {
+                    "type": "integer"
+                },
+                "total_number_of_unsold_ticket": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.TicketStatistics": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "number_of_sold_ticket": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.Tier": {
             "type": "object",
             "properties": {
                 "feeAmount": {
@@ -20187,916 +20168,11 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_handlers_rest_http_account_block.paginated_branch_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
+        "unlink.PaginatedArchieveUserResponse": {
+            "type": "object"
         },
-        "internal_handlers_rest_http_account_block.paginated_city_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.CityResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_account_block.paginated_district_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.DistrictResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_account_block.paginated_region_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_account_block.RegionResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_account_validation.paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ValidationRule"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_ad.paginated_advert_response": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_amount_based_auth.paginated_auth_tier_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.AuthTier"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_avatar.paginatedAvatarResp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Avatar"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_bank.paginatedBankResp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_bank.BankResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_bps_user.bps_user_resp": {
-            "type": "object",
-            "properties": {
-                "UserName": {
-                    "type": "string"
-                },
-                "branch_code": {
-                    "description": "IFB, CB, HomeBranch(CB == Homebranch) ice versa",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "branch_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "first_password_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "home_branch": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_first_time_login": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_modifed_at": {
-                    "type": "string"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "next_login_attempt": {
-                    "type": "string"
-                },
-                "otp_last_tried_at": {
-                    "type": "string"
-                },
-                "otp_last_verified_at": {
-                    "type": "string"
-                },
-                "otp_verfy_count": {
-                    "type": "integer"
-                },
-                "password": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Password"
-                },
-                "permission_group": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "role": {
-                    "description": "enum: maker, checker, aduditer",
-                    "type": "string"
-                },
-                "user_code": {
-                    "description": "generated",
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers_rest_http_bps_user.paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.BPSUser"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_budget.budget_colors_paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Color"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_budget.budget_icons_paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Icon"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_bulk_service.bulk_services_paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.APPAccessList"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_cps_action_handler.cps_action_resp": {
-            "type": "object",
-            "properties": {
-                "action_code": {
-                    "type": "string"
-                },
-                "action_status": {
-                    "type": "string"
-                },
-                "action_type": {
-                    "type": "string"
-                },
-                "checker_action_time": {
-                    "type": "string"
-                },
-                "checker_id": {
-                    "type": "string"
-                },
-                "checker_name": {
-                    "type": "string"
-                },
-                "checker_phone_number": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "current_action": {},
-                "department": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "maker_action_time": {
-                    "type": "string"
-                },
-                "maker_id": {
-                    "type": "string"
-                },
-                "maker_name": {
-                    "type": "string"
-                },
-                "maker_phone_number": {
-                    "type": "string"
-                },
-                "previous_action": {},
-                "rejection_reason": {
-                    "type": "string"
-                },
-                "request_action": {
-                    "type": "string"
-                },
-                "unique_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers_rest_http_cps_action_handler.cps_actions_paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.CPSAction"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_cps_user.cps_user_resp": {
-            "type": "object",
-            "properties": {
-                "country": {
-                    "type": "string",
-                    "example": "Ethiopia"
-                },
-                "date_joined": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "department": {
-                    "type": "string",
-                    "example": "507f1f77bcf86cd799439011"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "john.doe@example.com"
-                },
-                "enabled": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "full_name": {
-                    "type": "string",
-                    "example": "John Doe"
-                },
-                "gender": {
-                    "type": "string",
-                    "example": "Male"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "507f1f77bcf86cd799439011"
-                },
-                "last_modified": {
-                    "type": "string",
-                    "example": "2024-01-15T10:30:00Z"
-                },
-                "permission_category": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[\"507f1f77bcf86cd799439011\"]"
-                    ]
-                },
-                "permission_group": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "[\"507f1f77bcf86cd799439011\"]"
-                    ]
-                },
-                "phone_number": {
-                    "type": "string",
-                    "example": "+251911234567"
-                },
-                "realm": {
-                    "type": "string",
-                    "example": "cps"
-                },
-                "region": {
-                    "type": "string",
-                    "example": "Addis Ababa"
-                },
-                "role": {
-                    "type": "string",
-                    "example": "Maker"
-                },
-                "user_code": {
-                    "type": "string",
-                    "example": "USR001"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "john.doe"
-                }
-            }
-        },
-        "internal_handlers_rest_http_cps_user.cps_users_paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_cps_user.CPSUserDTO"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_customer.customer_resp": {
-            "type": "object",
-            "properties": {
-                "account_branch_type": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.MemberType"
-                },
-                "account_linked": {
-                    "type": "boolean"
-                },
-                "account_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus"
-                },
-                "address": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Address"
-                },
-                "app_version": {
-                    "type": "string"
-                },
-                "application_installation_date": {
-                    "type": "string"
-                },
-                "avater": {
-                    "type": "string"
-                },
-                "birth_date": {
-                    "type": "string"
-                },
-                "blocked_on_cps": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "bps_reject_failed": {
-                    "description": "questioned",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "bps_reject_reason": {
-                    "type": "string"
-                },
-                "bps_reject_status": {
-                    "description": "questioned",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus"
-                        }
-                    ]
-                },
-                "branch_approved": {
-                    "type": "boolean"
-                },
-                "branch_code": {
-                    "type": "string"
-                },
-                "branch_name": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "customer_number": {
-                    "type": "string"
-                },
-                "device_status": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus"
-                },
-                "device_uuid": {
-                    "type": "string"
-                },
-                "district_code": {
-                    "type": "string"
-                },
-                "district_name": {
-                    "type": "string"
-                },
-                "document_back": {
-                    "type": "string"
-                },
-                "document_front": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "first_pin_set": {
-                    "type": "boolean"
-                },
-                "full_name": {
-                    "type": "string"
-                },
-                "gender": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Gender"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "initial_linked_at": {
-                    "type": "string"
-                },
-                "initial_linked_date": {
-                    "type": "string"
-                },
-                "is_account_blocked": {
-                    "type": "boolean"
-                },
-                "is_blocked": {
-                    "description": "default: false",
-                    "type": "boolean"
-                },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "is_self_register": {
-                    "type": "boolean"
-                },
-                "is_verified": {
-                    "type": "boolean"
-                },
-                "issued_date": {
-                    "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus"
-                        }
-                    }
-                },
-                "kyc_level": {
-                    "type": "integer"
-                },
-                "last_account_linked": {
-                    "type": "boolean"
-                },
-                "last_login": {
-                    "type": "string"
-                },
-                "last_login_attempt": {
-                    "type": "string"
-                },
-                "last_main_account": {
-                    "type": "string"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "last_online_date": {
-                    "type": "string"
-                },
-                "loan_score": {
-                    "type": "integer"
-                },
-                "login_attempt_count": {
-                    "type": "integer"
-                },
-                "login_pin": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN"
-                },
-                "main_account": {
-                    "type": "string"
-                },
-                "mother_name": {
-                    "type": "string"
-                },
-                "nationality": {
-                    "type": "string"
-                },
-                "next_attempt_count": {
-                    "type": "string"
-                },
-                "otp_verify_count": {
-                    "type": "integer"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "photo": {
-                    "type": "string"
-                },
-                "pin_changed_at": {
-                    "type": "string"
-                },
-                "platform": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Platform"
-                },
-                "profile_theme_type": {
-                    "type": "string"
-                },
-                "push_token": {
-                    "type": "string"
-                },
-                "realm": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.Realm"
-                },
-                "register_by": {
-                    "type": "object"
-                },
-                "residential_status": {
-                    "type": "string"
-                },
-                "signature": {
-                    "type": "string"
-                },
-                "user_code": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers_rest_http_customer.customers_paginated_resp": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.User"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_donation.paginatedDonationResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation.DonationListResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_donation_category.paginatedDonationCategoryListResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_category.DonationCategoryListResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_donation_company.paginatedDonationCompanyListResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_donation_company.DonationCompanyListResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_notifications.notificationRequest": {
-            "type": "object",
-            "properties": {
-                "created_by": {
-                    "type": "string"
-                },
-                "for": {
-                    "type": "string"
-                },
-                "is_public": {
-                    "type": "boolean"
-                },
-                "notification_body": {
-                    "type": "string"
-                },
-                "notification_type": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_handlers_rest_http_notifications.paginatedNotificationResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_notification.NotificationResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_portal_card.PortalCardPaginatedResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Card"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_product_code.ProductCodePaginatedResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_productcode.ProductCodeResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MaximumTransferCapResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferCapResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedServiceDetails": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ServiceDetails"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_service_details.paginatedServiceFeeResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_unlink.PaginatedArchieveUserResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.ArchivedUser"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
-        },
-        "internal_handlers_rest_http_wallet.PaginatedWalletResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Wallet"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
-                }
-            }
+        "wallet.PaginatedWalletResponse": {
+            "type": "object"
         }
     },
     "securityDefinitions": {

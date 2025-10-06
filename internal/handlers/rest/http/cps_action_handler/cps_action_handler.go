@@ -80,7 +80,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param action_code path string true "Action Code"
-// @Param request body cpsactionDto.ActionRequest true "Rejection request"
+// @Param request body cpsaction.ActionRequest true "Rejection request"
 // @Success 200 {object} localization.StandardResponse{data=nil} "CPS action rejected successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input or missing rejection reason"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"

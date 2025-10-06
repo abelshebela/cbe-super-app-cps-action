@@ -107,7 +107,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse{data=ad_dto.AdvertResponse} "Advert fetched successfully"
+// @Success 200 {object} localization.StandardResponse{data=ad.AdvertResponse} "Advert fetched successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
