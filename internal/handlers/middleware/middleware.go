@@ -23,13 +23,14 @@ import (
 
 func CORS() func(http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
+		// If credentials are used, specify explicit origins in production (browsers block * with credentials).
 		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders: []string{
-			"Accept", "Authorization", "Content-Type", "X-CSRF-Token",
-			"access-control-allow-origin", "x-api-applicationid",
+			"Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Allow-Origin",
+			"Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid",
 		},
-		ExposedHeaders:   []string{"Link"},
+		ExposedHeaders:   []string{},
 		AllowCredentials: true,
 		MaxAge:           300,
 	})
