@@ -9124,51 +9124,6 @@ paths:
       summary: Update HQ password expiry
       tags:
       - HQ
-  /maximum-transfer-caps:
-    get:
-      description: Retrieves all maximum transfer caps with pagination
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Get All Maximum Transfer Caps
-      tags:
-      - ServiceDetails
   /mini-app-merchants:
     get:
       description: Retrieves a paginated list of mini app merchants
@@ -9220,6 +9175,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: List Mini App Merchants
       tags:
       - MiniAppMerchant
@@ -9282,6 +9239,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Create Mini App Merchant
       tags:
       - MiniAppMerchant
@@ -9337,6 +9296,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Delete Mini App Merchant
       tags:
       - MiniAppMerchant
@@ -9396,6 +9357,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Get Mini App Merchant by ID
       tags:
       - MiniAppMerchant
@@ -9467,10 +9430,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Update Mini App Merchant
       tags:
       - MiniAppMerchant
-  /mini-app-merchants/{id}/disable:
+  /mini-app-merchants/disable/{id}:
     patch:
       description: Disables a mini app merchant by ID
       parameters:
@@ -9522,10 +9487,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Disable Mini App Merchant
       tags:
       - MiniAppMerchant
-  /mini-app-merchants/{id}/enable:
+  /mini-app-merchants/enable/{id}:
     patch:
       description: Enables a mini app merchant by ID
       parameters:
@@ -9577,6 +9544,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Enable Mini App Merchant
       tags:
       - MiniAppMerchant
@@ -9960,119 +9929,6 @@ paths:
       summary: Enable a mini app
       tags:
       - MiniApps
-  /minimum-transfer-cap/{id}:
-    put:
-      consumes:
-      - application/json
-      description: Updates minimum transfer cap by service ID
-      parameters:
-      - description: Service ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Minimum Transfer Update DTO
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Not Found
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "422":
-          description: Unprocessable Entity
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Update Minimum Transfer Cap
-      tags:
-      - ServiceDetails
-  /minimum-transfer-caps:
-    get:
-      description: Retrieves all minimum transfer caps with pagination
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Get All Minimum Transfer Caps
-      tags:
-      - ServiceDetails
   /notifications:
     get:
       consumes:
@@ -10444,7 +10300,7 @@ paths:
       summary: Enable a notification
       tags:
       - Notification
-  /password-rules:
+  /password_rule/:
     get:
       description: Retrieves all password rules with pagination
       parameters:
@@ -10495,10 +10351,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Get All Password Rules
       tags:
       - PasswordRule
-  /password-rules/{id}:
+  /password_rule/{id}:
     put:
       consumes:
       - application/json
@@ -10563,10 +10421,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Request Password Rule Update
       tags:
       - PasswordRule
-  /password-rules/check:
+  /password_rule/check:
     post:
       consumes:
       - application/json
@@ -10631,46 +10491,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Check Password Rule
       tags:
       - PasswordRule
-  /permission-categories-with-permissions:
-    get:
-      description: Retrieves all permission categories with their permissions
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Get All Permission Categories With Permissions
-      tags:
-      - Permission
-  /permission-groups:
+  /permissions:
     get:
       description: Retrieves a paginated list of permission groups
       parameters:
@@ -10712,6 +10538,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Get Permission Groups
       tags:
       - Permission
@@ -10774,10 +10602,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Create Permission Group
       tags:
       - Permission
-  /permission-groups/{group_name}:
+  /permissions/{group_name}:
     get:
       description: Retrieves a permission group by its name
       parameters:
@@ -10825,6 +10655,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Get Permission Group by Name
       tags:
       - Permission
@@ -10892,10 +10724,50 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Update Permission Group
       tags:
       - Permission
-  /portal-cards:
+  /permissions/categories:
+    get:
+      description: Retrieves all permission categories with their permissions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_permission.PaginatedPermissionGroupResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Permission Categories With Permissions
+      tags:
+      - Permission
+  /portal_cards:
     get:
       description: Retrieves all portal cards with pagination
       parameters:
@@ -10937,81 +10809,11 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Get All Portal Cards
       tags:
       - PortalCard
-  /product-codes:
-    get:
-      description: Retrieves a paginated list of product codes. Search using service_name.Filter
-        using {_id,service_name,created_at,...}
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Search term
-        in: query
-        name: search
-        type: string
-      - description: filter term
-        in: query
-        name: filter
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Fetch all product codes
-      tags:
-      - ProductCode
   /product-codes/{id}:
     get:
       description: Retrieves a single product code by its unique ID.
@@ -11078,6 +10880,8 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Fetch a product code by ID
       tags:
       - ProductCode
@@ -11157,10 +10961,344 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Update a product code
       tags:
       - ProductCode
-  /service-fee-tire/{id}:
+  /productcodes:
+    get:
+      description: Retrieves a paginated list of product codes. Search using service_name.Filter
+        using {_id,service_name,created_at,...}
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      - description: filter term
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_product_code.ProductCodePaginatedResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Fetch all product codes
+      tags:
+      - ProductCode
+  /service:
+    get:
+      description: Retrieves all services with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedServiceDetails'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Services
+      tags:
+      - ServiceDetails
+  /service/maximum:
+    get:
+      description: Retrieves all maximum transfer caps with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedMaximumTransferCapResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Maximum Transfer Caps
+      tags:
+      - ServiceDetails
+  /service/minimum:
+    get:
+      description: Retrieves all minimum transfer caps with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedMinimumTransferCapResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Minimum Transfer Caps
+      tags:
+      - ServiceDetails
+  /service/minimum_transfer/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates minimum transfer cap by service ID
+      parameters:
+      - description: Service ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Minimum Transfer Update DTO
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update Minimum Transfer Cap
+      tags:
+      - ServiceDetails
+  /service/service_fee:
+    get:
+      description: Retrieves all service fees with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedServiceFeeResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Service Fees
+      tags:
+      - ServiceDetails
+  /service/service_fee/delete/{id}:
     delete:
       description: Deletes service fee tire by service ID
       parameters:
@@ -11208,55 +11346,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Delete Service Fee Tire
       tags:
       - ServiceDetails
-  /service-fees:
-    get:
-      description: Retrieves all service fees with pagination
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedServiceFeeResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Get All Service Fees
-      tags:
-      - ServiceDetails
-  /service-fees/{id}:
+  /service/service_fee/detail/{id}:
     get:
       description: Retrieves service fee detail by service ID
       parameters:
@@ -11304,9 +11399,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Get Service Fee Detail
       tags:
       - ServiceDetails
+  /service/service_fee/update/{id}:
     put:
       consumes:
       - application/json
@@ -11371,55 +11469,12 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Update Service Fee
       tags:
       - ServiceDetails
-  /services:
-    get:
-      description: Retrieves all services with pagination
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_handlers_rest_http_service_details.paginatedServiceDetails'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Get All Services
-      tags:
-      - ServiceDetails
-  /single-max-transfer/{id}:
+  /service/single_transfer_max/update/id}:
     put:
       consumes:
       - application/json
@@ -11484,10 +11539,50 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Update Single Max Transfer
       tags:
       - ServiceDetails
-  /total-max-transfer-cap:
+  /service/total/transfer_cap:
+    get:
+      description: Retrieves all total transfer caps
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Total Transfer Caps
+      tags:
+      - ServiceDetails
+  /service/total_transfer_max/update:
     put:
       consumes:
       - application/json
@@ -11547,43 +11642,9 @@ paths:
                 data:
                   type: object
               type: object
+      security:
+      - BearerAuth: []
       summary: Update Total Max Transfer Cap
-      tags:
-      - ServiceDetails
-  /total-transfer-caps:
-    get:
-      description: Retrieves all total transfer caps
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      summary: Get All Total Transfer Caps
       tags:
       - ServiceDetails
   /unlink/archived_user:

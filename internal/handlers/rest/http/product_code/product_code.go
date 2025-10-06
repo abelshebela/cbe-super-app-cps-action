@@ -31,6 +31,7 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 // @Summary Update a product code
 // @Description Updates an existing product code by its ID. This is a pending action that requires approval.
 // @Tags ProductCode
+// @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param id path string true "Product Code ID"
@@ -79,6 +80,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 // @Summary Fetch a product code by ID
 // @Description Retrieves a single product code by its unique ID.
 // @Tags ProductCode
+// @Security BearerAuth
 // @Produce json
 // @Param id path string true "Product Code ID"
 // @Success 200 {object} localization.StandardResponse{data=dto.ProductCodeResponse}
@@ -105,6 +107,7 @@ type ProductCodePaginatedResponse types.PaginatedResponse[[]*dto.ProductCodeResp
 // @Summary Fetch all product codes
 // @Description Retrieves a paginated list of product codes. Search using service_name.Filter using {_id,service_name,created_at,...}
 // @Tags ProductCode
+// @Security BearerAuth
 // @Produce json
 // @Param page query int false "Page number"
 // @Param per_page query int false "Items per page"
@@ -112,7 +115,7 @@ type ProductCodePaginatedResponse types.PaginatedResponse[[]*dto.ProductCodeResp
 // @Param filter query string false "filter term"
 // @Success 200 {object} localization.StandardResponse{data=ProductCodePaginatedResponse}
 // @Failure 400,401,403,500 {object} localization.StandardResponse{data=nil}
-// @Router /product-codes [get]
+// @Router /productcodes [get]
 func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Request) {
 	filterParams := utils.ExtractFilterParams(r)
 	list, err := h.productCodeApplication.FetchAllProductCodes(r.Context(), filterParams)

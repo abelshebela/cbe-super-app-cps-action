@@ -29,12 +29,13 @@ func InitPermissionHandler(svc service.PermissionService, logger utils.Logger) p
 // @Summary Create Permission Group
 // @Description Creates a new permission group
 // @Tags Permission
+// @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param body body permission.CreatePermissionGroupRequest true "Create Permission Group DTO"
 // @Success 201 {object} localization.StandardResponse{data=nil}
 // @Failure 400,401,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /permission-groups [post]
+// @Router /permissions [post]
 func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	var request permission.CreatePermissionGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -70,12 +71,13 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 // @Summary Get Permission Groups
 // @Description Retrieves a paginated list of permission groups
 // @Tags Permission
+// @Security BearerAuth
 // @Produce json
 // @Param page query int false "Page number"
 // @Param per_page query int false "Items per page"
 // @Success 200 {object} localization.StandardResponse{data=permission.PaginatedPermissionGroupResponse}
 // @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /permission-groups [get]
+// @Router /permissions [get]
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
 	filterparams := common_utils.ExtractFilterParams(r)
 	permissionGroups, err := h.PermissionService.GetPermissionGroups(r.Context(), filterparams)
@@ -91,11 +93,12 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 // @Summary Get Permission Group by Name
 // @Description Retrieves a permission group by its name
 // @Tags Permission
+// @Security BearerAuth
 // @Produce json
 // @Param group_name path string true "Group Name"
 // @Success 200 {object} localization.StandardResponse{data=permission.PermissionCategoryResponse}
 // @Failure 400,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /permission-groups/{group_name} [get]
+// @Router /permissions/{group_name} [get]
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
 	permissionGroup, err := h.PermissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
 	if err != nil {
@@ -110,13 +113,14 @@ func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Re
 // @Summary Update Permission Group
 // @Description Updates an existing permission group
 // @Tags Permission
+// @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param group_name path string true "Group Name"
 // @Param body body permission.UpdatePermissionGroupRequest true "Update Permission Group DTO"
 // @Success 200 {object} localization.StandardResponse{data=nil}
 // @Failure 400,404,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /permission-groups/{group_name} [put]
+// @Router /permissions/{group_name} [put]
 func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http.Request) {
 	var request permission.UpdatePermissionGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -161,10 +165,11 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 // @Summary Get All Permission Categories With Permissions
 // @Description Retrieves all permission categories with their permissions
 // @Tags Permission
+// @Security BearerAuth
 // @Produce json
 // @Success 200 {object} localization.StandardResponse{data=permission.PaginatedPermissionGroupResponse}
 // @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /permission-categories-with-permissions [get]
+// @Router /permissions/categories [get]
 func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.ResponseWriter, r *http.Request) {
 	categories, err := h.PermissionService.GetAllPermissionCategoriesWithPermissions(r.Context())
 	if err != nil {
