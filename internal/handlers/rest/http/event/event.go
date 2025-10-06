@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	eventcore "cbe-super-app-cps-action/internal/handlers/rest/http/event/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -250,6 +251,7 @@ func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Router /events/{id} [get]
 func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
+	var _ model.Event
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorEventIDRequired, nil, nil)

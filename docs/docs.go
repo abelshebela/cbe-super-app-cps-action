@@ -9978,6 +9978,27 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Events retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.PaginatedEventResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -10478,6 +10499,24 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Event retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Event"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "400": {
                         "description": "Bad request",
                         "schema": {
@@ -17197,6 +17236,19 @@ const docTemplate = `{
                 "ProductionEnvironment"
             ]
         },
+        "cbe-super-app-cps-action_internal_constants.EventStatus": {
+            "type": "string",
+            "enum": [
+                "UPCOMMING",
+                "LIVE",
+                "CLOSED"
+            ],
+            "x-enum-varnames": [
+                "EventUpcomming",
+                "EventLive",
+                "EventClosed"
+            ]
+        },
         "cbe-super-app-cps-action_internal_constants.Gender": {
             "type": "string",
             "enum": [
@@ -17275,6 +17327,15 @@ const docTemplate = `{
                 "MERCHANT_REALM",
                 "COMPANY_REALM",
                 "MEMBER_REALM"
+            ]
+        },
+        "cbe-super-app-cps-action_internal_constants.RestrictionType": {
+            "type": "string",
+            "enum": [
+                "AGE_RESTRICTION"
+            ],
+            "x-enum-varnames": [
+                "AgeRestriction"
             ]
         },
         "cbe-super-app-cps-action_internal_constants.Stage": {
@@ -19415,6 +19476,83 @@ const docTemplate = `{
                 }
             }
         },
+        "cbe-super-app-cps-action_internal_constants_model.Event": {
+            "type": "object",
+            "properties": {
+                "accountNumber": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "eventCity": {
+                    "type": "string"
+                },
+                "eventCode": {
+                    "type": "string"
+                },
+                "eventInformation": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.EventInformation"
+                },
+                "eventName": {
+                    "type": "string"
+                },
+                "eventVenue": {
+                    "type": "string"
+                },
+                "hasRestriction": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "lastModifiedAt": {
+                    "type": "string"
+                },
+                "merchantInformation": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.MerchantInformation"
+                },
+                "micsinfo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "refundPolicy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "restriction": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Restriction"
+                },
+                "status": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.EventStatus"
+                },
+                "ticket": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.Ticket"
+                    }
+                },
+                "ticketInformation": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.TicketInformation"
+                },
+                "ticketStatistics": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.TicketStatistics"
+                }
+            }
+        },
         "cbe-super-app-cps-action_internal_constants_model.Icon": {
             "type": "object",
             "properties": {
@@ -19459,6 +19597,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Department"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_model.PaginatedEventResponse": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_model.Event"
                     }
                 },
                 "meta": {
@@ -20017,6 +20169,26 @@ const docTemplate = `{
                 }
             }
         },
+        "cbe-super-app-cps-action_internal_constants_types.EventInformation": {
+            "type": "object",
+            "properties": {
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "video_link": {
+                    "type": "string"
+                }
+            }
+        },
         "cbe-super-app-cps-action_internal_constants_types.GLEntry": {
             "type": "object",
             "properties": {
@@ -20054,6 +20226,23 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.MerchantInformation": {
+            "type": "object",
+            "properties": {
+                "merchant_email": {
+                    "type": "string"
+                },
+                "merchant_id": {
+                    "type": "string"
+                },
+                "merchant_name": {
+                    "type": "string"
+                },
+                "merchant_phone_number": {
+                    "type": "string"
                 }
             }
         },
@@ -20159,6 +20348,17 @@ const docTemplate = `{
                 }
             }
         },
+        "cbe-super-app-cps-action_internal_constants_types.Restriction": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants.RestrictionType"
+                }
+            }
+        },
         "cbe-super-app-cps-action_internal_constants_types.SubAccessList": {
             "type": "object",
             "properties": {
@@ -20170,6 +20370,54 @@ const docTemplate = `{
                 },
                 "key": {
                     "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.Ticket": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number_of_ticker": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.TicketInformation": {
+            "type": "object",
+            "properties": {
+                "total_number_of_available_ticket": {
+                    "type": "integer"
+                },
+                "total_number_of_ticket": {
+                    "type": "integer"
+                },
+                "total_number_of_unsold_ticket": {
+                    "type": "integer"
+                }
+            }
+        },
+        "cbe-super-app-cps-action_internal_constants_types.TicketStatistics": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "number_of_sold_ticket": {
+                    "type": "integer"
+                },
+                "revenue": {
+                    "type": "integer"
                 }
             }
         },

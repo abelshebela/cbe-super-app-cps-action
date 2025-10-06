@@ -82,6 +82,16 @@ definitions:
     - DevEnvironment
     - TestEnvironment
     - ProductionEnvironment
+  cbe-super-app-cps-action_internal_constants.EventStatus:
+    enum:
+    - UPCOMMING
+    - LIVE
+    - CLOSED
+    type: string
+    x-enum-varnames:
+    - EventUpcomming
+    - EventLive
+    - EventClosed
   cbe-super-app-cps-action_internal_constants.Gender:
     enum:
     - MALE
@@ -144,6 +154,12 @@ definitions:
     - MERCHANT_REALM
     - COMPANY_REALM
     - MEMBER_REALM
+  cbe-super-app-cps-action_internal_constants.RestrictionType:
+    enum:
+    - AGE_RESTRICTION
+    type: string
+    x-enum-varnames:
+    - AgeRestriction
   cbe-super-app-cps-action_internal_constants.Stage:
     enum:
     - UAT
@@ -1560,6 +1576,57 @@ definitions:
           type: string
         type: array
     type: object
+  cbe-super-app-cps-action_internal_constants_model.Event:
+    properties:
+      accountNumber:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        type: string
+      enabled:
+        type: boolean
+      eventCity:
+        type: string
+      eventCode:
+        type: string
+      eventInformation:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.EventInformation'
+      eventName:
+        type: string
+      eventVenue:
+        type: string
+      hasRestriction:
+        type: boolean
+      id:
+        type: string
+      isDeleted:
+        type: boolean
+      lastModifiedAt:
+        type: string
+      merchantInformation:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.MerchantInformation'
+      micsinfo:
+        items:
+          type: string
+        type: array
+      refundPolicy:
+        items:
+          type: string
+        type: array
+      restriction:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Restriction'
+      status:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.EventStatus'
+      ticket:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Ticket'
+        type: array
+      ticketInformation:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.TicketInformation'
+      ticketStatistics:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.TicketStatistics'
+    type: object
   cbe-super-app-cps-action_internal_constants_model.Icon:
     properties:
       created_at:
@@ -1589,6 +1656,15 @@ definitions:
       docs:
         items:
           $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Department'
+        type: array
+      meta:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
+    type: object
+  cbe-super-app-cps-action_internal_constants_model.PaginatedEventResponse:
+    properties:
+      docs:
+        items:
+          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Event'
         type: array
       meta:
         $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
@@ -1956,6 +2032,19 @@ definitions:
       timestamp:
         type: string
     type: object
+  cbe-super-app-cps-action_internal_constants_types.EventInformation:
+    properties:
+      cover:
+        type: string
+      description:
+        type: string
+      due_date:
+        type: string
+      start_date:
+        type: string
+      video_link:
+        type: string
+    type: object
   cbe-super-app-cps-action_internal_constants_types.GLEntry:
     properties:
       product_account:
@@ -1981,6 +2070,17 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.MerchantInformation:
+    properties:
+      merchant_email:
+        type: string
+      merchant_id:
+        type: string
+      merchant_name:
+        type: string
+      merchant_phone_number:
+        type: string
     type: object
   cbe-super-app-cps-action_internal_constants_types.PaginationMeta:
     properties:
@@ -2049,6 +2149,13 @@ definitions:
       type:
         type: string
     type: object
+  cbe-super-app-cps-action_internal_constants_types.Restriction:
+    properties:
+      description:
+        type: string
+      type:
+        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.RestrictionType'
+    type: object
   cbe-super-app-cps-action_internal_constants_types.SubAccessList:
     properties:
       accessListName:
@@ -2057,6 +2164,37 @@ definitions:
         type: boolean
       key:
         type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.Ticket:
+    properties:
+      category:
+        type: string
+      name:
+        type: string
+      number_of_ticker:
+        type: integer
+      price:
+        type: integer
+      type:
+        type: string
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.TicketInformation:
+    properties:
+      total_number_of_available_ticket:
+        type: integer
+      total_number_of_ticket:
+        type: integer
+      total_number_of_unsold_ticket:
+        type: integer
+    type: object
+  cbe-super-app-cps-action_internal_constants_types.TicketStatistics:
+    properties:
+      category:
+        type: string
+      number_of_sold_ticket:
+        type: integer
+      revenue:
+        type: integer
     type: object
   cbe-super-app-cps-action_internal_constants_types.Tier:
     properties:
@@ -8186,6 +8324,17 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: Events retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.PaginatedEventResponse'
+                  type: array
+              type: object
         "500":
           description: Internal server error
           schema:
@@ -8423,6 +8572,15 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: Event retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Event'
+              type: object
         "400":
           description: Bad request
           schema:
