@@ -45,6 +45,18 @@ func isImageFormat(fileHeader *multipart.FileHeader) bool {
 		return false
 	}
 	contentType := fileHeader.Header.Get("Content-Type")
+
+	// Acceptable image formats
+	ext := strings.ToLower(strings.TrimPrefix(strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, "."):]), "."))
+	switch ext {
+	case "jpg", "jpeg":
+		contentType = "image/jpeg"
+	case "png":
+		contentType = "image/png"
+	case "gif":
+		contentType = "image/gif"
+	}
+
 	switch contentType {
 	case "image/jpeg", "image/png", "image/gif":
 		return true

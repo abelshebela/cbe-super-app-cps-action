@@ -149,15 +149,17 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error {
 	s.logger.Infof("UpdateMiniApp called, app_id: %s", req.ID)
 
-	isValidMerchant, err := miniappcore.ValidMerchantChecker(ctx, req.MerchantID, s.merchantService)
-	if err != nil {
-		s.logger.Errorf("IsValidMerchant failed, error: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	if req.MerchantID != "" {
+		isValidMerchant, err := miniappcore.ValidMerchantChecker(ctx, req.MerchantID, s.merchantService)
+		if err != nil {
+			s.logger.Errorf("IsValidMerchant failed, error: %v", err)
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
 
-	if !isValidMerchant {
-		s.logger.Errorf("Invalid merchant ID provided: %s", req.MerchantID)
-		return errors.New(localization.ErrorInvalidMerchantID.Code)
+		if !isValidMerchant {
+			s.logger.Errorf("Invalid merchant ID provided: %s", req.MerchantID)
+			return errors.New(localization.ErrorInvalidMerchantID.Code)
+		}
 	}
 
 	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
