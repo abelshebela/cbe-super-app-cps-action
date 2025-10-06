@@ -1,8 +1,10 @@
 package donation_company
 
 import (
+	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
 
@@ -13,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
+type paginatedDonationCompanyListResponse types.PaginatedResponse[[]donation_company.DonationCompanyListResponse]
 type donationCompanyAdapter struct {
 	logger             utils.Logger
 	donationCompanyApp service.DonationCompanyService
@@ -34,7 +37,7 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=[]model.PaginatedDonationCompanyResponse} "Donation companies retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=paginatedDonationCompanyListResponse} "Donation companies retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
 // @Router /donation_company [get]
