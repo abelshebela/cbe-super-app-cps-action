@@ -18,7 +18,8 @@ func ParseMiniAppRequestFromMultipartForm(r *http.Request, isCreate bool) (minia
 
 	file, fileHeader, err := utils.ParseMultipartFormFile(r, "app_icon", 10<<20)
 	if err != nil {
-		if err.Error() != localization.ErrorMissingFile.Code || isCreate {
+
+		if err.Error() != localization.ErrorMissingFile.Code && err.Error() != "http: no such file" {
 			log.Println("Failed to upload app_icon: " + err.Error())
 			return req, errors.New(localization.ErrorInvalidFileUpload.Code)
 		}

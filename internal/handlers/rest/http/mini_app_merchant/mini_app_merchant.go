@@ -48,7 +48,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Validate DTO
 	if err := reqDTO.Validate(true); err != nil {
 		h.logger.Errorf("Validation failed: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w,err.Error())
 		return
 	}
 

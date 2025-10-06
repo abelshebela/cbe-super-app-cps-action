@@ -24,7 +24,6 @@ func ToMiniAppMerchantResponseDTO(domain *model.MiniAppMerchant) *dto.MiniAppMer
 			},
 		},
 		AccountNumber: domain.BankAccountNumber,
-		MiniApps:      domain.MiniApps,
 		Enabled:       domain.Enabled,
 		IsDeleted:     domain.IsDeleted,
 		CreatedAt:     domain.CreatedAt,

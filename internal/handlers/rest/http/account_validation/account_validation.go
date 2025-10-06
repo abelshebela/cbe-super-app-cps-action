@@ -35,7 +35,7 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 // @Accept json
 // @Produce json
 // @Param id path string true "Validation Rule ID"
-// @Success 200 {object} localization.StandardResponse{data=dto.ValidationRuleDTO} "Validation rule retrieved"
+// @Success 200 {object} localization.StandardResponse{data=accountvalidation.ValidationRuleDTO} "Validation rule retrieved"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -66,7 +66,7 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param id path string true "Validation Rule ID"
-// @Param request body dto.ValidationRuleDTO true "Validation rule data" example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
+// @Param request body accountvalidation.ValidationRuleDTO true "Validation rule data" example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Validation rule updated"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Validation failed"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
