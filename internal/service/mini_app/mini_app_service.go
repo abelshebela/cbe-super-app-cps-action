@@ -19,6 +19,8 @@ import (
 	"cbe-super-app-cps-action/pkgs/keygen"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"strings"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -66,20 +68,10 @@ func NewMiniAppService(
 
 func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error {
 	s.logger.Infof("CreateMiniApp called, app_name: %s", req.AppName)
-
-	isValidMerchant, err := miniappcore.ValidMerchantChecker(ctx, req.MerchantID, s.merchantService)
-	if err != nil {
-		s.logger.Errorf("IsValidMerchant failed, error: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorInvalidMerchantID.Code)
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+	if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
+		s.logger.Errorf("SetMerchantDetails failed, error: %v", err)
+		return err
 	}
-	if !isValidMerchant {
-		s.logger.Errorf("Invalid merchant ID provided: %s", req.MerchantID)
-		return errors.New(localization.ErrorInvalidMerchantID.Code)
-	}
-
 	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, true, "", req.AppName)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
@@ -91,20 +83,6 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 	if !isValidMMiniAppName {
 		s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
 		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
-	}
-
-	if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
-		s.logger.Errorf("SetMerchantDetails failed, error: %v", err)
-		return err
-	}
-	existing, err := s.repo.Find(ctx, req.AppName)
-	if err != nil {
-		s.logger.Errorf("Find failed: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	if existing != nil {
-		s.logger.Warnf("MiniApp already exists: %s", req.AppName)
-		return errors.New(localization.ErrorMiniAppAlreadyExists.Code)
 	}
 
 	var appIconURL, bannerImageURL string
@@ -149,17 +127,25 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error {
 	s.logger.Infof("UpdateMiniApp called, app_id: %s", req.ID)
 
-	if req.MerchantID != "" {
-		isValidMerchant, err := miniappcore.ValidMerchantChecker(ctx, req.MerchantID, s.merchantService)
-		if err != nil {
-			s.logger.Errorf("IsValidMerchant failed, error: %v", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
+	prevMiniApp, err := s.repo.FindByID(ctx, req.ID)
+	if err != nil {
+		s.logger.Errorf("FindByID failed, app_id: %s, error: %v", req.ID, err)
+		return errors.New(localization.ErrorMiniAppNotFound.Code)
+	}
 
-		if !isValidMerchant {
-			s.logger.Errorf("Invalid merchant ID provided: %s", req.MerchantID)
-			return errors.New(localization.ErrorInvalidMerchantID.Code)
-		}
+	if prevMiniApp.IsDeleted {
+		s.logger.Errorf("MiniApp is deleted, app_id: %s", req.ID)
+		return errors.New(localization.ErrorMiniAppNotFound.Code)
+	}
+
+	merchant, mErr := s.merchantService.FindByID(ctx, prevMiniApp.MerchantID)
+	if mErr != nil {
+		s.logger.Errorf("Parent merchant not found for update, app_id: %s", req.ID)
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	if err := miniappcore.ValidateParentMerchantForOperationEntity(merchant); err != nil {
+		s.logger.Errorf("Parent merchant validation failed, app_id: %s, error: %v", req.ID, err)
+		return err
 	}
 
 	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
@@ -173,16 +159,13 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
 	}
 
-	if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
-		s.logger.Errorf("SetMerchantDetails failed, app_id: %s, error: %v", req.ID, err)
-		return err
+	if strings.TrimSpace(req.MerchantID) != "" {
+		if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
+			s.logger.Errorf("SetMerchantDetails failed, app_id: %s, error: %v", req.ID, err)
+			return err
+		}
 	}
 
-	prevMiniApp, err := s.repo.FindByID(ctx, req.ID)
-	if err != nil {
-		s.logger.Errorf("FindByID failed, app_id: %s, error: %v", req.ID, err)
-		return errors.New(localization.ErrorMiniAppNotFound.Code)
-	}
 	miniApp := miniappcore.BuildMiniAppFromRequest(*req, false)
 
 	var appIconURL, bannerImageURL string
@@ -229,6 +212,11 @@ func (s *miniAppService) DeleteMiniApp(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorMiniAppNotFound.Code)
 	}
 
+	if prevMiniApp.IsDeleted {
+		s.logger.Errorf("MiniApp is already deleted, app_id: %s", id)
+		return errors.New(localization.ErrorMiniAppNotFound.Code)
+	}
+
 	miniApp := *prevMiniApp
 	miniApp.IsDeleted = true
 	miniApp.DeletedAt = time.Now()
@@ -250,13 +238,37 @@ func (s *miniAppService) EnableDisableMiniAppByID(ctx context.Context, id string
 		return errors.New(localization.ErrorMiniAppNotFound.Code)
 	}
 
-	if enable && prevMiniApp.Enabled {
-		s.logger.Warnf("MiniApp already enabled, app_id: %s", id)
-		return errors.New(localization.ErrorMiniAppAlreadyEnabled.Code)
+	if prevMiniApp.IsDeleted {
+		s.logger.Errorf("MiniApp is deleted, app_id: %s", id)
+		return errors.New(localization.ErrorMiniAppNotFound.Code)
 	}
-	if !enable && !prevMiniApp.Enabled {
-		s.logger.Warnf("MiniApp already disabled, app_id: %s", id)
-		return errors.New(localization.ErrorMiniAppAlreadyDisabled.Code)
+
+	if enable {
+		merchant, mErr := s.merchantService.FindByID(ctx, prevMiniApp.MerchantID)
+		if mErr != nil {
+			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+		}
+		if err := miniappcore.ValidateParentMerchantForEnableEntity(merchant); err != nil {
+			s.logger.Errorf("Parent merchant validation failed for enable, app_id: %s, error: %v", id, err)
+			return err
+		}
+		if prevMiniApp.Enabled {
+			s.logger.Warnf("MiniApp already enabled, app_id: %s", id)
+			return errors.New(localization.ErrorMiniAppAlreadyEnabled.Code)
+		}
+	} else {
+		merchant, mErr := s.merchantService.FindByID(ctx, prevMiniApp.MerchantID)
+		if mErr != nil {
+			return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+		}
+		if err := miniappcore.ValidateParentMerchantForOperationEntity(merchant); err != nil {
+			s.logger.Errorf("Parent merchant validation failed for disable, app_id: %s, error: %v", id, err)
+			return err
+		}
+		if !prevMiniApp.Enabled {
+			s.logger.Warnf("MiniApp already disabled, app_id: %s", id)
+			return errors.New(localization.ErrorMiniAppAlreadyDisabled.Code)
+		}
 	}
 
 	miniApp := *prevMiniApp
@@ -284,8 +296,14 @@ func (s *miniAppService) FindByID(ctx context.Context, id string) (*model.MiniAp
 	miniApp, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("FindByID failed, app_id: %s, error: %v", id, err)
-		return nil, err
+		return nil, errors.New(localization.ErrorMiniAppNotFound.Code)
 	}
+
+	if miniApp.IsDeleted {
+		s.logger.Errorf("MiniApp is deleted, app_id: %s", id)
+		return nil, errors.New(localization.ErrorMiniAppNotFound.Code)
+	}
+
 	decryptedSecret, err := s.keyGenService.DecryptAppSecret(miniApp.Credential.AppSecret)
 	if err != nil {
 		s.logger.Errorf("Failed to decrypt AppSecret for MiniApp %s, Environment %v: %v", id, constants.UatEnvironment, err)
@@ -317,46 +335,21 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			if err := s.repo.Create(ctx, miniApp); err != nil {
-				return err
-			}
-			return s.merchantService.AddMiniApp(ctx, miniApp.MerchantID, model.MiniApps{
-				ID:        cpsAction.UniqueId,
-				Enabled:   miniApp.Enabled,
-				IsDeleted: miniApp.IsDeleted,
-			})
+			return s.repo.Create(ctx, miniApp)
 		})
 
 	case string(constants.RequestUpdateMiniApp):
 		err = s.repo.Update(ctx, cpsAction.UniqueId, miniApp)
 
 	case string(constants.RequestDeleteMiniApp):
-		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			if err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
-				s.logger.Errorf("Failed DeleteMiniAppAction repo: %v", err)
-				return err
-			}
-			return s.merchantService.SoftDeleteMiniApp(ctx, miniApp.MerchantID, cpsAction.UniqueId)
-		})
+		err = s.repo.Delete(ctx, cpsAction.UniqueId)
 
 	case string(constants.RequestEnableMiniApp):
 
-		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			s.logger.Debugf("Processing EnableMiniApp for ID: %s", cpsAction.UniqueId)
-			if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
-				return err
-			}
-			return s.merchantService.UpdateMiniAppEnabledState(ctx, miniApp.MerchantID, cpsAction.UniqueId, true)
-		})
+		err = s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 
 	case string(constants.RequestDisableMiniApp):
-		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			s.logger.Debugf("Processing DisableMiniApp for ID: %s", cpsAction.UniqueId)
-			if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
-				return err
-			}
-			return s.merchantService.UpdateMiniAppEnabledState(ctx, miniApp.MerchantID, cpsAction.UniqueId, false)
-		})
+		err = s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 
 	default:
 		s.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)

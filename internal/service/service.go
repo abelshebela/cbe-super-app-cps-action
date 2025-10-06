@@ -174,9 +174,6 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
-	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
-	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
 	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
