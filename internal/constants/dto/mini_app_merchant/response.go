@@ -2,6 +2,7 @@ package miniappmerchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 )
 
@@ -17,4 +18,9 @@ type MiniAppMerchantResponseDTO struct {
 	IsDeleted     bool             `json:"is_deleted"`
 	CreatedAt     time.Time        `json:"created_at"`
 	LastModified  time.Time        `json:"last_modified"`
+}
+
+type PaginatedMiniAppResponseResponse struct {
+	Data []MiniAppMerchantResponseDTO `json:"docs"`
+	Meta types.PaginationMeta         `json:"meta"`
 }
