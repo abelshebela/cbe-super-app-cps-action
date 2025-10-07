@@ -48,7 +48,7 @@ func AccountNumberExists(ctx context.Context, accountNumber string, donationComp
 	return false, nil
 }
 
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountInfo,error) {
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountInfo, error) {
 	// Create account lookup request
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
@@ -57,28 +57,28 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 	// Call external account lookup service
 	accountInfo, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
 	if err != nil {
-		return nil,errors.New(localization.ErrorAccountNumberValidationFailed.Code)
+		return nil, err
 	}
 
 	// Check if account is active and valid
 	if accountInfo == nil {
-		return nil,errors.New(localization.ErrorAccountNumberNotFound.Code)
+		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
 	// Additional validation checks
 	if !accountInfo.ActiveAccount {
-		return nil,errors.New(localization.ErrorAccountNumberNotActive.Code)
+		return nil, errors.New(localization.ErrorAccountNumberNotActive.Code)
 	}
 
 	if accountInfo.AccountFrozen {
-		return nil,errors.New(localization.ErrorAccountNumberNotActive.Code)
+		return nil, errors.New(localization.ErrorAccountNumberNotActive.Code)
 	}
 
 	if accountInfo.AccountDormant {
-		return nil,errors.New(localization.ErrorAccountNumberNotActive.Code)
+		return nil, errors.New(localization.ErrorAccountNumberNotActive.Code)
 	}
 
-	return accountInfo,nil
+	return accountInfo, nil
 }
 
 func BindAction(source any, target any) error {
@@ -188,8 +188,7 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 		}
 
 		// Validate account number with external API
-		if _,err := ValidateAccountNumberWithExternalAPI(ctx, request.AccountNumber, accountLookupService); 
-		err != nil {
+		if _, err := ValidateAccountNumberWithExternalAPI(ctx, request.AccountNumber, accountLookupService); err != nil {
 			return err
 		}
 	}
