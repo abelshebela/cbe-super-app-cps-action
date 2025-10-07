@@ -195,6 +195,7 @@ type PermissionService interface {
 	CreatePermissionGroup(ctx context.Context, req permission_dto.CreatePermissionGroupRequest) error
 	UpdatePermissionGroup(ctx context.Context, req permission_dto.UpdatePermissionGroupRequest) error
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context,id string) (*model.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
 

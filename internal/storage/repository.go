@@ -462,6 +462,7 @@ type PermissionRepository interface {
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context,id string)(*model.PermissionGroup, error)
 }
 
 // ExternalCallServices type alias for external call services
