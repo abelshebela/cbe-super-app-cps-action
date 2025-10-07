@@ -50,6 +50,15 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/account_lookup/{account_number}",
+			Handler: handler.AccountLookup,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
