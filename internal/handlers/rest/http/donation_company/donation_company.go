@@ -174,3 +174,21 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 	d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdated, nil)
 }
+
+func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request){
+	accountNumber := chi.URLParam(r, "account_number")
+	if accountNumber == "" {
+		d.logger.Errorf("account nmumber is required to fetch one")
+		localization.SendErrorResponse(w, localization.ErrorAccountNumberRequired, nil, nil)
+		return
+	}
+	ctx := r.Context()
+
+	accountInfo, err := d.donationCompanyApp.AccountLookup(ctx, accountNumber)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessAccountInfoFetched, accountInfo)
+}

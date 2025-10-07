@@ -7,4 +7,5 @@ type DonationCompanyAdapter interface {
 	UpdateDonationCompany(w http.ResponseWriter, r *http.Request)
 	FetchDonationCompany(w http.ResponseWriter, r *http.Request)
 	FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request)
+	AccountLookup(w http.ResponseWriter, r *http.Request)
 }

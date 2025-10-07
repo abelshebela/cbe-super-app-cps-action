@@ -28,6 +28,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessOTPSent,
 	SuccessDonationCompanyLogoUploaded,
 	SuccessDonationCompanyLogoUpdated,
+	SuccessDonationCompanyFetched,
+	SuccessAccountInfoFetched,
+
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
 	SuccessNotificationConstructed,
@@ -171,7 +174,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
-	ErrorAccountNumberRequired,
+	
 	ErrorActionNotFound,
 	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
@@ -396,7 +399,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberAlreadyExists,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
+	ErrorAccountNumberNotActive,
+	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
+	
 	ErrorDonationCompanyLookupFailed,
 
 	SuccessDonationCompanyUpdated,
@@ -683,6 +689,13 @@ var (
 		Message:    MsgDonationCompanyFetched,
 		Type:       "success",
 	}
+	SuccessAccountInfoFetched = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_INFO_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountInfoFetched,
+		Type:       "success",
+	}
+
 
 	SuccessDonationCompanyUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED_REQUEST_SENT",
@@ -2712,14 +2725,6 @@ var (
 		Message:    MsgActionAlreadyExists,
 		Type:       "error",
 	}
-
-	ErrorAccountNumberRequired = ResponseCode{
-		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
-		StatusCode: StatusBadRequest,
-		Message:    MSGAccountNumberRequired,
-		Type:       "error",
-	}
-
 	ErrorDuplicateColorExists = ResponseCode{
 		Code:       "ERROR_DUPLICATE_COLOR",
 		StatusCode: StatusBadRequest,
@@ -3836,6 +3841,13 @@ var (
 		Message:    MsgDonationCompanyIdRequired,
 		Type:       "error",
 	}
+	ErrorAccountNumberRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNumberRequired,
+		Type:       "error",
+	}
+
 
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
@@ -3865,12 +3877,25 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAccountNumberNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNotFound,
+		Type:       "error",
+	}
+	ErrorAccountNumberNotActive = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_NOT_ACTIVE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNotActive,
+		Type:       "error",
+	}
 	ErrorAccountNumberValidationFailed = ResponseCode{
 		Code:       "ERROR_ACCOUNT_NUMBER_VALIDATION_FAILED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberValidationFailed,
 		Type:       "error",
 	}
+
 
 	ErrorDonationCategoryNameDuplicated = ResponseCode{
 		Code:       "ERROR_DONATION_CATEGORY_NAME_DUPLICATED",

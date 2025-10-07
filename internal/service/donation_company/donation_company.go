@@ -84,7 +84,8 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	}
 
 	// Validate account number with external API
-	if err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); err != nil {
+	if _,err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); 
+	err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return err
 	}
@@ -194,4 +195,16 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 	d.logger.Infof("Service action authorization completed: %s", action.RequestAction)
 	return action, nil
+}
+
+
+// Account lookup end point 
+
+func (d *DonationCompany) AccountLookup(ctx context.Context,accountNumber string )(*model.AccountInfo,error){
+	account,err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
+	if err != nil {
+		d.logger.Errorf("Account number validation failed: %v", err)
+		return nil,err
+	}
+	return account,nil
 }
