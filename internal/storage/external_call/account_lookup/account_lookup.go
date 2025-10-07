@@ -85,7 +85,7 @@ func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, acc
 
 	// Account not found in mock data
 	b.logger.Warnf("Account number %s not found in mock data", account.AccountNumber)
-	return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 }
 
 func (b *accountAPIClient) LookupAccountByPhone(ctx context.Context, phone string) (bool, error) {
