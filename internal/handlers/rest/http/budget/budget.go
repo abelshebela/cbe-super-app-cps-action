@@ -172,7 +172,7 @@ func (b *budgetAdapter) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 // @Tags Budget Colors
 // @Accept json
 // @Produce json
-// @Param request body budget.BudgetCreateColor true "Budget color creation request"
+// @Param request body budget_dto.BudgetCreateColor true "Budget color creation request"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Budget color creation request submitted for approval"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input"
 // @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
@@ -254,7 +254,7 @@ func (b *budgetAdapter) BudgetFetchColors(w http.ResponseWriter, r *http.Request
 // @Accept json
 // @Produce json
 // @Param id path string true "Color ID"
-// @Param request body budget.UpdateColorRequest true "Budget color update request"
+// @Param request body budget_dto.UpdateColorRequest true "Budget color update request"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Budget color update request submitted for approval"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input"
 // @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
