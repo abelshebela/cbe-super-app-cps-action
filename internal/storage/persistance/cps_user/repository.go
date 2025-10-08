@@ -88,7 +88,7 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*model.CPSUse
 	} else {
 		filter = bson.M{"user_code": id, "is_deleted": false}
 	}
-	result, err := r.dal.FindOne(ctx, filter, nil)
+	result, err := r.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorFileNotFound.Code)

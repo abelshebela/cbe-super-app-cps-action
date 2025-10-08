@@ -179,11 +179,12 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
 	}
 
-	updated := prev
+	updated := *prev
 	updated.Enabled = true
+	updated.PasswordDisable = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
-	cpsAction := lib.CpsModelBuilder(userCode, maker, prev, &updated, string(constants.RequestCpsUserEnable), constants.UPDATE)
+	cpsAction := lib.CpsModelBuilder(userCode, maker, prev, updated, string(constants.RequestCpsUserEnable), constants.UPDATE)
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
@@ -207,6 +208,7 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 
 	updated := prev
 	updated.Enabled = false
+	updated.PasswordDisable = true
 
 	maker := local_util.ExtractUserFromContext(ctx)
 

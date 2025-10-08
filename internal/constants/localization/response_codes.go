@@ -410,7 +410,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMiniAppMerchantDisableFailed,
 	ErrorMiniAppMerchantDeleteFailed,
 	ErrorMiniAppMerchantUpdateFailed,
-	
 }
 
 // Success Response Codes
