@@ -73,6 +73,7 @@ type CPSUserService interface {
 	DeleteUserRequest(ctx context.Context, userCode string) error
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
+	GetPopulatedCpsUser(ctx context.Context, userCode string)(*cpsuser.CpsUserResponse, error)
 }
 type NotificationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
