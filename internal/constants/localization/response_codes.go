@@ -260,6 +260,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
+	ErrorWalletWalletRechangeOption,
 	ErrorAvatarAlreadyExist,
 	ErrorWalletAlreadyExists,
 	ErrorWalletAlreadyDisabled,
@@ -1385,6 +1386,14 @@ var (
 		Message:    "Wallet avatar must be of type jpeg, png, gif, or webp",
 		Type:       "error",
 	}
+
+	ErrorWalletWalletRechangeOption = ResponseCode{
+		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
+		StatusCode: 400,
+		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
+		Type:       "error",
+	}
+
 
 	ErrorAvatarAlreadyExist = ResponseCode{
 		Code:       "ERROR_AVATAR_ALREADY_EXIST",

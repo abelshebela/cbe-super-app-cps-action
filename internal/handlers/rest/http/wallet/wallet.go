@@ -36,9 +36,8 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 // @Tags Wallet
 // @Accept multipart/form-data
 // @Produce json
-// @Param name formData string true "Name of the wallet"
-// @Param code formData string true "Code of the wallet"
-// @Param avatar formData file true "Avatar image file"
+// @Param data formData walletDto.WalletRequest false "Wallet update data"
+// @Param avatar formData file fale "Avatar image file"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Wallet creation request sent successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
@@ -47,17 +46,10 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req walletDto.WalletRequest
-
-	file, fileHeader, err := walletcore.ParseMultipartFormFile(r, "avatar", 10<<20)
+	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
 	if err != nil {
-		a.logger.Errorf("error parsing file: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorWalletImageMissingOrInvalid, nil, nil)
-		return
+		a.logger.Errorf("error fetching wallet create request data")
 	}
-	defer file.Close()
-	req.Name = r.FormValue("name")
-	req.Code = r.FormValue("code")
-	req.Avatar = fileHeader
 
 	if err := req.Validate(true); err != nil {
 		a.logger.Errorf("wallet request validation failed: %v", err)
@@ -81,9 +73,9 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 // @Tags Wallet
 // @Accept multipart/form-data
 // @Produce json
-// @Param name formData string false "Name of the wallet"
-// @Param code formData string false "Code of the wallet"
-// @Param avatar formData file false "Avatar image file"
+// @Param id path string true "Wallet ID"
+// @Param data formData walletDto.WalletRequest false "Wallet update data"
+// @Param avatar formData file fale "Avatar image file"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Wallet update request sent successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
@@ -91,6 +83,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 // @Router /wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
 	if id == "" {
 		a.logger.Errorf("wallet ID is required for update")
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
@@ -100,6 +93,11 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
 	if err != nil {
 		a.logger.Errorf("failed to parse wallet update request: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	if err := req.Validate(false); err != nil {
+		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
