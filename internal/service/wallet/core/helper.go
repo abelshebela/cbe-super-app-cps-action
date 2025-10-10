@@ -2,6 +2,7 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -54,12 +55,52 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 	return result, nil
 }
 
-func ToWalletDoc(name, code, URL string) *model.Wallet {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.Wallet {
 	return &model.Wallet{
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
+		Self:   self,
+		Other:  other,
+		Agent:  agent,
 	}
+}
+//note: this comparision might not be needed if the existing data is first in the request form and the user update those values
+func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet,int) {
+	var wallet model.Wallet
+	change_count := 0
+	if req.Agent == existing.Agent {
+		wallet.Agent = existing.Agent
+	} else {
+		change_count++
+		wallet.Agent = req.Agent
+	}
+	if req.Other == existing.Other {
+		wallet.Other = existing.Other
+	} else {
+		change_count++
+		wallet.Other = req.Other
+	}
+	if req.Self == existing.Self {
+		wallet.Self = existing.Self
+	} else {
+		change_count++
+		wallet.Self = req.Self
+	}
+	if req.Name == existing.Name {
+		wallet.Name = existing.Name
+	} else {
+		change_count++
+		wallet.Name = req.Name
+	}
+	if req.Code == existing.Code {
+		wallet.Code = existing.Code
+	} else {
+		change_count++
+		wallet.Code = req.Code
+	}
+	wallet.Avatar = existing.Avatar
+	return &wallet,change_count
 }
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {

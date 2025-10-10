@@ -71,8 +71,11 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToWalletDoc(req.Name, code, URL)
-	if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
+	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
+	wallet.Enabled = true
+	//here since the unique id is nil 000.. use other unique id like the code
+	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
+	if err := core.HandleCPSAction(ctx, s.cpsService, wallet.Name, constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
 		s.logger.Errorf("CPS action failed for wallet %s: %v", wallet.Code, err)
 		return err
 	}
@@ -93,7 +96,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil {
+		if exist.ID.Hex() != id {
 			return errors.New(localization.ErrorWalletAlreadyExists.Code)
 		}
 	}
@@ -107,18 +110,22 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req)
+	if avatarURL != prevWallet.Avatar {
+		change_count++
+	}
+	UpdateWallet.Avatar = avatarURL
 
-	updatedWallet := model.Wallet{
-		ID:             prevWallet.ID,
-		Name:           core.NonEmptyString(req.Name, prevWallet.Name),
-		Code:           prevWallet.Code,
-		Avatar:         avatarURL,
-		CreatedAt:      prevWallet.CreatedAt,
-		LastModifiedAt: time.Now(),
+	if change_count == 0 {
+		return errors.New(localization.ErrorNoChangesDetected.Code)
 	}
 
-	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, updatedWallet, *prevWallet, constants.ActionUpdate); err != nil {
-		s.logger.Errorf("CPS action failed for wallet %s: %v", updatedWallet.Code, err)
+	if !(UpdateWallet.Agent || UpdateWallet.Self || UpdateWallet.Other) {
+		return errors.New(localization.ErrorWalletWalletRechangeOption.Code)
+	}
+
+	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, UpdateWallet, *prevWallet, constants.ActionUpdate); err != nil {
+		s.logger.Errorf("CPS action failed for wallet %s: %v", UpdateWallet.Code, err)
 		return err
 	}
 
