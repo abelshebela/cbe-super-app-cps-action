@@ -232,6 +232,21 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	return core.ConvertToDTO(user), nil
 }
 
+func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
+	if userCode == "" {
+		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
+	}
+
+	user, err := s.repo.GetPopulatedByID(ctx, userCode)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error) {
 	if filter == nil {
 		f := types.Filter{}
