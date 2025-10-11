@@ -18,14 +18,8 @@ func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
 	if wallet.LastModifiedAt.IsZero() {
 		wallet.LastModifiedAt = time.Now()
 	}
-	if wallet.IsDeleted {
-		wallet.IsDeleted = false
-	}
-	if wallet.Enabled {
-		wallet.Enabled = false
-
-	}
-
+	wallet.IsDeleted = false
+	wallet.Enabled = false
 	return &wallet, nil
 }
 
@@ -42,5 +36,8 @@ func UpdateMapper(wallet model.Wallet) bson.M {
 		update["avatar"] = wallet.Avatar
 	}
 
+	update["services.self"] = wallet.Services.Self
+	update["services.other"] = wallet.Services.Other
+	update["services.agent"] = wallet.Services.Agent
 	return update
 }

@@ -96,7 +96,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist.ID.Hex() != id {
+		if exist != nil && exist.ID.Hex() != id {
 			return errors.New(localization.ErrorWalletAlreadyExists.Code)
 		}
 	}
@@ -120,7 +120,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return errors.New(localization.ErrorNoChangesDetected.Code)
 	}
 
-	if !(UpdateWallet.Agent || UpdateWallet.Self || UpdateWallet.Other) {
+	if !(UpdateWallet.Services.Agent || UpdateWallet.Services.Self || UpdateWallet.Services.Other) {
 		return errors.New(localization.ErrorWalletWalletRechangeOption.Code)
 	}
 
