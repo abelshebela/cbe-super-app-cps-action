@@ -116,10 +116,10 @@ type Cap struct {
 }
 
 type ProductCodes struct {
-	PRD    string `bson:"prd"`
-	VATPRD string `bson:"vatprd"`
-	SFPRD  string `bson:"sfprd"`
-	TRXN   string `bson:"trxn"`
+	PRD    string `bson:"prd" json:"prd"`
+	VATPRD string `bson:"vatprd" json:"vatprd"`
+	SFPRD  string `bson:"sfprd" json:"sfprd"`
+	TRXN   string `bson:"trxn" json:"trxn"`
 }
 
 type GLEntry struct {
