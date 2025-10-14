@@ -7,7 +7,7 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
-	
+
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 
@@ -424,8 +424,18 @@ type WalletRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
-	Find(ctx context.Context, name string) (*model.Wallet, error)
+	Find(ctx context.Context, key, value string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+}
+type TopupRepository interface {
+	Create(ctx context.Context, topup *model.Topup) error
+	Update(ctx context.Context, id string, Topup *model.Topup) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*model.Topup, error)
+	Find(ctx context.Context, key, value string) (*model.Topup, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Topup], error)
 }
 type ProductCodeRepository interface {
 	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)
@@ -464,7 +474,7 @@ type PermissionRepository interface {
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
-	GetPermissionGroupById(ctx context.Context,id string)(*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 }
 
 // ExternalCallServices type alias for external call services

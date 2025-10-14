@@ -289,7 +289,7 @@ type Filter struct {
 	Filters map[string]interface{} `json:"filters"`
 }
 
-type WalletServices struct {
+type Services struct {
 	Self  bool `json:"self" bson:"self"`
 	Other bool `json:"other" bson:"other"`
 	Agent bool `json:"agent" bson:"agent"`

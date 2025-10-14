@@ -1,4 +1,4 @@
-package wallet
+package Topup
 
 import (
 	"context"
@@ -18,34 +18,34 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type WalletStorage struct {
-	dal    dal.MongoDal[model.Wallet, model.Wallet]
+type TopupStorage struct {
+	dal    dal.MongoDal[model.Topup, model.Topup]
 	logger utils.Logger
 }
 
-func NewWalletRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.WalletRepository {
-	return &WalletStorage{
-		dal:    dal.NewMongoDal[model.Wallet, model.Wallet](client, dbName, collection),
+func NewTopupRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.TopupRepository {
+	return &TopupStorage{
+		dal:    dal.NewMongoDal[model.Topup, model.Topup](client, dbName, collection),
 		logger: logger,
 	}
 }
 
-func (w *WalletStorage) Create(ctx context.Context, wallet *model.Wallet) error {
-	walletDoc, err := ToWalletDocument(*wallet)
+func (w *TopupStorage) Create(ctx context.Context, Topup *model.Topup) error {
+	TopupDoc, err := ToTopupDocument(*Topup)
 	if err != nil {
-		w.logger.Errorf("Failed to convert wallet to document: %v", err)
+		w.logger.Errorf("Failed to convert Topup to document: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	_, err = w.dal.InsertOne(ctx, *walletDoc)
+	_, err = w.dal.InsertOne(ctx, *TopupDoc)
 	if err != nil {
-		w.logger.Errorf("Failed to insert wallet: %v", err)
+		w.logger.Errorf("Failed to insert Topup: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
-func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wallet) error {
+func (w *TopupStorage) Update(ctx context.Context, id string, Topup *model.Topup) error {
 	var update bson.M
 	objID, err := bson.ObjectIDFromHex(id)
 
@@ -54,7 +54,7 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update = UpdateMapper(*wallet)
+	update = UpdateMapper(*Topup)
 
 	if len(update) == 1 {
 		return errors.New(localization.ErrorNoDataProvided.Code)
@@ -63,15 +63,15 @@ func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wal
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorWalletNotFound.Code)
+			return errors.New(localization.ErrorTopupNotFound.Code)
 		}
-		w.logger.Errorf("Failed to update wallet: %v", err)
+		w.logger.Errorf("Failed to update Topup: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
-func (w *WalletStorage) Delete(ctx context.Context, id string) error {
+func (w *TopupStorage) Delete(ctx context.Context, id string) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -83,15 +83,15 @@ func (w *WalletStorage) Delete(ctx context.Context, id string) error {
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return errors.New(localization.ErrorWalletNotFound.Code)
+			return errors.New(localization.ErrorTopupNotFound.Code)
 		}
-		w.logger.Errorf("Failed to delete wallet: %v", err)
+		w.logger.Errorf("Failed to delete Topup: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
-func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+func (w *TopupStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -103,16 +103,16 @@ func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	_, err = w.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("Wallet ID %s not found for enable/disable", id)
-			return errors.New(localization.ErrorWalletNotFound.Code)
+			w.logger.Warnf("Topup ID %s not found for enable/disable", id)
+			return errors.New(localization.ErrorTopupNotFound.Code)
 		}
-		w.logger.Errorf("Failed to enable/disable wallet ID %s: %v", id, err)
+		w.logger.Errorf("Failed to enable/disable Topup ID %s: %v", id, err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
 }
 
-func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet, error) {
+func (w *TopupStorage) FindByID(ctx context.Context, id string) (*model.Topup, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -122,22 +122,22 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New(localization.ErrorWalletNotFound.Code)
+			return nil, errors.New(localization.ErrorTopupNotFound.Code)
 		}
-		w.logger.Errorf("FindByID wallet failed: %v", err)
+		w.logger.Errorf("FindByID Topup failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return doc, nil
 }
 
-func (w *WalletStorage) Find(ctx context.Context, key, value string) (*model.Wallet, error) {
+func (w *TopupStorage) Find(ctx context.Context, key, value string) (*model.Topup, error) {
 	if key == "" {
-		w.logger.Warnf("key is not specified")
+		w.logger.Warnf("did not specify the key")
 		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
 	}
 	if value == "" {
-		w.logger.Warnf("value is not specified")
+		w.logger.Warnf("did not specify the value")
 		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
 	}
 
@@ -145,22 +145,22 @@ func (w *WalletStorage) Find(ctx context.Context, key, value string) (*model.Wal
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No wallet found with %s: %s", key, value)
+			w.logger.Warnf("No Topup found with %s: %s", key, value)
 			return nil, nil
 		}
-		w.logger.Errorf("FindBy%s wallet failed: %v", key, err)
+		w.logger.Errorf("FindBy%s Topup failed: %v", key, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if err != nil {
-		w.logger.Errorf("Failed to convert document to wallet: %v", err)
+		w.logger.Errorf("Failed to convert document to Topup: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	return doc, nil
 }
 
-func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
+func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Topup], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
@@ -173,21 +173,21 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	}
 	docs, err := e.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		e.logger.Errorf("FindAllWithPagination Wallet failed", err)
+		e.logger.Errorf("FindAllWithPagination Topup failed", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {
-		e.logger.Errorf("Count Wallet failed", err)
+		e.logger.Errorf("Count Topup failed", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	e.logger.Infof("FindAllWithPagination returning %d wallets, total: %d", len(docs), total)
+	e.logger.Infof("FindAllWithPagination returning %d Topups, total: %d", len(docs), total)
 
-	return &types.PaginatedResponse[[]*model.Wallet]{
+	return &types.PaginatedResponse[[]*model.Topup]{
 		Data: docs,
 		Meta: meta,
 	}, nil

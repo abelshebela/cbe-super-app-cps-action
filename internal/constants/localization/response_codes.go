@@ -51,6 +51,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
 
+	SuccessTopupEnableRequestSubmitted,
+	SuccessTopupDisableRequestSubmitted,
+	SuccessTopupCreationRequestSent,
+	SuccessTopupUpdateRequestSent,
+	SuccessTopupDeleted,
+	SuccessTopupsRetrieved,
+	SuccessTopupRetrieved,
+
 	// Ad related success response codes
 	SuccessAdvertCreated,
 	SuccessAdvertCreateRequestSent,
@@ -174,7 +182,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
-	
+
 	ErrorActionNotFound,
 	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
@@ -260,14 +268,32 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
-	ErrorWalletWalletRechangeOption,
+	ErrorWalletRechangeOption,
 	ErrorAvatarAlreadyExist,
-	ErrorWalletAlreadyExists,
+	ErrorWalletNameAlreadyExists,
+	ErrorWalletCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	//topup related error codes
+	ErrorTopupNameRequired,
+	ErrorTopupCodeRequired,
+	ErrorTopupAvatarRequired,
+	ErrorTopupAvatarInvalid,
+	ErrorTopupAvatarTooLarge,
+	ErrorTopupAvatarInvalidType,
+	ErrorTopupServiceOption,
+	ErrorAvatarAlreadyExist,
+	ErrorTopupNameAlreadyExists,
+	ErrorTopupCodeAlreadyExists,
+	ErrorTopupAlreadyDisabled,
+	ErrorTopupAlreadyEnabled,
+	ErrorTopupIDRequired,
+	ErrorTopupNotFound,
+	ErrorTopupUpdateEmptyPayload,
 
 	ErrorInvalidRequestBody,
 	ErrorInvalidRequest,
@@ -403,7 +429,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
-	
+
 	ErrorDonationCompanyLookupFailed,
 
 	SuccessDonationCompanyUpdated,
@@ -696,7 +722,6 @@ var (
 		Type:       "success",
 	}
 
-
 	SuccessDonationCompanyUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -900,6 +925,63 @@ var (
 		Code:       "SUCCESS_WALLET_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Wallet disable request sent successfully",
+		Type:       "success",
+	}
+
+	//topup realted success response codes
+	SuccessTopupCreationRequestSent = ResponseCode{
+		Code:       "SUCCESS_TOPUP_CREATION_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgTopupCreationRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTopupUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_TOPUP_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTopupUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTopupDeleted = ResponseCode{
+		Code:       "SUCCESS_TOPUP_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTopupDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTopupsRetrieved = ResponseCode{
+		Code:       "SUCCESS_TopupS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTopupsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessTopupRetrieved = ResponseCode{
+		Code:       "SUCCESS_TOPUP_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTopupRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	ErrorTopupIDRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup ID is required",
+		Type:       "error",
+	}
+
+	SuccessTopupEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_TOPUP_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Topup enable request sent successfully",
+		Type:       "success",
+	}
+
+	SuccessTopupDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_TOPUP_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Topup disable request sent successfully",
 		Type:       "success",
 	}
 
@@ -1296,12 +1378,57 @@ var (
 		Type:       "error",
 	}
 
+	//
+	ErrorTopupNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup with the given name already exists",
+		Type:       "error",
+	}
+	ErrorTopupCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup with the given code already exists",
+		Type:       "error",
+	}
+	ErrorTopupNotFound = ResponseCode{
+		Code:       "ERROR_TOPUP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Topup not found",
+		Type:       "error",
+	}
+
+	ErrorTopupAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup is already enabled",
+		Type:       "error",
+	}
+	ErrorTopupUpdateEmptyPayload = ResponseCode{
+		Code:       "ERROR_TOPUP_UPDATE_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for Topup update",
+		Type:       "error",
+	}
+
+	ErrorTopupAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup is already disabled",
+		Type:       "error",
+	}
 	//wallet related error codes
 
-	ErrorWalletAlreadyExists = ResponseCode{
+	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+	ErrorWalletCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given code already exists",
 		Type:       "error",
 	}
 	ErrorWalletNotFound = ResponseCode{
@@ -1386,13 +1513,12 @@ var (
 		Type:       "error",
 	}
 
-	ErrorWalletWalletRechangeOption = ResponseCode{
+	ErrorWalletRechangeOption = ResponseCode{
 		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
 		StatusCode: 400,
 		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
 		Type:       "error",
 	}
-
 
 	ErrorAvatarAlreadyExist = ResponseCode{
 		Code:       "ERROR_AVATAR_ALREADY_EXIST",
@@ -3856,7 +3982,6 @@ var (
 		Type:       "error",
 	}
 
-
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -3903,7 +4028,6 @@ var (
 		Message:    MsgAccountNumberValidationFailed,
 		Type:       "error",
 	}
-
 
 	ErrorDonationCategoryNameDuplicated = ResponseCode{
 		Code:       "ERROR_DONATION_CATEGORY_NAME_DUPLICATED",
@@ -4794,6 +4918,61 @@ var (
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
 		Message:    "Vault group category is already deleted.",
+		Type:       "error",
+	}
+
+	ErrorTopupNameRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_NAME_REQUIRED",
+		StatusCode: 400,
+		Message:    "Topup name is required",
+		Type:       "error",
+	}
+
+	ErrorTopupCodeRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_CODE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Topup code is required",
+		Type:       "error",
+	}
+
+	ErrorTopupAvatarRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_REQUIRED",
+		StatusCode: 400,
+		Message:    "Topup avatar is required",
+		Type:       "error",
+	}
+	ErrorTopupAvatarInvalid = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_INVALID",
+		StatusCode: 400,
+		Message:    "Invalid topup avatar",
+		Type:       "error",
+	}
+
+	ErrorTopupAvatarTooLarge = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_TOO_LARGE",
+		StatusCode: 400,
+		Message:    "Topup avatar file size exceeds the limit",
+		Type:       "error",
+	}
+
+	ErrorTopupAvatarInvalidType = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_INVALID_TYPE",
+		StatusCode: 400,
+		Message:    "Topup avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
+	}
+
+	ErrorTopupServiceOption = ResponseCode{
+		Code:       "ERROR_TOPUP_SERVICE_OPTION_INVALID_VALUES",
+		StatusCode: 400,
+		Message:    "At Least one of the three service options should be enabled(self,other,agent)",
+		Type:       "error",
+	}
+
+	ErrorTopupImageMissingOrInvalid = ResponseCode{
+		Code:       "ERROR_Topup_IMAGE_MISSING_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTopupImageRequiredOrMissing,
 		Type:       "error",
 	}
 )
