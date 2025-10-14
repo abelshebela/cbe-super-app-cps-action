@@ -27,8 +27,11 @@ import (
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
+
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
+	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
+	
 
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
@@ -76,6 +79,7 @@ import (
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
+	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -85,6 +89,7 @@ type Handler struct {
 	UnlinkHandler          unlinkInbound.UnlinkAdapter
 	EventHandler           eventInbound.EventAdapter
 	WalletHandler          walletInbound.WalletAdapter
+	TopupHandler           TopupInbound.TopupAdapter
 	PasswordHandler        passwordInbound.PasswordRule
 	BpsHandler             bpsInbound.BPSUserHandler
 	BankHandler            bank.BankHandler
@@ -131,6 +136,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AdvertHandler:       advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		AvatarHandler:       avatarHandlerImpl.InitAvatarAdapter(serviceLayer.Avatar, logger),
 		WalletHandler:       walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		TopupHandler:       TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
 		PasswordHandler:     passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),

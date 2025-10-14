@@ -2,7 +2,7 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
+	TopupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -57,8 +57,8 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.Wallet {
-	return &model.Wallet{
+func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.Topup {
+	return &model.Topup{
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
@@ -71,41 +71,41 @@ func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.W
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet, int) {
-	var wallet model.Wallet
+func ToUpdateTopupDoc(existing model.Topup, req TopupDto.TopupRequest) (*model.Topup, int) {
+	var Topup model.Topup
 	change_count := 0
 	if req.Agent == existing.Services.Agent {
-		wallet.Services.Agent = existing.Services.Agent
+		Topup.Services.Agent = existing.Services.Agent
 	} else {
 		change_count++
-		wallet.Services.Agent = req.Agent
+		Topup.Services.Agent = req.Agent
 	}
 	if req.Other == existing.Services.Other {
-		wallet.Services.Other = existing.Services.Other
+		Topup.Services.Other = existing.Services.Other
 	} else {
 		change_count++
-		wallet.Services.Other = req.Other
+		Topup.Services.Other = req.Other
 	}
 	if req.Self == existing.Services.Self {
-		wallet.Services.Self = existing.Services.Self
+		Topup.Services.Self = existing.Services.Self
 	} else {
 		change_count++
-		wallet.Services.Self = req.Self
+		Topup.Services.Self = req.Self
 	}
 	if req.Name == existing.Name {
-		wallet.Name = existing.Name
+		Topup.Name = existing.Name
 	} else {
 		change_count++
-		wallet.Name = req.Name
+		Topup.Name = req.Name
 	}
 	if req.Code == existing.Code {
-		wallet.Code = existing.Code
+		Topup.Code = existing.Code
 	} else {
 		change_count++
-		wallet.Code = req.Code
+		Topup.Code = req.Code
 	}
-	wallet.Avatar = existing.Avatar
-	return &wallet, change_count
+	Topup.Avatar = existing.Avatar
+	return &Topup, change_count
 }
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
