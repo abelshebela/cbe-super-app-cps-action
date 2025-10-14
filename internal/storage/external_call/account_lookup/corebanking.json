@@ -1,0 +1,224 @@
+{
+  "accounts": [
+    {
+      "account_number": "1001000000001",
+      "account_name": "Abebe Kebede",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1002000000002",
+      "account_name": "Tsehay Demeke",
+      "account_type": "CHECKING",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1003000000003",
+      "account_name": "Chala Gutema",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "USD",
+      "account_frozen": true,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1004000000004",
+      "account_name": "Genet Fikru",
+      "account_type": "SAVINGS",
+      "status": "INACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": true,
+      "active_account": false
+    },
+    {
+      "account_number": "1005000000005",
+      "account_name": "Solomon Assefa",
+      "account_type": "LOAN",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1006000000006",
+      "account_name": "Sintayehu Endale",
+      "account_type": "CHECKING",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1007000000007",
+      "account_name": "Hana Hailu",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1008000000008",
+      "account_name": "Kebede Getachew",
+      "account_type": "LOAN",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000490710125",
+      "account_name": "Almaz Abera",
+      "account_type": "SAVINGS",
+      "status": "INACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": true,
+      "active_account": false
+    },
+    {
+      "account_number": "1001000000077",
+      "account_name": "Abebe Kebede",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000709213125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000373584125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000273590125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000958087125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000310440125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000043110125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000587235125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000793875125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000530470125",
+      "account_name": "abrxcccxddcxcxa dsddcccc",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    },
+    {
+      "account_number": "1000847849125",
+      "account_name": "Amanuel Hailu Cherinet",
+      "account_type": "SAVINGS",
+      "status": "ACTIVE",
+      "balance": 0.00,
+      "currency": "ETB",
+      "account_frozen": false,
+      "account_dormant": false,
+      "active_account": true
+    }
+  ]
+}
