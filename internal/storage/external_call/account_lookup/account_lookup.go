@@ -40,7 +40,7 @@ func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, acc
 	b.logger.Infof("Looking up account number: %s using mock data", account.AccountNumber)
 
 	// Read the mock JSON file
-	jsonFile, err := os.Open("corebanking.json")
+	jsonFile, err := os.Open("./corebanking.json")
 	if err != nil {
 		b.logger.Errorf("failed to open corebanking.json: %v", err)
 		return nil, errors.New(localization.ErrorExternalServiceError.Code)
