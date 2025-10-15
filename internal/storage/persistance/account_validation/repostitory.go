@@ -41,9 +41,11 @@ func (l *AccountValidationStore) FindByID(ctx context.Context, id string) (*mode
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
-
 	return result, nil
 }
 
