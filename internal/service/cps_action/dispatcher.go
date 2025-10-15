@@ -66,6 +66,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Wallet"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "Topup"):
+		return d.app.TopupContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "AmountBasedAuth"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)

@@ -379,10 +379,16 @@ const (
 	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
 	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
 	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
-	
-	ActionPending          RequestAction = "PENDING"
-	ActionApproved         RequestAction = "APPROVED"
-	ActionRejected         RequestAction = "REJECTED"
+
+	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
+	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
+	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
+	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
+	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
+
+	ActionPending  RequestAction = "PENDING"
+	ActionApproved RequestAction = "APPROVED"
+	ActionRejected RequestAction = "REJECTED"
 )
 
 type RegistrationType string

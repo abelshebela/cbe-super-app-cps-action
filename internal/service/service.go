@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
@@ -249,6 +250,16 @@ type WalletService interface {
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
+type TopupService interface {
+	CreateTopup(ctx context.Context, req topupDto.TopupRequest) error
+	UpdateTopup(ctx context.Context, id string, req topupDto.TopupRequest) error
+	DeleteTopup(ctx context.Context, id string) error
+	EnableOrDisableTopup(ctx context.Context, id string, enable bool) error
+	GetTopup(ctx context.Context, id string) (*model.Topup, error)
+	GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Topup], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+}
+
 type AccountBlockService interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
 	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
@@ -360,6 +371,7 @@ type ServiceContainer struct {
 	PortalCardContainer         PortalCardService
 	UnlinkContainer             UnlinkService
 	WalletContainer             WalletService
+	TopupContainer              TopupService
 	MiniAppMerchantContainer    MiniAppMerchantService
 	AccountLookup               AccountSearchService
 	BulkServiceContainer        BulkService

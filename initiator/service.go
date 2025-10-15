@@ -44,6 +44,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/notification"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
+	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -66,6 +67,7 @@ type ServiceLayer struct {
 	Advert            service.AdvertService
 	ValidationService service.AccountValidationService
 	Wallet            service.WalletService
+	Topup             service.TopupService
 	MiniAppMerchant   service.MiniAppMerchantService
 	AccountBlock      service.AccountBlockService
 	Department        service.DepartmentService
@@ -128,6 +130,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, "banks")                                               // Will be updated after CPS action service is created
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, "wallets", cfg, logger)                                             // Will be updated after CPS action service is created
+	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, "topups", cfg, logger)                                                  // Will be updated after CPS action service is created
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil)                                                                            // Will be updated after CPS action service is created
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger) // Will be updated after CPS action service is created
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)                                                                           // Will be updated after CPS action service is created
@@ -183,6 +186,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ServiceCheckContainer:    serviceDetails,
 		BankContainer:            bank_service,
 		WalletContainer:          walletService,
+		TopupContainer:           topupService,
 		PasswordRuleContainer:    passwordRule,
 		AccountBlockContainer:    accountBlockService,
 		DepartmentContainer:      departmentService,
@@ -233,6 +237,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, minioPubUrl, "wallets", cfg, logger)
 	serviceContainer.WalletContainer = walletService
 
+	TopupService := topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, "topups", cfg, logger)
+	serviceContainer.TopupContainer = TopupService
 	accountBlockService = accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
 	serviceContainer.AccountBlockContainer = accountBlockService
 
@@ -330,6 +336,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ValidationService: accountValidation,
 		AccountValidation: accountValidation,
 		Wallet:            walletService,
+		Topup:            TopupService,
 		PasswordRule:      passwordRule,
 		HQService:         hqService,
 		AccountBlock:      accountBlockService,

@@ -424,8 +424,18 @@ type WalletRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
-	Find(ctx context.Context, name string) (*model.Wallet, error)
+	Find(ctx context.Context, key, value string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+}
+type TopupRepository interface {
+	Create(ctx context.Context, topup *model.Topup) error
+	Update(ctx context.Context, id string, Topup *model.Topup) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*model.Topup, error)
+	Find(ctx context.Context, key, value string) (*model.Topup, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Topup], error)
 }
 type ProductCodeRepository interface {
 	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)

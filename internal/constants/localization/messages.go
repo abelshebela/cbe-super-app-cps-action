@@ -107,7 +107,13 @@ const (
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
 	MsgWalletRetrievedSuccessfully  = "Wallet retrieved successfully"
-
+	//topup related success messages
+	MsgTopupCreationRequestSent    = "Topup creation request sent successfully"
+	MsgTopupUpdateRequestSent      = "Topup update request sent successfully"
+	MsgTopupDeleteRequestSent      = "Topup delete request sent successfully"
+	MsgTopupDeletedSuccessfully    = "Topup deleted successfully"
+	MsgTopupsRetrievedSuccessfully = "Topups retrieved successfully"
+	MsgTopupRetrievedSuccessfully  = "Topup retrieved successfully"
 	// Event related success messages
 	MsgEventCreationRequestSubmitted = "Event creation request submitted successfully"
 	MsgEventUpdateRequestSubmitted   = "Event update request submitted successfully"
@@ -376,9 +382,11 @@ const (
 	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
-	MsgMiniAppNameAlreadyExists              = "Mini App name already exists"
-	MsgBankDeleteRequestFailed               = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
+	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
+	MsgBankDeleteRequestFailed     = "Bank delete request failed"
+	MsgBankImageRequiredOrMissing  = "Required bank image invalid or missing"
+	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
+
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"

@@ -81,17 +81,24 @@ const (
 	RequestDeleteWallet            RequestAction = "DELETE_WALLET"
 	RequestEnableWallet            RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet           RequestAction = "DISABLE_WALLET"
-	RequestUpdatePasswordExpiry    RequestAction = "UPDATE_PASSWORD_EXPIRY"
-	RequestCreateValidation        RequestAction = "CREATE_VALIDATION"
-	RequestUpdateValidation        RequestAction = "UPDATE_VALIDATION"
-	RequestDeleteValidation        RequestAction = "DELETE_VALIDATION"
-	RequestUpdateArchiveExpiry     RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestUpdateServiceSingle     RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
-	RequestUpdateServiceTotal      RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
-	RequestUpdateServiceMinCap     RequestAction = "UPDATE_SERVICE_MIN_CAP"
-	RequestBudgetColor             RequestAction = "BUDGET_COLOR"
-	RequestBudgetIcon              RequestAction = "BUDGET_ICON"
-	RequestUpdateProduct           RequestAction = "UPDATE_PRODUCT"
+
+	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
+	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
+	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
+	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
+	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
+
+	RequestUpdatePasswordExpiry RequestAction = "UPDATE_PASSWORD_EXPIRY"
+	RequestCreateValidation     RequestAction = "CREATE_VALIDATION"
+	RequestUpdateValidation     RequestAction = "UPDATE_VALIDATION"
+	RequestDeleteValidation     RequestAction = "DELETE_VALIDATION"
+	RequestUpdateArchiveExpiry  RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle  RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal   RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap  RequestAction = "UPDATE_SERVICE_MIN_CAP"
+	RequestBudgetColor          RequestAction = "BUDGET_COLOR"
+	RequestBudgetIcon           RequestAction = "BUDGET_ICON"
+	RequestUpdateProduct        RequestAction = "UPDATE_PRODUCT"
 
 	// Notification
 	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
@@ -374,6 +381,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateWallet:        {},
 	RequestUpdateWallet:        {},
 	RequestDeleteWallet:        {},
+	
+	RequestCreateTopup:        {},
+	RequestUpdateTopup:        {},
+	RequestDeleteTopup:        {},
+	RequestEnableTopup:             {},
+	RequestDisableTopup:            {},
 
 	// RequestCreateNotification:      {},
 	// RequestUpdateNotification:      {},
@@ -565,6 +578,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteWallet,
 		RequestEnableWallet,
 		RequestDisableWallet,
+	},
+	"Topup": {
+		RequestCreateTopup,
+		RequestUpdateTopup,
+		RequestDeleteTopup,
+		RequestEnableTopup,
+		RequestDisableTopup,
 	},
 	"Validation": {
 		RequestCreateValidation,

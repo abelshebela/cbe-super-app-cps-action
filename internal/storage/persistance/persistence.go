@@ -55,6 +55,7 @@ type Persistence struct {
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
+	TopupPersistence                 storage.TopupRepository
 	ProductCodePersistence           storage.ProductCodeRepository
 	DepartmentPersistence            storage.DepartmentRepository
 	FaydaPersistence                 storage.FaydaRepository
