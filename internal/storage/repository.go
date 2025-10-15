@@ -7,7 +7,7 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
-	
+
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 
@@ -248,6 +248,7 @@ type CpsUserRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
+	FindByUsername(ctx context.Context, username string) (*model.CPSUser, error)
 	GetPopulatedByID(ctx context.Context, id string) (*cps_user_dto.CpsUserResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSUser], error)
 }
@@ -464,7 +465,7 @@ type PermissionRepository interface {
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
-	GetPermissionGroupById(ctx context.Context,id string)(*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 }
 
 // ExternalCallServices type alias for external call services
