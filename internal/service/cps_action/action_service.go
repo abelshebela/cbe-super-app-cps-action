@@ -87,7 +87,7 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 	return ca.repo.FindOne(context.Background(), filter)
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
-	return ca.repo.FindOne(ctx, bson.M{"action_code": uniqueID, "department": department})
+	return ca.repo.FindOne(ctx, bson.M{"action_code": uniqueID})
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {
