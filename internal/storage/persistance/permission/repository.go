@@ -81,12 +81,22 @@ func (r *PermissionPersistence) Delete(ctx context.Context, id string) error {
 func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model.PermissionGroup, error) {
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		r.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	filter := bson.M{"_id": objectID, "is_deleted": bson.M{"$ne": true}}
 
-	return r.permissionGroupsDal.FindOne(ctx, filter, bson.M{})
+	result, err := r.permissionGroupsDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			r.logger.Warnf("Permission group not found, id: %s", id)
+			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+		}
+		r.logger.Errorf("Failed to find Permission Group, id: %s, error: %v", id, err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
 }
 
 func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
@@ -265,6 +275,48 @@ func (r *PermissionPersistence) GetPermissionGroup(groupName string) (*model.Per
 	return group, nil
 }
 
+func (r *PermissionPersistence) GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error) {
+	group, err := r.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if group == nil {
+		return nil, nil
+	}
+
+	var categoryIDs []bson.ObjectID
+	switch v := group.PermissionCategory.(type) {
+	case []bson.ObjectID:
+		categoryIDs = v
+	case []string:
+		for _, s := range v {
+			if oid, err := bson.ObjectIDFromHex(s); err == nil {
+				categoryIDs = append(categoryIDs, oid)
+			}
+		}
+	case bson.A:
+		for _, raw := range v {
+			switch val := raw.(type) {
+			case bson.ObjectID:
+				categoryIDs = append(categoryIDs, val)
+			case string:
+				if oid, err := bson.ObjectIDFromHex(val); err == nil {
+					categoryIDs = append(categoryIDs, oid)
+				}
+			}
+		}
+	}
+
+	if len(categoryIDs) > 0 {
+		cats, err := r.permissionCategoryDal.FindAll(ctx, bson.M{"_id": bson.M{"$in": categoryIDs}}, bson.M{})
+		if err == nil && len(cats) > 0 {
+
+			group.PermissionCategory = cats
+		}
+	}
+
+	return group, nil
+}
 func (p *PermissionPersistence) ValidatePermissionGroupByID(ctx context.Context, ids []string) (bool, error) {
 	if len(ids) == 0 {
 		return false, fmt.Errorf("PERMISSION_GROUP_ARRAY_EMPTY")

@@ -2,7 +2,9 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -52,14 +54,58 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
+
 }
 
-func ToWalletDoc(name, code, URL string) *model.Wallet {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.Wallet {
 	return &model.Wallet{
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
+		Services: types.Services{
+			Self:  self,
+			Other: other,
+			Agent: agent,
+		},
 	}
+}
+
+// note: this comparision might not be needed if the existing data is first in the request form and the user update those values
+func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet, int) {
+	var wallet model.Wallet
+	change_count := 0
+	if req.Agent == existing.Services.Agent {
+		wallet.Services.Agent = existing.Services.Agent
+	} else {
+		change_count++
+		wallet.Services.Agent = req.Agent
+	}
+	if req.Other == existing.Services.Other {
+		wallet.Services.Other = existing.Services.Other
+	} else {
+		change_count++
+		wallet.Services.Other = req.Other
+	}
+	if req.Self == existing.Services.Self {
+		wallet.Services.Self = existing.Services.Self
+	} else {
+		change_count++
+		wallet.Services.Self = req.Self
+	}
+	if req.Name == existing.Name {
+		wallet.Name = existing.Name
+	} else {
+		change_count++
+		wallet.Name = req.Name
+	}
+	if req.Code == existing.Code {
+		wallet.Code = existing.Code
+	} else {
+		change_count++
+		wallet.Code = req.Code
+	}
+	wallet.Avatar = existing.Avatar
+	return &wallet, change_count
 }
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {

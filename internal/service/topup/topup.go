@@ -1,0 +1,245 @@
+package topup
+
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/service/topup/core"
+	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"context"
+	"errors"
+	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type topupService struct {
+	repo        storage.TopupRepository
+	cpsService  service.CPSActionService
+	logger      utils.Logger
+	minio       config.MinioClientInterface
+	bucketName  string
+	minioPubUrl string
+	cfg         *config.VaultConfig
+}
+
+func NewTopupService(repo storage.TopupRepository, cps service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.TopupService {
+	return &topupService{
+		repo:       repo,
+		cpsService: cps,
+		logger:     logger,
+		minio:      minio,
+		bucketName: bucketName,
+		cfg:        cfg,
+	}
+}
+
+func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupRequest) error {
+	s.logger.Infof("Createtopup called", "topup_name", req.Name)
+
+	exist, err := s.repo.Find(ctx, "name", req.Name)
+	if err != nil {
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	if exist != nil {
+		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+	}
+
+	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+	if err != nil {
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	existCode, err := s.repo.Find(ctx, "code", req.Code)
+
+	if err != nil {
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if existCode != nil {
+		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	}
+
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "topup_icon", s.cfg.MinioPublicEndPoint, s.logger)
+	if err != nil {
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	topup := core.ToCreateTopupDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
+	topup.Enabled = true
+	//here since the unique id is nil 000.. use other unique id like the code
+	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
+	if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreateTopup, topup, nil, constants.ActionCreate); err != nil {
+		s.logger.Errorf("CPS action failed for topup %s: %v", topup.Code, err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.TopupRequest) error {
+	s.logger.Infof("Updatetopup called", "topup_id", id)
+
+	prevtopup, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return errors.New(localization.ErrorTopupNotFound.Code)
+	}
+
+	if req.Name != "" {
+		exist, err := s.repo.Find(ctx, "name", req.Name)
+		if err != nil {
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+
+		if exist != nil && exist.ID.Hex() != id {
+			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+		}
+	}
+
+	if req.Code != "" {
+		exist, err := s.repo.Find(ctx, "code", req.Code)
+		if err != nil {
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		if exist != nil && exist.ID.Hex() != id {
+			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+		}
+	}
+
+	var avatarURL string
+	if req.Avatar != nil {
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint, s.logger)
+		if err != nil {
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+	} else {
+		avatarURL = prevtopup.Avatar
+	}
+	Updatetopup, change_count := core.ToUpdateTopupDoc(*prevtopup, req)
+	if avatarURL != prevtopup.Avatar {
+		change_count++
+	}
+	Updatetopup.Avatar = avatarURL
+
+	if change_count == 0 {
+		return errors.New(localization.ErrorNoChangesDetected.Code)
+	}
+
+	if !(Updatetopup.Services.Agent || Updatetopup.Services.Self || Updatetopup.Services.Other) {
+		return errors.New(localization.ErrorTopupServiceOption.Code)
+	}
+
+	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateTopup, Updatetopup, *prevtopup, constants.ActionUpdate); err != nil {
+		s.logger.Errorf("CPS action failed for topup %s: %v", Updatetopup.Code, err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *topupService) DeleteTopup(ctx context.Context, id string) error {
+	s.logger.Infof("Deletetopup called", "topup_id", id)
+
+	prevtopup, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return errors.New(localization.ErrorTopupNotFound.Code)
+	}
+
+	now := time.Now()
+	deletedtopup := *prevtopup
+	deletedtopup.IsDeleted = true
+	deletedtopup.DeletedAt = now
+
+	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestDeleteTopup, deletedtopup, *prevtopup, constants.ActionDelete); err != nil {
+		s.logger.Errorf("CPS action failed for topup %s: %v", deletedtopup.Code, err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *topupService) EnableOrDisableTopup(ctx context.Context, id string, enable bool) error {
+	s.logger.Infof("Enable/disable called", "enable:", enable, "id:", id)
+
+	prevtopup, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return errors.New(localization.ErrorTopupNotFound.Code)
+	}
+
+	if enable && prevtopup.Enabled {
+		return errors.New(localization.ErrorTopupAlreadyEnabled.Code)
+	}
+	if !enable && !prevtopup.Enabled {
+		return errors.New(localization.ErrorTopupAlreadyDisabled.Code)
+	}
+	s.logger.Infof("you can enable or disable", enable, prevtopup.Enabled)
+
+	updatedtopup := *prevtopup
+	updatedtopup.Enabled = enable
+	updatedtopup.LastModifiedAt = time.Now()
+
+	var action constants.RequestAction
+	if enable {
+		action = constants.RequestEnableTopup
+	} else {
+		action = constants.RequestDisableTopup
+	}
+
+	if err := core.HandleCPSAction(ctx, s.cpsService, id, action, updatedtopup, *prevtopup, constants.ActionUpdate); err != nil {
+		s.logger.Errorf("CPS action failed for topup %s: %v", updatedtopup.Code, err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *topupService) GetTopup(ctx context.Context, id string) (*model.Topup, error) {
+	s.logger.Infof("Fetchtopup called", "topup_id", id)
+
+	return s.repo.FindByID(ctx, id)
+}
+
+func (s *topupService) GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Topup], error) {
+	s.logger.Infof("FetchAllcalled")
+
+	return s.repo.FindAllWithPagination(ctx, filterParams)
+}
+
+func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	s.logger.Infof("Authorizetopup called", "cpsaction", action.ActionCode)
+
+	topup, err := local_util.JsonUnmarshal[model.Topup](action.CurrentAction)
+	if err != nil {
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	switch action.RequestAction {
+	case string(constants.RequestCreateTopup):
+		err = s.repo.Create(ctx, topup)
+	case string(constants.RequestUpdateTopup):
+		err = s.repo.Update(ctx, action.UniqueId, topup)
+	case string(constants.RequestDeleteTopup):
+		err = s.repo.Delete(ctx, action.UniqueId)
+	case string(constants.RequestEnableTopup):
+		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
+	case string(constants.RequestDisableTopup):
+		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
+	default:
+
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	action.CurrentAction = topup
+	return action, nil
+}

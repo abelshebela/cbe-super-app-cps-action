@@ -22,6 +22,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
+	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	"time"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -51,8 +52,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
+	
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
+	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
@@ -108,11 +111,15 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ServiceDetailsPersistence:  service_details.NewServiceDetailsRepository(client, dbName, "services", logger),
 		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
+		TopupPersistence:           Topup.NewTopupRepository(client, dbName, "topups", logger),
+		
 		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
 		BudgetPersistence:          budget.NewBudgetRepository(client, dbName, []string{"icons", "colors"}, logger),
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "members", logger),
 		PermissionPersistence:      permission.InitPermission(client, dbName, 30*time.Second, logger),
+		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "articles"),
+		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "article_categories"),
 	}
 
 	return data

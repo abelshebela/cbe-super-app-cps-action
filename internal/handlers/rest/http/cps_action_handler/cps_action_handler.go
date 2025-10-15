@@ -208,7 +208,7 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 

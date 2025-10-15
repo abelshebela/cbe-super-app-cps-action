@@ -91,8 +91,14 @@ func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Dep
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Warnf("department not found for ID: %s,error ", id, err)
+			return nil, errors.New(localization.ErrorDepartmentNotFound.Code)
+		}
+		b.logger.Errorf("FindByID Department failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	
 	return result, nil
 }
 func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model.Department, error) {
@@ -111,8 +117,7 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 }
 
 func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error) {
-	// 1. Base filter (only active records)
-	filter := bson.M{"is_deleted": false}
+	
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
