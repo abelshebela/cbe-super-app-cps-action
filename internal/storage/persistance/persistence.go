@@ -60,4 +60,6 @@ type Persistence struct {
 	DepartmentPersistence            storage.DepartmentRepository
 	FaydaPersistence                 storage.FaydaRepository
 	PermissionPersistence            storage.PermissionRepository
+	ArticlePersistence               storage.ArticleRepository
+	ArticleCategoryPersistence       storage.ArticleCategoryRepository
 }

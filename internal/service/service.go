@@ -385,6 +385,8 @@ type ServiceContainer struct {
 	DonationCompanyContainer    DonationCompanyService
 	BankVaultContainer          BankVaultService
 	VaultGroupCategoryContainer VaultGroupCategoryService
+	ArticleContainer            ArticleService
+	ArticleCategoryContainer    ArticleCategoryService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -405,4 +407,11 @@ type VaultGroupCategoryService interface {
 	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
 	EnableVaultGroupCategory(ctx context.Context, id string) error
 	DisableVaultGroupCategory(ctx context.Context, id string) error
+}
+type ArticleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type ArticleCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

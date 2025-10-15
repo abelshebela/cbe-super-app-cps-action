@@ -8,6 +8,7 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
+	"cbe-super-app-cps-action/internal/service/media"
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
@@ -92,6 +93,8 @@ type ServiceLayer struct {
 	NotificationService service.NotificationService
 	// BankVault           service.BankVaultService
 	// VaultGroupCategory  service.VaultGroupCategoryService
+	ArticleService service.ArticleService
+	ArticleCategoryService service.ArticleCategoryService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -168,7 +171,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
-
+	articleService := media.NewMediaService(persistence.ArticlePersistence, logger)
+	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -208,6 +212,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		DonationCategoryContainer: donationCategoryService,
 
 		DonationCompanyContainer: donationCompanyService,
+		ArticleContainer:         articleService,
+		ArticleCategoryContainer: articleCategoryService,
 	}
 
 	// Create the dispatcher with the service container
@@ -310,6 +316,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 	serviceContainer.Unlink = unlinkService
+	articleService = media.NewMediaService(persistence.ArticlePersistence, logger)
+	serviceContainer.ArticleContainer = articleService
+	articleCategoryService = media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
+	serviceContainer.ArticleCategoryContainer = articleCategoryService
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
@@ -348,5 +358,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NotificationService: notificationsvc,
 		// BankVault:           bankVaultSvc,
 		// VaultGroupCategory:  vaultGroupSvc,
-	}
+		ArticleService: articleService,
+		ArticleCategoryService: articleCategoryService,
+		}
 }
