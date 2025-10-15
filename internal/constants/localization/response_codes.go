@@ -421,6 +421,11 @@ ErrorPermissionGroupRequired,
 	ErrorMiniAppMerchantDisableFailed,
 	ErrorMiniAppMerchantDeleteFailed,
 	ErrorMiniAppMerchantUpdateFailed,
+	ErrorExistEmail,
+	ErrorInvalidPhoneNumber,
+	ErrorExistPhoneNumber,
+	ErrorInvalidEmail,
+	
 }
 
 // Success Response Codes
@@ -3278,6 +3283,19 @@ var (
 		Code:       "ERROR_INVALID_PHONE_NUMBER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidPhoneNumber,
+		Type:       "error",
+	}
+	ErrorExistEmail = ResponseCode{
+		Code:       "ERROR_EXIST_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistEmail,
+		Type:       "error",
+	}
+
+	ErrorExistPhoneNumber = ResponseCode{
+		Code:       "ERROR_EXIST_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistPhoneNumber,
 		Type:       "error",
 	}
 

@@ -18,6 +18,20 @@ func UsernameExists(ctx context.Context, repo storage.CpsUserRepository, usernam
 	return user != nil, nil
 }
 
+func EmailExists(ctx context.Context, repo storage.CpsUserRepository, email string) (bool, error) {
+	user, err := repo.FindByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+	return user != nil, nil
+}
+func PhoneNumberExists(ctx context.Context, repo storage.CpsUserRepository, phoneNumber string) (bool, error) {
+	user, err := repo.FindByPhoneNumber(ctx, phoneNumber)
+	if err != nil {
+		return false, err
+	}
+	return user != nil, nil
+}
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
 func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
 	return &cpsuser.CPSUserDTO{

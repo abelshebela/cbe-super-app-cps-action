@@ -97,6 +97,30 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 	}
 	return result, nil
 }
+func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error) {
+	filter := bson.M{"phone_number": phoneNumber}
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil 
+		}
+		r.logger.Errorf("failed to find CPS user by phone number: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
+func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*model.CPSUser, error) {
+	filter := bson.M{"email": email}
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil 
+		}
+		r.logger.Errorf("failed to find CPS user by email: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
 
 // FindByID supports both ObjectID and user_code lookups
 func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*model.CPSUser, error) {
