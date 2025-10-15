@@ -56,16 +56,14 @@ type DonationImageUpdateRequest struct {
 }
 
 type DonationImageDeleteRequest struct {
-		ImageID string `json:"image_id"`
-	}
+	ImageID string `json:"image_id"`
+}
 type DonationImageDeleteCPSRequest struct {
-		ImageIDToDelete string `json:"image_id_to_delete" bson:"image_id_to_delete"`
-	}
-
-
+	ImageIDToDelete string `json:"image_id_to_delete" bson:"image_id_to_delete"`
+}
 
 type DonationImageAddRequest struct {
-	DonationImages   []DonationImage `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
+	DonationImages []DonationImage `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
 }
 type EnableDonationRequest struct {
 	Enabled bool `json:"enabled" bson:"enabled"`

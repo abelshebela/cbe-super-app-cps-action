@@ -2,7 +2,10 @@ package service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
+	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
@@ -71,6 +74,7 @@ type CPSUserService interface {
 	DeleteUserRequest(ctx context.Context, userCode string) error
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
+	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 }
 type NotificationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -82,6 +86,7 @@ type NotificationService interface {
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
 	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error)
 }
+
 type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
@@ -123,6 +128,7 @@ type DonationCompanyService interface {
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
 	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (donationComp_dto.DonationCompanyRequest, error)
+	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountInfo, error)
 }
 
 type EventService interface {
@@ -171,9 +177,6 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	AddMiniApp(ctx context.Context, merchantID string, miniApp model.MiniApps) error
-	UpdateMiniAppEnabledState(ctx context.Context, merchantID string, miniAppID string, enabled bool) error
-	SoftDeleteMiniApp(ctx context.Context, merchantID string, miniAppID string) error
 	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
 	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
@@ -194,6 +197,7 @@ type PermissionService interface {
 	CreatePermissionGroup(ctx context.Context, req permission_dto.CreatePermissionGroupRequest) error
 	UpdatePermissionGroup(ctx context.Context, req permission_dto.UpdatePermissionGroupRequest) error
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
 
@@ -243,6 +247,16 @@ type WalletService interface {
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
 	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+}
+
+type TopupService interface {
+	CreateTopup(ctx context.Context, req topupDto.TopupRequest) error
+	UpdateTopup(ctx context.Context, id string, req topupDto.TopupRequest) error
+	DeleteTopup(ctx context.Context, id string) error
+	EnableOrDisableTopup(ctx context.Context, id string, enable bool) error
+	GetTopup(ctx context.Context, id string) (*model.Topup, error)
+	GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Topup], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -333,39 +347,71 @@ type KeyGeneratorService interface {
 }
 
 type ServiceContainer struct {
-	AccountBlockContainer     AccountBlockService
-	AccountContainer          AccountValidationService
-	ActionContainer           ActionService
-	AdContainer               AdvertService
-	AmountBasedAuthContainer  AmountBasedAuthService
-	AvatarDomian              AvatarService
-	BankContainer             BankService
-	BPSUserContainer          BPSUserService
-	BudgetCategoryContainer   BudgetCategoryService
-	BudgetContainer           BudgetService
-	CPSActionContainer        CPSActionService
-	CPSUserContainer          CPSUserService
-	CustomerContainer         CustomerService
-	DepartmentContainer       DepartmentService
-	EventContainer            EventService // fully not ready
-	FaydaContainer            FaydaAccountService
-	FeedbackContainer         FeedbackService
-	HQContainer               HQService
-	MiniAppContainer          MiniAppService
-	PasswordRuleContainer     PasswordRuleService
-	PermissionContainer       PermissionService
-	PortalCardContainer       PortalCardService
-	UnlinkContainer           UnlinkService
-	WalletContainer           WalletService
-	MiniAppMerchantContainer  MiniAppMerchantService
-	AccountLookup             AccountSearchService
-	BulkServiceContainer      BulkService
-	ServiceCheckContainer     ServiceService
-	KeyGenService             KeyGeneratorService
-	NotificationService       NotificationService
-	ProductCodeService        ProductCodeService
-	DonationContainer         DonationService
-	Unlink                    UnlinkService
-	DonationCategoryContainer DonationCategoryService
-	DonationCompanyContainer  DonationCompanyService
+	AccountBlockContainer       AccountBlockService
+	AccountContainer            AccountValidationService
+	ActionContainer             ActionService
+	AdContainer                 AdvertService
+	AmountBasedAuthContainer    AmountBasedAuthService
+	AvatarDomian                AvatarService
+	BankContainer               BankService
+	BPSUserContainer            BPSUserService
+	BudgetCategoryContainer     BudgetCategoryService
+	BudgetContainer             BudgetService
+	CPSActionContainer          CPSActionService
+	CPSUserContainer            CPSUserService
+	CustomerContainer           CustomerService
+	DepartmentContainer         DepartmentService
+	EventContainer              EventService // fully not ready
+	FaydaContainer              FaydaAccountService
+	FeedbackContainer           FeedbackService
+	HQContainer                 HQService
+	MiniAppContainer            MiniAppService
+	PasswordRuleContainer       PasswordRuleService
+	PermissionContainer         PermissionService
+	PortalCardContainer         PortalCardService
+	UnlinkContainer             UnlinkService
+	WalletContainer             WalletService
+	TopupContainer              TopupService
+	MiniAppMerchantContainer    MiniAppMerchantService
+	AccountLookup               AccountSearchService
+	BulkServiceContainer        BulkService
+	ServiceCheckContainer       ServiceService
+	KeyGenService               KeyGeneratorService
+	NotificationService         NotificationService
+	ProductCodeService          ProductCodeService
+	DonationContainer           DonationService
+	Unlink                      UnlinkService
+	DonationCategoryContainer   DonationCategoryService
+	DonationCompanyContainer    DonationCompanyService
+	BankVaultContainer          BankVaultService
+	VaultGroupCategoryContainer VaultGroupCategoryService
+	ArticleContainer            ArticleService
+	ArticleCategoryContainer    ArticleCategoryService
+}
+type BankVaultService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error)
+	FindAllBankVaults(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*bankvault.BankVaultProductResponse], error)
+	GetBankVault(ctx context.Context, id string) (*bankvault.BankVaultProductResponse, error)
+	UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error)
+	DeleteBankVault(ctx context.Context, id string) (string, error)
+	EnableBankVault(ctx context.Context, id string) error
+	DisableBankVault(ctx context.Context, id string) error
+}
+type VaultGroupCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateVaultGroupCategory(ctx context.Context, req *model.VaultGroupCategory) (string, error)
+	FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup.VaultGroupCategoryResponse], error)
+	GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup.VaultGroupCategoryResponse, error)
+	UpdateVaultGroupCategory(ctx context.Context, id string, req *model.VaultGroupCategory) (string, error)
+	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
+	EnableVaultGroupCategory(ctx context.Context, id string) error
+	DisableVaultGroupCategory(ctx context.Context, id string) error
+}
+type ArticleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type ArticleCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

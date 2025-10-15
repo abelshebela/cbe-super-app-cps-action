@@ -24,16 +24,16 @@ examples
 # Go workspace file
 go.work
 go.work.sum
-
+cmd/
 # env file
 .env
 reserve
 # Editor/IDE
 # .idea/
 # .vscode/
-
-docs/
-!docs/swagger/
-!docs/swagger.json
+swagger_main.go
+# docs/
+# !docs/swagger/
+# !docs/swagger.json
 donation_category.md
 DONATION_CATEGORY_PATTERN_GUIDE.md

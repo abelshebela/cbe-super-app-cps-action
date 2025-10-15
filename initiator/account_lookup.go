@@ -27,5 +27,3 @@ func InitAccountLookupService(cfg *config.VaultConfig, logger utils.Logger) acco
 
 	return account_lookup.InitAccountAPIClient(cbeBaseURL, timeout, logger)
 }
-
-

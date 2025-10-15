@@ -66,6 +66,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Wallet"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "Topup"):
+		return d.app.TopupContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "AmountBasedAuth"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)
@@ -75,6 +77,12 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Budget"):
 		return d.app.BudgetContainer.Authorize(ctx, cpsAction)
+
+	case IsActionInGroup(RequestAction(action), "BankVault"):
+		if d.app.BankVaultContainer == nil {
+			return nil, fmt.Errorf("BANKVAULT_SERVICE_NOT_WIRED")
+		}
+		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
 
 	// a
 
@@ -97,10 +105,10 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "donationCategory"):
-		
+
 		return d.app.DonationCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "donationCompany"):
-		
+
 		return d.app.DonationCompanyContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Donation"):
 		return d.app.DonationContainer.Authorize(ctx, cpsAction)
@@ -108,6 +116,15 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CPSUser"):
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "BankVault"):
+		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VaultGroupCategory"):
+		return d.app.VaultGroupCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "article"):
+		return d.app.ArticleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "articleCategory"):
+		return d.app.ArticleCategoryContainer.Authorize(ctx, cpsAction)
+
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
 	}

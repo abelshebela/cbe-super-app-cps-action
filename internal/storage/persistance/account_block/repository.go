@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -294,12 +295,8 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 	// Build filter + pagination
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// Get total count
-	totalCount, err := a.regionDal.TotalCount(ctx, filter)
-	if err != nil {
-		a.logger.Errorf("Error counting regions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	fmt.Println("Filter constructed:", filter)
+	fmt.Println("Skip:", skip, "Limit:", limit)
 
 	// Fetch paginated data
 	results, err := a.regionDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
@@ -308,12 +305,17 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	total, err := a.regionDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
 	// Return paginated response (always return results, even if Search is empty)
 	return &types.PaginatedResponse[[]*model.Region]{
 		Data: results,
-		Meta: types.PaginationMeta{
-			TotalDocs: totalCount,
-		},
+		Meta: meta,
 	}, nil
 }
 
@@ -432,13 +434,6 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 	// Build filter + pagination using FilterBuilder
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// Get total count
-	totalCount, err := a.districtDal.TotalCount(ctx, filter)
-	if err != nil {
-		a.logger.Errorf("Error counting districts: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
 	// Fetch paginated results
 	results, err := a.districtDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -446,12 +441,17 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	total, err := a.regionDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
 	// Return proper paginated response
 	return &types.PaginatedResponse[[]*model.District]{
 		Data: results,
-		Meta: types.PaginationMeta{
-			TotalDocs: totalCount,
-		},
+		Meta: meta,
 	}, nil
 }
 

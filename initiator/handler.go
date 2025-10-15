@@ -4,6 +4,8 @@ import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
+
+	// bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	budget "cbe-super-app-cps-action/internal/constants/interfaces/budget"
 	bulk_service_inbound "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
@@ -12,6 +14,8 @@ import (
 	miniAppInbound "cbe-super-app-cps-action/internal/constants/interfaces/mini_app"
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
+
+	// vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
 
 	amountBasedInbound "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
@@ -23,8 +27,11 @@ import (
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
+
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
+	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
+	
 
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
@@ -35,6 +42,9 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
+
+	// bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
+
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget"
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
@@ -47,6 +57,8 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
+
+	// vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
@@ -67,6 +79,7 @@ import (
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
+	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -76,6 +89,7 @@ type Handler struct {
 	UnlinkHandler          unlinkInbound.UnlinkAdapter
 	EventHandler           eventInbound.EventAdapter
 	WalletHandler          walletInbound.WalletAdapter
+	TopupHandler           TopupInbound.TopupAdapter
 	PasswordHandler        passwordInbound.PasswordRule
 	BpsHandler             bpsInbound.BPSUserHandler
 	BankHandler            bank.BankHandler
@@ -104,6 +118,8 @@ type Handler struct {
 	DonationCompanyHandler  donation_company.DonationCompanyAdapter
 
 	NotificationHandler notificationInbound.NotificationHandler
+	// BankVaultHandler          bankvaultInterface.BankVaultHandler
+	// VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -120,6 +136,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		AdvertHandler:       advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		AvatarHandler:       avatarHandlerImpl.InitAvatarAdapter(serviceLayer.Avatar, logger),
 		WalletHandler:       walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
+		TopupHandler:       TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
 		PasswordHandler:     passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
@@ -133,6 +150,9 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		Permission:          permissionHandler.InitPermissionHandler(serviceLayer.Permission, logger),
 		CPSUser:             cpsUserHandler.InitCPSUserHandler(serviceLayer.CPSUser, logger),
 		NotificationHandler: notificationHandler.InitNotificationHandler(serviceLayer.NotificationService, logger),
+		// BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
+
+		// VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
 
 		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 

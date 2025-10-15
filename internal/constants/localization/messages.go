@@ -11,6 +11,7 @@ const (
 	MsgAvatarDeletedSuccessfully   = "Avatar delete request sent successfully"
 	MsgAvatarRetrievedSuccessfully = "Avatar retrieved successfully"
 	MsgUserUpdatedSuccessfully     = "User update request sent successfully"
+	MsgAmountBasedSuccessfullySent = "Amount-based authentication update request sent successfully"
 	MsgUserDeletedSuccessfully     = "User delete request sent successfully"
 	MsgUserRetrievedSuccessfully   = "User retrieved successfully"
 	MsgUserLoginSuccessfully       = "User logged in successfully"
@@ -72,6 +73,7 @@ const (
 	MsgDonationCompanyCreateRequestSent      = "Donation company create request sent successfully"
 	MsgDonationCompaniesFetched              = "Donation companies fetched successfully"
 	MsgDonationCompanyFetched                = "Donation company fetched successfully"
+	MsgAccountInfoFetched                    = "Account info fetched successfully"
 	MsgDonationCompanyUpdatedRequestSent     = "Donation company updated request sent successfully"
 	MsgSuccessDonationCompanyUpdated         = "Donation company updated successfully"
 	MsgDonationCreateRequestSent             = "Donation create request sent successfully"
@@ -105,7 +107,13 @@ const (
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
 	MsgWalletRetrievedSuccessfully  = "Wallet retrieved successfully"
-
+	//topup related success messages
+	MsgTopupCreationRequestSent    = "Topup creation request sent successfully"
+	MsgTopupUpdateRequestSent      = "Topup update request sent successfully"
+	MsgTopupDeleteRequestSent      = "Topup delete request sent successfully"
+	MsgTopupDeletedSuccessfully    = "Topup deleted successfully"
+	MsgTopupsRetrievedSuccessfully = "Topups retrieved successfully"
+	MsgTopupRetrievedSuccessfully  = "Topup retrieved successfully"
 	// Event related success messages
 	MsgEventCreationRequestSubmitted = "Event creation request submitted successfully"
 	MsgEventUpdateRequestSubmitted   = "Event update request submitted successfully"
@@ -141,8 +149,8 @@ const (
 	MsgMiniAppMerchantUpdateRequestSuccessfully = "Update request submitted for approval"
 	MsgUpdateRequestSuccessfullyCreated         = "Update request successfully created"
 	MsgDeleteRequestSuccessfullyCreated         = "Delete request successfully created"
-	MsgEnableRequestSuccessfullyCreated         = "Bank enable request sent successfully"
-	MsgDisableRequestSuccessfullyCreated        = "Bank disable request sent successfully"
+	MsgEnableRequestSuccessfullyCreated         = "enable request successfully created"
+	MsgDisableRequestSuccessfullyCreated        = "Disable request successfully created"
 	MsgMiniAppMerchantDisable                   = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantEnableSuccessfully        = "Create MiniAppMerchant request successfully created"
 	MsgMiniAppMerchantCreatedSuccessfully       = "Mini app merchant created successfully"
@@ -161,6 +169,23 @@ const (
 	MsgDepartmentEnableRequestedSuccessfully  = "Department enable requested successfully"
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
+	// Bank Vault related success messages
+	MsgBankVaultCreationRequestSubmitted = "Bank vault creation request submitted successfully"
+	MsgBankVaultUpdateRequestSubmitted   = "Bank vault update request submitted successfully"
+	MsgBankVaultDeleteRequestSubmitted   = "Bank vault deleted  request submitted successfully"
+	MsgBankVaultDisableRequestSubmitted  = "Bank vault disabled request submitted successfully"
+	MsgBankVaultEnableRequestSubmitted   = "Bank vault enabled request submitted successfully"
+	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
+	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
+
+	// vault group category sucess messages
+	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
+	MsgVaultGroupCategoriesRetrieved              = "Vault group categories retrieved successfully"
+	MsgVaultGroupCategoryRetrieved                = "Vault group category retrieved successfully"
+	MsgVaultGroupCategoryUpdateRequestSubmitted   = "Vault group category update request submitted successfully"
+	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
+	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
+	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
 	// Budget Category related success messages
 	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
 
@@ -352,12 +377,16 @@ const (
 	MsgFileTooLarge     = "file size is too large"
 	MsgFileInvalidType  = "invalid file type"
 	MsgFileUploadFailed = "file upload failed"
+
 	MsgFileNotFound     = "file not found"
 	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
-	MsgBankDeleteRequestFailed               = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
+	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
+	MsgBankDeleteRequestFailed     = "Bank delete request failed"
+	MsgBankImageRequiredOrMissing  = "Required bank image invalid or missing"
+	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
+
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
@@ -365,6 +394,8 @@ const (
 	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
+	MsgExistEmail = "cps user with this email already exist"
+	MsgExistPhoneNumber ="cps user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
@@ -427,9 +458,11 @@ const (
 	MsgCompanyNameAlreadyExists           = "Company name already exists"
 	MsgDonationTitleAlreadyExists         = "Donation title already exists"
 	MsgDonationAccountNumberAlreadyExists = "Account number already exists"
-	MsgAccountNumberAlreadyExists         = "Account number already exists"
+	MsgAccountNumberAlreadyExists         = "representative data already exists"
 	MsgLogoIsRequired                     = "Company logo is required"
 	MsgAccountNumberValidationFailed      = "Account number validation failed"
+	MsgAccountNotFound                    = "Account number not found"
+	MsgAccountNotActive                   = "Account number is not active"
 	MsgDonationIconRequired               = "Icon is required"
 	MsgDonationLogoRequired               = "Logo is required"
 	MsgDonationImagesRequired             = "Donation images are required"
@@ -526,8 +559,8 @@ const (
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
 	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
 	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantEnableFailed   = "Failed to enable mini app merchant"
-	MsgMiniAppMerchantDisableFailed  = "Failed to disable mini app merchant"
+	MsgMiniAppMerchantEnableFailed   = "mini app merchant already enabled"
+	MsgMiniAppMerchantDisableFailed  = "mini app merchant already disabled"
 	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
 	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
 
@@ -567,6 +600,14 @@ const (
 	MsgBPSUserUpdateFailed   = "Failed to update BPS user"
 	MsgBPSUserInvalidFormat  = "Invalid BPS user format"
 	MsgBPSUserRequired       = "BPS user is required"
+
+	// bank vault related error messages
+	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
+	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
+
+	// vault group category related error messages
+	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
+	MsgVaultGroupAlreadyDisabled = "Vault group category already disabled"
 
 	// Ad related error messages
 	MsgAdNotFound       = "Ad not found"
@@ -725,6 +766,7 @@ const (
 	MsgDonationCategoryLookupFailed   = "Category lookup failed"
 	MsgDonationCategoryIdRequired     = "category id is required"
 	MsgDonationCompanyIdRequired      = "company id is required"
+	MsgAccountNumberRequired          = "Account Number is required"
 	MsgDonationCompanyLookupFailed    = "Company lookup failed"
 	MsgDonationLookupFailed           = "Donation lookup failed"
 	MsgDonationCategoryNameDuplicated = "donation category name already exist"
@@ -881,6 +923,10 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+
+	// bank vault
+	MsgCannotDeleteActiveBankVault    = "Cannot delete active bank vault"
+	MsgBankVaultProductAlreadyDeleted = "Bank vault product already deleted"
 
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"

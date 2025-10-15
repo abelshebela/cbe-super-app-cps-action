@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-//go:embed swagger-ui/*
+// go:embed swagger-ui/*
 var swaggerUIFS embed.FS
 
 // ModuleSpecs maps module names to their OpenAPI specification files

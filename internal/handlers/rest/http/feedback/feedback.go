@@ -25,6 +25,18 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 	}
 }
 
+// CreateFeedback godoc
+// @Summary Submit feedback
+// @Description Allows a user (or anonymous) to submit feedback
+// @Tags Feedback
+// @Accept json
+// @Produce json
+// @Param request body feedback.FeedbackRequest true "Feedback creation payload"
+// @Success 201 {object} localization.ResponseCode "Feedback created successfully"
+// @Failure 400 {object} localization.ResponseCode "Invalid request payload"
+// @Failure 500 {object} localization.ResponseCode "Internal server error"
+// @Security BearerAuth
+// @Router /feedback/create [post]
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	var req feedback.FeedbackRequest
 
@@ -58,6 +70,21 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 }
 
+// GetFeedbacks godoc
+// @Summary Get list of feedbacks
+// @Description Fetch feedbacks with pagination and optional filters
+// @Tags Feedback
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number (default 1)"
+// @Param per_page query int false "Items per page (default 10, max 100)"
+// @Param sort query string false "Sort field"
+// @Param order query string false "Sort order (asc/desc)"
+// @Success 200 {object} localization.ResponseCode "Feedbacks fetched successfully"
+// @Failure 400 {object} localization.ResponseCode "Invalid query params"
+// @Failure 500 {object} localization.ResponseCode "Internal server error"
+// @Security BearerAuth
+// @Router /feedback [get]
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -81,6 +108,20 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 
+
+// GetFeedbackByID godoc
+// @Summary Get feedback by ID
+// @Description Fetch a single feedback by its ID
+// @Tags Feedback
+// @Accept json
+// @Produce json
+// @Param id path string true "Feedback ID (24-char hex)"
+// @Success 200 {object} localization.ResponseCode "Feedback fetched successfully"
+// @Failure 400 {object} localization.ResponseCode "Invalid feedback ID"
+// @Failure 404 {object} localization.ResponseCode "Feedback not found"
+// @Failure 500 {object} localization.ResponseCode "Internal server error"
+// @Security BearerAuth
+// @Router /feedback/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 

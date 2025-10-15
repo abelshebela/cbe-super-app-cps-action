@@ -2,6 +2,7 @@ package ad
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"fmt"
 	"mime/multipart"
 	"time"
@@ -14,25 +15,25 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 	err := validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
 			validation.When(!isUpdate, validation.Required.Error("title is required")),
-			validation.Length(3, 20).Error("TITLE_LENGTH_3_TO_20"),
+			validation.Length(3, 20).Error(localization.ErrorTitleLength3To20.Code),
 		),
 		validation.Field(&c.Description,
 			validation.When(!isUpdate, validation.Required.Error("description is required")),
-			validation.Length(30, 100).Error("DESCRIPTION_LENGTH_30_TO_100"),
+			validation.Length(30, 100).Error(localization.ErrorDescriptionLength30To100.Code),
 		),
 		validation.Field(&c.AdvertFor,
 			validation.When(!isUpdate, validation.Required.Error("advert for is required")),
 			validation.In(string(constants.BOTH_ADVERT_FOR), string(constants.IFB_ADVERT_FOR), string(constants.CB_ADVERT_FOR)).Error("invalid advert for field"),
 		),
 		validation.Field(&c.BannerImage,
-			validation.When(!isUpdate, validation.Required.Error("MISSING_OR_INVALID_IMAGE")),
+			validation.When(!isUpdate, validation.Required.Error(localization.ErrorMissingOrInvalidImage.Code)),
 			validation.When(c.BannerImage != nil, validation.By(func(value interface{}) error {
 				file, ok := value.(*multipart.FileHeader)
 				if !ok {
-					return fmt.Errorf("INVALID_FILE")
+					return localization.ErrorMissingOrInvalidImage
 				}
 				if file.Size > (2 << 20) {
-					return fmt.Errorf("FILE_TOO_LARGE")
+					return localization.ErrorFileTooLarge
 				}
 				return nil
 			})),

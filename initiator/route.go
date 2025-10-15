@@ -12,6 +12,9 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+
+	// bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
+	// vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
@@ -22,6 +25,7 @@ import (
 	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini_app"
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
+	"cbe-super-app-cps-action/internal/glue/routing/topup"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
@@ -45,7 +49,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
+
+	_ "cbe-super-app-cps-action/docs" // Import generated docs
 )
 
 func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
@@ -78,6 +85,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	bank.Init(r, handlerLayer.BankHandler, authMiddleware)
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
+	topup.Init(r, handlerLayer.TopupHandler, authMiddleware)
 
 	customer.Init(r, handlerLayer.customerHandler, authMiddleware)
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
@@ -98,6 +106,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
+	// bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
+	// vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
 
 	donation.Init(r, handlerLayer.DonationHandler, authMiddleware)
 	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)
@@ -107,4 +117,12 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+
+	// Swagger documentation routes
+	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/api/v1/cbesuperapp/cps_action/swagger/doc.json"),
+	))
+	router.Get("/api/v1/cbesuperapp/cps_action/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/api/v1/cbesuperapp/cps_action/swagger/index.html", http.StatusMovedPermanently)
+	})
 }

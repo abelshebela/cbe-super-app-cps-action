@@ -2,6 +2,7 @@ package amount_based_auth
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -11,7 +12,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -47,32 +47,170 @@ func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cps
 
 // Authorize handles persistence for amount-based auth actions
 func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Authorizing amount-based auth action, action: %s", action.RequestAction)
+	s.logger.Infof("Authorizing amount-based auth action, action:************* %s", action.RequestAction)
 
-	var authTier *model.AuthTier
-	if err := local_util.BindAction(action.CurrentAction, &authTier); err != nil {
-		s.logger.Errorf("Failed to bind current action to auth tier: %v", err)
+	// Unmarshal the current action data
+	// Try direct type assertion first
+
+	currentAction, err := local_util.JsonUnmarshal[map[string]interface{}](action.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("Failed to extract currentAction from action.CurrentAction: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	var err error
-	switch action.RequestAction {
-	case string(cpsaction.RequestUpdateAmountBasedAuth):
-		authTier.LastModified = time.Now()
-		err = s.Repository.Update(ctx, authTier.ID.Hex(), authTier)
+	s.logger.Infof("Authorizing amount-based auth action, pass action:************* %s", action.RequestAction)
 
+	result := (*currentAction)
+
+	switch result["method"] {
+	case "OPEN":
+		s.logger.Infof("Processing OPEN tier update===================")
+		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
+		if err != nil {
+			s.logger.Errorf("Error occurred when extracting data tier: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		openTierMap, ok := (*data)["open"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting open tier to map: %v", (*data)["open"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		openTier, err := local_util.JsonUnmarshal[model.AuthTier](openTierMap)
+		if err != nil {
+			s.logger.Errorf("Error occurred when converting open tier map to struct: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin tier to map: %v", (*data)["pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		pinTier, err := local_util.JsonUnmarshal[model.AuthTier](pinTierMap)
+		if err != nil {
+			s.logger.Errorf("Failed to unmarshal PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["open_id"].(string), openTier); err != nil {
+			s.logger.Errorf("Failed to update OPEN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["pin_id"].(string), pinTier); err != nil {
+			s.logger.Errorf("Failed to update PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		s.logger.Infof("OPEN tier update request completed successfully")
+	case "PIN":
+		s.logger.Infof("Processing PIN tier update================")
+		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
+		if err != nil {
+			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		openTierMap, ok := (*data)["open"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting open tier to map: %v", (*data)["open"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		openTier, err := local_util.JsonUnmarshal[model.AuthTier](openTierMap)
+		if err != nil {
+			s.logger.Errorf("Error occcure when extracting open tier error: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin tier to map: %v", (*data)["pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		pinTier, err := local_util.JsonUnmarshal[model.AuthTier](pinTierMap)
+		if err != nil {
+			s.logger.Errorf("Failed to unmarshal PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		otpPinTierMap, ok := (*data)["otp_pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting OTP_PIN tier to map: %v", (*data)["otp_pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](otpPinTierMap)
+		if err != nil {
+			s.logger.Errorf("Failed to unmarshal OTP_PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["open_id"].(string), openTier); err != nil {
+			s.logger.Errorf("Failed to update OPEN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["pin_id"].(string), pinTier); err != nil {
+			s.logger.Errorf("Failed to update PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["otp_pin_id"].(string), otpPinTier); err != nil {
+			s.logger.Errorf("Failed to update OTP_PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+	case "OTP_PIN":
+		s.logger.Infof("Processing OTP_PIN tier update================")
+		s.logger.Infof("Authorizing amount-based auth action, pass OTP_PIN action:************* %s", action.RequestAction)
+		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
+		if err != nil {
+			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		pinTierMap, ok := (*data)["pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting pin tier to map: %v", (*data)["pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		pinTier, err := local_util.JsonUnmarshal[model.AuthTier](pinTierMap)
+		if err != nil {
+			s.logger.Errorf("Error occcure when extracting pin tier error: %v", err)
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		otpPinTierMap, ok := (*data)["otp_pin"].(map[string]interface{})
+		if !ok {
+			s.logger.Errorf("Error occurred when casting OTP_PIN tier to map: %v", (*data)["otp_pin"])
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		otpPinTier, err := local_util.JsonUnmarshal[model.AuthTier](otpPinTierMap)
+		if err != nil {
+			s.logger.Errorf("Failed to unmarshal OTP_PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["otp_pin_id"].(string), otpPinTier); err != nil {
+			s.logger.Errorf("Failed to update OTP_PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["pin_id"].(string), pinTier); err != nil {
+			s.logger.Errorf("Failed to update PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
+
+		if err := s.Repository.Update(ctx, (*data)["otp_pin_id"].(string), otpPinTier); err != nil {
+			s.logger.Errorf("Failed to update OTP_PIN tier data: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		}
 	default:
-		s.logger.Errorf("Unsupported action requested, action: %s", action.RequestAction)
+		s.logger.Errorf("Unsupported method: %v", result["method"])
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	if err != nil {
-		s.logger.Errorf("Failed to process amount-based auth action, action: %s, error: %v", action.RequestAction, err)
-		return nil, err
-	}
-
-	action.CurrentAction = authTier
-	s.logger.Infof("Authorization completed for action, action: %s, id: %s", action.RequestAction, authTier.ID)
+	s.logger.Infof("Authorization completed for action, action: %s", action.RequestAction)
 	return action, nil
 }
 
@@ -85,17 +223,21 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
 	// Validate the request based on method
 	if !request.Validate(method) {
+		s.logger.Errorf("Invalid amount values for method %s: MinAmount=%d, MaxAmount=%d", method, request.MinAmount, request.MaxAmount)
 		return errors.New(localization.ErrorInvalidAmounts.Code)
 	}
 
 	existingTier, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
+		s.logger.Errorf(" Failed to find existing tier by ID %s: %v", id, err)
 		return err
 	}
 	if existingTier.Method != method {
+		s.logger.Errorf("Mismatched method for tier ID %s: expected %s, got %s", id, existingTier.Method, method)
 		return errors.New(localization.ErrorInvalidMethod.Code)
 	}
 
+	notModifiedTier := existingTier
 	now := time.Now()
 
 	switch method {
@@ -118,13 +260,28 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 
 		// Persist updates: update OPEN first, then PIN
 		existingTier.LastModified = now
-		if err := s.Repository.Update(ctx, id, existingTier); err != nil {
-			return err
-		}
+
 		pinTier.LastModified = now
-		if err := s.Repository.Update(ctx, pinTier.ID.Hex(), pinTier); err != nil {
+
+		data := map[string]interface{}{
+			"method": "OPEN",
+			"data": map[string]interface{}{
+				"open_id": existingTier.ID.Hex(),
+				"pin_id":  pinTier.ID.Hex(),
+				"open":    existingTier,
+				"pin":     pinTier,
+			},
+		}
+		// Create cps action model
+		cpsActionData := lib.CpsModelBuilder(id, local_util.ExtractUserFromContext(ctx), notModifiedTier, data, string(cpsaction.RequestUpdateAmountBasedAuth), constants.UPDATE)
+
+		if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+			s.logger.Errorf("Failed to create CPS action: %v", err)
 			return err
 		}
+
+		s.logger.Infof("OTP_PIN tier update request completed successfully")
+
 		return nil
 
 	case constants.PIN:
@@ -132,49 +289,88 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 
-		fmt.Printf("existingTier: %v\n", existingTier)
+		s.logger.Infof("Updating PIN tier - existingTier: ID=%s, MinAmount=%d, MaxAmount=%d",
+			existingTier.ID.Hex(), existingTier.MinAmount, existingTier.MaxAmount)
 
 		// Fetch OPEN and OTP_PIN tiers for validation constraints
+		s.logger.Infof("Fetching OPEN tiers...")
 		openTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OPEN, "is_deleted": false}, bson.M{})
 		if err != nil {
+			s.logger.Errorf("Failed to fetch OPEN tiers: %v", err)
 			return err
 		}
-		fmt.Printf("openTiers: %v\n", &openTiers)
+		s.logger.Infof("Found %d OPEN tiers", len(openTiers))
+
 		if len(openTiers) == 0 {
+			s.logger.Errorf("No OPEN tiers found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		if openTiers[0] == nil {
+			s.logger.Errorf("First OPEN tier is nil")
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+
+		s.logger.Infof("Fetching OTP_PIN tiers...")
 		otpPinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OTPANDPIN, "is_deleted": false}, bson.M{})
 		if err != nil {
+			s.logger.Errorf("Failed to fetch OTP_PIN tiers: %v", err)
 			return err
 		}
+		s.logger.Infof("Found %d OTP_PIN tiers", len(otpPinTiers))
+
 		if len(otpPinTiers) == 0 {
+			s.logger.Errorf("No OTP_PIN tiers found")
 			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		if otpPinTiers[0] == nil {
+			s.logger.Errorf("First OTP_PIN tier is nil")
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		openTier := openTiers[0]
 		otpPinTier := otpPinTiers[0]
 
+		s.logger.Infof("OPEN tier: ID=%s, MinAmount=%d, MaxAmount=%d",
+			openTier.ID.Hex(), openTier.MinAmount, openTier.MaxAmount)
+		s.logger.Infof("OTP_PIN tier: ID=%s, MinAmount=%d, MaxAmount=%d",
+			otpPinTier.ID.Hex(), otpPinTier.MinAmount, otpPinTier.MaxAmount)
+
 		// Validate the user's PIN values against OPEN and OTP_PIN constraints
+		s.logger.Infof("Applying PIN update validation...")
 		if err := core.ApplyPinUpdate(existingTier, openTier, otpPinTier); err != nil {
+			s.logger.Errorf("PIN update validation failed: %v", err)
 			return err
 		}
 
 		// Persist all modified tiers: PIN, OPEN, and OTP_PIN
-		existingTier.LastModified = now
-		if err := s.Repository.Update(ctx, id, existingTier); err != nil {
-			return err
-		}
+		s.logger.Infof("Updating existing tier...")
 
+		s.logger.Infof("Updating OPEN tier...")
 		openTier.LastModified = now
-		if err := s.Repository.Update(ctx, openTier.ID.Hex(), openTier); err != nil {
-			return err
-		}
 
+		s.logger.Infof("Updating OTP_PIN tier...")
 		otpPinTier.LastModified = now
-		if err := s.Repository.Update(ctx, otpPinTier.ID.Hex(), otpPinTier); err != nil {
-			return err
+
+		data := map[string]interface{}{
+			"method": "PIN",
+			"data": map[string]interface{}{
+				"open_id":    openTier.ID.Hex(),
+				"pin_id":     existingTier.ID.Hex(),
+				"otp_pin_id": otpPinTier.ID.Hex(),
+				"open":       openTier,
+				"pin":        existingTier,
+				"otp_pin":    otpPinTier,
+			},
 		}
 
+		// Create cps action model
+		cpsActionData := lib.CpsModelBuilder(id, local_util.ExtractUserFromContext(ctx), notModifiedTier, data, string(cpsaction.RequestUpdateAmountBasedAuth), constants.UPDATE)
+
+		if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+			s.logger.Errorf("Failed to create CPS action: %v", err)
+			return err
+		}
+		s.logger.Infof("PIN tier update request completed successfully")
 		return nil
 
 	case constants.OTPANDPIN:
@@ -197,13 +393,26 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 
 		// Persist updates: update OTP_PIN first, then PIN
 		existingTier.LastModified = now
-		if err := s.Repository.Update(ctx, id, existingTier); err != nil {
+
+		data := map[string]interface{}{
+			"method": "OTP_PIN",
+			"data": map[string]interface{}{
+				"pin_id":     pinTier.ID.Hex(),
+				"otp_pin_id": existingTier.ID.Hex(),
+				"pin":        pinTier,
+				"otp_pin":    existingTier,
+			},
+		}
+		// Create cps action model
+		cpsActionData := lib.CpsModelBuilder(id, local_util.ExtractUserFromContext(ctx), notModifiedTier, data, string(cpsaction.RequestUpdateAmountBasedAuth), constants.UPDATE)
+
+		if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+			s.logger.Errorf("Failed to create CPS action: %v", err)
 			return err
 		}
-		pinTier.LastModified = now
-		if err := s.Repository.Update(ctx, pinTier.ID.Hex(), pinTier); err != nil {
-			return err
-		}
+
+		s.logger.Infof("OTP_PIN tier update request completed successfully")
+
 		return nil
 	}
 

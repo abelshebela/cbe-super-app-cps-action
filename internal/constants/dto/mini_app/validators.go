@@ -20,20 +20,18 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.AppName,
 				validation.Required.Error(localization.ErrorMiniAppNameRequired.Code),
-				validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error(localization.ErrorInvalidAppNameFormat.Code),
+				// validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error(localization.ErrorInvalidAppNameFormat.Code),
 			),
 			validation.Field(&r.MerchantID, validation.Required.Error(localization.ErrorMiniAppMerchantIDRequired.Code)),
 			validation.Field(&r.AppIcon, validation.Required.Error(localization.ErrorAppIconRequired.Code), validation.By(validateFile)),
 			validation.Field(&r.AppViewType, validation.Required.Error(localization.ErrorAppViewTypeRequired.Code), validation.By(ValidateAppViewType(r, isCreate))),
 			validation.Field(&r.URL, validation.Required.Error(localization.ErrorMiniAppURLRequired.Code), validation.By(validateURL)),
-			validation.Field(&r.BannerImage, validation.Required.Error(localization.ErrorBannerImageRequired.Code), validation.By(validateFile)),
-	
+			validation.Field(&r.BannerImage, validation.By(validateFile)),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.AppIcon, validation.By(validateFile)),
 			validation.Field(&r.BannerImage, validation.By(validateFile)),
-	
 		}
 	}
 
@@ -47,6 +45,18 @@ func isImageFormat(fileHeader *multipart.FileHeader) bool {
 		return false
 	}
 	contentType := fileHeader.Header.Get("Content-Type")
+
+	// Acceptable image formats
+	ext := strings.ToLower(strings.TrimPrefix(strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, "."):]), "."))
+	switch ext {
+	case "jpg", "jpeg":
+		contentType = "image/jpeg"
+	case "png":
+		contentType = "image/png"
+	case "gif":
+		contentType = "image/gif"
+	}
+
 	switch contentType {
 	case "image/jpeg", "image/png", "image/gif":
 		return true

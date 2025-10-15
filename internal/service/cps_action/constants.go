@@ -81,17 +81,24 @@ const (
 	RequestDeleteWallet            RequestAction = "DELETE_WALLET"
 	RequestEnableWallet            RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet           RequestAction = "DISABLE_WALLET"
-	RequestUpdatePasswordExpiry    RequestAction = "UPDATE_PASSWORD_EXPIRY"
-	RequestCreateValidation        RequestAction = "CREATE_VALIDATION"
-	RequestUpdateValidation        RequestAction = "UPDATE_VALIDATION"
-	RequestDeleteValidation        RequestAction = "DELETE_VALIDATION"
-	RequestUpdateArchiveExpiry     RequestAction = "UPDATE_ARCHIVE_EXPIRY"
-	RequestUpdateServiceSingle     RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
-	RequestUpdateServiceTotal      RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
-	RequestUpdateServiceMinCap     RequestAction = "UPDATE_SERVICE_MIN_CAP"
-	RequestBudgetColor             RequestAction = "BUDGET_COLOR"
-	RequestBudgetIcon              RequestAction = "BUDGET_ICON"
-	RequestUpdateProduct           RequestAction = "UPDATE_PRODUCT"
+
+	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
+	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
+	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
+	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
+	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
+
+	RequestUpdatePasswordExpiry RequestAction = "UPDATE_PASSWORD_EXPIRY"
+	RequestCreateValidation     RequestAction = "CREATE_VALIDATION"
+	RequestUpdateValidation     RequestAction = "UPDATE_VALIDATION"
+	RequestDeleteValidation     RequestAction = "DELETE_VALIDATION"
+	RequestUpdateArchiveExpiry  RequestAction = "UPDATE_ARCHIVE_EXPIRY"
+	RequestUpdateServiceSingle  RequestAction = "UPDATE_SERVICE_SINGLE_CAP"
+	RequestUpdateServiceTotal   RequestAction = "UPDATE_SERVICE_TOTAL_CAP"
+	RequestUpdateServiceMinCap  RequestAction = "UPDATE_SERVICE_MIN_CAP"
+	RequestBudgetColor          RequestAction = "BUDGET_COLOR"
+	RequestBudgetIcon           RequestAction = "BUDGET_ICON"
+	RequestUpdateProduct        RequestAction = "UPDATE_PRODUCT"
 
 	// Notification
 	RequestCreatePublicNotification RequestAction = "CREATE_PUBLIC_NOTIFICATION"
@@ -176,11 +183,11 @@ const (
 	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
 	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
 
-	RequestCreateMiniApp  RequestAction = "CREATE_MINIAPP"
-	RequestUpdateMiniApp  RequestAction = "UPDATE_MINIAPP"
-	RequestDeleteMiniApp  RequestAction = "DELETE_MINIAPP"
-	RequestEnableMiniApp  RequestAction = "ENABLE_MINIAPP"
-	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
+	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MINI_APP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINI_APP"
 
 	RequestCreateBudgetColor RequestAction = "BUDGET_CREATE_COLOR"
 	RequestUpdateBudgetColor RequestAction = "BUDGET_UPDATE_COLOR"
@@ -214,9 +221,49 @@ const (
 	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	// for bankvault
+	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+
+	// for vault group category
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
+
+	// for article
+	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
+	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
+	RequestEnableArticle  RequestAction = "ENABLE_ARTICLE"
+	RequestDisableArticle RequestAction = "DISABLE_ARTICLE"
+	RequestDeleteArticle  RequestAction = "DELETE_ARTICLE"
+
+	// for article category
+	RequestCreateArticleCategory  RequestAction = "CREATE_ARTICLE_CATEGORY"
+	RequestUpdateArticleCategory  RequestAction = "UPDATE_ARTICLE_CATEGORY"
+	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
+	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
+	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
+	RequestCreateBankVault:  {},
+	RequestUpdateBankVault:  {},
+	RequestDeleteBankVault:  {},
+	RequestEnableBankVault:  {},
+	RequestDisAbleBankVault: {},
+
+	// for vault group category
+	RequestCreateVaultGroupCategory:  {},
+	RequestUpdateVaultGroupCategory:  {},
+	RequestDeleteVaultGroupCategory:  {},
+	RequestEnableVaultGroupCategory:  {},
+	RequestDisAbleVaultGroupCategory: {},
+
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
 	RequestCreateDonationCompany:  {},
@@ -334,6 +381,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateWallet:        {},
 	RequestUpdateWallet:        {},
 	RequestDeleteWallet:        {},
+	
+	RequestCreateTopup:        {},
+	RequestUpdateTopup:        {},
+	RequestDeleteTopup:        {},
+	RequestEnableTopup:             {},
+	RequestDisableTopup:            {},
 
 	// RequestCreateNotification:      {},
 	// RequestUpdateNotification:      {},
@@ -348,6 +401,18 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCpsUserDisable:          {},
 	// RequestCpsUserDelete:{},
 	// RequestCpsUserCreate:{},
+
+	// for article
+	RequestCreateArticle:          {},
+	RequestUpdateArticle:          {},
+	RequestEnableArticle:          {},
+	RequestDisableArticle:         {},
+	RequestDeleteArticle:          {},
+	RequestCreateArticleCategory:  {},
+	RequestUpdateArticleCategory:  {},
+	RequestDeleteArticleCategory:  {},
+	RequestEnableArticleCategory:  {},
+	RequestDisableArticleCategory: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -514,6 +579,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableWallet,
 		RequestDisableWallet,
 	},
+	"Topup": {
+		RequestCreateTopup,
+		RequestUpdateTopup,
+		RequestDeleteTopup,
+		RequestEnableTopup,
+		RequestDisableTopup,
+	},
 	"Validation": {
 		RequestCreateValidation,
 		RequestUpdateValidation,
@@ -589,6 +661,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableNotification,
 		RequestMarkNotificationAsSeen,
 	},
+	"BankVault": {
+		RequestCreateBankVault,
+		RequestUpdateBankVault,
+		RequestDeleteBankVault,
+		RequestEnableBankVault,
+		RequestDisAbleBankVault,
+	},
 	"ProductCode": {
 		RequestUpdateProductCode,
 	},
@@ -608,6 +687,27 @@ var RequestActionGroups = map[string][]RequestAction{
 	"donationCompany": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
+	},
+	"VaultGroupCategory": {
+		RequestCreateVaultGroupCategory,
+		RequestUpdateVaultGroupCategory,
+		RequestDeleteVaultGroupCategory,
+		RequestEnableVaultGroupCategory,
+		RequestDisAbleVaultGroupCategory,
+	},
+	"article": {
+		RequestCreateArticle,
+		RequestUpdateArticle,
+		RequestDeleteArticle,
+		RequestEnableArticle,
+		RequestDisableArticle,
+	},
+	"articleCategory": {
+		RequestCreateArticleCategory,
+		RequestUpdateArticleCategory,
+		RequestDeleteArticleCategory,
+		RequestEnableArticleCategory,
+		RequestDisableArticleCategory,
 	},
 }
 

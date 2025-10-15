@@ -38,13 +38,13 @@ func StructToMap(data interface{}) (map[string]interface{}, error) {
 func PasswordRuleDtoToModel(dto dto.PasswordRuleUpdate) model.PasswordRule {
 	return model.PasswordRule{
 		ID:             bson.NewObjectID(),
-		Name:           dto.Name,
-		MinLength:      dto.MinLength,
-		MaxLength:      dto.MaxLength,
-		Numbers:        dto.Numbers,
-		CapitalLetters: dto.CapitalLetters,
-		SmallLetters:   dto.SmallLetters,
-		Characters:     dto.Characters,
+		Name:           dto.Rule.Name,
+		MinLength:      dto.Rule.MinLength,
+		MaxLength:      dto.Rule.MaxLength,
+		Numbers:        dto.Rule.Numbers,
+		CapitalLetters: dto.Rule.CapitalLetters,
+		SmallLetters:   dto.Rule.SmallLetters,
+		Characters:     dto.Rule.Characters,
 		CreatedAt:      time.Now(),
 	}
 }

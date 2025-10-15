@@ -14,7 +14,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	
+
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -169,20 +169,18 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		if err != nil {
 			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 		}
-		}else{
-			donation.CategoryID=existingDonation.Category.ID
-		}
-
+	} else {
+		donation.CategoryID = existingDonation.Category.ID
+	}
 
 	if donation.CompanyID != "" {
 		_, err = d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 		if err != nil {
 			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 		}
-	}else{
-		donation.CompanyID=existingDonation.Company.ID
+	} else {
+		donation.CompanyID = existingDonation.Company.ID
 	}
-
 
 	coverImageURL := existingDonation.CoverImage
 	if donation.CoverImage != nil {
@@ -222,7 +220,6 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 		return errors.New(localization.ErrorImageRequired.Code)
 	}
 
-	
 	imageExists := false
 	for _, img := range existingDonation.DonationImages {
 		if img.ID == image.ImageID {
@@ -266,7 +263,6 @@ func (d *Donation) DeleteDonationImage(ctx context.Context, id string, imageID s
 	if existingDonation == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-	
 
 	updateData := dto.DonationImageDeleteCPSRequest{
 		ImageIDToDelete: imageID,
@@ -387,7 +383,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		d.logger.Errorf("failed to bind current action to donation: %v", bindErr)
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
-	if action.UniqueId != ""{
+	if action.UniqueId != "" {
 		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
 		if err != nil {
 			d.logger.Errorf("Failed to find donation for image addition: %v", err)
@@ -616,14 +612,11 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		}
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 		updateRequest := dto.DonationRequest{
-			Enabled:             true,
-			
+			Enabled: true,
 		}
 		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, existingDonation.DonationImages)
 		donationModel := core.MapToDonationModel(&updateData)
 
-
-		
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
 			d.logger.Errorf("Failed to enable donation: %v", err)
@@ -641,8 +634,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		}
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 		updateRequest := dto.DonationRequest{
-			Enabled:             false,
-			
+			Enabled: false,
 		}
 		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, existingDonation.DonationImages)
 		donationModel := core.MapToDonationModel(&updateData)

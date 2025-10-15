@@ -128,25 +128,27 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	
-
 	return doc, nil
 }
 
-func (w *WalletStorage) Find(ctx context.Context, name string) (*model.Wallet, error) {
-	if name == "" {
-		w.logger.Warnf("FindByName called with empty name")
+func (w *WalletStorage) Find(ctx context.Context, key, value string) (*model.Wallet, error) {
+	if key == "" {
+		w.logger.Warnf("key is not specified")
+		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
+	}
+	if value == "" {
+		w.logger.Warnf("value is not specified")
 		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
 	}
 
-	filter := bson.M{"name": name, "is_deleted": false}
+	filter := bson.M{key: value, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No wallet found with name: %s", name)
+			w.logger.Warnf("No wallet found with %s: %s", key, value)
 			return nil, nil
 		}
-		w.logger.Errorf("FindByName wallet failed: %v", err)
+		w.logger.Errorf("FindBy%s wallet failed: %v", key, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -174,8 +176,6 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		e.logger.Errorf("FindAllWithPagination Wallet failed", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
-	
 
 	total, err := e.dal.TotalCount(ctx, filter)
 	if err != nil {

@@ -22,6 +22,6 @@ func ProductCodeMapper(productCode model.ProductCode) bson.M {
 	if productCode.CBEIFBProductCodes != empty {
 		update["cbe_ifb_product_codes"] = productCode.CBEIFBProductCodes
 	}
-	
+
 	return update
 }

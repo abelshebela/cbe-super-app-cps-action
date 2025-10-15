@@ -28,6 +28,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessOTPSent,
 	SuccessDonationCompanyLogoUploaded,
 	SuccessDonationCompanyLogoUpdated,
+	SuccessDonationCompanyFetched,
+	SuccessAccountInfoFetched,
+
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
 	SuccessNotificationConstructed,
@@ -47,6 +50,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessWalletDeleted,
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
+
+	SuccessTopupEnableRequestSubmitted,
+	SuccessTopupDisableRequestSubmitted,
+	SuccessTopupCreationRequestSent,
+	SuccessTopupUpdateRequestSent,
+	SuccessTopupDeleted,
+	SuccessTopupsRetrieved,
+	SuccessTopupRetrieved,
 
 	// Ad related success response codes
 	SuccessAdvertCreated,
@@ -99,6 +110,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentEnableRequestCreated,
 	SuccessDepartmentUpdateRequestCreated,
 	SuccessDepartmentCreateRequestCreated,
+	ErrorDepartmentNotFound,
 
 	//hq related success response codes
 	SuccessHQArchiveTimeFetched,
@@ -123,6 +135,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBudgetIconRequestSubmittedForApproval,
 	SuccessBudgetIconRequestSubmittedForApproval,
 	ErrorMiniAppMerchantNotFound,
+	ErrorMiniAppMerchantDisabled,
 	// Error codes
 
 	// Error codes
@@ -163,10 +176,14 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarAlreadyEnabled,
 	ErrorAvatarAlreadyDisabled,
 	ErrorAdvertAlreadyEnabled,
+	ErrorTitleLength3To20,
+	ErrorDescriptionLength30To100,
 	ErrorAdvertAlreadyDisabled,
+	ErrorAdvertTitleAlreadyExists,
+	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
-	ErrorAccountNumberRequired,
+
 	ErrorActionNotFound,
 	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
@@ -195,6 +212,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventAlreadyEnabled,
 	ErrorEventAlreadyDisabled,
 	ErrorUnhandledServer,
+	ErrorInvalidMerchantID,
 	ErrorInvalidDateFormat,
 	ErrorInvalidFileUpload,
 	ErrorInvalidNumberFormat,
@@ -220,6 +238,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorSessionRetrievalFailed,
 	ErrorInvalidToken,
+	ErrorFileInvalidType,
+	ErrorFileUploadFailed,
+	ErrorMiniAppNameAlreadyExists,
+
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
 	ErrorInvalidInputParameters,
@@ -247,13 +269,32 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
 	ErrorWalletAvatarInvalidType,
+	ErrorWalletRechangeOption,
 	ErrorAvatarAlreadyExist,
-	ErrorWalletAlreadyExists,
+	ErrorWalletNameAlreadyExists,
+	ErrorWalletCodeAlreadyExists,
 	ErrorWalletAlreadyDisabled,
 	ErrorWalletAlreadyEnabled,
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+
+	//topup related error codes
+	ErrorTopupNameRequired,
+	ErrorTopupCodeRequired,
+	ErrorTopupAvatarRequired,
+	ErrorTopupAvatarInvalid,
+	ErrorTopupAvatarTooLarge,
+	ErrorTopupAvatarInvalidType,
+	ErrorTopupServiceOption,
+	ErrorAvatarAlreadyExist,
+	ErrorTopupNameAlreadyExists,
+	ErrorTopupCodeAlreadyExists,
+	ErrorTopupAlreadyDisabled,
+	ErrorTopupAlreadyEnabled,
+	ErrorTopupIDRequired,
+	ErrorTopupNotFound,
+	ErrorTopupUpdateEmptyPayload,
 
 	ErrorInvalidRequestBody,
 	ErrorInvalidRequest,
@@ -351,7 +392,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
 	ErrorMinAmountCanNotBeGreaterThanCap,
-
+	ErrorPermissionCategoryNotFound,
+	ErrorPermissionGroupNotFound,
+ErrorPermissionGroupRequired,
 	ErrorCityAlreadyDisabled,
 	ErrorCityAlreadyEnabled,
 	ErrorRegionAlreadyDisabled,
@@ -386,7 +429,10 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberAlreadyExists,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
+	ErrorAccountNumberNotActive,
+	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
+
 	ErrorDonationCompanyLookupFailed,
 
 	SuccessDonationCompanyUpdated,
@@ -397,6 +443,15 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCompanyNotFound,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
+	ErrorMiniAppMerchantEnableFailed,
+	ErrorMiniAppMerchantDisableFailed,
+	ErrorMiniAppMerchantDeleteFailed,
+	ErrorMiniAppMerchantUpdateFailed,
+	ErrorExistEmail,
+	ErrorInvalidPhoneNumber,
+	ErrorExistPhoneNumber,
+	ErrorInvalidEmail,
+	
 }
 
 // Success Response Codes
@@ -454,6 +509,13 @@ var (
 		Code:       "SUCCESS_USER_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgUserUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAmountBasedAuthRequestSent = ResponseCode{
+		Code:       "SUCCESS_AMOUNT_BASED_AUTH_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgAmountBasedSuccessfullySent,
 		Type:       "success",
 	}
 
@@ -659,6 +721,12 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_FETCHED",
 		StatusCode: StatusOK,
 		Message:    MsgDonationCompanyFetched,
+		Type:       "success",
+	}
+	SuccessAccountInfoFetched = ResponseCode{
+		Code:       "SUCCESS_ACCOUNT_INFO_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgAccountInfoFetched,
 		Type:       "success",
 	}
 
@@ -868,6 +936,63 @@ var (
 		Type:       "success",
 	}
 
+	//topup realted success response codes
+	SuccessTopupCreationRequestSent = ResponseCode{
+		Code:       "SUCCESS_TOPUP_CREATION_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgTopupCreationRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTopupUpdateRequestSent = ResponseCode{
+		Code:       "SUCCESS_TOPUP_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTopupUpdateRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTopupDeleted = ResponseCode{
+		Code:       "SUCCESS_TOPUP_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgTopupDeleteRequestSent,
+		Type:       "success",
+	}
+
+	SuccessTopupsRetrieved = ResponseCode{
+		Code:       "SUCCESS_TopupS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTopupsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessTopupRetrieved = ResponseCode{
+		Code:       "SUCCESS_TOPUP_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTopupRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	ErrorTopupIDRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup ID is required",
+		Type:       "error",
+	}
+
+	SuccessTopupEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_TOPUP_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Topup enable request sent successfully",
+		Type:       "success",
+	}
+
+	SuccessTopupDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_TOPUP_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Topup disable request sent successfully",
+		Type:       "success",
+	}
+
 	// Event related success response codes
 	SuccessEventCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_EVENT_CREATION_REQUEST_SUBMITTED",
@@ -917,6 +1042,106 @@ var (
 		Message:    MsgEventsSuccessfullyRetrieved,
 		Type:       "success",
 	}
+	// bankvault related
+	SuccessBankVaultCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgBankVaultCreationRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultsRetrieved = ResponseCode{
+		Code:       "SUCCESS_BANKVAULTS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankVaultRetrieved = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankVaultUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessBankVaultDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_BANKVAULT_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgBankVaultDisableRequestSubmitted,
+		Type:       "success",
+	}
+	// vaultgroup category related
+	SuccessVaultGroupCategoryCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultGroupCategoryCreationRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoriesRetrieved = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORIES_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoriesRetrieved,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryRetrieved = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryRetrieved,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_DELETE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryEnableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultGroupCategoryDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULTGROUPCATEGORY_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
+		Type:       "success",
+	}
+	// Event related error response codes for bankvault
+	ErrorCannotDeleteActiveBankVault = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETE_ACTIVE_BANKVAULT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDeleteActiveBankVault,
+		Type:       "error",
+	}
+	ErrorBankVaultProductAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_BANKVAULT_PRODUCT_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankVaultProductAlreadyDeleted,
+		Type:       "error",
+	}
+
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -995,6 +1220,28 @@ var (
 		Message:    "Unhandled server error",
 		Type:       "error",
 	}
+
+	ErrorInvalidMerchantID = ResponseCode{
+		Code:       "ERROR_INVALID_MERCHANT_ID",
+		StatusCode: StatusBadRequest,
+		Message:    "Invalid merchant ID",
+		Type:       "error",
+	}
+
+	ErrorAdvertTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_ADVERT_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Advert title already exists",
+		Type:       "error",
+	}
+
+	ErrorAdvertTitleNotChanged = ResponseCode{
+		Code:       "ERROR_ADVERT_TITLE_NOT_CHANGED",
+		StatusCode: StatusBadRequest,
+		Message:    "Advert title not changed",
+		Type:       "error",
+	}
+
 	ErrorInvalidDateFormat = ResponseCode{
 		Code:       "ERROR_INVALID_DATE_FORMAT",
 		StatusCode: StatusBadRequest,
@@ -1004,7 +1251,7 @@ var (
 	ErrorInvalidFileUpload = ResponseCode{
 		Code:       "IMAGE_REQUIRED",
 		StatusCode: StatusBadRequest,
-		Message:    "image is required",
+		Message:    "App icon image is required",
 		Type:       "error",
 	}
 	ErrorInvalidBooleanFormat = ResponseCode{
@@ -1139,12 +1386,57 @@ var (
 		Type:       "error",
 	}
 
+	//
+	ErrorTopupNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup with the given name already exists",
+		Type:       "error",
+	}
+	ErrorTopupCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup with the given code already exists",
+		Type:       "error",
+	}
+	ErrorTopupNotFound = ResponseCode{
+		Code:       "ERROR_TOPUP_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Topup not found",
+		Type:       "error",
+	}
+
+	ErrorTopupAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup is already enabled",
+		Type:       "error",
+	}
+	ErrorTopupUpdateEmptyPayload = ResponseCode{
+		Code:       "ERROR_TOPUP_UPDATE_EMPTY_PAYLOAD",
+		StatusCode: StatusBadRequest,
+		Message:    "No data provided for Topup update",
+		Type:       "error",
+	}
+
+	ErrorTopupAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_TOPUP_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup is already disabled",
+		Type:       "error",
+	}
 	//wallet related error codes
 
-	ErrorWalletAlreadyExists = ResponseCode{
+	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
+		Type:       "error",
+	}
+	ErrorWalletCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given code already exists",
 		Type:       "error",
 	}
 	ErrorWalletNotFound = ResponseCode{
@@ -1226,6 +1518,13 @@ var (
 		Code:       "ERROR_WALLET_AVATAR_INVALID_TYPE",
 		StatusCode: 400,
 		Message:    "Wallet avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
+	}
+
+	ErrorWalletRechangeOption = ResponseCode{
+		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
+		StatusCode: 400,
+		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
 		Type:       "error",
 	}
 
@@ -1986,6 +2285,7 @@ var (
 		Message:    "Mini App not found",
 		Type:       "error",
 	}
+	
 	ErrorMiniAppAlreadyExists = ResponseCode{
 		Code:       "ERROR_MINI_APP_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
@@ -2568,14 +2868,6 @@ var (
 		Message:    MsgActionAlreadyExists,
 		Type:       "error",
 	}
-
-	ErrorAccountNumberRequired = ResponseCode{
-		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
-		StatusCode: StatusBadRequest,
-		Message:    MSGAccountNumberRequired,
-		Type:       "error",
-	}
-
 	ErrorDuplicateColorExists = ResponseCode{
 		Code:       "ERROR_DUPLICATE_COLOR",
 		StatusCode: StatusBadRequest,
@@ -2712,6 +3004,31 @@ var (
 		Code:       "ERROR_USER_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgBpsUserAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBankVaultAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BANK_VAULT_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankVaultAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBankVaultAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BANK_VAULT_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBankVaultAlreadyDisabled,
+		Type:       "error",
+	}
+
+	ErrorVaultGroupAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgVaultGroupAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorVaultGroupAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgVaultGroupAlreadyDisabled,
 		Type:       "error",
 	}
 
@@ -3005,6 +3322,12 @@ var (
 		Type:       "error",
 	}
 
+	ErrorMiniAppNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_MINI_APP_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgMiniAppNameAlreadyExists,
+		Type:       "error",
+	}
 	ErrorFileNotFound = ResponseCode{
 		Code:       "ERROR_FILE_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -3086,6 +3409,19 @@ var (
 		Code:       "ERROR_INVALID_PHONE_NUMBER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidPhoneNumber,
+		Type:       "error",
+	}
+	ErrorExistEmail = ResponseCode{
+		Code:       "ERROR_EXIST_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistEmail,
+		Type:       "error",
+	}
+
+	ErrorExistPhoneNumber = ResponseCode{
+		Code:       "ERROR_EXIST_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistPhoneNumber,
 		Type:       "error",
 	}
 
@@ -3465,6 +3801,12 @@ var (
 		Message:    "MiniApp merchant not found",
 		Type:       "error",
 	}
+	ErrorMiniAppMerchantDisabled = ResponseCode{
+		Code:       "ERROR_MINI_APP_MERCHANT_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "MiniApp merchant is Disabled",
+		Type:       "error",
+	}
 
 	ErrorMiniAppMerchantUnmarshalFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_UNMARSHAL_FAILED",
@@ -3655,6 +3997,12 @@ var (
 		Message:    MsgDonationCompanyIdRequired,
 		Type:       "error",
 	}
+	ErrorAccountNumberRequired = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNumberRequired,
+		Type:       "error",
+	}
 
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
@@ -3684,6 +4032,18 @@ var (
 		Type:       "error",
 	}
 
+	ErrorAccountNumberNotFound = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNotFound,
+		Type:       "error",
+	}
+	ErrorAccountNumberNotActive = ResponseCode{
+		Code:       "ERROR_ACCOUNT_NUMBER_NOT_ACTIVE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccountNotActive,
+		Type:       "error",
+	}
 	ErrorAccountNumberValidationFailed = ResponseCode{
 		Code:       "ERROR_ACCOUNT_NUMBER_VALIDATION_FAILED",
 		StatusCode: StatusBadRequest,
@@ -4052,6 +4412,21 @@ var (
 		Message:    MsgAdvertAlreadyEnabled,
 		Type:       "error",
 	}
+
+	ErrorDescriptionLength30To100 = ResponseCode{
+		Code:       "DESCRIPTION_LENGTH_30_TO_100",
+		StatusCode: StatusBadRequest,
+		Message:    "Description length must be between 30 and 100 characters",
+		Type:       "error",
+	}
+
+	ErrorTitleLength3To20 = ResponseCode{
+		Code:       "TITLE_LENGTH_3_TO_20",
+		StatusCode: StatusBadRequest,
+		Message:    "Title length must be between 3 and 20 characters",
+		Type:       "error",
+	}
+
 	ErrorAdvertAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_ADVERT_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
@@ -4329,8 +4704,14 @@ var (
 	}
 	ErrorDepartmentCreateRequest = ResponseCode{
 		Code:       "ERROR_DEPARTMENT_CREATION_REQUEST",
-		StatusCode: StatusCreated,
+		StatusCode: StatusExpectationFailed,
 		Message:    MsgDepartmentCreateRequestFail,
+		Type:       "error",
+	}
+	ErrorDepartmentNotFound = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDepartmentNotFound,
 		Type:       "error",
 	}
 
@@ -4547,6 +4928,79 @@ var (
 		Code:       "ERROR_NO_CHANGES_DETECTED",
 		StatusCode: StatusBadRequest,
 		Message:    "no changes detected to update",
+		Type:       "error",
+	}
+	ErrorVaultGroupCategoryNotFound = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_CATEGORY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Vault group category not found.",
+		Type:       "error",
+	}
+	ErrorCannotDeleteActiveVaultGroupCategory = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETE_ACTIVE_VAULT_GROUP_CATEGORY",
+		StatusCode: StatusBadRequest,
+		Message:    "Cannot delete an active vault group category.",
+		Type:       "error",
+	}
+	ErrorVaultGroupCategooryAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    "Vault group category is already deleted.",
+		Type:       "error",
+	}
+
+	ErrorTopupNameRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_NAME_REQUIRED",
+		StatusCode: 400,
+		Message:    "Topup name is required",
+		Type:       "error",
+	}
+
+	ErrorTopupCodeRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_CODE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Topup code is required",
+		Type:       "error",
+	}
+
+	ErrorTopupAvatarRequired = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_REQUIRED",
+		StatusCode: 400,
+		Message:    "Topup avatar is required",
+		Type:       "error",
+	}
+	ErrorTopupAvatarInvalid = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_INVALID",
+		StatusCode: 400,
+		Message:    "Invalid topup avatar",
+		Type:       "error",
+	}
+
+	ErrorTopupAvatarTooLarge = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_TOO_LARGE",
+		StatusCode: 400,
+		Message:    "Topup avatar file size exceeds the limit",
+		Type:       "error",
+	}
+
+	ErrorTopupAvatarInvalidType = ResponseCode{
+		Code:       "ERROR_TOPUP_AVATAR_INVALID_TYPE",
+		StatusCode: 400,
+		Message:    "Topup avatar must be of type jpeg, png, gif, or webp",
+		Type:       "error",
+	}
+
+	ErrorTopupServiceOption = ResponseCode{
+		Code:       "ERROR_TOPUP_SERVICE_OPTION_INVALID_VALUES",
+		StatusCode: 400,
+		Message:    "At Least one of the three service options should be enabled(self,other,agent)",
+		Type:       "error",
+	}
+
+	ErrorTopupImageMissingOrInvalid = ResponseCode{
+		Code:       "ERROR_Topup_IMAGE_MISSING_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTopupImageRequiredOrMissing,
 		Type:       "error",
 	}
 )

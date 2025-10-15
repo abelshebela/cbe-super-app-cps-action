@@ -1,6 +1,10 @@
 package constants
 
-import "time"
+import (
+	"fmt"
+	"strings"
+	"time"
+)
 
 type ContextKey string
 type Platform string
@@ -248,38 +252,54 @@ const (
 	RequestEnableNotification       RequestAction = "ENABLE_NOTIFICATION"
 	RequestDisableNotification      RequestAction = "DISABLE_NOTIFICATION"
 	RequestMarkNotificationAsSeen   RequestAction = "MARK_NOTIFICATION_AS_SEEN"
-	RequestArchiveUser              RequestAction = "ARCHIVE_USER"
-	RequestCreatePasswordRule       RequestAction = "CREATE_PASSWORD_RULE"
-	RequestUpdatePasswordRule       RequestAction = "UPDATE_PASSWORD_RULE"
-	RequestUpdateMinimumService     RequestAction = "UPDATE_MINIMUM_SERVICE"
-	RequestUpdateServiceRule        RequestAction = "UPDATE_SERVICE_RULE"
-	RequestUpdateTotal              RequestAction = "UPDATE_TOTAL"
-	RequestUpdateAccessConfig       RequestAction = "UPDATE_ACCESS_CONFIG"
-	RequestEnableSingleBranch       RequestAction = "ENABLE_SINGLE_BRANCH"
-	RequestDisableSingleBranch      RequestAction = "DISABLE_SINGLE_BRANCH"
-	RequestEnableMultiUsers         RequestAction = "ENABLE_MULTI_USERS"
-	RequestDisableMultiUsers        RequestAction = "DISABLE_MULTI_USERS"
-	RequestCreateBusiness           RequestAction = "CREATE_BUSINESS"
-	RequestUpdateBusiness           RequestAction = "UPDATE_BUSINESS"
-	RequestCreateMiniAppMerchant    RequestAction = "CREATE_MINIAPP_MERCHANT"
-	RequestUpdateMiniAppMerchant    RequestAction = "UPDATE_MINIAPP_MERCHANT"
-	RequestEnableMiniAppMerchant    RequestAction = "ENABLE_MINIAPP_MERCHANT"
-	RequestDisableMiniAppMerchant   RequestAction = "DISABLE_MINIAPP_MERCHANT"
-	RequestUpdateBlockTime          RequestAction = "UPDATE_BLOCK_TIME"
-	RequestCreateAvatar             RequestAction = "CREATE_AVATAR"
-	RequestDeleteAvatar             RequestAction = "DELETE_AVATAR"
-	RequestEnableAvatar             RequestAction = "ENABLE_AVATAR"
-	RequestDisableAvatar            RequestAction = "DISABLE_AVATAR"
-	RequestUpdateAvatar             RequestAction = "UPDATE_AVATAR"
-	RequestUnlinkUser               RequestAction = "UNLINK_USER"
-	RequestBlockRegion              RequestAction = "BLOCK_REGION"
-	RequestBlockDistrict            RequestAction = "BLOCK_DISTRICT"
-	RequestBlockCity                RequestAction = "BLOCK_CITY"
-	RequestBlockUser                RequestAction = "BLOCK_USER"
-	RequestEnableSingleBranches     RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
-	RequestDisableSingleBranches    RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
-	RequestEnableMultiBranches      RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
-	RequestDisableMultiBranches     RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+
+	RequestArchiveUser            RequestAction = "ARCHIVE_USER"
+	RequestCreatePasswordRule     RequestAction = "CREATE_PASSWORD_RULE"
+	RequestUpdatePasswordRule     RequestAction = "UPDATE_PASSWORD_RULE"
+	RequestUpdateMinimumService   RequestAction = "UPDATE_MINIMUM_SERVICE"
+	RequestUpdateServiceRule      RequestAction = "UPDATE_SERVICE_RULE"
+	RequestUpdateTotal            RequestAction = "UPDATE_TOTAL"
+	RequestUpdateAccessConfig     RequestAction = "UPDATE_ACCESS_CONFIG"
+	RequestEnableSingleBranch     RequestAction = "ENABLE_SINGLE_BRANCH"
+	RequestDisableSingleBranch    RequestAction = "DISABLE_SINGLE_BRANCH"
+	RequestEnableMultiUsers       RequestAction = "ENABLE_MULTI_USERS"
+	RequestDisableMultiUsers      RequestAction = "DISABLE_MULTI_USERS"
+	RequestCreateBusiness         RequestAction = "CREATE_BUSINESS"
+	RequestUpdateBusiness         RequestAction = "UPDATE_BUSINESS"
+	RequestCreateMiniAppMerchant  RequestAction = "CREATE_MINI_APP_MERCHANT"
+	RequestUpdateMiniAppMerchant  RequestAction = "UPDATE_MINI_APP_MERCHANT"
+	RequestEnableMiniAppMerchant  RequestAction = "ENABLE_MINI_APP_MERCHANT"
+	RequestDeleteMiniAppMerchant  RequestAction = "DELETE_MINI_APP_MERCHANT"
+	RequestDisableMiniAppMerchant RequestAction = "DISABLE_MINI_APP_MERCHANT"
+	RequestUpdateBlockTime        RequestAction = "UPDATE_BLOCK_TIME"
+	RequestCreateAvatar           RequestAction = "CREATE_AVATAR"
+	RequestDeleteAvatar           RequestAction = "DELETE_AVATAR"
+	RequestEnableAvatar           RequestAction = "ENABLE_AVATAR"
+	RequestDisableAvatar          RequestAction = "DISABLE_AVATAR"
+	RequestUpdateAvatar           RequestAction = "UPDATE_AVATAR"
+	RequestUnlinkUser             RequestAction = "UNLINK_USER"
+	RequestBlockRegion            RequestAction = "BLOCK_REGION"
+	RequestBlockDistrict          RequestAction = "BLOCK_DISTRICT"
+	RequestBlockCity              RequestAction = "BLOCK_CITY"
+	RequestBlockUser              RequestAction = "BLOCK_USER"
+	RequestEnableSingleBranches   RequestAction = "REQUEST_ENABLE_SINGLE_BRANCHES"
+	RequestDisableSingleBranches  RequestAction = "REQUEST_DISABLE_SINGLE_BRANCHES"
+	RequestEnableMultiBranches    RequestAction = "REQUEST_ENABLE_MULTI_BRANCHES"
+	RequestDisableMultiBranches   RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
+
+	// for bankvault
+	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+
+	// for vault group category
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
 
 	// Newly added for block_account
 	// Branch
@@ -323,11 +343,11 @@ const (
 	RequestBudgetUpdate   RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate   RequestAction = "CREATE_BUDGET_CATEGORY"
 	RequestBudgetDelete   RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestCreateMiniApp  RequestAction = "CREATE_MINIAPP"
-	RequestUpdateMiniApp  RequestAction = "UPDATE_MINIAPP"
-	RequestDeleteMiniApp  RequestAction = "DELETE_MINIAPP"
-	RequestEnableMiniApp  RequestAction = "ENABLE_MINIAPP"
-	RequestDisableMiniApp RequestAction = "DISABLE_MINIAPP"
+	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
+	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
+	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
+	RequestEnableMiniApp  RequestAction = "ENABLE_MINI_APP"
+	RequestDisableMiniApp RequestAction = "DISABLE_MINI_APP"
 
 	RequestUpdateEevent      RequestAction = "UPDATE_EVENT"
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
@@ -346,6 +366,25 @@ const (
 	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+
+	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
+	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
+	RequestEnableArticle  RequestAction = "ENABLE_ARTICLE"
+	RequestDisableArticle RequestAction = "DISABLE_ARTICLE"
+	RequestDeleteArticle  RequestAction = "DELETE_ARTICLE"
+
+	// article categories
+	RequestCreateArticleCategory  RequestAction = "CREATE_ARTICLE_CATEGORY"
+	RequestUpdateArticleCategory  RequestAction = "UPDATE_ARTICLE_CATEGORY"
+	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
+	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
+	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
+
+	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
+	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
+	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
+	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
+	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
 
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"
@@ -459,4 +498,166 @@ const (
 	UpdateAction ActionType = "UPDATE"
 	CreateAction ActionType = "CREATE"
 	DeleteAction ActionType = "DELETE"
+)
+
+// / bank vault constants
+type AccrualMethod string
+
+const (
+	AccrualMethodCompound AccrualMethod = "COMPOUND"
+	AccrualMethodSimple   AccrualMethod = "SIMPLE"
+)
+
+type AccrualFrequency string
+
+const (
+	AccrualFreqDaily     AccrualFrequency = "DAILY"
+	AccrualFreqMonthly   AccrualFrequency = "MONTHLY"
+	AccrualFreqQuarterly AccrualFrequency = "QUARTERLY"
+	AccrualFreqAnnually  AccrualFrequency = "ANNUALLY"
+)
+
+type VaultStatus string
+
+const (
+	VaultStatusActive        VaultStatus = "ACTIVE"
+	VaultStatusMatured       VaultStatus = "MATURED"
+	VaultStatusUnlockedEarly VaultStatus = "UNLOCKED_EARLY"
+	VaultStatusPaidOut       VaultStatus = "PAID_OUT"
+)
+
+const (
+	StatusOpen       VaultStatus = "OPEN"
+	StatusClosed     VaultStatus = "CLOSED"
+	StatusLocked     VaultStatus = "LOCKED"
+	StatusActive     VaultStatus = "ACTIVE"
+	StatusMatured    VaultStatus = "MATURED"
+	StatusWithdrawn  VaultStatus = "WITHDRAWN"
+	StatusEndedEarly VaultStatus = "ENDED_EARLY"
+	StatusDeleted    VaultStatus = "DELETED"
+)
+
+func ParseVaultStatus(input string) (VaultStatus, error) {
+	switch strings.ToUpper(input) {
+	case "OPEN":
+		return StatusOpen, nil
+	case "CLOSED":
+		return StatusClosed, nil
+	case "LOCKED":
+		return StatusLocked, nil
+	default:
+		return "", fmt.Errorf("invalid VaultStatus: %s", input)
+	}
+}
+
+type VaultType string
+
+const (
+	VaultTypeBanking VaultType = "BANK_VAULT"
+	VaultTypePrivate VaultType = "PRIVATE_VAULT"
+	VaultTypeGroup   VaultType = "GROUP_VAULT"
+)
+
+func ParseVaultType(input string) (VaultType, error) {
+	switch strings.ToUpper(input) {
+	case "BANK_VAULT":
+		return VaultTypeBanking, nil
+	case "PRIVATE_VAULT":
+		return VaultTypePrivate, nil
+	case "GROUP_VAULT":
+		return VaultTypeGroup, nil
+	default:
+		return "", fmt.Errorf("invalid VaultType: %s", input)
+	}
+}
+
+type AccountType string
+
+const (
+	AccountTypeIFB AccountType = "IFB"
+	AccountTypeCB  AccountType = "CB"
+)
+
+type InviteStatus string
+
+const (
+	InvitePending   InviteStatus = "PENDING"
+	InviteAccepted  InviteStatus = "ACCEPTED"
+	InviteRejected  InviteStatus = "REJECTED"
+	InviteWithdrawn InviteStatus = "WITHDRAWN"
+	InviteExpired   InviteStatus = "EXPIRED"
+)
+
+type MemberStatus string
+
+const (
+	StatusPaid    MemberStatus = "PAID"
+	StatusWaiting MemberStatus = "WAITING"
+	StatusOverdue MemberStatus = "OVERDUE"
+)
+
+type MemberRole string
+
+const (
+	RoleAdmin       MemberRole = "ADMIN"
+	RoleParticipant MemberRole = "PARTICIPANT"
+)
+
+// VaultCategory defines the category of the vault.
+type VaultCategory string
+
+const (
+	CategoryTravel  VaultCategory = "TRAVEL"
+	CategoryGadgets VaultCategory = "GADGETS"
+	CategoryEvents  VaultCategory = "EVENTS"
+	CategoryGeneral VaultCategory = "GENERAL"
+)
+
+func ParseVaultCategory(input string) (VaultCategory, error) {
+	switch strings.ToUpper(input) {
+	case "TRAVEL":
+		return CategoryTravel, nil
+	case "GADGETS":
+		return CategoryGadgets, nil
+	case "EVENTS":
+		return CategoryEvents, nil
+	case "GENERAL":
+		return CategoryGeneral, nil
+	default:
+		return "", fmt.Errorf("invalid VaultCategory: %s", input)
+	}
+}
+
+// Recurrence defines the frequency of recurring payments.
+type Recurrence string
+
+const (
+	RecurrenceWeekly   Recurrence = "WEEKLY"
+	RecurrenceBiweekly Recurrence = "BIWEEKLY"
+	RecurrenceMonthly  Recurrence = "MONTHLY"
+)
+
+// ContributionType defines the type of contribution made by a member.
+type ContributionType string
+
+const (
+	ContributionTypeDeposit    ContributionType = "DEPOSIT"
+	ContributionTypeWithdrawal ContributionType = "WITHDRAWAL"
+	// ContributionTypeFee        ContributionType = "FEE"
+	// ContributionTypeDisbursement ContributionType = "DISBURSEMENT"
+)
+
+type Type string
+
+const (
+	Deposit    Type = "DEPOSIT"
+	Withdrawal Type = "WITHDRAWAL"
+	AutoFund   Type = "AUTO_FUND"
+	Reminder   Type = "REMINDER"
+	Fee        Type = "FEE"
+	Creation   Type = "CREATION"
+	Fund       Type = "FUND"
+	Update     Type = "UPDATE"
+	Deletion   Type = "DELETION"
+	End        Type = "END"
 )

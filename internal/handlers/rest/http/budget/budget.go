@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/budget"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/budget/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
@@ -13,6 +14,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
+
+type budget_icon_resp *model.Icon
+type budget_icons_paginated_resp *types.PaginatedResponse[[]*model.Icon]
+type budget_color_resp *model.Color
+type budget_colors_paginated_resp *types.PaginatedResponse[[]*model.Color]
 
 type budgetAdapter struct {
 	budgetApplication service.BudgetService
@@ -26,6 +32,20 @@ func InitBudgetAdapter(budgetApplication service.BudgetService, logger utils.Log
 	}
 }
 
+// CreateBudgetIcon creates a new budget icon
+// @Summary Create budget icon
+// @Description Creates a new budget icon by uploading an image file
+// @Tags Budget Icons
+// @Accept multipart/form-data
+// @Produce json
+// @Param icons_image formData file true "Budget icon image file"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Budget icon creation request submitted for approval"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid file or missing file"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/icons [post]
 func (b *budgetAdapter) CreateBudgetIcon(w http.ResponseWriter, r *http.Request) {
 	// file, fileHeader, err := core.ParseMultipartFormFile(r, "icons_image", 10<<20)
 	// if err != nil {
@@ -62,6 +82,23 @@ func (b *budgetAdapter) CreateBudgetIcon(w http.ResponseWriter, r *http.Request)
 
 	localization.SendSuccessResponse(w, localization.SuccessBudgetIconRequestSubmittedForApproval, nil)
 }
+
+// BudgetFetchIcons retrieves all budget icons with pagination
+// @Summary Get all budget icons
+// @Description Retrieves a paginated list of all budget icons with optional filtering
+// @Tags Budget Icons
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} localization.StandardResponse{data=budget_icons_paginated_resp} "Budget icons retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/icons [get]
 func (b *budgetAdapter) BudgetFetchIcons(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 
@@ -75,6 +112,22 @@ func (b *budgetAdapter) BudgetFetchIcons(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetIconsFetched, icons)
 }
 
+// BudgetUpdateIcon updates an existing budget icon
+// @Summary Update budget icon
+// @Description Updates an existing budget icon by uploading a new image file
+// @Tags Budget Icons
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "Icon ID"
+// @Param icons_image formData file true "Updated budget icon image file"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Budget icon update request submitted for approval"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid file or missing file"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Icon not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/icons/{id} [put]
 func (b *budgetAdapter) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -112,6 +165,21 @@ func (b *budgetAdapter) BudgetUpdateIcon(w http.ResponseWriter, r *http.Request)
 
 	localization.SendSuccessResponse(w, localization.SuccessBudgetIconRequestSubmittedForApproval, nil)
 }
+
+// BudgetCreateColor creates a new budget color
+// @Summary Create budget color
+// @Description Creates a new budget color
+// @Tags Budget Colors
+// @Accept json
+// @Produce json
+// @Param request body budget_dto.BudgetCreateColor true "Budget color creation request"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Budget color creation request submitted for approval"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/colors [post]
 func (b *budgetAdapter) BudgetCreateColor(w http.ResponseWriter, r *http.Request) {
 	var req budget_dto.BudgetCreateColor
 
@@ -145,6 +213,23 @@ func (b *budgetAdapter) BudgetCreateColor(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.SuccessBudgetColorRequestSubmittedForApproval, nil)
 
 }
+
+// BudgetFetchColors retrieves all budget colors with pagination
+// @Summary Get all budget colors
+// @Description Retrieves a paginated list of all budget colors with optional filtering
+// @Tags Budget Colors
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Param search query string false "Search term"
+// @Success 200 {object} localization.StandardResponse{data=budget_colors_paginated_resp} "Budget colors retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/colors [get]
 func (b *budgetAdapter) BudgetFetchColors(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_util.ExtractFilterParams(r)
 	if filterParams.Page < 1 {
@@ -161,6 +246,23 @@ func (b *budgetAdapter) BudgetFetchColors(w http.ResponseWriter, r *http.Request
 
 	localization.SendSuccessResponse(w, localization.SuccessBudgetColorsFetched, colors)
 }
+
+// BudgetUpdateColor updates an existing budget color
+// @Summary Update budget color
+// @Description Updates an existing budget color
+// @Tags Budget Colors
+// @Accept json
+// @Produce json
+// @Param id path string true "Color ID"
+// @Param request body budget_dto.UpdateColorRequest true "Budget color update request"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Budget color update request submitted for approval"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Color not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/colors/{id} [put]
 func (b *budgetAdapter) BudgetUpdateColor(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -201,6 +303,21 @@ func (b *budgetAdapter) BudgetUpdateColor(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.SuccessBudgetColorUpdateSubmittedForApproval, nil)
 }
 
+// BudgetCheckerApproval approves a budget action
+// @Summary Approve budget action
+// @Description Approves a budget action by action code
+// @Tags Budget Actions
+// @Accept json
+// @Produce json
+// @Param action_code path string true "Action Code"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Budget action approved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid action code"
+// @Failure 401 {object} localization.StandardResponse{data=nil} "Unauthorized"
+// @Failure 403 {object} localization.StandardResponse{data=nil} "Forbidden"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /budgets/actions/approve/{action_code} [post]
 func (b *budgetAdapter) BudgetCheckerApproval(w http.ResponseWriter, r *http.Request) {
 	actionCode, ok := common_util.GetParam(r, "action_code")
 	if !ok {

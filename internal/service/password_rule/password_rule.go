@@ -12,6 +12,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"unicode"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -52,6 +53,7 @@ func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id stri
 
 func (p *passwordService) CheckPasswordRule(ctx context.Context, password string) (bool, string) {
 	rule, err := p.repo.FindCurrentRule(ctx)
+	p.logger.Infof("Retrieved password rule: %+v", rule)
 	if err != nil || rule == nil {
 		return false, "could not retrieve password rule"
 	}
@@ -93,7 +95,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 	if rule.SmallLetters {
 		hasLower := false
 		for _, c := range password {
-			if c >= 'a' && c <= 'z' {
+			if unicode.IsLower(c) {
 				hasLower = true
 				break
 			}
@@ -121,14 +123,13 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	p.logger.Infof("Authorizing password rule action: %s", cpsAction.ActionCode)
 
-	var passwordRule *model.PasswordRule
-
-	if err := local_util.BindAction(cpsAction.CurrentAction, &passwordRule); err != nil {
-		p.logger.Errorf("Failed to bind current action to fayda: %v", err)
+	passwordRule, err := local_util.JsonUnmarshal[model.PasswordRule](cpsAction.CurrentAction)
+	if err != nil {
+		p.logger.Errorf("Failed to unmarshal password rule from action: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	err := p.repo.Update(ctx, passwordRule.ID.Hex(), passwordRule)
+	err = p.repo.Update(ctx, cpsAction.UniqueId, passwordRule)
 	if err != nil {
 		p.logger.Errorf("Failed to process password rule authorization with request action: %s and error: %v", cpsAction.RequestAction, err)
 		return nil, err

@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	cRand "crypto/rand"
@@ -36,7 +37,6 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 		})
 	}
 
-	
 	var miniAppID bson.ObjectID
 	if req.ID != "" {
 		miniAppID, _ = bson.ObjectIDFromHex(req.ID)
@@ -70,17 +70,24 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 
 func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, miniApp *miniappdto.MiniAppCreateRequest) error {
 	if miniApp.MerchantID == "" {
-		return nil
+		return errors.New(localization.ErrorMerchantIDRequired.Code)
 	}
 
-	_, err := merchantService.FindByID(ctx, miniApp.MerchantID)
+	merchant, err := merchantService.FindByID(ctx, miniApp.MerchantID)
 	if err != nil {
 		log.Println("Failed to get merchant details", "merchantID", miniApp.MerchantID, "error", err)
-		if err.Error() == "No Mini App merchant with these merchant!" {
-			return errors.New(localization.ErrorMerchantNotFound.Code)
-		}
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
 	}
+
+	if merchant.IsDeleted {
+		log.Println("Merchant is deleted", "merchantID", miniApp.MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+
+	// if !merchant.Enabled {
+	// 	log.Println("Merchant is disabled", "merchantID", miniApp.MerchantID)
+	// 	return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+	// }
 
 	return nil
 }
@@ -128,4 +135,45 @@ func GeneratePrefixedName(prefix, value string, logger utils.Logger) (string, er
 	result := strings.Join([]string{prefix, value, string(code)}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
+}
+
+func ValidateParentMerchantForEnableEntity(merchant *model.MiniAppMerchant) error {
+	if merchant == nil {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	if merchant.IsDeleted {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	if !merchant.Enabled {
+		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+	}
+	return nil
+}
+
+func ValidateParentMerchantForOperationEntity(merchant *model.MiniAppMerchant) error {
+	if merchant == nil {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	if merchant.IsDeleted {
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+	return nil
+}
+
+func ValidMiniAppChecker(ctx context.Context, miniAppRepo storage.MiniAppRepository, isCreate bool, id, miniAppName string) (bool, error) {
+	existedTitleFilter := types.Filter{
+		Filters: map[string]interface{}{
+			"app_name": miniAppName,
+		},
+	}
+
+	exists, err := miniAppRepo.FindAllWithPagination(ctx, existedTitleFilter)
+	if err != nil && err.Error() != localization.ErrorFileNotFound.Code {
+		return false, err
+	}
+	if len(exists.Data) > 0 {
+		return false, nil
+	}
+
+	return true, nil
 }

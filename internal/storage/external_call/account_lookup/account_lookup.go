@@ -7,14 +7,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	mock "cbe-super-app-cps-action/internal/constants/mocks"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type accountAPIClient struct {
@@ -38,10 +40,23 @@ func InitAccountAPIClient(cbeBaseUrl string, timeout time.Duration, logger utils
 func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error) {
 	b.logger.Infof("Looking up account number: %s using mock data", account.AccountNumber)
 
-	// Read the mock JSON file
-	jsonFile, err := os.Open("corebanking.json")
+	execPath, err := os.Executable()
 	if err != nil {
-		b.logger.Errorf("failed to open corebanking.json: %v", err)
+		panic(err)
+	}
+
+	// Get the root folder (assuming executable is in a subfolder like ./bin)
+	rootDir := filepath.Dir(execPath)
+
+	// Build the full path to the JSON file in the root folder
+	jsonPath := filepath.Join(rootDir, "corebanking.json")
+
+	jsonFile, err := os.Open(jsonPath)
+
+	// Read the mock JSON file
+	// jsonFile, err := os.Open("./corebanking.json")
+	if err != nil {
+		b.logger.Errorf("failed to open corebanking.json: %v on path:%v", err, jsonPath)
 		return nil, errors.New(localization.ErrorExternalServiceError.Code)
 	}
 	defer jsonFile.Close()
@@ -71,11 +86,11 @@ func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, acc
 				AccountNumber:      mockAccount.AccountNumber,
 				CustomerName:       mockAccount.AccountName,
 				AccountType:        mockAccount.AccountType,
-				AccountDormant:		mockAccount.AccountDormant,
+				AccountDormant:     mockAccount.AccountDormant,
 				AccountCurrency:    mockAccount.Currency,
 				AccountDescription: fmt.Sprintf("%s - %s", mockAccount.AccountType, mockAccount.Status),
-				AccountFrozen: mockAccount.AccountFrozen,
-				ActiveAccount:mockAccount.ActiveAccount,
+				AccountFrozen:      mockAccount.AccountFrozen,
+				ActiveAccount:      mockAccount.ActiveAccount,
 			}
 
 			return accountInfo, nil
@@ -84,7 +99,7 @@ func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, acc
 
 	// Account not found in mock data
 	b.logger.Warnf("Account number %s not found in mock data", account.AccountNumber)
-	return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 }
 
 func (b *accountAPIClient) LookupAccountByPhone(ctx context.Context, phone string) (bool, error) {

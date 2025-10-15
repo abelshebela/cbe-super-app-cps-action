@@ -100,7 +100,7 @@ func ParseAndValidateAdvertRequest(r *http.Request, isUpdate bool, logger utils.
 
 	if err := req.Validate(isUpdate); err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] validation failed: %v", err)
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return nil, err
 	}
 	return &req, nil
 }
