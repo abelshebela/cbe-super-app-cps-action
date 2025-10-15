@@ -3,9 +3,20 @@ package core
 import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 )
+
+// UsernameExists checks if a username already exists in the database
+func UsernameExists(ctx context.Context, repo storage.CpsUserRepository, username string) (bool, error) {
+	user, err := repo.FindByUsername(ctx, username)
+	if err != nil {
+		return false, err
+	}
+	return user != nil, nil
+}
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
 func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {

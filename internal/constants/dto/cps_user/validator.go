@@ -1,6 +1,7 @@
 package cpsuser
 
 import (
+	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
 	"strings"
 
@@ -21,37 +22,97 @@ func (r ApproveUserActionRequest) Validate() error {
 }
 
 func (r *CreateUserRequest) Normalize() {
-	r.UserName = strings.TrimSpace(r.UserName)
-	r.FullName = strings.TrimSpace(r.FullName)
-	r.PhoneNumber = strings.TrimSpace(r.PhoneNumber)
-	r.Role = strings.TrimSpace(r.Role)
-	r.Gender = strings.TrimSpace(r.Gender)
-	r.Email = strings.TrimSpace(r.Email)
+
+	r.UserName = strings.ToLower(r.UserName)
+	r.FullName = strings.ToUpper(r.FullName)
 }
+
+func (r *UpdateUserRequest) Normalize() {
+	if r.UserName != "" {
+		r.UserName = strings.ToLower(r.UserName)
+	}
+	if r.FullName != "" {
+		r.FullName = strings.ToUpper(r.FullName)
+	}
+}
+
 
 func IsObjectIDRequired(value interface{}) error {
-	_, ok := value.(bson.ObjectID)
-	if !ok {
+	if value == nil {
 		return validation.NewError("validation_is_objectid_required", "must be a valid ObjectID")
 	}
-	return nil
+	switch v := value.(type) {
+	case bson.ObjectID:
+		if v.Hex() == "" {
+			return validation.NewError("validation_is_objectid_required", "must be a valid ObjectID")
+		}
+		return nil
+	case *bson.ObjectID:
+		if v == nil || v.Hex() == "" {
+			return validation.NewError("validation_is_objectid_required", "must be a valid ObjectID")
+		}
+		return nil
+	default:
+		return validation.NewError("validation_is_objectid_required", "must be a valid ObjectID")
+	}
 }
 
-// helper to check if slice of ObjectIDs is not empty
 func IsObjectIDSliceRequired(value interface{}) error {
-	_, ok := value.([]bson.ObjectID)
-	if !ok {
+	if value == nil {
 		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
 	}
-	return nil
+	switch v := value.(type) {
+	case []bson.ObjectID:
+		if len(v) == 0 {
+			return validation.NewError("validation_is_objectid_slice_required", "list cannot be empty")
+		}
+		return nil
+	case []*bson.ObjectID:
+		if len(v) == 0 {
+			return validation.NewError("validation_is_objectid_slice_required", "list cannot be empty")
+		}
+		for _, id := range v {
+			if id == nil || id.Hex() == "" {
+				return validation.NewError("validation_is_objectid_slice_required", "all elements must be valid ObjectID")
+			}
+		}
+		return nil
+	default:
+		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
+	}
 }
 
 func (r CreateUserRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserName, validation.Required.Error("username is required")),
-		validation.Field(&r.FullName, validation.Required.Error("full_name is required")),
-		validation.Field(&r.PhoneNumber, validation.Required.Error("phone_number is required")),
-		validation.Field(&r.Role, validation.Required.Error("user role is required")),
+		validation.Field(&r.UserName,
+			validation.Required.Error("username is required"),
+			validation.By(utils.NoSpecialChars),
+			validation.By(func(value interface{}) error {
+				if s, ok := value.(string); ok {
+					if strings.Contains(s, " ") {
+						return validation.NewError("validation_no_spaces", "username cannot contain spaces")
+					}
+				}
+				return nil
+			}),
+		),
+		validation.Field(&r.FullName, validation.Required.Error("full_name is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.PhoneNumber,
+			validation.Required.Error("phone_number is required"),
+			validation.By(func(value interface{}) error {
+				if s, ok := value.(string); ok {
+					normalized := utils.FormatPhoneNumber(s)
+					if normalized == "" {
+						return validation.NewError("validation_phone_format", "unsupported phone number format")
+					}
+				}
+				return nil
+			}),
+		),
+		validation.Field(&r.Role,
+			validation.Required.Error("user role is required"),
+			validation.In("maker", "checker").Error("role must be maker or checker"),
+		),
 		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
 		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
 		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
@@ -62,17 +123,45 @@ func (r CreateUserRequest) Validate() error {
 
 func (r UpdateUserRequest) Validate() error {
 	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" &&
-		r.Role == "" &&
+		r.Role == "" && r.Department.IsZero() &&
 		r.PermissionCategory == nil && r.PermissionGroups == nil {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.UserName, validation.When(r.UserName != "", validation.Length(1, 100).Error("user_name cannot be empty"))),
-		validation.Field(&r.FullName, validation.When(r.FullName != "", validation.Length(1, 100).Error("full_name cannot be empty"))),
-		validation.Field(&r.PhoneNumber, validation.When(r.PhoneNumber != "", validation.Length(1, 20).Error("phone_number cannot be empty"))),
-		validation.Field(&r.Role, validation.When(r.Role != "", validation.Length(1, 50).Error("user_role cannot be empty"))),
-		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
+		validation.Field(&r.UserName, validation.When(r.UserName != "",
+			validation.Length(1, 100).Error("user_name cannot be empty"),
+			validation.By(utils.NoSpecialChars),
+			validation.By(func(value interface{}) error {
+				if s, ok := value.(string); ok {
+					if strings.Contains(s, " ") {
+						return validation.NewError("validation_no_spaces", "username cannot contain spaces")
+					}
+				}
+				return nil
+			}),
+		)),
+		validation.Field(&r.FullName, validation.When(r.FullName != "",
+			validation.Length(1, 100).Error("full_name cannot be empty"),
+			validation.By(utils.NoSpecialChars),
+		)),
+		validation.Field(&r.PhoneNumber, validation.When(r.PhoneNumber != "",
+			validation.Length(1, 20).Error("phone_number cannot be empty"),
+			validation.By(func(value interface{}) error {
+				if s, ok := value.(string); ok {
+					normalized := utils.FormatPhoneNumber(s)
+					if normalized == "" {
+						return validation.NewError("validation_phone_format", "unsupported phone number format")
+					}
+				}
+				return nil
+			}),
+		)),
+		validation.Field(&r.Role, validation.When(r.Role != "",
+			validation.Length(1, 50).Error("user_role cannot be empty"),
+			validation.In("maker", "checker").Error("role must be maker or checker"),
+		)),
+		validation.Field(&r.Department, validation.When(!r.Department.IsZero(), validation.By(IsObjectIDRequired))),
 		validation.Field(&r.PermissionCategory),
 		validation.Field(&r.PermissionGroups),
 	)
