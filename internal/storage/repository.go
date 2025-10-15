@@ -472,13 +472,13 @@ type ExternalCallServices = external_call.ExternalCallServices
 
 type ArticleRepository interface {
 	CreateArticle(ctx context.Context, article *model.NewsArticle) error
-	UpdateArticle(ctx context.Context, article *model.NewsArticle) error
+	UpdateArticle(ctx context.Context, article *model.NewsArticle, id string) error
 	DeleteArticle(ctx context.Context, id string) error
 	PublishUnpublishArticle(ctx context.Context, id string, isPublished bool) error
 }
 type ArticleCategoryRepository interface {
 	CreateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error
-	UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error
+	UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel, id string) error
 	DeleteArticleCategory(ctx context.Context, id string) error
 	EnableOrDisableArticleCategory(ctx context.Context, id string, enable bool) error
 }

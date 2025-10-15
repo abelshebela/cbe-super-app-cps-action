@@ -37,7 +37,7 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	case string(constants.RequestCreateArticle):
 		err = m.repo.CreateArticle(ctx, article)
 	case string(constants.RequestUpdateArticle):
-		err = m.repo.UpdateArticle(ctx, article)
+		err = m.repo.UpdateArticle(ctx, article, cpsAction.UniqueId)
 	case string(constants.RequestDeleteArticle):
 		err = m.repo.DeleteArticle(ctx, cpsAction.UniqueId)
 	case string(constants.RequestEnableArticle):

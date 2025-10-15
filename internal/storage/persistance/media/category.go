@@ -36,8 +36,8 @@ func (a *articleCategory) CreateArticleCategory(ctx context.Context, category *m
 	return nil
 }
 
-func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error {
-	filter := bson.M{"_id": category.ID, "is_deleted": false}
+func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel, id string) error {
+	filter := bson.M{"_id": id, "is_deleted": false}
 	update := buildCategoryUpdate(*category)
 	_, err := a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {

@@ -28,23 +28,30 @@ func NewsArticleRepository(logger shared_utils.Logger, client *mongo.Client, dbN
 }
 
 func (a *article) CreateArticle(ctx context.Context, article *model.NewsArticle) error {
-
 	_, err := a.articleDal.InsertOne(ctx, *article)
 	if err != nil {
 		a.logger.Errorf("Error inserting article into database:", err)
 		return middleware.NewDatabaseError("Error inserting article into database", err)
 	}
+
 	return nil
 }
 
-func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle) error {
+func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle, id string) error {
 
-	filter := bson.M{"_id": article.ID, "is_deleted": false}
+	objId, err := a.getArticleID(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objId, "is_deleted": false}
 	update := buildUpdate(*article)
 
-	_, err := a.articleDal.UpdateOne(ctx, filter, update)
+	_, err = a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error updating article in database:", err)
+		if err == mongo.ErrNoDocuments {
+			return middleware.NewNotFoundError("article")
+		}
 		return middleware.NewDatabaseError("Error updating article in database", err)
 	}
 	return nil
@@ -59,6 +66,9 @@ func (a *article) DeleteArticle(ctx context.Context, id string) error {
 	filter := bson.M{"_id": objId, "is_deleted": false}
 	if err := a.articleDal.DeleteOne(ctx, filter); err != nil {
 		a.logger.Errorf("Error deleting article from database:", err)
+		if err == mongo.ErrNoDocuments {
+			return middleware.NewNotFoundError("article")
+		}
 		return middleware.NewDatabaseError("Error deleting article from database", err)
 	}
 	return nil
@@ -83,6 +93,9 @@ func (a *article) PublishUnpublishArticle(ctx context.Context, id string, isPubl
 	_, err = a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error updating article publish status in database:", err)
+		if err == mongo.ErrNoDocuments {
+			return middleware.NewNotFoundError("article")
+		}
 		return middleware.NewDatabaseError("Error updating article publish status in database", err)
 	}
 	return nil

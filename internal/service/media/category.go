@@ -37,7 +37,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 	case string(constants.RequestCreateArticleCategory):
 		err = m.repo.CreateArticleCategory(ctx, category)
 	case string(constants.RequestUpdateArticleCategory):
-		err = m.repo.UpdateArticleCategory(ctx, category)
+		err = m.repo.UpdateArticleCategory(ctx, category, cpsAction.UniqueId)
 	case string(constants.RequestDeleteArticleCategory):
 		err = m.repo.DeleteArticleCategory(ctx, cpsAction.UniqueId)
 	case string(constants.RequestEnableArticleCategory):
