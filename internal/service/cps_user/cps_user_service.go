@@ -50,6 +50,20 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	if exists {
 		return errors.New(localization.ErrorUserAlreadyExists.Code)
 	}
+	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+	if err != nil {
+		return err
+	}
+	if emailCheck {
+		return errors.New(localization.ErrorExistEmail.Code)
+	}
+	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+	if err != nil {
+		return err
+	}
+	if phoneCheck {
+		return errors.New(localization.ErrorExistPhoneNumber.Code)
+	}
 
 	// department validation
 	if req.Department.IsZero() {
@@ -95,8 +109,16 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
 	if req.PhoneNumber!= ""{
-		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
+	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 	req.PhoneNumber =normalized
+
+	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+	if err != nil {
+		return err
+	}
+	if phoneCheck {
+		return errors.New(localization.ErrorExistPhoneNumber.Code)
+	}
 	}
 	if req.UserName != "" {
 
@@ -115,6 +137,17 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 			}
 		}
 	}
+	if req.Email != ""{
+	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+	if err != nil {
+		return err
+	}
+	if emailCheck {
+		return errors.New(localization.ErrorExistEmail.Code)
+	}
+	
+	}
+	
 
 	// department validation - only if department is being updated
 	if !req.Department.IsZero() {
