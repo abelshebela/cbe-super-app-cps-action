@@ -7,7 +7,7 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
-	
+
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 
@@ -464,8 +464,21 @@ type PermissionRepository interface {
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
-	GetPermissionGroupById(ctx context.Context,id string)(*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 }
 
 // ExternalCallServices type alias for external call services
 type ExternalCallServices = external_call.ExternalCallServices
+
+type ArticleRepository interface {
+	CreateArticle(ctx context.Context, article *model.NewsArticle) error
+	UpdateArticle(ctx context.Context, article *model.NewsArticle) error
+	DeleteArticle(ctx context.Context, id string) error
+	PublishUnpublishArticle(ctx context.Context, id string, isPublished bool) error
+}
+type ArticleCategoryRepository interface {
+	CreateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error
+	UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error
+	DeleteArticleCategory(ctx context.Context, id string) error
+	EnableOrDisableArticleCategory(ctx context.Context, id string, enable bool) error
+}

@@ -22,6 +22,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
+	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	"time"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -113,6 +114,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "members", logger),
 		PermissionPersistence:      permission.InitPermission(client, dbName, 30*time.Second, logger),
+		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "articles"),
+		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "article_categories"),
 	}
 
 	return data

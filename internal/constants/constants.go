@@ -367,9 +367,22 @@ const (
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
 
-	ActionPending  RequestAction = "PENDING"
-	ActionApproved RequestAction = "APPROVED"
-	ActionRejected RequestAction = "REJECTED"
+	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
+	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
+	RequestEnableArticle  RequestAction = "ENABLE_ARTICLE"
+	RequestDisableArticle RequestAction = "DISABLE_ARTICLE"
+	RequestDeleteArticle  RequestAction = "DELETE_ARTICLE"
+
+	// article categories
+	RequestCreateArticleCategory  RequestAction = "CREATE_ARTICLE_CATEGORY"
+	RequestUpdateArticleCategory  RequestAction = "UPDATE_ARTICLE_CATEGORY"
+	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
+	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
+	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
+	
+	ActionPending          RequestAction = "PENDING"
+	ActionApproved         RequestAction = "APPROVED"
+	ActionRejected         RequestAction = "REJECTED"
 )
 
 type RegistrationType string
