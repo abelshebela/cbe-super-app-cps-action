@@ -62,4 +62,5 @@ type Persistence struct {
 	PermissionPersistence            storage.PermissionRepository
 	ArticlePersistence               storage.ArticleRepository
 	ArticleCategoryPersistence       storage.ArticleCategoryRepository
+	ShortVideoPersistence            storage.ShortVideoRepository
 }

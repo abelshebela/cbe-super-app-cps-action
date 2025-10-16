@@ -124,6 +124,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.ArticleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "articleCategory"):
 		return d.app.ArticleCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "short_video"):
+		return d.app.ShortVideoServiceContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
