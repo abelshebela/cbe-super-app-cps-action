@@ -3,6 +3,7 @@ package media
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -14,22 +15,26 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+var (
+	invalidCategoryID = "Invalid article category ID"
+)
+
 type articleCategory struct {
-	logger     shared_utils.Logger
-	articleDal dal.MongoDal[model.NewsCategoryModel, model.NewsCategoryModel]
-	client     *mongo.Client
+	logger             shared_utils.Logger
+	articleCategoryDal dal.MongoDal[model.NewsCategoryModel, model.NewsCategoryModel]
+	client             *mongo.Client
 }
 
 func NewArticleCategoryRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.ArticleCategoryRepository {
 	return &articleCategory{
-		logger:     logger,
-		articleDal: dal.NewMongoDal[model.NewsCategoryModel, model.NewsCategoryModel](client, dbName, collectionName),
-		client:     client,
+		logger:             logger,
+		articleCategoryDal: dal.NewMongoDal[model.NewsCategoryModel, model.NewsCategoryModel](client, dbName, collectionName),
+		client:             client,
 	}
 }
 
 func (a *articleCategory) CreateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error {
-	_, err := a.articleDal.InsertOne(ctx, *category)
+	_, err := a.articleCategoryDal.InsertOne(ctx, *category)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -37,9 +42,15 @@ func (a *articleCategory) CreateArticleCategory(ctx context.Context, category *m
 }
 
 func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel, id string) error {
-	filter := bson.M{"_id": id, "is_deleted": false}
+	objId, err := bson.ObjectIDFromHex(id)
+
+	if err != nil {
+		a.logger.Errorf(invalidCategoryID, err)
+		return middleware.NewBadRequestError(invalidCategoryID, err)
+	}
+	filter := bson.M{"_id": objId, "is_deleted": false}
 	update := buildCategoryUpdate(*category)
-	_, err := a.articleDal.UpdateOne(ctx, filter, update)
+	_, err = a.articleCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error updating article category in database:", err)
 		if err == mongo.ErrNoDocuments {
@@ -51,7 +62,13 @@ func (a *articleCategory) UpdateArticleCategory(ctx context.Context, category *m
 }
 
 func (a *articleCategory) DeleteArticleCategory(ctx context.Context, id string) error {
-	err := a.articleDal.DeleteOne(ctx, bson.M{"_id": id, "is_deleted": false})
+	objId, err := bson.ObjectIDFromHex(id)
+
+	if err != nil {
+		a.logger.Errorf("Invalid article category ID:", err)
+		return middleware.NewBadRequestError(invalidCategoryID, err)
+	}
+	err = a.articleCategoryDal.DeleteOne(ctx, bson.M{"_id": objId, "is_deleted": false})
 	if err != nil {
 		a.logger.Errorf("Error deleting article category in database:", err)
 		if err == mongo.ErrNoDocuments {
@@ -63,9 +80,15 @@ func (a *articleCategory) DeleteArticleCategory(ctx context.Context, id string) 
 }
 
 func (a *articleCategory) EnableOrDisableArticleCategory(ctx context.Context, id string, enable bool) error {
-	filter := bson.M{"_id": id, "is_deleted": false}
+	objId, err := bson.ObjectIDFromHex(id)
+
+	if err != nil {
+		a.logger.Errorf("Invalid article category ID:", err)
+		return middleware.NewBadRequestError(invalidCategoryID, err)
+	}
+	filter := bson.M{"_id": objId, "is_deleted": false}
 	update := bson.M{"is_active": enable, "updated_at": time.Now()}
-	_, err := a.articleDal.UpdateOne(ctx, filter, update)
+	_, err = a.articleCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error enabling or disabling article category in database:", err)
 		if err == mongo.ErrNoDocuments {

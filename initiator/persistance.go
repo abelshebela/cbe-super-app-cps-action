@@ -52,10 +52,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
-	
+	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
-	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
@@ -120,6 +119,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		PermissionPersistence:      permission.InitPermission(client, dbName, 30*time.Second, logger),
 		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "articles"),
 		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "article_categories"),
+		ShortVideoPersistence:      media.NewShortVideoRepository(logger, client, dbName, "news_short_videos"),
 	}
 
 	return data

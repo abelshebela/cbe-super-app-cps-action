@@ -492,3 +492,10 @@ type ArticleCategoryRepository interface {
 	DeleteArticleCategory(ctx context.Context, id string) error
 	EnableOrDisableArticleCategory(ctx context.Context, id string, enable bool) error
 }
+
+type ShortVideoRepository interface {
+	Create(ctx context.Context, shortVideo *model.ShortVideo) error
+	Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error
+	Delete(ctx context.Context, id string) error
+	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
+}

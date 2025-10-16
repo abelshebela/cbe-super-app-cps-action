@@ -386,6 +386,12 @@ const (
 	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
 	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
 
+	RequestCreateShortVideo  string = "CREATE_SHORT_VIDEO"
+	RequestUpdateShortVideo  string = "UPDATE_SHORT_VIDEO"
+	RequestEnableShortVideo  string = "ENABLE_SHORT_VIDEO"
+	RequestDisableShortVideo string = "DISABLE_SHORT_VIDEO"
+	RequestDeleteShortVideo  string = "DELETE_SHORT_VIDEO"
+
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"
 	ActionRejected RequestAction = "REJECTED"
