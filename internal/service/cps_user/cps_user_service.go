@@ -3,7 +3,6 @@ package cpsuser
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -41,13 +40,41 @@ func NewCPSUserService(repo storage.CpsUserRepository, departmentRepo storage.De
 
 func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
+
+	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
+	req.PhoneNumber =normalized
+	exists, err := core.UsernameExists(ctx, s.repo, req.UserName)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.New(localization.ErrorUserAlreadyExists.Code)
+	}
+	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+	if err != nil {
+		return err
+	}
+	if emailCheck {
+		return errors.New(localization.ErrorExistEmail.Code)
+	}
+	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+	if err != nil {
+		return err
+	}
+	if phoneCheck {
+		return errors.New(localization.ErrorExistPhoneNumber.Code)
+	}
+
 	// department validation
 	if req.Department.IsZero() {
 		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
-	if _, err := s.departmentRepo.FindByID(ctx, req.Department.Hex()); err != nil {
-		fmt.Println("<<<<<<<<<<<<<<<<<<checking department>>>>>>>>>>>>>>>>>>>>")
+	dep, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
+	if err != nil {
 		return err
+	}
+	if !dep.Enabled || dep.IsDeleted {
+		return errors.New(localization.ErrorDepartmentNotFound.Code)
 	}
 
 	if len(req.PermissionCategory) > 0 {
@@ -81,13 +108,56 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
+	if req.PhoneNumber!= ""{
+	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
+	req.PhoneNumber =normalized
 
-	// department validation
-	if req.Department.IsZero() {
-		return errors.New(localization.ErrorInvalidRequest.Code)
-	}
-	if _, err := s.departmentRepo.FindByID(ctx, req.Department.Hex()); err != nil {
+	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+	if err != nil {
 		return err
+	}
+	if phoneCheck {
+		return errors.New(localization.ErrorExistPhoneNumber.Code)
+	}
+	}
+	if req.UserName != "" {
+
+		currentUser, err := s.repo.FindByID(ctx, req.UserCode)
+		if err != nil {
+			return err
+		}
+
+		if currentUser.UserName != req.UserName {
+			exists, err := core.UsernameExists(ctx, s.repo, req.UserName)
+			if err != nil {
+				return err
+			}
+			if exists {
+				return errors.New(localization.ErrorUserAlreadyExists.Code)
+			}
+		}
+	}
+	if req.Email != ""{
+	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+	if err != nil {
+		return err
+	}
+	if emailCheck {
+		return errors.New(localization.ErrorExistEmail.Code)
+	}
+	
+	}
+	
+
+	// department validation - only if department is being updated
+	if !req.Department.IsZero() {
+		dep, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
+		if err != nil {
+			return err
+		}
+		if !dep.Enabled || dep.IsDeleted {
+			return errors.New(localization.ErrorDepartmentNotFound.Code)
+		}
 	}
 
 	if len(req.PermissionCategory) > 0 {
@@ -108,19 +178,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		if _, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs); err != nil {
 			return err
 		}
-	}
-
-	// role validation
-	if req.Role != "" && req.Role != "maker" && req.Role != "checker" {
-		return errors.New("MAKER_OR_CHECKER")
-	}
-
-	if req.PhoneNumber != "" {
-		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
-		if normalized == "" {
-			return errors.New("UNSUPPORTED_PHONE_NUMBER_FORMAT")
-		}
-		req.PhoneNumber = normalized
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)

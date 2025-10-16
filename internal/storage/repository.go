@@ -248,8 +248,11 @@ type CpsUserRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
+	FindByUsername(ctx context.Context, username string) (*model.CPSUser, error)
 	GetPopulatedByID(ctx context.Context, id string) (*cps_user_dto.CpsUserResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSUser], error)
+	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error)
+	FindByEmail(ctx context.Context, email string) (*model.CPSUser, error)
 }
 type BankVaultRepository interface {
 	Create(ctx context.Context, bankVault *model.BankVaultProduct) (string, error)

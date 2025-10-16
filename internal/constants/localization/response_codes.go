@@ -110,6 +110,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDepartmentEnableRequestCreated,
 	SuccessDepartmentUpdateRequestCreated,
 	SuccessDepartmentCreateRequestCreated,
+	ErrorDepartmentNotFound,
 
 	//hq related success response codes
 	SuccessHQArchiveTimeFetched,
@@ -391,7 +392,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
 	ErrorMinAmountCanNotBeGreaterThanCap,
-
+	ErrorPermissionCategoryNotFound,
+	ErrorPermissionGroupNotFound,
+ErrorPermissionGroupRequired,
 	ErrorCityAlreadyDisabled,
 	ErrorCityAlreadyEnabled,
 	ErrorRegionAlreadyDisabled,
@@ -444,6 +447,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMiniAppMerchantDisableFailed,
 	ErrorMiniAppMerchantDeleteFailed,
 	ErrorMiniAppMerchantUpdateFailed,
+	ErrorExistEmail,
+	ErrorInvalidPhoneNumber,
+	ErrorExistPhoneNumber,
+	ErrorInvalidEmail,
+	
 }
 
 // Success Response Codes
@@ -2277,6 +2285,7 @@ var (
 		Message:    "Mini App not found",
 		Type:       "error",
 	}
+	
 	ErrorMiniAppAlreadyExists = ResponseCode{
 		Code:       "ERROR_MINI_APP_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
@@ -3400,6 +3409,19 @@ var (
 		Code:       "ERROR_INVALID_PHONE_NUMBER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidPhoneNumber,
+		Type:       "error",
+	}
+	ErrorExistEmail = ResponseCode{
+		Code:       "ERROR_EXIST_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistEmail,
+		Type:       "error",
+	}
+
+	ErrorExistPhoneNumber = ResponseCode{
+		Code:       "ERROR_EXIST_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistPhoneNumber,
 		Type:       "error",
 	}
 
@@ -4682,8 +4704,14 @@ var (
 	}
 	ErrorDepartmentCreateRequest = ResponseCode{
 		Code:       "ERROR_DEPARTMENT_CREATION_REQUEST",
-		StatusCode: StatusCreated,
+		StatusCode: StatusExpectationFailed,
 		Message:    MsgDepartmentCreateRequestFail,
+		Type:       "error",
+	}
+	ErrorDepartmentNotFound = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDepartmentNotFound,
 		Type:       "error",
 	}
 

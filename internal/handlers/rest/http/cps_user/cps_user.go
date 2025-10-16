@@ -15,7 +15,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-
 type handler struct {
 	svc    service.CPSUserService
 	logger utils.Logger
@@ -91,6 +90,8 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	// ensure the request carries the target user code from the path
 	req.UserCode = userCode
+
+	req.Normalize()
 
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[UpdateUserRequest] validation: %v", err)
