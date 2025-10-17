@@ -55,14 +55,13 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	// First, retrieve the existing CPS action to get ALL the data
-	existingAction, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	// Map to approval action using helper
-	approvalAction := core.MapCPSActionToApproval(existingAction, &userData)
+	approvalAction := core.MapCPSActionToApproval(action, &userData)
 	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), approvalAction); err != nil {
 		fmt.Printf("errorsss : %v\n", err)
@@ -185,14 +184,14 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
 }
 
-// GetCPSActionByActionCode retrieves a CPS action by action code
-// @Summary Get CPS action by action code
-// @Description Retrieves a specific CPS action by its action code
+// GetCPSActionByActionCode retrieves a CPS action by action code with history
+// @Summary Get CPS action by action code with history
+// @Description Retrieves a specific CPS action by its action code, including previous and current actions
 // @Tags CPS Actions
 // @Accept json
 // @Produce json
 // @Param action_code path string true "Action Code"
-// @Success 200 {object} localization.StandardResponse{data=cps_action_resp} "CPS action retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=cps_action_resp} "CPS action with history retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid action code"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Action not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"

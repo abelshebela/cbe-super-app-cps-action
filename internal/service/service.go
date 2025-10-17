@@ -69,7 +69,7 @@ type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
 	UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error
 	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error)
+	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error)
 	DeleteUserRequest(ctx context.Context, userCode string) error
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
@@ -127,7 +127,7 @@ type DonationCompanyService interface {
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
 	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (donationComp_dto.DonationCompanyRequest, error)
-	AccountLookup(ctx context.Context,accountNumber string ) (*model.AccountInfo,error)
+	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountInfo, error)
 }
 
 type EventService interface {
@@ -196,7 +196,7 @@ type PermissionService interface {
 	CreatePermissionGroup(ctx context.Context, req permission_dto.CreatePermissionGroupRequest) error
 	UpdatePermissionGroup(ctx context.Context, req permission_dto.UpdatePermissionGroupRequest) error
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
-	GetPermissionGroupById(ctx context.Context,id string) (*model.PermissionGroup, error)
+	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
 
