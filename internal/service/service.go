@@ -70,7 +70,7 @@ type CPSUserService interface {
 	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
 	UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error
 	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
-	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error)
+	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error)
 	DeleteUserRequest(ctx context.Context, userCode string) error
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
@@ -387,6 +387,7 @@ type ServiceContainer struct {
 	VaultGroupCategoryContainer VaultGroupCategoryService
 	ArticleContainer            ArticleService
 	ArticleCategoryContainer    ArticleCategoryService
+	ShortVideoServiceContainer  ShortVideoService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -413,5 +414,8 @@ type ArticleService interface {
 }
 
 type ArticleCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+type ShortVideoService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

@@ -42,9 +42,9 @@ import (
 	"cbe-super-app-cps-action/internal/service/productcode"
 
 	"cbe-super-app-cps-action/internal/service/notification"
+	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
-	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -93,8 +93,9 @@ type ServiceLayer struct {
 	NotificationService service.NotificationService
 	// BankVault           service.BankVaultService
 	// VaultGroupCategory  service.VaultGroupCategoryService
-	ArticleService service.ArticleService
+	ArticleService         service.ArticleService
 	ArticleCategoryService service.ArticleCategoryService
+	ShortVideoService      service.ShortVideoService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -173,6 +174,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
+	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -211,9 +213,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Unlink:                    unlinkService,
 		DonationCategoryContainer: donationCategoryService,
 
-		DonationCompanyContainer: donationCompanyService,
-		ArticleContainer:         articleService,
-		ArticleCategoryContainer: articleCategoryService,
+		DonationCompanyContainer:   donationCompanyService,
+		ArticleContainer:           articleService,
+		ArticleCategoryContainer:   articleCategoryService,
+		ShortVideoServiceContainer: ShortVideoService,
 	}
 
 	// Create the dispatcher with the service container
@@ -320,6 +323,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ArticleContainer = articleService
 	articleCategoryService = media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
+	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
+	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
@@ -336,7 +341,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ValidationService: accountValidation,
 		AccountValidation: accountValidation,
 		Wallet:            walletService,
-		Topup:            TopupService,
+		Topup:             TopupService,
 		PasswordRule:      passwordRule,
 		HQService:         hqService,
 		AccountBlock:      accountBlockService,
@@ -358,7 +363,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NotificationService: notificationsvc,
 		// BankVault:           bankVaultSvc,
 		// VaultGroupCategory:  vaultGroupSvc,
-		ArticleService: articleService,
+		ArticleService:         articleService,
 		ArticleCategoryService: articleCategoryService,
-		}
+		ShortVideoService:      ShortVideoService,
+	}
 }

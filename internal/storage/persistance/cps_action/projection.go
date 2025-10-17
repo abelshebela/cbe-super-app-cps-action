@@ -24,6 +24,13 @@ var Projection = bson.M{
 	"action_created_at":    1,
 	"maker_action_time":    1,
 	"checker_action_time":  1,
+	"previous_action":      1,
+	"current_action":       1,
+	"department":           1,
+	"rejection_reason":     1,
+	"unique_id":            1,
+	"created_at":           1,
+	"last_modified_at":     1,
 }
 
 func BuildCPSActionFilter(cps model.CPSAction) bson.M {

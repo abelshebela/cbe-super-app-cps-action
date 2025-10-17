@@ -248,6 +248,12 @@ const (
 	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
 	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
 	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
+
+	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
+	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
+	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
+	RequestDisableShortVideo RequestAction = "DISABLE_SHORT_VIDEO"
+	RequestDeleteShortVideo  RequestAction = "DELETE_SHORT_VIDEO"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -381,12 +387,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateWallet:        {},
 	RequestUpdateWallet:        {},
 	RequestDeleteWallet:        {},
-	
-	RequestCreateTopup:        {},
-	RequestUpdateTopup:        {},
-	RequestDeleteTopup:        {},
-	RequestEnableTopup:             {},
-	RequestDisableTopup:            {},
+
+	RequestCreateTopup:  {},
+	RequestUpdateTopup:  {},
+	RequestDeleteTopup:  {},
+	RequestEnableTopup:  {},
+	RequestDisableTopup: {},
 
 	// RequestCreateNotification:      {},
 	// RequestUpdateNotification:      {},
@@ -708,6 +714,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteArticleCategory,
 		RequestEnableArticleCategory,
 		RequestDisableArticleCategory,
+	},
+	"short_video": {
+		RequestCreateShortVideo,
+		RequestUpdateShortVideo,
+		RequestDeleteShortVideo,
+		RequestEnableShortVideo,
+		RequestDisableShortVideo,
 	},
 }
 
