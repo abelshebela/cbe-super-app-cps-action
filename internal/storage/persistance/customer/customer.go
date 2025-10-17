@@ -53,37 +53,14 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"user_code": searchRegex},
 		}
 	}
-	// Store kyc_level value for special handling (do not delete it from Filters)
-	// var kycLevelValue interface{}
-	// if filterParam.Filters != nil {
-	// 	if val, ok := filterParam.Filters["kyc_level"]; ok {
-	// 		kycLevelValue = val
-	// 	}
-	// }
-	// 4. Build filter, skip, limit
+
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// if kycLevelValue != nil {
-	// 	if kycLevelValue == 0 || kycLevelValue == "0" {
-
-	// 		delete(filter, "kyc_level")
-	// 		filter["$and"] = []bson.M{
-	// 			{"kyc_level": bson.M{"$exists": true}},
-	// 			{"kyc_level": bson.M{"$type": "number"}},
-	// 			{"kyc_level": bson.M{"$eq": 0}},
-	// 		}
-	// 		fmt.Printf("DEBUG: Applied special kyc_level=0 $and filter: %+v\n", filter["$and"])
-	// 	}
-	// }
-	fmt.Printf("DEBUG: Final filter: %+v\n", filter)
-
 	// 5. Fetch data
-	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, UserProjection(), skip, limit)
-
+	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	fmt.Printf("data: %v", data)
 
 	// 6. Count total
 	total, err := p.mongoDal.TotalCount(ctx, filter)
