@@ -154,7 +154,6 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
-	
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$project", Value: bson.M{
@@ -215,7 +214,6 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 				{{Key: "$count", Value: "count"}},
 			},
 		}}},
-	
 	}
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
@@ -259,13 +257,12 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
 	const (
 		departmentColl         = "department"
-		portalCardsColl        = "cards"
 		permissionGroupsColl   = "permission_groups"
 		permissionCategoryColl = "permission_category"
 		permissionColl         = "permission"
 	)
 
-	// Universal ID converter function
+	// Universal ID converter function for handling both string and ObjectID types
 	convertIDs := func(fieldName string) bson.M {
 		return bson.M{
 			"$map": bson.M{
@@ -282,7 +279,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 		}
 	}
 
-	// Lookup pipeline for permission categories
+	// Lookup pipeline for permission categories with nested permissions
 	categoryLookup := bson.D{{Key: "$lookup", Value: bson.M{
 		"from": permissionCategoryColl,
 		"let":  bson.M{"categoryIds": "$permission_category"},
@@ -313,31 +310,29 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 	}}}
 
 	pipeline := mongo.Pipeline{
+		// Match the user by user_code and ensure it's not deleted
 		bson.D{{Key: "$match", Value: bson.M{"user_code": userCode, "is_deleted": false}}},
 
-		// Lookup department
+		// Lookup department information
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         departmentColl,
 			"localField":   "department",
 			"foreignField": "_id",
 			"as":           "department_doc",
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":          1,
+					"department":   1,
+					"portal_cards": 1,
+				}}},
+			},
 		}}},
+
+		// Unwind department (preserve null for users without department)
 		bson.D{{Key: "$unwind", Value: bson.M{"path": "$department_doc", "preserveNullAndEmptyArrays": true}}},
 
-		// Lookup portal cards
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": portalCardsColl,
-			"let":  bson.M{"portalCards": "$department_doc.portal_cards"},
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
-					"$in": []interface{}{"$_id", convertIDs("$$portalCards")},
-				}}}},
-				bson.D{{Key: "$project", Value: bson.M{"_id": 1, "card_name": 1}}},
-			},
-			"as": "portal_cards_docs",
-		}}},
 
-		// Lookup permission groups
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         permissionGroupsColl,
 			"localField":   "permission_group",
@@ -353,31 +348,33 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 			},
 		}}},
 
-		// Project final response
 		bson.D{{Key: "$project", Value: bson.M{
-			"_id":             1,
-			"user_code":       1,
-			"full_name":       1,
-			"role":            1,
-			"department":      1,
-			"gender":          1,
-			"phone_number":    1,
-			"email":           1,
-			"username":        1,
-			"realm":           1,
-			"enabled":         1,
-			"date_joined":     1,
-			"last_modified":   1,
-			"country":         1,
-			"region":          1,
-			"department_name": "$department_doc.department",
-			"portal_cards": bson.M{
-				"$map": bson.M{
-					"input": "$portal_cards_docs",
-					"as":    "card",
-					"in":    "$$card.card_name",
+			"_id":           1,
+			"user_code":     1,
+			"full_name":     1,
+			"role":          1,
+			"gender":        1,
+			"phone_number":  1,
+			"email":         1,
+			"username":      1,
+			"realm":         1,
+			"enabled":       1,
+			"date_joined":   1,
+			"last_modified": 1,
+			"country":       1,
+			"region":        1,
+			"department": bson.M{
+				"$cond": bson.M{
+					"if": bson.M{"$ne": []interface{}{"$department_doc", nil}},
+					"then": bson.M{
+						"id":           "$department_doc._id",
+						"name":         "$department_doc.department",
+						"portal_cards": "$department_doc.portal_cards",
+					},
+					"else": nil,
 				},
 			},
+			// Permission groups with nested structure
 			"permission_groups": bson.M{
 				"$map": bson.M{
 					"input": "$permission_groups_raw",
