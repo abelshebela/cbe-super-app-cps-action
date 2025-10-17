@@ -4391,6 +4391,14 @@ var (
 		Message:    MsgUserUnlinkFailed,
 		Type:       "error",
 	}
+
+	// User Unlink error response codes
+	ErrorCustomerDoesNotHaveLinkedAccount = ResponseCode{
+		Code:       "ERROR_CUSTOMER_DOES_NOT_HAVE_ACCOUNT",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgUserNotHaveLinkedAccount,
+		Type:       "error",
+	}
 	// Ad Service related error response codes
 	ErrorAdvertCreated = ResponseCode{
 		Code:       "ERROR_ADVERT_CREATED",

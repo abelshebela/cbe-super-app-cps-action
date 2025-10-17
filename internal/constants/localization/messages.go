@@ -842,9 +842,10 @@ const (
 	MsgCPSActionStatusInvalid = "Invalid CPS action status"
 
 	// BPS User Service related error messages
-	MsgBPSUserApprovedSuccess = "BPS user approved successfully"
+	MsgBPSUserApprovedSuccess   = "BPS user approved successfully"
+	MsgUserNotHaveLinkedAccount = "User Doesn't have any linked account"
 
-	MsgUserUnlinkFailed = "User Unlink Failed"
+	MsgUserUnlinkFailed = "User Doesn't have any linked account"
 	// Ad Service related success messages
 	MsgAdvertCreatedSuccess = "Advert created successfully"
 	MsgAdvertUpdateSuccess  = "Advert updated successfully"
