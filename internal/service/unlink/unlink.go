@@ -12,7 +12,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -99,7 +98,6 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		}
 	}
 
-	fmt.Println("---------------------------Linked acc============", linkedAccountOldData)
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData, haveAccount)
 
 	if archUserErr != nil || archLinkedAccErr != nil {
@@ -107,9 +105,19 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		return nil, archUserErr
 	}
 
-	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex(), haveAccount)
-	if userErr != nil || linkedErr != nil {
-		u.logger.Errorf("error occurred during deleting user %v / %v", userErr, linkedErr)
+	var userErr, linkedAccErr error
+	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
+		func() {
+			userErr = u.userRepo.Delete(ctx, userOldData.ID.Hex())
+		},
+		func() {
+			if haveAccount {
+				linkedAccErr = u.linkedAccountRepo.Delete(ctx, linkedAccountOldData.ID.Hex())
+			}
+		},
+	)
+	if userErr != nil || linkedAccErr != nil {
+		u.logger.Errorf("error occurred during deleting user %v / %v", userErr, linkedAccErr)
 
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}
