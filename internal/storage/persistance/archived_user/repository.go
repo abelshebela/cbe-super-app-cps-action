@@ -44,6 +44,7 @@ func (a *archivedUserStorage) Create(ctx context.Context, user *model.User) erro
 	archivedUser := UserToArchivedUser(user)
 	_, err := a.dal.InsertOne(ctx, *archivedUser)
 	if err != nil {
+		a.logger.Errorf("Error while creating archive user error: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
