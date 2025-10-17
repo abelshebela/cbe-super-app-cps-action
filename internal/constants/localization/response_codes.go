@@ -174,7 +174,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
-	
+
 	ErrorActionNotFound,
 	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
@@ -402,7 +402,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
-	
+
 	ErrorDonationCompanyLookupFailed,
 
 	SuccessDonationCompanyUpdated,
@@ -417,7 +417,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMiniAppMerchantDisableFailed,
 	ErrorMiniAppMerchantDeleteFailed,
 	ErrorMiniAppMerchantUpdateFailed,
-	
 }
 
 // Success Response Codes
@@ -695,7 +694,6 @@ var (
 		Message:    MsgAccountInfoFetched,
 		Type:       "success",
 	}
-
 
 	SuccessDonationCompanyUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED_REQUEST_SENT",
@@ -3848,7 +3846,6 @@ var (
 		Type:       "error",
 	}
 
-
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -3895,7 +3892,6 @@ var (
 		Message:    MsgAccountNumberValidationFailed,
 		Type:       "error",
 	}
-
 
 	ErrorDonationCategoryNameDuplicated = ResponseCode{
 		Code:       "ERROR_DONATION_CATEGORY_NAME_DUPLICATED",
@@ -4235,6 +4231,14 @@ var (
 		Code:       "ERROR_USER_UNLINK_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgUserUnlinkFailed,
+		Type:       "error",
+	}
+
+	// User Unlink error response codes
+	ErrorCustomerDoesNotHaveLinkedAccount = ResponseCode{
+		Code:       "ERROR_CUSTOMER_DOES_NOT_HAVE_ACCOUNT",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgUserNotHaveLinkedAccount,
 		Type:       "error",
 	}
 	// Ad Service related error response codes

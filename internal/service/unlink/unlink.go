@@ -75,8 +75,8 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	return nil
 }
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-
-	fmt.Println("--------------Authorize--------------")
+	haveAccount := false
+	var linkedAccountOldData *model.LinkedAccount
 	if cpsAction.ActionStatus != constants.Approved {
 		u.logger.Errorf("Try to authorize the collection without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
@@ -87,20 +87,27 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		return nil, err
 	}
 
-	fmt.Println("_-----------------------user old data", userOldData.CustomerNumber)
-	linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+	if userOldData.CustomerNumber == "" {
+		u.logger.Errorf("User Doesn't have any account linked")
+	} else {
+		haveAccount = true
 	}
+	if haveAccount {
+		linkedAccountOldData, err = u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+		}
+	}
+
 	fmt.Println("---------------------------Linked acc============", linkedAccountOldData)
-	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
+	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData, haveAccount)
 
 	if archUserErr != nil || archLinkedAccErr != nil {
 		u.logger.Errorf("error occurred during archiving user %v / %v", archUserErr, archLinkedAccErr)
 		return nil, archUserErr
 	}
 
-	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
+	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex(), haveAccount)
 	if userErr != nil || linkedErr != nil {
 		u.logger.Errorf("error occurred during deleting user %v / %v", userErr, linkedErr)
 
