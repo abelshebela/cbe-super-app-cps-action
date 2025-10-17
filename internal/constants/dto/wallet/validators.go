@@ -2,7 +2,6 @@ package walletDto
 
 import (
 	"errors"
-	"fmt"
 	"mime/multipart"
 	"strings"
 
@@ -49,28 +48,29 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	}
 
 	if isCreate {
-		fmt.Println("validating code", w.Code)
-
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, true, localization.ErrorWalletCodeRequired.Code))))
 	} else if w.Code != "" {
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, false, localization.ErrorWalletCodeRequired.Code))))
 	}
 
-	// if isCreate {
-	// 	rules = append(rules, validation.Field(&w.Avatar,
-	// 		validation.Required.Error(localization.ErrorWalletAvatarRequired.Code),
-	// 		validation.By(func(value interface{}) error { return validateAvatar(value) }),
-	// 	))
-	// } else if w.Avatar != nil {
-	// 	rules = append(rules, validation.Field(&w.Avatar,
-	// 		validation.By(func(value interface{}) error { return validateAvatar(value) }),
-	// 	))
-	// }
+	if isCreate {
+		rules = append(rules, validation.Field(&w.Avatar,
+			validation.Required.Error(localization.ErrorWalletAvatarRequired.Code),
+			validation.By(func(value interface{}) error { return validateAvatar(value) }),
+		))
+	} else if w.Avatar != nil {
+		rules = append(rules, validation.Field(&w.Avatar,
+			validation.By(func(value interface{}) error { return validateAvatar(value) }),
+		))
+	}
 
 	if len(rules) > 0 {
 		if err := validation.ValidateStruct(&w, rules...); err != nil {
 			return err
 		}
+	}
+	if !(w.Self || w.Other || w.Agent) {
+		return validation.NewError(localization.ErrorWalletRechangeOption.Code, localization.ErrorWalletRechangeOption.Message)
 	}
 
 	return nil
@@ -81,14 +81,44 @@ func validateAvatar(value interface{}) error {
 	if !ok || file == nil {
 		return errors.New(localization.ErrorWalletAvatarInvalid.Code)
 	}
+	if !isImageFormat(file) {
+		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
+	}
 
 	if file.Size > maxFileSize {
 		return errors.New(localization.ErrorWalletAvatarTooLarge.Code)
 	}
 
-	ct := file.Header.Get("Content-Type")
-	if ct == "" || !allowedMIMETypes[ct] {
-		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
-	}
+	// this is causing issue with mobile and front end upload
+	// ct := file.Header.Get("Content-Type")
+	// if ct == "" || !allowedMIMETypes[ct] {
+	// 	return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
+	// }
 	return nil
+}
+
+// use this for image validation this works with the mobile and the frontend
+func isImageFormat(fileHeader *multipart.FileHeader) bool {
+	if fileHeader == nil {
+		return false
+	}
+	contentType := fileHeader.Header.Get("Content-Type")
+
+	// Acceptable image formats
+	ext := strings.ToLower(strings.TrimPrefix(strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, "."):]), "."))
+	switch ext {
+	case "jpg", "jpeg":
+		contentType = "image/jpeg"
+	case "png":
+		contentType = "image/png"
+	case "gif":
+		contentType = "image/gif"
+	}
+
+	switch contentType {
+	case "image/jpeg", "image/png", "image/gif":
+		return true
+	default:
+		return false
+	}
 }

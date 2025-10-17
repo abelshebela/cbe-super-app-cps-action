@@ -110,11 +110,6 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	}
 
 	new_department.DepartmentCode = utils.RandomGenerator(20)
-
-	if all_valid, err := d.portal_card.ValidatePortalCardByID(ctx, department.PortalCards); !all_valid || err != nil {
-		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPortalCard.Code)
-	}
-
 	existing_department, err := d.repo.FindByName(ctx, department.Department)
 	code, _ := local_util.HandleMongoError(err)
 	if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
@@ -196,26 +191,23 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 		return fmt.Errorf("%s", code)
 	}
 
-	existing_department, err := d.repo.FindByName(ctx, department_request.Department)
-	code, _ = local_util.HandleMongoError(err)
-	if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
-		return fmt.Errorf("%s", localization.ErrorDepartmentWithNameAlreadyExists.Code)
+	if department_request.Department != "" && department_request.Department != department.Department {
+		existing_department, err := d.repo.FindByName(ctx, department_request.Department)
+		code, _ := local_util.HandleMongoError(err)
+		if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
+			return fmt.Errorf("%s", localization.ErrorDepartmentWithNameAlreadyExists.Code)
+		}
 	}
 
 	updatedDepartment := *department
 
-	if department.Department != "" {
+	if department_request.Department != "" {
 		updatedDepartment.Department = department_request.Department
 	}
 
-	if department.PortalCards != nil {
+	if len(department_request.PortalCards) > 0 {
 		updatedDepartment.PortalCards = department_request.PortalCards
 	}
-
-	if all_valid, err := d.portal_card.ValidatePortalCardByID(ctx, department_request.PortalCards); !all_valid || err != nil {
-		return fmt.Errorf("%s", localization.ErrorInvalidDepartmentPortalCard.Code)
-	}
-
 	action := lib.CpsModelBuilder(id, makerData, department, updatedDepartment, string(constants.RequestUpdateDepartment), constants.UPDATE)
 
 	err = d.cpsService.CreateCPSAction(ctx, &action)
