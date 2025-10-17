@@ -216,7 +216,6 @@ func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 	var req dto.ServiceFeeDetailDTO
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
 		return
-		return
 	}
 
 	if err := req.Validate(); err != nil {
