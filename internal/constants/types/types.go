@@ -287,3 +287,9 @@ type Filter struct {
 	Search  string                 `json:"search"`
 	Filters map[string]interface{} `json:"filters"`
 }
+
+type Services struct {
+	Self  bool `json:"self" bson:"self"`
+	Other bool `json:"other" bson:"other"`
+	Agent bool `json:"agent" bson:"agent"`
+}

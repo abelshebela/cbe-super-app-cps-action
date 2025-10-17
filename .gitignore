@@ -37,3 +37,4 @@ swagger_main.go
 # !docs/swagger.json
 donation_category.md
 DONATION_CATEGORY_PATTERN_GUIDE.md
+MONGODB_OPTIMIZATION_GUIDE.md

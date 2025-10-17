@@ -7,16 +7,13 @@ import (
 
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/types"
+
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
-
-type cps_user_resp *cpsuser.CPSUserDTO
-type cps_users_paginated_resp *types.PaginatedResponse[[]*cpsuser.CPSUserDTO]
 
 type handler struct {
 	svc    service.CPSUserService
@@ -94,6 +91,8 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	// ensure the request carries the target user code from the path
 	req.UserCode = userCode
 
+	req.Normalize()
+
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[UpdateUserRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -129,7 +128,7 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.svc.FetchUserByUserCode(r.Context(), userCode)
+	user, err := h.svc.GetPopulatedCpsUser(r.Context(), userCode)
 	if err != nil {
 		h.logger.Errorf("[FetchUserByUserCode] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

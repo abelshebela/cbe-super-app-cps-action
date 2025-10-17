@@ -36,21 +36,16 @@ func NewProductCodeService(repo storage.ProductCodeRepository, cpsService servic
 }
 
 func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Println("the product code auth is called with those dataa", cpsAction.CurrentAction)
 	s.logger.Infof("Authorization requested for action: %s", cpsAction.RequestAction)
 	cpsAction.ActionStatus = "APPROVED"
 	var new model.ProductCode
 	err := core.BindAction(cpsAction.CurrentAction, &new)
-	fmt.Println("this is the err and data", err, new)
-	fmt.Println("req", cpsAction.CurrentAction)
-	fmt.Println("new", new)
 	if err != nil {
 		s.logger.Errorf("failed to bind current action to product code: %v", err)
 		return nil, fmt.Errorf("%v", localization.ErrorInvalidRequest.Code)
 	}
 	new.ID = cpsAction.UniqueId
 	err = s.repo.Update(ctx, &new)
-	fmt.Println("this is the for updating the product code in auth", err, new)
 	return cpsAction, err
 }
 
@@ -101,16 +96,12 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		existing.CBEProductCodes == updated.CBEProductCodes {
 		thereIsUpdate = false
 	}
-	fmt.Println("there is change", thereIsUpdate)
 	if thereIsUpdate {
 		s.logger.Infof("ProductCode update detected, creating CPS action for approval. ProductCode ID: %s", updated.ID)
 		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, *existing, *updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
-		fmt.Println("this  is the result of cps model builder", cpsActionData)
-		fmt.Println("this  is the prev and cur", cpsActionData.PreviousAction, cpsActionData.CurrentAction)
 		err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
 	} else {
 		return nil, nil, fmt.Errorf("%s", localization.ErrorNoChangesDetected.Code)
 	}
-	fmt.Println("this is the result of update maker request", err)
 	return existing, updated, err
 }

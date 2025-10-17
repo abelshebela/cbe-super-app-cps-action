@@ -367,6 +367,31 @@ const (
 	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
 
+	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
+	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
+	RequestEnableArticle  RequestAction = "ENABLE_ARTICLE"
+	RequestDisableArticle RequestAction = "DISABLE_ARTICLE"
+	RequestDeleteArticle  RequestAction = "DELETE_ARTICLE"
+
+	// article categories
+	RequestCreateArticleCategory  RequestAction = "CREATE_ARTICLE_CATEGORY"
+	RequestUpdateArticleCategory  RequestAction = "UPDATE_ARTICLE_CATEGORY"
+	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
+	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
+	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
+
+	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
+	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
+	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
+	RequestEnableTopup  RequestAction = "ENABLE_TOPUP"
+	RequestDisableTopup RequestAction = "DISABLE_TOPUP"
+
+	RequestCreateShortVideo  string = "CREATE_SHORT_VIDEO"
+	RequestUpdateShortVideo  string = "UPDATE_SHORT_VIDEO"
+	RequestEnableShortVideo  string = "ENABLE_SHORT_VIDEO"
+	RequestDisableShortVideo string = "DISABLE_SHORT_VIDEO"
+	RequestDeleteShortVideo  string = "DELETE_SHORT_VIDEO"
+
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"
 	ActionRejected RequestAction = "REJECTED"

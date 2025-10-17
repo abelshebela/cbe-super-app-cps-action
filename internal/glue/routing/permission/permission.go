@@ -46,6 +46,15 @@ func Init(router chi.Router, handler permission.PermissionHandler, authMiddlewar
 			},
 		},
 		{
+			Method:  http.MethodGet,
+			Path:    "/permissions/by_id/{id}",
+			Handler: handler.GetPermissionGroupById,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		
+		{
 			Method:  http.MethodPatch,
 			Path:    "/permissions/{group_name}",
 			Handler: handler.UpdatePermissionGroup,

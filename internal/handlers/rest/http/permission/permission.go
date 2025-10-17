@@ -90,17 +90,28 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 }
 
 // Get Permission Group by Name
-// @Summary Get Permission Group by Name
-// @Description Retrieves a permission group by its name
+// @Summary Get Permission Group by ID
+// @Description Retrieves a permission group by its ID
 // @Tags Permission
 // @Security BearerAuth
 // @Produce json
-// @Param group_name path string true "Group Name"
+// @Param ID path string true "ID"
 // @Success 200 {object} localization.StandardResponse{data=permission.PermissionCategoryResponse}
 // @Failure 400,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /permissions/{group_name} [get]
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
 	permissionGroup, err := h.PermissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
+	if err != nil {
+		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupFetched, permissionGroup)
+}
+
+
+func (h *PermissionHandler) GetPermissionGroupById(w http.ResponseWriter, r *http.Request) {
+	permissionGroup, err := h.PermissionService.GetPermissionGroupById(r.Context(),chi.URLParam(r, "id"))
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
