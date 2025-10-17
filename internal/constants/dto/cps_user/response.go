@@ -35,39 +35,42 @@ type PermissionResponse struct {
 
 type PermissionCategoryResponse struct {
 	ID           bson.ObjectID        `json:"id" bson:"id"`
-	Access        string               `json:"access" bson:"access"` 
+	Access       string               `json:"access" bson:"access"`
 	CategoryName string               `json:"category_name" bson:"category_name"`
 	Permissions  []PermissionResponse `json:"permissions" bson:"permissions"`
 }
 
 type PermissionGroupResponse struct {
-	ID         bson.ObjectID                `json:"id" bson:"id"`
-	GroupName  string                       `json:"group_name" bson:"group_name"`
+	ID                 bson.ObjectID                `json:"id" bson:"id"`
+	GroupName          string                       `json:"group_name" bson:"group_name"`
 	PermissionCategory []PermissionCategoryResponse `json:"permission_category" bson:"permission_category"`
 }
 
-type CpsUserResponse struct {
-	ID                 bson.ObjectID   `json:"id" bson:"_id"`
-	UserCode           string          `json:"user_code" bson:"user_code"`
-	FullName           string          `json:"full_name" bson:"full_name"`
-	Role               string          `json:"role" bson:"role"`
-	Department         bson.ObjectID   `json:"department" bson:"department"`
-	Gender             string          `json:"gender" bson:"gender"`
-	PhoneNumber        string          `json:"phone_number" bson:"phone_number"`
-	Email              string          `json:"email" bson:"email"`
-	UserName           string          `json:"username" bson:"username"`
-	Realm              string          `json:"realm" bson:"realm"`
-
-	Enabled            bool            `json:"enabled" bson:"enabled"`
-	DateJoined         time.Time       `json:"date_joined" bson:"date_joined"`
-	LastModified       time.Time       `json:"last_modified" bson:"last_modified"`
-	Country            string          `json:"country" bson:"country"`
-	Region             string          `json:"region" bson:"region"`
-	DepartmentName   string                    `json:"department_name" bson:"department_name"`
-	PortalCards      []string                  `json:"portal_cards" bson:"portal_cards"`
-	PermissionGroups []PermissionGroupResponse `json:"permission_groups" bson:"permission_groups"`
+type DepartmentResponse struct {
+	ID          bson.ObjectID `json:"id" bson:"id"`
+	Name        string        `json:"name" bson:"name"`
+	PortalCards []string      `json:"portal_cards" bson:"portal_cards"`
 }
 
+type CpsUserResponse struct {
+	ID          bson.ObjectID       `json:"id" bson:"_id"`
+	UserCode    string              `json:"user_code" bson:"user_code"`
+	FullName    string              `json:"full_name" bson:"full_name"`
+	Role        string              `json:"role" bson:"role"`
+	Department  *DepartmentResponse `json:"department" bson:"department"`
+	Gender      string              `json:"gender" bson:"gender"`
+	PhoneNumber string              `json:"phone_number" bson:"phone_number"`
+	Email       string              `json:"email" bson:"email"`
+	UserName    string              `json:"username" bson:"username"`
+	Realm       string              `json:"realm" bson:"realm"`
+
+	Enabled          bool                      `json:"enabled" bson:"enabled"`
+	DateJoined       time.Time                 `json:"date_joined" bson:"date_joined"`
+	LastModified     time.Time                 `json:"last_modified" bson:"last_modified"`
+	Country          string                    `json:"country" bson:"country"`
+	Region           string                    `json:"region" bson:"region"`
+	PermissionGroups []PermissionGroupResponse `json:"permission_groups" bson:"permission_groups"`
+}
 
 type Department struct {
 	ID   bson.ObjectID `json:"id,omitempty" bson:"id,omitempty"`
