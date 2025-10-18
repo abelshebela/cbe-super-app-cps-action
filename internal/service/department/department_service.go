@@ -186,10 +186,6 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 	if err != nil {
 		return err
 	}
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		return fmt.Errorf("%s", code)
-	}
 
 	if department_request.Department != "" && department_request.Department != department.Department {
 		existing_department, err := d.repo.FindByName(ctx, department_request.Department)

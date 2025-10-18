@@ -332,7 +332,6 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 		// Unwind department (preserve null for users without department)
 		bson.D{{Key: "$unwind", Value: bson.M{"path": "$department_doc", "preserveNullAndEmptyArrays": true}}},
 
-
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         permissionGroupsColl,
 			"localField":   "permission_group",
