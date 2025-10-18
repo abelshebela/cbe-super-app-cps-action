@@ -64,6 +64,8 @@ func (u UpdateBankRequest) Validate() error {
 			validation.Length(3, 10),
 			is.Alpha,
 		),
+		validation.Field(&u.Code, validation.Required.Error(localization.MsgBankCodeRequired)),
+		validation.Field(&u.BIC, validation.Required.Error(localization.MsgBankBICRequired)),
 	)
 }
 
