@@ -455,6 +455,7 @@ type FaydaRepository interface {
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type BulkServiceRepository interface {
