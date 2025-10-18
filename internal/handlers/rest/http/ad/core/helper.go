@@ -85,19 +85,6 @@ func ParseAndValidateAdvertRequest(r *http.Request, isUpdate bool, logger utils.
 	req.Description = r.FormValue("description")
 	req.AdvertFor = r.FormValue("advert_for")
 
-	// Parse dates
-	startedAt, err := ParseTime(r.FormValue("started_at"), "START_DATE", isUpdate, logger)
-	if err != nil {
-		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse started_at: %v", err)
-		return nil, errors.New(localization.ErrorInvalidDate.Code)
-	}
-	expiredAt, err := ParseTime(r.FormValue("expired_at"), "EXPIRE_DATE", isUpdate, logger)
-	if err != nil {
-		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse expired_at: %v", err)
-		return nil, errors.New(localization.ErrorInvalidDate.Code)
-	}
-	req.Date = ad.AdvertDate{StartedAt: startedAt, ExpiredAt: expiredAt}
-
 	if err := req.Validate(isUpdate); err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] validation failed: %v", err)
 		return nil, err

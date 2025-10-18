@@ -26,15 +26,6 @@ func AdvertMapper(advert model.Advert) bson.M {
 		result["advert_for"] = advert.AdvertFor
 	}
 
-	// Use dot notation for partial updates on nested advert_date
-	if !advert.Date.StartedAt.IsZero() {
-		result["advert_date.started_at"] = advert.Date.StartedAt
-	}
-
-	if !advert.Date.ExpiredAt.IsZero() {
-		result["advert_date.expired_at"] = advert.Date.ExpiredAt
-	}
-
 	if !advert.DeletedAt.IsZero() {
 		result["deleted_at"] = advert.DeletedAt
 	}
