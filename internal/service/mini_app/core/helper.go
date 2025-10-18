@@ -68,28 +68,29 @@ func BuildMiniAppFromRequest(req miniappdto.MiniAppCreateRequest, withTimestamps
 	return miniApp
 }
 
+func ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchantService) error {
+	merchant, err := merchantService.FindByID(ctx, MerchantID)
+	if err != nil {
+		log.Println("Failed to get merchant details", "merchantID", MerchantID, "error", err)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+	if merchant.IsDeleted {
+		log.Println("Merchant is deleted", "merchantID", MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+
+	if !merchant.Enabled {
+		log.Println("Merchant is disabled", "merchantID", MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+	}
+	return nil
+}
 func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, miniApp *miniappdto.MiniAppCreateRequest) error {
 	if miniApp.MerchantID == "" {
 		return errors.New(localization.ErrorMerchantIDRequired.Code)
 	}
 
-	merchant, err := merchantService.FindByID(ctx, miniApp.MerchantID)
-	if err != nil {
-		log.Println("Failed to get merchant details", "merchantID", miniApp.MerchantID, "error", err)
-		return errors.New(localization.ErrorMerchantNotFound.Code)
-	}
-
-	if merchant.IsDeleted {
-		log.Println("Merchant is deleted", "merchantID", miniApp.MerchantID)
-		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
-	}
-
-	// if !merchant.Enabled {
-	// 	log.Println("Merchant is disabled", "merchantID", miniApp.MerchantID)
-	// 	return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
-	// }
-
-	return nil
+	return ValidMerchant(miniApp.MerchantID, ctx, merchantService)
 }
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
@@ -98,7 +99,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(constants.ActionDelete))
+	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	log.Println("Creating CPS action", "userCode", userData.UserCode, "uniqueID", uniqueID, "actionType", actionType)
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
