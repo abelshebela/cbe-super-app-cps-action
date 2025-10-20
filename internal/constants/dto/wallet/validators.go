@@ -75,6 +75,33 @@ func (w WalletRequest) Validate(isCreate bool) error {
 
 	return nil
 }
+func (w WalletRequest) AggregatedValidate(isCreate bool) error {
+	errs := validation.Errors{}
+	if strings.TrimSpace(w.Name) == "" {
+		errs["name"] = errors.New(localization.ErrorWalletNameRequired.Code)
+	}
+	if strings.TrimSpace(w.Code) == "" {
+		errs["code"] = errors.New(localization.ErrorWalletCodeRequired.Code)
+	}
+	if !(w.Self || w.Other || w.Agent) {
+		errs["recharge_option"] = errors.New(localization.ErrorWalletRechangeOption.Code)
+	}
+	if isCreate {
+		if w.Avatar == nil {
+			errs["avatar"] = errors.New(localization.ErrorWalletAvatarRequired.Code)
+		} else if err := validateAvatar(w.Avatar); err != nil {
+			errs["avatar"] = err
+		}
+	} else if w.Avatar != nil {
+		if err := validateAvatar(w.Avatar); err != nil {
+			errs["avatar"] = err
+		}
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
 
 func validateAvatar(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
