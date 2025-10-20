@@ -456,6 +456,13 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPhoneNumber,
 	ErrorExistPhoneNumber,
 	ErrorInvalidEmail,
+
+	// OTP related error codes
+	ErrorOTPExpired,
+	ErrorOTPInvalid,
+	ErrorOTPAlreadyExists,
+	ErrorOTPTooManyAttempts,
+	ErrorOTPSendFailed,
 }
 
 // Success Response Codes

@@ -6,19 +6,16 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
-	department_core "cbe-super-app-cps-action/internal/service/department/core"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/external_call"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type customerService struct {
@@ -27,15 +24,17 @@ type customerService struct {
 	cpsService service.CPSActionService
 	cfg        *config.VaultConfig
 	logger     utils.Logger
+	smsService *external_call.SMSPersistence
 }
 
-func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSActionService, redis storage.RedisRepository, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
+func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *external_call.SMSPersistence, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
 	return &customerService{
 		repo:       repo,
 		cpsService: cpsService,
 		redis:      redis,
 		cfg:        cfg,
 		logger:     logger,
+		smsService: smsService,
 	}
 }
 
@@ -71,26 +70,43 @@ func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *
 }
 
 // CreateEnableCustomerSession implements service.CustomerService.
-func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id string) error {
+func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id string) (string, error) {
 	existing_otp, err := c.redis.Get(ctx, fmt.Sprintf("cps:action:otp:%s", id))
 	if existing_otp != "" || err == nil {
-		return fmt.Errorf("%s", localization.ErrorOTPAlreadyExists.Code)
+		return "", fmt.Errorf("%s", localization.ErrorOTPAlreadyExists.Code)
 	}
+
+	customer, err := c.repo.FindByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+	c.logger.Infof("Customer fetched for enabling session: %+v", customer.ID, customer.Enabled)
+	if customer.Enabled {
+		return "", fmt.Errorf("%s", localization.ErrorCustomerAlreadyEnabled.Code)
+	}
+
 	otp := local_util.OTPGenerator(6)
 	encryptedOTP, _, err := local_util.LocalEncryptPassword(otp, constants.OTP, constants.OTP, constants.OTP, c.cfg)
 	if err != nil {
-		return err
+		return "", err
 	}
+
 	err = c.redis.Set(ctx, fmt.Sprintf("cps:action:otp:%s", id), encryptedOTP, constants.OtpExpirationTime)
-	// send otp to user through sms
 	if err != nil {
-		return err
+		return "", err
 	}
+
+	go func() {
+		err = c.smsService.SendSMS(context.Background(), customer.PhoneNumber, fmt.Sprintf("Your Verification OTP is: %s", otp))
+		if err != nil {
+			c.logger.Errorf("failed to send OTP SMS to customer %s: %v", id, err)
+		}
+	}()
+
 	c.logger.Infof("OTP for enabling customer with ID %s is %s", id, otp)
-	return nil
+	return otp, nil
 }
 
-// EnableCustomerByID implements service.CustomerService.
 func (c *customerService) EnableCustomerByID(ctx context.Context, id string, user_otp string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
@@ -113,17 +129,9 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 	}
 
 	customer, err := c.repo.FindByID(ctx, id)
-	code, _ := local_util.HandleMongoError(err)
-
-	if code == localization.ErrorResourceNotFound.Code {
-		return fmt.Errorf("%s", code)
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
-	// fmt.Println("/////////////////////customer.Enabled", customer.Enabled)
-	// if customer.Enabled {
-	// 	return fmt.Errorf("%s", localization.ErrorCustomerAlreadyEnabled.Code)
-	// }
 
 	new_customer := *customer
 	new_customer.Enabled = true
@@ -135,6 +143,9 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 		return err
 	}
 
+	if err := c.redis.Delete(ctx, fmt.Sprintf("cps:action:otp:%s", id)); err != nil {
+		c.logger.Errorf("failed to delete OTP from redis for customer %s: %v", id, err)
+	}
 	return nil
 }
 
@@ -171,31 +182,15 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string) er
 }
 
 func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	var actionMap interface{}
-	b, err := json.Marshal(cpsAction.CurrentAction)
-	if err != nil {
-		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
-	}
-	fmt.Printf("JSON bytes: %s\n", string(b))
-	err = json.Unmarshal(b, &actionMap)
-	if err != nil {
-		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
-	}
 
-	actionData := department_core.Department_mapper(actionMap)
-	if cpsAction.UniqueId != "" {
-		objID, err := bson.ObjectIDFromHex(cpsAction.UniqueId)
-		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
-		}
-		actionData.ID = objID
+	actionData, err := local_util.JsonUnmarshal[model.User](cpsAction.CurrentAction)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal CurrentAction to User: %v", err)
 	}
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestEnableDisableCustomer):
-		err := d.repo.EnableOrDisable(ctx, actionData.ID.Hex(), actionData.Enabled)
+		err := d.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
 		if err != nil {
 			d.logger.Errorf("Customer Enable Disable action  failed", "error", err)
 			return nil, err

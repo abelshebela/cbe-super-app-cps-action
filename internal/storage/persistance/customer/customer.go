@@ -87,6 +87,13 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 	p.logger.Infof("Fetching user with filter: %v", filter)
 	user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
 	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			return nil, fmt.Errorf("%s", code)
+		} else if err != nil {
+			return nil, err
+		}
+
 		p.logger.Errorf("Failed to fetch user by ID: %v", err)
 		return nil, err
 	}
@@ -100,14 +107,17 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 
 // EnableOrDisable implements storage.CustomerRepository.
 func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	b.logger.Infof("Enabling/Disabling customer with ID: %s to %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		b.logger.Errorf("invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
 	_, err = b.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
+		b.logger.Errorf("error while enabling/disabling customer: %v", err)
 		return err
 	}
 	return nil
