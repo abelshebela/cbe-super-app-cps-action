@@ -23,6 +23,7 @@ import (
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
 
 	// vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
+	"cbe-super-app-cps-action/internal/storage/external_call"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
 
@@ -101,7 +102,7 @@ type ServiceLayer struct {
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, redis storage.RedisRepository) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, redis storage.RedisRepository, smsService external_call.SMSPersistence) ServiceLayer {
 	// func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, oracle OraclePersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 	// Create CPS action service with the dispatcher
@@ -116,7 +117,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, "events", cfg, logger) // Will be updated after CPS action service is created
 	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)                                                                            // Will be updated after CPS action service is created
-	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, logger)
+	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, "banks")                                               // Will be updated after CPS action service is created
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, "wallets", cfg, logger)                                             // Will be updated after CPS action service is created
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, "topups", cfg, logger)                                                  // Will be updated after CPS action service is created
@@ -313,7 +314,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
-	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, cfg, logger)
+	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
