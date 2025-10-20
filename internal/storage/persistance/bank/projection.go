@@ -23,6 +23,5 @@ func BankMapper(data model.Bank) bson.M {
 	}
 
 	result["enabled"] = data.Enabled
-
 	return result
 }
