@@ -147,8 +147,11 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Errorf("Parent merchant validation failed, app_id: %s, error: %v", req.ID, err)
 		return err
 	}
+	
+	if req.AppName!= "" && req.AppName!=prevMiniApp.AppName {
 
-	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
+
+isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
 	if err != nil {
 		s.logger.Errorf("IsMiniAppNameUnique check failed, error: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -158,6 +161,9 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
 		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
 	}
+	}
+
+	
 
 	if strings.TrimSpace(req.MerchantID) != "" {
 		if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
@@ -331,21 +337,31 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
+		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		if err != nil{
+			break
+		}
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
 			return s.repo.Create(ctx, miniApp)
 		})
 
 	case string(constants.RequestUpdateMiniApp):
+		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		if err != nil{
+			break
+		}
 		err = s.repo.Update(ctx, cpsAction.UniqueId, miniApp)
 
 	case string(constants.RequestDeleteMiniApp):
 		err = s.repo.Delete(ctx, cpsAction.UniqueId)
 
 	case string(constants.RequestEnableMiniApp):
-
+		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		if err != nil{
+			break
+		}
 		err = s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 
 	case string(constants.RequestDisableMiniApp):
