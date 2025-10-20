@@ -12,7 +12,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -75,8 +74,8 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	return nil
 }
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-
-	fmt.Println("--------------Authorize--------------")
+	haveAccount := false
+	var linkedAccountOldData *model.LinkedAccount
 	if cpsAction.ActionStatus != constants.Approved {
 		u.logger.Errorf("Try to authorize the collection without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
@@ -87,22 +86,38 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		return nil, err
 	}
 
-	fmt.Println("_-----------------------user old data", userOldData.CustomerNumber)
-	linkedAccountOldData, err := u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+	if userOldData.CustomerNumber == "" {
+		u.logger.Errorf("User Doesn't have any account linked")
+	} else {
+		haveAccount = true
 	}
-	fmt.Println("---------------------------Linked acc============", linkedAccountOldData)
-	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData)
+	if haveAccount {
+		linkedAccountOldData, err = u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnlinkFaild.Code)
+		}
+	}
+
+	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData, haveAccount)
 
 	if archUserErr != nil || archLinkedAccErr != nil {
 		u.logger.Errorf("error occurred during archiving user %v / %v", archUserErr, archLinkedAccErr)
 		return nil, archUserErr
 	}
 
-	userErr, linkedErr := core.DeleteUserDataWithLinkedAccount(ctx, u.userRepo, u.linkedAccountRepo, userOldData.ID.Hex(), linkedAccountOldData.ID.Hex())
-	if userErr != nil || linkedErr != nil {
-		u.logger.Errorf("error occurred during deleting user %v / %v", userErr, linkedErr)
+	var userErr, linkedAccErr error
+	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
+		func() {
+			userErr = u.userRepo.Delete(ctx, userOldData.ID.Hex())
+		},
+		func() {
+			if haveAccount {
+				linkedAccErr = u.linkedAccountRepo.Delete(ctx, linkedAccountOldData.ID.Hex())
+			}
+		},
+	)
+	if userErr != nil || linkedAccErr != nil {
+		u.logger.Errorf("error occurred during deleting user %v / %v", userErr, linkedAccErr)
 
 		return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 	}

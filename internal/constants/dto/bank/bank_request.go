@@ -13,10 +13,11 @@ type CreateBankRequest struct {
 }
 
 type UpdateBankRequest struct {
-	ID   string `json:"_id" bson:"_id"`
-	Name string `json:"name" bson:"name"`
-	Code string `json:"code" bson:"code"`
-	BIC  string `json:"bic" bson:"bic"`
+	ID   string                `json:"_id" bson:"_id"`
+	Logo *multipart.FileHeader `form:"logo" json:"logo"`
+	Name string                `json:"name" bson:"name"`
+	Code string                `json:"code" bson:"code"`
+	BIC  string                `json:"bic" bson:"bic"`
 }
 
 const maxFileSize = 2 * 1024 * 1024 // 2MB

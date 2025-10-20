@@ -1,10 +1,13 @@
 package customer
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"encoding/json"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
@@ -22,6 +25,69 @@ type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
 type customerAdapter struct {
 	customerService service.CustomerService
 	logger          utils.Logger
+}
+
+// SetEnableCustomerSession implements customer.CustomerDetail.
+func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	fmt.Println("/////////////////////")
+	ctx := r.Context()
+	err := c.customerService.CreateEnableCustomerSession(ctx, id)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerEnableRequestSessionCreatedSuccessfully, nil)
+
+}
+
+// DisableCustomer implements customer.CustomerDetail.
+func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	ctx := r.Context()
+	err := c.customerService.DisableCustomerByID(ctx, id)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerDisableRequestCreatedSuccessfully, nil)
+}
+
+// EnableCustomer implements customer.CustomerDetail.
+func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	var payload dto.CustomerEnableDTO
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	ctx := r.Context()
+	err := c.customerService.EnableCustomerByID(ctx, id, payload.UserOTP)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
 }
 
 func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {

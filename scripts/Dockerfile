@@ -32,6 +32,8 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY --from=builder /app/.env .
 
+COPY corebanking.json .
+
 EXPOSE 8080
 
 EXPOSE 50051

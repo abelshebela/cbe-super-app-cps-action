@@ -378,6 +378,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailedToGetCustomerDetail,
 	ErrorKeyRequiredForBulkService,
 	SuccessCustomerDetailSuccessfullyFetched,
+	CustomerEnableRequestSessionCreatedSuccessfully,
+	CustomerDisableRequestCreatedSuccessfully,
+	CustomerEnableRequestCreatedSuccessfully,
+	ErrorCustomerAlreadyDisabled,
+	ErrorCustomerAlreadyEnabled,
 	ErrorIdNotSetOnQueryParam,
 	CustomerDetailSuccessfullyFetched,
 	ErrorFailedToGetBlockedCustomer,
@@ -394,7 +399,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMinAmountCanNotBeGreaterThanCap,
 	ErrorPermissionCategoryNotFound,
 	ErrorPermissionGroupNotFound,
-ErrorPermissionGroupRequired,
+	ErrorPermissionGroupRequired,
 	ErrorCityAlreadyDisabled,
 	ErrorCityAlreadyEnabled,
 	ErrorRegionAlreadyDisabled,
@@ -451,7 +456,6 @@ ErrorPermissionGroupRequired,
 	ErrorInvalidPhoneNumber,
 	ErrorExistPhoneNumber,
 	ErrorInvalidEmail,
-	
 }
 
 // Success Response Codes
@@ -2285,7 +2289,7 @@ var (
 		Message:    "Mini App not found",
 		Type:       "error",
 	}
-	
+
 	ErrorMiniAppAlreadyExists = ResponseCode{
 		Code:       "ERROR_MINI_APP_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
@@ -4391,6 +4395,14 @@ var (
 		Message:    MsgUserUnlinkFailed,
 		Type:       "error",
 	}
+
+	// User Unlink error response codes
+	ErrorCustomerDoesNotHaveLinkedAccount = ResponseCode{
+		Code:       "ERROR_CUSTOMER_DOES_NOT_HAVE_ACCOUNT",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgUserNotHaveLinkedAccount,
+		Type:       "error",
+	}
 	// Ad Service related error response codes
 	ErrorAdvertCreated = ResponseCode{
 		Code:       "ERROR_ADVERT_CREATED",
@@ -4796,6 +4808,41 @@ var (
 		StatusCode: StatusOK,
 		Message:    "Customer detail(s) fetched successfully",
 		Type:       "success",
+	}
+
+	CustomerEnableRequestCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Customer Enable request created Successfully",
+		Type:       "success",
+	}
+
+	CustomerEnableRequestSessionCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_ENABLE_REQUEST_SESSION_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Customer Enable request session created Successfully, Verify Otp to continue",
+		Type:       "success",
+	}
+
+	CustomerDisableRequestCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Customer Disable request created Successfully",
+		Type:       "success",
+	}
+
+	ErrorCustomerAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    "Customer is already enabled",
+		Type:       "error",
+	}
+
+	ErrorCustomerAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    "Customer is already disabled",
+		Type:       "error",
 	}
 
 	ErrorIdNotSetOnQueryParam = ResponseCode{

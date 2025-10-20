@@ -53,37 +53,14 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"user_code": searchRegex},
 		}
 	}
-	// Store kyc_level value for special handling (do not delete it from Filters)
-	// var kycLevelValue interface{}
-	// if filterParam.Filters != nil {
-	// 	if val, ok := filterParam.Filters["kyc_level"]; ok {
-	// 		kycLevelValue = val
-	// 	}
-	// }
-	// 4. Build filter, skip, limit
+
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// if kycLevelValue != nil {
-	// 	if kycLevelValue == 0 || kycLevelValue == "0" {
-
-	// 		delete(filter, "kyc_level")
-	// 		filter["$and"] = []bson.M{
-	// 			{"kyc_level": bson.M{"$exists": true}},
-	// 			{"kyc_level": bson.M{"$type": "number"}},
-	// 			{"kyc_level": bson.M{"$eq": 0}},
-	// 		}
-	// 		fmt.Printf("DEBUG: Applied special kyc_level=0 $and filter: %+v\n", filter["$and"])
-	// 	}
-	// }
-	fmt.Printf("DEBUG: Final filter: %+v\n", filter)
-
 	// 5. Fetch data
-	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, UserProjection(), skip, limit)
-
+	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	fmt.Printf("data: %v", data)
 
 	// 6. Count total
 	total, err := p.mongoDal.TotalCount(ctx, filter)
@@ -107,6 +84,7 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
+	p.logger.Infof("Fetching user with filter: %v", filter)
 	user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
 	if err != nil {
 		p.logger.Errorf("Failed to fetch user by ID: %v", err)
@@ -118,4 +96,19 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 		return nil, fmt.Errorf("no user found for given id")
 	}
 	return user, nil
+}
+
+// EnableOrDisable implements storage.CustomerRepository.
+func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"enabled": enable}
+	_, err = b.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
 }

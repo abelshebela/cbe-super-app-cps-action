@@ -4,11 +4,11 @@ import (
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	_ "cbe-super-app-cps-action/internal/constants/model"
-	department_core "cbe-super-app-cps-action/internal/handlers/rest/http/department/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -44,7 +44,7 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 
 	departments, err := d.departmentService.GetAllDepartments(r.Context(), filterParams)
 	if err != nil {
-		d.logger.Errorf("get all Departments failed", err)
+		d.logger.Errorf("[GetAllDepartments] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -68,19 +68,20 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 	var departmentRequest department_dto.CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
-		d.logger.Errorf("failed to decode department request", err)
+		d.logger.Errorf("[CreateDepartment] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
-	if response_code := department_core.ValidateDepartmentRequest(r, departmentRequest); response_code.Code != "" {
-		d.logger.Errorf("invalid input", response_code)
-		localization.SendErrorResponse(w, response_code, nil, nil)
+	if err := departmentRequest.Validate(); err != nil {
+		d.logger.Errorf("[CreateDepartment] validation: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+
 	err := d.departmentService.CreateDepartment(r.Context(), departmentRequest)
 	if err != nil {
-		d.logger.Errorf("department create request failed", err)
+		d.logger.Errorf("[CreateDepartment] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -101,9 +102,9 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 // @Security BearerAuth
 // @Router       /departments/{id} [patch]
 func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("missing or invalid parameter 'id'")
+		d.logger.Errorf("[UpdateDepartmentRequest] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
@@ -111,20 +112,20 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 	var departmentRequest department_dto.UpdateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
-		d.logger.Errorf("failed to decode department request", err)
+		d.logger.Errorf("[UpdateDepartmentRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
-	if response_code := department_core.ValidateDepartmentRequest(r, departmentRequest); response_code.Code != "" {
-		d.logger.Errorf("invalid input", response_code)
-		localization.SendErrorResponse(w, response_code, nil, nil)
+	if err := departmentRequest.Validate(); err != nil {
+		d.logger.Errorf("[UpdateDepartmentRequest] validation: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	err := d.departmentService.UpdateDepartment(r.Context(), id, departmentRequest)
 	if err != nil {
-		d.logger.Errorf("department update request failed", err)
+		d.logger.Errorf("[UpdateDepartmentRequest] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -145,16 +146,16 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 // @Security BearerAuth
 // @Router /departments/{id} [get]
 func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("missing or invalid parameter 'id'")
+		d.logger.Errorf("[GetDepartmentByID] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
 	department, err := d.departmentService.GetDepartmentByID(r.Context(), id)
 	if err != nil {
-		d.logger.Errorf("get department by id", err)
+		d.logger.Errorf("[GetDepartmentByID] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -175,16 +176,16 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 // @Security BearerAuth
 // @Router /departments/enable/{id} [patch]
 func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("missing or invalid parameter 'id'")
+		d.logger.Errorf("[EnableDepartment] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
 	err := d.departmentService.EnableDisableDepartment(r.Context(), id, true)
 	if err != nil {
-		d.logger.Errorf("enable department by id failed", err)
+		d.logger.Errorf("[EnableDepartment] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -205,16 +206,16 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 // @Security BearerAuth
 // @Router /departments/disable/{id} [patch]
 func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
-		d.logger.Errorf("missing or invalid parameter 'id'")
+		d.logger.Errorf("[DisableDepartment] missing department ID")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
 	err := d.departmentService.EnableDisableDepartment(r.Context(), id, false)
 	if err != nil {
-		d.logger.Errorf("disable department by id failed", err)
+		d.logger.Errorf("[DisableDepartment] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

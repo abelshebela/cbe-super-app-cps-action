@@ -1,6 +1,7 @@
 package bankHandler
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -8,7 +9,6 @@ import (
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -47,7 +47,7 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	var bankRequest bank_dto.CreateBankRequest
 
-	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20)
+	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), b.logger)
 	if err != nil {
 		b.logger.Errorf("error parsing file: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
@@ -213,7 +213,6 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-	
 
 	bank, err := b.bankService.GetOneBank(r.Context(), id)
 
@@ -249,7 +248,7 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20)
+	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), b.logger)
 	if err != nil {
 		b.logger.Errorf("error parsing file: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
@@ -293,11 +292,19 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var updateRequest bank_dto.UpdateBankRequest
-	if err := json.NewDecoder(r.Body).Decode(&updateRequest); err != nil {
-		b.logger.Errorf("invalid input", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+
+	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.Update), b.logger)
+	if err != nil {
+		b.logger.Errorf("error parsing file: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 		return
 	}
+	defer file.Close()
+
+	updateRequest.Name = r.FormValue("name")
+	updateRequest.Code = r.FormValue("code")
+	updateRequest.BIC = r.FormValue("bic")
+	updateRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		b.logger.Errorf("invalid input", response_code)
@@ -305,8 +312,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := b.bankService.UpdateOneBank(r.Context(), id, updateRequest)
-	if err != nil {
+	if err = b.bankService.UpdateOneBank(r.Context(), id, updateRequest); err != nil {
 		b.logger.Errorf("bank update request failed", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

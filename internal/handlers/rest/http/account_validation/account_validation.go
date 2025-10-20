@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
+	
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -97,14 +98,14 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := account_validation_dto.ToModel(req)
-
+	
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	// ─── Success Response ────────────────────────────────────────────────
-	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, localization.ResponseCode{})
+	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, nil)
 }
 
 // FindAllWithPagination godoc
