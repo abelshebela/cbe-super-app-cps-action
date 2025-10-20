@@ -12,29 +12,28 @@ import (
 	"strings"
 )
 
-func ParseWalletRequestFromMultipartForm(r *http.Request,isCreate bool) (walletDto.WalletRequest, error) {
+func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (walletDto.WalletRequest, error) {
 	var req walletDto.WalletRequest
+	req.Name = r.FormValue("name")
+	req.Code = r.FormValue("code")
+	req.Self = r.FormValue("self") == "true"
+	req.Other = r.FormValue("other") == "true"
+	req.Agent = r.FormValue("agent") == "true"
 	_, fileHeader, err := utils.ParseMultipartFormFile(r, "avatar", 5<<20)
 	if err != nil {
-		if isCreate{
+		if isCreate {
 			if err.Error() != localization.ErrorMissingFile.Code {
 				log.Println("errror here", err)
 				return req, errors.New(localization.ErrorWalletImageMissingOrInvalid.Code)
 			}
 			return req, errors.New(localization.ErrorInvalidFileUpload.Code)
 		}
-		
+
 	}
 	req.Avatar = fileHeader
-	req.Name = r.FormValue("name")
-	req.Code = r.FormValue("code")
-	req.Self = r.FormValue("self") == "true"
-	req.Other = r.FormValue("other") == "true"
-	req.Agent = r.FormValue("agent") == "true"
 
 	return req, nil
 }
-
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
 	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {

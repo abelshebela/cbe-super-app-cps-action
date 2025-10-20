@@ -50,8 +50,9 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		a.logger.Errorf("error fetching wallet create request data")
 	}
+	a.logger.Infof("this is the wallet request%+v\n", req)
 
-	if err := req.Validate(true); err != nil {
+	if err := req.AggregatedValidate(true); err != nil {
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -96,7 +97,9 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	if err := req.Validate(false); err != nil {
+	a.logger.Infof("this is the wallet request%+v\n", req)
+
+	if err := req.AggregatedValidate(false); err != nil {
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
