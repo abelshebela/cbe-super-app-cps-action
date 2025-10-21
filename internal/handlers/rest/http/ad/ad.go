@@ -37,8 +37,6 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 // @Param title formData string true "Title" minLength(3) maxLength(20) example("New Promo")
 // @Param description formData string true "Description" minLength(30) maxLength(100) example("Enjoy our new promotion valid this weekend only.")
 // @Param advert_for formData string true "Advert audience" Enums(IFB,CB,ALL) example(ALL)
-// @Param started_at formData string false "Start time (RFC3339)" example("2025-10-10T10:00:00Z")
-// @Param expired_at formData string false "Expiry time (RFC3339)" example("2025-10-20T10:00:00Z")
 // @Param banner_image formData file false "Banner image (<=2MB; jpeg/png/gif/webp)"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Advert create request sent"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
@@ -107,7 +105,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse{data=ad_dto.AdvertResponse} "Advert fetched successfully"
+// @Success 200 {object} localization.StandardResponse{data=ad.AdvertResponse} "Advert fetched successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -140,8 +138,6 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 // @Param title formData string false "Title" minLength(3) maxLength(20) example("Weekend Promo")
 // @Param description formData string false "Description" minLength(30) maxLength(100)
 // @Param advert_for formData string false "Advert audience" Enums(IFB,CB,ALL)
-// @Param started_at formData string false "Start time (RFC3339)"
-// @Param expired_at formData string false "Expiry time (RFC3339)"
 // @Param banner_image formData file false "Banner image (<=2MB; jpeg/png/gif/webp)"
 // @Success 200 {object} localization.StandardResponse{data=nil} "Advert update request sent"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "No data provided for update / invalid payload"
@@ -165,7 +161,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	domainReq, _ := core.ToAdvert(*req)
 
-	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil && domainReq.Date.StartedAt.IsZero() && domainReq.Date.ExpiredAt.IsZero() {
+	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)
 		localization.SendBadRequestResponse(w, localization.ErrorNoDataProvidedForUpdate.Message)
 		return

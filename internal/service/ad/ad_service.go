@@ -143,7 +143,6 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		Description:   local_util.NonEmptyString(ad.Description, prevAdvert.Description),
 		BannerImage:   local_util.NonEmptyString(url, prevAdvert.BannerImage),
 		AdvertFor:     local_util.NonEmptyAdvertFor(constants.AdvertFor(ad.AdvertFor), prevAdvert.AdvertFor),
-		Date:          local_util.NonEmptyAdvertDate(types.AdvertDate(ad.Date), prevAdvert.Date),
 		Enabled:       prevAdvert.Enabled,
 		IsDeleted:     prevAdvert.IsDeleted,
 		CreatedAt:     prevAdvert.CreatedAt,
