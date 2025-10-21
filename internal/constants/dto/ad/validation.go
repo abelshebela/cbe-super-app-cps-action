@@ -5,7 +5,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"fmt"
 	"mime/multipart"
-	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -38,7 +37,6 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 				return nil
 			})),
 		),
-		validation.Field(&c.Date),
 	)
 
 	if err != nil {
@@ -50,57 +48,9 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 		c.Title == "" &&
 		c.Description == "" &&
 		c.AdvertFor == "" &&
-		c.BannerImage == nil &&
-		c.Date.StartedAt.IsZero() &&
-		c.Date.ExpiredAt.IsZero() {
+		c.BannerImage == nil {
 		return fmt.Errorf("NO_DATA_PROVIDED_FOR_UPDATE")
 	}
 
-	return c.Date.Validate(isUpdate)
-}
-
-func (a AdvertDate) Validate(isUpdate bool) error {
-	return validation.ValidateStruct(&a,
-		validation.Field(&a.StartedAt,
-			validation.When(!isUpdate, validation.Required.Error("START_DATE_REQUIRED")),
-			validation.By(func(value interface{}) error {
-				startedAt, ok := value.(time.Time)
-				if !ok {
-					if !isUpdate {
-						return fmt.Errorf("the start time format is invalid. please provide a valid date and time")
-					}
-					return nil // skip validation on update if not provided
-				}
-				if isUpdate && startedAt.IsZero() {
-					return nil // skip validation on update if zero value
-				}
-				if startedAt.Before(time.Now().Add(10 * time.Minute)) {
-					return fmt.Errorf("the start time must be at least 10 minutes from now")
-				}
-				return nil
-			}),
-		),
-		validation.Field(&a.ExpiredAt,
-			validation.When(!isUpdate, validation.Required.Error("EXPIRED_DATE_REQUIRED")),
-			validation.By(func(value interface{}) error {
-				expiredAt, ok := value.(time.Time)
-				if !ok {
-					if !isUpdate {
-						return fmt.Errorf("the expiry time format is invalid. please provide a valid date and time")
-					}
-					return nil // skip validation on update if not provided
-				}
-				if isUpdate && expiredAt.IsZero() {
-					return nil // skip validation on update if zero value
-				}
-				if !expiredAt.After(time.Now().Add(24 * time.Hour)) {
-					return fmt.Errorf("the expiry time must be at least 24 hours from now")
-				}
-				if !expiredAt.After(a.StartedAt) && !a.StartedAt.IsZero() {
-					return fmt.Errorf("the expiry time must be later than the start time")
-				}
-				return nil
-			}),
-		),
-	)
+	return nil
 }

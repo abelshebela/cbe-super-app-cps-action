@@ -12,7 +12,6 @@ type AdvertResponse struct {
 	Description   string              `json:"description"`
 	BannerImage   string              `json:"banner_image"`
 	AdvertFor     constants.AdvertFor `json:"advert_for"`
-	Date          AdvertDate          `json:"date"`
 	Enabled       bool                `json:"enabled"`
 	CreatedAt     time.Time           `json:"created_at"`
 	LastUpdatedAt time.Time           `json:"last_updated_at"`
