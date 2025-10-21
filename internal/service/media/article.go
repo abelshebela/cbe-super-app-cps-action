@@ -29,6 +29,10 @@ func NewMediaService(repo storage.ArticleRepository, cache storage.RedisReposito
 }
 
 func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	const (
+		NewsArticleCacheKeyPattern   = "news:article:%s"
+		NewsArticleCacheDeleteErrMsg = "failed to delete cache for article %s: %v"
+	)
 	m.logger.Infof("Media service authorizing action: %s", cpsAction.ActionCode)
 
 	article, err := local_util.JsonUnmarshal[model.NewsArticle](cpsAction.CurrentAction)
@@ -42,30 +46,30 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	case string(constants.RequestUpdateArticle):
 		err = m.repo.UpdateArticle(ctx, article, cpsAction.UniqueId)
 
-		cacheKey := fmt.Sprintf("news:article:%s", article.ID)
+		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf("failed to delete cache for article %s: %v", article.ID, err)
+			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	case string(constants.RequestDeleteArticle):
 		err = m.repo.DeleteArticle(ctx, cpsAction.UniqueId)
 
-		cacheKey := fmt.Sprintf("news:article:%s", article.ID)
+		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf("failed to delete cache for article %s: %v", article.ID, err)
+			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	case string(constants.RequestEnableArticle):
 		err = m.repo.PublishUnpublishArticle(ctx, cpsAction.UniqueId, true)
 
-		cacheKey := fmt.Sprintf("news:article:%s", article.ID)
+		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf("failed to delete cache for article %s: %v", article.ID, err)
+			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	case string(constants.RequestDisableArticle):
 		err = m.repo.PublishUnpublishArticle(ctx, cpsAction.UniqueId, false)
 
-		cacheKey := fmt.Sprintf("news:article:%s", article.ID)
+		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
-			m.logger.Warnf("failed to delete cache for article %s: %v", article.ID, err)
+			m.logger.Warnf(NewsArticleCacheDeleteErrMsg, article.ID, err)
 		}
 	default:
 		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
