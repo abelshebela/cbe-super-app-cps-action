@@ -84,6 +84,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 
 	// update banner image url after uploading
 	ad.BannerImage = url
+	ad.Enabled = true
 
 	err = s.handleCPSAction(ctx, "", cpsaction.RequestCreateAdvert, ad, nil, cpsaction.ActionCreate)
 	if err != nil {

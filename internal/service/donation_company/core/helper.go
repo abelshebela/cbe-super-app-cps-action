@@ -106,6 +106,7 @@ func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, lo
 		CompanyName:   donationCompany.CompanyName,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
+		
 	}
 }
 
