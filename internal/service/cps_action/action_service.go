@@ -67,7 +67,7 @@ func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code str
 	return nil
 }
 func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
-	return ca.repo.FindAllWithPagination(ctx, *filterParams, department)
+	return ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, department)
 }
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
 	objID, err := bson.ObjectIDFromHex(id)
@@ -75,7 +75,7 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return ca.repo.FindOne(ctx, bson.M{"_id": objID})
+	return ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID})
 }
 func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
 	filter := bson.M{
@@ -84,10 +84,10 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 		"request_action": requestAction,
 	}
 
-	return ca.repo.FindOne(context.Background(), filter)
+	return ca.repo.SanitizedFindOne(context.Background(), filter)
 }
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
-	return ca.repo.FindOne(ctx, bson.M{"action_code": uniqueID})
+	return ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": uniqueID})
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {

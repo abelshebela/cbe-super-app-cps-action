@@ -102,6 +102,8 @@ type CPSActionRepository interface {
 	Save(ctx context.Context, cpsAction *model.CPSAction) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
