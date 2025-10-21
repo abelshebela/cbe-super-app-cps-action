@@ -309,6 +309,9 @@ const (
 	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
 	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
 
+	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
+	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
@@ -394,8 +397,8 @@ const (
 	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
-	MsgExistEmail = "cps user with this email already exist"
-	MsgExistPhoneNumber ="cps user with this  phone Number already exist"
+	MsgExistEmail                            = "cps user with this email already exist"
+	MsgExistPhoneNumber                      = "cps user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
