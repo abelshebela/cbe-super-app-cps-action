@@ -3,6 +3,7 @@ package service_details
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 )
 
 // MapToMinimumTransferCapResponse maps ServiceDetails to MinimumTransferCapResponse
@@ -28,9 +29,50 @@ func MapToMaximumTransferCapResponse(service *model.ServiceDetails) *dto.Maximum
 		Cap:             service.Cap,
 		ProductCodes:    service.CBEProductCodes,
 		IFBProductCodes: service.CBEIFBProductCodes,
-		GLEntry:         service.CBEGLEntry,
+		GLEntry:         service.CBGLEntry,
 		CreatedAt:       service.CreatedAt,
 	}
+}
+
+func ServiceMapper(service *model.ServiceDetails, input dto.ServiceFeeDetailDTO) model.ServiceDetails {
+
+	service.ServiceType = input.ServiceType
+	service.PaymentType = string(input.PaymentType)
+	service.SingleCapLevelOne = uint64(input.SingleCapLevelOne)
+	service.DailyCapLevelOne = uint64(input.DailyCapLevelOne)
+	service.MinAmountVirtual = uint64(input.MinAmountVIRTUAL)
+	service.AboveAmount = input.AboveAmount
+	service.AboveServiceFee = input.AboveServiceFee
+	// map tiers from DTO to model types
+	tiers := make([]types.Tier, len(input.Tiers))
+	for i, t := range input.Tiers {
+		tiers[i] = types.Tier{
+			Min:       t.Min,
+			Max:       t.Max,
+			FeeAmount: t.FeeAmount,
+		}
+	}
+
+	service.Tiers = tiers
+	// map GL entries from DTO to model types
+	service.CBGLEntry = types.GLEntry{
+		ProductAccount:    input.CBglEntry.ProductAccount,
+		ProductBranchCode: input.CBglEntry.ProductBranchCode,
+		ServiceAccount:    input.CBglEntry.ServiceAccount,
+		ServiceBranchCode: input.CBglEntry.ServiceBranchCode,
+		VatAccount:        input.CBglEntry.VatAccount,
+		VatBranchCode:     input.CBglEntry.VatBranchCode,
+	}
+	service.CBIFBGLEntry = types.IFBglEntry{
+		ProductAccount:    input.IFBglEntry.ProductAccount,
+		ProductBranchCode: input.IFBglEntry.ProductBranchCode,
+		ServiceAccount:    input.IFBglEntry.ServiceAccount,
+		ServiceBranchCode: input.IFBglEntry.ServiceBranchCode,
+		VatAccount:        input.IFBglEntry.VatAccount,
+		VatBranchCode:     input.IFBglEntry.VatBranchCode,
+	}
+
+	return *service
 }
 
 // MapToServiceFeeResponse maps ServiceDetails to ServiceFeeResponse
@@ -45,7 +87,7 @@ func MapToServiceFeeResponse(service *model.ServiceDetails) *dto.ServiceFeeRespo
 		MinAmount:       service.AboveAmount,
 		ProductCodes:    service.CBEProductCodes,
 		IFBProductCodes: service.CBEIFBProductCodes,
-		GLEntry:         service.CBEGLEntry,
+		GLEntry:         service.CBGLEntry,
 		CreatedAt:       service.CreatedAt,
 	}
 }
@@ -65,8 +107,8 @@ func MapToServiceFeeDetailResponse(service *model.ServiceDetails) *dto.ServiceFe
 		AboveServiceFee:    service.AboveServiceFee,
 		PaymentType:        service.PaymentType,
 		Tiers:              service.Tiers,
-		CBEGLEntry:         service.CBEGLEntry,
-		CBEIFBGLEntry:      service.CBEIFBGLEntry,
+		CBEGLEntry:         service.CBGLEntry,
+		CBEIFBGLEntry:      service.CBIFBGLEntry,
 		Enabled:            service.Enabled,
 		IsDeleted:          service.IsDeleted,
 		CreatedAt:          service.CreatedAt,

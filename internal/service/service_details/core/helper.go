@@ -66,30 +66,30 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 		}
 
 		// Map GL entries from DTO
-		if dto.CBglEntry.CBglProductAccount != "" {
-			updatedService.CBEGLEntry.ProductAccount = dto.CBglEntry.CBglProductAccount
+		if dto.CBglEntry.ProductAccount != "" {
+			updatedService.CBGLEntry.ProductAccount = dto.CBglEntry.ProductAccount
 		}
-		if dto.CBglEntry.CBglProductBranchcode != "" {
-			updatedService.CBEGLEntry.ProductBranchCode = dto.CBglEntry.CBglProductBranchcode
+		if dto.CBglEntry.ProductBranchCode != "" {
+			updatedService.CBGLEntry.ProductBranchCode = dto.CBglEntry.ProductBranchCode
 		}
-		if dto.CBglEntry.CBglServiceAccount != "" {
-			updatedService.CBEGLEntry.ServiceAccount = dto.CBglEntry.CBglServiceAccount
+		if dto.CBglEntry.ServiceAccount != "" {
+			updatedService.CBGLEntry.ServiceAccount = dto.CBglEntry.ServiceAccount
 		}
-		if dto.CBglEntry.CBglServiceBranchcode != "" {
-			updatedService.CBEGLEntry.ServiceBranchCode = dto.CBglEntry.CBglServiceBranchcode
+		if dto.CBglEntry.ServiceBranchCode != "" {
+			updatedService.CBGLEntry.ServiceBranchCode = dto.CBglEntry.ServiceBranchCode
 		}
 
-		if dto.IFBglEntry.IFBglProductAccount != "" {
-			updatedService.CBEIFBGLEntry.ProductAccount = dto.IFBglEntry.IFBglProductAccount
+		if dto.IFBglEntry.ProductAccount != "" {
+			updatedService.CBIFBGLEntry.ProductAccount = dto.IFBglEntry.ProductAccount
 		}
-		if dto.IFBglEntry.IFBglProductBranchcode != "" {
-			updatedService.CBEIFBGLEntry.ProductBranchCode = dto.IFBglEntry.IFBglProductBranchcode
+		if dto.IFBglEntry.ProductBranchCode != "" {
+			updatedService.CBIFBGLEntry.ProductBranchCode = dto.IFBglEntry.ProductBranchCode
 		}
-		if dto.IFBglEntry.IFBglServiceAccount != "" {
-			updatedService.CBEIFBGLEntry.ServiceAccount = dto.IFBglEntry.IFBglServiceAccount
+		if dto.IFBglEntry.ServiceAccount != "" {
+			updatedService.CBIFBGLEntry.ServiceAccount = dto.IFBglEntry.ServiceAccount
 		}
-		if dto.IFBglEntry.IFBglServiceBranchcode != "" {
-			updatedService.CBEIFBGLEntry.ServiceBranchCode = dto.IFBglEntry.IFBglServiceBranchcode
+		if dto.IFBglEntry.ServiceBranchCode != "" {
+			updatedService.CBIFBGLEntry.ServiceBranchCode = dto.IFBglEntry.ServiceBranchCode
 		}
 
 		// Map tiers from DTO
@@ -97,7 +97,7 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 			tiers := make([]types.Tier, len(dto.Tiers))
 			for i, tier := range dto.Tiers {
 				tiers[i] = types.Tier{
-					ID:        bson.NewObjectID(),
+					// ID:        bson.NewObjectID(),
 					Min:       tier.Min,
 					Max:       tier.Max,
 					FeeAmount: tier.FeeAmount,
@@ -253,71 +253,71 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 	// Map GL entries - accept either canonical keys or alternate cbgl_/ifbgl_ prefixed keys
 	if v, ok := incoming["cbe_gl_entry"].(map[string]interface{}); ok {
 		if acc, ok := v["product_account"].(string); ok && acc != "" {
-			updatedService.CBEGLEntry.ProductAccount = acc
+			updatedService.CBGLEntry.ProductAccount = acc
 		}
 		if bc, ok := v["product_branch_code"].(string); ok && bc != "" {
-			updatedService.CBEGLEntry.ProductBranchCode = bc
+			updatedService.CBGLEntry.ProductBranchCode = bc
 		}
 		if acc, ok := v["service_account"].(string); ok && acc != "" {
-			updatedService.CBEGLEntry.ServiceAccount = acc
+			updatedService.CBGLEntry.ServiceAccount = acc
 		}
 		if bc, ok := v["service_branch_code"].(string); ok && bc != "" {
-			updatedService.CBEGLEntry.ServiceBranchCode = bc
+			updatedService.CBGLEntry.ServiceBranchCode = bc
 		}
 		if acc, ok := v["vat_account"].(string); ok && acc != "" {
-			updatedService.CBEGLEntry.VatAccount = acc
+			updatedService.CBGLEntry.VatAccount = acc
 		}
 		if bc, ok := v["vat_branch_code"].(string); ok && bc != "" {
-			updatedService.CBEGLEntry.VatBranchCode = bc
+			updatedService.CBGLEntry.VatBranchCode = bc
 		}
 	}
 	if v, ok := incoming["cbgl_entry"].(map[string]interface{}); ok {
 		if acc, ok := v["cbgl_product_account"].(string); ok && acc != "" {
-			updatedService.CBEGLEntry.ProductAccount = acc
+			updatedService.CBGLEntry.ProductAccount = acc
 		}
 		if bc, ok := v["cbgl_product_branchcode"].(string); ok && bc != "" {
-			updatedService.CBEGLEntry.ProductBranchCode = bc
+			updatedService.CBGLEntry.ProductBranchCode = bc
 		}
 		if acc, ok := v["cbgl_service_account"].(string); ok && acc != "" {
-			updatedService.CBEGLEntry.ServiceAccount = acc
+			updatedService.CBGLEntry.ServiceAccount = acc
 		}
 		if bc, ok := v["cbgl_service_branchcode"].(string); ok && bc != "" {
-			updatedService.CBEGLEntry.ServiceBranchCode = bc
+			updatedService.CBGLEntry.ServiceBranchCode = bc
 		}
 	}
 
 	if v, ok := incoming["cbe_ifb_gl_entry"].(map[string]interface{}); ok {
 		if acc, ok := v["product_account"].(string); ok && acc != "" {
-			updatedService.CBEIFBGLEntry.ProductAccount = acc
+			updatedService.CBIFBGLEntry.ProductAccount = acc
 		}
 		if bc, ok := v["product_branch_code"].(string); ok && bc != "" {
-			updatedService.CBEIFBGLEntry.ProductBranchCode = bc
+			updatedService.CBIFBGLEntry.ProductAccount = bc
 		}
 		if acc, ok := v["service_account"].(string); ok && acc != "" {
-			updatedService.CBEIFBGLEntry.ServiceAccount = acc
+			updatedService.CBIFBGLEntry.ServiceAccount = acc
 		}
 		if bc, ok := v["service_branch_code"].(string); ok && bc != "" {
-			updatedService.CBEIFBGLEntry.ServiceBranchCode = bc
+			updatedService.CBIFBGLEntry.ServiceBranchCode = bc
 		}
 		if acc, ok := v["vat_account"].(string); ok && acc != "" {
-			updatedService.CBEIFBGLEntry.VatAccount = acc
+			updatedService.CBIFBGLEntry.VatAccount = acc
 		}
 		if bc, ok := v["vat_branch_code"].(string); ok && bc != "" {
-			updatedService.CBEIFBGLEntry.VatBranchCode = bc
+			updatedService.CBIFBGLEntry.VatBranchCode = bc
 		}
 	}
 	if v, ok := incoming["ifbgl_entry"].(map[string]interface{}); ok {
 		if acc, ok := v["ifbgl_product_account"].(string); ok && acc != "" {
-			updatedService.CBEIFBGLEntry.ProductAccount = acc
+			updatedService.CBIFBGLEntry.ProductAccount = acc
 		}
 		if bc, ok := v["ifbgl_product_branchcode"].(string); ok && bc != "" {
-			updatedService.CBEIFBGLEntry.ProductBranchCode = bc
+			updatedService.CBIFBGLEntry.ProductBranchCode = bc
 		}
 		if acc, ok := v["ifbgl_service_account"].(string); ok && acc != "" {
-			updatedService.CBEIFBGLEntry.ServiceAccount = acc
+			updatedService.CBIFBGLEntry.ServiceAccount = acc
 		}
 		if bc, ok := v["ifbgl_service_branchcode"].(string); ok && bc != "" {
-			updatedService.CBEIFBGLEntry.ServiceBranchCode = bc
+			updatedService.CBIFBGLEntry.ServiceBranchCode = bc
 		}
 	}
 
@@ -327,7 +327,7 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 		for _, it := range v {
 			if tierMap, ok := it.(map[string]interface{}); ok {
 				var t types.Tier
-				t.ID = bson.NewObjectID() // Generate new ObjectID for each tier
+				// t.ID = bson.NewObjectID() // Generate new ObjectID for each tier
 				if min, ok := tierMap["min"].(float64); ok {
 					t.Min = uint64(min)
 				}

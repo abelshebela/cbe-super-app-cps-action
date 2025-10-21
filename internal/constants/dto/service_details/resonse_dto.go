@@ -69,7 +69,7 @@ type ServiceFeeDetailResponse struct {
 	PaymentType        string             `json:"payment_type" bson:"payment_type"`
 	Tiers              []types.Tier       `json:"tiers" bson:"tiers"`
 	CBEGLEntry         types.GLEntry      `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
-	CBEIFBGLEntry      types.GLEntry      `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
+	CBEIFBGLEntry      types.IFBglEntry   `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
 	Enabled            bool               `json:"enabled" bson:"enabled"`
 	IsDeleted          bool               `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
