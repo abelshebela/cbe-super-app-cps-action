@@ -112,7 +112,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestSent, map[string]string{})
+	localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
 }
 
 // EnableUser enables a BPS user
@@ -142,5 +142,5 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestSent, map[string]string{})
+	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }

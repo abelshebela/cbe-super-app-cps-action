@@ -58,6 +58,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessTopupDeleted,
 	SuccessTopupsRetrieved,
 	SuccessTopupRetrieved,
+	
+	//BPS_USer
+	SuccessBpsUserEnableRequestSent,
+	SuccessBpsUserDisableRequestSent,
 
 	// Ad related success response codes
 	SuccessAdvertCreated,
@@ -876,6 +880,19 @@ var (
 		Code:       "SUCCESS_CPS_USER_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgCpsUserDisabledSuccessfully,
+		Type:       "success",
+	}
+	
+	SuccessBpsUserEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserEnabledRequestedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBpsUserDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserDisabledRequestedSuccessfully,
 		Type:       "success",
 	}
 
@@ -3006,6 +3023,13 @@ var (
 		Message:    MsgBpsUserAlreadyEnabled,
 		Type:       "error",
 	}
+	ErrorUserAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_USER_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgBpsUserAlreadyDisabled,
+		Type:       "error",
+	}
+	
 	ErrorBankVaultAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BANK_VAULT_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
@@ -3032,12 +3056,7 @@ var (
 		Type:       "error",
 	}
 
-	ErrorUserAlreadyDisabled = ResponseCode{
-		Code:       "ERROR_USER_ALREADY_DISABLED",
-		StatusCode: StatusConflict,
-		Message:    MsgBpsUserAlreadyDisabled,
-		Type:       "error",
-	}
+	
 
 	ErrorBankAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_Bank_ALREADY_ENABLED",
