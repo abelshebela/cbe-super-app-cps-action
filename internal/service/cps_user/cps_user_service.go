@@ -42,7 +42,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	makerData := local_util.ExtractUserFromContext(ctx)
 
 	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
-	req.PhoneNumber =normalized
+	req.PhoneNumber = normalized
 	exists, err := core.UsernameExists(ctx, s.repo, req.UserName)
 	if err != nil {
 		return err
@@ -108,17 +108,17 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
-	if req.PhoneNumber!= ""{
-	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
-	req.PhoneNumber =normalized
+	if req.PhoneNumber != "" {
+		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
+		req.PhoneNumber = normalized
 
-	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
-	if err != nil {
-		return err
-	}
-	if phoneCheck {
-		return errors.New(localization.ErrorExistPhoneNumber.Code)
-	}
+		phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+		if err != nil {
+			return err
+		}
+		if phoneCheck {
+			return errors.New(localization.ErrorExistPhoneNumber.Code)
+		}
 	}
 	if req.UserName != "" {
 
@@ -137,17 +137,16 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 			}
 		}
 	}
-	if req.Email != ""{
-	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
-	if err != nil {
-		return err
+	if req.Email != "" {
+		emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+		if err != nil {
+			return err
+		}
+		if emailCheck {
+			return errors.New(localization.ErrorExistEmail.Code)
+		}
+
 	}
-	if emailCheck {
-		return errors.New(localization.ErrorExistEmail.Code)
-	}
-	
-	}
-	
 
 	// department validation - only if department is being updated
 	if !req.Department.IsZero() {
@@ -304,7 +303,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 
 	return user, nil
 }
-func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserDTO], error) {
+func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
 	if filter == nil {
 		f := types.Filter{}
 		filter = &f
@@ -315,15 +314,7 @@ func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filte
 		return nil, err
 	}
 
-	dtos := make([]*cpsuser.CPSUserDTO, len(users.Data))
-	for i, u := range users.Data {
-		dtos[i] = core.ConvertToDTO(u)
-	}
-
-	return &types.PaginatedResponse[[]*cpsuser.CPSUserDTO]{
-		Data: dtos,
-		Meta: users.Meta,
-	}, nil
+	return users, nil
 }
 
 func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

@@ -6,10 +6,9 @@ import (
 	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
-	local_config "cbe-super-app-cps-action/config"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/storage/api"
-	"cbe-super-app-cps-action/internal/storage/redis"
+	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	// "cbe-super-app-cps-action/platform/logger"
 
@@ -41,12 +40,23 @@ func Init(ctx context.Context) {
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
 	logger.Infof("Persistence initialized")
 
+	redis := InitRedis(cfg, logger)
+	logger.Infof("Initializing redis...")
+	redisStorage := InitRedisStorageLayer(redis, logger)
+	logger.Infof("redis initialized")
+
+	redisRepository := redisStorage.GetRedisRepository()
+
 	// oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	// logger.Infof("Oracle database initialized")
 
 	// logger.Infof("Initializing Oracle DB client...")
 	// OraclePersistence := InitOraclePersistence(oracleDB, logger)
 	// logger.Infof("Oracle DB client initialized")
+
+	logger.Infof("Initializing SMS service...")
+	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
+	logger.Infof("SMS service initialized")
 
 	logger.Infof("Initializing account lookup service...")
 	accountLookupService := InitAccountLookupService(cfg, logger)
@@ -62,17 +72,8 @@ func Init(ctx context.Context) {
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
-	// Initialize redis client
-	redisClient, err := local_config.ConnectRedis(context.Background(), cfg, logger)
-	if err != nil {
-		logger.Fatalf("Failed to initialize Redis client: %v", err)
-	}
-
-	// Initialize cache
-	cache := redis.NewRedisRepository(redisClient, logger)
-
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, cache)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, redisRepository, *smsService)
 	// serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
 
 	go func() {

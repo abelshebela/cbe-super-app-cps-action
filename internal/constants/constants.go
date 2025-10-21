@@ -223,6 +223,7 @@ const (
 	RequestEnableDepartment         RequestAction = "ENABLE_DEPARTMENT"
 	RequestDisableDepartment        RequestAction = "DISABLE_DEPARTMENT"
 	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
+	RequestEnableDisableCustomer    RequestAction = "ENABLE_DISABLE_CUSTOMER"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
 	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
 	RequestDeleteWallet             RequestAction = "DELETE_WALLET"

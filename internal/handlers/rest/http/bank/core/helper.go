@@ -1,15 +1,18 @@
 package bank_core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
+func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action string, logger utils.Logger) (multipart.File, *multipart.FileHeader, error) {
 	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
 		return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
 	}
@@ -19,9 +22,17 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 
 	file, fileHeader, err := r.FormFile(key)
 	if err != nil {
-		if err == http.ErrMissingFile {
-			return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
+		if action == constants.CREATE {
+			if err == http.ErrMissingFile {
+				logger.Errorf("Error logo file is missing error: %v", err)
+				return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
+			}
+		} else {
+			if err == http.ErrMissingFile {
+				logger.Infof("Logo is not provided in the update")
+			}
 		}
+
 		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
 	}
 

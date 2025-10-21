@@ -30,6 +30,7 @@ type Persistence struct {
 	BudgetPersistence            storage.BudgetRepository
 	CustomerService              storage.CustomerRepository
 	BulkService                  storage.BulkServiceRepository
+	RedisService                 storage.RedisRepository
 
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository

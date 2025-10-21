@@ -254,6 +254,8 @@ const (
 	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
 	RequestDisableShortVideo RequestAction = "DISABLE_SHORT_VIDEO"
 	RequestDeleteShortVideo  RequestAction = "DELETE_SHORT_VIDEO"
+
+	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -419,6 +421,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteArticleCategory:  {},
 	RequestEnableArticleCategory:  {},
 	RequestDisableArticleCategory: {},
+
+	// for customer
+	RequestEnableDisableCustomer: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -721,6 +726,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteShortVideo,
 		RequestEnableShortVideo,
 		RequestDisableShortVideo,
+	},
+	"customer": {
+		RequestEnableDisableCustomer,
 	},
 }
 

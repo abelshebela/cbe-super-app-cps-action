@@ -20389,7 +20389,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             "localhost:8080",
+	Host:             "https://development.gigantic-server.com/v1",
 	BasePath:         "/api/v1/cbesuperapp/cps_action",
 	Schemes:          []string{},
 	Title:            "CPS Action API",
