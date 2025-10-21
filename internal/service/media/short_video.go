@@ -9,24 +9,32 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 type shortVideoService struct {
 	repo   storage.ShortVideoRepository
+	cache  storage.RedisRepository
 	logger utils.Logger
 }
 
-func NewShortVideoService(repo storage.ShortVideoRepository, logger utils.Logger) service.ShortVideoService {
+func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.RedisRepository, logger utils.Logger) service.ShortVideoService {
 	return &shortVideoService{
 		repo:   repo,
+		cache:  cache,
 		logger: logger,
 	}
 }
 
 func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	m.logger.Infof("Media short video service authorizing action: %s", cpsAction.ActionCode)
+
+	const (
+		NewsShortVideoCacheKeyPattern   = "news:shortVideo:%s"
+		NewsShortVideoCacheDeleteErrMsg = "failed to delete cache for shortVideo %s: %v"
+	)
 
 	shortVideo, err := local_util.JsonUnmarshal[model.ShortVideo](cpsAction.CurrentAction)
 	if err != nil {
@@ -38,12 +46,32 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		err = m.repo.Create(ctx, shortVideo)
 	case string(constants.RequestUpdateShortVideo):
 		err = m.repo.Update(ctx, shortVideo, cpsAction.UniqueId)
+
+		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
+		if err := m.cache.Delete(ctx, cacheKey); err != nil {
+			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+		}
 	case string(constants.RequestDeleteShortVideo):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
+
+		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
+		if err := m.cache.Delete(ctx, cacheKey); err != nil {
+			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+		}
 	case string(constants.RequestEnableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, true)
+
+		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
+		if err := m.cache.Delete(ctx, cacheKey); err != nil {
+			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+		}
 	case string(constants.RequestDisableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, false)
+
+		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
+		if err := m.cache.Delete(ctx, cacheKey); err != nil {
+			m.logger.Warnf(NewsShortVideoCacheDeleteErrMsg, shortVideo.ID, err)
+		}
 	default:
 		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
@@ -55,7 +83,7 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 	}
 
 	cpsAction.CurrentAction = shortVideo
-	m.logger.Infof("Action %s approved for Article shortVideo %s", cpsAction.RequestAction, shortVideo.ID)
+	m.logger.Infof("Action %s approved for shortVideo shortVideo %s", cpsAction.RequestAction, shortVideo.ID)
 	return cpsAction, nil
 
 }
