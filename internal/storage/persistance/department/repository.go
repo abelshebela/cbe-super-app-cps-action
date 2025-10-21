@@ -1,16 +1,15 @@
 package department
 
 import (
-	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"strings"
-
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -85,7 +84,7 @@ func (b *DepartmentStorage) EnableOrDisable(ctx context.Context, id string, enab
 func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Department, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorDepartmentInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
@@ -98,7 +97,7 @@ func (b *DepartmentStorage) FindByID(ctx context.Context, id string) (*model.Dep
 		b.logger.Errorf("FindByID Department failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	
+
 	return result, nil
 }
 func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model.Department, error) {
@@ -108,7 +107,6 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 			"$options": "i",
 		},
 	}
-
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		return nil, err
@@ -117,7 +115,7 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 }
 
 func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error) {
-	
+
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields

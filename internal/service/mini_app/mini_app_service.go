@@ -114,6 +114,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 	miniApp.AppIcon = appIconURL
 	miniApp.BannerImage = bannerImageURL
 	miniApp.Credential = *cred
+	miniApp.Enabled= true
 
 	s.logger.Infof("MiniApp created successfully, app_code: %s", req.AppName)
 	if err := miniappcore.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateMiniApp, miniApp, nil, constants.ActionCreate); err != nil {
@@ -147,8 +148,11 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Errorf("Parent merchant validation failed, app_id: %s, error: %v", req.ID, err)
 		return err
 	}
+	
+	if req.AppName!= "" && req.AppName!=prevMiniApp.AppName {
 
-	isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
+
+isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
 	if err != nil {
 		s.logger.Errorf("IsMiniAppNameUnique check failed, error: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -158,6 +162,9 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
 		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
 	}
+	}
+
+	
 
 	if strings.TrimSpace(req.MerchantID) != "" {
 		if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {

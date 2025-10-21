@@ -107,6 +107,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	new_department := model.Department{
 		Department:  department.Department,
 		PortalCards: department.PortalCards,
+		Enabled: true,
 	}
 
 	new_department.DepartmentCode = utils.RandomGenerator(20)
@@ -185,10 +186,6 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 	department, err := d.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
-	}
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		return fmt.Errorf("%s", code)
 	}
 
 	if department_request.Department != "" && department_request.Department != department.Department {

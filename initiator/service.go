@@ -9,6 +9,7 @@ import (
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	"cbe-super-app-cps-action/internal/service/media"
+	"cbe-super-app-cps-action/internal/storage"
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
@@ -22,6 +23,7 @@ import (
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
 
 	// vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
+	"cbe-super-app-cps-action/internal/storage/external_call"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
 
@@ -100,7 +102,7 @@ type ServiceLayer struct {
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, redis storage.RedisRepository, smsService external_call.SMSPersistence) ServiceLayer {
 	// func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, oracle OraclePersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 	// Create CPS action service with the dispatcher
@@ -112,23 +114,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, logger)
 	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
 
-	// customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
-	// bank_service := bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, "banks")
-	// walletService := wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, "wallets", cfg, logger)
-	// accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
-	// departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
-	// passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
-	// hqService := hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
-	// keygenService := keygen.NewKeyGenerator(logger, cfg)
-
-	// miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, "miniapps", cfg, logger)
-	// fayda := fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
-
-	// serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
 	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, "events", cfg, logger) // Will be updated after CPS action service is created
 	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)                                                                            // Will be updated after CPS action service is created
-	customerSerice := customer.NewCustomerService(persistence.CustomerService, logger)
+	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, "banks")                                               // Will be updated after CPS action service is created
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, "wallets", cfg, logger)                                             // Will be updated after CPS action service is created
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, "topups", cfg, logger)                                                  // Will be updated after CPS action service is created
@@ -172,9 +161,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
-	articleService := media.NewMediaService(persistence.ArticlePersistence, logger)
+	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
-	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
+	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -197,7 +186,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniAppMerchantContainer: miniAppMerchantService,
 		FaydaContainer:           faydaService,
 		BulkServiceContainer:     bulkService,
-		CustomerContainer:        customerSerice,
+		CustomerContainer:        customerService,
 		PermissionContainer:      permissionService,
 		CPSUserContainer:         cpsUserService,
 		BudgetContainer:          budgetService, // Will be updated after CPS action service is created
@@ -319,12 +308,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 	serviceContainer.Unlink = unlinkService
-	articleService = media.NewMediaService(persistence.ArticlePersistence, logger)
+	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	serviceContainer.ArticleContainer = articleService
 	articleCategoryService = media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
-	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
+	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
+	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
+
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
@@ -349,7 +340,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniAppMerchant:   miniAppMerchantService,
 		Department:        departmentService,
 		BulkService:       bulkService,
-		CustomerService:   customerSerice,
+		CustomerService:   customerService,
 		Fayda:             faydaService,
 		Permission:        permissionService,
 		CPSUser:           cpsUserService,

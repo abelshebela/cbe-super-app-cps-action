@@ -58,8 +58,8 @@ func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, 
 	if err != nil {
 		return err
 	}
-
-	cpsModel := lib.CpsModelBuilder("", makerData, nil, model.Avatar{Avatar: url, Label: avatar.Label, CreatedAt: time.Now()}, string(constants.RequestCreateAvatar), constants.CREATE)
+	newAvatar :=  model.Avatar{Avatar: url, Label: avatar.Label, CreatedAt: time.Now(), Enable: true}
+	cpsModel := lib.CpsModelBuilder("", makerData, nil,newAvatar, string(constants.RequestCreateAvatar), constants.CREATE)
 
 	if err := a.cpsService.CreateCPSAction(ctx, &cpsModel); err != nil {
 		return err
@@ -180,7 +180,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateAvatar):
-		err = a.avatar.Create(ctx, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, CreatedAt: avatar.CreatedAt})
+		err = a.avatar.Create(ctx, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, CreatedAt: avatar.CreatedAt,Enable: true})
 	case string(constants.RequestUpdateAvatar):
 		err = a.avatar.Update(ctx, cpsAction.UniqueId, &model.Avatar{Avatar: avatar.Avatar, Label: avatar.Label, Enable: avatar.Enable})
 	case string(constants.RequestDeleteAvatar):
