@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/vault/api"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type VaultConfig struct {
@@ -26,14 +27,13 @@ type VaultConfig struct {
 	ServerPublicKey       string `mapstructure:"SERVER_PUBLIC_KEY"`
 	JWTSecretKey          string `mapstructure:"JWT_SECRET_KEY"`
 	ServerTimeout         int    `mapstructure:"SERVER_TIMEOUT"`
-	RedisConfig           RedisConfig
 	Key                   string `mapstructure:"KEY"`
 	IV                    string `mapstructure:"IV"`
 	CBEBaseURL            string `mapstructure:"CBE_BASE_URL"`
 	SMSBaseURL            string `mapstructure:"SMS_BASEURL"`
 }
 
-func LoadVault(logger logger.Logger) (*VaultConfig, error) {
+func LoadVault(logger logger.Logger) (*config.VaultConfig, error) {
 
 	viper.SetConfigFile(".env")
 	viper.SetConfigType("env")
@@ -83,7 +83,7 @@ func LoadVault(logger logger.Logger) (*VaultConfig, error) {
 
 	log.Info().Msg("Vault Secrets Successfully Retrieved!")
 
-	var config VaultConfig
+	var config config.VaultConfig
 	if err := mapstructure.Decode(vault, &config); err != nil {
 		log.Warn().Msg("Failed to Decode Vault Secret!")
 		return nil, err

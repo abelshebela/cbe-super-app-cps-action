@@ -6,8 +6,10 @@ import (
 	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
+	local_config "cbe-super-app-cps-action/config"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/storage/api"
+	"cbe-super-app-cps-action/internal/storage/redis"
 
 	// "cbe-super-app-cps-action/platform/logger"
 
@@ -15,6 +17,7 @@ import (
 
 	"log"
 
+	// local_logger "cbe-super-app-cps-action/platform/logger"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -59,8 +62,17 @@ func Init(ctx context.Context) {
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
+	// Initialize redis client
+	redisClient, err := local_config.ConnectRedis(context.Background(), cfg, logger)
+	if err != nil {
+		logger.Fatalf("Failed to initialize Redis client: %v", err)
+	}
+
+	// Initialize cache
+	cache := redis.NewRedisRepository(redisClient, logger)
+
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, cache)
 	// serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
 
 	go func() {

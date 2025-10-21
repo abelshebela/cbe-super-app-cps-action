@@ -9,6 +9,7 @@ import (
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	"cbe-super-app-cps-action/internal/service/media"
+	"cbe-super-app-cps-action/internal/storage"
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
@@ -100,7 +101,7 @@ type ServiceLayer struct {
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, cache storage.RedisRepository) ServiceLayer {
 	// func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, accountLookupService account_lookup.Account, oracle OraclePersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 	// Create CPS action service with the dispatcher
@@ -172,9 +173,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
-	articleService := media.NewMediaService(persistence.ArticlePersistence, logger)
+	articleService := media.NewMediaService(persistence.ArticlePersistence, cache, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
-	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
+	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, cache, logger)
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -319,11 +320,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 	serviceContainer.Unlink = unlinkService
-	articleService = media.NewMediaService(persistence.ArticlePersistence, logger)
+	articleService = media.NewMediaService(persistence.ArticlePersistence, cache, logger)
 	serviceContainer.ArticleContainer = articleService
 	articleCategoryService = media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
-	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, logger)
+	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, cache, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	return ServiceLayer{
 		CPSAction: cpsActionService,
