@@ -49,6 +49,7 @@ type ShortVideo struct {
 	SharesCount int64         `bson:"shares_count" json:"shares_count"`
 	IsDeleted   bool          `bson:"is_deleted" json:"is_deleted"`
 	IsPublished bool          `bson:"is_published" json:"is_published"`
+	Slug        string        `bson:"slug" json:"slug"`
 	Category    string        `bson:"category" json:"category"`
 	Author      string        `bson:"author" json:"author"`
 	Language    string        `bson:"language" json:"language"`
