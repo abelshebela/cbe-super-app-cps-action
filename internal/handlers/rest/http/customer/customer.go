@@ -1,10 +1,12 @@
 package customer
 
 import (
+	dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
@@ -22,6 +24,103 @@ type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
 type customerAdapter struct {
 	customerService service.CustomerService
 	logger          utils.Logger
+}
+
+// SetEnableCustomerSession initiates enabling a customer session by generating an OTP
+// @Summary Initiate enable customer session
+// @Description Initiates enabling a customer session by generating an OTP for the customer
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} localization.StandardResponse{data=dto.CustomerEnableSessionResponse} "OTP generated successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Customer ID required"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers/{id}/enable-session [post]
+func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	ctx := r.Context()
+	otp, err := c.customerService.CreateEnableCustomerSession(ctx, id)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerEnableRequestSessionCreatedSuccessfully, dto.CustomerEnableSessionResponse{
+		Otp: otp,
+	})
+}
+
+// DisableCustomer disables a customer by ID
+// @Summary Disable customer
+// @Description Disables a customer by their ID
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Customer disabled successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Customer ID required"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers/{id}/disable [post]
+func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	ctx := r.Context()
+	err := c.customerService.DisableCustomerByID(ctx, id)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerDisableRequestCreatedSuccessfully, nil)
+}
+
+// EnableCustomer enables a customer by ID using OTP
+// @Summary Enable customer
+// @Description Enables a customer by their ID using OTP
+// @Tags Customers
+// @Accept json
+// @Produce json
+// @Param id path string true "Customer ID"
+// @Param body body dto.CustomerEnableDTO true "Enable customer payload"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Customer enabled successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Customer ID required or invalid body"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers/{id}/enable [post]
+func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+
+	var payload dto.CustomerEnableDTO
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	ctx := r.Context()
+	err := c.customerService.EnableCustomerByID(ctx, id, payload.UserOTP)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
 }
 
 func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {

@@ -37,7 +37,7 @@ func BuildCreateNotification(req notify.NotificationRequest) model.Notification 
 		CreatedBy:        req.CreatedBy,
 		Status:           constants.StatusPending,
 		Seen:             false,
-		Enabled:          false,
+		Enabled:          true,
 		IsDeleted:        false,
 		CreatedAt:        time.Now(),
 		LastModified:     time.Now(),

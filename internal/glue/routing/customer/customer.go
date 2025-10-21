@@ -39,6 +39,33 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/customers/enable/{id}",
+			Handler: handler.SetEnableCustomerSession,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/customers/enable_otp_verify/{id}",
+			Handler: handler.EnableCustomer,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/customers/disable/{id}",
+			Handler: handler.DisableCustomer,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

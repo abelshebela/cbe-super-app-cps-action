@@ -44,17 +44,9 @@ func NewBulkService(repo storage.BulkServiceRepository, CpsActionRepo service.CP
 }
 
 func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Println("___________________________________________----")
-	fmt.Println(" in Authorize")
 	Now := time.Now()
 	cpsAction.MakerActionTime = Now
 	cpsAction.LastModifiedAt = Now
-	fmt.Println("step 1-----------------------------")
-	fmt.Printf("type: %T", cpsAction.CurrentAction)
-	fmt.Println("-----------------------------")
-
-	fmt.Printf("type: %v", cpsAction.CurrentAction)
-
 	// updateData := cpsAction.CurrentAction.([]string)
 	doc, ok := cpsAction.CurrentAction.(bson.D)
 	if !ok {
@@ -80,9 +72,6 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 			result = append(result, s)
 		}
 	}
-
-	fmt.Println(result)
-	// Output: [wallet wallettelebirr topup transfertodashen]
 
 	allAccessLists, err := s.repo.FindAll(ctx)
 	if err != nil {
@@ -112,12 +101,12 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 
 		switch strings.ToUpper(cpsAction.RequestAction) {
 		case string(constants.RequestBulkServiceEnable):
-			if value == true {
+			if value {
 				s.logger.Infof("you enter already enabled service: %v", key)
 				return nil, errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
 			}
 		case string(constants.RequestBulkServiceDisable):
-			if value == false {
+			if !value {
 				s.logger.Infof("you enter already disabled service: %v", key)
 				return nil, errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
 			}
