@@ -237,7 +237,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		return errors.New(localization.ErrorInvalidMethod.Code)
 	}
 
-	notModifiedTier := &existingTier
+	notModifiedTier := *existingTier
 	now := time.Now()
 
 	switch method {

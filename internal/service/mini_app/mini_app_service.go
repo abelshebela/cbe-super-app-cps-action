@@ -114,6 +114,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 	miniApp.AppIcon = appIconURL
 	miniApp.BannerImage = bannerImageURL
 	miniApp.Credential = *cred
+	miniApp.Enabled= true
 
 	s.logger.Infof("MiniApp created successfully, app_code: %s", req.AppName)
 	if err := miniappcore.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateMiniApp, miniApp, nil, constants.ActionCreate); err != nil {

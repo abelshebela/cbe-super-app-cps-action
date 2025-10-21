@@ -21,8 +21,8 @@ func ServiceDetailsMapper(details model.ServiceDetails) bson.M {
 		"above_service_fee":     details.AboveServiceFee,
 		"payment_type":          details.PaymentType,
 		"tiers":                 details.Tiers,
-		"cbe_gl_entry":          details.CBEGLEntry,
-		"cbe_ifb_gl_entry":      details.CBEIFBGLEntry,
+		"cbe_gl_entry":          details.CBGLEntry,
+		"cbe_ifb_gl_entry":      details.CBIFBGLEntry,
 		"enabled":               details.Enabled,
 		"last_modified_at":      time.Now(),
 	}

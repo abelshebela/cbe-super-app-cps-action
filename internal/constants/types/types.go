@@ -100,10 +100,10 @@ type AdvertDate struct {
 }
 
 type Tier struct {
-	ID        bson.ObjectID `json:"id" bson:"id"`
-	Min       uint64        `json:"min" bson:"min"`
-	Max       uint64        `json:"max" bson:"max"`
-	FeeAmount uint64        `json:"fee_amount" bson:"fee_amount"`
+	// ID        bson.ObjectID `json:"id" bson:"id"`
+	Min       uint64 `json:"min" bson:"min"`
+	Max       uint64 `json:"max" bson:"max"`
+	FeeAmount uint64 `json:"fee_amount" bson:"fee_amount"`
 }
 
 type Cap struct {
@@ -123,6 +123,15 @@ type ProductCodes struct {
 }
 
 type GLEntry struct {
+	ProductAccount    string `json:"product_account" bson:"product_account"`
+	ProductBranchCode string `json:"product_branch_code" bson:"product_branch_code"`
+	ServiceAccount    string `json:"service_account" bson:"service_account"`
+	ServiceBranchCode string `json:"service_branch_code" bson:"service_branch_code"`
+	VatAccount        string `json:"vat_account" bson:"vat_account"`
+	VatBranchCode     string `json:"vat_branch_code" bson:"vat_branch_code"`
+}
+
+type IFBglEntry struct {
 	ProductAccount    string `json:"product_account" bson:"product_account"`
 	ProductBranchCode string `json:"product_branch_code" bson:"product_branch_code"`
 	ServiceAccount    string `json:"service_account" bson:"service_account"`

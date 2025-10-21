@@ -120,7 +120,10 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 	if err != nil {
 		return err
 	}
-	cpsAction := lib.CpsModelBuilder(id, makerData, serviceDetail, req, string(constants.RequestUpdateServiceFee), constants.UPDATE)
+
+	serviceData := *serviceDetail
+	serviceMap := core.ServiceMapper(&serviceData, req)
+	cpsAction := lib.CpsModelBuilder(id, makerData, serviceDetail, serviceMap, string(constants.RequestUpdateServiceFee), constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
@@ -202,7 +205,7 @@ func (s *ServiceDetails) UpdateMinimumTransferCap(ctx context.Context, id string
 
 	newMinAmount := req.Minimum
 
-	updatedCap := model.Cap{
+	updatedCap := types.Cap{
 		ISingleCap:         prev.Cap.ISingleCap,
 		IDailyCap:          prev.Cap.IDailyCap,
 		CorporateSingleCap: prev.Cap.CorporateSingleCap,
