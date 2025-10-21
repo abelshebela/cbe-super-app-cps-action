@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"mime/multipart"
 	"runtime"
 	"strconv"
@@ -79,9 +80,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 	filter := bson.M{}
 
 	if filterParam.Search != "" {
-		for key, value := range searchKeys {
-			filter[key] = value
-		}
+		maps.Copy(filter, searchKeys)
 	}
 
 	if filterParam.Filters != nil {
@@ -121,9 +120,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 		}
 		enhancedFilter := local_util.BuildMongoFilterWithKeys(filterParam.Filters, allowedKeys, handler)
 
-		for key, value := range enhancedFilter {
-			filter[key] = value
-		}
+		maps.Copy(filter, enhancedFilter)
 	}
 
 	skip = int64((filterParam.Page - 1) * filterParam.PerPage)

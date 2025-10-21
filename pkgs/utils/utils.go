@@ -283,6 +283,10 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 			continue
 		}
 
+		if fn, ok := handler[key]; ok {
+			value = fn(value)
+		}
+
 		switch v := value.(type) {
 		case string:
 			if v != "" {
