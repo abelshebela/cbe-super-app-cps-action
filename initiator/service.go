@@ -13,7 +13,7 @@ import (
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
-	"cbe-super-app-cps-action/internal/service/budget"
+	budgetCategorySvc "cbe-super-app-cps-action/internal/service/budget_category"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
 	cpsusersvc "cbe-super-app-cps-action/internal/service/cps_user"
@@ -63,7 +63,7 @@ type ServiceLayer struct {
 	// Services  service.ServiceContainer
 	Unlink            service.UnlinkService
 	BpsUser           service.BPSUserService
-	Budget            service.BudgetService
+	BudgetCategory    service.BudgetCategoryService
 	Bank              service.BankService
 	PortalCard        service.PortalCardService
 	Advert            service.AdvertService
@@ -147,7 +147,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		logger,
 	)
 
-	budgetService := budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, nil, "budget", minioClient, minioPubUrl, cfg, logger) // Will be updated after CPS action service is created
+	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, "budget_category", cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(
 		persistence.CpsUserPersistence,
 		persistence.DepartmentPersistence, // temporary it will replaced by department repo
@@ -189,12 +189,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CustomerContainer:        customerService,
 		PermissionContainer:      permissionService,
 		CPSUserContainer:         cpsUserService,
-		BudgetContainer:          budgetService, // Will be updated after CPS action service is created
+		BudgetCategoryContainer:  budgetCategoryService, // Will be updated after CPS action service is created
 		AccountContainer:         accountValidation,
 
 		AmountBasedAuthContainer: amountBased,   // Not implemented yet
 		AvatarDomian:             avatarService, // Not implemented yet
-		BudgetCategoryContainer:  nil,           // Not implemented yet
 		NotificationService:      notificationsvc,
 
 		ProductCodeService:        productService, // Not implemented yet
@@ -276,7 +275,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	)
 	serviceContainer.CPSUserContainer = cpsUserService
 
-	serviceContainer.BudgetContainer = budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger)
+	serviceContainer.BudgetCategoryContainer = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, "budget_category", cfg, minioPubUrl)
 
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 
@@ -284,7 +283,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
-	serviceContainer.BudgetContainer = budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger)
 
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
@@ -326,7 +324,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BpsUser:           bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger),
 		Bank:              bank_service,
 		Unlink:            unlinkService,
-		Budget:            budget.NewBudgetService(persistence.IconPersistence, persistence.ColorPersistence, cpsActionService, "budget", minioClient, minioPubUrl, cfg, logger),
+		BudgetCategory:    budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, "icon", cfg, minioPubUrl),
 		PortalCard:        portalCardService,
 		AmountBasedAuth:   amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger),
 		ValidationService: accountValidation,

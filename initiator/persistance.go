@@ -15,7 +15,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/branch"
 	"cbe-super-app-cps-action/internal/storage/persistance/city"
-	"cbe-super-app-cps-action/internal/storage/persistance/color"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
@@ -35,7 +34,7 @@ import (
 	// "cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
-	"cbe-super-app-cps-action/internal/storage/persistance/budget"
+"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
@@ -89,7 +88,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ArchivedLinkedAccountPersistence: archived_linked_account.NewArchivedLinkedAccountRepository(client, dbName, "archived_linked_account", logger),
 		AuthTierPersistence:              auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
 		BankPersistence:                  bank.NewBankRepository(client, dbName, "banks", logger),
-		ColorPersistence:                 color.NewColorRepository(client, dbName, "colors", logger),
+		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client,dbName,"budget_category",logger),
 		BulkService:                      bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
 		CustomerService:                  customer.InitCustomerDetail(client, dbName, "members", logger),
 		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
@@ -113,7 +112,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		TopupPersistence:           Topup.NewTopupRepository(client, dbName, "topups", logger),
 		
 		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
-		BudgetPersistence:          budget.NewBudgetRepository(client, dbName, []string{"icons", "colors"}, logger),
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "members", logger),
 		PermissionPersistence:      permission.InitPermission(client, dbName, 30*time.Second, logger),
