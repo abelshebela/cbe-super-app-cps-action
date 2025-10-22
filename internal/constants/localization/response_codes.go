@@ -132,12 +132,6 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppsRetrieved,
 	SuccessMiniAppFetchedByID,
 	SuccessMiniAppActionCompleted,
-	SuccessBudgetColorsFetched,
-	SuccessBudgetIconsFetched,
-	SuccessBudgetIconRequestSubmittedForApproval,
-	SuccessBudgetIconRequestSubmittedForApproval,
-	SuccessBudgetIconRequestSubmittedForApproval,
-	SuccessBudgetIconRequestSubmittedForApproval,
 	ErrorMiniAppMerchantNotFound,
 	ErrorMiniAppMerchantDisabled,
 	// Error codes
@@ -467,6 +461,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
 	ErrorOTPSendFailed,
+
 }
 
 // Success Response Codes
@@ -1816,6 +1811,20 @@ var (
 	}
 
 	// Budget Category related success response codes
+	SuccessBudgetCategoryRequestSubmittedForApproval = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_REQUEST_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusCreated,
+		Message:    MsgBudgetCategoryRequestSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
+	SuccessBudgetCategoryUpdateSubmittedForApproval = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_UPDATE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryUpdateSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+
 	SuccessBudgetCategoryUpdated = ResponseCode{
 		Code:       "SUCCESS_BUDGET_CATEGORY_UPDATED",
 		StatusCode: StatusOK,
@@ -2573,45 +2582,45 @@ var (
 		Type:       "success",
 	}
 
-	SuccessBudgetCheckerActionApproved = ResponseCode{
-		Code:       "BUDGET_ICON_CHECKER_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetRequestSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_REQUEST_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetCheckerActionApprovedSuccess,
+		Message:    MsgBudgetRequestSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 
-	SuccessBudgetColorUpdateSubmittedForApproval = ResponseCode{
-		Code:       "BUDGET_COLOR_UPDATE_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetUpdateSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_UPDATE_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetColorUpdateSubmittedForApprovalSuccess,
+		Message:    MsgBudgetUpdateSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 
-	SuccessBudgetIconUpdateSubmittedForApproval = ResponseCode{
-		Code:       "BUDGET_ICON_UPDATE_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetCategoryFetched = ResponseCode{
+		Code:       "BUDGET_CATEGORY_FETCHED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetIconUpdateSubmittedForApprovalSuccess,
+		Message:    MsgBudgetCategoryFetchedSuccessfully,
 		Type:       "success",
 	}
 
-	SuccessBudgetColorRequestSubmittedForApproval = ResponseCode{
-		Code:       "BUDGET_COLOR_REQUEST_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetCategoriesFetched = ResponseCode{
+		Code:       "BUDGET_CATEGORIES_FETCHED_SUCCESSFULLY",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetColorRequestSubmittedForApprovalSuccess,
+		Message:    MsgBudgetCategoriesFetchedSuccessfully,
 		Type:       "success",
 	}
 
-	SuccessBudgetIconsFetched = ResponseCode{
-		Code:       "BUDGET_ICONS_FETCHED_SUCCESSFULLY",
+	SuccessBudgetCategoryDeleteSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_DELETE_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetIconsFetchedSuccessfully,
+		Message:    MsgBudgetCategoryDeleteSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 
-	SuccessBudgetColorsFetched = ResponseCode{
-		Code:       "BUDGET_COLORS_FETCHED_SUCCESSFULLY",
+	SuccessBudgetCategoryToggleSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_TOGGLE_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetColorsFetchedSuccessfully,
+		Message:    MsgBudgetCategoryToggleSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 

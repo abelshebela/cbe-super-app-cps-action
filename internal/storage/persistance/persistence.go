@@ -27,9 +27,11 @@ type Persistence struct {
 	DistrictPersistence          storage.DistrictRepository
 	BranchPersistence            storage.BranchRepository
 	EventPersistence             storage.EventRepository
-	BudgetPersistence            storage.BudgetRepository
 	CustomerService              storage.CustomerRepository
 	BulkService                  storage.BulkServiceRepository
+
+	BudgetCategoryPersistence    storage.BudgetCategoryRepository
+
 	RedisService                 storage.RedisRepository
 
 	// Additional repositories
@@ -41,7 +43,6 @@ type Persistence struct {
 	ArchivedLinkedAccountPersistence storage.ArchivedLinkedAccountRepository
 	AuthTierPersistence              storage.AuthTierRepository
 	BankPersistence                  storage.BankRepository
-	ColorPersistence                 storage.ColorRepository
 	CpsUserPersistence               storage.CpsUserRepository
 	DonationPersistence              storage.DonationRepository
 	DonationCategoryPersistence      storage.DonationCategoryRepository
