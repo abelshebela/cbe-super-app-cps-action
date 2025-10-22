@@ -221,6 +221,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 	BlockedCustomer, err := c.customerService.GetBlockedCustomer(r.Context(), filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetBlockedCustomer.Code)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessFullyFetchBlockCustomer, BlockedCustomer)
