@@ -100,10 +100,10 @@ type AdvertDate struct {
 }
 
 type Tier struct {
-	ID        bson.ObjectID `bson:"id" json:"-"`
-	Min       uint64        `bson:"min"`
-	Max       uint64        `bson:"max"`
-	FeeAmount uint64        `bson:"fee_amount"`
+	// ID        bson.ObjectID `json:"id" bson:"id"`
+	Min       uint64 `json:"min" bson:"min"`
+	Max       uint64 `json:"max" bson:"max"`
+	FeeAmount uint64 `json:"fee_amount" bson:"fee_amount"`
 }
 
 type Cap struct {
@@ -116,13 +116,22 @@ type Cap struct {
 }
 
 type ProductCodes struct {
-	PRD    string `bson:"prd"`
-	VATPRD string `bson:"vatprd"`
-	SFPRD  string `bson:"sfprd"`
-	TRXN   string `bson:"trxn"`
+	PRD    string `bson:"prd" json:"prd"`
+	VATPRD string `bson:"vatprd" json:"vatprd"`
+	SFPRD  string `bson:"sfprd" json:"sfprd"`
+	TRXN   string `bson:"trxn" json:"trxn"`
 }
 
 type GLEntry struct {
+	ProductAccount    string `json:"product_account" bson:"product_account"`
+	ProductBranchCode string `json:"product_branch_code" bson:"product_branch_code"`
+	ServiceAccount    string `json:"service_account" bson:"service_account"`
+	ServiceBranchCode string `json:"service_branch_code" bson:"service_branch_code"`
+	VatAccount        string `json:"vat_account" bson:"vat_account"`
+	VatBranchCode     string `json:"vat_branch_code" bson:"vat_branch_code"`
+}
+
+type IFBglEntry struct {
 	ProductAccount    string `json:"product_account" bson:"product_account"`
 	ProductBranchCode string `json:"product_branch_code" bson:"product_branch_code"`
 	ServiceAccount    string `json:"service_account" bson:"service_account"`
@@ -177,11 +186,11 @@ type Restriction struct {
 }
 
 type ProductCode struct {
-	ID             string               `bson:"id"`
-	BranchType     constants.BranchType `bson:"branch_type"`
-	ProductCode    string               `bson:"product_code"`
-	VATCode        string               `bson:"vat_code"`
-	ServiceFeeCode string               `bson:"service_fee_code"`
+	ID             string               `json:"id" bson:"id"`
+	BranchType     constants.BranchType `json:"branch_type" bson:"branch_type"`
+	ProductCode    string               `json:"product_code" bson:"product_code"`
+	VATCode        string               `json:"vat_code" bson:"vat_code"`
+	ServiceFeeCode string               `json:"service_fee_code" bson:"service_fee_code"`
 }
 
 type CredentialInformation struct {
@@ -199,9 +208,9 @@ type CredentialInformation struct {
 }
 
 type MiniApps struct {
-	ID        bson.ObjectID `bson:"id"`
-	Enabled   bool          `bson:"enabled"`
-	IsDeleted bool          `bson:"is_deleted"`
+	ID        bson.ObjectID `json:"id" bson:"id"`
+	Enabled   bool          `json:"enabled" bson:"enabled"`
+	IsDeleted bool          `json:"is_deleted" bson:"is_deleted"`
 }
 
 type BranchInformation struct {
@@ -211,16 +220,15 @@ type BranchInformation struct {
 	BranchOwner         string `json:"branch_owner"`
 	BranchAccountNumber string `json:"branch_account_number"`
 }
-
 type KYCInformation struct {
-	Name  string `bson:"name"`
-	Email string `bson:"email"`
-	Phone string `bson:"phone"`
+	Name  string `json:"name" bson:"name"`
+	Email string `json:"email" bson:"email"`
+	Phone string `json:"phone" bson:"phone"`
 }
 
 type KYC struct {
-	Status         string         `bson:"status"`
-	Representative KYCInformation `bson:"representative"`
+	Status         string         `json:"status" bson:"status"`
+	Representative KYCInformation `json:"representative" bson:"representative"`
 }
 
 type DonationImage struct {
@@ -287,4 +295,10 @@ type Filter struct {
 	PerPage int                    `json:"per_page"`
 	Search  string                 `json:"search"`
 	Filters map[string]interface{} `json:"filters"`
+}
+
+type Services struct {
+	Self  bool `json:"self" bson:"self"`
+	Other bool `json:"other" bson:"other"`
+	Agent bool `json:"agent" bson:"agent"`
 }

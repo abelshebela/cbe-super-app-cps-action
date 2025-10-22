@@ -128,6 +128,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		BIC:  bank_request.BIC,
 		Code: bank_request.Code,
 		Logo: URL,
+		Enabled: true,
 	}
 
 	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
@@ -260,6 +261,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 }
 
 func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request bank_dto.UpdateBankRequest) error {
+	var logoUrl string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		return fmt.Errorf(constants.IncompleteUserInfo)
@@ -282,6 +284,16 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		updatedBank.Name = bank_request.Name
 	}
 
+	if bank_request.Logo == nil {
+		URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
+		if err != nil {
+			b.logger.Errorf("UploadFileToMinio failed", "error", err)
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+
+		logoUrl = URL
+	}
+
 	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 
 	if err != nil {
@@ -302,7 +314,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
-
+	updatedBank.Logo = logoUrl
 	action := lib.CpsModelBuilder(id, makerData, bank, updatedBank, string(constants.RequestUpdateBank), constants.UPDATE)
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)

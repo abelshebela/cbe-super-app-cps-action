@@ -66,6 +66,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Wallet"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "Topup"):
+		return d.app.TopupContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "AmountBasedAuth"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)
@@ -115,6 +117,14 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "VaultGroupCategory"):
 		return d.app.VaultGroupCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "article"):
+		return d.app.ArticleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "articleCategory"):
+		return d.app.ArticleCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "short_video"):
+		return d.app.ShortVideoServiceContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "customer"):
+		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")

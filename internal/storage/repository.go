@@ -102,6 +102,8 @@ type CPSActionRepository interface {
 	Save(ctx context.Context, cpsAction *model.CPSAction) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
+	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
@@ -416,8 +418,18 @@ type WalletRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
 	FindByID(ctx context.Context, id string) (*model.Wallet, error)
-	Find(ctx context.Context, name string) (*model.Wallet, error)
+	Find(ctx context.Context, key, value string) (*model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+}
+type TopupRepository interface {
+	Create(ctx context.Context, topup *model.Topup) error
+	Update(ctx context.Context, id string, Topup *model.Topup) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*model.Topup, error)
+	Find(ctx context.Context, key, value string) (*model.Topup, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Topup], error)
 }
 type ProductCodeRepository interface {
 	FetchByID(ctx context.Context, id string) (*model.ProductCode, error)
@@ -434,6 +446,7 @@ type FaydaRepository interface {
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type BulkServiceRepository interface {
@@ -461,3 +474,23 @@ type PermissionRepository interface {
 
 // ExternalCallServices type alias for external call services
 type ExternalCallServices = external_call.ExternalCallServices
+
+type ArticleRepository interface {
+	CreateArticle(ctx context.Context, article *model.NewsArticle) error
+	UpdateArticle(ctx context.Context, article *model.NewsArticle, id string) error
+	DeleteArticle(ctx context.Context, id string) error
+	PublishUnpublishArticle(ctx context.Context, id string, isPublished bool) error
+}
+type ArticleCategoryRepository interface {
+	CreateArticleCategory(ctx context.Context, category *model.NewsCategoryModel) error
+	UpdateArticleCategory(ctx context.Context, category *model.NewsCategoryModel, id string) error
+	DeleteArticleCategory(ctx context.Context, id string) error
+	EnableOrDisableArticleCategory(ctx context.Context, id string, enable bool) error
+}
+
+type ShortVideoRepository interface {
+	Create(ctx context.Context, shortVideo *model.ShortVideo) error
+	Update(ctx context.Context, shortVideo *model.ShortVideo, id string) error
+	Delete(ctx context.Context, id string) error
+	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
+}

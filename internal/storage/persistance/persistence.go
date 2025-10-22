@@ -29,7 +29,11 @@ type Persistence struct {
 	EventPersistence             storage.EventRepository
 	CustomerService              storage.CustomerRepository
 	BulkService                  storage.BulkServiceRepository
+
 	BudgetCategoryPersistence    storage.BudgetCategoryRepository
+
+	RedisService                 storage.RedisRepository
+
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
 	AvatarPersistence                storage.AvatarRepository
@@ -53,8 +57,12 @@ type Persistence struct {
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
+	TopupPersistence                 storage.TopupRepository
 	ProductCodePersistence           storage.ProductCodeRepository
 	DepartmentPersistence            storage.DepartmentRepository
 	FaydaPersistence                 storage.FaydaRepository
 	PermissionPersistence            storage.PermissionRepository
+	ArticlePersistence               storage.ArticleRepository
+	ArticleCategoryPersistence       storage.ArticleCategoryRepository
+	ShortVideoPersistence            storage.ShortVideoRepository
 }

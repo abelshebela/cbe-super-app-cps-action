@@ -160,7 +160,7 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	// Always exclude deleted branches
-	// filter["is_deleted"] = false
+	filter["is_deleted"] = false
 
 	data, err := a.branchDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

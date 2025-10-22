@@ -69,6 +69,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
 		PermissionGroup:    req.PermissionGroups,
 		PasswordDisable:    false,
 		IsFirstTimeLogin:   true,
+		Enabled: true,
 	}
 }
 

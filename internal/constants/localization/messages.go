@@ -107,7 +107,13 @@ const (
 	MsgWalletDeletedSuccessfully    = "Wallet deleted successfully"
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
 	MsgWalletRetrievedSuccessfully  = "Wallet retrieved successfully"
-
+	//topup related success messages
+	MsgTopupCreationRequestSent    = "Topup creation request sent successfully"
+	MsgTopupUpdateRequestSent      = "Topup update request sent successfully"
+	MsgTopupDeleteRequestSent      = "Topup delete request sent successfully"
+	MsgTopupDeletedSuccessfully    = "Topup deleted successfully"
+	MsgTopupsRetrievedSuccessfully = "Topups retrieved successfully"
+	MsgTopupRetrievedSuccessfully  = "Topup retrieved successfully"
 	// Event related success messages
 	MsgEventCreationRequestSubmitted = "Event creation request submitted successfully"
 	MsgEventUpdateRequestSubmitted   = "Event update request submitted successfully"
@@ -303,6 +309,9 @@ const (
 	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
 	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
 
+	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
+	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
@@ -376,9 +385,11 @@ const (
 	MsgFileDeleteFailed = "file deletion failed"
 
 	// Validation error messages
-	MsgMiniAppNameAlreadyExists              = "Mini App name already exists"
-	MsgBankDeleteRequestFailed               = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing            = "Required bank image invalid or missing"
+	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
+	MsgBankDeleteRequestFailed     = "Bank delete request failed"
+	MsgBankImageRequiredOrMissing  = "Required bank image invalid or missing"
+	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
+
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
@@ -844,9 +855,10 @@ const (
 	MsgCPSActionStatusInvalid = "Invalid CPS action status"
 
 	// BPS User Service related error messages
-	MsgBPSUserApprovedSuccess = "BPS user approved successfully"
+	MsgBPSUserApprovedSuccess   = "BPS user approved successfully"
+	MsgUserNotHaveLinkedAccount = "User Doesn't have any linked account"
 
-	MsgUserUnlinkFailed = "User Unlink Failed"
+	MsgUserUnlinkFailed = "User Doesn't have any linked account"
 	// Ad Service related success messages
 	MsgAdvertCreatedSuccess = "Advert created successfully"
 	MsgAdvertUpdateSuccess  = "Advert updated successfully"

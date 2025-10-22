@@ -125,7 +125,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		CoverImage:          coverImageURL,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
-		Enabled:             donation.Enabled,
+		Enabled:             true,
 	}
 	d.logger.Infof("CPS request created with target: %d, donation images count: %d", result.Target, len(result.DonationImages))
 

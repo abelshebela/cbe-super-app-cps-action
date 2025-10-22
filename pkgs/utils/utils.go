@@ -2,6 +2,8 @@ package utils
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/hmac"
 	"crypto/sha256"
 	"database/sql"
@@ -30,8 +32,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -281,6 +284,10 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 
 		if !allowedMap[key] {
 			continue
+		}
+
+		if fn, ok := handler[key]; ok {
+			value = fn(value)
 		}
 
 		switch v := value.(type) {
@@ -625,4 +632,71 @@ func NewPaginatedResponse[T any](data []T, page, limit, total int64) PaginatedRe
 		HasNextPage: page < totalPages,
 		HasPrevPage: page > 1,
 	}
+}
+
+func LocalEncryptPassword(password string, dataType string, userSalt string, action string, cfg *config.VaultConfig) (string, string, error) {
+
+	var signedPass, salt string
+	if dataType == constants.Password {
+		salt, _ = GenerateSalt(20)
+		signedPass, _ = SignWithHS256(password, salt)
+	} else {
+		signedPass = password
+	}
+
+	if action == constants.Login || action == constants.Change {
+		salt = userSalt
+		signedPass, _ = SignWithHS256(password, userSalt)
+	}
+
+	key := []byte(cfg.Key)
+	iv := []byte(cfg.IV)
+	if len(key) != 32 || len(iv) != aes.BlockSize {
+		return "", salt, localization.ErrorInvalidKey
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", salt, err
+	}
+
+	mode := cipher.NewCBCEncrypter(block, iv)
+	padLen := aes.BlockSize - len(signedPass)%aes.BlockSize
+	padding := strings.Repeat(string(byte(padLen)), padLen)
+	padded := []byte(signedPass + padding)
+	encrypted := make([]byte, len(padded))
+	mode.CryptBlocks(encrypted, padded)
+
+	return hex.EncodeToString(encrypted), salt, nil
+}
+
+func LocalDecryptPassword(encryptedHex string, cfg *config.VaultConfig) (string, error) {
+	key := []byte(cfg.Key)
+	iv := []byte(cfg.IV)
+
+	if len(key) != 32 || len(iv) != aes.BlockSize {
+		return "", localization.ErrorInvalidKey
+	}
+
+	encrypted, err := hex.DecodeString(encryptedHex)
+	if err != nil {
+		return "", err
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+	if len(encrypted)%aes.BlockSize != 0 {
+		return "", localization.ErrorInvalidEncData
+	}
+
+	mode := cipher.NewCBCDecrypter(block, iv)
+	decrypted := make([]byte, len(encrypted))
+	mode.CryptBlocks(decrypted, encrypted)
+	// Remove PKCS#7 padding
+	padLen := int(decrypted[len(decrypted)-1])
+	if padLen > aes.BlockSize || padLen == 0 {
+		return "", localization.ErrorInvalidPadding
+	}
+	return string(decrypted[:len(decrypted)-padLen]), nil
 }

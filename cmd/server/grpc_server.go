@@ -126,8 +126,8 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		TotalDocs:   int32(meta.TotalDocs),
 		Page:        int32(meta.Page),
 		HasNextPage: meta.HasNextPage,
-		NextPage:    int32(*meta.NextPage),
-		HasPrevPage: meta.HasPrevPage,
+		// NextPage:    int32(*meta.NextPage),
+		// HasPrevPage: meta.HasPrevPage,
 	}
 }
 func (s *server) walletListMapper(data []*model.Wallet) []*walletpb.Wallet {
