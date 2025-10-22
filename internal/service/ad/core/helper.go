@@ -17,7 +17,6 @@ func GenerateAdvert(advert model.Advert) *model.Advert {
 		Description:   advert.Description,
 		BannerImage:   advert.BannerImage,
 		AdvertFor:     advert.AdvertFor,
-		Date:          advert.Date,
 		Enabled:       advert.Enabled,
 		IsDeleted:     advert.IsDeleted,
 		CreatedAt:     advert.CreatedAt,

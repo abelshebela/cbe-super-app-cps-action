@@ -20,19 +20,24 @@ type ServiceDetails struct {
 	AboveServiceFee    uint64             `json:"above_service_fee" bson:"above_service_fee"`
 	PaymentType        string             `json:"payment_type" bson:"payment_type"`
 	Tiers              []types.Tier       `json:"tiers" bson:"tiers"`
-	CBEGLEntry         types.GLEntry      `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
-	CBEIFBGLEntry      types.GLEntry      `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
+	CBGLEntry          types.GLEntry      `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
+	CBIFBGLEntry       types.IFBglEntry   `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
 	Enabled            bool               `json:"enabled" bson:"enabled"`
+	MaxAmount          uint64             `json:"max_amount" bson:"max_amount"`
+	MinAmount          uint64             `json:"min_amount" bson:"min_amount"`
+	DailyCapLevelOne   uint64             `json:"daily_cap_level_one" bson:"daily_cap_level_one"`
+	MinAmountVirtual   uint64             `json:"min_amount_virtual" bson:"min_amount_virtual"`
+	SingleCapLevelOne  uint64             `json:"single_cap_level_one" bson:"single_cap_level_one"`
 	IsDeleted          bool               `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 	LastModifiedAt     time.Time          `json:"last_modified_at" bson:"last_modified_at"`
 	DeletedAt          time.Time          `json:"deleted_at" bson:"deleted_at"`
 }
 
-type Cap struct {
-	ISingleCap         uint64 `json:"individual_single_cap" bson:"individual_single_cap"`
-	IDailyCap          uint64 `json:"individual_daily_cap" bson:"individual_daily_cap"`
-	CorporateSingleCap uint64 `json:"corporate_single_cap" bson:"corporate_single_cap"`
-	CorporateDailyCap  uint64 `json:"corporate_daily_cap" bson:"corporate_daily_cap"`
-	MinAmount          uint64 `json:"min_amount" bson:"min_amount"`
-}
+// type Cap struct {
+// 	ISingleCap         uint64 `json:"individual_single_cap" bson:"individual_single_cap"`
+// 	IDailyCap          uint64 `json:"individual_daily_cap" bson:"individual_daily_cap"`
+// 	CorporateSingleCap uint64 `json:"corporate_single_cap" bson:"corporate_single_cap"`
+// 	CorporateDailyCap  uint64 `json:"corporate_daily_cap" bson:"corporate_daily_cap"`
+// 	MinAmount          uint64 `json:"min_amount" bson:"min_amount"`
+// }

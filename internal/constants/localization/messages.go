@@ -309,6 +309,9 @@ const (
 	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
 	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
 
+	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
+	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
@@ -394,8 +397,8 @@ const (
 	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
-	MsgExistEmail = "cps user with this email already exist"
-	MsgExistPhoneNumber ="cps user with this  phone Number already exist"
+	MsgExistEmail                            = "cps user with this email already exist"
+	MsgExistPhoneNumber                      = "cps user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
@@ -816,9 +819,19 @@ const (
 	MsgBudgetColorRequestSubmittedForApprovalSuccess = "Color creation request submitted for approval"
 	MsgBudgetIconsFetchedSuccessfully                = "Successfully fetched budget icons"
 	MsgBudgetColorsFetchedSuccessfully               = "Successfully fetched budget colors"
-	MsgDonationCompanyLogoUpdateSuccess              = "Successfully uploaded updated donation company logo"
-	MsgDonationImageUploadSuccess                    = "Successfully uploaded donation image"
-	MsgDonationImagesUpdateSuccess                   = "Successfully uploaded updated donation images"
+
+	// Unified Budget Operations Messages
+	MsgBudgetRequestSubmittedForApprovalSuccess         = "Budget creation request submitted for approval"
+	MsgBudgetUpdateSubmittedForApprovalSuccess          = "Budget update request submitted for approval"
+	MsgBudgetCategoryFetchedSuccessfully                = "Budget category fetched successfully"
+	MsgBudgetCategoriesFetchedSuccessfully              = "Budget categories fetched successfully"
+	MsgBudgetCategoryRequestSubmittedForApprovalSuccess = "Budget category creation request submitted for approval"
+	MsgBudgetCategoryUpdateSubmittedForApprovalSuccess  = "Budget category update request submitted for approval"
+	MsgBudgetCategoryDeleteSubmittedForApprovalSuccess  = "Budget category deletion request submitted for approval"
+	MsgBudgetCategoryToggleSubmittedForApprovalSuccess  = "Budget category enable/disable request submitted for approval"
+	MsgDonationCompanyLogoUpdateSuccess                 = "Successfully uploaded updated donation company logo"
+	MsgDonationImageUploadSuccess                       = "Successfully uploaded donation image"
+	MsgDonationImagesUpdateSuccess                      = "Successfully uploaded updated donation images"
 
 	// Notification Service related error messages
 	MsgNotificationConstructedSuccess = "Notification constructed successfully"

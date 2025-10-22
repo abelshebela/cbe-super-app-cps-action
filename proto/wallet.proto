@@ -13,7 +13,13 @@ message Wallet {
   string avatar = 4;
   bool enabled = 5;
   bool is_deleted = 6;
+  Services services = 7;
+}
 
+message Services {
+  bool self = 1;
+  bool other = 2;
+  bool agent = 3;
 }
 message docs {
     repeated Wallet wallets = 1;
@@ -41,7 +47,7 @@ message Meta {
   int32 page = 4;
   bool has_next_page = 5;
   bool has_prev_page = 6;
-  int32 next_page = 7;
+  // int32 next_page = 7;
 }
 
 message GetAllWalletResponse {

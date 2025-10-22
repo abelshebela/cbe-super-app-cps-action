@@ -6,7 +6,6 @@ import (
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 	// local_util "cbe-super-app-cps-action/pkgs/utils"
 )
@@ -19,10 +18,7 @@ func ToAdvert(httpRequest ad.AdvertRequest) (model.Advert, error) {
 		Title:       httpRequest.Title,
 		Description: httpRequest.Description,
 		AdvertFor:   advertFor,
-		Date: types.AdvertDate{
-			StartedAt: httpRequest.Date.StartedAt,
-			ExpiredAt: httpRequest.Date.ExpiredAt,
-		},
+
 		CreatedAt:     time.Now(),
 		LastUpdatedAt: time.Now(),
 		Enabled:       false,
@@ -38,7 +34,6 @@ func ToAdvertResponse(advert model.Advert) ad.AdvertResponse {
 		Description:   advert.Description,
 		BannerImage:   advert.BannerImage,
 		AdvertFor:     advert.AdvertFor,
-		Date:          ad.AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
 		Enabled:       advert.Enabled,
 		CreatedAt:     advert.CreatedAt,
 		LastUpdatedAt: advert.LastUpdatedAt,
@@ -55,7 +50,6 @@ func ToAdvertResponses(adverts []*model.Advert) []*ad.AdvertResponse {
 			Description:   advert.Description,
 			BannerImage:   advert.BannerImage,
 			AdvertFor:     advert.AdvertFor,
-			Date:          ad.AdvertDate{StartedAt: advert.Date.StartedAt, ExpiredAt: advert.Date.ExpiredAt},
 			Enabled:       advert.Enabled,
 			CreatedAt:     advert.CreatedAt,
 			LastUpdatedAt: advert.LastUpdatedAt,

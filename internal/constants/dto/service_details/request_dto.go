@@ -22,18 +22,22 @@ type TierDTO struct {
 
 // CBglEntryDTO represents CBE GL entry details
 type CBglEntryDTO struct {
-	CBglProductAccount    string `json:"cbgl_product_account" bson:"cbgl_product_account"`
-	CBglProductBranchcode string `json:"cbgl_product_branchcode" bson:"cbgl_product_branchcode"`
-	CBglServiceAccount    string `json:"cbgl_service_account" bson:"cbgl_service_account"`
-	CBglServiceBranchcode string `json:"cbgl_service_branchcode" bson:"cbgl_service_branchcode"`
+	ProductAccount    string `json:"cbgl_product_account" bson:"cbgl_product_account"`
+	ProductBranchCode string `json:"cbgl_product_branchcode" bson:"cbgl_product_branch_code"`
+	ServiceAccount    string `json:"cbgl_service_account" bson:"cbgl_service_account"`
+	ServiceBranchCode string `json:"cbgl_service_branchcode" bson:"cbgl_service_branch_code"`
+	VatAccount        string `json:"cbgl_vat_account" bson:"cbgl_vat_account"`
+	VatBranchCode     string `json:"cbgl_vat_branch_code" bson:"cbgl_vat_branch_code"`
 }
 
 // IFBglEntryDTO represents IFB GL entry details
 type IFBglEntryDTO struct {
-	IFBglProductAccount    string `json:"ifbgl_product_account" bson:"ifbgl_product_account"`
-	IFBglProductBranchcode string `json:"ifbgl_product_branchcode" bson:"ifbgl_product_branchcode"`
-	IFBglServiceAccount    string `json:"ifbgl_service_account" bson:"ifbgl_service_account"`
-	IFBglServiceBranchcode string `json:"ifbgl_service_branchcode" bson:"ifbgl_service_branchcode"`
+	ProductAccount    string `json:"ifbgl_product_account" bson:"ifbgl_product_account"`
+	ProductBranchCode string `json:"ifbgl_product_branchcode" bson:"ifbgl_product_branch_code"`
+	ServiceAccount    string `json:"ifbgl_service_account" bson:"ifbgl_service_account"`
+	ServiceBranchCode string `json:"ifbgl_service_branchcode" bson:"ifbgl_service_branch_code"`
+	VatAccount        string `json:"ifbgl_vat_account" bson:"ifbgl_vat_account"`
+	VatBranchCode     string `json:"ifbgl_vat_branch_code" bson:"ifbgl_vat_branch_code"`
 }
 
 // ServiceFeeDetailDTO represents the complete service fee structure

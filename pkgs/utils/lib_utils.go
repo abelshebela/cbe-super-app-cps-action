@@ -72,47 +72,55 @@ func IsIncomplete(u types.UserContext) bool {
 func ExtractFilterParams(r *http.Request) *types.Filter {
 	query := r.URL.Query()
 
+	// --- Pagination defaults ---
 	page := constants.DefaultPage
 	if v := query.Get("page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
 			page = n
+		} else {
+			page = 1
 		}
-
 	} else {
 		page = 1
 	}
 
 	perPage := constants.DefaultPerPage
 	if v := query.Get("per_page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
 			perPage = n
+		} else {
+			perPage = 10
 		}
 	} else {
 		perPage = 10
 	}
 
-	if page < 1 {
-		page = 1
-	}
-	if perPage < 1 {
-		perPage = 10
-	}
-
-	filters := make(map[string]interface{}, len(query))
+	filters := make(map[string]interface{})
 
 	for k, v := range query {
-		if len(v) == 0 || k == "page" || k == "per_page" || k == "search" {
+		if len(v) == 0 || isReserved(k) {
 			continue
 		}
 
+		// handle both `filter[key]` and plain query params
+		var key string
 		if strings.HasPrefix(k, "filter[") && strings.HasSuffix(k, "]") {
-			key := k[7 : len(k)-1]
-			filters[key] = parseValue(v[0])
-			continue
+			key = k[7 : len(k)-1]
+		} else {
+			key = k
 		}
 
-		if !isReserved(k) {
-			filters[k] = parseValue(v[0])
+		// collect all values for this key
+		if len(v) == 1 {
+			// single value → let parseValue handle comma splits and types
+			filters[key] = parseValue(v[0])
+		} else {
+			// multiple values → combine as []interface{}
+			var arr []interface{}
+			for _, val := range v {
+				arr = append(arr, parseValue(val))
+			}
+			filters[key] = arr
 		}
 	}
 

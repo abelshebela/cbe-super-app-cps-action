@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/storage/api"
+	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	// "cbe-super-app-cps-action/platform/logger"
 
@@ -15,6 +16,7 @@ import (
 
 	"log"
 
+	// local_logger "cbe-super-app-cps-action/platform/logger"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -52,6 +54,10 @@ func Init(ctx context.Context) {
 	// OraclePersistence := InitOraclePersistence(oracleDB, logger)
 	// logger.Infof("Oracle DB client initialized")
 
+	logger.Infof("Initializing SMS service...")
+	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
+	logger.Infof("SMS service initialized")
+
 	logger.Infof("Initializing account lookup service...")
 	accountLookupService := InitAccountLookupService(cfg, logger)
 	logger.Infof("Account lookup service initialized")
@@ -67,7 +73,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, redisRepository)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, redisRepository, *smsService)
 	// serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
 
 	go func() {

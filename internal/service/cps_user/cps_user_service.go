@@ -96,7 +96,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 			return err
 		}
 	}
-
+	
 	cpsUser := core.CPSUModel(req)
 
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, cpsUser, string(constants.RequestCpsUserCreate), constants.CREATE)

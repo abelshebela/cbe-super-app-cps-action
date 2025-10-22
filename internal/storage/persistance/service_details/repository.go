@@ -74,7 +74,7 @@ func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M,
 	}
 	filter := bson.M{"_id": idObj, "is_deleted": false}
 
-	result, err := s.dal.FindOne(ctx, filter, projection)
+	result, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		s.logger.Errorf("Error finding CPSAction: %v", err)
 		code, _ := local_util.HandleMongoError(err)

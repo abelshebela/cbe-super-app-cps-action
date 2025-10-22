@@ -87,7 +87,7 @@ type User struct {
 	InitialLinkedDate   time.Time              `json:"initial_linked_date" bson:"initiali_linked_date,omitempty"`
 	LoanScore           uint16                 `json:"loan_score" bson:"loan_score,omitempty"`
 	DeviceStatus        constants.DeviceStatus `json:"device_status" bson:"device_status,omitempty"`
-	Enabled             bool                   `json:"enabled" bson:"enabled,omitempty"`
+	Enabled             bool                   `json:"enabled" bson:"enabled"`
 	FirstPinSet         bool                   `json:"first_pin_set" bson:"first_pin_set,omitempty"`
 	PINChangedAt        time.Time              `json:"pin_changed_at" bson:"pin_changed_at,omitempty"`
 	OTPVerifyCount      uint8                  `json:"otp_verify_count" bson:"otp_verify_count,omitempty"`
