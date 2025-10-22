@@ -57,6 +57,7 @@ const (
 	CampanyLogo                       = "company_logo"
 	DonationImage                     = "donation_image"
 	DonationCoverImage                = "donation_cover_image"
+	BudgetCategoryIcon                = "budget_category_icon"
 	ActionID                          = "action_id"
 	ActionStatus                      = "action_status"
 	IncompleteUserInfo                = "incomplete user info"
@@ -333,12 +334,9 @@ const (
 	RequestUpdateHQBlockTime       RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 
-	RequestCreateBudgetColor             RequestAction = "BUDGET_CREATE_COLOR"
-	RequestUpdateBudgetColor             RequestAction = "BUDGET_UPDATE_COLOR"
-	RequestDeleteBudgetColor             RequestAction = "BUDGET_DELETE_COLOR"
-	RequestCreateBudgetIcon              RequestAction = "BUDGET_CREATE_ICON"
-	RequestUpdateBudgetIcon              RequestAction = "BUDGET_UPDATE_ICON"
-	RequestDeleteBudgetIcAdvertServiceon RequestAction = "BUDGET_DELETE_ICON"
+	RequestCreateBudget RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestUpdateBudget RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestDeleteBudget RequestAction = "DELETE_BUDGET_CATEGORY"
 
 	RequestBudgetUpdate   RequestAction = "UPDATE_BUDGET_CATEGORY"
 	RequestBudgetCreate   RequestAction = "CREATE_BUDGET_CATEGORY"

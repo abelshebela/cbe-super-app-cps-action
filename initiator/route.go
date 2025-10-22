@@ -16,7 +16,7 @@ import (
 	// bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
 	// vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
-	budget "cbe-super-app-cps-action/internal/glue/routing/budget"
+	budgetCategory "cbe-super-app-cps-action/internal/glue/routing/budget_category"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
@@ -77,7 +77,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	authMiddleware := customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
-	budget.Init(r, handlerLayer.BudgetHandler, authMiddleware)
+	budgetCategory.Init(r, handlerLayer.BudgetCategoryHandler, authMiddleware)
 	avatar.Init(r, handlerLayer.AvatarHandler, authMiddleware)
 	unlink.Init(r, handlerLayer.UnlinkHandler, authMiddleware)
 	bpsUser.Init(r, handlerLayer.BpsHandler, authMiddleware)

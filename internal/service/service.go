@@ -3,6 +3,7 @@ package service
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
+	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
@@ -46,15 +47,14 @@ type BranchService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
-type BudgetService interface {
+type BudgetCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	CreateBudgetIcon(ctx context.Context, fileHeader *multipart.FileHeader, file *multipart.File) error
-	BudgetFetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
-	BudgetUpdateIcon(ctx context.Context, id string, fileHeader *multipart.FileHeader, file *multipart.File) error
-	BudgetCreateColor(ctx context.Context, color *model.Color) error
-	BudgetFetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
-	BudgetUpdateColor(ctx context.Context, id string, color *model.Color) error
-	BudgetCheckerApproval(ctx context.Context, actionCode string) error
+	CreateBudgetCategory(ctx context.Context, budgetCategory budget_category.CreateBudgetRequest) error
+	FetchBudgetCategory(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]budget_category.BudgetCategoryResponse], error)
+	FetchBudgetCategoryByID(ctx context.Context, id string) (*budget_category.BudgetCategoryResponse, error)
+	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory budget_category.UpdateBudgetRequest) error
+	DeleteBudgetCategory(ctx context.Context, id string) error
+	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
 }
 
 type BulkService interface {
@@ -73,7 +73,7 @@ type CPSUserService interface {
 	DeleteUserRequest(ctx context.Context, userCode string) error
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
-	GetPopulatedCpsUser(ctx context.Context, userCode string)(*cpsuser.CpsUserResponse, error)
+	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 }
 type NotificationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -316,10 +316,6 @@ type BankService interface {
 	UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error
 }
 
-type BudgetCategoryService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-}
-
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
@@ -345,7 +341,6 @@ type ServiceContainer struct {
 	BankContainer               BankService
 	BPSUserContainer            BPSUserService
 	BudgetCategoryContainer     BudgetCategoryService
-	BudgetContainer             BudgetService
 	CPSActionContainer          CPSActionService
 	CPSUserContainer            CPSUserService
 	CustomerContainer           CustomerService

@@ -126,15 +126,13 @@ type BPSUserRepository interface {
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
 }
 
-type BudgetRepository interface {
-	CreateIcon(ctx context.Context, icon *model.Icon) error
-	FetchIcons(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
-	UpdateIcon(ctx context.Context, id string, icon *model.Icon) error
-	CreateColor(ctx context.Context, color *model.Color) error
-	FetchColors(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
-	UpdateColor(ctx context.Context, id string, color *model.Color) error
-	AuthorizeCPSAction(ctx context.Context, cpsAction *model.CPSAction) error
-	CheckColorExist(ctx context.Context, colorName string) (bool, error)
+type BudgetCategoryRepository interface {
+	CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error
+	UpdateBudgetCategory(ctx context.Context, id string, budgetCategory *model.BudgetCategory) error
+	FindBudgetCategoryByID(ctx context.Context, id string) (*model.BudgetCategory, error)
+	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error)
+	DeleteBudgetCategory(ctx context.Context, id string) error
+	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
 }
 
 // AmountBasedAuth persistence
@@ -232,15 +230,6 @@ type PortalCardRepository interface {
 	ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error)
 }
 
-type ColorRepository interface {
-	Create(ctx context.Context, color *model.Color) error
-	Update(ctx context.Context, id string, color *model.Color) error
-	Find(ctx context.Context, filter bson.M) (*model.Color, error)
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Color, error)
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Color], error)
-}
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
