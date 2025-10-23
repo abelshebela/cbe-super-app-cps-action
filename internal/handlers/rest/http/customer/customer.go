@@ -26,6 +26,13 @@ type customerAdapter struct {
 	logger          utils.Logger
 }
 
+func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
+	return &customerAdapter{
+		logger:          logger,
+		customerService: customer,
+	}
+}
+
 // SetEnableCustomerSession initiates enabling a customer session by generating an OTP
 // @Summary Initiate enable customer session
 // @Description Initiates enabling a customer session by generating an OTP for the customer
@@ -76,8 +83,15 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
+
+	var payload dto.CustomerDisableDTO
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
 	ctx := r.Context()
-	err := c.customerService.DisableCustomerByID(ctx, id)
+	err := c.customerService.DisableCustomerByID(ctx, id, payload)
 	if err != nil {
 		c.logger.Errorf("error while fetching get customer detail:", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -121,13 +135,6 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
-}
-
-func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
-	return &customerAdapter{
-		logger:          logger,
-		customerService: customer,
-	}
 }
 
 // GetCustomerDetail retrieves customer details with optional KYC level filtering

@@ -2,6 +2,7 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -149,7 +150,7 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 	return nil
 }
 
-func (c *customerService) DisableCustomerByID(ctx context.Context, id string) error {
+func (c *customerService) DisableCustomerByID(ctx context.Context, id string, disable customer.CustomerDisableDTO) error {
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
@@ -170,6 +171,7 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string) er
 
 	new_customer := *customer
 	new_customer.Enabled = false
+	new_customer.reas
 
 	action := lib.CpsModelBuilder(id, makerData, customer, new_customer, string(constants.RequestEnableDisableCustomer), constants.UPDATE)
 
