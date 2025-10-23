@@ -420,7 +420,7 @@ func (a *AccountBlockStorage) FindDistrictByID(ctx context.Context, id string) (
 }
 
 func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error) {
-	allowedKeys := []string{"district_name", "district_code", "enabled"}
+	allowedKeys := []string{"district_name", "district_code", "enabled", "region_name"}
 
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {

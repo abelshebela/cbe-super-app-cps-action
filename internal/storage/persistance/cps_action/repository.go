@@ -39,7 +39,7 @@ func NewCPSActionRepository(client *mongo.Client, dbName string, collection stri
 
 func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction) error {
 	r.logger.Infof("Attempting to save CPSAction: %+v", cpsAction)
-	fmt.Printf("Cps file of id is fff:%s\n\n\n", cpsAction.ID)
+
 	cps, err := r.dal.InsertOne(ctx, *cpsAction)
 	if err != nil {
 		r.logger.Errorf("Failed to save CPSAction: %v", err)
@@ -79,6 +79,8 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 
+	filter["orderBy"] = "created_at"
+	filter["orderBy"] = "created_at"
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
 	if err != nil {
