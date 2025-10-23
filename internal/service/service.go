@@ -93,6 +93,7 @@ type CustomerService interface {
 	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string) error
+	GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

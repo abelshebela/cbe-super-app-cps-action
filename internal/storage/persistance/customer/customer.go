@@ -20,9 +20,10 @@ import (
 )
 
 type CustomerRepository struct {
-	client   *mongo.Client
-	mongoDal dal.MongoDal[model.User, model.User]
-	logger   utils.Logger
+	client           *mongo.Client
+	mongoDal         dal.MongoDal[model.User, model.User]
+	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	logger           utils.Logger
 }
 
 func InitCustomerDetail(client *mongo.Client, database string, collection string, logger utils.Logger) storage.CustomerRepository {
@@ -115,4 +116,18 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 		return err
 	}
 	return nil
+}
+
+func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+
+	filter := bson.M{
+		"customer_number": customerNumber,
+	}
+
+	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return []*model.LinkedAccount{}, err
+	}
+
+	return linkedAccount, nil
 }

@@ -57,6 +57,9 @@ func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*mode
 	return customer, nil
 }
 
+func (s *customerService) GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+	return s.repo.FetchLinkedAccount(ctx, customerNumber)
+}
 func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
 	if filterParams.Filters == nil {
 		filterParams.Filters = make(map[string]interface{})

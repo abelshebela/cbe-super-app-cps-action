@@ -75,8 +75,8 @@ func (l *LinkedAccountStorage) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
-	return l.dal.DeleteOne(ctx, filter)
+	filter := bson.M{"_id": objID}
+	return l.dal.DeleteOneH(ctx, filter)
 }
 
 func (l *LinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.LinkedAccount, error) {

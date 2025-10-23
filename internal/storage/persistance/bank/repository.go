@@ -51,6 +51,7 @@ func (b *BankStorage) Update(ctx context.Context, id string, bank *model.Bank) e
 
 	_, err = b.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
+		b.logger.Errorf("failed to update bank error: %v", err)
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
@@ -94,6 +95,9 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		return nil, err
+	}
+	if result.IsDeleted {
+		return nil, mongo.ErrNoDocuments
 	}
 	return result, nil
 }

@@ -232,7 +232,6 @@ type PortalCardRepository interface {
 	ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error)
 }
 
-
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
 	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
@@ -447,6 +446,7 @@ type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 }
 
 type BulkServiceRepository interface {
