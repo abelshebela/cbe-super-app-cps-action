@@ -292,7 +292,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchCodes, true)
+	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchCodes, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -328,7 +328,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchCodes, false)
+	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchCodes, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -364,7 +364,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionsCodes, true)
+	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionsCodes, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -401,7 +401,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionsCodes, false)
+	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionsCodes, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -437,7 +437,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictCodes, true)
+	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictCodes, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -473,7 +473,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictCodes, false)
+	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictCodes, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -508,7 +508,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, true)
+	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -544,7 +544,7 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, false)
+	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
