@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -24,6 +25,13 @@ type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
 type customerAdapter struct {
 	customerService service.CustomerService
 	logger          utils.Logger
+}
+
+func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
+	return &customerAdapter{
+		logger:          logger,
+		customerService: customer,
+	}
 }
 
 // SetEnableCustomerSession initiates enabling a customer session by generating an OTP
@@ -76,8 +84,26 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
+
+	var payload dto.CustomerDisableDTO
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	if payload.IsTemporary == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
+	if err := core.ValidateString(payload.DisableReason); err != nil {
+		c.logger.Errorf("invalid disable reason: %v", err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
 	ctx := r.Context()
-	err := c.customerService.DisableCustomerByID(ctx, id)
+	err := c.customerService.DisableCustomerByID(ctx, id, payload)
 	if err != nil {
 		c.logger.Errorf("error while fetching get customer detail:", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -121,13 +147,6 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
-}
-
-func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
-	return &customerAdapter{
-		logger:          logger,
-		customerService: customer,
-	}
 }
 
 // GetCustomerDetail retrieves customer details with optional KYC level filtering
@@ -220,6 +239,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 
 	BlockedCustomer, err := c.customerService.GetBlockedCustomer(r.Context(), filterParams)
 	if err != nil {
+		c.logger.Errorf("error while fetching get blocked customer detail: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetBlockedCustomer.Code)
 		return
 	}
