@@ -12,6 +12,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -86,7 +87,7 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 		return nil, err
 	}
 
-	if userOldData.CustomerNumber == "" {
+	if strings.EqualFold(userOldData.CustomerNumber, "") {
 		u.logger.Errorf("User Doesn't have any account linked")
 	} else {
 		haveAccount = true
