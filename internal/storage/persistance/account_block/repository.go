@@ -110,9 +110,9 @@ func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, code string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error {
 	filter := bson.M{"branch_code": code}
-	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
+	update := bson.M{"enabled": enabled, "enable_or_disable_reason": reason, "updated_at": time.Now()}
 
 	_, err := a.branchDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -247,9 +247,9 @@ func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, code string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, code string, reason string, enabled bool) error {
 	filter := bson.M{"region_code": code}
-	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
+	update := bson.M{"enabled": enabled, "enable_or_disable_reason": reason, "updated_at": time.Now()}
 
 	_, err := a.regionDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -386,9 +386,9 @@ func (a *AccountBlockStorage) DeleteDistrict(ctx context.Context, id string) err
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, code string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, code string, reason string, enabled bool) error {
 	filter := bson.M{"district_code": code}
-	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
+	update := bson.M{"enabled": enabled, "enable_or_disable_reason": reason, "updated_at": time.Now()}
 
 	_, err := a.districtDal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -524,9 +524,9 @@ func (a *AccountBlockStorage) DeleteCity(ctx context.Context, id string) error {
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableCity(ctx context.Context, code string, enabled bool) error {
+func (a *AccountBlockStorage) EnableOrDisableCity(ctx context.Context, code string, reason string, enabled bool) error {
 	filter := bson.M{"city_code": code}
-	update := bson.M{"enabled": enabled, "updated_at": time.Now()}
+	update := bson.M{"enabled": enabled, "enable_or_disable_reason": reason, "updated_at": time.Now()}
 
 	_, err := a.cityDal.UpdateOne(ctx, filter, update)
 	if err != nil {
