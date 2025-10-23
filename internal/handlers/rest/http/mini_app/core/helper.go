@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
@@ -130,24 +129,4 @@ func ToMiniAppCreateRequest(r miniappdto.MiniAppRequest, isCreate bool) (*miniap
 	return &result, nil
 }
 
-func ToMiniAppResponse(m *model.MiniApp) miniappdto.MiniAppResponse {
-	return miniappdto.MiniAppResponse{
-		ID:                m.ID.Hex(),
-		AppName:           m.AppName,
-		AppIcon:           m.AppIcon,
-		BannerImage:       m.BannerImage,
-		CommisonGLAccount: m.CommissionGLAccount,
-		AppType:           m.AppType,
-		MerchantID:        m.MerchantID,
-		ProductCode:       m.ProductCode,
-		Credential:        m.Credential,
-		URL:               m.URL,
-		AppViewType:       m.AppViewType,
-		Stage:             m.Stage,
-		IsEventMiniApp:    m.IsEventMiniApp,
-		IsThreeClick:      m.IsThreeClick,
-		Enabled:           m.Enabled,
-		CreatedAt:         m.CreatedAt,
-		LastModifiedAt:    m.LastModifiedAt,
-	}
-}
+

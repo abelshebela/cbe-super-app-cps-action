@@ -174,7 +174,7 @@ type MiniAppService interface {
 	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
 	DeleteMiniApp(ctx context.Context, id string) error
 	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
+	FindByID(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
 	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
