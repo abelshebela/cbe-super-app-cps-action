@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	cps_action_core "cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
 	"context"
 	"errors"
 	"fmt"
@@ -19,16 +20,18 @@ import (
 )
 
 type CPSActionStorage struct {
-	dal    dal.MongoDal[model.CPSAction, model.CPSAction]
-	client *mongo.Client
-	logger utils.Logger
+	dal        dal.MongoDal[model.CPSAction, model.CPSAction]
+	client     *mongo.Client
+	collection *mongo.Collection
+	logger     utils.Logger
 }
 
 func NewCPSActionRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.CPSActionRepository {
 	return &CPSActionStorage{
-		dal:    dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collection),
+		client:     client,
+		logger:     logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 
@@ -36,7 +39,7 @@ func NewCPSActionRepository(client *mongo.Client, dbName string, collection stri
 
 func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction) error {
 	r.logger.Infof("Attempting to save CPSAction: %+v", cpsAction)
-	fmt.Printf("Cps file of id is fff:%s\n\n\n", cpsAction.ID)
+
 	cps, err := r.dal.InsertOne(ctx, *cpsAction)
 	if err != nil {
 		r.logger.Errorf("Failed to save CPSAction: %v", err)
@@ -76,6 +79,8 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 
+	filter["orderBy"] = "created_at"
+	filter["orderBy"] = "created_at"
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
 	if err != nil {
@@ -160,4 +165,91 @@ func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {
 	}
 	r.logger.Infof("Successfully deleted CPSAction with ID: %s", id)
 	return nil
+}
+
+func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	r.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
+	// 1. Base filter (only active records)
+	filter := bson.M{
+		"is_deleted": false,
+		"department": department,
+	}
+	searchKeys := bson.M{}
+
+	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["field1"] = searchRegex
+		searchKeys["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"checker_name": searchRegex},
+			{"checker_phone_number": searchRegex},
+		}
+		r.logger.Infof("Search applied with regex: %v", searchRegex)
+	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+		{{Key: "$project", Value: Projection}},
+		cps_action_core.SanitizePipeline(exclude),
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	var results []*model.CPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		return nil, err
+	}
+	total, err := r.dal.TotalCount(ctx, filter)
+	if err != nil {
+		r.logger.Errorf("Error counting total CPSActions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	// 7. Build pagination metadata
+	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	// 8. Return standard paginated response
+	r.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
+	return &types.PaginatedResponse[[]*model.CPSAction]{
+		Data: results,
+		Meta: meta,
+	}, nil
+}
+
+func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
+	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+		cps_action_core.SanitizePipeline(exclude),
+		{{Key: "$limit", Value: 1}},
+		{{Key: "$project", Value: Projection}},
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	if !cur.Next(ctx) {
+		return nil, nil
+	}
+
+	var result model.CPSAction
+	if err := cur.Decode(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }

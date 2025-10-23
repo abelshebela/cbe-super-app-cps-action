@@ -39,10 +39,8 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	searchKeys := bson.M{}
 
-	// 2. Allowed filterable/searchable fields
 	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
-	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
@@ -56,22 +54,18 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// 5. Fetch data
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// 6. Count total
 	total, err := p.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.User]{
 		Data: data,
 		Meta: meta,

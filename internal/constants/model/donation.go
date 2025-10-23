@@ -15,6 +15,7 @@ type Donation struct {
 	Title               string                `json:"title" bson:"title"`
 	IsFeatured          bool                  `json:"is_featured" bson:"is_featured"`
 	Target              int32                 `json:"target" bson:"target"`
+	CurrentAmount       int32                 `json:"current_amount" bson:"current_amount"`
 	DonationDescription string                `json:"donation_description" bson:"donation_description"`
 	DonationImages      []types.DonationImage `json:"donation_images" bson:"donation_images"`
 	CoverImage          string                `json:"cover_image,omitempty" bson:"cover_image,omitempty"`
