@@ -58,7 +58,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessTopupDeleted,
 	SuccessTopupsRetrieved,
 	SuccessTopupRetrieved,
-	
+
 	//BPS_USer
 	SuccessBpsUserEnableRequestSent,
 	SuccessBpsUserDisableRequestSent,
@@ -461,7 +461,6 @@ var ResponseCodesList = []ResponseCode{
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
 	ErrorOTPSendFailed,
-
 }
 
 // Success Response Codes
@@ -888,7 +887,7 @@ var (
 		Message:    MsgCpsUserDisabledSuccessfully,
 		Type:       "success",
 	}
-	
+
 	SuccessBpsUserEnableRequestSent = ResponseCode{
 		Code:       "SUCCESS_BPS_USER_ENABLED",
 		StatusCode: StatusOK,
@@ -3049,7 +3048,7 @@ var (
 		Message:    MsgBpsUserAlreadyDisabled,
 		Type:       "error",
 	}
-	
+
 	ErrorBankVaultAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BANK_VAULT_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
@@ -3075,8 +3074,6 @@ var (
 		Message:    MsgVaultGroupAlreadyDisabled,
 		Type:       "error",
 	}
-
-	
 
 	ErrorBankAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_Bank_ALREADY_ENABLED",
