@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
@@ -92,7 +93,8 @@ type CustomerService interface {
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
-	DisableCustomerByID(ctx context.Context, id string) error
+	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
+
 	GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -175,7 +177,7 @@ type MiniAppService interface {
 	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
 	DeleteMiniApp(ctx context.Context, id string) error
 	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
+	FindByID(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
 	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

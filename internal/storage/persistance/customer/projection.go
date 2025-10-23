@@ -8,6 +8,7 @@ func UserProjection() bson.M {
 		"username":                      1,
 		"full_name":                     1,
 		"login_pin":                     1,
+		"user_code":                     1,
 		"region_name":                   1,
 		"branch_name":                   1,
 		"is_blocked":                    1,
