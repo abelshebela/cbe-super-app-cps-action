@@ -13,10 +13,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
-	"cbe-super-app-cps-action/internal/constants/dto/mini_app"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -295,7 +296,6 @@ type MiniAppRepository interface {
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
-
 }
 type EventRepository interface {
 	Create(ctx context.Context, event *model.Event) error

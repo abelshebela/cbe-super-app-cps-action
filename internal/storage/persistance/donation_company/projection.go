@@ -34,6 +34,9 @@ func DonationCompanyMapper(company model.DonationCompany) bson.M {
 		"company_name":     company.CompanyName,
 		"company_logo":     company.CompanyLogo,
 		"account_number":   company.AccountNumber,
+		"phone_number":     company.PhoneNumber,
+		"email":            company.Email,
+		"address":          company.Address,
 		"is_deleted":       company.IsDeleted,
 		"last_modified_at": company.LastModifiedAt,
 	}

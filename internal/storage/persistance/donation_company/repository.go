@@ -45,7 +45,8 @@ func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details 
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID}
+
 	updateData := DonationCompanyMapper(*details)
 	_, err = s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
@@ -55,6 +56,7 @@ func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details 
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	return nil
 }
 func (s *DonationCompanyStorage) FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error) {
