@@ -27,7 +27,7 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		b.logger.Errorf("failed to parse request from multipart form: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -64,7 +64,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 	req, err := core.ParseUpdateRequestFromMultipartForm(r)
 	if err != nil {
 		b.logger.Errorf("failed to parse request from multipart form: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

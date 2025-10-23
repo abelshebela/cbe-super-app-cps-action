@@ -26,6 +26,9 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (dto.Donation
 
 	req.CompanyName = r.FormValue("company_name")
 	req.AccountNumber = r.FormValue("account_number")
+	req.PhoneNumber = r.FormValue("phone_number")
+	req.Email = r.FormValue("email")
+	req.Address = r.FormValue("address")
 
 	return req, nil
 }

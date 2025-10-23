@@ -287,9 +287,9 @@ func (h *HttpStore) DetailMiniAppByID(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	
 	h.logger.Infof("mini app fetched successfully, mini app ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppFetchedByID, miniappcore.ToMiniAppResponse(miniApp))
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppFetchedByID, miniApp)
 }
 
 // ListMiniApp godoc

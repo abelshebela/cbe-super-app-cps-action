@@ -298,19 +298,13 @@ func (s *miniAppService) EnableDisableMiniAppByID(ctx context.Context, id string
 	return nil
 }
 
-func (s *miniAppService) FindByID(ctx context.Context, id string) (*model.MiniApp, error) {
+func (s *miniAppService) FindByID(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error) {
 	s.logger.Infof("FindByID called, app_id: %s", id)
-	miniApp, err := s.repo.FindByID(ctx, id)
+	miniApp, err := s.repo.FindByIDWithMerchant(ctx, id)
 	if err != nil {
 		s.logger.Errorf("FindByID failed, app_id: %s, error: %v", id, err)
 		return nil, errors.New(localization.ErrorMiniAppNotFound.Code)
 	}
-
-	if miniApp.IsDeleted {
-		s.logger.Errorf("MiniApp is deleted, app_id: %s", id)
-		return nil, errors.New(localization.ErrorMiniAppNotFound.Code)
-	}
-
 	decryptedSecret, err := s.keyGenService.DecryptAppSecret(miniApp.Credential.AppSecret)
 	if err != nil {
 		s.logger.Errorf("Failed to decrypt AppSecret for MiniApp %s, Environment %v: %v", id, constants.UatEnvironment, err)

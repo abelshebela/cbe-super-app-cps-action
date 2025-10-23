@@ -11,7 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-
+	"cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -21,7 +21,7 @@ import (
 type MiniAppStorage struct {
 	dal    dal.MongoDal[model.MiniApp, model.MiniApp]
 	client *mongo.Client
-
+	collection *mongo.Collection
 	logger utils.Logger
 }
 
@@ -29,6 +29,7 @@ func NewMiniAppRepository(client *mongo.Client, dbName string, collection string
 	return &MiniAppStorage{
 		dal:    dal.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collection),
 		client: client,
+		collection: client.Database(dbName).Collection(collection),
 		logger: logger,
 	}
 }
@@ -125,7 +126,7 @@ func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable 
 func (m *MiniAppStorage) FindByID(ctx context.Context, id string) (*model.MiniApp, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
@@ -246,3 +247,83 @@ func (p *MiniAppStorage) RunInTransaction(ctx context.Context, fn func(ctx conte
 		return nil
 	})
 }
+
+
+
+func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	pipeline := mongo.Pipeline{
+		// Match mini app by ID and not deleted
+		{{Key: "$match", Value: bson.D{
+			{Key: "_id", Value: objID},
+			{Key: "is_deleted", Value: false},
+		}}},
+
+		// Convert merchant_id string to ObjectID
+		{{Key: "$addFields", Value: bson.D{
+			{Key: "merchant_id_obj", Value: bson.D{
+				{Key: "$toObjectId", Value: "$merchant_id"},
+			}},
+		}}},
+
+		// Lookup merchant
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "mini_app_merchant"},
+			{Key: "localField", Value: "merchant_id_obj"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "merchant"},
+		}}},
+
+		// Unwind merchant array
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$merchant"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+
+		// Project only required fields
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "app_name", Value: 1},
+			{Key: "app_icon", Value: 1},
+			{Key: "banner_image", Value: 1},
+			{Key: "commison_gl_account", Value: 1},
+			{Key: "app_type", Value: 1},
+			{Key: "app_view_type", Value: 1},
+			{Key: "url", Value: 1},
+			{Key: "stage", Value: 1},
+			{Key: "product_code", Value: 1},
+			{Key: "credential", Value: 1},
+			{Key: "is_event_mini_app", Value: 1},
+			{Key: "is_three_click", Value: 1},
+			{Key: "enabled", Value: 1},
+			{Key: "created_at", Value: 1},
+			{Key: "last_modified_at", Value: 1},
+			{Key: "merchant._id", Value: 1},
+			{Key: "merchant.merchant_name", Value: 1},
+		}}},
+	}
+
+	cursor, err := m.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		m.logger.Errorf("aggregate mini app by id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	var resp miniappdto.MiniAppResponse
+	if err := cursor.Decode(&resp); err != nil {
+		m.logger.Errorf("decode mini app response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	return &resp, nil
+}
+

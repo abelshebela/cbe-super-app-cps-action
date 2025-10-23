@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -76,6 +77,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 }
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	haveAccount := false
+	var archivedUserId, archivedLinkedAccountId string
 	var linkedAccountOldData *model.LinkedAccount
 	if cpsAction.ActionStatus != constants.Approved {
 		u.logger.Errorf("Try to authorize the collection without cps action approval")
@@ -92,12 +94,18 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	} else {
 		haveAccount = true
 	}
+
 	if haveAccount {
 		linkedAccountOldData, err = u.linkedAccountRepo.FindByCustomerNumber(ctx, userOldData.CustomerNumber)
 		if err != nil {
 			return nil, errors.New(localization.ErrorUnlinkFaild.Code)
 		}
 	}
+
+	archivedUserId = userOldData.ID.Hex()
+	archivedLinkedAccountId = linkedAccountOldData.ID.Hex()
+	userOldData.ID = bson.NilObjectID
+	linkedAccountOldData.ID = bson.NilObjectID
 
 	archUserErr, archLinkedAccErr := core.CreatArchiveUserDataWithLinkedAccount(ctx, u.archivedUserRepo, u.archivedLinkedAccountRepo, userOldData, linkedAccountOldData, haveAccount)
 
@@ -109,11 +117,13 @@ func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	var userErr, linkedAccErr error
 	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
 		func() {
-			userErr = u.userRepo.Delete(ctx, userOldData.ID.Hex())
+			u.logger.Infof("deleting user in routin userid: %v", archivedUserId)
+			userErr = u.userRepo.Delete(ctx, archivedUserId)
 		},
 		func() {
 			if haveAccount {
-				linkedAccErr = u.linkedAccountRepo.Delete(ctx, linkedAccountOldData.ID.Hex())
+				u.logger.Infof("deleting linked account account id: %v", archivedLinkedAccountId)
+				linkedAccErr = u.linkedAccountRepo.Delete(ctx, archivedLinkedAccountId)
 			}
 		},
 	)

@@ -20,9 +20,10 @@ import (
 )
 
 type CustomerRepository struct {
-	client   *mongo.Client
-	mongoDal dal.MongoDal[model.User, model.User]
-	logger   utils.Logger
+	client           *mongo.Client
+	mongoDal         dal.MongoDal[model.User, model.User]
+	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	logger           utils.Logger
 }
 
 func InitCustomerDetail(client *mongo.Client, database string, collection string, logger utils.Logger) storage.CustomerRepository {
@@ -56,6 +57,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
+		p.logger.Infof("error while fetching customer data: %v", err.Error())
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -79,7 +81,8 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 	}
 	filter := bson.M{"_id": objID}
 	p.logger.Infof("Fetching user with filter: %v", filter)
-	user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
+	// user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
@@ -115,4 +118,18 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 		return err
 	}
 	return nil
+}
+
+func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+
+	filter := bson.M{
+		"customer_number": customerNumber,
+	}
+
+	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return []*model.LinkedAccount{}, err
+	}
+
+	return linkedAccount, nil
 }

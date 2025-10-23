@@ -11,11 +11,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
-	cRand "crypto/rand"
 	"errors"
 	"fmt"
 	"log"
-	"math/big"
 	"strings"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -36,22 +34,9 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 		return "", fmt.Errorf("prefix and value must not be empty")
 	}
 
-	digits := "0123456789"
-	max := big.NewInt(int64(len(digits)))
-	code := make([]byte, 7)
-
-	for i := range code {
-		n, err := cRand.Int(cRand.Reader, max)
-		if err != nil {
-			logger.Errorf("Failed to generate random digit", "error", err)
-			return "", fmt.Errorf("failed to generate random digit: %v", err)
-		}
-		code[i] = digits[n.Int64()]
-	}
-
-	value = strings.ReplaceAll(value, " ", "")
-	prefix = strings.ReplaceAll(prefix, " ", "")
-	result := strings.Join([]string{prefix, value, string(code)}, "-")
+	value = strings.ToUpper(strings.ReplaceAll(value, " ", "_"))
+	prefix = strings.ToUpper(strings.ReplaceAll(prefix, " ", "_"))
+	result := strings.Join([]string{prefix, value}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
 
