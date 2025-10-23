@@ -119,18 +119,20 @@ func buildUpdate(updateFields model.NewsArticle) bson.M {
 	if len(updateFields.Tags) > 0 {
 		update["tags"] = updateFields.Tags
 	}
+	if updateFields.Content != "" {
+		update["content"] = updateFields.Content
+	}
 
-	if updateFields.IsPublished {
-		update["is_published"] = updateFields.IsPublished
+	if updateFields.Slug != "" {
+		update["slug"] = updateFields.Slug
 	}
-	if !updateFields.PublishedAt.IsZero() {
-		update["published_at"] = updateFields.PublishedAt
+
+	if updateFields.Language != "" {
+		update["language"] = updateFields.Language
 	}
-	if !updateFields.UpdatedAt.IsZero() {
-		update["updated_at"] = updateFields.UpdatedAt
-	} else {
-		update["updated_at"] = time.Now()
-	}
+
+
+	update["updated_at"] = time.Now()
 
 	return update
 }
