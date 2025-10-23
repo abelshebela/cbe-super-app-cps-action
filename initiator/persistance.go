@@ -34,7 +34,7 @@ import (
 	// "cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
-"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
+	"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
@@ -88,9 +88,9 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ArchivedLinkedAccountPersistence: archived_linked_account.NewArchivedLinkedAccountRepository(client, dbName, "archived_linked_account", logger),
 		AuthTierPersistence:              auth_tier.NewAuthTierRepository(client, dbName, "auth_tier", logger),
 		BankPersistence:                  bank.NewBankRepository(client, dbName, "banks", logger),
-		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client,dbName,"budget_category",logger),
+		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client, dbName, "budget_category", logger),
 		BulkService:                      bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
-		CustomerService:                  customer.InitCustomerDetail(client, dbName, "members", logger),
+		CustomerService:                  customer.InitCustomerDetail(client, dbName, []string{"members", "linked_account"}, logger),
 		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
 		DonationPersistence:              donation.NewDonationRepository(client, dbName, "donations", logger),
 		DonationCategoryPersistence:      donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
@@ -110,7 +110,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ValidationRulePersistence:  accountvalidation.NewAccountValidationStore(client, dbName, "validation_rule", logger),
 		WalletPersistence:          wallet.NewWalletRepository(client, dbName, "wallets", logger),
 		TopupPersistence:           Topup.NewTopupRepository(client, dbName, "topups", logger),
-		
+
 		ProductCodePersistence:     productcode.NewProductCodeRepository(client, dbName, "services", logger),
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "members", logger),
