@@ -2,6 +2,7 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -57,6 +58,9 @@ func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*mode
 	return customer, nil
 }
 
+func (s *customerService) GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+	return s.repo.FetchLinkedAccount(ctx, customerNumber)
+}
 func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
 	if filterParams.Filters == nil {
 		filterParams.Filters = make(map[string]interface{})
@@ -149,7 +153,7 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 	return nil
 }
 
-func (c *customerService) DisableCustomerByID(ctx context.Context, id string) error {
+func (c *customerService) DisableCustomerByID(ctx context.Context, id string, disable customer.CustomerDisableDTO) error {
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
@@ -170,6 +174,13 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string) er
 
 	new_customer := *customer
 	new_customer.Enabled = false
+	new_customer.BlockedReason = disable.DisableReason
+
+	if *disable.IsTemporary {
+		new_customer.BlockedOn = constants.BPS
+	} else {
+		new_customer.BlockedOn = constants.CPS
+	}
 
 	action := lib.CpsModelBuilder(id, makerData, customer, new_customer, string(constants.RequestEnableDisableCustomer), constants.UPDATE)
 

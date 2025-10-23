@@ -9,4 +9,5 @@ type CustomerDetail interface {
 	SetEnableCustomerSession(w http.ResponseWriter, r *http.Request)
 	EnableCustomer(w http.ResponseWriter, r *http.Request)
 	DisableCustomer(w http.ResponseWriter, r *http.Request)
+	GetLinkedAccount(w http.ResponseWriter, r *http.Request)
 }
