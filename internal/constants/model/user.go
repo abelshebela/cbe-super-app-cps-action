@@ -76,6 +76,8 @@ type User struct {
 	LastLogin         time.Time `json:"last_login" bson:"last_login,omitempty"`
 
 	BPSStatus           constants.BPSStatus    `json:"bps_reject_status" bson:"bps_reject_status,omitempty"`
+	BlockedOn           constants.BlockedOn    `json:"blocked_on" bson:"blocked_on,omitempty"`
+	BlockedReason       string                 `json:"blocked_reason" bson:"blocked_reason,omitempty"`
 	BPSRejectionReason  string                 `json:"bps_reject_reason" bson:"bps_reject_reason,omitempty"`
 	BPSRejectionField   []string               `json:"bps_reject_failed" bson:"bps_reject_failed,omitempty"`
 	LoginPIN            types.LoginPIN         `json:"login_pin" bson:"login_pin,omitempty"`
