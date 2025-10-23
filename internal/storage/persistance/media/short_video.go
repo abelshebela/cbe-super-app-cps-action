@@ -133,14 +133,18 @@ func buildShortVideoUpdate(updateFields model.ShortVideo) bson.M {
 	if updateFields.Duration > 0 {
 		update["duration"] = updateFields.Duration
 	}
-	if updateFields.Category != "" {
-		update["category"] = updateFields.Category
+	if updateFields.CategoryID != bson.NilObjectID {
+		update["category_id"] = updateFields.CategoryID
 	}
 	if updateFields.Author != "" {
 		update["author"] = updateFields.Author
 	}
 	if updateFields.Language != "" {
 		update["language"] = updateFields.Language
+	}
+
+	if updateFields.Slug != "" {
+		update["slug"] = updateFields.Slug
 	}
 
 	update["updated_at"] = time.Now()
