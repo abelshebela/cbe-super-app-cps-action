@@ -82,7 +82,7 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	filter["orderBy"] = "created_at"
 	filter["orderBy"] = "created_at"
 	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
+	data, err := s.dal.FindAllWithPaginationWithSort(ctx, filter, Projection, skip, limit, bson.M{"created_at": 1})
 	if err != nil {
 		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
