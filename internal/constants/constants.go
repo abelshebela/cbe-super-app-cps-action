@@ -114,6 +114,13 @@ const (
 	BPSStatusInitiated  BPSStatus = "INITIATED"
 )
 
+type BlockedOn string
+
+const (
+	BPS BlockedOn = "BPS"
+	CPS BlockedOn = "CPS"
+)
+
 type MaritalStatus string
 
 const (
