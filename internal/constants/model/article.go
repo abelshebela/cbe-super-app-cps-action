@@ -50,7 +50,6 @@ type ShortVideo struct {
 	IsDeleted   bool          `bson:"is_deleted" json:"is_deleted"`
 	IsPublished bool          `bson:"is_published" json:"is_published"`
 	Slug        string        `bson:"slug" json:"slug"`
-	Category    string        `bson:"category" json:"category"`
 	Author      string        `bson:"author" json:"author"`
 	Language    string        `bson:"language" json:"language"`
 	CreatedAt   time.Time     `bson:"created_at" json:"created_at"`
