@@ -4,7 +4,7 @@ type CustomerEnableDTO struct {
 	UserOTP string `json:"user_otp"`
 }
 type CustomerDisableDTO struct {
-	Temporary     bool   `json:"temporary"`
+	IsTemporary   *bool  `json:"is_temporary"`
 	DisableReason string `json:"disable_reason"`
 }
 

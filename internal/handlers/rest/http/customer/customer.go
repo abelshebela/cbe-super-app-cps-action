@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -87,6 +88,17 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 	var payload dto.CustomerDisableDTO
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	if payload.IsTemporary == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
+	if err := core.ValidateString(payload.DisableReason); err != nil {
+		c.logger.Errorf("invalid disable reason: %v", err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
 		return
 	}
 
@@ -227,6 +239,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 
 	BlockedCustomer, err := c.customerService.GetBlockedCustomer(r.Context(), filterParams)
 	if err != nil {
+		c.logger.Errorf("error while fetching get blocked customer detail: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetBlockedCustomer.Code)
 		return
 	}

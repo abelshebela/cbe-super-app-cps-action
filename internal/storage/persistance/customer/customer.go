@@ -56,6 +56,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
+		p.logger.Infof("error while fetching customer data: %v", err.Error())
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -79,7 +80,8 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 	}
 	filter := bson.M{"_id": objID}
 	p.logger.Infof("Fetching user with filter: %v", filter)
-	user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
+	// user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
