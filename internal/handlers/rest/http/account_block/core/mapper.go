@@ -14,10 +14,9 @@ func ToBranchResponse(branch *model.Branch) *ab_dto.BranchResponse {
 		BranchAddress: branch.BranchAddress,
 		DistrictCode:  branch.DistrictCode,
 		DistrictName:  branch.DistrictName,
-		BranchRegion:  branch.BranchRegion,
+		RegionName:  branch.RegionName,
 		RecordStat:    branch.RecordStat,
 		CreatedAt:     branch.CreatedAt,
-		IsDeleted:     branch.IsDeleted,
 		UpdatedAt:     branch.UpdatedAt,
 		Enabled:       branch.Enabled,
 	}

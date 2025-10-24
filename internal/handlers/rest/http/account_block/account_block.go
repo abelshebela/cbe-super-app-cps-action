@@ -220,7 +220,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "internal Server error"
 // @Security BearerAuth
-// @Router /account_block/city/{city_code} [get]
+// @Router /account_block/cities/{city_code} [get]
 func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Request) {
 	cityCode, ok := local_util.GetParam(r, "city_code")
 	if !ok {
@@ -251,7 +251,7 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 // @Success 200 {object} localization.StandardResponse{data=paginated_city_resp} "Cities retrieved"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /account_block/city [get]
+// @Router /account_block/cities [get]
 func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -271,7 +271,7 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableBranches true "Branch codes" example({"branches_code":["BR001","BR002"]})
+// @Param request body accountblock.EnableOrDisableBranches true "Branch codes and reason" example({"branches_code":["BR001","BR002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Enable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -307,7 +307,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 // @Tags Account Block - Branches
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableBranches true "Branch codes" example({"branches_code":["BR001","BR002"]})
+// @Param request body accountblock.EnableOrDisableBranches true "Branch codes and reason" example({"branches_code":["BR001","BR002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Disable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -343,7 +343,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableRegions true "Region codes" example({"regions_code":["RG001","RG002"]})
+// @Param request body accountblock.EnableOrDisableRegions true "Region codes and reason" example({"regions_code":["RG001","RG002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Enable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -359,12 +359,12 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 	// Trim any whitespace
 	req.Clean()
 
-	if len(req.RegionsCodes) == 0 {
+	if len(req.RegionCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionsCodes, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionCodes, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -379,7 +379,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 // @Tags Account Block - Regions
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableRegions true "Region codes" example({"regions_code":["RG001","RG002"]})
+// @Param request body accountblock.EnableOrDisableRegions true "Region codes and reason" example({"regions_code":["RG001","RG002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Disable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -396,12 +396,12 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 	// Trim any whitespace
 	req.Clean()
 
-	if len(req.RegionsCodes) == 0 {
+	if len(req.RegionCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionsCodes, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionCodes, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -416,7 +416,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableDistricts true "District codes" example({"districts_code":["DS001","DS002"]})
+// @Param request body accountblock.EnableOrDisableDistricts true "District codes and reason" example({"districts_code":["DS001","DS002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Enable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -452,7 +452,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 // @Tags Account Block - Districts
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableDistricts true "District codes" example({"districts_code":["DS001","DS002"]})
+// @Param request body accountblock.EnableOrDisableDistricts true "District codes and reason" example({"districts_code":["DS001","DS002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Disable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -488,12 +488,12 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableCities true "City codes" example({"city_code":["CT001","CT002"]})
+// @Param request body accountblock.EnableOrDisableCities true "City codes and reason" example({"city_codes":["CT001","CT002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Enable request submitted"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
-// @Router /account_block/city/enable [post]
+// @Router /account_block/cities/enable [post]
 func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Request) {
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -503,12 +503,12 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 
 	// Trim any whitespace
 	req.Clean()
-	if len(req.CitiesCode) == 0 {
+	if len(req.CityCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityCodes, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -523,12 +523,12 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 // @Tags Account Block - Cities
 // @Accept json
 // @Produce json
-// @Param request body accountblock.EnableOrDisableCities true "City codes to disable"
+// @Param request body accountblock.EnableOrDisableCities true "City codes and reason" example({"city_codes":["CT001","CT002"], "reason": "foo"})
 // @Success 200 {object} localization.StandardResponse{data=nil} "Cities disabled successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth
-// @Router /account_block/city/disable [post]
+// @Router /account_block/cities/disable [post]
 func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Request) {
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -539,12 +539,12 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 	// Trim any whitespace
 	req.Clean()
 
-	if len(req.CitiesCode) == 0 {
+	if len(req.CityCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CitiesCode, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityCodes, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

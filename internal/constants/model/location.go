@@ -13,13 +13,13 @@ type Branch struct {
 	BranchAddress         string        `bson:"branch_address" json:"branch_address"`
 	DistrictCode          string        `bson:"district_code" json:"district_code"`
 	DistrictName          string        `bson:"district_name" json:"district_name"`
-	BranchRegion          string        `bson:"branch_region" json:"branch_region"`
+	RegionName            string        `bson:"region_name" json:"region_name"`
 	RecordStat            string        `bson:"record_stat" json:"record_stat"`
-	CreatedAt             time.Time     `bson:"created_at" json:"created_at"`
-	IsDeleted             bool          `bson:"is_deleted" json:"-"`
-	UpdatedAt             time.Time     `bson:"updated_at" json:"updated_at"`
 	Enabled               bool          `bson:"enabled" json:"enabled"`
 	EnableOrDisableReason string        `bson:"enable_or_disable_reason,omitempty" json:"enable_or_disable_reason,omitempty"`
+	IsDeleted             bool          `bson:"is_deleted,omitempty" json:"-"`
+	CreatedAt             time.Time     `bson:"created_at" json:"created_at"`
+	UpdatedAt             time.Time     `bson:"updated_at" json:"updated_at"`
 }
 
 type Region struct {
@@ -27,10 +27,11 @@ type Region struct {
 	RegionCode            string        `json:"region_code" bson:"region_code"`
 	RegionName            string        `json:"region_name" bson:"region_name"`
 	RegionAddress         string        `json:"region_address" bson:"region_address"`
-	CreatedAt             time.Time     `json:"created_at" bson:"created_at"`
-	UpdatedAt             time.Time     `json:"updated_at" bson:"updated_at"`
 	Enabled               bool          `json:"enabled" bson:"enabled"`
 	EnableOrDisableReason string        `bson:"enable_or_disable_reason,omitempty" json:"enable_or_disable_reason,omitempty"`
+	IsDeleted             bool          `bson:"is_deleted,omitempty" json:"-"`
+	CreatedAt             time.Time     `json:"created_at" bson:"created_at"`
+	UpdatedAt             time.Time     `json:"updated_at" bson:"updated_at"`
 }
 
 type District struct {
@@ -40,10 +41,11 @@ type District struct {
 	DistrictAddress       string        `json:"district_address" bson:"district_address"`
 	RegionID              string        `json:"region_id" bson:"region_id"`
 	RegionName            string        `json:"region_name" bson:"region_name"`
-	CreatedAt             time.Time     `json:"created_at" bson:"created_at"`
-	UpdatedAt             time.Time     `json:"updated_at" bson:"updated_at"`
 	Enabled               bool          `json:"enabled" bson:"enabled"`
 	EnableOrDisableReason string        `bson:"enable_or_disable_reason,omitempty" json:"enable_or_disable_reason,omitempty"`
+	IsDeleted             bool          `bson:"is_deleted,omitempty" json:"-"`
+	CreatedAt             time.Time     `json:"created_at" bson:"created_at"`
+	UpdatedAt             time.Time     `json:"updated_at" bson:"updated_at"`
 }
 
 type City struct {
@@ -55,8 +57,9 @@ type City struct {
 	DistrictName          string        `json:"district_name" bson:"district_name,omitempty"`
 	RegionID              string        `json:"region_id" bson:"region_id,omitempty"`
 	RegionName            string        `json:"region_name" bson:"region_name,omitempty"`
-	CreatedAt             time.Time     `json:"created_at" bson:"created_at,omitempty"`
-	UpdatedAt             time.Time     `json:"updated_at" bson:"updated_at,omitempty"`
 	Enabled               bool          `json:"enabled" bson:"enabled"`
 	EnableOrDisableReason string        `bson:"enable_or_disable_reason,omitempty" json:"enable_or_disable_reason,omitempty"`
+	IsDeleted             bool          `bson:"is_deleted,omitempty" json:"-"`
+	CreatedAt             time.Time     `json:"created_at" bson:"created_at,omitempty"`
+	UpdatedAt             time.Time     `json:"updated_at" bson:"updated_at,omitempty"`
 }
