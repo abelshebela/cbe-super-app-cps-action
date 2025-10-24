@@ -145,7 +145,7 @@ func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*m
 
 func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"branch_code", "branch_name", "branch_address", "branch_region", "district_name", "enabled"}
+	allowedKeys := []string{"branch_code", "branch_name", "branch_address", "region_name", "district_name", "enabled"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -153,7 +153,7 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 			{"branch_code": searchRegex},
 			{"branch_name": searchRegex},
 			{"branch_address": searchRegex},
-			{"branch_region": searchRegex},
+			{"region_name": searchRegex},
 			{"district_name": searchRegex},
 		}
 	}

@@ -27,8 +27,8 @@ func BranchMapperForUpdate(branch model.Branch) bson.M {
 	if branch.DistrictName != "" {
 		update["district_name"] = branch.DistrictName
 	}
-	if branch.BranchRegion != "" {
-		update["branch_region"] = branch.BranchRegion
+	if branch.RegionName != "" {
+		update["region_name"] = branch.RegionName
 	}
 	if branch.RecordStat != "" {
 		update["record_stat"] = branch.RecordStat
