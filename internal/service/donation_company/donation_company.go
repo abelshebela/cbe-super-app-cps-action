@@ -65,7 +65,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	// Check if company name already exists
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
 		return err
@@ -74,7 +73,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorCompanyNameAlreadyExists.Code)
 	}
 
-	// Check if account number already exists
 	ok, err = core.AccountNumberExists(ctx, donationCompany.AccountNumber, d.DonationCompanyRepo)
 	if err != nil {
 		return err
@@ -83,25 +81,20 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	// Validate account number with external API
 	if _, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return err
 	}
 
-	// Check if logo is provided
 	if donationCompany.CompanyLogo == nil {
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	// Upload logo to MinIO
 	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.logger)
 	if err != nil {
 		return err
 	}
 
-	d.logger.Infof("Logo uploaded successfully: %s", url)
-	// Use core mapper to create response
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
 
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
