@@ -7,6 +7,7 @@ type DonationCompanyResponse struct {
 	PhoneNumber   string `json:"phone_number" bson:"phone_number"`
 	Email         string `json:"email" bson:"email"`
 	Address       string `json:"address" bson:"address"`
+	Enabled       bool   `json:"enabled" bson:"enabled"`
 }
 
 // DonationCompanyListResponse is used for fetching donation companies

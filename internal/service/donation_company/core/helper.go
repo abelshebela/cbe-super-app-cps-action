@@ -109,6 +109,7 @@ func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, lo
 		PhoneNumber:   donationCompany.PhoneNumber,
 		Email:         donationCompany.Email,
 		Address:       donationCompany.Address,
+		Enabled:       true,
 	}
 }
 
