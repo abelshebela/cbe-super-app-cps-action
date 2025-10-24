@@ -100,6 +100,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return err
 	}
 
+	d.logger.Infof("Logo uploaded successfully: %s", url)
 	// Use core mapper to create response
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
 
@@ -163,30 +164,29 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		d.logger.Errorf("Tried to authorize service action without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
-	var donationCPS *dto.DonationCompanyCPSRequest
-	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
-	if bindErr != nil {
-		d.logger.Errorf("failed to bind current action to donation company: %v", bindErr)
-		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
+
+	donationCompoany, err := local_util.JsonUnmarshal[model.DonationCompany](action.CurrentAction)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCompany):
-		donationModel := core.MapToDonationCompany(donationCPS.CompanyName, donationCPS.CompanyLogo, donationCPS.AccountNumber)
 
-		err := d.DonationCompanyRepo.Create(ctx, donationModel)
+		err := d.DonationCompanyRepo.Create(ctx, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to create donation company: %v", err)
 			return nil, err
 		}
 
 	case string(constants.RequestUpdateDonationCompany):
-		donationModel := core.MapToDonationCompany(donationCPS.CompanyName, donationCPS.CompanyLogo, donationCPS.AccountNumber)
-		err := d.DonationCompanyRepo.Update(ctx, donationCPS.ID, donationModel)
+
+		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation company: %v", err)
 			return nil, err
 		}
+
 	default:
 		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
