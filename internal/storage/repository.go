@@ -152,7 +152,7 @@ type AccountBlockRepository interface {
 	CreateBranch(ctx context.Context, branch *model.Branch) error
 	UpdateBranch(ctx context.Context, id string, branch *model.Branch) error
 	DeleteBranch(ctx context.Context, id string) error
-	EnableOrDisableBranch(ctx context.Context, code string, enabled bool) error
+	EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error
 	FindBranchByID(ctx context.Context, id string) (*model.Branch, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
 
@@ -160,7 +160,7 @@ type AccountBlockRepository interface {
 	CreateCity(ctx context.Context, city *model.City) error
 	UpdateCity(ctx context.Context, id string, city *model.City) error
 	DeleteCity(ctx context.Context, id string) error
-	EnableOrDisableCity(ctx context.Context, code string, enabled bool) error
+	EnableOrDisableCity(ctx context.Context, code string, reason string, enabled bool) error
 	FindCityByID(ctx context.Context, id string) (*model.City, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
 
@@ -168,7 +168,7 @@ type AccountBlockRepository interface {
 	CreateRegion(ctx context.Context, region *model.Region) error
 	UpdateRegion(ctx context.Context, id string, region *model.Region) error
 	DeleteRegion(ctx context.Context, id string) error
-	EnableOrDisableRegion(ctx context.Context, code string, enabled bool) error
+	EnableOrDisableRegion(ctx context.Context, code string, reason string, enabled bool) error
 	FindRegionByID(ctx context.Context, id string) (*model.Region, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
 
@@ -176,7 +176,7 @@ type AccountBlockRepository interface {
 	CreateDistrict(ctx context.Context, district *model.District) error
 	UpdateDistrict(ctx context.Context, id string, district *model.District) error
 	DeleteDistrict(ctx context.Context, id string) error
-	EnableOrDisableDistrict(ctx context.Context, code string, enabled bool) error
+	EnableOrDisableDistrict(ctx context.Context, code string, reason string, enabled bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
 }

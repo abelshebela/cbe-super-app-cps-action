@@ -10,10 +10,9 @@ type BranchResponse struct {
 	BranchAddress string    `json:"branch_address"`
 	DistrictCode  string    `json:"district_code"`
 	DistrictName  string    `json:"district_name"`
-	BranchRegion  string    `json:"branch_region"`
+	RegionName    string    `json:"region_name"`
 	RecordStat    string    `json:"record_stat"`
 	CreatedAt     time.Time `json:"created_at"`
-	IsDeleted     bool      `json:"-"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	Enabled       bool      `json:"enabled"`
 }

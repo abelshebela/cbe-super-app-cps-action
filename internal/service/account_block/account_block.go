@@ -11,7 +11,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
@@ -57,7 +56,7 @@ func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *ty
 	return s.repo.FindAllCitiesWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error {
+func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error {
 
 	for _, code := range branchCodes {
 		branch, err := s.repo.GetBranchByCode(ctx, code)
@@ -86,12 +85,12 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		requestActionType = constants.RequestDisableBranches
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, branchCodes, actionType, requestActionType)
+	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, branchCodes, reason, actionType, requestActionType)
 
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
-func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error {
+func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error {
 	for _, code := range regionsCode {
 		region, err := s.repo.GetRegionByCode(ctx, code)
 		if err != nil {
@@ -119,12 +118,12 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 		requestActionType = constants.RequestDisableRegions
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, actionType, requestActionType)
+	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, regionsCode, reason, actionType, requestActionType)
 
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
-func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error {
+func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error {
 	for _, code := range districtsCode {
 		district, err := s.repo.GetDistrictByCode(ctx, code)
 		if err != nil {
@@ -152,14 +151,12 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		requestActionType = constants.RequestDisableDistricts
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, actionType, requestActionType)
+	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, districtsCode, reason, actionType, requestActionType)
 
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
-func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error {
-
-	fmt.Println("===============EnableOrDisableCities===================")
+func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error {
 	for _, code := range citiesCode {
 		city, err := s.repo.GetCityByCode(ctx, code)
 		if err != nil {
@@ -187,7 +184,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesC
 		requestActionType = constants.RequestDisableCities
 	}
 
-	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, actionType, requestActionType)
+	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, citiesCode, reason, actionType, requestActionType)
 
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
@@ -196,13 +193,13 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 	switch constants.RequestAction(action.RequestAction) {
 	case constants.RequestEnableBranches:
 
-		branches, err := local_util.JsonUnmarshal[[]model.Branch](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, branch := range *branches {
-			err = s.repo.EnableOrDisableBranch(ctx, branch.BranchCode, true)
+		for _, branchCode := range action.Codes {
+			err = s.repo.EnableOrDisableBranch(ctx, branchCode, action.Reason, true)
 
 			if err != nil {
 				return nil, err
@@ -210,91 +207,91 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		}
 
 	case constants.RequestDisableBranches:
-		branches, err := local_util.JsonUnmarshal[[]model.Branch](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, branch := range *branches {
-			err = s.repo.EnableOrDisableBranch(ctx, branch.BranchCode, false)
+		for _, branchCode := range action.Codes {
+			err = s.repo.EnableOrDisableBranch(ctx, branchCode, action.Reason, false)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case constants.RequestEnableRegions:
-		regions, err := local_util.JsonUnmarshal[[]model.Region](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, region := range *regions {
-			err = s.repo.EnableOrDisableRegion(ctx, region.RegionCode, true)
+		for _, regionCode := range action.Codes {
+			err = s.repo.EnableOrDisableRegion(ctx, regionCode, action.Reason, true)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case constants.RequestDisableRegions:
-		regions, err := local_util.JsonUnmarshal[[]model.Region](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, region := range *regions {
-			err = s.repo.EnableOrDisableRegion(ctx, region.RegionCode, false)
+		for _, regionCode := range action.Codes {
+			err = s.repo.EnableOrDisableRegion(ctx, regionCode, action.Reason, false)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case constants.RequestEnableDistricts:
-		districts, err := local_util.JsonUnmarshal[[]model.District](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, district := range *districts {
-			err = s.repo.EnableOrDisableDistrict(ctx, district.DistrictCode, true)
+		for _, districtCode := range action.Codes {
+			err = s.repo.EnableOrDisableDistrict(ctx, districtCode, action.Reason, true)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case constants.RequestDisableDistricts:
-		districts, err := local_util.JsonUnmarshal[[]model.District](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, district := range *districts {
-			err = s.repo.EnableOrDisableDistrict(ctx, district.DistrictCode, false)
+		for _, districtCode := range action.Codes {
+			err = s.repo.EnableOrDisableDistrict(ctx, districtCode, action.Reason, false)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case constants.RequestEnableCities:
-		cities, err := local_util.JsonUnmarshal[[]model.City](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, city := range *cities {
-			err = s.repo.EnableOrDisableCity(ctx, city.CityCode, true)
+		for _, cityCode := range action.Codes {
+			err = s.repo.EnableOrDisableCity(ctx, cityCode, action.Reason, true)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 	case constants.RequestDisableCities:
-		cities, err := local_util.JsonUnmarshal[[]model.City](action.CurrentAction)
+		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, city := range *cities {
-			err = s.repo.EnableOrDisableCity(ctx, city.CityCode, false)
+		for _, cityCode := range action.Codes {
+			err = s.repo.EnableOrDisableCity(ctx, cityCode, action.Reason, false)
 			if err != nil {
 				return nil, err
 			}
