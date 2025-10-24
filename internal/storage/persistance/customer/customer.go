@@ -26,13 +26,15 @@ type CustomerRepository struct {
 	logger           utils.Logger
 }
 
-func InitCustomerDetail(client *mongo.Client, database string, collection string, logger utils.Logger) storage.CustomerRepository {
-	mongoDal := dal.NewMongoDal[model.User, model.User](client, database, collection)
+func InitCustomerDetail(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CustomerRepository {
+	mongoDal := dal.NewMongoDal[model.User, model.User](client, database, collection[0])
+	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
 
 	return &CustomerRepository{
-		client:   client,
-		mongoDal: mongoDal,
-		logger:   logger,
+		client:           client,
+		mongoDal:         mongoDal,
+		logger:           logger,
+		linkedAccountDal: linkedAccountDal,
 	}
 }
 

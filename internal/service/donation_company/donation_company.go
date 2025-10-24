@@ -65,7 +65,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	// Check if company name already exists
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
 		return err
@@ -74,7 +73,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorCompanyNameAlreadyExists.Code)
 	}
 
-	// Check if account number already exists
 	ok, err = core.AccountNumberExists(ctx, donationCompany.AccountNumber, d.DonationCompanyRepo)
 	if err != nil {
 		return err
@@ -83,24 +81,20 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	// Validate account number with external API
 	if _, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return err
 	}
 
-	// Check if logo is provided
 	if donationCompany.CompanyLogo == nil {
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	// Upload logo to MinIO
 	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.logger)
 	if err != nil {
 		return err
 	}
 
-	// Use core mapper to create response
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
 
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
@@ -163,30 +157,29 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 		d.logger.Errorf("Tried to authorize service action without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
-	var donationCPS *dto.DonationCompanyCPSRequest
-	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
-	if bindErr != nil {
-		d.logger.Errorf("failed to bind current action to donation company: %v", bindErr)
-		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
+
+	donationCompoany, err := local_util.JsonUnmarshal[model.DonationCompany](action.CurrentAction)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCompany):
-		donationModel := core.MapToDonationCompany(donationCPS.CompanyName, donationCPS.CompanyLogo, donationCPS.AccountNumber)
 
-		err := d.DonationCompanyRepo.Create(ctx, donationModel)
+		err := d.DonationCompanyRepo.Create(ctx, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to create donation company: %v", err)
 			return nil, err
 		}
 
 	case string(constants.RequestUpdateDonationCompany):
-		donationModel := core.MapToDonationCompany(donationCPS.CompanyName, donationCPS.CompanyLogo, donationCPS.AccountNumber)
-		err := d.DonationCompanyRepo.Update(ctx, donationCPS.ID, donationModel)
+
+		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation company: %v", err)
 			return nil, err
 		}
+
 	default:
 		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
