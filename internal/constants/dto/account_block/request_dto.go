@@ -16,6 +16,7 @@ type EnableOrDisableRegions struct {
 type EnableOrDisableDistricts struct {
 	DistrictCodes []string `json:"district_codes" example:"DS001,DS002" validate:"required,min=1"`
 	Reason        string   `json:"reason" example:"Operational Change" validate:"required"`
+
 }
 
 // EnableOrDisableCities represents the request to enable or disable cities
