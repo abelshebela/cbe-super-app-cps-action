@@ -7,16 +7,18 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 
 	"cbe-super-app-cps-action/internal/constants"
 
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
-	"cbe-super-app-cps-action/internal/constants/dto/mini_app"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -232,7 +234,6 @@ type PortalCardRepository interface {
 	ValidatePortalCardByID(ctx context.Context, ids []string) (bool, error)
 }
 
-
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
 	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
@@ -296,7 +297,6 @@ type MiniAppRepository interface {
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
-
 }
 type EventRepository interface {
 	Create(ctx context.Context, event *model.Event) error
@@ -311,8 +311,8 @@ type EventRepository interface {
 
 type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
-	FindByID(ctx context.Context, id string) (*model.Feedback, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*feedback.FeedbackResponse], error)
 }
 
 type IconRepository interface {

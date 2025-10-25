@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
@@ -20,7 +21,6 @@ import (
 	donationCat_dto "cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	donationComp_dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
-	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
@@ -153,8 +153,8 @@ type FaydaAccountService interface {
 type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
-	GetFeedbackByID(ctx context.Context, id string) (*model.Feedback, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*fbdto.FeedbackResponse], error)
 }
 
 type HQService interface {
