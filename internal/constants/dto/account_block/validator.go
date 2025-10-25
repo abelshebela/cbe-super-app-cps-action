@@ -9,8 +9,8 @@ func (e *EnableOrDisableBranches) Clean() {
 }
 
 func (e *EnableOrDisableRegions) Clean() {
-	for i, code := range e.RegionsCodes {
-		e.RegionsCodes[i] = strings.TrimSpace(code)
+	for i, code := range e.RegionCodes {
+		e.RegionCodes[i] = strings.TrimSpace(code)
 	}
 }
 
@@ -21,7 +21,7 @@ func (e *EnableOrDisableDistricts) Clean() {
 }
 
 func (e *EnableOrDisableCities) Clean() {
-	for i, code := range e.CitiesCode {
-		e.CitiesCode[i] = strings.TrimSpace(code)
+	for i, code := range e.CityCodes {
+		e.CityCodes[i] = strings.TrimSpace(code)
 	}
 }

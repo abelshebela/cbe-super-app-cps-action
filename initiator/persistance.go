@@ -115,8 +115,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		DepartmentPersistence:      department.NewDepartmentRepository(client, dbName, "department", logger),
 		FaydaPersistence:           fayda.InitFaydaAccountPersistence(client, dbName, "members", logger),
 		PermissionPersistence:      permission.InitPermission(client, dbName, 30*time.Second, logger),
-		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "articles"),
-		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "article_categories"),
+		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "news_articles"),
+		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "news_categories"),
 		ShortVideoPersistence:      media.NewShortVideoRepository(logger, client, dbName, "news_short_videos"),
 	}
 
