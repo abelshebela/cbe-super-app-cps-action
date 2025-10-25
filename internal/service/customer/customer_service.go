@@ -174,6 +174,7 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 
 	new_customer := *customer
 	new_customer.Enabled = false
+	new_customer.IsBlocked = true
 	new_customer.BlockedReason = disable.DisableReason
 
 	if *disable.IsTemporary {

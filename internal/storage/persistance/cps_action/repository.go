@@ -52,17 +52,14 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 
 func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	s.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
-	// 1. Base filter (only active records)
 	filter := bson.M{
 		"is_deleted": false,
 		"department": department,
 	}
 	searchKeys := bson.M{}
 
-	// 2. Allowed filterable/searchable fields
 	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
-	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["field1"] = searchRegex // choose your searchable field(s)
@@ -75,30 +72,25 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 		s.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
 
-	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 
 	filter["orderBy"] = "created_at"
 	filter["orderBy"] = "created_at"
-	// 5. Fetch data
-	data, err := s.dal.FindAllWithPaginationWithSort(ctx, filter, Projection, skip, limit, bson.M{"created_at": 1})
+	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
 	if err != nil {
 		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("Error counting total CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 7. Build pagination metadata
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// 8. Return standard paginated response
 	s.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
 	return &types.PaginatedResponse[[]*model.CPSAction]{
 		Data: data,
