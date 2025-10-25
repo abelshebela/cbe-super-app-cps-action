@@ -41,28 +41,15 @@ func (s *notificationService) CreateNotification(ctx context.Context, req notify
 	s.logger.Infof("Creating notification request: %+v", req)
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
-		if s.logger != nil {
-			s.logger.Errorf("incomplete user context for notification action | context = %v", maker)
-		}
+		s.logger.Errorf("incomplete user context for notification action | context = %v", maker)
 		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
-
-	// uniqueness check
-	exist, err := s.repo.NotificationExists(ctx, req.NotificationType, constants.NotificationFor(req.For), nil)
-	if err != nil {
-		return nil, err
-	}
-	if exist {
-		return nil, errors.New(localization.ErrorNotificationAlreadyExists.Code)
 	}
 
 	entity := helper.BuildCreateNotification(req)
 
 	cpsAction := lib.CpsModelBuilder("", maker, nil, entity, string(constants.RequestCreatePublicNotification), constants.CREATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for notification | action=%s | err=%v", constants.RequestCreatePublicNotification, err)
-		}
+		s.logger.Errorf("failed to create CPS action for notification | action=%s | err=%v", constants.RequestCreatePublicNotification, err)
 		return nil, err
 	}
 
