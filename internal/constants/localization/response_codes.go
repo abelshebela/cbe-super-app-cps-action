@@ -242,6 +242,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorInvalidInputParameter,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,

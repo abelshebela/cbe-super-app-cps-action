@@ -29,6 +29,14 @@ func (d DonationCompanyRequest) ValidateForUpdate() error {
 				validation.Length(10, 20).Error("account number must be between 10 and 20 characters"),
 				validation.By(validateAccountNumberFormat)),
 		),
+		validation.Field(&d.PhoneNumber,
+			validation.When(d.PhoneNumber != "", validation.Required.Error("phone number is required"),
+				validation.Length(9, 13).Error("phone number must be between 9 and 13 characters"),
+			)),
+		validation.Field(&d.Email,
+			validation.When(d.Email != "", validation.Required.Error("email is required"))),
+		validation.Field(&d.Address,
+			validation.When(d.Address != "", validation.Required.Error("address is required"))),
 	)
 }
 
@@ -48,6 +56,14 @@ func (d DonationCompanyRequest) Validate() error {
 			validation.Length(10, 20).Error("account number must be between 10 and 20 characters"),
 			validation.By(validateAccountNumberFormat),
 		),
+		validation.Field(&d.PhoneNumber,
+			validation.When(d.PhoneNumber != "", validation.Required.Error("phone number is required"),
+				validation.Length(9, 13).Error("phone number must be between 9 and 13 characters"),
+			)),
+		validation.Field(&d.Email,
+			validation.When(d.Email != "", validation.Required.Error("email is required"))),
+		validation.Field(&d.Address,
+			validation.When(d.Address != "", validation.Required.Error("address is required"))),
 	)
 }
 

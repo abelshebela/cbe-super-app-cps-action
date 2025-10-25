@@ -268,7 +268,7 @@ type User struct {
 type SubAccessList struct {
 	Key            string `json:"key" bson:"key"`
 	Enabled        bool   `json:"enabled" bson:"enabled"`
-	AccessListName string `json:"accessListName" bson:"accessListName"`
+	AccessListName string `json:"access_list_ame" bson:"access_list_name"`
 }
 
 type Response struct {

@@ -58,9 +58,18 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			},
 		},
 		{
-			Method:  http.MethodPost,
+			Method:  http.MethodPatch,
 			Path:    "/customers/disable/{id}",
 			Handler: handler.DisableCustomer,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/linked_account/{customer_number}",
+			Handler: handler.GetLinkedAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),

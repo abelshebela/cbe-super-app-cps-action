@@ -124,10 +124,10 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	bank := model.Bank{
-		Name: bank_request.Name,
-		BIC:  bank_request.BIC,
-		Code: bank_request.Code,
-		Logo: URL,
+		Name:    bank_request.Name,
+		BIC:     bank_request.BIC,
+		Code:    bank_request.Code,
+		Logo:    URL,
 		Enabled: true,
 	}
 
@@ -284,7 +284,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		updatedBank.Name = bank_request.Name
 	}
 
-	if bank_request.Logo == nil {
+	if bank_request.Logo != nil {
 		URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
 		if err != nil {
 			b.logger.Errorf("UploadFileToMinio failed", "error", err)

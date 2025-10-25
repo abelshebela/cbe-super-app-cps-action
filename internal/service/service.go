@@ -5,7 +5,10 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+
+	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 
@@ -92,7 +95,9 @@ type CustomerService interface {
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
-	DisableCustomerByID(ctx context.Context, id string) error
+	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
+
+	GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -273,10 +278,10 @@ type AccountBlockService interface {
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
 	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
-	EnableOrDisableBranches(ctx context.Context, branchCodes []string, enabled bool) error
-	EnableOrDisableRegions(ctx context.Context, regionsCode []string, enabled bool) error
-	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, enabled bool) error
-	EnableOrDisableCities(ctx context.Context, citiesCode []string, enabled bool) error
+	EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

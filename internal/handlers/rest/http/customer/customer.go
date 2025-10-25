@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -24,6 +25,13 @@ type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
 type customerAdapter struct {
 	customerService service.CustomerService
 	logger          utils.Logger
+}
+
+func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
+	return &customerAdapter{
+		logger:          logger,
+		customerService: customer,
+	}
 }
 
 // SetEnableCustomerSession initiates enabling a customer session by generating an OTP
@@ -76,8 +84,26 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
+
+	var payload dto.CustomerDisableDTO
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	if payload.IsTemporary == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
+	if err := core.ValidateString(payload.DisableReason); err != nil {
+		c.logger.Errorf("invalid disable reason: %v", err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameter.Code)
+		return
+	}
+
 	ctx := r.Context()
-	err := c.customerService.DisableCustomerByID(ctx, id)
+	err := c.customerService.DisableCustomerByID(ctx, id, payload)
 	if err != nil {
 		c.logger.Errorf("error while fetching get customer detail:", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -121,13 +147,6 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
-}
-
-func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
-	return &customerAdapter{
-		logger:          logger,
-		customerService: customer,
-	}
 }
 
 // GetCustomerDetail retrieves customer details with optional KYC level filtering
@@ -220,8 +239,38 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 
 	BlockedCustomer, err := c.customerService.GetBlockedCustomer(r.Context(), filterParams)
 	if err != nil {
+		c.logger.Errorf("error while fetching get blocked customer detail: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetBlockedCustomer.Code)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessFullyFetchBlockCustomer, BlockedCustomer)
+}
+
+// GetLinkedAccount retrieves customer linked account
+// @Summary Get Customer Linked Account
+// @Description Retrives a list of customer linked account
+// @Tags Customers Linked Account
+// @Param customer_number
+// @Produce json
+// @Success 200 {object} localization.StandardResponse{data=customers_paginated_resp} "Blocked customers retrieved successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /customers/blocked [get]
+func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "customer_number")
+	if id == "" {
+		c.logger.Errorf("customer_number not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	ctx := r.Context()
+	userDetail, err := c.customerService.GetLinkedAccount(ctx, id)
+	if err != nil {
+		c.logger.Errorf("error while fetching get customer detail:", err)
+		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)
 }

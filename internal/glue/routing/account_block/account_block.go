@@ -73,7 +73,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/city",
+				Path:    "/cities",
 				Handler: handler.GetAllCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -82,7 +82,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/city/{city_code}",
+				Path:    "/cities/{city_code}",
 				Handler: handler.GetCityByCode,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -145,7 +145,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/city/enable",
+				Path:    "/cities/enable",
 				Handler: handler.EnableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
@@ -154,7 +154,7 @@ func Init(
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/city/disable",
+				Path:    "/cities/disable",
 				Handler: handler.DisableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,

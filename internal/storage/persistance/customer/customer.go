@@ -20,18 +20,21 @@ import (
 )
 
 type CustomerRepository struct {
-	client   *mongo.Client
-	mongoDal dal.MongoDal[model.User, model.User]
-	logger   utils.Logger
+	client           *mongo.Client
+	mongoDal         dal.MongoDal[model.User, model.User]
+	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	logger           utils.Logger
 }
 
-func InitCustomerDetail(client *mongo.Client, database string, collection string, logger utils.Logger) storage.CustomerRepository {
-	mongoDal := dal.NewMongoDal[model.User, model.User](client, database, collection)
+func InitCustomerDetail(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CustomerRepository {
+	mongoDal := dal.NewMongoDal[model.User, model.User](client, database, collection[0])
+	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
 
 	return &CustomerRepository{
-		client:   client,
-		mongoDal: mongoDal,
-		logger:   logger,
+		client:           client,
+		mongoDal:         mongoDal,
+		logger:           logger,
+		linkedAccountDal: linkedAccountDal,
 	}
 }
 
@@ -39,10 +42,8 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	searchKeys := bson.M{}
 
-	// 2. Allowed filterable/searchable fields
 	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
-	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
@@ -56,22 +57,19 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// 5. Fetch data
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
 	if err != nil {
+		p.logger.Infof("error while fetching customer data: %v", err.Error())
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// 6. Count total
 	total, err := p.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
-	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.User]{
 		Data: data,
 		Meta: meta,
@@ -85,7 +83,8 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 	}
 	filter := bson.M{"_id": objID}
 	p.logger.Infof("Fetching user with filter: %v", filter)
-	user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
+	// user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
+	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
@@ -121,4 +120,18 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 		return err
 	}
 	return nil
+}
+
+func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+
+	filter := bson.M{
+		"customer_number": customerNumber,
+	}
+
+	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		return []*model.LinkedAccount{}, err
+	}
+
+	return linkedAccount, nil
 }
