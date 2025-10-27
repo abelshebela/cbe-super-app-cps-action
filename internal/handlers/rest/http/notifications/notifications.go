@@ -52,7 +52,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	domainReq := core.ToDomainNotificationRequest(req)
 	_, err = h.service.CreateNotification(r.Context(), domainReq)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
@@ -91,7 +91,7 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	domainReq := core.ToDomainNotificationRequest(req)
 	_, err = h.service.UpdateNotification(r.Context(), id, domainReq)
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
@@ -122,7 +122,7 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.DeleteNotification(r.Context(), id); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
@@ -153,7 +153,7 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.EnableNotification(r.Context(), id); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
@@ -184,7 +184,7 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.DisableNotification(r.Context(), id); err != nil {
-		localization.SendErrorResponse(w, localization.ErrorUnexpectedError, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
@@ -235,7 +235,7 @@ func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	data, err := h.service.FetchNotifications(r.Context(), &types.Filter{})
 	if err != nil {
-		localization.SendErrorResponse(w, localization.ErrorNotificationFetchFailed, nil, nil)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	localization.SendSuccessResponse(w, localization.SuccessNotificationsRetrieved, data)

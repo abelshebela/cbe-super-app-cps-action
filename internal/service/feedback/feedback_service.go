@@ -53,7 +53,7 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 	return feedback, nil
 }
 
-func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*model.Feedback, error) {
+func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error) {
 	feedback, err := f.repo.FindByID(ctx, id)
 	if err != nil {
 		f.logger.Errorf("Failed to get feedback by ID: %v", err)
@@ -62,7 +62,7 @@ func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*mode
 	return feedback, nil
 }
 
-func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error) {
+func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*fbdto.FeedbackResponse], error) {
 	feedbacks, err := f.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		f.logger.Errorf("Failed to get feedbacks: %v", err)

@@ -70,6 +70,14 @@ const (
 	DefaultPerPage = 10
 )
 
+type Level uint8
+
+const (
+	ZERO Level = 0
+	ONE  Level = 1
+	TWO  Level = 2
+)
+
 type Realm string
 
 const (
@@ -142,6 +150,15 @@ type AccountStatus string
 const (
 	Active   AccountStatus = "ACTIVE"
 	InActive AccountStatus = "INACTIVE"
+)
+
+type RiskLevel string
+
+const (
+	None   RiskLevel = ""
+	High   RiskLevel = "HIGH"
+	Midium RiskLevel = "MIDIUM"
+	Low    RiskLevel = "LOW"
 )
 
 type MemberType string
@@ -232,6 +249,7 @@ const (
 	RequestDisableDepartment        RequestAction = "DISABLE_DEPARTMENT"
 	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestEnableDisableCustomer    RequestAction = "ENABLE_DISABLE_CUSTOMER"
+	RequestApproveFaydaCustomer     RequestAction = "APPROVE_FAYDA_CUSTOMER"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
 	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
 	RequestDeleteWallet             RequestAction = "DELETE_WALLET"

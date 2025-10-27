@@ -287,6 +287,11 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 	// Trim any whitespace
 	req.Clean()
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	if len(req.BranchCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
@@ -323,6 +328,11 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 	// Trim any whitespace
 	req.Clean()
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	if len(req.BranchCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
@@ -358,6 +368,11 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 
 	// Trim any whitespace
 	req.Clean()
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 
 	if len(req.RegionCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
@@ -396,6 +411,11 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 	// Trim any whitespace
 	req.Clean()
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	if len(req.RegionCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
@@ -431,6 +451,11 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 
 	// Trim any whitespace
 	req.Clean()
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 
 	if len(req.DistrictCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
@@ -468,6 +493,11 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 	// Trim any whitespace
 	req.Clean()
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	if len(req.DistrictCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
@@ -503,6 +533,12 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 
 	// Trim any whitespace
 	req.Clean()
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
 	if len(req.CityCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
@@ -538,6 +574,11 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 
 	// Trim any whitespace
 	req.Clean()
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 
 	if len(req.CityCodes) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)

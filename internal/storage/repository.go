@@ -7,6 +7,7 @@ import (
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
@@ -310,8 +311,8 @@ type EventRepository interface {
 
 type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
-	FindByID(ctx context.Context, id string) (*model.Feedback, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Feedback], error)
+	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*feedback.FeedbackResponse], error)
 }
 
 type IconRepository interface {
@@ -446,6 +447,7 @@ type FaydaRepository interface {
 
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
+	Update(ctx context.Context, id string, data model.User) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)

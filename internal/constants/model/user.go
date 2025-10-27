@@ -35,6 +35,7 @@ type User struct {
 		MonthlyIncome    uint64 `json:"monthly_incode" bson:"monthly_incode,omitempty"`
 	} `json:"fayda" bson:"fayda,omitempty"`
 
+	FaydaRiskLevel    string                  `json:"fayda_risk_level" bson:"fayda_risk_level,omitempty"`
 	Address           types.Address           `json:"address" bson:"address,omitempty"`
 	DocumentFront     string                  `json:"document_front" bson:"document_front,omitempty"`
 	DocumentBack      string                  `json:"document_back" bson:"document_back,omitempty"`
@@ -58,7 +59,7 @@ type User struct {
 		KYCStatus            constants.KYCStatus `json:"kyc_status" bson:"kyc_status,omitempty"`
 		KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason,omitempty"`
 		KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved,omitempty"`
-		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by,omitempty"`
+		KYCActivityBy        any                 `json:"kyc_activity_by" bson:"kyc_activity_by,omitempty"`
 	} `json:"kyc" bson:"kyc,omitempty"`
 
 	KYCLevel uint8 `json:"kyc_level" bson:"kyc_level,omitempty"`
@@ -66,7 +67,7 @@ type User struct {
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved,omitempty"`
 	IsVerified        bool      `json:"is_verified" bson:"is_verified,omitempty"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register,omitempty"`
-	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps,omitempty"`
+	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps,omitempty"` // will remove
 	IsBlocked         bool      `json:"is_blocked" bson:"is_blocked,omitempty"`
 	RegisterBy        struct{}  `json:"register_by" bson:"register_By,omitempty"`
 	LoginAttemptCount uint8     `json:"login_attempt_count" bson:"login_attempt_count,omitempty"`

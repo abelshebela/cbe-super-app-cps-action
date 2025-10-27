@@ -255,6 +255,8 @@ const (
 	RequestDisableShortVideo RequestAction = "DISABLE_SHORT_VIDEO"
 	RequestDeleteShortVideo  RequestAction = "DELETE_SHORT_VIDEO"
 
+	RequestApproveFaydaCustomer RequestAction = "APPROVE_FAYDA_CUSTOMER"
+
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
 )
 
@@ -729,6 +731,7 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"customer": {
 		RequestEnableDisableCustomer,
+		RequestApproveFaydaCustomer,
 	},
 }
 

@@ -217,6 +217,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUpdateEventEmptyPayload,
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
+	ErrorCustomerIDRequired,
 	ErrorStartDateRequired,
 	ErrorDueDateRequired,
 	ErrorTotalTicketCountRequired,
@@ -1294,6 +1295,13 @@ var (
 		Code:       "ERROR_MERCHANT_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    "Merchant ID is required",
+		Type:       "error",
+	}
+
+	ErrorCustomerIDRequired = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Customer ID is required in param",
 		Type:       "error",
 	}
 
@@ -4062,6 +4070,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCustomerBlockedPermanently = ResponseCode{
+		Code:       "ERROR_CUSTOMER_PERMANENTLY_BLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerPermanentlyDisabled,
+		Type:       "error",
+	}
+
 	ErrorLogoIsRequired = ResponseCode{
 		Code:       "ERROR_LOGO_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -4891,6 +4906,14 @@ var (
 		Message:    "Customer detail fetched successfully",
 		Type:       "success",
 	}
+
+	FaydaCustomerApprovalRequestSent = ResponseCode{
+		Code:       "SUCCESS_FAYDA_APPROVAL_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    "Fayda approval request sent successfuly",
+		Type:       "success",
+	}
+
 	ErrorFailedToGetBlockedCustomer = ResponseCode{
 		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
 		StatusCode: StatusInternalServerError,
@@ -4949,6 +4972,12 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
+	}
+	ErrorUserNotFaydaRegistered = ResponseCode{
+		Code:       "ERROR_NOT_FAYDA_USER",
+		StatusCode: StatusBadRequest,
+		Message:    "this user is not fayda user",
 		Type:       "error",
 	}
 	ErrorSingleTransferCanNotBeGreaterThanCap = ResponseCode{

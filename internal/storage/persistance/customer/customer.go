@@ -57,7 +57,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
+	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		p.logger.Infof("error while fetching customer data: %v", err.Error())
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -76,6 +76,23 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	}, nil
 }
 
+func (p *CustomerRepository) Update(ctx context.Context, id string, data model.User) error {
+
+	objId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("Error while parsing id from string to object")
+		return localization.ErrorUnexpectedError
+	}
+
+	filter, update := FaydaEnable(objId, data)
+	_, err = p.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		p.logger.Errorf("Error while updating the customer data")
+		return err
+	}
+
+	return nil
+}
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
