@@ -217,6 +217,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorUpdateEventEmptyPayload,
 	ErrorMerchantIDRequired,
 	ErrorEventVenueRequired,
+	ErrorCustomerIDRequired,
 	ErrorStartDateRequired,
 	ErrorDueDateRequired,
 	ErrorTotalTicketCountRequired,
@@ -1294,6 +1295,13 @@ var (
 		Code:       "ERROR_MERCHANT_ID_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    "Merchant ID is required",
+		Type:       "error",
+	}
+
+	ErrorCustomerIDRequired = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    "Customer ID is required in param",
 		Type:       "error",
 	}
 
@@ -4898,6 +4906,14 @@ var (
 		Message:    "Customer detail fetched successfully",
 		Type:       "success",
 	}
+
+	FaydaCustomerApprovalRequestSent = ResponseCode{
+		Code:       "SUCCESS_FAYDA_APPROVAL_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    "Fayda approval request sent successfuly",
+		Type:       "success",
+	}
+
 	ErrorFailedToGetBlockedCustomer = ResponseCode{
 		Code:       "ERROR_FAILED_TO_GET_BLOCKED_CUSTOMER",
 		StatusCode: StatusInternalServerError,

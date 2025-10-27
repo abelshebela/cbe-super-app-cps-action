@@ -15,5 +15,5 @@ type CustomerEnableSessionResponse struct {
 }
 
 type FaydaApproveRequest struct {
-	RiskLevel constants.AccountStatus
+	RiskLevel constants.RiskLevel `json:"risk_level"`
 }
