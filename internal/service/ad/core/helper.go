@@ -26,6 +26,7 @@ func GenerateAdvert(advert model.Advert) *model.Advert {
 }
 
 func DuplicateAdvertChecker(ctx context.Context, advert model.Advert, repoAd storage.AdvertRepository, isCreate bool, id string) (bool, error) {
+
 	existingAdverts, err := repoAd.FindAllWithPagination(ctx, types.Filter{
 		Search: advert.Title,
 		Filters: map[string]interface{}{
@@ -45,6 +46,7 @@ func DuplicateAdvertChecker(ctx context.Context, advert model.Advert, repoAd sto
 		if err != nil {
 			return false, err
 		}
+
 		if prevAdvert.Title == advert.Title {
 			return false, errors.New(localization.ErrorAdvertTitleNotChanged.Code)
 		}

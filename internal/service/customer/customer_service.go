@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -77,7 +78,7 @@ func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *
 func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id string) (string, error) {
 	existing_otp, err := c.redis.Get(ctx, fmt.Sprintf("cps:action:otp:%s", id))
 	if existing_otp != "" || err == nil {
-		return "", fmt.Errorf("%s", localization.ErrorOTPAlreadyExists.Code)
+		return "", errors.New(localization.ErrorOTPAlreadyExists.Code)
 	}
 
 	customer, err := c.repo.FindByID(ctx, id)
@@ -86,7 +87,7 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 	}
 	c.logger.Infof("Customer fetched for enabling session: %+v", customer.ID, customer.Enabled)
 	if customer.Enabled {
-		return "", fmt.Errorf("%s", localization.ErrorCustomerAlreadyEnabled.Code)
+		return "", errors.New(localization.ErrorCustomerAlreadyEnabled.Code)
 	}
 
 	otp := local_util.OTPGenerator(6)
@@ -109,6 +110,29 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 
 	c.logger.Infof("OTP for enabling customer with ID %s is %s", id, otp)
 	return otp, nil
+}
+
+func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error {
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	if local_util.IsIncomplete(makerData) {
+		return errors.New(constants.Incomplete)
+	}
+
+	customer, err := c.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if customer.KYCLevel != uint8(constants.ONE) {
+		return errors.New(localization.ErrorUserNotFaydaRegistered.Code)
+	}
+
+	updateData := *customer
+
+	updateData.KYCLevel = uint8(constants.TWO)
+
+	return nil
 }
 
 func (c *customerService) EnableCustomerByID(ctx context.Context, id string, user_otp string) error {

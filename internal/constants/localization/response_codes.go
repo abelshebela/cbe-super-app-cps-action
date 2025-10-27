@@ -4062,6 +4062,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCustomerBlockedPermanently = ResponseCode{
+		Code:       "ERROR_CUSTOMER_PERMANENTLY_BLOCKED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerPermanentlyDisabled,
+		Type:       "error",
+	}
+
 	ErrorLogoIsRequired = ResponseCode{
 		Code:       "ERROR_LOGO_IS_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -4949,6 +4956,12 @@ var (
 		Code:       "ERROR_MINIMUM_TRANSFER_UPDATE_REQUEST",
 		StatusCode: StatusBadRequest,
 		Message:    "minimum transfer can not be greater from existing transfer caps",
+		Type:       "error",
+	}
+	ErrorUserNotFaydaRegistered = ResponseCode{
+		Code:       "ERROR_NOT_FAYDA_USER",
+		StatusCode: StatusBadRequest,
+		Message:    "this user is not fayda user",
 		Type:       "error",
 	}
 	ErrorSingleTransferCanNotBeGreaterThanCap = ResponseCode{

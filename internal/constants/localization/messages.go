@@ -696,6 +696,7 @@ const (
 	MsgInvalidRequestBankBIC       = "invalid format for BIC: only letters, numbers, and spaces are allowed"
 	MsgNoDataProvidedForBankUpdate = "No data provided for Bank update"
 	MsgInvalidToken                = "Invalid token"
+	MsgCustomerPermanentlyDisabled = "Customer account is permanently disabled"
 
 	// DEPARTMENT RELATED MESSAGES
 	MsgInvalidRequestDepartmentName             = "invalid format for department: only letters, numbers, and spaces are allowed"
