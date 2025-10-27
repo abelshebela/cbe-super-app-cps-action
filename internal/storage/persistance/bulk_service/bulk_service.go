@@ -61,9 +61,16 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 
 	// 5. Fetch data
 	data, err := b.mongoDalbulkService.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		if err == mongo.ErrNoDocuments {
+			// Return empty paginated response
+			meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
+			return &types.PaginatedResponse[[]*model.APPAccessList]{
+				Data: []*model.APPAccessList{},
+				Meta: meta,
+			}, nil
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	// 6. Count total
@@ -106,8 +113,8 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				// Parent not found → update child
-				childFilter := bson.M{"subAccessList.key": key}
-				childUpdate := bson.M{"subAccessList.$.enabled": state}
+				childFilter := bson.M{"sub_access_list.key": key}
+				childUpdate := bson.M{"sub_access_list.$.enabled": state}
 				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
 					b.logger.Errorf("failed to update child: %v", err)
@@ -122,8 +129,8 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 
 		// Parent exists → manually loop over children and update each one
 		for _, sub := range result.SubAccessList {
-			childFilter := bson.M{"subAccessList.key": sub.Key}
-			childUpdate := bson.M{"subAccessList.$.enabled": state}
+			childFilter := bson.M{"sub_access_list.key": sub.Key}
+			childUpdate := bson.M{"sub_access_list.$.enabled": state}
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {

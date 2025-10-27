@@ -2,6 +2,7 @@ package notification
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -83,20 +84,19 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.N
 }
 
 func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Notification], error) {
-	filter := bson.M{
-		"is_deleted": false,
-	}
+	searchKeys := bson.M{}
+	allowedKeys := []string{"is_public", "notification_type", "for", "seen", "enabled"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{
+		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
 			{"notification_body": searchRegex},
 		}
 	}
 
-	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
-	limit := int64(filterParam.PerPage)
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	// filter["is_deleted"] = false
 
 	data, err := n.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -105,7 +105,8 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 
 	total, err := n.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, err
+		n.logger.Errorf("Failed to count total notifications: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
