@@ -281,9 +281,9 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 
 func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request) {
 	var req dto.FaydaApproveRequest
-	id := chi.URLParam(r, "user_id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
-		c.logger.Errorf(localization.ErrorInvalidAction.Code)
+		c.logger.Errorf("id not set on param")
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidAction.Message)
 		return
 	}

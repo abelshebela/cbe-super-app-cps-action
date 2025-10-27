@@ -72,7 +72,7 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.ApproveFaydaCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Maker}),
 			},
 		},
 		{
