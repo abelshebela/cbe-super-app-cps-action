@@ -67,6 +67,15 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			},
 		},
 		{
+			Method:  http.MethodPatch,
+			Path:    "/customers/fayda/enable/{id}",
+			Handler: handler.ApproveFaydaCustomer,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+			},
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/customers/linked_account/{customer_number}",
 			Handler: handler.GetLinkedAccount,

@@ -76,6 +76,23 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	}, nil
 }
 
+func (p *CustomerRepository) Update(ctx context.Context, id string, data model.User) error {
+
+	objId, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("Error while parsing id from string to object")
+		return localization.ErrorUnexpectedError
+	}
+
+	filter, update := FaydaEnable(objId, data)
+	_, err = p.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		p.logger.Errorf("Error while updating the customer data")
+		return err
+	}
+
+	return nil
+}
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {

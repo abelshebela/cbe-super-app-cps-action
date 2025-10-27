@@ -1,6 +1,10 @@
 package customer
 
-import "go.mongodb.org/mongo-driver/v2/bson"
+import (
+	"cbe-super-app-cps-action/internal/constants/model"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 func UserProjection() bson.M {
 	return bson.M{
@@ -27,4 +31,15 @@ func UserProjection() bson.M {
 		"first_pin_set":                 1,
 		"device_uuid":                   1,
 	}
+}
+
+func FaydaEnable(objID bson.ObjectID, data model.User) (bson.M, bson.M) {
+	filter := bson.M{
+		"_id": objID,
+	}
+	update := bson.M{
+		"fayda_risk_level": data.FaydaRiskLevel,
+	}
+
+	return filter, update
 }

@@ -35,6 +35,7 @@ type User struct {
 		MonthlyIncome    uint64 `json:"monthly_incode" bson:"monthly_incode,omitempty"`
 	} `json:"fayda" bson:"fayda,omitempty"`
 
+	FaydaRiskLevel    string                  `json:"fayda_risk_level" bson:"fayda_risk_level,omitempty"`
 	Address           types.Address           `json:"address" bson:"address,omitempty"`
 	DocumentFront     string                  `json:"document_front" bson:"document_front,omitempty"`
 	DocumentBack      string                  `json:"document_back" bson:"document_back,omitempty"`

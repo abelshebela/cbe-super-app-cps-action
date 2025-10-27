@@ -274,3 +274,34 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 	}
 	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)
 }
+
+// ApproveFaydaCustomer approves a customer's Fayda application
+// @Summary Approve Fayda Customer
+// @Description Approves a customer's Fayda application by updating their Fayda risk level
+
+func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request) {
+	var req dto.FaydaApproveRequest
+	id := chi.URLParam(r, "user_id")
+	if id == "" {
+		c.logger.Errorf(localization.ErrorInvalidAction.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidAction.Message)
+		return
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.logger.Errorf(localization.ErrorInvalidJSONPayload.Message)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		return
+	}
+
+	if req.Validate() != nil {
+		c.logger.Errorf("")
+	}
+	if err := c.customerService.ApproveFaydaCustomer(r.Context(), id, req); err != nil {
+		c.logger.Errorf("Failed to send approval request for fayda customer error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.FaydaCustomerApprovalRequestSent, nil)
+}

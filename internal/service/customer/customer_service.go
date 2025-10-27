@@ -130,8 +130,13 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 
 	updateData := *customer
 
-	updateData.KYCLevel = uint8(constants.TWO)
+	updateData.FaydaRiskLevel = req.RiskLevel
 
+	action := lib.CpsModelBuilder(id, makerData, customer, updateData, string(constants.RequestApproveFaydaCustomer), constants.UPDATE)
+
+	if err := c.cpsService.CreateCPSAction(ctx, &action); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -231,6 +236,9 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 			d.logger.Errorf("Customer Enable Disable action  failed", "error", err)
 			return nil, err
 		}
+	case string(constants.RequestApproveFaydaCustomer):
+		err := d.repo.Update(ctx, cpsAction.UniqueId, *actionData)
+		return nil, err
 	default:
 		return nil, fmt.Errorf("%s", localization.MsgInvalidAction)
 	}

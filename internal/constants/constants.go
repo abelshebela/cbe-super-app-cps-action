@@ -155,6 +155,7 @@ const (
 type RiskLevel string
 
 const (
+	None   RiskLevel = ""
 	High   RiskLevel = "HIGH"
 	Midium RiskLevel = "MIDIUM"
 	Low    RiskLevel = "LOW"
@@ -248,6 +249,7 @@ const (
 	RequestDisableDepartment        RequestAction = "DISABLE_DEPARTMENT"
 	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
 	RequestEnableDisableCustomer    RequestAction = "ENABLE_DISABLE_CUSTOMER"
+	RequestApproveFaydaCustomer     RequestAction = "APPROVE_FAYDA_CUSTOMER"
 	RequestCreateWallet             RequestAction = "CREATE_WALLET"
 	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
 	RequestDeleteWallet             RequestAction = "DELETE_WALLET"

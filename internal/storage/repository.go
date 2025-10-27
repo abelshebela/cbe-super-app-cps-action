@@ -447,6 +447,7 @@ type FaydaRepository interface {
 
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*model.User, error)
+	Update(ctx context.Context, id string, data model.User) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
