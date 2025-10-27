@@ -70,6 +70,14 @@ const (
 	DefaultPerPage = 10
 )
 
+type Level uint8
+
+const (
+	ZERO Level = 0
+	ONE  Level = 1
+	TWO  Level = 2
+)
+
 type Realm string
 
 const (
@@ -142,6 +150,14 @@ type AccountStatus string
 const (
 	Active   AccountStatus = "ACTIVE"
 	InActive AccountStatus = "INACTIVE"
+)
+
+type RiskLevel string
+
+const (
+	High   RiskLevel = "HIGH"
+	Midium RiskLevel = "MIDIUM"
+	Low    RiskLevel = "LOW"
 )
 
 type MemberType string

@@ -1,5 +1,7 @@
 package customer
 
+import "cbe-super-app-cps-action/internal/constants"
+
 type CustomerEnableDTO struct {
 	UserOTP string `json:"user_otp"`
 }
@@ -10,4 +12,8 @@ type CustomerDisableDTO struct {
 
 type CustomerEnableSessionResponse struct {
 	Otp string `json:"otp"`
+}
+
+type FaydaApproveRequest struct {
+	RiskLevel constants.AccountStatus
 }

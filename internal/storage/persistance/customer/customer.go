@@ -57,7 +57,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, nil, skip, limit)
+	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		p.logger.Infof("error while fetching customer data: %v", err.Error())
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

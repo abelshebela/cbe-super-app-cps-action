@@ -57,7 +57,7 @@ type ArchivedUser struct {
 		KYCStatus            constants.KYCStatus `json:"kyc_status" bson:"kyc_status,omitempty"`
 		KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason,omitempty"`
 		KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved,omitempty"`
-		KYCActivityBy        map[string]struct{} `json:"kyc_activity_by" bson:"kyc_activity_by,omitempty"`
+		KYCActivityBy        any                 `json:"kyc_activity_by" bson:"kyc_activity_by,omitempty"`
 	} `json:"kyc" bson:"kyc,omitempty"`
 
 	KYCLevel uint8 `json:"kyc_level" bson:"kyc_level,omitempty"`

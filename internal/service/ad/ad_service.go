@@ -232,7 +232,6 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 
 	advert, err := local_util.JsonUnmarshal[model.Advert](action.CurrentAction)
 	if err != nil {
-
 		s.logger.Errorf("Failed to unmarshal current action into advert: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
