@@ -40,7 +40,7 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			},
 		},
 		{
-			Method:  http.MethodPost,
+			Method:  http.MethodPatch,
 			Path:    "/customers/enable/{id}",
 			Handler: handler.SetEnableCustomerSession,
 			Middlewares: []func(next http.Handler) http.Handler{
