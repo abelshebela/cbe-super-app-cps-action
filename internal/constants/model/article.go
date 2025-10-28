@@ -57,3 +57,13 @@ type ShortVideo struct {
 	DeletedAt   *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 	PublishedAt *time.Time    `bson:"published_at,omitempty" json:"published_at,omitempty"`
 }
+
+type NewsTags struct {
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name      string        `bson:"name" json:"name"`
+	IsEnabled bool          `bson:"is_enabled" json:"is_enabled"`
+	IsDeleted bool          `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+}

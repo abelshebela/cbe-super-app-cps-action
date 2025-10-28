@@ -498,3 +498,10 @@ type ShortVideoRepository interface {
 	Delete(ctx context.Context, id string) error
 	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
 }
+
+type NewsTagsRepository interface {
+	Create(ctx context.Context, newsTag *model.NewsTags) error
+	Update(ctx context.Context, newsTag *model.NewsTags, id string) error
+	Delete(ctx context.Context, id string) error
+	EnableDisable(ctx context.Context, id string, isEnable bool) error
+}
