@@ -217,7 +217,7 @@ func (d *DonationCategory)EnableDonationCategory(ctx context.Context,id string)e
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 	if existingDonationCategory.Enabled{
-		return errors.New(localization.MsgAlreadyEnabled)
+		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
 	Enabled:=true
 	DonationCategory:= core.MapToDonationCategory(existingDonationCategory.CategoryName,existingDonationCategory.Icon,Enabled)
@@ -244,7 +244,7 @@ func (d *DonationCategory)DisableDonationCategory(ctx context.Context,id string)
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 	if !existingDonationCategory.Enabled{
-		return errors.New(localization.MsgAlreadyDisabled)
+		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
 	Enabled:=false
 	DonationCategory:= core.MapToDonationCategory(existingDonationCategory.CategoryName,existingDonationCategory.Icon,Enabled)

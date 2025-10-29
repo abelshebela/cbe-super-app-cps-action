@@ -206,7 +206,7 @@ id := chi.URLParam(r, "id")
 
 }
 
-// EnableDonation godoc
+// disableDonation godoc
 // @Summary Enable a donation category
 // @Description Enable a donation category by ID
 // @Tags Donation Category
