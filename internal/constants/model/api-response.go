@@ -48,3 +48,9 @@ type PaginatedEventResponse struct {
 	Docs []Event             `json:"docs"`
 	Meta types.PaginationMeta `json:"meta"`
 }
+
+type AccountLookupResponse struct {
+	Status  int                 `json:"status"`
+	Message string              `json:"message"`
+	Data    AccountInfo   `json:"data"`
+}
