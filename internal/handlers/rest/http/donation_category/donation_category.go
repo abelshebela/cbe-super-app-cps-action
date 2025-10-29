@@ -174,3 +174,65 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 	d.logger.Infof("donation category update request submitted successfully", updatedDonationCategory)
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, nil)
 }
+
+// EnableDonationCategory godoc
+// @Summary Enable a donation category
+// @Description Enable a donation category by ID
+// @Tags Donation Category
+// @Accept json
+// @Produce json
+// @Param id path string true "Donation category ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation enable request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_category/enable/{id} [patch]
+
+func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, r *http.Request) {
+id := chi.URLParam(r, "id")
+	if id == "" {
+		d.logger.Errorf("donation category ID is required for diable")
+		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
+		return
+	}
+
+	if err:= d.donationCategoryApp.EnableDonationCategory(r.Context(),id);err!= nil{
+			d.logger.Errorf("failed to enable donation category: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
+
+}
+
+// EnableDonation godoc
+// @Summary Enable a donation category
+// @Description Enable a donation category by ID
+// @Tags Donation Category
+// @Accept json
+// @Produce json
+// @Param id path string true "Donation category ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation enable request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_category/enable/{id} [patch]
+
+func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter, r *http.Request) {
+id := chi.URLParam(r, "id")
+	if id == "" {
+		d.logger.Errorf("donation category ID is required for disable")
+		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
+		return
+	}
+
+	if err:= d.donationCategoryApp.DisableDonationCategory(r.Context(),id);err!= nil{
+			d.logger.Errorf("failed to disable donation category: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
+
+}

@@ -322,7 +322,7 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
