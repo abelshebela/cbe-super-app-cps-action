@@ -76,15 +76,22 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorDonationTitleDuplicated.Code)
 	}
 
-	_, err = d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
+	category, err := d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
 	if err != nil {
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
+	if !category.Enabled{
+			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	}
 
-	_, err = d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
+	company, err:= d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 	if err != nil {
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
+	if !company.Enabled{
+			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+	}
+
 
 	coverImageURL := ""
 	if donation.CoverImage != nil {
@@ -165,19 +172,26 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	if donation.CategoryID != "" {
-		_, err = d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
+		category, err := d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
 		if err != nil {
 			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 		}
+		if !category.Enabled{
+			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	}
+
 	} else {
 		donation.CategoryID = existingDonation.Category.ID
 	}
 
 	if donation.CompanyID != "" {
-		_, err = d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
+		company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 		if err != nil {
 			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 		}
+		if !company.Enabled{
+			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	}
 	} else {
 		donation.CompanyID = existingDonation.Company.ID
 	}

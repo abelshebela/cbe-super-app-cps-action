@@ -16,6 +16,7 @@ func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.Donat
 		CompanyLogo:    company.CompanyLogo,
 		AccountNumber:  company.AccountNumber,
 		IsDeleted:      company.IsDeleted,
+		Enabled: company.Enabled,
 		CreatedAt:      company.CreatedAt.Format(time.RFC3339),
 		LastModifiedAt: company.LastModifiedAt.Format(time.RFC3339),
 	}
@@ -37,6 +38,7 @@ func DonationCompanyMapper(company model.DonationCompany) bson.M {
 		"phone_number":     company.PhoneNumber,
 		"email":            company.Email,
 		"address":          company.Address,
+		"enabled":			company.Enabled,
 		"is_deleted":       company.IsDeleted,
 		"last_modified_at": company.LastModifiedAt,
 	}
