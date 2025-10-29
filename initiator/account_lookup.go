@@ -5,14 +5,13 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // getEnvOrDefault gets an environment variable or returns a default value
 func getEnvOrDefault(key string, logger utils.Logger) string {
 	if value := os.Getenv(key); value != "" {
+
 		return value
 	}
 	logger.Errorf("the %s not found in the vault", key)
@@ -20,9 +19,8 @@ func getEnvOrDefault(key string, logger utils.Logger) string {
 }
 
 // InitAccountLookupService initializes the account lookup service using configuration
-func InitAccountLookupService(cfg *config.VaultConfig, logger utils.Logger) account_lookup.Account {
-	cbeBaseURL := getEnvOrDefault("CBE_BASEURL", logger)
+func InitAccountLookupService(cbebaseurl string, logger utils.Logger) account_lookup.Account {
 	timeout := 30 * time.Second
 
-	return account_lookup.InitAccountAPIClient(cbeBaseURL, timeout, logger)
+	return account_lookup.InitAccountAPIClient(cbebaseurl, timeout, logger)
 }

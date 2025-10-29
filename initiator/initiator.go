@@ -57,7 +57,7 @@ func Init(ctx context.Context) {
 	logger.Infof("SMS service initialized")
 
 	logger.Infof("Initializing account lookup service...")
-	accountLookupService := InitAccountLookupService(cfg, logger)
+	accountLookupService := InitAccountLookupService(cfg.CBEBaseURL, logger)
 	logger.Infof("Account lookup service initialized")
 
 	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config

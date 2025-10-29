@@ -68,3 +68,4 @@ type DonationImageAddRequest struct {
 type EnableDonationRequest struct {
 	Enabled bool `json:"enabled" bson:"enabled"`
 }
+

@@ -1,13 +1,15 @@
 package account_lookup
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
-	"path/filepath"
+	"strings"
 
 	"time"
 
@@ -22,6 +24,7 @@ import (
 type accountAPIClient struct {
 	logger     utils.Logger
 	cbeBaseURL string
+	client     *http.Client
 }
 
 type Account interface {
@@ -34,73 +37,10 @@ func InitAccountAPIClient(cbeBaseUrl string, timeout time.Duration, logger utils
 	return &accountAPIClient{
 		logger:     logger,
 		cbeBaseURL: cbeBaseUrl,
+		client:     &http.Client{Timeout: timeout},
 	}
 }
 
-func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error) {
-	b.logger.Infof("Looking up account number: %s using mock data", account.AccountNumber)
-
-	execPath, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-
-	// Get the root folder (assuming executable is in a subfolder like ./bin)
-	rootDir := filepath.Dir(execPath)
-
-	// Build the full path to the JSON file in the root folder
-	jsonPath := filepath.Join(rootDir, "corebanking.json")
-
-	jsonFile, err := os.Open(jsonPath)
-
-	// Read the mock JSON file
-	// jsonFile, err := os.Open("./corebanking.json")
-	if err != nil {
-		b.logger.Errorf("failed to open corebanking.json: %v on path:%v", err, jsonPath)
-		return nil, errors.New(localization.ErrorExternalServiceError.Code)
-	}
-	defer jsonFile.Close()
-
-	// Read the file content
-	jsonData, err := io.ReadAll(jsonFile)
-	if err != nil {
-		b.logger.Errorf("failed to read corebanking.json: %v", err)
-		return nil, errors.New(localization.ErrorExternalServiceError.Code)
-	}
-
-	// Parse the JSON data
-	var mockData mock.MockAccountData
-	if err := json.Unmarshal(jsonData, &mockData); err != nil {
-		b.logger.Errorf("failed to unmarshal mock account data: %v", err)
-		return nil, errors.New(localization.ErrorExternalServiceError.Code)
-	}
-
-	// Look for the account number in the mock data
-	for _, mockAccount := range mockData.Accounts {
-		if mockAccount.AccountNumber == account.AccountNumber {
-			b.logger.Infof("Found account: %s - %s", mockAccount.AccountNumber, mockAccount.AccountName)
-
-			// Convert mock account to AccountInfo
-			accountInfo := &model.AccountInfo{
-				ID:                 mockAccount.AccountNumber, // Using account number as ID
-				AccountNumber:      mockAccount.AccountNumber,
-				CustomerName:       mockAccount.AccountName,
-				AccountType:        mockAccount.AccountType,
-				AccountDormant:     mockAccount.AccountDormant,
-				AccountCurrency:    mockAccount.Currency,
-				AccountDescription: fmt.Sprintf("%s - %s", mockAccount.AccountType, mockAccount.Status),
-				AccountFrozen:      mockAccount.AccountFrozen,
-				ActiveAccount:      mockAccount.ActiveAccount,
-			}
-
-			return accountInfo, nil
-		}
-	}
-
-	// Account not found in mock data
-	b.logger.Warnf("Account number %s not found in mock data", account.AccountNumber)
-	return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
-}
 
 func (b *accountAPIClient) LookupAccountByPhone(ctx context.Context, phone string) (bool, error) {
 	b.logger.Infof("Looking up phone number: %s using mock data", phone)
@@ -141,3 +81,65 @@ func (b *accountAPIClient) LookupAccountByPhone(ctx context.Context, phone strin
 // 		strings.Contains(err.Error(), "timeout") ||
 // 		strings.Contains(err.Error(), "deadline exceeded")
 // }
+
+func (b *accountAPIClient) LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error) {
+
+	data, err := json.Marshal(account)
+	if err != nil {
+		b.logger.Errorf("failed to marshal account request: %v", err)
+		return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	}
+	fmt.Println(b.cbeBaseURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		fmt.Sprintf("%s/%s", b.cbeBaseURL, "/bps_banking/core/account_number"), bytes.NewBuffer(data))
+	if err != nil {
+		b.logger.Errorf("failed to create HTTP request: %v", err)
+		return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := b.client.Do(req)
+	if err != nil {
+		if b.isTimeoutError(err, ctx) {
+			b.logger.Errorf("request timeout for account %s: %v", account.AccountNumber, err)
+					return nil, errors.New(localization.ErrorExternalServiceError.Code)
+		}
+
+		b.logger.Errorf("HTTP request failed for account %s: %v", account.AccountNumber, err)
+				return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		b.logger.Errorf("account not found with status %v", res.StatusCode)
+				return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		b.logger.Errorf("request failed with status code %v", res.StatusCode)
+				return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	}
+
+	resBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		b.logger.Errorf("failed to read response body for account %s: %v", account.AccountNumber, err)
+				return nil, errors.New(localization.ErrorExternalServiceError.Code)
+	}
+
+	var accountResp model.AccountLookupResponse
+if err := json.Unmarshal(resBody, &accountResp); err != nil {
+	b.logger.Errorf("failed to unmarshal account info for account %s: %v", account.AccountNumber, err)
+	return nil, errors.New(localization.ErrorExternalServiceError.Code)
+}
+
+return &accountResp.Data, nil
+}
+
+func (b *accountAPIClient) isTimeoutError(err error, ctx context.Context) bool {
+	return errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(ctx.Err(), context.DeadlineExceeded) ||
+		strings.Contains(err.Error(), "timeout") ||
+		strings.Contains(err.Error(), "deadline exceeded")
+}
+

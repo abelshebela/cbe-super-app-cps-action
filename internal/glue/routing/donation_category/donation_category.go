@@ -50,6 +50,24 @@ func Init(router chi.Router, handler donation_category.DonationCategoryAdapter, 
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/donation_category/enable/{id}",
+			Handler: handler.EnableDonationCategory,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/donation_category/disable/{id}",
+			Handler: handler.DisableDonationCategory,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
