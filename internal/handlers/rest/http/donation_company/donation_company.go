@@ -192,3 +192,66 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 
 	localization.SendSuccessResponse(w, localization.SuccessAccountInfoFetched, accountInfo)
 }
+
+
+// EnableDonationCompany godoc
+// @Summary Enable a donation company
+// @Description Enable a donation company by ID
+// @Tags Donation Company
+// @Accept json
+// @Produce json
+// @Param id path string true "Donation company ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation Company enable request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_company/enable/{id} [patch]
+
+func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
+id := chi.URLParam(r, "id")
+	if id == "" {
+		d.logger.Errorf("donation company ID is required for diable")
+		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
+		return
+	}
+
+	if err:= d.donationCompanyApp.EnableDonationCompany(r.Context(),id);err!= nil{
+			d.logger.Errorf("failed to enable donation company: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
+
+}
+
+// disableDonationCompany godoc
+// @Summary Enable a donation company
+// @Description Enable a donation company by ID
+// @Tags Donation company
+// @Accept json
+// @Produce json
+// @Param id path string true "Donation company ID"
+// @Success 200 {object} localization.StandardResponse{data=nil} "Donation company enable request sent successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
+// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
+// @Security BearerAuth
+// @Router /donation_company/enable/{id} [patch]
+
+func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
+id := chi.URLParam(r, "id")
+	if id == "" {
+		d.logger.Errorf("donation company ID is required for disable")
+		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
+		return
+	}
+
+	if err:= d.donationCompanyApp.DisableDonationCompany(r.Context(),id);err!= nil{
+			d.logger.Errorf("failed to disable donation company: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
+
+}
