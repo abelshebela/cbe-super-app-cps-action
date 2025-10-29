@@ -1,7 +1,6 @@
 package initiator
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -10,12 +9,12 @@ import (
 )
 
 // getEnvOrDefault gets an environment variable or returns a default value
-func getEnvOrDefault(key string) string {
+func getEnvOrDefault(key string, logger utils.Logger) string {
 	if value := os.Getenv(key); value != "" {
 
 		return value
 	}
-	fmt.Println("the cbebaseurl not found in the vault")
+	logger.Errorf("the %s not found in the vault", key)
 	return ""
 }
 
