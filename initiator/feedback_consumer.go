@@ -26,7 +26,7 @@ func (a *feedbackServiceAdapter) CreateFeedback(ctx context.Context, req feedbac
 }
 
 func InitFeedbackConsumer(feedbackSvc service.FeedbackService, cfg *config.VaultConfig, logger utils.Logger) error {
-	kafkaConfig := feedbackConfig.LoadKafkaConfig(cfg)
+	kafkaConfig := feedbackConfig.LoadKafkaConfig(cfg, logger)
 	if kafkaConfig.Brokers == "" {
 		logger.Infof("Kafka brokers not configured, skipping feedback consumer")
 		return nil

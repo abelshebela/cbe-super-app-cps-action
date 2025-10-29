@@ -77,6 +77,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 	result := dto.DonationCategoryResponse{
 		CategoryName: donationCategory.CategoryName,
 		Icon:         url,
+		Enabled: true,
 	}
 
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCategory), constants.CREATE)
@@ -132,23 +133,19 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 		}
 		iconURL = url
 	}
-	updateData := dto.DonationCategoryCPSRequest{
-		ID:           id,
-		CategoryName: donationCategory.CategoryName,
-		Icon:         iconURL,
+	donationCategoryName := existingCategory.CategoryName
+	if donationCategory.CategoryName != "" {
+		donationCategoryName=donationCategory.CategoryName 
 	}
+	DonationCategory:= core.MapToDonationCategory(donationCategoryName,iconURL,existingCategory.Enabled)
 
-	if donationCategory.CategoryName == "" {
-		updateData.CategoryName = existingCategory.CategoryName
-	}
-
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingCategory, updateData, string(constants.RequestUpdateDonationCategory), constants.UPDATE)
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingCategory, DonationCategory, string(constants.RequestUpdateDonationCategory), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return donationCategory, err
 	}
 
 	return dto.DonationCategoryRequest{
-		CategoryName: updateData.CategoryName,
+		CategoryName: DonationCategory.CategoryName,
 	}, nil
 }
 
@@ -159,7 +156,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		d.logger.Errorf("Tried to authorize service action without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
-	var donationCPS *dto.DonationCategoryCPSRequest
+	var donationCPS *model.DonationCategory 
 	bindErr := core.BindAction(action.CurrentAction, &donationCPS)
 	if bindErr != nil {
 		d.logger.Errorf("failed to bind current action to donation Category: %v", bindErr)
@@ -168,21 +165,35 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCategory):
-		donationModel := core.MapToDonationCategory(donationCPS.CategoryName, donationCPS.Icon)
+		
 
-		err := d.DonationCategoryRepo.Create(ctx, donationModel)
+		err := d.DonationCategoryRepo.Create(ctx, donationCPS)
 		if err != nil {
 			d.logger.Errorf("Failed to create donation category: %v", err)
 			return nil, err
 		}
 
 	case string(constants.RequestUpdateDonationCategory):
-		donationModel := core.MapToDonationCategory(donationCPS.CategoryName, donationCPS.Icon)
-		err := d.DonationCategoryRepo.Update(ctx, donationCPS.ID, donationModel)
+		err := d.DonationCategoryRepo.Update(ctx,action.UniqueId, donationCPS)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation category: %v", err)
 			return nil, err
 		}
+
+	
+	case string(constants.RequestEnableDonationCategory):
+		err := d.DonationCategoryRepo.Update(ctx,action.UniqueId, donationCPS)
+		if err != nil {
+			d.logger.Errorf("Failed to update donation category: %v", err)
+			return nil, err
+		}
+	case string(constants.RequestDisableDonationCategory):
+		err := d.DonationCategoryRepo.Update(ctx,action.UniqueId, donationCPS)
+		if err != nil {
+			d.logger.Errorf("Failed to update donation category: %v", err)
+			return nil, err
+		}
+	
 	default:
 		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
@@ -190,5 +201,58 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 
 	d.logger.Infof("Service action authorization completed: %s", action.RequestAction)
 	return action, nil
+
+}
+
+func (d *DonationCategory)EnableDonationCategory(ctx context.Context,id string)error {
+	makerData:= local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	existingDonationCategory, err := d.DonationCategoryRepo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingDonationCategory == nil {
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if existingDonationCategory.Enabled{
+		return errors.New(localization.ErrorAlreadyEnabled.Code)
+	}
+	Enabled:=true
+	DonationCategory:= core.MapToDonationCategory(existingDonationCategory.CategoryName,existingDonationCategory.Icon,Enabled)
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestEnableDonationCategory), constants.UPDATE)
+	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+
+func (d *DonationCategory)DisableDonationCategory(ctx context.Context,id string)error {
+	makerData:= local_util.ExtractUserFromContext(ctx)
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	}
+	existingDonationCategory, err := d.DonationCategoryRepo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingDonationCategory == nil {
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
+	if !existingDonationCategory.Enabled{
+		return errors.New(localization.ErrorAlreadyDisabled.Code)
+	}
+	Enabled:=false
+	DonationCategory:= core.MapToDonationCategory(existingDonationCategory.CategoryName,existingDonationCategory.Icon,Enabled)
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCategory, DonationCategory, string(constants.RequestDisableDonationCategory), constants.UPDATE)
+	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		return err
+	}
+
+	return nil
 
 }

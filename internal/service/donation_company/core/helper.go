@@ -89,13 +89,13 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCompany(companyName, logoURL, accountNumber string) *model.DonationCompany {
-	return &model.DonationCompany{
-		CompanyName:    companyName,
-		CompanyLogo:    logoURL,
-		AccountNumber:  accountNumber,
+func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse,Enabled bool) model.DonationCompany {
+	return model.DonationCompany{
+		CompanyName:    donationCompany.CompanyName,
+		CompanyLogo:    donationCompany.CompanyLogo,
+		AccountNumber:  donationCompany.AccountNumber,
 		IsDeleted:      false,
-		CreatedAt:      time.Now(),
+		Enabled: Enabled,
 		LastModifiedAt: time.Now(),
 	}
 }
