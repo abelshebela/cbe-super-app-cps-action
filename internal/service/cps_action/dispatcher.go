@@ -25,7 +25,7 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
 
-	fmt.Printf("RequestAction ************************************: %v", action)
+	fmt.Printf("RequestAction: %v", action)
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
