@@ -65,4 +65,5 @@ type Persistence struct {
 	ArticlePersistence               storage.ArticleRepository
 	ArticleCategoryPersistence       storage.ArticleCategoryRepository
 	ShortVideoPersistence            storage.ShortVideoRepository
+	NewsTagsServiceContainer        storage.NewsTagsRepository
 }

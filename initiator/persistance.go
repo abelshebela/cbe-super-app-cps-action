@@ -118,6 +118,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "news_articles"),
 		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "news_categories"),
 		ShortVideoPersistence:      media.NewShortVideoRepository(logger, client, dbName, "news_short_videos"),
+		NewsTagsServiceContainer:   media.NewNewsTagsRepository(logger, client, dbName, "news_tags"),
 	}
 
 	return data
