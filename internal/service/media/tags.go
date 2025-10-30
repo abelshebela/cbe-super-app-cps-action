@@ -34,15 +34,15 @@ func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 	}
 
 	switch cpsAction.RequestAction {
-	case string(constants.RequestCreateArticleCategory):
+	case string(constants.RequestCreateNewsTag):
 		err = m.repo.Create(ctx, tags)
-	case string(constants.RequestUpdateArticleCategory):
+	case string(constants.RequestUpdateNewsTag):
 		err = m.repo.Update(ctx, tags, cpsAction.UniqueId)
-	case string(constants.RequestDeleteArticleCategory):
+	case string(constants.RequestDeleteNewsTag):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
-	case string(constants.RequestEnableArticleCategory):
+	case string(constants.RequestEnableNewsTag):
 		err = m.repo.EnableDisable(ctx, cpsAction.UniqueId, true)
-	case string(constants.RequestDisableArticleCategory):
+	case string(constants.RequestDisableNewsTag):
 		err = m.repo.EnableDisable(ctx, cpsAction.UniqueId, false)
 	default:
 		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
