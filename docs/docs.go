@@ -2708,6 +2708,24 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "Advert fetched successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cbe-super-app-cps-action_internal_constants_dto_ad.AdvertResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
                     "400": {
                         "description": "Invalid ID",
                         "schema": {
@@ -6387,6 +6405,9 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Retrives a list of customer linked account",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "Customers Linked Account"
                 ],
