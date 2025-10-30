@@ -18,7 +18,7 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.FetchNewsTags,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -27,7 +27,7 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.CreateNewsTags,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -36,7 +36,7 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.GetNewsTagByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func Init(router chi.Router, handler newstag_adaptor.NewsTagAdaptor, authMiddlew
 			Handler: handler.DeleteNewsTag,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
