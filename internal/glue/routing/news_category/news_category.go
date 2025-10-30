@@ -1,6 +1,7 @@
 package newscategory_routing
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -17,6 +18,7 @@ func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, a
 			Handler: handler.FetchNewsCategories,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -25,6 +27,7 @@ func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, a
 			Handler: handler.CreateNewsCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -33,6 +36,7 @@ func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, a
 			Handler: handler.GetNewsCategoryByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -41,6 +45,7 @@ func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, a
 			Handler: handler.DeleteNewsCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -49,6 +54,7 @@ func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, a
 			Handler: handler.UpdateNewsCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}
