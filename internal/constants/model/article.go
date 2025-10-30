@@ -11,7 +11,7 @@ type NewsArticle struct {
 	CategoryID      bson.ObjectID `bson:"category_id" json:"category_id"`
 	Title           string        `bson:"title" json:"title"`
 	Content         string        `bson:"content" json:"content"`
-	Tags            []string      `bson:"tags" json:"tags"`
+	Tags            []bson.ObjectID      `bson:"tags" json:"tags"`
 	Language        string        `bson:"language" json:"language"`
 	Author          string        `bson:"author" json:"author"`
 	Thumbnail       string        `bson:"thumbnail" json:"thumbnail"`
@@ -41,7 +41,7 @@ type ShortVideo struct {
 	CategoryID  bson.ObjectID `bson:"category_id" json:"category_id"`
 	Title       string        `bson:"title" json:"title"`
 	Caption     string        `bson:"caption" json:"caption"`
-	Tags        []string      `bson:"tags" json:"tags"`
+	Tags        []bson.ObjectID      `bson:"tags" json:"tags"`
 	Thumbnail   string        `bson:"thumbnail" json:"thumbnail"`
 	VideoURL    string        `bson:"video_url" json:"video_url"`
 	Duration    float64       `bson:"duration" json:"duration"`
