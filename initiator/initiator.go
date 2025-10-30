@@ -94,7 +94,7 @@ func Init(ctx context.Context) {
 	}()
 
 	fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, r)
 
 	grpcServer, lis := server.StartGrpcServer(grpcHandlers)
