@@ -392,6 +392,8 @@ type ServiceContainer struct {
 	ArticleContainer            ArticleService
 	ArticleCategoryContainer    ArticleCategoryService
 	ShortVideoServiceContainer  ShortVideoService
+	NewsTagContainer            NewsTagService
+	NewsCategoryContainer       NewsCategoryService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -421,5 +423,22 @@ type ArticleCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 type ShortVideoService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type NewsTagService interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
+	GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error)
+	CreateNewsTags(ctx context.Context, tagName []string) error
+	UpdateNewsTag(ctx context.Context, id string, tagName string) error
+	DeleteNewsTag(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+type NewsCategoryService interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error)
+	GetNewsCategoryByID(ctx context.Context, id string) (*model.NewsCategory, error)
+	CreateNewsCategory(ctx context.Context, categoryName []string) error
+	UpdateNewsCategory(ctx context.Context, id string, categoryName string) error
+	DeleteNewsCategory(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

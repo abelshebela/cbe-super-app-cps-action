@@ -30,9 +30,9 @@ type Persistence struct {
 	CustomerService              storage.CustomerRepository
 	BulkService                  storage.BulkServiceRepository
 
-	BudgetCategoryPersistence    storage.BudgetCategoryRepository
+	BudgetCategoryPersistence storage.BudgetCategoryRepository
 
-	RedisService                 storage.RedisRepository
+	RedisService storage.RedisRepository
 
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
@@ -65,4 +65,6 @@ type Persistence struct {
 	ArticlePersistence               storage.ArticleRepository
 	ArticleCategoryPersistence       storage.ArticleCategoryRepository
 	ShortVideoPersistence            storage.ShortVideoRepository
+	NewsTagPersistence               storage.NewsTagRepository
+	NewsCategoryPersistence          storage.NewsCategoryRepository
 }

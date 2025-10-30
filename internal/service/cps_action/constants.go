@@ -733,6 +733,17 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
 	},
+
+	"news_category": {
+		RequestAction("CREATE_NEWS_CATEGORY"),
+		RequestAction("UPDATE_NEWS_CATEGORY"),
+		RequestAction("DELETE_NEWS_CATEGORY"),
+	},
+	"news_tag": {
+		RequestAction("CREATE_NEWS_TAG"),
+		RequestAction("UPDATE_NEWS_TAG"),
+		RequestAction("DELETE_NEWS_TAG"),
+	},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {
