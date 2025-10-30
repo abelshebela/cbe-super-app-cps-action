@@ -34,12 +34,12 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCategory(categoryName, iconURL string) *model.DonationCategory {
+func MapToDonationCategory(categoryName, iconURL string,enabled bool) *model.DonationCategory {
 	return &model.DonationCategory{
 		CategoryName:   categoryName,
 		Icon:           iconURL,
 		IsDeleted:      false,
-		CreatedAt:      time.Now(),
+		Enabled: enabled,
 		LastModifiedAt: time.Now(),
 	}
 }

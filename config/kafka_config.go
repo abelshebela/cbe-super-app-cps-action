@@ -1,11 +1,11 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
 // KafkaConfig holds Kafka configuration
@@ -19,19 +19,18 @@ type KafkaConfig struct {
 	HeartbeatInterval int    `json:"heartbeat_interval"`
 }
 
-func LoadKafkaConfig(cfg *config.VaultConfig) *KafkaConfig {
-	fmt.Printf("DEBUG: Starting LoadKafkaConfig\n")
-	fmt.Printf("DEBUG: Using VaultConfig from initiator\n")
+func LoadKafkaConfig(cfg *config.VaultConfig, logger utils.Logger) *KafkaConfig {
+	logger.Infof("Loading Kafka configuration from VaultConfig")
 
-	return loadKafkaConfigFromEnv(cfg)
+	return loadKafkaConfigFromEnv(cfg, logger)
 
 }
 
-func loadKafkaConfigFromEnv(cfg *config.VaultConfig) *KafkaConfig {
-	requiredAcks, _ := strconv.Atoi(getEnv("KAFKA_REQUIRED_ACKS", "1"))
-	retryMax, _ := strconv.Atoi(getEnv("KAFKA_RETRY_MAX", "3"))
-	sessionTimeout, _ := strconv.Atoi(getEnv("KAFKA_SESSION_TIMEOUT", "30000"))
-	heartbeatInterval, _ := strconv.Atoi(getEnv("KAFKA_HEARTBEAT_INTERVAL", "3000"))
+func loadKafkaConfigFromEnv(cfg *config.VaultConfig, logger utils.Logger) *KafkaConfig {
+	requiredAcks, _ := strconv.Atoi(getEnv("KAFKA_REQUIRED_ACKS", "1", logger))
+	retryMax, _ := strconv.Atoi(getEnv("KAFKA_RETRY_MAX", "3", logger))
+	sessionTimeout, _ := strconv.Atoi(getEnv("KAFKA_SESSION_TIMEOUT", "30000", logger))
+	heartbeatInterval, _ := strconv.Atoi(getEnv("KAFKA_HEARTBEAT_INTERVAL", "3000", logger))
 
 	return &KafkaConfig{
 		Brokers:           cfg.KafkaBrokers,
@@ -44,9 +43,10 @@ func loadKafkaConfigFromEnv(cfg *config.VaultConfig) *KafkaConfig {
 	}
 }
 
-func getEnv(key, defaultValue string) string {
+func getEnv(key, defaultValue string, logger utils.Logger) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
+	logger.Errorf("the %s not found in the vault", key)
 	return defaultValue
 }

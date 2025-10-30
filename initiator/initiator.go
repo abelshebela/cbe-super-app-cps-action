@@ -2,8 +2,6 @@ package initiator
 
 import (
 	"context"
-	"fmt"
-	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
@@ -59,7 +57,7 @@ func Init(ctx context.Context) {
 	logger.Infof("SMS service initialized")
 
 	logger.Infof("Initializing account lookup service...")
-	accountLookupService := InitAccountLookupService(cfg, logger)
+	accountLookupService := InitAccountLookupService(cfg.CBEBaseURL, logger)
 	logger.Infof("Account lookup service initialized")
 
 	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config
@@ -88,16 +86,10 @@ func Init(ctx context.Context) {
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, logger, cfg)
 
-	fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	go func() {
-		fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	}()
-
-	fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
 	srv := server.NewHTTPServer(cfg, r)
 
-	grpcServer, lis := server.StartGrpcServer(grpcHandlers)
+	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
@@ -112,5 +104,5 @@ func Init(ctx context.Context) {
 	<-done
 	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
-	server.StopGrpcServer(grpcServer)
+	server.StopGrpcServer(grpcServer, logger)
 }

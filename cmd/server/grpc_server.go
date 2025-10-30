@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
-	"log"
 	"net"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -206,22 +205,22 @@ func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servic
 	}
 }
 
-func StartGrpcServer(s *server) (*grpc.Server, net.Listener) {
+func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener) {
 	lis, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
 	bankpb.RegisterBankServiceServer(grpcServer, s)
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
 	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)
-	log.Println("gRPC server listening on port 50051")
+	logger.Infof("gRPC server listening on port 50051")
 	return grpcServer, lis
 }
 
-func StopGrpcServer(grpcServer *grpc.Server) {
-	log.Println("Stopping gRPC server...")
+func StopGrpcServer(grpcServer *grpc.Server, logger utils.Logger) {
+	logger.Infof("Stopping gRPC server...")
 	grpcServer.GracefulStop()
-	log.Println("gRPC server stopped")
+	logger.Infof("gRPC server stopped")
 }
