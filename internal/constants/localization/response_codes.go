@@ -29,6 +29,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyLogoUploaded,
 	SuccessDonationCompanyLogoUpdated,
 	SuccessDonationCompanyFetched,
+	SuccessDonationCategoryEnableRequestSent,
+	SuccessDonationCategoryDisableRequestSent,
+	SuccessDonationCompanyEnableRequestSent,
+	SuccessDonationCompanyDisableRequestSent,
 	SuccessAccountInfoFetched,
 
 	SuccessDonationImageUploaded,
@@ -718,7 +722,32 @@ var (
 		Message:    MsgDonationCategoryUpdated,
 		Type:       "success",
 	}
+	SuccessDonationCategoryEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryEnableRequestSent,
+		Type:       "success",
+	}
 
+	SuccessDonationCategoryDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_CATEGORY_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCategoryDisableRequestSent,
+		Type:       "success",
+	}
+	SuccessDonationCompanyEnableRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_ENABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyEnableRequestSent,
+		Type:       "success",
+	}
+
+	SuccessDonationCompanyDisableRequestSent = ResponseCode{
+		Code:       "SUCCESS_DONATION_COMPANY_DISABLE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgDonationCompanyDisableRequestSent,
+		Type:       "success",
+	}
 	SuccessDonationCompanyCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_COMPANY_CREATE_REQUEST_SENT",
 		StatusCode: StatusCreated,

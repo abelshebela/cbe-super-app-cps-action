@@ -212,6 +212,10 @@ const (
 	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
 	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
 	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestEnableDonationCategory        RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDisableDonationCategory        RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestEnableDonationCompany        RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDisableDonationCompany       RequestAction = "DISABLE_DONATION_COMPANY"
 	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
 	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
 	RequestCreateDonation         RequestAction = "CREATE_DONATION"
@@ -277,6 +281,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
 	RequestCreateDonationCompany:  {},
+
+	RequestDisableDonationCategory:{},
+	RequestEnableDonationCompany:{},
+	RequestDisableDonationCompany:{},
+	RequestEnableDonationCategory:{},
+
 	RequestUpdateDonationCompany:  {},
 	RequestCreateDonation:         {},
 	RequestUpdateDonation:         {},
@@ -696,10 +706,14 @@ var RequestActionGroups = map[string][]RequestAction{
 	"donationCategory": {
 		RequestCreateDonationCategory,
 		RequestUpdateDonationCategory,
+		RequestDisableDonationCategory,
+	RequestEnableDonationCategory,
 	},
 	"donationCompany": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
+		RequestEnableDonationCompany,
+	RequestDisableDonationCompany,
 	},
 	"VaultGroupCategory": {
 		RequestCreateVaultGroupCategory,

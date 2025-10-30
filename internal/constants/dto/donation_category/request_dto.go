@@ -17,3 +17,9 @@ type DonationCategoryCPSRequest struct {
 	CategoryName string `json:"category_name" bson:"category_name"`
 	Icon         string `json:"donation_icon,omitempty" bson:"donation_icon,omitempty"`
 }
+
+type EnableDonationCategoryRequest struct {
+	Enabled bool `json:"enabled" bson:"enabled"`
+}
+
+
