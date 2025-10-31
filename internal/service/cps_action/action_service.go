@@ -75,7 +75,7 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID})
+	return ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID, "department": department})
 }
 func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
 	filter := bson.M{
