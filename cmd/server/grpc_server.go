@@ -56,8 +56,14 @@ func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
 		Code:      data.Code,
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
+		Services: &walletpb.Services{
+			Self:  data.Services.Self,
+			Other: data.Services.Other,
+			Agent: data.Services.Agent,
+		},
 	}
 }
+
 
 func (s *server) bankListMapper(data []*model.Bank) []*bankpb.Bank {
 	var banks []*bankpb.Bank

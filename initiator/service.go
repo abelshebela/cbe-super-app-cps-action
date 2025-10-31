@@ -98,6 +98,7 @@ type ServiceLayer struct {
 	ArticleService         service.ArticleService
 	ArticleCategoryService service.ArticleCategoryService
 	ShortVideoService      service.ShortVideoService
+	NewsTagsService        service.NewsTagsService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -164,6 +165,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
+	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -205,6 +207,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ArticleContainer:           articleService,
 		ArticleCategoryContainer:   articleCategoryService,
 		ShortVideoServiceContainer: ShortVideoService,
+		NewsTagsServiceContainer:   newsTagsService,
 	}
 
 	// Create the dispatcher with the service container
@@ -283,7 +286,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
-
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 
@@ -355,5 +357,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ArticleService:         articleService,
 		ArticleCategoryService: articleCategoryService,
 		ShortVideoService:      ShortVideoService,
+		NewsTagsService:        newsTagsService,
 	}
 }

@@ -11,7 +11,7 @@ type NewsArticle struct {
 	CategoryID      bson.ObjectID `bson:"category_id" json:"category_id"`
 	Title           string        `bson:"title" json:"title"`
 	Content         string        `bson:"content" json:"content"`
-	Tags            []string      `bson:"tags" json:"tags"`
+	Tags            []bson.ObjectID      `bson:"tags" json:"tags"`
 	Language        string        `bson:"language" json:"language"`
 	Author          string        `bson:"author" json:"author"`
 	Thumbnail       string        `bson:"thumbnail" json:"thumbnail"`
@@ -41,7 +41,7 @@ type ShortVideo struct {
 	CategoryID  bson.ObjectID `bson:"category_id" json:"category_id"`
 	Title       string        `bson:"title" json:"title"`
 	Caption     string        `bson:"caption" json:"caption"`
-	Tags        []string      `bson:"tags" json:"tags"`
+	Tags        []bson.ObjectID      `bson:"tags" json:"tags"`
 	Thumbnail   string        `bson:"thumbnail" json:"thumbnail"`
 	VideoURL    string        `bson:"video_url" json:"video_url"`
 	Duration    float64       `bson:"duration" json:"duration"`
@@ -56,4 +56,14 @@ type ShortVideo struct {
 	UpdatedAt   time.Time     `bson:"updated_at" json:"updated_at"`
 	DeletedAt   *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 	PublishedAt *time.Time    `bson:"published_at,omitempty" json:"published_at,omitempty"`
+}
+
+type NewsTags struct {
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name      string        `bson:"name" json:"name"`
+	IsEnabled bool          `bson:"is_enabled" json:"is_enabled"`
+	IsDeleted bool          `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 }

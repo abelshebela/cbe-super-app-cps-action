@@ -397,6 +397,7 @@ type ServiceContainer struct {
 	ArticleContainer            ArticleService
 	ArticleCategoryContainer    ArticleCategoryService
 	ShortVideoServiceContainer  ShortVideoService
+	NewsTagsServiceContainer    NewsTagsService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -426,5 +427,9 @@ type ArticleCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 type ShortVideoService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type NewsTagsService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
