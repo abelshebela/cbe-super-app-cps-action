@@ -131,6 +131,9 @@ func buildUpdate(updateFields model.NewsArticle) bson.M {
 		update["language"] = updateFields.Language
 	}
 
+	if updateFields.ThumbnailAltText != "" {
+		update["thumbnail_alt_text"] = updateFields.ThumbnailAltText
+	}
 
 	update["updated_at"] = time.Now()
 
