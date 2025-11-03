@@ -81,10 +81,13 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	if _, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); err != nil {
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); 
+	if err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return err
 	}
+	
+	
 
 	if donationCompany.CompanyLogo == nil {
 		return errors.New(localization.ErrorLogoIsRequired.Code)
@@ -96,7 +99,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	}
 
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
-
+	result.AccountHolderName = accountDetail.CustomerName
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -138,9 +141,17 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 	if donationCompany.CompanyName == "" {
 		updateData.CompanyName = existingCompany.CompanyName
 	}
-	if donationCompany.AccountNumber == "" {
+	if donationCompany.AccountNumber != "" {	
+		accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
+		if  err != nil {
+			return donationCompany,err
+		}
+		updateData.AccountHolderName= accountDetail.CustomerName
+	}else{
 		updateData.AccountNumber = existingCompany.AccountNumber
+		updateData.AccountHolderName= existingCompany.AccountHolderName
 	}
+
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCompany, updateData, string(constants.RequestUpdateDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
