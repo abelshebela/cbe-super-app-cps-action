@@ -41,7 +41,8 @@ func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSA
 }
 
 func (c *customerService) GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
-
+	filterParams.Filters = make(map[string]interface{})
+	filterParams.Filters["kyc_level"] = kyc_level
 	customers, err := c.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		return nil, err
@@ -123,6 +124,9 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 	if err != nil {
 		return err
 	}
+	if customer.Enabled {
+		return errors.New(localization.ErrorCustomerAlreadyEnabled.Code)
+	}
 
 	if customer.KYCLevel != uint8(constants.ONE) {
 		return errors.New(localization.ErrorUserNotFaydaRegistered.Code)
@@ -168,6 +172,7 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 
 	new_customer := *customer
 	new_customer.Enabled = true
+	new_customer.IsBlocked = false
 
 	action := lib.CpsModelBuilder(id, makerData, customer, new_customer, string(constants.RequestEnableDisableCustomer), constants.UPDATE)
 

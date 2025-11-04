@@ -22,6 +22,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
+	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
+	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
 	"time"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -118,6 +120,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "news_articles"),
 		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "news_categories"),
 		ShortVideoPersistence:      media.NewShortVideoRepository(logger, client, dbName, "news_short_videos"),
+		NewsTagPersistence:         newstag_repo.NewNewsTagRepository(client, dbName, "news_tags", logger),
+		NewsCategoryPersistence:    newscategory_repo.NewNewsCategoryRepository(client, dbName, "news_category", logger),
 	}
 
 	return data

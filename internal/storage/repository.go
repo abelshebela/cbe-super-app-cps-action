@@ -498,3 +498,21 @@ type ShortVideoRepository interface {
 	Delete(ctx context.Context, id string) error
 	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
 }
+
+type NewsTagRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
+	Get(ctx context.Context, id string) (*model.NewsTag, error)
+	Create(ctx context.Context, tagName []string) error
+	Update(ctx context.Context, id string, tagName string) error
+	Delete(ctx context.Context, id string) error
+	FindByNames(ctx context.Context, names []string) (*model.NewsTag, error)
+}
+
+type NewsCategoryRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error)
+	Get(ctx context.Context, id string) (*model.NewsCategory, error)
+	Create(ctx context.Context, categoryName []string) error
+	Update(ctx context.Context, id string, categoryName string) error
+	Delete(ctx context.Context, id string) error
+	FindByNames(ctx context.Context, names []string) (*model.NewsCategory, error)
+}
