@@ -125,8 +125,9 @@ const (
 type BlockedOn string
 
 const (
-	BPS BlockedOn = "BPS"
-	CPS BlockedOn = "CPS"
+	NotBlocked BlockedOn = ""
+	BPS        BlockedOn = "BPS"
+	CPS        BlockedOn = "CPS"
 )
 
 type MaritalStatus string
@@ -377,23 +378,23 @@ const (
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
 
-	RequestDisableFaydaAccount    RequestAction = "DISABLE_FAYDA_ACCOUNT"
-	RequestEnableFaydaAccount     RequestAction = "ENABLE_FAYDA_ACCOUNT"
-	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
-	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
-	RequestEnableDonationCategory        RequestAction = "ENABLE_DONATION_CATEGORY"
-	RequestDisableDonationCategory        RequestAction = "DISABLE_DONATION_CATEGORY"
-	RequestEnableDonationCompany        RequestAction = "ENABLE_DONATION_COMPANY"
-	RequestDisableDonationCompany       RequestAction = "DISABLE_DONATION_COMPANY"
-	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
-	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
-	RequestCreateDonation         RequestAction = "CREATE_DONATION"
-	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
-	RequestUpdateDonationImage    RequestAction = "UPDATE_DONATION_IMAGE"
-	RequestDeleteDonationImage    RequestAction = "DELETE_DONATION_IMAGE"
-	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
-	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
-	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	RequestDisableFaydaAccount     RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount      RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestCreateDonationCategory  RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestEnableDonationCompany   RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDisableDonationCompany  RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestCreateDonationCompany   RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany   RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation          RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation          RequestAction = "UPDATE_DONATION"
+	RequestUpdateDonationImage     RequestAction = "UPDATE_DONATION_IMAGE"
+	RequestDeleteDonationImage     RequestAction = "DELETE_DONATION_IMAGE"
+	RequestAddDonationImage        RequestAction = "ADD_DONATION_IMAGE"
+	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
+	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
 
 	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
 	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
