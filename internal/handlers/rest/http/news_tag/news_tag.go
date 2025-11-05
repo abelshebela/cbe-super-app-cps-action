@@ -5,7 +5,6 @@ import (
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	_ "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_tag/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -108,12 +107,8 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 // @Router /news/tags [post]
 // FetchNewsTags implements newstag_adaptor.NewsTagAdaptor.
 func (n NewsTagHandler) FetchNewsTags(w http.ResponseWriter, r *http.Request) {
-	var filter types.Filter
-	// Try to decode filter from body (POST). If not present, fallback to query params.
-	if err := json.NewDecoder(r.Body).Decode(&filter); err != nil {
-		ptr := local_util.ExtractFilterParams(r)
-		filter = *ptr
-	}
+	filterPtr := local_util.ExtractFilterParams(r)
+	filter := *filterPtr
 
 	if filter.Page < 0 || filter.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidPaginationParams, nil, nil)
