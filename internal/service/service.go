@@ -25,6 +25,7 @@ import (
 	donationComp_dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
@@ -79,6 +80,7 @@ type CPSUserService interface {
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 }
+
 type NotificationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateNotification(ctx context.Context, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
@@ -123,6 +125,7 @@ type DonationService interface {
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
 }
+
 type DonationCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateDonationCategory(ctx context.Context, donation donationCat_dto.DonationCategoryRequest) error
@@ -131,7 +134,6 @@ type DonationCategoryService interface {
 	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
 	EnableDonationCategory(ctx context.Context, id string) error
 	DisableDonationCategory(ctx context.Context, id string) error
-	
 }
 
 type DonationCompanyService interface {
@@ -152,6 +154,14 @@ type EventService interface {
 	EnableDisableEvent(ctx context.Context, id string, enable bool) error
 	FetchEventByID(ctx context.Context, id string) (*model.Event, error)
 	FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+}
+
+type KYCVerifierService interface {
+	FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*kyc_dto.KYCVerifierResponse], error)
+	FetchKYCByID(ctx context.Context, id string) (*kyc_dto.KYCVerifierResponse, error)
+	UpdateKYC(ctx context.Context, id string, req kyc_dto.UpdateKYCRequest) error
+	ApproveKYC(ctx context.Context, id string, req kyc_dto.ApproveKYCRequest) error
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -399,6 +409,7 @@ type ServiceContainer struct {
 	ShortVideoServiceContainer  ShortVideoService
 	NewsTagContainer            NewsTagService
 	NewsCategoryContainer       NewsCategoryService
+	KYCVerifierContainer        KYCVerifierService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

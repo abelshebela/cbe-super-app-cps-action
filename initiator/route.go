@@ -14,6 +14,7 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 
 	// bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
 	// vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
@@ -117,6 +118,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 
 	amountBasedAuth.Init(r, handlerLayer.AmountBasedAuthHandler, authMiddleware)
 	notification.Init(r, handlerLayer.NotificationHandler, authMiddleware)
+	kyc_routing.Init(r, handlerLayer.KYCVerifierHandler, authMiddleware)
 
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)

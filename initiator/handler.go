@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
+	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 
 	// bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
@@ -45,6 +46,7 @@ import (
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
+	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 
 	// bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 
@@ -125,6 +127,7 @@ type Handler struct {
 	// VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
 	NewsCategoryHandler newscategory_adaptor.NewsCategoryAdaptor
 	NewsTagHandler      newstag_adaptor.NewsTagAdaptor
+	KYCVerifierHandler  kycInbound.KYCVerifierAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -173,5 +176,6 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
 		NewsCategoryHandler:     newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
 		NewsTagHandler:          newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
+		KYCVerifierHandler:      kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
 	}
 }

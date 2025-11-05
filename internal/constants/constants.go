@@ -207,13 +207,14 @@ const (
 type RequestAction string
 
 const (
-	RequestUser           RequestAction = "USER"
-	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete  RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable  RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
-
+	RequestUser                     RequestAction = "USER"
+	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
+	RequestUpdateKYC                RequestAction = "UPDATE_KYC"
+	RequestApproveKYC               RequestAction = "APPROVE_KYC"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
 	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"

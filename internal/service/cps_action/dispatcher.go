@@ -31,6 +31,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Bank"):
 		return d.app.BankContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "KYCVerifier"):
+		return d.app.KYCVerifierContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(RequestAction(action), "Block"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
