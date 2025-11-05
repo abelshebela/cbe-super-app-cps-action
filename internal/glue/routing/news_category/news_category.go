@@ -13,7 +13,7 @@ import (
 func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
-			Method:  http.MethodPost,
+			Method:  http.MethodGet,
 			Path:    "/news/category",
 			Handler: handler.FetchNewsCategories,
 			Middlewares: []func(next http.Handler) http.Handler{
@@ -49,7 +49,7 @@ func Init(router chi.Router, handler newscategory_adaptor.NewsCategoryAdaptor, a
 			},
 		},
 		{
-			Method:  http.MethodPut,
+			Method:  http.MethodPatch,
 			Path:    "/news/category/{id}",
 			Handler: handler.UpdateNewsCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
