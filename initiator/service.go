@@ -9,6 +9,8 @@ import (
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	"cbe-super-app-cps-action/internal/service/media"
+	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
+	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
 	"cbe-super-app-cps-action/internal/storage"
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
@@ -98,6 +100,8 @@ type ServiceLayer struct {
 	ArticleService         service.ArticleService
 	ArticleCategoryService service.ArticleCategoryService
 	ShortVideoService      service.ShortVideoService
+	NewsTagService         service.NewsTagService
+	NewsCategoryService    service.NewsCategoryService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -164,6 +168,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
+	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
+	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
+
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -205,6 +212,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ArticleContainer:           articleService,
 		ArticleCategoryContainer:   articleCategoryService,
 		ShortVideoServiceContainer: ShortVideoService,
+		NewsTagContainer:           newsTagService,
+		NewsCategoryContainer:      newsCategoryService,
 	}
 
 	// Create the dispatcher with the service container
@@ -283,7 +292,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
-
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 
@@ -313,6 +321,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
+
+	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
+	serviceContainer.NewsTagContainer = newsTagService
+	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
+	serviceContainer.NewsCategoryContainer = newsCategoryService
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
@@ -355,5 +368,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ArticleService:         articleService,
 		ArticleCategoryService: articleCategoryService,
 		ShortVideoService:      ShortVideoService,
+		NewsTagService:         newsTagService,
+		NewsCategoryService:    newsCategoryService,
 	}
 }

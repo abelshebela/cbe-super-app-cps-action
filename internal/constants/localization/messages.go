@@ -960,4 +960,17 @@ const (
 	MsgBucketNotFound = "bucket not found"
 
 	MsgNoUpdateDetected = "No update detected"
+
+	MsgNewsCategoryInvalidID             = "Invalid or missing news category id"
+	MsgNewsTagInvalidID                  = "Invalid or missing news tag id"
+	MsgNewsCategoryWithNameAlreadyExists = "News category with this name already exists"
+	MsgNewsTagWithNameAlreadyExists      = "News tag with this name already exists"
+	MsgNewsCategoryDeletedSuccess        = "News category deleted request sent successfully"
+	MsgNewsCategoryUpdatedSuccess        = "News category updated request sent successfully"
+	MsgNewsCategoryFetchedSuccess        = "News category fetched successfully"
+	MsgNewsCategoryCreatedSuccess        = "News category created request sent successfully"
+	MsgNewsTagDeletedSuccess             = "News tag deleted request sent successfully"
+	MsgNewsTagUpdatedSuccess             = "News tag updated request sent successfully"
+	MsgNewsTagFetchedSuccess             = "News tag fetched successfully"
+	MsgNewsTagCreatedSuccess             = "News tag created request sent successfully"
 )

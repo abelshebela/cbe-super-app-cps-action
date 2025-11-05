@@ -2,6 +2,8 @@ package initiator
 
 import (
 	"context"
+	"fmt"
+	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
@@ -86,7 +88,11 @@ func Init(ctx context.Context) {
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, logger, cfg)
 
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
+	go func() {
+		fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	}()
+
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, r)
 
 	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)

@@ -251,7 +251,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 // @Summary Get Customer Linked Account
 // @Description Retrives a list of customer linked account
 // @Tags Customers Linked Account
-// @Param customer_number
+// @Param customer_number path string true "Customer number"
 // @Produce json
 // @Success 200 {object} localization.StandardResponse{data=customers_paginated_resp} "Blocked customers retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
