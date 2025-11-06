@@ -124,6 +124,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		NewsTagPersistence:         newstag_repo.NewNewsTagRepository(client, dbName, "news_tags", logger),
 		NewsCategoryPersistence:    newscategory_repo.NewNewsCategoryRepository(client, dbName, "news_category", logger),
 		KYCVerifierPersistence:     kyc_repo.NewKYCVerifierRepository(client, dbName, "customer_kyc", logger),
+		NewsTagsServiceContainer:   media.NewNewsTagsRepository(logger, client, dbName, "news_tags"),
 	}
 
 	return data

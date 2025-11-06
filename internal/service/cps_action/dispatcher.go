@@ -132,6 +132,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.NewsTagContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "news_category"):
 		return d.app.NewsCategoryContainer.Authorize(ctx, cpsAction)
+		return d.app.NewsTagsServiceContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")

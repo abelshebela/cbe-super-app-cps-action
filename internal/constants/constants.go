@@ -410,6 +410,13 @@ const (
 	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
 	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
 
+	// article tags
+	RequestCreateNewsTag  RequestAction = "CREATE_NEWS_TAG"
+	RequestUpdateNewsTag  RequestAction = "UPDATE_NEWS_TAG"
+	RequestEnableNewsTag  RequestAction = "ENABLE_NEWS_TAG"
+	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
+	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
+
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
 	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"

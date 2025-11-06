@@ -255,6 +255,13 @@ const (
 	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
 	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
 
+	// for tags
+	RequestCreateNewsTag  RequestAction = "CREATE_NEWS_TAG"
+	RequestUpdateNewsTag  RequestAction = "UPDATE_NEWS_TAG"
+	RequestEnableNewsTag  RequestAction = "ENABLE_NEWS_TAG"
+	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
+	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
+
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
 	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
@@ -438,6 +445,12 @@ var validRequestActions = map[RequestAction]struct{}{
 
 	// for customer
 	RequestEnableDisableCustomer: {},
+
+	RequestCreateNewsTag:  {},
+	RequestUpdateNewsTag:  {},
+	RequestEnableNewsTag:  {},
+	RequestDisableNewsTag: {},
+	RequestDeleteNewsTag:  {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -760,9 +773,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestAction("DELETE_NEWS_CATEGORY"),
 	},
 	"news_tag": {
-		RequestAction("CREATE_NEWS_TAG"),
-		RequestAction("UPDATE_NEWS_TAG"),
-		RequestAction("DELETE_NEWS_TAG"),
+		RequestCreateNewsTag,
+		RequestUpdateNewsTag,
+		RequestEnableNewsTag,
+		RequestDisableNewsTag,
+		RequestDeleteNewsTag,
 	},
 }
 

@@ -410,6 +410,7 @@ type ServiceContainer struct {
 	NewsTagContainer            NewsTagService
 	NewsCategoryContainer       NewsCategoryService
 	KYCVerifierContainer        KYCVerifierService
+	NewsTagsServiceContainer    NewsTagsService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

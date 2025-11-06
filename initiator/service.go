@@ -221,6 +221,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		KYCVerifierContainer:       kycService,
 
 		// KYC verifier will be set after CPS action wiring
+		NewsTagsServiceContainer:   newsTagsService,
 	}
 
 	// Create the dispatcher with the service container
