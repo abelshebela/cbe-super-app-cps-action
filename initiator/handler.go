@@ -84,6 +84,9 @@ import (
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
+	sitotaInbound "cbe-super-app-cps-action/internal/constants/interfaces/sitota"
+	sitotaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/sitota"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -125,6 +128,7 @@ type Handler struct {
 	// VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
 	NewsCategoryHandler newscategory_adaptor.NewsCategoryAdaptor
 	NewsTagHandler      newstag_adaptor.NewsTagAdaptor
+	SitotaHandler       sitotaInbound.SitotaAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -173,5 +177,7 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
 		NewsCategoryHandler:     newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
 		NewsTagHandler:          newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
+
+		SitotaHandler: sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
 	}
 }

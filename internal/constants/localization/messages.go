@@ -70,10 +70,10 @@ const (
 	MsgDonationCategoriesFetched             = "Donation categories fetched successfully"
 	MsgDonationCategoryFetched               = "Donation category fetched successfully"
 	MsgDonationCategoryUpdated               = "Donation category updated successfully"
-	MsgDonationCategoryDisableRequestSent ="Donation category Disable request sent successfully"
-	MsgDonationCompanyEnableRequestSent ="Donation Company Enable request sent successfully"
-	MsgDonationCompanyDisableRequestSent ="Donation company Disable request sent successfully"
-	MsgDonationCategoryEnableRequestSent ="Donation category Enable request sent successfully"
+	MsgDonationCategoryDisableRequestSent    = "Donation category Disable request sent successfully"
+	MsgDonationCompanyEnableRequestSent      = "Donation Company Enable request sent successfully"
+	MsgDonationCompanyDisableRequestSent     = "Donation company Disable request sent successfully"
+	MsgDonationCategoryEnableRequestSent     = "Donation category Enable request sent successfully"
 	MsgDonationCompanyCreateRequestSent      = "Donation company create request sent successfully"
 	MsgDonationCompaniesFetched              = "Donation companies fetched successfully"
 	MsgDonationCompanyFetched                = "Donation company fetched successfully"
@@ -973,4 +973,9 @@ const (
 	MsgNewsTagUpdatedSuccess             = "News tag updated request sent successfully"
 	MsgNewsTagFetchedSuccess             = "News tag fetched successfully"
 	MsgNewsTagCreatedSuccess             = "News tag created request sent successfully"
+
+	// Sitota related
+	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
+	MsgSitotaRetrievedSuccess     = "Sitota retrieved successfully"
+	MsgSitotaRequired             = "Sitota ID is required"
 )

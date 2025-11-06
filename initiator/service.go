@@ -51,6 +51,8 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
+	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -102,6 +104,8 @@ type ServiceLayer struct {
 	ShortVideoService      service.ShortVideoService
 	NewsTagService         service.NewsTagService
 	NewsCategoryService    service.NewsCategoryService
+
+	Sitota service.SitotaService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -171,6 +175,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 
+	sitotaService := sitota_service.NewSitotaTransactionService(logger)
+
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -214,6 +220,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ShortVideoServiceContainer: ShortVideoService,
 		NewsTagContainer:           newsTagService,
 		NewsCategoryContainer:      newsCategoryService,
+		SitotaContainer:            sitotaService,
 	}
 
 	// Create the dispatcher with the service container
@@ -327,6 +334,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
 	serviceContainer.NewsCategoryContainer = newsCategoryService
 
+	sitotaService = sitota_service.NewSitotaTransactionService(logger)
+	serviceContainer.SitotaContainer = sitotaService
+
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
@@ -370,5 +380,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ShortVideoService:      ShortVideoService,
 		NewsTagService:         newsTagService,
 		NewsCategoryService:    newsCategoryService,
+		Sitota:                 sitotaService,
 	}
 }
