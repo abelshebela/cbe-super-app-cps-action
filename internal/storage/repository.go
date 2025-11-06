@@ -17,6 +17,7 @@ import (
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -55,6 +56,7 @@ type HQRepository interface {
 	Update(ctx context.Context, field string, value interface{}, now time.Time) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
 }
+
 type DeviceLinkHistoryRepository interface {
 	Save(ctx context.Context, deviceLinkHistory *model.DeviceLinkHistroy) error
 	Update(ctx context.Context, update *model.DeviceLinkHistroy) error
@@ -218,6 +220,7 @@ type BankRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
 	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
+
 type DepartmentRepository interface {
 	Create(ctx context.Context, department *model.Department) error
 	Update(ctx context.Context, id string, department *model.Department) error
@@ -246,6 +249,7 @@ type CpsUserRepository interface {
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error)
 	FindByEmail(ctx context.Context, email string) (*model.CPSUser, error)
 }
+
 type BankVaultRepository interface {
 	Create(ctx context.Context, bankVault *model.BankVaultProduct) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error)
@@ -254,6 +258,7 @@ type BankVaultRepository interface {
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
+
 type VaultGroupCategoryRepository interface {
 	Create(ctx context.Context, vaultGroupCategory *model.VaultGroupCategory) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error)
@@ -298,6 +303,7 @@ type MiniAppRepository interface {
 	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
 	FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
 }
+
 type EventRepository interface {
 	Create(ctx context.Context, event *model.Event) error
 	Update(ctx context.Context, id string, event *model.Event) error
@@ -413,6 +419,17 @@ type ValidationRuleRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
 }
 
+type KYCVerifierRepository interface {
+	Update(ctx context.Context, id string, kyc *model.CustomerKYC) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	// Raw fetches for internal service logic
+	FindByID(ctx context.Context, id string) (*model.CustomerKYC, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerKYC], error)
+	// Populated responses for API
+	FindByIDPopulated(ctx context.Context, id string) (*kyc_dto.KYCVerifierResponse, error)
+	FindAllWithPaginationPopulated(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*kyc_dto.KYCVerifierResponse], error)
+}
+
 type WalletRepository interface {
 	Create(ctx context.Context, wallet *model.Wallet) error
 	Update(ctx context.Context, id string, wallet *model.Wallet) error
@@ -499,9 +516,20 @@ type ShortVideoRepository interface {
 	PublishUnpublish(ctx context.Context, id string, isPublished bool) error
 }
 
-type NewsTagsRepository interface {
-	Create(ctx context.Context, newsTag *model.NewsTags) error
-	Update(ctx context.Context, newsTag *model.NewsTags, id string) error
+type NewsTagRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
+	Get(ctx context.Context, id string) (*model.NewsTag, error)
+	Create(ctx context.Context, tagName []string) error
+	Update(ctx context.Context, id string, tagName string) error
 	Delete(ctx context.Context, id string) error
-	EnableDisable(ctx context.Context, id string, isEnable bool) error
+	FindByNames(ctx context.Context, names []string) (*model.NewsTag, error)
+}
+
+type NewsCategoryRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error)
+	Get(ctx context.Context, id string) (*model.NewsCategory, error)
+	Create(ctx context.Context, categoryName []string) error
+	Update(ctx context.Context, id string, categoryName string) error
+	Delete(ctx context.Context, id string) error
+	FindByNames(ctx context.Context, names []string) (*model.NewsCategory, error)
 }

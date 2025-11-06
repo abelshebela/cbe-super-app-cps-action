@@ -120,6 +120,9 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 		CompanyName:   donationCompany.CompanyName,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
+		PhoneNumber: donationCompany.PhoneNumber,
+		Email: donationCompany.Email,
+		Address: donationCompany.Address,
 	}
 }
 
@@ -128,6 +131,10 @@ func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.D
 	return dto.DonationCompanyRequest{
 		CompanyName:   cpsRequest.CompanyName,
 		AccountNumber: cpsRequest.AccountNumber,
+		PhoneNumber: cpsRequest.PhoneNumber,
+		Email: cpsRequest.Email,
+		Address: cpsRequest.Address,
+
 	}
 }
 
@@ -191,10 +198,7 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 			return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
 
-		// Validate account number with external API
-		if _, err := ValidateAccountNumberWithExternalAPI(ctx, request.AccountNumber, accountLookupService); err != nil {
-			return err
-		}
+
 	}
 
 	return nil

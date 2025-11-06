@@ -9,6 +9,8 @@ import (
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
 	"cbe-super-app-cps-action/internal/service/media"
+	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
+	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
 	"cbe-super-app-cps-action/internal/storage"
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
@@ -48,6 +50,8 @@ import (
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
+
+	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -98,7 +102,9 @@ type ServiceLayer struct {
 	ArticleService         service.ArticleService
 	ArticleCategoryService service.ArticleCategoryService
 	ShortVideoService      service.ShortVideoService
-	NewsTagsService        service.NewsTagsService
+	NewsTagService         service.NewsTagService
+	NewsCategoryService    service.NewsCategoryService
+	KYCVerifier            service.KYCVerifierService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -139,6 +145,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation_icon", cfg, minioPubUrl)
 	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation_company_logo", cfg, minioPubUrl, accountLookupService)
 	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
+	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, nil, logger)
 
 	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
@@ -165,7 +172,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
-	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
+	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
+	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
+
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -207,6 +216,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ArticleContainer:           articleService,
 		ArticleCategoryContainer:   articleCategoryService,
 		ShortVideoServiceContainer: ShortVideoService,
+		NewsTagContainer:           newsTagService,
+		NewsCategoryContainer:      newsCategoryService,
+		KYCVerifierContainer:       kycService,
+
+		// KYC verifier will be set after CPS action wiring
 		NewsTagsServiceContainer:   newsTagsService,
 	}
 
@@ -287,10 +301,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
+
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
+
+	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, cpsActionService, logger)
+	serviceContainer.KYCVerifierContainer = kycService
 
 	// bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	// serviceContainer.BankVaultContainer = bankVaultSvc
@@ -315,6 +333,11 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
+
+	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
+	serviceContainer.NewsTagContainer = newsTagService
+	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
+	serviceContainer.NewsCategoryContainer = newsCategoryService
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
@@ -357,6 +380,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ArticleService:         articleService,
 		ArticleCategoryService: articleCategoryService,
 		ShortVideoService:      ShortVideoService,
-		NewsTagsService:        newsTagsService,
+		NewsTagService:         newsTagService,
+		NewsCategoryService:    newsCategoryService,
+		KYCVerifier:            kycService,
 	}
 }
