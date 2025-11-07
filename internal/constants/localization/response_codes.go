@@ -467,6 +467,11 @@ var ResponseCodesList = []ResponseCode{
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
 	ErrorOTPSendFailed,
+
+	ErrorNewsCategoryInvalidID,
+	ErrorNewsTagInvalidID,
+	ErrorNewsTagWithNameAlreadyExists,
+	ErrorNewsCategoryWithNameAlreadyExists,
 }
 
 // Success Response Codes
@@ -781,6 +786,27 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgSuccessDonationCompanyUpdated,
+		Type:       "success",
+	}
+
+	SuccessKYCApproved = ResponseCode{
+		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCApproved,
+		Type:       "success",
+	}
+
+	SuccessKYCUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_KYC_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgKYCUpdatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessKYCFetched = ResponseCode{
+		Code:       "SUCCESS_KYC_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCFetched,
 		Type:       "success",
 	}
 
@@ -5140,5 +5166,82 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgTopupImageRequiredOrMissing,
 		Type:       "error",
+	}
+
+	ErrorNewsCategoryInvalidID = ResponseCode{
+		Code:       "ERROR_NEWS_CATEGORY_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsCategoryInvalidID,
+		Type:       "error",
+	}
+
+	ErrorNewsTagInvalidID = ResponseCode{
+		Code:       "ERROR_NEWS_TAG_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsTagInvalidID,
+		Type:       "error",
+	}
+
+	ErrorNewsCategoryWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_NEWS_CATEGORY_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsCategoryWithNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorNewsTagWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_NEWS_TAG_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsTagWithNameAlreadyExists,
+		Type:       "error",
+	}
+
+	SuccessNewsCategoryCreated = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryCreatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryFetched = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_FETCHE",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryUpdated = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryUpdatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryDeleted = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryDeletedSuccess,
+		Type:       "success",
+	}
+
+	SuccessNewsTagCreated = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagCreatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagFetched = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_FETCHE",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagUpdated = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagUpdatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagDeleted = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagDeletedSuccess,
+		Type:       "success",
 	}
 )
