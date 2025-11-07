@@ -444,6 +444,10 @@ type ShortVideoService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type NewsTagsService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type NewsTagService interface {
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
 	GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error)
