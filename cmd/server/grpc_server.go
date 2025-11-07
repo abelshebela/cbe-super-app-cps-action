@@ -3,6 +3,8 @@ package server
 import (
 	bankpb "cbe-super-app-cps-action/grpc/bank"
 	servicepb "cbe-super-app-cps-action/grpc/service/proto"
+
+	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -13,6 +15,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // server implements bankpb.BankServiceServer
@@ -22,17 +25,20 @@ type server struct {
 	bankpb.UnimplementedBankServiceServer
 	walletpb.UnimplementedWalletServiceServer
 	servicepb.UnimplementedServiceDetailsServiceServer
+	topuppb.UnimplementedTopupServiceServer
 	bankHandler    service.BankService
 	walletHandler  service.WalletService
 	serviceHandler service.ServiceService
+	topupHandler   service.TopupService
 	logger         utils.Logger
 }
 
-func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServiceService, logger utils.Logger) *server {
+func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServiceService, topupHandler service.TopupService, logger utils.Logger) *server {
 	return &server{
 		bankHandler:    bankHandler,
 		walletHandler:  walletHandler,
 		serviceHandler: serviceHandler,
+		topupHandler:   topupHandler,
 		logger:         logger,
 	}
 }
@@ -63,7 +69,6 @@ func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
 		},
 	}
 }
-
 
 func (s *server) bankListMapper(data []*model.Bank) []*bankpb.Bank {
 	var banks []*bankpb.Bank
@@ -211,7 +216,40 @@ func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servic
 	}
 }
 
+func (s *server) GetAllTopup(ctx context.Context, req *topuppb.TopupRequest) (*topuppb.TopupResponse, error) {
+	data, err := s.topupHandler.GetAllTopup(ctx, types.Filter{})
+	if err != nil {
+		s.logger.Errorf("Failed to get topup: %v", err)
+		return nil, err
+	}
+	return &topuppb.TopupResponse{Topups: s.TopupMapper(data.Data)}, nil
+}
+
+func (s *server) TopupMapper(data []*model.Topup) []*topuppb.Topup {
+	var topups []*topuppb.Topup
+	for _, topup := range data {
+		topups = append(topups, &topuppb.Topup{
+			Id:      topup.ID.Hex(),
+			Name:    topup.Name,
+			Code:    topup.Code,
+			Avatar:  topup.Avatar,
+			Enabled: topup.Enabled,
+			Services: &topuppb.Services{
+				Self:  topup.Services.Self,
+				Other: topup.Services.Other,
+				Agent: topup.Services.Agent,
+			},
+			IsDeleted:      topup.IsDeleted,
+			CreatedAt:      timestamppb.New(topup.CreatedAt),
+			LastModifiedAt: timestamppb.New(topup.LastModifiedAt),
+			DeletedAt:      timestamppb.New(topup.DeletedAt),
+		})
+	}
+	return topups
+}
+
 func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener) {
+
 	lis, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
@@ -221,6 +259,7 @@ func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener
 	bankpb.RegisterBankServiceServer(grpcServer, s)
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
 	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)
+	topuppb.RegisterTopupServiceServer(grpcServer, s)
 	logger.Infof("gRPC server listening on port 50051")
 	return grpcServer, lis
 }

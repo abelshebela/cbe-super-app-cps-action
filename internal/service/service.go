@@ -25,6 +25,7 @@ import (
 	donationComp_dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
+	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
@@ -79,6 +80,7 @@ type CPSUserService interface {
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
 }
+
 type NotificationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateNotification(ctx context.Context, notification notify.NotificationRequest) (*notify.NotificationResponse, error)
@@ -123,6 +125,7 @@ type DonationService interface {
 	EnableDonation(ctx context.Context, id string) error
 	DisableDonation(ctx context.Context, id string) error
 }
+
 type DonationCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateDonationCategory(ctx context.Context, donation donationCat_dto.DonationCategoryRequest) error
@@ -131,7 +134,6 @@ type DonationCategoryService interface {
 	UpdateDonationCategory(ctx context.Context, id string, donation donationCat_dto.DonationCategoryRequest) (donationCat_dto.DonationCategoryRequest, error)
 	EnableDonationCategory(ctx context.Context, id string) error
 	DisableDonationCategory(ctx context.Context, id string) error
-	
 }
 
 type DonationCompanyService interface {
@@ -152,6 +154,14 @@ type EventService interface {
 	EnableDisableEvent(ctx context.Context, id string, enable bool) error
 	FetchEventByID(ctx context.Context, id string) (*model.Event, error)
 	FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
+	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+}
+
+type KYCVerifierService interface {
+	FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*kyc_dto.KYCVerifierResponse], error)
+	FetchKYCByID(ctx context.Context, id string) (*kyc_dto.KYCVerifierResponse, error)
+	UpdateKYC(ctx context.Context, id string, req kyc_dto.UpdateKYCRequest) error
+	ApproveKYC(ctx context.Context, id string, req kyc_dto.ApproveKYCRequest) error
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -275,14 +285,14 @@ type TopupService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
-	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
-	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
-	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
-	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
-	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
-	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error
 	EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error
 	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error
@@ -397,6 +407,11 @@ type ServiceContainer struct {
 	ArticleContainer            ArticleService
 	ArticleCategoryContainer    ArticleCategoryService
 	ShortVideoServiceContainer  ShortVideoService
+	NewsTagContainer            NewsTagService
+	NewsCategoryContainer       NewsCategoryService
+	SitotaContainer             SitotaService
+	KYCVerifierContainer        KYCVerifierService
+	NewsTagsServiceContainer    NewsTagsService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -427,4 +442,26 @@ type ArticleCategoryService interface {
 }
 type ShortVideoService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type NewsTagService interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
+	GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error)
+	CreateNewsTags(ctx context.Context, tagName []string) error
+	UpdateNewsTag(ctx context.Context, id string, tagName string) error
+	DeleteNewsTag(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+type NewsCategoryService interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error)
+	GetNewsCategoryByID(ctx context.Context, id string) (*model.NewsCategory, error)
+	CreateNewsCategory(ctx context.Context, categoryName []string) error
+	UpdateNewsCategory(ctx context.Context, id string, categoryName string) error
+	DeleteNewsCategory(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type SitotaService interface {
+	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
+	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }

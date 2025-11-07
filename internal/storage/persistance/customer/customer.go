@@ -56,6 +56,8 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_blocked"] = false
+	filter["enabled"] = true
 
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

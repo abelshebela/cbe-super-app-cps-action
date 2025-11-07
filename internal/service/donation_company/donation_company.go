@@ -81,10 +81,13 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	if _, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); err != nil {
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); 
+	if err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return err
 	}
+	
+	
 
 	if donationCompany.CompanyLogo == nil {
 		return errors.New(localization.ErrorLogoIsRequired.Code)
@@ -96,7 +99,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	}
 
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
-
+	result.AccountHolderName = accountDetail.CustomerName
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -138,9 +141,17 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 	if donationCompany.CompanyName == "" {
 		updateData.CompanyName = existingCompany.CompanyName
 	}
-	if donationCompany.AccountNumber == "" {
+	if donationCompany.AccountNumber != "" {	
+		accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
+		if  err != nil {
+			return donationCompany,err
+		}
+		updateData.AccountHolderName= accountDetail.CustomerName
+	}else{
 		updateData.AccountNumber = existingCompany.AccountNumber
+		updateData.AccountHolderName= existingCompany.AccountHolderName
 	}
+
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCompany, updateData, string(constants.RequestUpdateDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -165,13 +176,11 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCompany):
-
 		err := d.DonationCompanyRepo.Create(ctx, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to create donation company: %v", err)
 			return nil, err
 		}
-
 	case string(constants.RequestUpdateDonationCompany):
 
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
@@ -179,14 +188,14 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			d.logger.Errorf("Failed to update donation company: %v", err)
 			return nil, err
 		}
-		case string(constants.RequestEnableDonationCompany):
+	case string(constants.RequestEnableDonationCompany):
 
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation company: %v", err)
 			return nil, err
 		}
-		case string(constants.RequestDisableDonationCompany):
+	case string(constants.RequestDisableDonationCompany):
 
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
@@ -215,8 +224,8 @@ func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber strin
 
 //MapToDonationCompany
 
-func (d *DonationCompany)EnableDonationCompany(ctx context.Context,id string)error {
-	makerData:= local_util.ExtractUserFromContext(ctx)
+func (d *DonationCompany) EnableDonationCompany(ctx context.Context, id string) error {
+	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
@@ -227,10 +236,10 @@ func (d *DonationCompany)EnableDonationCompany(ctx context.Context,id string)err
 	if existingDonationCompany == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-	if existingDonationCompany.Enabled{
+	if existingDonationCompany.Enabled {
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
-	DonationCompany:= core.MapToDonationCompany(existingDonationCompany,true)
+	DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestEnableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -240,8 +249,8 @@ func (d *DonationCompany)EnableDonationCompany(ctx context.Context,id string)err
 
 }
 
-func (d *DonationCompany)DisableDonationCompany(ctx context.Context,id string)error {
-	makerData:= local_util.ExtractUserFromContext(ctx)
+func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string) error {
+	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
@@ -252,10 +261,10 @@ func (d *DonationCompany)DisableDonationCompany(ctx context.Context,id string)er
 	if existingDonationCompany == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-	if !existingDonationCompany.Enabled{
+	if !existingDonationCompany.Enabled {
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
-	DonationCompany:= core.MapToDonationCompany(existingDonationCompany,false)
+	DonationCompany := core.MapToDonationCompany(existingDonationCompany, false)
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestDisableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err

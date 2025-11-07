@@ -2,6 +2,8 @@ package initiator
 
 import (
 	"context"
+	"fmt"
+	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
@@ -68,6 +70,12 @@ func Init(ctx context.Context) {
 		clientStore.Close()
 	}()
 
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC client for sitota")
+	}
+	defer sitotagRPCClient.Close()
+
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
@@ -86,7 +94,11 @@ func Init(ctx context.Context) {
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, logger, cfg)
 
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
+	go func() {
+		fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	}()
+
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, r)
 
 	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
@@ -97,6 +109,7 @@ func Init(ctx context.Context) {
 		}
 		done <- struct{}{}
 	}()
+
 	go func() {
 		srv.HTTPServerStart(ctx, logger)
 		done <- struct{}{}

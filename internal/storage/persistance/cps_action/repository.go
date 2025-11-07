@@ -50,7 +50,7 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 	return nil
 }
 
-func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error) {
 	s.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
 	filter := bson.M{
 		"is_deleted": false,
@@ -68,34 +68,41 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 			{"maker_phone_number": searchRegex},
 			{"checker_name": searchRegex},
 			{"checker_phone_number": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+			{"action_status": searchRegex},
 		}
 		s.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
+	Filter := dal.FilterOp{
+		Filter: filter,
+		Limit: limit,
+		Projection: Projection,
+	}
 
-	filter["orderBy"] = "created_at"
-	filter["orderBy"] = "created_at"
-	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
+	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
 		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("Error counting total CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	s.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
-	return &types.PaginatedResponse[[]*model.CPSAction]{
-		Data: data,
-		Meta: meta,
-	}, nil
+return types.PaginatedResponse[[]model.CPSAction]{
+    Data: data,
+    Meta: meta,
+}, nil
+
 }
 
 func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
@@ -178,6 +185,9 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 			{"maker_phone_number": searchRegex},
 			{"checker_name": searchRegex},
 			{"checker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"action_type": searchRegex},
+
 		}
 		r.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
@@ -192,6 +202,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value:bson.D{{Key: "created_at", Value: -1}} }},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 		{{Key: "$project", Value: Projection}},

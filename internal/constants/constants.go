@@ -125,8 +125,9 @@ const (
 type BlockedOn string
 
 const (
-	BPS BlockedOn = "BPS"
-	CPS BlockedOn = "CPS"
+	NotBlocked BlockedOn = ""
+	BPS        BlockedOn = "BPS"
+	CPS        BlockedOn = "CPS"
 )
 
 type MaritalStatus string
@@ -206,13 +207,14 @@ const (
 type RequestAction string
 
 const (
-	RequestUser           RequestAction = "USER"
-	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete  RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable  RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
-
+	RequestUser                     RequestAction = "USER"
+	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
+	RequestUpdateKYC                RequestAction = "UPDATE_KYC"
+	RequestApproveKYC               RequestAction = "APPROVE_KYC"
 	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
 	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
 	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
@@ -377,23 +379,23 @@ const (
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
 
-	RequestDisableFaydaAccount    RequestAction = "DISABLE_FAYDA_ACCOUNT"
-	RequestEnableFaydaAccount     RequestAction = "ENABLE_FAYDA_ACCOUNT"
-	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
-	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
-	RequestEnableDonationCategory        RequestAction = "ENABLE_DONATION_CATEGORY"
-	RequestDisableDonationCategory        RequestAction = "DISABLE_DONATION_CATEGORY"
-	RequestEnableDonationCompany        RequestAction = "ENABLE_DONATION_COMPANY"
-	RequestDisableDonationCompany       RequestAction = "DISABLE_DONATION_COMPANY"
-	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
-	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
-	RequestCreateDonation         RequestAction = "CREATE_DONATION"
-	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
-	RequestUpdateDonationImage    RequestAction = "UPDATE_DONATION_IMAGE"
-	RequestDeleteDonationImage    RequestAction = "DELETE_DONATION_IMAGE"
-	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
-	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
-	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	RequestDisableFaydaAccount     RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount      RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestCreateDonationCategory  RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestEnableDonationCompany   RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDisableDonationCompany  RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestCreateDonationCompany   RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany   RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation          RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation          RequestAction = "UPDATE_DONATION"
+	RequestUpdateDonationImage     RequestAction = "UPDATE_DONATION_IMAGE"
+	RequestDeleteDonationImage     RequestAction = "DELETE_DONATION_IMAGE"
+	RequestAddDonationImage        RequestAction = "ADD_DONATION_IMAGE"
+	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
+	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
 
 	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
 	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
@@ -407,6 +409,13 @@ const (
 	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
 	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
 	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
+
+	// article tags
+	RequestCreateNewsTag  RequestAction = "CREATE_NEWS_TAG"
+	RequestUpdateNewsTag  RequestAction = "UPDATE_NEWS_TAG"
+	RequestEnableNewsTag  RequestAction = "ENABLE_NEWS_TAG"
+	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
+	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -423,6 +432,13 @@ const (
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"
 	ActionRejected RequestAction = "REJECTED"
+
+	RequestCreateNewsCategory RequestAction = "CREATE_NEWS_CATEGORY"
+	RequestUpdateNewsCategory RequestAction = "UPDATE_NEWS_CATEGORY"
+	RequestDeleteNewsCategory RequestAction = "DELETE_NEWS_CATEGORY"
+	RequestCreateNewsTag      RequestAction = "CREATE_NEWS_TAG"
+	RequestUpdateNewsTag      RequestAction = "UPDATE_NEWS_TAG"
+	RequestDeleteNewsTag      RequestAction = "DELETE_NEWS_TAG"
 )
 
 type RegistrationType string

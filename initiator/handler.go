@@ -4,6 +4,9 @@ import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
+	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
+	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
+	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 
 	// bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
@@ -28,10 +31,9 @@ import (
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 
+	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
-	
 
 	accountBlockHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	advertHandlerInterface "cbe-super-app-cps-action/internal/constants/interfaces/ad"
@@ -42,6 +44,9 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
+	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
+	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
+	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 
 	// bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 
@@ -77,9 +82,12 @@ import (
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
+	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
-	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
+
+	sitotaInbound "cbe-super-app-cps-action/internal/constants/interfaces/sitota"
+	sitotaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/sitota"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -120,29 +128,32 @@ type Handler struct {
 	NotificationHandler notificationInbound.NotificationHandler
 	// BankVaultHandler          bankvaultInterface.BankVaultHandler
 	// VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
+	NewsCategoryHandler newscategory_adaptor.NewsCategoryAdaptor
+	NewsTagHandler      newstag_adaptor.NewsTagAdaptor
+	SitotaHandler       sitotaInbound.SitotaAdapter
+	KYCVerifierHandler  kycInbound.KYCVerifierAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 	pcs := serviceLayer.ProductCode
 	return Handler{
 
-    BudgetCategoryHandler: budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
-		UnlinkHandler:       unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
-		BpsHandler:          bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
-		BankHandler:         bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
-		CpsActionHandler:    cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
-		EventHandler:        eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
-		FeedbackHandler:     feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
-		
+		BudgetCategoryHandler: budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
+		UnlinkHandler:         unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
+		BpsHandler:            bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
+		BankHandler:           bankHandler.InitBankAdapter(serviceLayer.Bank, logger),
+		CpsActionHandler:      cpsactionhandler.InitCPSActionAdapter(serviceLayer.CPSAction, logger),
+		EventHandler:          eventhandler.InitEventAdapter(serviceLayer.EventService, logger),
+		FeedbackHandler:       feedbackhandler.InitFeedbackAdapter(serviceLayer.Feedback, logger),
+
 		PortalCardHander:    portalcard.InitPortalCardAdapter(serviceLayer.PortalCard, logger),
 		AdvertHandler:       advertHandlerImpl.InitAdvertAdapter(serviceLayer.Advert, logger),
 		AvatarHandler:       avatarHandlerImpl.InitAvatarAdapter(serviceLayer.Avatar, logger),
 		WalletHandler:       walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
-		TopupHandler:       TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
+		TopupHandler:        TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
 		PasswordHandler:     passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
 		AccountValidation:   accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
 		AccountBlockHandler: accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
-
 
 		DepartmentHandler:   department.NewDepartmentHandler(serviceLayer.Department, logger),
 		HqHandler:           hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
@@ -156,16 +167,16 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		// BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
 
 		// VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
-
 		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
-
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
-
 		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
-
 		ProductCodeHandler:      productCodeHandler.InitProductcodeAdapter(pcs, logger),
 		DonationHandler:         donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
 		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
 		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
+		NewsCategoryHandler:     newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
+		NewsTagHandler:          newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
+		SitotaHandler: sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
+		KYCVerifierHandler:      kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
 	}
 }

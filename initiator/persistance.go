@@ -22,6 +22,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
+	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
+	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
 	"time"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -43,6 +45,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
+	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
@@ -118,6 +121,10 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "news_articles"),
 		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "news_categories"),
 		ShortVideoPersistence:      media.NewShortVideoRepository(logger, client, dbName, "news_short_videos"),
+		NewsTagPersistence:         newstag_repo.NewNewsTagRepository(client, dbName, "news_tags", logger),
+		NewsCategoryPersistence:    newscategory_repo.NewNewsCategoryRepository(client, dbName, "news_category", logger),
+		KYCVerifierPersistence:     kyc_repo.NewKYCVerifierRepository(client, dbName, "customer_kyc", logger),
+		NewsTagsServiceContainer:   media.NewNewsTagsRepository(logger, client, dbName, "news_tags"),
 	}
 
 	return data
