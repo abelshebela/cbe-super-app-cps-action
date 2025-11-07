@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
+	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 
 	// bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
@@ -45,6 +46,7 @@ import (
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
+	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 
 	// bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 
@@ -129,6 +131,7 @@ type Handler struct {
 	NewsCategoryHandler newscategory_adaptor.NewsCategoryAdaptor
 	NewsTagHandler      newstag_adaptor.NewsTagAdaptor
 	SitotaHandler       sitotaInbound.SitotaAdapter
+	KYCVerifierHandler  kycInbound.KYCVerifierAdapter
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -164,20 +167,16 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		// BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
 
 		// VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
-
 		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
-
 		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
-
 		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
-
 		ProductCodeHandler:      productCodeHandler.InitProductcodeAdapter(pcs, logger),
 		DonationHandler:         donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
 		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
 		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
 		NewsCategoryHandler:     newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
 		NewsTagHandler:          newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
-
 		SitotaHandler: sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
+		KYCVerifierHandler:      kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
 	}
 }

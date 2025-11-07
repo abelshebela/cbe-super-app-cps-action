@@ -209,22 +209,22 @@ const (
 	// RequestEnableNotification     RequestAction = "ENABLE_NOTIFICATION"
 	// RequestDisableNotification    RequestAction = "DISABLE_NOTIFICATION"
 	// RequestMarkNotificationAsSeen RequestAction = "MARK_NOTIFICATION_AS_SEEN"
-	RequestUpdateProductCode      RequestAction = "UPDATE_PRODUCT_CODE"
-	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
-	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
-	RequestEnableDonationCategory        RequestAction = "ENABLE_DONATION_CATEGORY"
-	RequestDisableDonationCategory        RequestAction = "DISABLE_DONATION_CATEGORY"
-	RequestEnableDonationCompany        RequestAction = "ENABLE_DONATION_COMPANY"
-	RequestDisableDonationCompany       RequestAction = "DISABLE_DONATION_COMPANY"
-	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
-	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
-	RequestCreateDonation         RequestAction = "CREATE_DONATION"
-	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
-	RequestUpdateDonationImage    RequestAction = "UPDATE_DONATION_IMAGE"
-	RequestDeleteDonationImage    RequestAction = "DELETE_DONATION_IMAGE"
-	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
-	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
-	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	RequestUpdateProductCode       RequestAction = "UPDATE_PRODUCT_CODE"
+	RequestCreateDonationCategory  RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestEnableDonationCompany   RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDisableDonationCompany  RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestCreateDonationCompany   RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany   RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation          RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation          RequestAction = "UPDATE_DONATION"
+	RequestUpdateDonationImage     RequestAction = "UPDATE_DONATION_IMAGE"
+	RequestDeleteDonationImage     RequestAction = "DELETE_DONATION_IMAGE"
+	RequestAddDonationImage        RequestAction = "ADD_DONATION_IMAGE"
+	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
+	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
 	// for bankvault
 	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
 	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
@@ -239,6 +239,8 @@ const (
 	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
 	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
 
+	RequestUpdateKYCVerifier RequestAction = "UPDATE_KYC"
+	RequestApproveKYC        RequestAction = "APPROVE_KYC"
 	// for article
 	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
 	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
@@ -252,6 +254,13 @@ const (
 	RequestDeleteArticleCategory  RequestAction = "DELETE_ARTICLE_CATEGORY"
 	RequestEnableArticleCategory  RequestAction = "ENABLE_ARTICLE_CATEGORY"
 	RequestDisableArticleCategory RequestAction = "DISABLE_ARTICLE_CATEGORY"
+
+	// for tags
+	RequestCreateNewsTag  RequestAction = "CREATE_NEWS_TAG"
+	RequestUpdateNewsTag  RequestAction = "UPDATE_NEWS_TAG"
+	RequestEnableNewsTag  RequestAction = "ENABLE_NEWS_TAG"
+	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
+	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
 
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
@@ -282,24 +291,24 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateDonationCategory: {},
 	RequestCreateDonationCompany:  {},
 
-	RequestDisableDonationCategory:{},
-	RequestEnableDonationCompany:{},
-	RequestDisableDonationCompany:{},
-	RequestEnableDonationCategory:{},
+	RequestDisableDonationCategory: {},
+	RequestEnableDonationCompany:   {},
+	RequestDisableDonationCompany:  {},
+	RequestEnableDonationCategory:  {},
 
-	RequestUpdateDonationCompany:  {},
-	RequestCreateDonation:         {},
-	RequestUpdateDonation:         {},
-	RequestUpdateDonationImage:    {},
-	RequestDeleteDonationImage:    {},
-	RequestAddDonationImage:       {},
-	RequestEnableDonation:         {},
-	RequestDisableDonation:        {},
-	RequestAccountUpdate:          {},
-	RequestDeleteAmountBasedAuth:  {},
-	RequestCreateAmountBasedAuth:  {},
-	RequestUpdateAmountBasedAuth:  {},
-	RequestUser:                   {},
+	RequestUpdateDonationCompany: {},
+	RequestCreateDonation:        {},
+	RequestUpdateDonation:        {},
+	RequestUpdateDonationImage:   {},
+	RequestDeleteDonationImage:   {},
+	RequestAddDonationImage:      {},
+	RequestEnableDonation:        {},
+	RequestDisableDonation:       {},
+	RequestAccountUpdate:         {},
+	RequestDeleteAmountBasedAuth: {},
+	RequestCreateAmountBasedAuth: {},
+	RequestUpdateAmountBasedAuth: {},
+	RequestUser:                  {},
 
 	RequestUpdateAccountValidation: {},
 	RequestCreateBudgetColor:       {},
@@ -436,6 +445,12 @@ var validRequestActions = map[RequestAction]struct{}{
 
 	// for customer
 	RequestEnableDisableCustomer: {},
+
+	RequestCreateNewsTag:  {},
+	RequestUpdateNewsTag:  {},
+	RequestEnableNewsTag:  {},
+	RequestDisableNewsTag: {},
+	RequestDeleteNewsTag:  {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -707,13 +722,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateDonationCategory,
 		RequestUpdateDonationCategory,
 		RequestDisableDonationCategory,
-	RequestEnableDonationCategory,
+		RequestEnableDonationCategory,
 	},
 	"donationCompany": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
 		RequestEnableDonationCompany,
-	RequestDisableDonationCompany,
+		RequestDisableDonationCompany,
 	},
 	"VaultGroupCategory": {
 		RequestCreateVaultGroupCategory,
@@ -721,6 +736,10 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteVaultGroupCategory,
 		RequestEnableVaultGroupCategory,
 		RequestDisAbleVaultGroupCategory,
+	},
+	"KYCVerifier": {
+		RequestUpdateKYCVerifier,
+		RequestApproveKYC,
 	},
 	"article": {
 		RequestCreateArticle,
@@ -754,9 +773,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestAction("DELETE_NEWS_CATEGORY"),
 	},
 	"news_tag": {
-		RequestAction("CREATE_NEWS_TAG"),
-		RequestAction("UPDATE_NEWS_TAG"),
-		RequestAction("DELETE_NEWS_TAG"),
+		RequestCreateNewsTag,
+		RequestUpdateNewsTag,
+		RequestEnableNewsTag,
+		RequestDisableNewsTag,
+		RequestDeleteNewsTag,
 	},
 }
 

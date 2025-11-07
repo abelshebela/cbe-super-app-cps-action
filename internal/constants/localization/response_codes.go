@@ -795,6 +795,27 @@ var (
 		Type:       "success",
 	}
 
+	SuccessKYCApproved = ResponseCode{
+		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCApproved,
+		Type:       "success",
+	}
+
+	SuccessKYCUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_KYC_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgKYCUpdatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessKYCFetched = ResponseCode{
+		Code:       "SUCCESS_KYC_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCFetched,
+		Type:       "success",
+	}
+
 	SuccessDonationCreateRequestSent = ResponseCode{
 		Code:       "SUCCESS_DONATION_CREATE_REQUEST_SENT",
 		StatusCode: StatusCreated,

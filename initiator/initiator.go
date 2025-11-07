@@ -109,6 +109,7 @@ func Init(ctx context.Context) {
 		}
 		done <- struct{}{}
 	}()
+
 	go func() {
 		srv.HTTPServerStart(ctx, logger)
 		done <- struct{}{}

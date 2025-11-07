@@ -66,5 +66,7 @@ type Persistence struct {
 	ArticleCategoryPersistence       storage.ArticleCategoryRepository
 	ShortVideoPersistence            storage.ShortVideoRepository
 	NewsTagPersistence               storage.NewsTagRepository
+	KYCVerifierPersistence           storage.KYCVerifierRepository
 	NewsCategoryPersistence          storage.NewsCategoryRepository
+	NewsTagsServiceContainer        storage.NewsTagsRepository
 }

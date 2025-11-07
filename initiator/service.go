@@ -52,6 +52,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
+	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -104,8 +105,8 @@ type ServiceLayer struct {
 	ShortVideoService      service.ShortVideoService
 	NewsTagService         service.NewsTagService
 	NewsCategoryService    service.NewsCategoryService
-
 	Sitota service.SitotaService
+	KYCVerifier            service.KYCVerifierService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -146,6 +147,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation_icon", cfg, minioPubUrl)
 	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation_company_logo", cfg, minioPubUrl, accountLookupService)
 	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
+	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, nil, logger)
 
 	// productService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
@@ -221,6 +223,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagContainer:           newsTagService,
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
+		KYCVerifierContainer:       kycService,
+		// KYC verifier will be set after CPS action wiring
+		NewsTagsServiceContainer:   newsTagsService,
 	}
 
 	// Create the dispatcher with the service container
@@ -300,10 +305,14 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
+
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
 
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
+
+	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, cpsActionService, logger)
+	serviceContainer.KYCVerifierContainer = kycService
 
 	// bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	// serviceContainer.BankVaultContainer = bankVaultSvc
@@ -381,5 +390,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagService:         newsTagService,
 		NewsCategoryService:    newsCategoryService,
 		Sitota:                 sitotaService,
+		KYCVerifier:            kycService,
 	}
 }

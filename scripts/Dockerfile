@@ -24,13 +24,6 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o supperapp-cps-action cmd/main.go
 
-FROM scratch
-
-COPY --from=builder /app/supperapp-cps-action  .
-
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-COPY --from=builder /app/.env .
 
 COPY corebanking.json .
 

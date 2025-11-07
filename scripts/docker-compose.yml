@@ -9,6 +9,12 @@ services:
       - 5005:8080
       - 50054:50051
     restart: always
+    env_file:
+      - .env
+    environment:
+      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_TOKEN=${VAULT_TOKEN}
+      - VAULT_PATH=${VAULT_PATH}
     deploy:
       resources:
         limits:
