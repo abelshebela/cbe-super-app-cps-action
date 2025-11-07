@@ -151,37 +151,37 @@ type AmountBasedAuthRepository interface {
 
 // AccountBlock persistence
 type AccountBlockRepository interface {
-	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
-	CreateBranch(ctx context.Context, branch *model.Branch) error
-	UpdateBranch(ctx context.Context, id string, branch *model.Branch) error
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
+	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
 	EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error
-	FindBranchByID(ctx context.Context, id string) (*model.Branch, error)
-	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
+	FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error)
+	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
-	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
-	CreateCity(ctx context.Context, city *model.City) error
-	UpdateCity(ctx context.Context, id string, city *model.City) error
+	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
+	CreateCity(ctx context.Context, city *model.AccountBlock) error
+	UpdateCity(ctx context.Context, id string, city *model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
 	EnableOrDisableCity(ctx context.Context, code string, reason string, enabled bool) error
-	FindCityByID(ctx context.Context, id string) (*model.City, error)
-	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
+	FindCityByID(ctx context.Context, id string) (*model.AccountBlock, error)
+	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
-	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
-	CreateRegion(ctx context.Context, region *model.Region) error
-	UpdateRegion(ctx context.Context, id string, region *model.Region) error
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
+	CreateRegion(ctx context.Context, region *model.AccountBlock) error
+	UpdateRegion(ctx context.Context, id string, region *model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
 	EnableOrDisableRegion(ctx context.Context, code string, reason string, enabled bool) error
-	FindRegionByID(ctx context.Context, id string) (*model.Region, error)
-	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
+	FindRegionByID(ctx context.Context, id string) (*model.AccountBlock, error)
+	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
-	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
-	CreateDistrict(ctx context.Context, district *model.District) error
-	UpdateDistrict(ctx context.Context, id string, district *model.District) error
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error)
+	CreateDistrict(ctx context.Context, district *model.AccountBlock) error
+	UpdateDistrict(ctx context.Context, id string, district *model.AccountBlock) error
 	DeleteDistrict(ctx context.Context, id string) error
 	EnableOrDisableDistrict(ctx context.Context, code string, reason string, enabled bool) error
-	FindDistrictByID(ctx context.Context, id string) (*model.District, error)
-	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
+	FindDistrictByID(ctx context.Context, id string) (*model.AccountBlock, error)
+	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 }
 
 type AdvertRepository interface {

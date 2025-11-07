@@ -51,6 +51,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
+	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -104,6 +105,7 @@ type ServiceLayer struct {
 	ShortVideoService      service.ShortVideoService
 	NewsTagService         service.NewsTagService
 	NewsCategoryService    service.NewsCategoryService
+	Sitota service.SitotaService
 	KYCVerifier            service.KYCVerifierService
 }
 
@@ -175,6 +177,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 
+	sitotaService := sitota_service.NewSitotaTransactionService(logger)
+
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
 
@@ -218,8 +222,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ShortVideoServiceContainer: ShortVideoService,
 		NewsTagContainer:           newsTagService,
 		NewsCategoryContainer:      newsCategoryService,
+		SitotaContainer:            sitotaService,
 		KYCVerifierContainer:       kycService,
-
 		// KYC verifier will be set after CPS action wiring
 		NewsTagsServiceContainer:   newsTagsService,
 	}
@@ -339,6 +343,9 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
 	serviceContainer.NewsCategoryContainer = newsCategoryService
 
+	sitotaService = sitota_service.NewSitotaTransactionService(logger)
+	serviceContainer.SitotaContainer = sitotaService
+
 	return ServiceLayer{
 		CPSAction: cpsActionService,
 
@@ -382,6 +389,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ShortVideoService:      ShortVideoService,
 		NewsTagService:         newsTagService,
 		NewsCategoryService:    newsCategoryService,
+		Sitota:                 sitotaService,
 		KYCVerifier:            kycService,
 	}
 }

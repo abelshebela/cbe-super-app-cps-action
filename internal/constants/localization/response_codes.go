@@ -138,7 +138,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppActionCompleted,
 	ErrorMiniAppMerchantNotFound,
 	ErrorMiniAppMerchantDisabled,
-	// Error codes
+
+	// Sitota Related success
+	SuccessAllSitotasRetrieved,
+	SuccessSitotaRetrieved,
 
 	// Error codes
 	ErrorInvalidKey,
@@ -472,6 +475,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorNewsTagInvalidID,
 	ErrorNewsTagWithNameAlreadyExists,
 	ErrorNewsCategoryWithNameAlreadyExists,
+
+	// Sitota Related errors
+	ErrorSitotaRequired,
 }
 
 // Success Response Codes
@@ -5243,5 +5249,25 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgNewsTagDeletedSuccess,
 		Type:       "success",
+	}
+	// Sitota Related Responses
+	SuccessAllSitotasRetrieved = ResponseCode{
+		Code:       "SUCCESS_ALL_SITOTAS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAllSitotasRetrievedSuccess,
+		Type:       "success",
+	}
+	SuccessSitotaRetrieved = ResponseCode{
+		Code:       "SUCCESS_SITOTA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgSitotaRetrievedSuccess,
+		Type:       "success",
+	}
+
+	ErrorSitotaRequired = ResponseCode{
+		Code:       "ERROR_SITOTA_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgSitotaRequired,
+		Type:       "error",
 	}
 )
