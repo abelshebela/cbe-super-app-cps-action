@@ -60,9 +60,9 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	data.CreatedAt = now
 	data.LastModifiedAt = now
 	data.KYC.Status = model.KYCStatusComplete
-	data.Email = ""
-	data.PhoneNumber = ""
-	data.Enabled= true
+	data.Email = data.Email
+	data.PhoneNumber = data.PhoneNumber
+	data.Enabled = true
 	err = core.HandleCPSActionForMiniAppMerchant(
 		ctx,
 		m.cpsService,
