@@ -52,6 +52,13 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(req.PhoneNumber)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	req.PhoneNumber = formattedPhone
 	if err := h.svc.CreateUserRequest(r.Context(), req); err != nil {
 		h.logger.Errorf("[CreateUserRequest] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

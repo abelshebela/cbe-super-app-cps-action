@@ -48,9 +48,17 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Validate DTO
 	if err := reqDTO.Validate(true); err != nil {
 		h.logger.Errorf("Validation failed: %v", err)
-		localization.SendBadRequestResponse(w,err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+
+	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(reqDTO.PhoneNumber)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	reqDTO.PhoneNumber = formattedPhone
 
 	// Extract User Context
 	userContext := local_util.ExtractUserContext(r)
