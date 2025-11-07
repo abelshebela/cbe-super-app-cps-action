@@ -177,21 +177,19 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 
 	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex
-		searchKeys["$or"] = []bson.M{
-			{"maker_name": searchRegex},
-			{"maker_phone_number": searchRegex},
-			{"checker_name": searchRegex},
-			{"checker_phone_number": searchRegex},
-			{"action_status": searchRegex},
-			{"action_type": searchRegex},
-			{"request_action": searchRegex},
+if filterParam.Search != "" {
+    searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+    filter["$or"] = []bson.M{
+        {"maker_name": searchRegex},
+        {"maker_phone_number": searchRegex},
+        {"checker_name": searchRegex},
+        {"checker_phone_number": searchRegex},
+        {"action_status": searchRegex},
+        {"action_type": searchRegex},
+        {"request_action": searchRegex},
+    }
+}
 
-		}
-		r.logger.Infof("Search applied with regex: %v", searchRegex)
-	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
