@@ -285,14 +285,14 @@ type TopupService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error)
-	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
-	GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error)
-	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
-	GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error)
-	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-	GetCityByCode(ctx context.Context, cityCode string) (*model.City, error)
-	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.City], error)
+	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
+	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error)
+	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
+	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error
 	EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error
 	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error
@@ -409,6 +409,7 @@ type ServiceContainer struct {
 	ShortVideoServiceContainer  ShortVideoService
 	NewsTagContainer            NewsTagService
 	NewsCategoryContainer       NewsCategoryService
+	SitotaContainer             SitotaService
 	KYCVerifierContainer        KYCVerifierService
 	NewsTagsServiceContainer    NewsTagsService
 }
@@ -443,6 +444,10 @@ type ShortVideoService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type NewsTagsService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type NewsTagService interface {
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
 	GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error)
@@ -458,4 +463,9 @@ type NewsCategoryService interface {
 	UpdateNewsCategory(ctx context.Context, id string, categoryName string) error
 	DeleteNewsCategory(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type SitotaService interface {
+	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
+	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }

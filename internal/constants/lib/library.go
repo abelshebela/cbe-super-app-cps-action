@@ -89,6 +89,7 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 		includedKeys := []string{
 			"enabled",
 			"enable",
+			"is_enabled",
 			"is_deleted",
 			"is_blocked",
 			"ussd_enabled",
