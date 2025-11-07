@@ -187,6 +187,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 			{"checker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
+			{"request_action": searchRegex},
 
 		}
 		r.logger.Infof("Search applied with regex: %v", searchRegex)
