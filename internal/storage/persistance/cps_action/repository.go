@@ -169,7 +169,7 @@ func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {
 func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	r.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
 	// 1. Base filter (only active records)
-	filter := bson.M{
+	baseFilter := bson.M{
 		"is_deleted": false,
 		"department": department,
 	}
@@ -192,8 +192,13 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 		r.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
 
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+	filter := dynamicFilter
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
