@@ -73,26 +73,35 @@ func ValidateFullName(value interface{}) error {
 }
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
-	var allowedMIMETypes = map[string]bool{
-		"image/jpeg": true,
-		"image/png":  true,
-		"image/gif":  true,
-	}
+    var allowedMIMETypes = map[string]bool{
+        "image/jpeg": true,
+        "image/png":  true,
+        "image/gif":  true,
+        "image/webp": true, // optional
+    }
 
-	file, err := fileHeader.Open()
-	if err != nil {
-		return false
-	}
-	defer file.Close()
+    if fileHeader.Size > 10*1024*1024 { // optional size limit
+        return false
+    }
 
-	buffer := make([]byte, 512)
-	_, err = file.Read(buffer)
-	if err != nil {
-		return false
-	}
-	contentType := http.DetectContentType(buffer)
-	return allowedMIMETypes[contentType]
+    file, err := fileHeader.Open()
+    if err != nil {
+        return false
+    }
+    defer file.Close()
+
+    buffer := make([]byte, 512)
+    _, err = file.Read(buffer)
+    if err != nil {
+        return false
+    }
+
+    contentType := http.DetectContentType(buffer)
+    
+
+    return allowedMIMETypes[contentType]
 }
+
 
 func OTPGenerator(length uint8) string {
 	numberic := "0123456789"

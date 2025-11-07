@@ -76,6 +76,12 @@ func Init(ctx context.Context) {
 		clientStore.Close()
 	}()
 
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC client for sitota")
+	}
+	defer sitotagRPCClient.Close()
+
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")

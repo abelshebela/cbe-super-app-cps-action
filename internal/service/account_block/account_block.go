@@ -24,35 +24,35 @@ func NewAccountService(repo storage.AccountBlockRepository, cpsService service.C
 	return &accountBlockService{repo: repo, cpsService: cpsService}
 }
 
-func (s *accountBlockService) GetBranchByCode(ctx context.Context, branchCode string) (*model.Branch, error) {
+func (s *accountBlockService) GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error) {
 	return s.repo.GetBranchByCode(ctx, branchCode)
 }
 
-func (s *accountBlockService) GetRegionByCode(ctx context.Context, regionCode string) (*model.Region, error) {
+func (s *accountBlockService) GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error) {
 	return s.repo.GetRegionByCode(ctx, regionCode)
 }
 
-func (s *accountBlockService) GetDistrictByCode(ctx context.Context, districtCode string) (*model.District, error) {
+func (s *accountBlockService) GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error) {
 	return s.repo.GetDistrictByCode(ctx, districtCode)
 }
 
-func (s *accountBlockService) GetCityByCode(ctx context.Context, cityCode string) (*model.City, error) {
+func (s *accountBlockService) GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error) {
 	return s.repo.GetCityByCode(ctx, cityCode)
 }
 
-func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Branch], error) {
+func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
 	return s.repo.FindAllBranchesWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Region], error) {
+func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
 	return s.repo.FindAllRegionsWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) GetAllDistricts(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.District], error) {
+func (s *accountBlockService) GetAllDistricts(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
 	return s.repo.FindAllDistrictsWithPagination(ctx, *filterParams)
 }
 
-func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.City], error) {
+func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
 	return s.repo.FindAllCitiesWithPagination(ctx, *filterParams)
 }
 
@@ -67,7 +67,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if branch.Enabled == enabled {
+		if branch.IsEnabled == enabled {
 			if enabled {
 				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
@@ -100,7 +100,7 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if region.Enabled == enabled {
+		if region.IsEnabled == enabled {
 			if enabled {
 				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
@@ -133,7 +133,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if district.Enabled == enabled {
+		if district.IsEnabled == enabled {
 			if enabled {
 				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
@@ -166,7 +166,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesC
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
-		if city.Enabled == enabled {
+		if city.IsEnabled == enabled {
 			if enabled {
 				return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
