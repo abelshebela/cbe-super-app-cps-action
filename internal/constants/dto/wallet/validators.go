@@ -6,18 +6,10 @@ import (
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/pkgs/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
-
-const maxFileSize = 2 * 1024 * 1024
-
-var allowedMIMETypes = map[string]bool{
-	"image/jpeg": true,
-	"image/png":  true,
-	"image/gif":  true,
-	"image/webp": true,
-}
 
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
@@ -108,44 +100,10 @@ func validateAvatar(value interface{}) error {
 	if !ok || file == nil {
 		return errors.New(localization.ErrorWalletAvatarInvalid.Code)
 	}
-	if !isImageFormat(file) {
+	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
-
-	if file.Size > maxFileSize {
-		return errors.New(localization.ErrorWalletAvatarTooLarge.Code)
-	}
-
-	// this is causing issue with mobile and front end upload
-	// ct := file.Header.Get("Content-Type")
-	// if ct == "" || !allowedMIMETypes[ct] {
-	// 	return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
-	// }
 	return nil
 }
 
-// use this for image validation this works with the mobile and the frontend
-func isImageFormat(fileHeader *multipart.FileHeader) bool {
-	if fileHeader == nil {
-		return false
-	}
-	contentType := fileHeader.Header.Get("Content-Type")
 
-	// Acceptable image formats
-	ext := strings.ToLower(strings.TrimPrefix(strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, "."):]), "."))
-	switch ext {
-	case "jpg", "jpeg":
-		contentType = "image/jpeg"
-	case "png":
-		contentType = "image/png"
-	case "gif":
-		contentType = "image/gif"
-	}
-
-	switch contentType {
-	case "image/jpeg", "image/png", "image/gif":
-		return true
-	default:
-		return false
-	}
-}
