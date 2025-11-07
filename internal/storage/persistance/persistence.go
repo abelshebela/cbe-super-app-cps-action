@@ -4,10 +4,12 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
+	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
+	AccountLookup                core.CBECoreAPIInterface
 	MongoClient                  *mongo.Client
 	UserPersistence              storage.UserRepository
 	UnlinkAccountPersistence     storage.UnlinkAccount

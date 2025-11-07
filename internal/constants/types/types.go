@@ -12,15 +12,16 @@ type BakerOptions struct {
 	UseMutex   bool
 }
 
-type Address struct {
-	Zone        string `json:"zone" bson:"zone"`
-	Wereda      string `json:"wereda" bson:"wereda"`
-	Kebele      string `json:"kebele" bson:"kebele"`
-	Region      string `json:"region" bson:"region"`
-	City        string `json:"city" bson:"city"`
-	SubCity     string `json:"sub_city" bson:"sub_city"`
-	StreetName  string `json:"street_name" bson:"street_name"`
-	HouseNumber string `json:"house_number" bson:"house_number"`
+type AccountLookupData struct {
+	AccountNumber  string
+	CustomerName   string
+	Restriction    string
+	Currency       string
+	AccountType    string
+	AccountStatus  string
+	AccountHolder  string
+	WorkingBalance string
+	CustomerID     string
 }
 
 type LoginPIN struct {
@@ -158,6 +159,32 @@ type Ticket struct {
 	Type           string `json:"type" bson:"type"`
 	Price          uint64 `json:"price" bson:"price"`
 	NumberOfTicker uint8  `json:"number_of_ticker" bson:"number_of_ticker"`
+}
+
+type Address struct {
+	Zone   string `json:"zone" bson:"zone"`
+	Kebele string `json:"kebele" bson:"kebele"`
+	Woreda string `json:"woreda" bson:"woreda"`
+	Region string `json:"region" bson:"region"`
+}
+
+type KYCData struct {
+	Sub           string           `json:"sub" bson:"sub"`
+	FullName      string           `json:"full_name" bson:"full_name"`
+	PhoneNumber   string           `json:"phone_number" bson:"phone_number"`
+	Gender        string           `json:"gender" bson:"gender"`
+	Picture       string           `json:"picture" bson:"picture"`
+	SelfiePhoto   string           `json:"selfie_photo" bson:"selfie_photo"`
+	Nationality   string           `json:"nationality" bson:"nationality"`
+	BirthDate     time.Time        `json:"birth_date" bson:"birth_date"`
+	DocumentFront string           `json:"document_front" bson:"document_front"`
+	DocumentBack  string           `json:"document_back" bson:"document_back"`
+	MonthlyIncome string           `json:"monthly_income" bson:"monthly_income"`
+	AccountType   string           `json:"account_type" bson:"account_type"`
+	Country       string           `json:"country" bson:"country"`
+	MothersName   string           `json:"mothers_name" bson:"mothers_name"`
+	Vendor        constants.Vendor `json:"vendor" bson:"vendor"`
+	Address       Address          `json:"address" bson:"address"`
 }
 
 type TicketStatistics struct {

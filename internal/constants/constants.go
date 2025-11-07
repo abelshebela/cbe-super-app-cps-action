@@ -122,6 +122,13 @@ const (
 	BPSStatusInitiated  BPSStatus = "INITIATED"
 )
 
+type Vendor string
+
+const (
+	Fayda    Vendor = "FAYDA"
+	Verigram Vendor = "Verigram"
+)
+
 type BlockedOn string
 
 const (

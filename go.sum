@@ -243,6 +243,10 @@ github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78/go.mod h1:aL8wCCfTfS
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.68 h1:9yjwsZQ3HVxIxL+kguxzOeeof1rXif11s0EkwRcFb98=
 gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.68/go.mod h1:xORg8oNIawlr6tnKYheYUiUtD+VfcLDCzNxDePVl4Sg=
+gitlab.com/yohannesteshome/coreio v0.0.4 h1:iAL1/Bpgap4UZRewsRan0/X0SlchncedD2Sl71RuayU=
+gitlab.com/yohannesteshome/coreio v0.0.4/go.mod h1:hdeOaS6p8P+mRP/S7bhNafwevySpCXZQSuYpmn2nXpM=
+gitlab.com/yohannesteshome/coreio v0.0.5 h1:5cKUhHB4G60nsat5Ej1GZxcnw6N/PNZoGb8kDLtFkZE=
+gitlab.com/yohannesteshome/coreio v0.0.5/go.mod h1:hdeOaS6p8P+mRP/S7bhNafwevySpCXZQSuYpmn2nXpM=
 go.mongodb.org/mongo-driver v1.17.4 h1:jUorfmVzljjr0FLzYQsGP8cgN/qzzxlY9Vh0C9KFXVw=
 go.mongodb.org/mongo-driver v1.17.4/go.mod h1:Hy04i7O2kC4RS06ZrhPRqj/u4DTYkFDAAccj+rVKqgQ=
 go.mongodb.org/mongo-driver/v2 v2.3.0 h1:sh55yOXA2vUjW1QYw/2tRlHSQViwDyPnW61AwpZ4rtU=

@@ -41,11 +41,11 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
+	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
-	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
@@ -62,11 +62,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, logger utils.Logger) persistance.Persistence {
+
 	data := persistance.Persistence{
+		AccountLookup:                core.NewCBECoreAPI(coreConfig),
 		UserPersistence:              users.NewUserRepository(client, dbName, "members", logger),
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
