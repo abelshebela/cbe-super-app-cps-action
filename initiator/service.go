@@ -105,6 +105,7 @@ type ServiceLayer struct {
 	NewsTagService         service.NewsTagService
 	NewsCategoryService    service.NewsCategoryService
 	KYCVerifier            service.KYCVerifierService
+	NewsTagsService        service.NewsTagsService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -174,6 +175,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
+	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
@@ -221,7 +223,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		KYCVerifierContainer:       kycService,
 
 		// KYC verifier will be set after CPS action wiring
-		NewsTagsServiceContainer:   newsTagsService,
+		NewsTagsServiceContainer: newsTagsService,
 	}
 
 	// Create the dispatcher with the service container
@@ -383,5 +385,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagService:         newsTagService,
 		NewsCategoryService:    newsCategoryService,
 		KYCVerifier:            kycService,
+		NewsTagsService:        newsTagsService,
 	}
 }

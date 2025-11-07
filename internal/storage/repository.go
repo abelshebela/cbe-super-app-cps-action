@@ -14,10 +14,10 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 
+	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
-	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -532,4 +532,11 @@ type NewsCategoryRepository interface {
 	Update(ctx context.Context, id string, categoryName string) error
 	Delete(ctx context.Context, id string) error
 	FindByNames(ctx context.Context, names []string) (*model.NewsCategory, error)
+}
+
+type NewsTagsRepository interface {
+	Create(ctx context.Context, newsTag *model.NewsTags) error
+	Update(ctx context.Context, newsTag *model.NewsTags, id string) error
+	Delete(ctx context.Context, id string) error
+	EnableDisable(ctx context.Context, id string, isEnable bool) error
 }

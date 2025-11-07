@@ -436,9 +436,6 @@ const (
 	RequestCreateNewsCategory RequestAction = "CREATE_NEWS_CATEGORY"
 	RequestUpdateNewsCategory RequestAction = "UPDATE_NEWS_CATEGORY"
 	RequestDeleteNewsCategory RequestAction = "DELETE_NEWS_CATEGORY"
-	RequestCreateNewsTag      RequestAction = "CREATE_NEWS_TAG"
-	RequestUpdateNewsTag      RequestAction = "UPDATE_NEWS_TAG"
-	RequestDeleteNewsTag      RequestAction = "DELETE_NEWS_TAG"
 )
 
 type RegistrationType string
