@@ -44,6 +44,7 @@ import (
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
+	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
@@ -122,6 +123,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)
+	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 

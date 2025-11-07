@@ -16,10 +16,12 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
-type paginated_region_resp types.PaginatedResponse[[]*accountblock.RegionResponse]
-type paginated_city_resp types.PaginatedResponse[[]*accountblock.CityResponse]
-type paginated_district_resp types.PaginatedResponse[[]*accountblock.DistrictResponse]
-type paginated_branch_resp types.PaginatedResponse[[]*accountblock.BranchResponse]
+type paginated_region_resp types.PaginatedResponse[[]*accountblock.AccountBlockResponse]
+
+// type paginated_region_resp types.PaginatedResponse[[]*accountblock.RegionResponse]
+// type paginated_city_resp types.PaginatedResponse[[]*accountblock.CityResponse]
+// type paginated_district_resp types.PaginatedResponse[[]*accountblock.DistrictResponse]
+// type paginated_branch_resp types.PaginatedResponse[[]*accountblock.BranchResponse]
 
 type accountBlockAdapter struct {
 	accountBlockApplication service.AccountBlockService
@@ -61,7 +63,7 @@ func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	data := core.ToBranchResponse(branch)
+	data := core.ToAccountBlockResponse(branch)
 
 	localization.SendSuccessResponse(w, localization.SuccessBranchRetrieved, data)
 }
@@ -121,7 +123,7 @@ func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	data := core.ToRegionResponse(region)
+	data := core.ToAccountBlockResponse(region)
 
 	localization.SendSuccessResponse(w, localization.SuccessRegionRetrieved, data)
 }
