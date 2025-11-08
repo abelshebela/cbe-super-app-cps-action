@@ -63,6 +63,7 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 			"phone_number":             "$user_doc.phone_number",
 			"customer_number":          "$user_doc.customer_number",
 			"user_code":                "$user_doc.user_code",
+			"kyc_data":                 "$kyc_data",
 			"kyc_status":               "$kyc_status",
 			"kyc_reject_reason":        "$kyc_reject_reason",
 			"kyc_reject_reason_failed": "$kyc_reject_reason_failed",
@@ -132,6 +133,7 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 			"phone_number":             "$user_doc.phone_number",
 			"customer_number":          "$user_doc.customer_number",
 			"user_code":                "$user_doc.user_code",
+			"kyc_data":                 "$kyc_data",
 			"kyc_status":               "$kyc_status",
 			"kyc_reject_reason":        "$kyc_reject_reason",
 			"kyc_reject_reason_failed": "$kyc_reject_reason_failed",
@@ -193,8 +195,12 @@ func (s *KYCVerifierStorage) Update(ctx context.Context, id string, kyc *model.C
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{"$set": kyc}
-	_, err = s.dal.UpdateOne(ctx, filter, update)
+	data, err := local_util.JsonUnmarshal[bson.M](kyc)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	update := data
+	_, err = s.dal.UpdateOne(ctx, filter, *update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)

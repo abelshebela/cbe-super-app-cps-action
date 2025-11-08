@@ -78,8 +78,8 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
 	Filter := dal.FilterOp{
-		Filter: filter,
-		Limit: limit,
+		Filter:     filter,
+		Limit:      limit,
 		Projection: Projection,
 	}
 
@@ -98,10 +98,10 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	s.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
-return types.PaginatedResponse[[]model.CPSAction]{
-    Data: data,
-    Meta: meta,
-}, nil
+	return types.PaginatedResponse[[]model.CPSAction]{
+		Data: data,
+		Meta: meta,
+	}, nil
 
 }
 
@@ -177,19 +177,18 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 
 	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
 
-if filterParam.Search != "" {
-    searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-    filter["$or"] = []bson.M{
-        {"maker_name": searchRegex},
-        {"maker_phone_number": searchRegex},
-        {"checker_name": searchRegex},
-        {"checker_phone_number": searchRegex},
-        {"action_status": searchRegex},
-        {"action_type": searchRegex},
-        {"request_action": searchRegex},
-    }
-}
-
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"checker_name": searchRegex},
+			{"checker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
@@ -201,7 +200,7 @@ if filterParam.Search != "" {
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
-		{{Key: "$sort", Value:bson.D{{Key: "created_at", Value: -1}} }},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 		{{Key: "$project", Value: Projection}},

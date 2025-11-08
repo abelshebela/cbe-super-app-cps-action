@@ -709,3 +709,15 @@ func LocalDecryptPassword(encryptedHex string, cfg *config.VaultConfig) (string,
 	}
 	return string(decrypted[:len(decrypted)-padLen]), nil
 }
+
+func NumbersOnly(value any) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation", "unsupported type")
+	}
+	re := regexp.MustCompile(`^\d+$`)
+	if !re.MatchString(str) {
+		return validation.NewError("validation", "contains invalid characters")
+	}
+	return nil
+}

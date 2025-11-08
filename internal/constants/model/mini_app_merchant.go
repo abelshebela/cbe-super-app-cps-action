@@ -10,6 +10,7 @@ type KYCStatus string
 
 const (
 	KYCStatusPending  KYCStatus = "PENDING"
+	KYCStatusApproved KYCStatus = "APPROVED"
 	KYCStatusComplete KYCStatus = "COMPLETE"
 	KYCStatusRejected KYCStatus = "REJECTED"
 )
