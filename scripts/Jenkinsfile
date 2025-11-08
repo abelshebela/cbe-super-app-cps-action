@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        SERVICE_NAME = "cps-action"
+        SERVICE_NAME = "cps-auth"  
         FILE_PATH = "scripts/docker-compose.yml"
         DOCKER_FILE_PATH = "scripts/Dockerfile"
         ENV_FILE_PATH = "./env"
         HARBOR_PRODJECT = "cbe-supperapp"
         REGISTRY_ADDRESS = credentials("REGISTRY_ADDRESS")
-        REPO_ADDRESS = "git@github.com:CBE-Super-App/cbe-super-app-cps-action.git"
+        REPO_ADDRESS = "git@github.com:CBE-Super-App/cbe-super-app-cps-auth.git"
         PROJECT_ROOT_PATH = "/data/cbe-super-app/"
         SONAR_HOST_URL=credentials("SONAR_HOST_URL")
         SONAR_TOKEN=credentials("SONAR_TOKEN")
@@ -33,22 +33,22 @@ pipeline {
                     // Determine environment based on branch
                     if (env.BRANCH_NAME == 'staging') {
                         env.ENV_TYPE = 'STG'
-                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-stg'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-auth-stg'
                         env.SSH_KEY = 'STG_SSH_KEY'
                     } 
                     else if (env.BRANCH_NAME == 'prod') {
                         env.ENV_TYPE = 'PROD'
-                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-prod'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-auth-prod'
                         env.SSH_KEY = 'PROD_SSH_KEY'
                     }
                     else if (env.BRANCH_NAME == 'qa') {
                         env.ENV_TYPE = 'QA'
-                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-qa'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-auth-qa'
                         env.SSH_KEY = 'QA_SSH_KEY'
                     }
                     else if (env.BRANCH_NAME == 'dev') {
                         env.ENV_TYPE = 'DEV'
-                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-dev'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-auth-dev'
                         env.SSH_KEY = 'DEV_SSH_KEY'
                     }
                     else {
@@ -97,7 +97,6 @@ pipeline {
                 ])  
             }
         }
-        // Stage to run SonarQube analysis
         stage('Build & SonarQube Analysis') {
             steps {
                 echo 'Starting build and SonarQube analysis...'
@@ -106,7 +105,7 @@ pipeline {
                         withSonarQubeEnv('CSA-sonar') {
                             sh '''
                             ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                            -Dsonar.projectKey=cbesuperapp-cps-action \
+                            -Dsonar.projectKey=cbesuperapp-cps-auth \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
                             -Dsonar.token=${SONAR_TOKEN}
