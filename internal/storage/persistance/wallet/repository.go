@@ -131,24 +131,23 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 	return doc, nil
 }
 
-func (w *WalletStorage) Find(ctx context.Context, key, value string) (*model.Wallet, error) {
-	if key == "" {
-		w.logger.Warnf("key is not specified")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
-	}
-	if value == "" {
-		w.logger.Warnf("value is not specified")
-		return nil, errors.New(localization.ErrorInvalidInputParameters.Code)
+func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wallet, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"code": code},
+			{"name": name},
+		},
+		"is_deleted": false,
 	}
 
-	filter := bson.M{key: value, "is_deleted": false}
+	// filter := bson.M{key: value, "is_deleted": false}
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			w.logger.Warnf("No wallet found with %s: %s", key, value)
+			w.logger.Warnf("No wallet found with %s: %s", code, name)
 			return nil, nil
 		}
-		w.logger.Errorf("FindBy%s wallet failed: %v", key, err)
+		w.logger.Errorf("FindBy code:%s name:%s wallet failed: %v", code, name, err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
