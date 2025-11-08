@@ -2,11 +2,12 @@
 version: "3.8"
 
 services:
-  cbe-supperapp-cps-auth:
+  cbe-supperapp-cps-action:
     image: registry.eaglelionsystems.com/cbe-supperapp/${IMAGE_NAME}:${IMAGE_TAG}
-    container_name: cbe-supperapp-cps-auth
+    container_name: cbe-supperapp-cps-action
     ports:
-      - 5003:8080
+      - 5005:8080
+      - 50054:50051
     restart: always
     env_file:
       - .env
