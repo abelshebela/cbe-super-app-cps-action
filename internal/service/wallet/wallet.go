@@ -57,13 +57,17 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
-
-	existCode, err := s.repo.Find(ctx, "code", req.Code)
+	existCode, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 	if existCode != nil {
-		return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+		if existCode.Code == req.Code {
+			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+		} else if existCode.Name == req.Name {
+			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+		}
+		return errors.New(localization.ErrorMiniAppMerchantUnexpectedDBError.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", s.cfg.MinioPublicEndPoint, s.logger)
