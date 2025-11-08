@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -141,13 +142,13 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	if result != nil {
-		if bank_request.BIC != "" && result.BIC == bank_request.BIC {
+		if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-		if bank_request.Code != "" && result.Code == bank_request.Code {
+		if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
-		if bank_request.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
@@ -304,13 +305,13 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	if result != nil {
-		if bank_request.BIC != "" && result.BIC == bank_request.BIC {
+		if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-		if bank_request.Code != "" && result.Code == bank_request.Code {
+		if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
-		if bank_request.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
