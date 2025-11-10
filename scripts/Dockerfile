@@ -17,7 +17,7 @@ ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
 COPY go.mod .
 COPY go.sum .
 
-RUN go mod tidy
+# RUN go mod tidy
 # Download dependencies
 RUN go mod download
 
