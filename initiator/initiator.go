@@ -116,6 +116,7 @@ func Init(ctx context.Context) {
 		done <- struct{}{}
 	}()
 	<-done
+
 	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer, logger)
