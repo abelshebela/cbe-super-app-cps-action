@@ -23,7 +23,6 @@ func ChiCORS() func(http.Handler) http.Handler {
 			"Accept", "Authorization", "Content-Type", "X-CSRF-Token",
 			"access-control-allow-origin", "x-api-applicationid",
 			// Custom headers used by the API
-			"platform", "app_version", "device_uuid", "installation_date",
 		},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
