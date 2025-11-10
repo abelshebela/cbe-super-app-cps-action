@@ -14,13 +14,12 @@ RUN git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".i
 
 ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
 
-# COPY go.mod .
-# COPY go.sum .
+COPY go.mod .
+COPY go.sum .
 
-RUN go mod init cbe-super-app-cps-action
 RUN go mod tidy
 # Download dependencies
-# RUN go mod download
+RUN go mod download
 
 # Copy all source files
 COPY . .
@@ -29,7 +28,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o supperapp-cps-action cmd/main.go
 
 # Copy runtime config
-# COPY corebanking.json .
+COPY corebanking.json .
 
 EXPOSE 8080
 EXPOSE 50051
