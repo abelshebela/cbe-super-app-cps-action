@@ -27,14 +27,13 @@ type NewsArticle struct {
 }
 
 type NewsCategoryModel struct {
-	ID          bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name        string        `bson:"name" json:"name"`
-	Description string        `bson:"description" json:"description"`
-	Slug        string        `bson:"slug" json:"slug"`
-	IsActive    bool          `bson:"is_active" json:"is_active"`
-	CreatedAt   time.Time     `bson:"created_at" json:"created_at"`
-	IsDeleted   bool          `bson:"is_deleted" json:"is_deleted"`
-	UpdatedAt   time.Time     `bson:"updated_at" json:"updated_at"`
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name      string        `bson:"name" json:"name"`
+	Color     string        `bson:"color" json:"color"`
+	IsActive  bool          `bson:"is_active" json:"is_active"`
+	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
+	IsDeleted bool          `bson:"is_deleted" json:"is_deleted"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updated_at"`
 }
 
 type ShortVideo struct {
@@ -63,6 +62,7 @@ type ShortVideo struct {
 type NewsTags struct {
 	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name      string        `bson:"name" json:"name"`
+	Color     string        `bson:"color" json:"color"`
 	IsEnabled bool          `bson:"is_enabled" json:"is_enabled"`
 	IsDeleted bool          `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
