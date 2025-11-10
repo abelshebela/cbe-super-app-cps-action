@@ -54,7 +54,7 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(req.PhoneNumber)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

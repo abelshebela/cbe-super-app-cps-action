@@ -48,37 +48,20 @@ func AccountNumberExists(ctx context.Context, accountNumber string, donationComp
 	return false, nil
 }
 
-func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountInfo, error) {
-	// Create account lookup request
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
 	}
-
-	// Call external account lookup service
-	accountInfo, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
+	accountDetail, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if account is active and valid
-	if accountInfo == nil {
+	if accountDetail == nil {
 		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
-	// Additional validation checks
-	if !accountInfo.ActiveAccount {
-		return nil, errors.New(localization.ErrorAccountNumberNotActive.Code)
-	}
-
-	if accountInfo.AccountFrozen {
-		return nil, errors.New(localization.ErrorAccountNumberNotActive.Code)
-	}
-
-	if accountInfo.AccountDormant {
-		return nil, errors.New(localization.ErrorAccountNumberNotActive.Code)
-	}
-
-	return accountInfo, nil
+	return accountDetail, nil
 }
 
 func BindAction(source any, target any) error {
@@ -89,13 +72,13 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse,Enabled bool) model.DonationCompany {
+func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enabled bool) model.DonationCompany {
 	return model.DonationCompany{
 		CompanyName:    donationCompany.CompanyName,
 		CompanyLogo:    donationCompany.CompanyLogo,
 		AccountNumber:  donationCompany.AccountNumber,
 		IsDeleted:      false,
-		Enabled: Enabled,
+		Enabled:        Enabled,
 		LastModifiedAt: time.Now(),
 	}
 }
@@ -120,9 +103,9 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 		CompanyName:   donationCompany.CompanyName,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
-		PhoneNumber: donationCompany.PhoneNumber,
-		Email: donationCompany.Email,
-		Address: donationCompany.Address,
+		PhoneNumber:   donationCompany.PhoneNumber,
+		Email:         donationCompany.Email,
+		Address:       donationCompany.Address,
 	}
 }
 
@@ -131,10 +114,9 @@ func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.D
 	return dto.DonationCompanyRequest{
 		CompanyName:   cpsRequest.CompanyName,
 		AccountNumber: cpsRequest.AccountNumber,
-		PhoneNumber: cpsRequest.PhoneNumber,
-		Email: cpsRequest.Email,
-		Address: cpsRequest.Address,
-
+		PhoneNumber:   cpsRequest.PhoneNumber,
+		Email:         cpsRequest.Email,
+		Address:       cpsRequest.Address,
 	}
 }
 
@@ -197,7 +179,6 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 		if ok {
 			return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
-
 
 	}
 
