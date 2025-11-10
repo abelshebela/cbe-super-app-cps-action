@@ -1,6 +1,6 @@
 # container image builder docker file
 
-FROM golang:1.25 AS builder
+FROM golang:1.24 AS builder
 
 WORKDIR /app
 
@@ -12,6 +12,7 @@ RUN git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".i
 ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
 
 COPY go.mod .
+
 COPY go.sum .
 
 RUN go mod download

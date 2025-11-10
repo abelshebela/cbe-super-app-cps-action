@@ -64,11 +64,7 @@ func Init(ctx context.Context) {
 	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
 	logger.Infof("SMS service initialized")
 
-	logger.Infof("Initializing account lookup service...")
-	accountLookupService := InitAccountLookupService(cfg.CBEBaseURL, logger)
-	logger.Infof("Account lookup service initialized")
-
-	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config
+	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
 	}
@@ -85,8 +81,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, redisRepository, *smsService)
-	// serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, redisRepository, *smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
