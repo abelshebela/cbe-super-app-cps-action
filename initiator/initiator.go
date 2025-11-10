@@ -80,7 +80,7 @@ func Init(ctx context.Context) {
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota")
 	}
-	defer sitotagRPCClient.Close()
+	sitotagRPCClient.Close()
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
