@@ -1,6 +1,6 @@
 # container image builder docker file
 
-FROM golang:1.25 AS builder
+FROM golang:1.24 AS builder
 
 WORKDIR /app
 
@@ -15,22 +15,27 @@ RUN git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".i
 ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
 
 COPY go.mod .
+
 COPY go.sum .
 
 # RUN go mod tidy
 # Download dependencies
 RUN go mod download
 
-# Copy all source files
 COPY . .
 
-# Build binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o supperapp-cps-action cmd/main.go
 
-# Copy runtime config
-COPY corebanking.json .
+FROM scratch
+
+COPY --from=builder /app/supperapp-cps-action  .
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+COPY --from=builder /app/.env .
 
 EXPOSE 8080
+
 EXPOSE 50051
 
 CMD ["./supperapp-cps-action"]
