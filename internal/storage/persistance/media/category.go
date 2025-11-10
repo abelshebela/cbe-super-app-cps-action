@@ -104,15 +104,12 @@ func buildCategoryUpdate(updateFields model.NewsCategoryModel) bson.M {
 	if updateFields.Name != "" {
 		update["name"] = updateFields.Name
 	}
-	if updateFields.Description != "" {
-		update["description"] = updateFields.Description
-	}
 	if updateFields.IsActive {
 		update["is_active"] = updateFields.IsActive
 	}
 
-	if updateFields.Slug != "" {
-		update["slug"] = updateFields.Slug
+	if updateFields.Color != "" {
+		update["color"] = updateFields.Color
 	}
 
 	update["updated_at"] = time.Now()
