@@ -39,18 +39,17 @@ type PaginatedArchieveUserResponse struct {
 }
 
 type PaginatedDepartmentResponse struct {
-	Docs []Department             `json:"docs"`
+	Docs []Department         `json:"docs"`
 	Meta types.PaginationMeta `json:"meta"`
 }
 
-
 type PaginatedEventResponse struct {
-	Docs []Event             `json:"docs"`
+	Docs []Event              `json:"docs"`
 	Meta types.PaginationMeta `json:"meta"`
 }
 
 type AccountLookupResponse struct {
-	Status  int                 `json:"status"`
-	Message string              `json:"message"`
-	Data    AccountInfo   `json:"data"`
+	Status  int           `json:"status"`
+	Message string        `json:"message"`
+	Data    AccountDetail `json:"data"`
 }
