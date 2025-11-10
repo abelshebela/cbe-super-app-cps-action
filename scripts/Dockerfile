@@ -7,19 +7,13 @@ WORKDIR /app
 ARG GITLAB_USER
 ARG GITLAB_PAT
 
-ENV GITLAB_USER=${GITLAB_USER}
-ENV GITLAB_PAT=${GITLAB_PAT}
-
 RUN git config --global url."https://${GITLAB_USER}:${GITLAB_PAT}@gitlab.com/".insteadOf "https://gitlab.com/"
 
 ENV GOPRIVATE=gitlab.com/bersufekadgetachew/*
 
 COPY go.mod .
-
 COPY go.sum .
 
-# RUN go mod tidy
-# Download dependencies
 RUN go mod download
 
 COPY . .
