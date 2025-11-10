@@ -105,13 +105,12 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 func (s *BankStorage) FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error) {
 	filter := bson.M{}
 	filter["$or"] = []bson.M{
-		{"name": name},
-		{"bic": bic},
-		{"code": code},
+		{"name": bson.M{"$regex": name, "$options": "i"}},
+		{"bic": bson.M{"$regex": bic, "$options": "i"}},
+		{"code": bson.M{"$regex": code, "$options": "i"}},
 	}
 
 	return s.dal.FindOne(ctx, filter, nil)
-
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {

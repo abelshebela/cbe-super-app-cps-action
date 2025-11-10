@@ -116,6 +116,13 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(req.PhoneNumber)
+	if err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	req.PhoneNumber = formattedPhone
 
 	if err := d.donationCompanyApp.CreateDonationCompany(r.Context(), req); err != nil {
 		d.logger.Errorf("failed to create donation company: %v", err)
@@ -175,7 +182,7 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdated, nil)
 }
 
-func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request){
+func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
 	accountNumber := chi.URLParam(r, "account_number")
 	if accountNumber == "" {
 		d.logger.Errorf("account nmumber is required to fetch one")
@@ -193,7 +200,6 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 	localization.SendSuccessResponse(w, localization.SuccessAccountInfoFetched, accountInfo)
 }
 
-
 // EnableDonationCompany godoc
 // @Summary Enable a donation company
 // @Description Enable a donation company by ID
@@ -209,19 +215,19 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 // @Router /donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
-id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for diable")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
 
-	if err:= d.donationCompanyApp.EnableDonationCompany(r.Context(),id);err!= nil{
-			d.logger.Errorf("failed to enable donation company: %v", err)
+	if err := d.donationCompanyApp.EnableDonationCompany(r.Context(), id); err != nil {
+		d.logger.Errorf("failed to enable donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
 
 }
 
@@ -240,18 +246,18 @@ id := chi.URLParam(r, "id")
 // @Router /donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
-id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for disable")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
 
-	if err:= d.donationCompanyApp.DisableDonationCompany(r.Context(),id);err!= nil{
-			d.logger.Errorf("failed to disable donation company: %v", err)
+	if err := d.donationCompanyApp.DisableDonationCompany(r.Context(), id); err != nil {
+		d.logger.Errorf("failed to disable donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
 
 }

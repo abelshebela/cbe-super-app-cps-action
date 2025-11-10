@@ -3,6 +3,7 @@ package kyc_verifier
 import (
 	"time"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"cbe-super-app-cps-action/internal/constants/types"
 )
 
 type KYCVerifierResponse struct {
@@ -11,6 +12,7 @@ type KYCVerifierResponse struct {
 	UserPhoneNumber      string              `json:"phone_number" bson:"phone_number"`
 	UserCustomerNumber   string              `json:"customer_number" bson:"customer_number"`
 	UserCode             string              `json:"user_code" bson:"user_code"`
+	KYCData              types.KYCData       `json:"kyc_data" bson:"kyc_data"`
 	KYCStatus            string              `json:"kyc_status" bson:"kyc_status"`
 	KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
 	KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`

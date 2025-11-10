@@ -16,6 +16,7 @@ import (
 	"errors"
 
 	"time"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -211,19 +212,19 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		coverImageURL = url
 	}
 
-	// --- Remove Images ---
+	NewdonationImages:=existingDonation.DonationImages
 	if len(donation.RemovedImages) > 0 {
 		toRemove := make(map[string]bool, len(donation.RemovedImages))
 		for _, id := range donation.RemovedImages {
 			toRemove[id] = true
 		}
-		filtered := make([]dto.DonationImage, 0, len(existingDonation.DonationImages))
+		filtered := make([]dto.DonationImage, 0, len(NewdonationImages))
 		for _, img := range existingDonation.DonationImages {
 			if !toRemove[img.ID] {
 				filtered = append(filtered, img)
 			}
 		}
-		existingDonation.DonationImages = filtered
+		NewdonationImages = filtered
 	}
 
 	// --- Add New Images ---
@@ -243,7 +244,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			return err
 		}
 
-		existingDonation.DonationImages = append(existingDonation.DonationImages, dto.DonationImage{
+		NewdonationImages = append(existingDonation.DonationImages, dto.DonationImage{
 			ID:        bson.NewObjectID().Hex(),
 			PhotoURL:  url,
 		})
@@ -252,7 +253,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	// --- Map Update Data ---
-	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, existingDonation.DonationImages)
+	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, NewdonationImages)
 
 	// --- CPS Action ---
 	cpsAction := lib.CpsModelBuilder(

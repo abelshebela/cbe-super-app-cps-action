@@ -138,7 +138,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppActionCompleted,
 	ErrorMiniAppMerchantNotFound,
 	ErrorMiniAppMerchantDisabled,
-	// Error codes
+
+	// Sitota Related success
+	SuccessAllSitotasRetrieved,
+	SuccessSitotaRetrieved,
 
 	// Error codes
 	ErrorInvalidKey,
@@ -472,6 +475,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorNewsTagInvalidID,
 	ErrorNewsTagWithNameAlreadyExists,
 	ErrorNewsCategoryWithNameAlreadyExists,
+
+	// Sitota Related errors
+	ErrorSitotaRequired,
 }
 
 // Success Response Codes
@@ -1514,13 +1520,13 @@ var (
 	//wallet related error codes
 
 	ErrorWalletNameAlreadyExists = ResponseCode{
-		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
-		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		Code:       "ERROR_WALLET_WITH_CODE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given code already exists",
 		Type:       "error",
@@ -5243,5 +5249,25 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgNewsTagDeletedSuccess,
 		Type:       "success",
+	}
+	// Sitota Related Responses
+	SuccessAllSitotasRetrieved = ResponseCode{
+		Code:       "SUCCESS_ALL_SITOTAS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAllSitotasRetrievedSuccess,
+		Type:       "success",
+	}
+	SuccessSitotaRetrieved = ResponseCode{
+		Code:       "SUCCESS_SITOTA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgSitotaRetrievedSuccess,
+		Type:       "success",
+	}
+
+	ErrorSitotaRequired = ResponseCode{
+		Code:       "ERROR_SITOTA_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgSitotaRequired,
+		Type:       "error",
 	}
 )

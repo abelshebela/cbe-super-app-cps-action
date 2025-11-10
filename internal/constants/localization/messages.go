@@ -976,4 +976,9 @@ const (
 	MsgNewsTagUpdatedSuccess             = "News tag updated request sent successfully"
 	MsgNewsTagFetchedSuccess             = "News tag fetched successfully"
 	MsgNewsTagCreatedSuccess             = "News tag created request sent successfully"
+
+	// Sitota related
+	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
+	MsgSitotaRetrievedSuccess     = "Sitota retrieved successfully"
+	MsgSitotaRequired             = "Sitota ID is required"
 )

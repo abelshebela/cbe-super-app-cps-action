@@ -44,7 +44,7 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			),
 			validation.Field(&dto.PhoneNumber,
 				validation.Required.Error("phone number is required"),
-				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)9\d{8}$`)).Error("invalid phone number format"),
+				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)(9|7)\d{8}$`)).Error("invalid phone number format"),
 				validation.By(utils.TrimWhiteSpace),
 			),
 			validation.Field(&dto.Email,
@@ -56,6 +56,8 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 				validation.Required.Error("account number is required"),
 				validation.By(utils.TrimWhiteSpace),
 				validation.By(utils.NoSpecialChars),
+				validation.By(utils.NumbersOnly),
+				validation.Length(13, 13),
 			),
 		}
 	} else {
