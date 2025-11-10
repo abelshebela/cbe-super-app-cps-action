@@ -64,7 +64,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
 		return err
