@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -127,20 +128,43 @@ func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppReposito
 	}
 }
 
-func CheckMerchantExists(ctx context.Context, merchantRepo storage.MiniAppMerchantRepository, data *model.CheckMiniAppMerchant, opts *model.MiniAppMerchantExistOptions) (bool, error) {
+
+func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
+	accountRequest := model.AccountLookUpRequest{
+		AccountNumber: accountNumber,
+	}
+
+	accountDetail, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	if accountDetail == nil {
+		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
+	}
+
+	return accountDetail, nil
+}
+func CheckMerchantExists(
+	ctx context.Context,
+	merchantRepo storage.MiniAppMerchantRepository,
+	data *model.CheckMiniAppMerchant,
+	opts *model.MiniAppMerchantExistOptions,
+) (bool, error) {
 	if data == nil {
 		return false, nil
 	}
 
-	var conditions []map[string]interface{}
+	var conditions []bson.M
+
 	if data.BankAccountNumber != "" {
-		conditions = append(conditions, map[string]interface{}{"bank_account_number": data.BankAccountNumber})
+		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
 	}
 	if data.Email != "" {
-		conditions = append(conditions, map[string]interface{}{"kyc.representative.email": data.Email})
+		conditions = append(conditions, bson.M{"kyc.representative.email": data.Email})
 	}
 	if data.PhoneNumber != "" {
-		conditions = append(conditions, map[string]interface{}{"kyc.representative.phone": data.PhoneNumber})
+		conditions = append(conditions, bson.M{"kyc.representative.phone": data.PhoneNumber})
 	}
 
 	if len(conditions) == 0 {
@@ -153,22 +177,24 @@ func CheckMerchantExists(ctx context.Context, merchantRepo storage.MiniAppMercha
 	}
 
 	if opts != nil && opts.ExcludeID != "" {
-		if objID, err := bson.ObjectIDFromHex(opts.ExcludeID); err == nil {
-			filter["_id"] = bson.M{"$ne": objID}
-		} else {
+		objID, err := bson.ObjectIDFromHex(opts.ExcludeID)
+		if err != nil {
 			return false, err
 		}
+		filter["_id"] = bson.M{"$ne": objID}
 	}
 
 	res, err := merchantRepo.FindOne(ctx, filter)
-
 	if err != nil {
+	if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
+		return false, nil
+	}
+	return false, err
+}
 
-		if err.Error() == "ERROR_MINI_APP_MERCHANT_NOT_FOUND" {
-			return false, nil
-		}
-		return false, err
+	if res == nil {
+		return false, nil
 	}
 
-	return res != nil, nil
+	return true, nil
 }

@@ -213,19 +213,20 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	NewdonationImages:=existingDonation.DonationImages
-	if len(donation.RemovedImages) > 0 {
-		toRemove := make(map[string]bool, len(donation.RemovedImages))
-		for _, id := range donation.RemovedImages {
-			toRemove[id] = true
-		}
-		filtered := make([]dto.DonationImage, 0, len(NewdonationImages))
-		for _, img := range existingDonation.DonationImages {
-			if !toRemove[img.ID] {
-				filtered = append(filtered, img)
-			}
-		}
-		NewdonationImages = filtered
+if len(donation.RemovedImages) > 0 {
+	toRemove := make(map[string]struct{}, len(donation.RemovedImages))
+	for _, id := range donation.RemovedImages {
+		toRemove[id] = struct{}{}
 	}
+	filtered := NewdonationImages[:0] 
+	for _, img := range NewdonationImages {
+		if _, ok := toRemove[img.ID]; !ok {
+			filtered = append(filtered, img)
+		}
+	}
+	NewdonationImages = filtered
+}
+
 
 	// --- Add New Images ---
 	d.logger.Infof("Processing %d new donation images", len(donation.DonationImages))
@@ -244,7 +245,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			return err
 		}
 
-		NewdonationImages = append(existingDonation.DonationImages, dto.DonationImage{
+		NewdonationImages = append(NewdonationImages, dto.DonationImage{
 			ID:        bson.NewObjectID().Hex(),
 			PhotoURL:  url,
 		})
