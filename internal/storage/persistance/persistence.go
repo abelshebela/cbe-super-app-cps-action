@@ -9,28 +9,29 @@ import (
 )
 
 type Persistence struct {
-	AccountLookup                core.CBECoreAPIInterface
-	MongoClient                  *mongo.Client
-	UserPersistence              storage.UserRepository
-	UnlinkAccountPersistence     storage.UnlinkAccount
-	HQPersistence                storage.HQRepository
-	OTPPersistence               storage.OTPRepository
-	DeviceLinkHistoryPersistence storage.DeviceLinkHistoryRepository
-	ResetSessionPersistence      storage.ResetSessionRepository
-	SMSSenderApi                 external_call.SMSPersistence
-	CPSAction                    storage.CPSActionRepository
-	AdvertPersistence            storage.AccountAPIPort
-	AmountBasedAuthPersistence   storage.AmountBasedAuthRepository
-	AccountBlockPersistence      storage.AccountBlockRepository
-	PortalCardPersistence        storage.PortalCardRepository
-	MiniAppPersistence           storage.MiniAppRepository
-	CityPersistence              storage.CityRepository
-	RegionPersistence            storage.RegionRepository
-	DistrictPersistence          storage.DistrictRepository
-	BranchPersistence            storage.BranchRepository
-	EventPersistence             storage.EventRepository
-	CustomerService              storage.CustomerRepository
-	BulkService                  storage.BulkServiceRepository
+	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
+	AccountLookup                   core.CBECoreAPIInterface
+	MongoClient                     *mongo.Client
+	UserPersistence                 storage.UserRepository
+	UnlinkAccountPersistence        storage.UnlinkAccount
+	HQPersistence                   storage.HQRepository
+	OTPPersistence                  storage.OTPRepository
+	DeviceLinkHistoryPersistence    storage.DeviceLinkHistoryRepository
+	ResetSessionPersistence         storage.ResetSessionRepository
+	SMSSenderApi                    external_call.SMSPersistence
+	CPSAction                       storage.CPSActionRepository
+	AdvertPersistence               storage.AccountAPIPort
+	AmountBasedAuthPersistence      storage.AmountBasedAuthRepository
+	AccountBlockPersistence         storage.AccountBlockRepository
+	PortalCardPersistence           storage.PortalCardRepository
+	MiniAppPersistence              storage.MiniAppRepository
+	CityPersistence                 storage.CityRepository
+	RegionPersistence               storage.RegionRepository
+	DistrictPersistence             storage.DistrictRepository
+	BranchPersistence               storage.BranchRepository
+	EventPersistence                storage.EventRepository
+	CustomerService                 storage.CustomerRepository
+	BulkService                     storage.BulkServiceRepository
 
 	BudgetCategoryPersistence storage.BudgetCategoryRepository
 
@@ -70,5 +71,5 @@ type Persistence struct {
 	NewsTagPersistence               storage.NewsTagRepository
 	KYCVerifierPersistence           storage.KYCVerifierRepository
 	NewsCategoryPersistence          storage.NewsCategoryRepository
-	NewsTagsServiceContainer        storage.NewsTagsRepository
+	NewsTagsServiceContainer         storage.NewsTagsRepository
 }

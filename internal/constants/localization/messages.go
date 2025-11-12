@@ -751,6 +751,16 @@ const (
 	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
+
+	// Device Version related error messages
+	MsgDeviceVersionAlreadyExists   = "Device version already exists"
+	MsgDeviceVersionNotFound        = "Device version not found"
+	MsgDeviceVersionUpdateFailed    = "Device version update failed"
+	MsgDeviceVersionDeleteFailed    = "Device version delete failed"
+	MsgDeviceVersionEnableFailed    = "Device version enable failed"
+	MsgDeviceVersionDisableFailed   = "Device version disable failed"
+	MsgDeviceVersionAlreadyEnabled  = "Device version already enabled"
+	MsgDeviceVersionAlreadyDisabled = "Device version already disabled"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
 	MsgNotificationAlreadyExists   = "Notification already exists"

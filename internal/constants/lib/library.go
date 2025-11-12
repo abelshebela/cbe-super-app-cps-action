@@ -175,6 +175,7 @@ func UploadFileToMinio(
 		Size:        fileHeader.Size,
 		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		logger.Errorf("failed to upload file to MinIO: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)

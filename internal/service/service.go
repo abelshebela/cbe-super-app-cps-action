@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -242,6 +243,15 @@ type ProductCodeService interface {
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
+type DeviceVersionServiceSrv interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDeviceVersion(ctx context.Context, deviceVersion deviceversion.CreateDeviceVersionRequest) error
+	EnableDisableDeviceVersion(ctx context.Context, id string, enableDisable bool) error
+	GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
+	GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error)
+	UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error
+}
+
 type ServiceService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
@@ -395,6 +405,7 @@ type ServiceContainer struct {
 	AccountLookup               AccountSearchService
 	BulkServiceContainer        BulkService
 	ServiceCheckContainer       ServiceService
+	DeviceVersionContainer      DeviceVersionServiceSrv
 	KeyGenService               KeyGeneratorService
 	NotificationService         NotificationService
 	ProductCodeService          ProductCodeService

@@ -144,6 +144,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessSitotaRetrieved,
 
 	// Error codes
+	ErrorDeviceVersionAlreadyExists,
+	ErrorDeviceVersionNotFound,
+	ErrorDeviceVersionUpdateFailed,
+	ErrorDeviceVersionDeleteFailed,
+	ErrorDeviceVersionEnableFailed,
+	ErrorDeviceVersionDisableFailed,
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -466,6 +472,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// OTP related error codes
 	ErrorOTPExpired,
+	ErrorUnsupportedAction,
 	ErrorOTPInvalid,
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
@@ -3939,6 +3946,55 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgMiniAppMerchantUpdateFailed,
+		Type:       "error",
+	}
+
+	ErrorDeviceVersionAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyExists,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionNotFound = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDeviceVersionNotFound,
+		Type:       "error",
+	}
+	ErrorDeviceVersionUpdateFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionUpdateFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDeleteFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDeleteFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionEnableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionEnableFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDisableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDisableFailed,
 		Type:       "error",
 	}
 

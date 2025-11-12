@@ -21,6 +21,7 @@ import (
 	cpsusersvc "cbe-super-app-cps-action/internal/service/cps_user"
 	customer "cbe-super-app-cps-action/internal/service/customer"
 	"cbe-super-app-cps-action/internal/service/department"
+	deviceversion "cbe-super-app-cps-action/internal/service/device_version"
 	"cbe-super-app-cps-action/internal/service/event"
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
 
@@ -108,6 +109,7 @@ type ServiceLayer struct {
 	Sitota                 service.SitotaService
 	KYCVerifier            service.KYCVerifierService
 	NewsTagsService        service.NewsTagsService
+	DeviceVersion          service.DeviceVersionServiceSrv
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -299,6 +301,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	)
 	serviceContainer.CPSUserContainer = cpsUserService
 
+	// Device Version service with CPS wired
+	deviceVersionSvc := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
+	serviceContainer.DeviceVersionContainer = deviceVersionSvc
+
 	serviceContainer.BudgetCategoryContainer = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, "budget_category", cfg, minioPubUrl)
 
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
@@ -395,5 +401,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Sitota:                 sitotaService,
 		KYCVerifier:            kycService,
 		NewsTagsService:        newsTagsService,
+		DeviceVersion:          deviceVersionSvc,
 	}
 }
