@@ -80,18 +80,17 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
-	if !category.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	if !category.Enabled {
+		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
 
-	company, err:= d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
+	company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 	if err != nil {
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-	if !company.Enabled{
-			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+	if !company.Enabled {
+		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-
 
 	coverImageURL := ""
 	if donation.CoverImage != nil {
@@ -212,21 +211,20 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		coverImageURL = url
 	}
 
-	NewdonationImages:=existingDonation.DonationImages
-if len(donation.RemovedImages) > 0 {
-	toRemove := make(map[string]struct{}, len(donation.RemovedImages))
-	for _, id := range donation.RemovedImages {
-		toRemove[id] = struct{}{}
-	}
-	filtered := NewdonationImages[:0] 
-	for _, img := range NewdonationImages {
-		if _, ok := toRemove[img.ID]; !ok {
-			filtered = append(filtered, img)
+	NewdonationImages := existingDonation.DonationImages
+	if len(donation.RemovedImages) > 0 {
+		toRemove := make(map[string]struct{}, len(donation.RemovedImages))
+		for _, id := range donation.RemovedImages {
+			toRemove[id] = struct{}{}
 		}
+		filtered := NewdonationImages[:0]
+		for _, img := range NewdonationImages {
+			if _, ok := toRemove[img.ID]; !ok {
+				filtered = append(filtered, img)
+			}
+		}
+		NewdonationImages = filtered
 	}
-	NewdonationImages = filtered
-}
-
 
 	// --- Add New Images ---
 	d.logger.Infof("Processing %d new donation images", len(donation.DonationImages))
@@ -246,8 +244,8 @@ if len(donation.RemovedImages) > 0 {
 		}
 
 		NewdonationImages = append(NewdonationImages, dto.DonationImage{
-			ID:        bson.NewObjectID().Hex(),
-			PhotoURL:  url,
+			ID:       bson.NewObjectID().Hex(),
+			PhotoURL: url,
 		})
 
 		d.logger.Infof("Successfully uploaded donation image: %s", url)
@@ -271,7 +269,6 @@ if len(donation.RemovedImages) > 0 {
 
 	return nil
 }
-
 
 func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto.DonationImageUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -454,7 +451,6 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		d.logger.Errorf("failed to bind current action to donation: %v", bindErr)
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
-
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonation):
