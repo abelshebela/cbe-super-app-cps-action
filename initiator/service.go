@@ -13,6 +13,7 @@ import (
 	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
 	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
 	"cbe-super-app-cps-action/internal/storage"
+	"time"
 
 	// bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
@@ -120,7 +121,7 @@ var advertBucketName = "advert-bucket" // TODO: Add to config
 func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, redis storage.RedisRepository, smsService external_call.SMSPersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 
-	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup)
+	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CBEBaseURL, time.Duration(cfg.ServerTimeout))
 	// Create CPS action service with the dispatcher
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
 

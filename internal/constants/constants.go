@@ -169,6 +169,12 @@ const (
 	Low    RiskLevel = "LOW"
 )
 
+const (
+	AccountNumber = "account_number"
+	PhoneNumber   = "phone_number"
+	WithFayda     = "with_fayda"
+)
+
 type MemberType string
 
 const (

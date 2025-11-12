@@ -24,6 +24,48 @@ type AccountLookupData struct {
 	CustomerID     string
 }
 
+type Account struct {
+	ID                 string    `json:"id"`
+	AccountBranchType  string    `json:"account_branchtype"`
+	AccountBranchCode  string    `json:"account_branchcode"`
+	AccountNumber      string    `json:"account_number"`
+	CustomerNumber     string    `json:"customer_number"`
+	CustomerName       string    `json:"customer_name"`
+	CustomerMotherName string    `json:"customer_mother_name"`
+	PhoneNumber        string    `json:"phone_number"`
+	CustomerAddress    string    `json:"customer_address"`
+	AccountType        string    `json:"account_type"`
+	Gender             string    `json:"gender"`
+	Picture            string    `json:"picture"`
+	DebitAllowed       bool      `json:"debit_allowed"`
+	CreditAllowed      bool      `json:"credit_allowed"`
+	AccountFrozen      bool      `json:"account_frozen"`
+	AccountDormant     bool      `json:"account_dormant"`
+	ActiveAccount      bool      `json:"active_account"`
+	AccountCurrency    string    `json:"account_currency"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}
+
+type AccountInfo struct {
+	ID                 string `json:"id"`
+	AccountBranchType  string `json:"account_branchtype"`
+	AccountBranchCode  string `json:"account_branchcode"`
+	AccountNumber      string `json:"account_number"`
+	CustomerNumber     string `json:"customer_number"`
+	CustomerName       string `json:"customer_name"`
+	AccountDescription string `json:"account_description"`
+	PhoneNumber        string `json:"phone_number"`
+	CustomerAddress    string `json:"customer_address"`
+	DebitAllowed       bool   `json:"debit_allowed"`
+	CreditAllowed      bool   `json:"credit_allowed"`
+	AccountType        string `json:"account_type"`
+	AccountFrozen      bool   `json:"account_frozen"`
+	AccountDormant     bool   `json:"account_dormant"`
+	ActiveAccount      bool   `json:"active_account"`
+	AccountCurrency    string `json:"account_currency"`
+}
+
 type LoginPIN struct {
 	PIN              string    `json:"pin" bson:"pin"`
 	PINHistory       [4]string `json:"pin_history" bson:"pin_histroy"`
