@@ -19,8 +19,6 @@ func InitSitotaHandler(svc service.SitotaService, logger utils.Logger) *handler 
 	return &handler{svc: svc, logger: logger}
 }
 
-// encData, _, err := localization.LocalEncryptPassword(dataStr, "enc", "enc", "enc", enc.cfg)
-
 func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 	sitotas, err := h.svc.GetAllSitotas(r.Context())
 	if err != nil {
