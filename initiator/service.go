@@ -2,6 +2,7 @@ package initiator
 
 import (
 	session "cbe-super-app-cps-action/grpc"
+	transactionpb "cbe-super-app-cps-action/grpc/sitota"
 	"cbe-super-app-cps-action/internal/service"
 	accountblock "cbe-super-app-cps-action/internal/service/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
@@ -116,7 +117,7 @@ type ServiceLayer struct {
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, redis storage.RedisRepository, smsService external_call.SMSPersistence) ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, redis storage.RedisRepository, smsService external_call.SMSPersistence) ServiceLayer {
 	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
 
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup)
@@ -184,7 +185,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 
-	sitotaService := sitota_service.NewSitotaTransactionService(logger)
+	sitotaService := sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 
 	// Create the service container with all services
@@ -356,7 +357,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
 	serviceContainer.NewsCategoryContainer = newsCategoryService
 
-	sitotaService = sitota_service.NewSitotaTransactionService(logger)
+	sitotaService = sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	serviceContainer.SitotaContainer = sitotaService
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
 	serviceContainer.EncryptionContainer = encryptionService
