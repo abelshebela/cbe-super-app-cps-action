@@ -2,6 +2,7 @@ package initiator
 
 import (
 	session "cbe-super-app-cps-action/grpc"
+	transactionpb "cbe-super-app-cps-action/grpc/sitota"
 	"cbe-super-app-cps-action/internal/service"
 	accountblock "cbe-super-app-cps-action/internal/service/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
@@ -48,6 +49,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
+	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
 	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 
@@ -100,7 +102,9 @@ type ServiceLayer struct {
 	Sitota                 service.SitotaService
 	KYCVerifier            service.KYCVerifierService
 	NewsTagsService        service.NewsTagsService
+	Encryption             service.EncryptionService
 }
+
 
 var advertBucketName = "advert-bucket"
 
@@ -109,6 +113,7 @@ func InitServiceLayer(
 	persistence persistance.Persistence,
 	logger utils.Logger,
 	sessionGRPCClient session.SessionServiceClient,
+  sitotagRPCClient transactionpb.TransactionServiceClient,
 	cfg *config.VaultConfig,
 	minioClient config.MinioClientInterface,
 	redis storage.RedisRepository,
@@ -158,7 +163,11 @@ func InitServiceLayer(
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
-	sitotaService := sitota_service.NewSitotaTransactionService(logger)
+
+
+	sitotaService := sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
+	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
+
 
 	// -----------------------------
 	// Step 2: wire CPSAction
@@ -202,7 +211,10 @@ func InitServiceLayer(
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
 		KYCVerifierContainer:       kycService,
-		NewsTagsServiceContainer:   newsTagsService,
+
+		// KYC verifier will be set after CPS action wiring
+		NewsTagsServiceContainer: newsTagsService,
+		EncryptionContainer:      encryptionService,
 	}
 
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
@@ -234,6 +246,14 @@ func InitServiceLayer(
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, cpsActionService, logger)
+  sitotaService = sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
+	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
+	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
+  newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
+  	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
+  	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
+  	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
+
 
 	// -----------------------------
 	// Step 4: return fully wired layer
@@ -279,5 +299,6 @@ func InitServiceLayer(
 		Sitota:                 sitotaService,
 		KYCVerifier:            kycService,
 		NewsTagsService:        newsTagsService,
+		Encryption:             encryptionService,
 	}
 }

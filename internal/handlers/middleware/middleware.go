@@ -200,6 +200,8 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
+
+		fmt.Println("userPayload", userPayload)
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
 
