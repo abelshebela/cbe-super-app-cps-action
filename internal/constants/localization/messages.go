@@ -741,7 +741,7 @@ const (
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantCheckPendingFailed     = "Failed to check pending request"
-	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check permission group existence"
+	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check miniapp merchant existence"
 	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch permission categories"
 	MsgMiniAppMerchantUnexpectedDBError      = "Unexpected database error occurred"
 	MsgMiniAppMerchantMarshalFailed          = "Failed to marshal current action"
