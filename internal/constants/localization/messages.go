@@ -991,4 +991,7 @@ const (
 	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
 	MsgSitotaRetrievedSuccess     = "Sitota retrieved successfully"
 	MsgSitotaRequired             = "Sitota ID is required"
+
+	// Encryption
+	MsgEncryptionSuccessfully = "Encryption generated successfully"
 )

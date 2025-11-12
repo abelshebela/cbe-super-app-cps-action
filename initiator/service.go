@@ -52,6 +52,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
+	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
 	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 
@@ -110,6 +111,7 @@ type ServiceLayer struct {
 	KYCVerifier            service.KYCVerifierService
 	NewsTagsService        service.NewsTagsService
 	DeviceVersion          service.DeviceVersionServiceSrv
+	Encryption             service.EncryptionService
 }
 
 var advertBucketName = "advert-bucket" // TODO: Add to config
@@ -183,6 +185,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 
 	sitotaService := sitota_service.NewSitotaTransactionService(logger)
+	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 
 	// Create the service container with all services
 	serviceContainer := service.ServiceContainer{
@@ -231,6 +234,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		KYCVerifierContainer:       kycService,
 		// KYC verifier will be set after CPS action wiring
 		NewsTagsServiceContainer: newsTagsService,
+		EncryptionContainer:      encryptionService,
 	}
 
 	// Create the dispatcher with the service container
@@ -354,6 +358,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	sitotaService = sitota_service.NewSitotaTransactionService(logger)
 	serviceContainer.SitotaContainer = sitotaService
+	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
+	serviceContainer.EncryptionContainer = encryptionService
 
 	return ServiceLayer{
 		CPSAction: cpsActionService,
@@ -402,5 +408,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		KYCVerifier:            kycService,
 		NewsTagsService:        newsTagsService,
 		DeviceVersion:          deviceVersionSvc,
+		Encryption:             encryptionService,
 	}
 }

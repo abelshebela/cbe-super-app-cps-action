@@ -33,6 +33,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	"context"
@@ -423,6 +424,7 @@ type ServiceContainer struct {
 	SitotaContainer             SitotaService
 	KYCVerifierContainer        KYCVerifierService
 	NewsTagsServiceContainer    NewsTagsService
+	EncryptionContainer         EncryptionService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -479,4 +481,8 @@ type NewsCategoryService interface {
 type SitotaService interface {
 	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
 	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
+}
+
+type EncryptionService interface {
+	LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error)
 }

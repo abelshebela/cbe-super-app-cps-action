@@ -143,6 +143,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAllSitotasRetrieved,
 	SuccessSitotaRetrieved,
 
+	// Encryption
+	SuccessEncryptionGenerated,
+
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionNotFound,
@@ -485,6 +488,11 @@ var ResponseCodesList = []ResponseCode{
 
 	// Sitota Related errors
 	ErrorSitotaRequired,
+
+	// Encryption
+	ErrConfigIsEmpty,
+	ErrMarshalingData,
+	ErrInvalidKeyOrIv,
 }
 
 // Success Response Codes
@@ -2391,6 +2399,14 @@ var (
 		Type:       "success",
 	}
 	// mini app handler related error response codes
+
+	// Encryption
+	SuccessEncryptionGenerated = ResponseCode{
+		Code:       "SUCCESS_ENCRYPTION",
+		StatusCode: StatusOK,
+		Message:    MsgEncryptionSuccessfully,
+		Type:       "success",
+	}
 
 	ErrorMiniAppNotFound = ResponseCode{
 		Code:       "ERROR_MINI_APP_NOT_FOUND",
@@ -4965,6 +4981,25 @@ var (
 		Code:       "USER_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "user not found for given id",
+		Type:       "error",
+	}
+
+	ErrConfigIsEmpty = ResponseCode{
+		Code:       "ERROR_CONFIG_IS_EMPTY",
+		StatusCode: StatusInternalServerError,
+		Message:    "Config is empty",
+		Type:       "error",
+	}
+	ErrMarshalingData = ResponseCode{
+		Code:       "ERROR_MARSHALING_DATA",
+		StatusCode: StatusInternalServerError,
+		Message:    "Error while marshaling data",
+		Type:       "error",
+	}
+	ErrInvalidKeyOrIv = ResponseCode{
+		Code:       "ERROR_INVALID_KEY_OR_IV",
+		StatusCode: StatusInternalServerError,
+		Message:    "Invalid key or iv",
 		Type:       "error",
 	}
 
