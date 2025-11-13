@@ -126,7 +126,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
-	router.Use(customeMiddleware.ChiCORS())
+	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes
 	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(
