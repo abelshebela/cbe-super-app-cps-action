@@ -23,7 +23,7 @@ func AccountCreator(ctx context.Context, id string, userData model.User, account
 		PhoneNumber:        userData.PhoneNumber,
 		CustomerMotherName: userData.MotherName,
 		AccountType:        string(userData.AccountType),
-		AccountBranchType:  userData.AccountBranchType,
+		AccountBranchType:  constants.AccountType(userData.MemberType),
 		Picture:            userData.Avatar,
 	}
 
