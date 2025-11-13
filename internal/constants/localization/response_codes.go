@@ -148,7 +148,10 @@ var ResponseCodesList = []ResponseCode{
 
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
+	ErrorDeviceVersionAlreadyEnabled,
+	ErrorDeviceVersionAlreadyDisabled,
 	ErrorDeviceVersionNotFound,
+	
 	ErrorDeviceVersionUpdateFailed,
 	ErrorDeviceVersionDeleteFailed,
 	ErrorDeviceVersionEnableFailed,
