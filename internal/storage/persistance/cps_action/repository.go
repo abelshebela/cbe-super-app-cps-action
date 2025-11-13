@@ -245,17 +245,22 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("aggregation failed: %w", err)
 	}
-	defer cur.Close(ctx)
+	defer func() {
+		_ = cur.Close(ctx)
+	}()
 
-	if !cur.Next(ctx) {
-		return nil, nil
+	// Handle empty cursor
+	if cur == nil || !cur.Next(ctx) {
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	var result model.CPSAction
 	if err := cur.Decode(&result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode document: %w", err)
 	}
+
 	return &result, nil
 }
+

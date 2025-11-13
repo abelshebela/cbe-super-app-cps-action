@@ -38,7 +38,6 @@ func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepos
 
 // Authorize applies the approved CPS action for Device Version operations.
 func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-
 	actionData, err := local_util.JsonUnmarshal[model.DeviceVersionControl](cpsAction.CurrentAction)
 	if err != nil {
 		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
@@ -51,12 +50,11 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			d.logger.Errorf("DeviceVersion create action failed: %v", err)
 			return nil, err
 		}
-	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
+		case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
 		if err != nil {
 			return nil, err
 		}
-
 		if err := d.deviceVersionRepo.Update(ctx, cpsAction.UniqueId, updateData); err != nil {
 			d.logger.Errorf("DeviceVersion update/enable-disable action failed: %v", err)
 			return nil, err
@@ -96,10 +94,10 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 		CreatedAt:     time.Now(),
 		ForceUpdate:   deviceVersion.ForceUpdate,
 		ReleaseNotes:  deviceVersion.ReleaseNotes,
+		Enabled: true,
 	}
 
 	action := lib.CpsModelBuilder("", makerData, nil, new_device_version, string(constants.RequestCreateDeviceVersion), constants.CREATE)
-	fmt.Println("action", action)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		return err
 	}
@@ -116,14 +114,9 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 	if err != nil {
 		return err
 	}
-
-	// fetch current device version by id
 	filter := bson.M{"_id": objID}
 	deviceVersion, err := d.deviceVersionRepo.FindOne(ctx, filter)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		return errors.New(localization.ErrorResourceNotFound.Code)
-	} else if err != nil {
+	if err != nil {
 		return err
 	}
 
@@ -139,7 +132,6 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 	updated.Enabled = enableDisable
 	updated.UpdatedBy = makerData.FullName
 	updated.UpdatedAt = time.Now()
-
 	// create CPS action for enable/disable
 	action := lib.CpsModelBuilder(id, makerData, &deviceVersion, updated, string(constants.RequestEnableDisableDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
@@ -167,10 +159,6 @@ func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id stri
 	}
 	filter := bson.M{"_id": objID}
 	dv, err := d.deviceVersionRepo.FindOne(ctx, filter)
-	code, _ := local_util.HandleMongoError(err)
-	if code == localization.ErrorResourceNotFound.Code {
-		return model.DeviceVersionControl{}, errors.New(localization.ErrorResourceNotFound.Code)
-	}
 	if err != nil {
 		return model.DeviceVersionControl{}, err
 	}
@@ -192,9 +180,6 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 	filter := bson.M{"_id": objID}
 	existing, err := d.deviceVersionRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorResourceNotFound.Code {
-			return errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		return err
 	}
 

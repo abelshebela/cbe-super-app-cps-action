@@ -44,12 +44,10 @@ func UpdateDeviceVersionBsonForDb(req model.DeviceVersionControl, updatedBy stri
 	if req.Platform != "" {
 		update["platform"] = req.Platform
 	}
-	if req.ForceUpdate {
-		update["force_update"] = req.ForceUpdate
-	}
 	if req.ReleaseNotes != "" {
 		update["release_notes"] = req.ReleaseNotes
 	}
+	update["force_update"] = req.ForceUpdate
 	update["enabled"] = req.Enabled
 	update["updated_by"] = updatedBy
 
