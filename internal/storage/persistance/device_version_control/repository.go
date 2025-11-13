@@ -42,9 +42,9 @@ func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersion
 func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, deviceVersionControl bson.M) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New(localization.ErrorDepartmentInvalidID.Code)
+		return errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID}
 
 	deviceVersionControl["updated_at"] = time.Now()
 	deviceVersionControl["last_modified_at"] = time.Now()
@@ -85,17 +85,17 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 func (d *DeviceVersionControlRepository) FindByID(ctx context.Context, id string) (*model.DeviceVersionControl, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New(localization.ErrorDepartmentInvalidID.Code)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	result, err := d.deviceDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			d.logger.Errorf("department not found for ID: %s,error ", id, err)
-			return nil, errors.New(localization.ErrorDepartmentNotFound.Code)
+			d.logger.Errorf("Device control not found for ID: %s,error ", id, err)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		d.logger.Errorf("FindByID Department failed: %v", err)
+		d.logger.Errorf("FindByID Device control failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

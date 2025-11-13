@@ -51,7 +51,7 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/device_versions/{id}/enable",
+			Path:    "/device_versions/enable/{id}",
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -60,7 +60,7 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/device_versions/{id}/disable",
+			Path:    "/device_versions/disable/{id}",
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
