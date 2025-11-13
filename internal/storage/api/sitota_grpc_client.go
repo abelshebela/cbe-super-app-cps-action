@@ -59,6 +59,7 @@ func NewSitotagRPCClient(ctx context.Context, logger utils.Logger, gRPCAddress s
 	}
 
 	transactionClient := transactionpb.NewTransactionServiceClient(cc)
+	// cbeClient := NewCbeToCbeServiceClient(cc)
 
 	logger.Infof("Created new gRPC client for CBE-to-Cbe service")
 

@@ -108,6 +108,7 @@ func buildNewsTagUpdate(newsTag model.NewsTags) bson.M {
 		"name":       newsTag.Name,
 		"is_enabled": newsTag.IsEnabled,
 		"updated_at": newsTag.UpdatedAt,
+		"color":      newsTag.Color,
 	}
 	return update
 }
