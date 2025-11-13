@@ -15,6 +15,7 @@ import (
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 
 	// bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
 	// vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
@@ -43,6 +44,7 @@ import (
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
+	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
@@ -110,6 +112,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
+	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
 	// bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
 	// vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
 
@@ -124,9 +127,10 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
+	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
-	router.Use(customeMiddleware.ChiCORS())
+	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes
 	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(

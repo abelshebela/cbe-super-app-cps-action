@@ -4,9 +4,10 @@ import (
 	// Inbound section
 	accountvalidationInterface "cbe-super-app-cps-action/internal/constants/interfaces/account_validation"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
+	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
+	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
-	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 
 	// bankvaultInterface "cbe-super-app-cps-action/internal/constants/interfaces/bankvault"
 	bpsInbound "cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
@@ -44,9 +45,10 @@ import (
 	advertHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/ad"
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
+	deviceversionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/device_version"
+	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
-	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 
 	// bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
 
@@ -86,7 +88,9 @@ import (
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
+	encryptionInbound "cbe-super-app-cps-action/internal/constants/interfaces/encryption"
 	sitotaInbound "cbe-super-app-cps-action/internal/constants/interfaces/sitota"
+	encryptionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/encryption"
 	sitotaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/sitota"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -128,10 +132,12 @@ type Handler struct {
 	NotificationHandler notificationInbound.NotificationHandler
 	// BankVaultHandler          bankvaultInterface.BankVaultHandler
 	// VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
-	NewsCategoryHandler newscategory_adaptor.NewsCategoryAdaptor
-	NewsTagHandler      newstag_adaptor.NewsTagAdaptor
-	SitotaHandler       sitotaInbound.SitotaAdapter
-	KYCVerifierHandler  kycInbound.KYCVerifierAdapter
+	NewsCategoryHandler  newscategory_adaptor.NewsCategoryAdaptor
+	NewsTagHandler       newstag_adaptor.NewsTagAdaptor
+	SitotaHandler        sitotaInbound.SitotaAdapter
+	KYCVerifierHandler   kycInbound.KYCVerifierAdapter
+	EncryptionHandler    encryptionInbound.EncryptionAdapter
+	DeviceVersionHandler dviface.DeviceVersionHandler
 }
 
 func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
@@ -167,16 +173,18 @@ func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
 		// BankVaultHandler:    bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
 
 		// VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
-		AmountBasedAuthHandler: amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
-		MiniAppMerchantHandler: miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
-		ServiceDetailsHandler: serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
+		AmountBasedAuthHandler:  amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
+		MiniAppMerchantHandler:  miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
+		ServiceDetailsHandler:   serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 		ProductCodeHandler:      productCodeHandler.InitProductcodeAdapter(pcs, logger),
 		DonationHandler:         donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
 		DonationCategoryHandler: donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
 		DonationCompanyHandler:  donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
 		NewsCategoryHandler:     newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
 		NewsTagHandler:          newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
-		SitotaHandler: sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
+		SitotaHandler:           sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
 		KYCVerifierHandler:      kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
+		EncryptionHandler:       encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
+		DeviceVersionHandler:    deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
 	}
 }

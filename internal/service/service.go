@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -32,6 +33,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	"context"
@@ -242,6 +244,15 @@ type ProductCodeService interface {
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
+type DeviceVersionServiceSrv interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateDeviceVersion(ctx context.Context, deviceVersion deviceversion.CreateDeviceVersionRequest) error
+	EnableDisableDeviceVersion(ctx context.Context, id string, enableDisable bool) error
+	GetAllDeviceVersions(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
+	GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error)
+	UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error
+}
+
 type ServiceService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
@@ -395,6 +406,7 @@ type ServiceContainer struct {
 	AccountLookup               AccountSearchService
 	BulkServiceContainer        BulkService
 	ServiceCheckContainer       ServiceService
+	DeviceVersionContainer      DeviceVersionServiceSrv
 	KeyGenService               KeyGeneratorService
 	NotificationService         NotificationService
 	ProductCodeService          ProductCodeService
@@ -412,6 +424,7 @@ type ServiceContainer struct {
 	SitotaContainer             SitotaService
 	KYCVerifierContainer        KYCVerifierService
 	NewsTagsServiceContainer    NewsTagsService
+	EncryptionContainer         EncryptionService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -468,4 +481,8 @@ type NewsCategoryService interface {
 type SitotaService interface {
 	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
 	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
+}
+
+type EncryptionService interface {
+	LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error)
 }

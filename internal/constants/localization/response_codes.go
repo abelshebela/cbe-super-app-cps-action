@@ -143,7 +143,16 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAllSitotasRetrieved,
 	SuccessSitotaRetrieved,
 
+	// Encryption
+	SuccessEncryptionGenerated,
+
 	// Error codes
+	ErrorDeviceVersionAlreadyExists,
+	ErrorDeviceVersionNotFound,
+	ErrorDeviceVersionUpdateFailed,
+	ErrorDeviceVersionDeleteFailed,
+	ErrorDeviceVersionEnableFailed,
+	ErrorDeviceVersionDisableFailed,
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -466,6 +475,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// OTP related error codes
 	ErrorOTPExpired,
+	ErrorUnsupportedAction,
 	ErrorOTPInvalid,
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
@@ -478,6 +488,11 @@ var ResponseCodesList = []ResponseCode{
 
 	// Sitota Related errors
 	ErrorSitotaRequired,
+
+	// Encryption
+	ErrConfigIsEmpty,
+	ErrMarshalingData,
+	ErrInvalidKeyOrIv,
 }
 
 // Success Response Codes
@@ -2385,6 +2400,14 @@ var (
 	}
 	// mini app handler related error response codes
 
+	// Encryption
+	SuccessEncryptionGenerated = ResponseCode{
+		Code:       "SUCCESS_ENCRYPTION",
+		StatusCode: StatusOK,
+		Message:    MsgEncryptionSuccessfully,
+		Type:       "success",
+	}
+
 	ErrorMiniAppNotFound = ResponseCode{
 		Code:       "ERROR_MINI_APP_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -3942,6 +3965,55 @@ var (
 		Type:       "error",
 	}
 
+	ErrorDeviceVersionAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyExists,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionNotFound = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDeviceVersionNotFound,
+		Type:       "error",
+	}
+	ErrorDeviceVersionUpdateFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionUpdateFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDeleteFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDeleteFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionEnableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionEnableFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDisableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDisableFailed,
+		Type:       "error",
+	}
+
 	ErrorMiniAppMerchantFetchPermissionsFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_FETCH_PERMISSIONS_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -4909,6 +4981,25 @@ var (
 		Code:       "USER_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "user not found for given id",
+		Type:       "error",
+	}
+
+	ErrConfigIsEmpty = ResponseCode{
+		Code:       "ERROR_CONFIG_IS_EMPTY",
+		StatusCode: StatusInternalServerError,
+		Message:    "Config is empty",
+		Type:       "error",
+	}
+	ErrMarshalingData = ResponseCode{
+		Code:       "ERROR_MARSHALING_DATA",
+		StatusCode: StatusInternalServerError,
+		Message:    "Error while marshaling data",
+		Type:       "error",
+	}
+	ErrInvalidKeyOrIv = ResponseCode{
+		Code:       "ERROR_INVALID_KEY_OR_IV",
+		StatusCode: StatusInternalServerError,
+		Message:    "Invalid key or iv",
 		Type:       "error",
 	}
 

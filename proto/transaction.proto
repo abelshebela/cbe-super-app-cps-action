@@ -1,0 +1,92 @@
+syntax = "proto3";
+package transaction;
+
+
+option go_package = "./internal/constant/model/pb;pb";
+
+service TransactionService {
+  rpc GetTransaction(TransactionRequest) returns (Transaction);
+  rpc GetTransactionsList(ListTransactionRequest) returns (TransactionList);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message HealthCheckRequest {
+}
+
+message HealthCheckResponse {
+  string message = 1;
+  string status = 2;
+}
+
+message Filter {
+  string field = 1;
+  string operator = 2;
+  string value = 3;
+}
+
+message ListTransactionRequest {
+  string cursor = 1;
+  int32 limit = 2;
+  repeated Filter filter = 3;
+}
+
+message TransactionRequest {
+    string transaction_id = 1;
+}
+
+message Transaction {
+    string         id=1;
+	string         transaction_id = 2;
+	string         ft_number=3;
+	string         debit_branch_code=4;
+	string         debit_district_code=5;
+	string         debit_user_id=6;
+	string         debit_account_number=7;
+	string         debit_account_holder_name=8;
+	string         credit_user_id=9;
+	string         credit_account_number=10;
+	string         credit_account_holder_name=11;
+	string         institution_code=12;
+	string         institution_name=13;
+	string         currency=14;
+	string         service_fee=15;
+	string         tip_amount=16;
+	string         paid_amount=17;
+	string         vat=18;
+	string         amount=19;
+	string         total_amount=20;
+	string         external_reference=21;
+	string         transaction_reason=22;
+	string         transaction_type=23;
+	string         transaction_status=24;
+	bool           is_ifb=25;
+	bool           is_reversed=26;
+	string         paid_at=27;
+	string         reversed_at=28;
+	string         created_at=29;
+	string         last_modified_at=30;
+}
+
+
+message TransactionsList {
+	string         id=1;
+	string         transaction_id = 2;
+	string         ft_number=3;
+	string         debit_account_number=4;
+	string         debit_account_holder_name=5;
+	string         credit_account_number=6;
+	string         credit_account_holder_name=7;
+	string         service_fee=8;
+	string         vat=9;
+	string         total_amount=10;
+	string         transaction_type=11;
+	string         transaction_status=12;
+	string         created_at=13;
+}
+
+message TransactionList {
+  repeated TransactionsList transactions = 1;  
+  string   next_cursor = 2;                 
+  bool     has_next = 3;                      
+  int32    limit = 4;                        
+}

@@ -137,6 +137,7 @@ func UploadFileToMinio(
 	fileHeader *multipart.FileHeader,
 	prefix string,
 	minioEndpoint string,
+	objectkey string,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
@@ -164,8 +165,12 @@ func UploadFileToMinio(
 	}
 	defer file.Close()
 
-	// Generate file name
-	fileName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+	var fileName string
+	if objectkey != "" {
+		fileName = objectkey
+	} else {
+		fileName = fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano())
+	}
 
 	// Upload file
 	saveObj, err := uploader.SaveObjectN(ctx, config.SaveObjectBodyN{
@@ -175,6 +180,7 @@ func UploadFileToMinio(
 		Size:        fileHeader.Size,
 		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		logger.Errorf("failed to upload file to MinIO: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
