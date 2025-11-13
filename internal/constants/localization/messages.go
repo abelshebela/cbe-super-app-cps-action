@@ -741,7 +741,7 @@ const (
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantCheckPendingFailed     = "Failed to check pending request"
-	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check permission group existence"
+	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check miniapp merchant existence"
 	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch permission categories"
 	MsgMiniAppMerchantUnexpectedDBError      = "Unexpected database error occurred"
 	MsgMiniAppMerchantMarshalFailed          = "Failed to marshal current action"
@@ -751,6 +751,16 @@ const (
 	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
+
+	// Device Version related error messages
+	MsgDeviceVersionAlreadyExists   = "Device version already exists"
+	MsgDeviceVersionNotFound        = "Device version not found"
+	MsgDeviceVersionUpdateFailed    = "Device version update failed"
+	MsgDeviceVersionDeleteFailed    = "Device version delete failed"
+	MsgDeviceVersionEnableFailed    = "Device version enable failed"
+	MsgDeviceVersionDisableFailed   = "Device version disable failed"
+	MsgDeviceVersionAlreadyEnabled  = "Device version already enabled"
+	MsgDeviceVersionAlreadyDisabled = "Device version already disabled"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
 	MsgNotificationAlreadyExists   = "Notification already exists"
@@ -981,4 +991,7 @@ const (
 	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
 	MsgSitotaRetrievedSuccess     = "Sitota retrieved successfully"
 	MsgSitotaRequired             = "Sitota ID is required"
+
+	// Encryption
+	MsgEncryptionSuccessfully = "Encryption generated successfully"
 )

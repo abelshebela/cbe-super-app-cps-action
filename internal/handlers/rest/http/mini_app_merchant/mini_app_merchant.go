@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 )
 
 type miniAppMerchantAdapter struct {
@@ -68,8 +69,8 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Convert DTO → Domain Model
 	merchantDomain := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
+
 	h.logger.Debugf("Converted to domain model: %+v", merchantDomain)
 	// Call service to create merchant
 	createdMerchant, err := h.miniappMerchantService.Create(r.Context(), merchantDomain)

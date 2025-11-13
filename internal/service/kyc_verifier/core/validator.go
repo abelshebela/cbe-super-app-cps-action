@@ -1,9 +1,9 @@
-package kyc_verifier
+package core
 
 import (
-	"errors"
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"errors"
 )
 
 func ValidateUpdate(req kyc_verifier.UpdateKYCRequest) error {
