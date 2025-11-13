@@ -71,6 +71,9 @@ type ServiceFeeDetailResponse struct {
 	CBEGLEntry         types.GLEntry      `json:"cbe_gl_entry" bson:"cbe_gl_entry"`
 	CBEIFBGLEntry      types.IFBglEntry   `json:"cbe_ifb_gl_entry" bson:"cbe_ifb_gl_entry"`
 	Enabled            bool               `json:"enabled" bson:"enabled"`
+	DailyCapLevelOne   uint64             `json:"daily_cap_level_one" bson:"daily_cap_level_one"`
+	MinAmountVirtual   uint64             `json:"min_amount_virtual" bson:"min_amount_virtual"`
+	SingleCapLevelOne  uint64             `json:"single_cap_level_one" bson:"single_cap_level_one"`
 	IsDeleted          bool               `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt          time.Time          `json:"created_at" bson:"created_at"`
 	LastModifiedAt     time.Time          `json:"last_modified_at" bson:"last_modified_at"`

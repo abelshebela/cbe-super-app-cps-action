@@ -52,6 +52,13 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(req.PhoneNumber)
+	if err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	req.PhoneNumber = formattedPhone
 	if err := h.svc.CreateUserRequest(r.Context(), req); err != nil {
 		h.logger.Errorf("[CreateUserRequest] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -115,7 +122,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param user_code path string true "User Code"
-// @Success 200 {object} localization.StandardResponse{data=cps_user_resp} "CPS user retrieved successfully"
+// // @Success 200 {object} localization.StandardResponse{data=cps_user_resp} "CPS user retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - User code required"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "User not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
@@ -147,7 +154,7 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "Page number" default(1)
 // @Param per_page query int false "Items per page" default(10)
 // @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=cps_users_paginated_resp} "CPS users retrieved successfully"
+// // @Success 200 {object} localization.StandardResponse{data=cps_users_paginated_resp} "CPS users retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
 // @Security BearerAuth

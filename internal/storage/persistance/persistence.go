@@ -4,10 +4,12 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
+	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
+	AccountLookup                core.CBECoreAPIInterface
 	MongoClient                  *mongo.Client
 	UserPersistence              storage.UserRepository
 	UnlinkAccountPersistence     storage.UnlinkAccount
@@ -30,9 +32,9 @@ type Persistence struct {
 	CustomerService              storage.CustomerRepository
 	BulkService                  storage.BulkServiceRepository
 
-	BudgetCategoryPersistence    storage.BudgetCategoryRepository
+	BudgetCategoryPersistence storage.BudgetCategoryRepository
 
-	RedisService                 storage.RedisRepository
+	RedisService storage.RedisRepository
 
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
@@ -65,5 +67,8 @@ type Persistence struct {
 	ArticlePersistence               storage.ArticleRepository
 	ArticleCategoryPersistence       storage.ArticleCategoryRepository
 	ShortVideoPersistence            storage.ShortVideoRepository
+	NewsTagPersistence               storage.NewsTagRepository
+	KYCVerifierPersistence           storage.KYCVerifierRepository
+	NewsCategoryPersistence          storage.NewsCategoryRepository
 	NewsTagsServiceContainer        storage.NewsTagsRepository
 }

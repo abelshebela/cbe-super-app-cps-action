@@ -1,6 +1,6 @@
 module cbe-super-app-cps-action
 
-go 1.24.5
+go 1.25.0
 
 require (
 	github.com/IBM/sarama v1.46.1
@@ -17,6 +17,7 @@ require (
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.0.70
+	gitlab.com/yohannesteshome/coreio v0.0.5
 	go.mongodb.org/mongo-driver v1.17.4
 	go.mongodb.org/mongo-driver/v2 v2.3.0
 	go.uber.org/zap v1.27.0

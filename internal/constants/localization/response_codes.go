@@ -138,7 +138,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppActionCompleted,
 	ErrorMiniAppMerchantNotFound,
 	ErrorMiniAppMerchantDisabled,
-	// Error codes
+
+	// Sitota Related success
+	SuccessAllSitotasRetrieved,
+	SuccessSitotaRetrieved,
 
 	// Error codes
 	ErrorInvalidKey,
@@ -467,6 +470,14 @@ var ResponseCodesList = []ResponseCode{
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
 	ErrorOTPSendFailed,
+
+	ErrorNewsCategoryInvalidID,
+	ErrorNewsTagInvalidID,
+	ErrorNewsTagWithNameAlreadyExists,
+	ErrorNewsCategoryWithNameAlreadyExists,
+
+	// Sitota Related errors
+	ErrorSitotaRequired,
 }
 
 // Success Response Codes
@@ -781,6 +792,27 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgSuccessDonationCompanyUpdated,
+		Type:       "success",
+	}
+
+	SuccessKYCApproved = ResponseCode{
+		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCApproved,
+		Type:       "success",
+	}
+
+	SuccessKYCUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_KYC_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgKYCUpdatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessKYCFetched = ResponseCode{
+		Code:       "SUCCESS_KYC_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCFetched,
 		Type:       "success",
 	}
 
@@ -1488,13 +1520,13 @@ var (
 	//wallet related error codes
 
 	ErrorWalletNameAlreadyExists = ResponseCode{
-		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given name already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
-		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		Code:       "ERROR_WALLET_WITH_CODE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given code already exists",
 		Type:       "error",
@@ -5139,6 +5171,103 @@ var (
 		Code:       "ERROR_Topup_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgTopupImageRequiredOrMissing,
+		Type:       "error",
+	}
+
+	ErrorNewsCategoryInvalidID = ResponseCode{
+		Code:       "ERROR_NEWS_CATEGORY_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsCategoryInvalidID,
+		Type:       "error",
+	}
+
+	ErrorNewsTagInvalidID = ResponseCode{
+		Code:       "ERROR_NEWS_TAG_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsTagInvalidID,
+		Type:       "error",
+	}
+
+	ErrorNewsCategoryWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_NEWS_CATEGORY_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsCategoryWithNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorNewsTagWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_NEWS_TAG_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsTagWithNameAlreadyExists,
+		Type:       "error",
+	}
+
+	SuccessNewsCategoryCreated = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryCreatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryFetched = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_FETCHE",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryUpdated = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryUpdatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryDeleted = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryDeletedSuccess,
+		Type:       "success",
+	}
+
+	SuccessNewsTagCreated = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagCreatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagFetched = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_FETCHE",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagUpdated = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagUpdatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagDeleted = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagDeletedSuccess,
+		Type:       "success",
+	}
+	// Sitota Related Responses
+	SuccessAllSitotasRetrieved = ResponseCode{
+		Code:       "SUCCESS_ALL_SITOTAS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAllSitotasRetrievedSuccess,
+		Type:       "success",
+	}
+	SuccessSitotaRetrieved = ResponseCode{
+		Code:       "SUCCESS_SITOTA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgSitotaRetrievedSuccess,
+		Type:       "success",
+	}
+
+	ErrorSitotaRequired = ResponseCode{
+		Code:       "ERROR_SITOTA_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgSitotaRequired,
 		Type:       "error",
 	}
 )

@@ -22,6 +22,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
+	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
+	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
 	"time"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -39,6 +41,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
+	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
@@ -59,11 +62,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, logger utils.Logger) persistance.Persistence {
+
 	data := persistance.Persistence{
+		AccountLookup:                core.NewCBECoreAPI(coreConfig),
 		UserPersistence:              users.NewUserRepository(client, dbName, "members", logger),
 		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
@@ -118,6 +124,9 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, logger utils.Logg
 		ArticlePersistence:         media.NewsArticleRepository(logger, client, dbName, "news_articles"),
 		ArticleCategoryPersistence: media.NewArticleCategoryRepository(logger, client, dbName, "news_categories"),
 		ShortVideoPersistence:      media.NewShortVideoRepository(logger, client, dbName, "news_short_videos"),
+		NewsTagPersistence:         newstag_repo.NewNewsTagRepository(client, dbName, "news_tags", logger),
+		NewsCategoryPersistence:    newscategory_repo.NewNewsCategoryRepository(client, dbName, "news_category", logger),
+		KYCVerifierPersistence:     kyc_repo.NewKYCVerifierRepository(client, dbName, "customer_kyc", logger),
 		NewsTagsServiceContainer:   media.NewNewsTagsRepository(logger, client, dbName, "news_tags"),
 	}
 

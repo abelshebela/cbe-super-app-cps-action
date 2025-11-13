@@ -145,10 +145,11 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 
 func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
+	// Fetch existing donation
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -157,6 +158,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
+	// Prepare existing model for validation
 	existingModel := &model.Donation{
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
@@ -167,54 +169,108 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		EndDate:             core.ParseTime(existingDonation.EndDate),
 	}
 
+	// Validate and check for data duplication
 	if err := core.CheckDataSimilarityAndValidation(ctx, donation, existingModel, d.DonationRepo); err != nil {
 		return err
 	}
 
+	// --- Category Validation ---
 	if donation.CategoryID != "" {
 		category, err := d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
-		if err != nil {
+		if err != nil || category == nil || !category.Enabled {
 			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 		}
-		if !category.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
-	}
-
 	} else {
 		donation.CategoryID = existingDonation.Category.ID
 	}
 
+	// --- Company Validation ---
 	if donation.CompanyID != "" {
 		company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
-		if err != nil {
+		if err != nil || company == nil || !company.Enabled {
 			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 		}
-		if !company.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
-	}
 	} else {
 		donation.CompanyID = existingDonation.Company.ID
 	}
 
+	// --- Cover Image Handling ---
 	coverImageURL := existingDonation.CoverImage
 	if donation.CoverImage != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), d.minioEndPoint, d.logger)
+		url, err := lib.UploadFileToMinio(
+			ctx,
+			d.minio,
+			d.bucketName,
+			donation.CoverImage,
+			string(constants.DonationCoverImage),
+			d.minioEndPoint,
+			d.logger,
+		)
 		if err != nil {
 			return err
 		}
 		coverImageURL = url
 	}
 
-	donationImages := existingDonation.DonationImages
-	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, donationImages)
+	NewdonationImages:=existingDonation.DonationImages
+	if len(donation.RemovedImages) > 0 {
+		toRemove := make(map[string]bool, len(donation.RemovedImages))
+		for _, id := range donation.RemovedImages {
+			toRemove[id] = true
+		}
+		filtered := make([]dto.DonationImage, 0, len(NewdonationImages))
+		for _, img := range existingDonation.DonationImages {
+			if !toRemove[img.ID] {
+				filtered = append(filtered, img)
+			}
+		}
+		NewdonationImages = filtered
+	}
 
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestUpdateDonation), constants.UPDATE)
+	// --- Add New Images ---
+	d.logger.Infof("Processing %d new donation images", len(donation.DonationImages))
+	for _, img := range donation.DonationImages {
+		url, err := lib.UploadFileToMinio(
+			ctx,
+			d.minio,
+			d.bucketName,
+			img,
+			string(constants.DonationImage),
+			d.minioEndPoint,
+			d.logger,
+		)
+		if err != nil {
+			d.logger.Errorf("Failed to upload donation image: %v", err)
+			return err
+		}
+
+		NewdonationImages = append(existingDonation.DonationImages, dto.DonationImage{
+			ID:        bson.NewObjectID().Hex(),
+			PhotoURL:  url,
+		})
+
+		d.logger.Infof("Successfully uploaded donation image: %s", url)
+	}
+
+	// --- Map Update Data ---
+	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, NewdonationImages)
+
+	// --- CPS Action ---
+	cpsAction := lib.CpsModelBuilder(
+		id,
+		makerData,
+		existingDonation,
+		updateData,
+		string(constants.RequestUpdateDonation),
+		constants.UPDATE,
+	)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
 
 	return nil
 }
+
 
 func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto.DonationImageUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -397,17 +453,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		d.logger.Errorf("failed to bind current action to donation: %v", bindErr)
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
-	if action.UniqueId != "" {
-		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
-		if err != nil {
-			d.logger.Errorf("Failed to find donation for image addition: %v", err)
-			return nil, err
-		}
-		if existingDonation == nil {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 
-	}
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonation):

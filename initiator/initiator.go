@@ -2,6 +2,8 @@ package initiator
 
 import (
 	"context"
+	"fmt"
+	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
@@ -14,13 +16,19 @@ import (
 
 	"log"
 
+	"gitlab.com/yohannesteshome/coreio/core"
+
 	// local_logger "cbe-super-app-cps-action/platform/logger"
 	"github.com/go-chi/chi/v5"
 )
 
 func Init(ctx context.Context) {
 	done := make(chan struct{})
-
+	coreConfig := core.CBECoreCredential{
+		Username: "SUPERAPP",
+		Password: "123456",
+		Url:      "https://devapisuperapp.cbe.com.et/superapp/parser/proxy/CBESUPERAPPV2/services?target=http://10.1.15.195:8080&wsdl=null",
+	}
 	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
@@ -35,7 +43,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("Initializing persistence...")
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, logger)
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)
@@ -56,11 +64,7 @@ func Init(ctx context.Context) {
 	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
 	logger.Infof("SMS service initialized")
 
-	logger.Infof("Initializing account lookup service...")
-	accountLookupService := InitAccountLookupService(cfg.CBEBaseURL, logger)
-	logger.Infof("Account lookup service initialized")
-
-	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger) // TODO: Add to config
+	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
 	}
@@ -68,11 +72,16 @@ func Init(ctx context.Context) {
 		clientStore.Close()
 	}()
 
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC client for sitota")
+	}
+	sitotagRPCClient.Close()
+
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, redisRepository, *smsService)
-	// serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, accountLookupService, OraclePersistence)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, redisRepository, *smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
@@ -86,7 +95,11 @@ func Init(ctx context.Context) {
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, logger, cfg)
 
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, logger)
+	go func() {
+		fmt.Println("Goroutines: ", runtime.NumGoroutine())
+	}()
+
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, r)
 
 	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
@@ -97,11 +110,13 @@ func Init(ctx context.Context) {
 		}
 		done <- struct{}{}
 	}()
+
 	go func() {
 		srv.HTTPServerStart(ctx, logger)
 		done <- struct{}{}
 	}()
 	<-done
+
 	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer, logger)

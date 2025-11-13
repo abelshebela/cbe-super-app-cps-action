@@ -299,12 +299,16 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 		return
 	}
-	defer file.Close()
+	if file == nil || fileHeader == nil {
+		b.logger.Infof("No logo uploaded; skipping logo update")
+	} else {
+		defer file.Close()
+		updateRequest.Logo = fileHeader
+	}
 
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
-	updateRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		b.logger.Errorf("invalid input", response_code)
