@@ -19,7 +19,7 @@ type Account interface {
 	LookupAccountByPhone(ctx context.Context, phone string) (bool, error)
 	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountDetail, error)
 	LookupAccountByAccountNumberFromBps(ctx context.Context, accountNumber string) (accountLookup.AccountResponse, error)
-	CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (*types.Account, error)
+	CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error)
 }
 
 type CoreAccountLookupAdapter struct {
@@ -96,16 +96,16 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumberFromBps(ctx conte
 	return accountInfo, nil
 }
 
-func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (*types.Account, error) {
+func (a *CoreAccountLookupAdapter) CreateAccountWithFayda(ctx context.Context, account accountLookup.CreateAccountRequest) (types.Account, error) {
 	res, _, err := BPSBankingClient(ctx, a.Client, constants.WithFayda, account, a.BaseUrl+a.FaydaUrlPath)
 	if err != nil {
-		return nil, err
+		return types.Account{}, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return nil, nil
+		return types.Account{}, nil
 	}
 
-	return nil, nil
+	return types.Account{}, nil
 }
