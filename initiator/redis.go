@@ -9,15 +9,9 @@ import (
 )
 
 func InitRedis(cfg *config.VaultConfig, log utils.Logger) *redis.Client {
-	// client := redis.NewClient(&redis.Options{
-	// 	Addr:     cfg.RedisURI,
-	// 	Password: cfg.RedisPassword,
-	// 	DB:       0,
-	// })
-
 	client := redis.NewClient(&redis.Options{
-		Addr:     "127.0.0.1:6379",
-		Password: "",
+		Addr:     cfg.RedisURI,
+		Password: cfg.RedisPassword,
 		DB:       0,
 	})
 
