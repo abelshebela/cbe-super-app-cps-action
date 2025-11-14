@@ -23,6 +23,18 @@ func InitEncryption(svc service.EncryptionService, logger utils.Logger) *encrypt
 	}
 }
 
+// Encrypt godoc
+// @Summary Encrypt user password
+// @Description Encrypt a user's password using the encryption service. Requires username and password in the request body.
+// @Tags Encryption
+// @Accept json
+// @Produce json
+// @Param request body encryption.EncryptionRequest true "Encryption request" example({"username":"user123","password":"mypassword"})
+// @Success 200 {object} localization.StandardResponse{data=encryption.EncryptionResponse} "Password encrypted successfully"
+// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - invalid input"
+// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
+// @Security BearerAuth
+// @Router /encryption/encrypt [post]
 func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
 	var req encryptionDto.EncryptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

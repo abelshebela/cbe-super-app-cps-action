@@ -53,12 +53,12 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
-	// oracleDB := InitOracle(cfg.OracleConnectionString, logger)
-	// logger.Infof("Oracle database initialized")
+	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
+	logger.Infof("Oracle database initialized")
 
-	// logger.Infof("Initializing Oracle DB client...")
-	// OraclePersistence := InitOraclePersistence(oracleDB, logger)
-	// logger.Infof("Oracle DB client initialized")
+	logger.Infof("Initializing Oracle DB client...")
+	OraclePersistence := InitOraclePersistence(oracleDB, logger)
+	logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing SMS service...")
 	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
@@ -82,7 +82,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
