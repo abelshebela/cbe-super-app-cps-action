@@ -14,8 +14,9 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -128,7 +129,6 @@ func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppReposito
 	}
 }
 
-
 func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
@@ -186,11 +186,11 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-	if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
-		return false, nil
+		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
+			return false, nil
+		}
+		return false, err
 	}
-	return false, err
-}
 
 	if res == nil {
 		return false, nil

@@ -108,8 +108,7 @@ type DeviceVersionControlRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
 	Update(ctx context.Context, id string, update bson.M) error
 	Delete(ctx context.Context, id string) error
-	EnableOrDisable (ctx context.Context, id string, enable bool) error
-	
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
 type CPSActionRepository interface {

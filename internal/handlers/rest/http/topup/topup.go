@@ -31,18 +31,19 @@ func InitTopupAdapter(topupApp service.TopupService, logger utils.Logger) topupI
 }
 
 // CreateTopup godoc
-// @Summary Create a new topup
-// @Description Create a new topup with the provided information
-// @Tags Topup
-// @Accept multipart/form-data
-// @Produce json
-// @Param data formData topupDto.TopupRequest false "Topup update data"
-// @Param avatar formData file fale "Avatar image file"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Topup creation request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups [post]
+//
+//	@Summary		Create a new topup
+//	@Description	Create a new topup with the provided information
+//	@Tags			Topup
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			data	formData	topupDto.TopupRequest					false	"Topup update data"
+//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup creation request sent successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups [post]
 func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	a.logger.Infof("called the create topup handler: %s", "create_method")
 
@@ -51,7 +52,7 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		a.logger.Errorf("error fetching topup create request data")
 	}
-	a.logger.Infof("this is the topup request%+v\n",req)
+	a.logger.Infof("this is the topup request%+v\n", req)
 
 	if err := req.AggregatedValidate(true); err != nil {
 		a.logger.Errorf("topup request validation failed: %v", err)
@@ -70,19 +71,20 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateTopup godoc
-// @Summary Update a topup
-// @Description Update a topup with the provided information
-// @Tags Topup
-// @Accept multipart/form-data
-// @Produce json
-// @Param id path string true "Topup ID"
-// @Param data formData topupDto.TopupRequest false "Topup update data"
-// @Param avatar formData file fale "Avatar image file"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Topup update request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups/{id} [patch]
+//
+//	@Summary		Update a topup
+//	@Description	Update a topup with the provided information
+//	@Tags			Topup
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			id		path		string									true	"Topup ID"
+//	@Param			data	formData	topupDto.TopupRequest					false	"Topup update data"
+//	@Param			avatar	formData	file									fale	"Avatar image file"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup update request sent successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups/{id} [patch]
 func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
@@ -100,8 +102,8 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	a.logger.Infof("this is the topup request%+v\n",req)
-	
+	a.logger.Infof("this is the topup request%+v\n", req)
+
 	if err := req.AggregatedValidate(false); err != nil {
 		a.logger.Errorf("topup request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -125,18 +127,19 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteTopup godoc
-// @Summary Delete a topup
-// @Description Permanently delete a topup by ID
-// @Tags Topup
-// @Accept json
-// @Produce json
-// @Param id path string true "Topup ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Topup deleted successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Topup not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups/{id} [delete]
+//
+//	@Summary		Delete a topup
+//	@Description	Permanently delete a topup by ID
+//	@Tags			Topup
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Topup ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Topup deleted successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Topup not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups/{id} [delete]
 func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler delete for topup with id: %s", id)
@@ -155,18 +158,19 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 }
 
 // EnableTopup godoc
-// @Summary Enable a topup
-// @Description Enable a topup by ID
-// @Tags Topup
-// @Accept json
-// @Produce json
-// @Param id path string true "Topup ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Topup enable request submitted"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Topup not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups/{id}/enable [patch]
+//
+//	@Summary		Enable a topup
+//	@Description	Enable a topup by ID
+//	@Tags			Topup
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Topup ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Topup enable request submitted"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Topup not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups/{id}/enable [patch]
 func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler enable for topup with id: %s", id)
@@ -185,18 +189,19 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 // DisableTopup godoc
-// @Summary Disable a topup
-// @Description Disable a topup by ID
-// @Tags Topup
-// @Accept json
-// @Produce json
-// @Param id path string true "Topup ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Topup disable request submitted"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Topup not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups/{id}/disable [patch]
+//
+//	@Summary		Disable a topup
+//	@Description	Disable a topup by ID
+//	@Tags			Topup
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Topup ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Topup disable request submitted"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Topup not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups/{id}/disable [patch]
 func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler disable for topup with id: %s", id)
@@ -215,18 +220,19 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTopup godoc
-// @Summary Get topup by ID
-// @Description Retrieve a topup's details by ID
-// @Tags Topup
-// @Accept json
-// @Produce json
-// @Param id path string true "Topup ID"
-// @Success 200 {object} localization.StandardResponse{data=model.Topup} "Topup retrieved successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Topup not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups/{id} [get]
+//
+//	@Summary		Get topup by ID
+//	@Description	Retrieve a topup's details by ID
+//	@Tags			Topup
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string											true	"Topup ID"
+//	@Success		200	{object}	localization.StandardResponse{data=model.Topup}	"Topup retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}			"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}			"Topup not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}			"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups/{id} [get]
 func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
@@ -247,18 +253,19 @@ func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetTopups godoc
-// @Summary List topups
-// @Description Retrieve topups with pagination and optional search
-// @Tags Topup
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=PaginatedTopupResponse} "Topups retrieved successfully"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /topups [get]
+//
+//	@Summary		List topups
+//	@Description	Retrieve topups with pagination and optional search
+//	@Tags			Topup
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int															false	"Page number"		default(1)
+//	@Param			per_page	query		int															false	"Items per page"	default(10)
+//	@Param			search		query		string														false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=PaginatedTopupResponse}	"Topups retrieved successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/topups [get]
 func (a *topupAdapter) GetAllTopup(w http.ResponseWriter, r *http.Request) {
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching topups with filter: %+v", filter)

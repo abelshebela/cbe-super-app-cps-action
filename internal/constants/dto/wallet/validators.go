@@ -105,5 +105,3 @@ func validateAvatar(value interface{}) error {
 	}
 	return nil
 }
-
-

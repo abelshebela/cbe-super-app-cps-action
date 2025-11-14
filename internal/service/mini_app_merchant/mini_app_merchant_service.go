@@ -22,20 +22,20 @@ import (
 )
 
 type miniAppMerchantService struct {
-	repo       storage.MiniAppMerchantRepository
-	cpsService service.CPSActionService
-	miniRepo   storage.MiniAppRepository
-	logger     utils.Logger
+	repo                 storage.MiniAppMerchantRepository
+	cpsService           service.CPSActionService
+	miniRepo             storage.MiniAppRepository
+	logger               utils.Logger
 	accountLookupService account_lookup.Account
 }
 
-func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, miniRepo storage.MiniAppRepository, logger utils.Logger ,accountLookupService account_lookup.Account) service.MiniAppMerchantService {
+func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, miniRepo storage.MiniAppRepository, logger utils.Logger, accountLookupService account_lookup.Account) service.MiniAppMerchantService {
 	return &miniAppMerchantService{
-		repo:       repo,
-		cpsService: cpsService,
-		miniRepo:   miniRepo,
-		accountLookupService:accountLookupService,
-		logger:     logger,
+		repo:                 repo,
+		cpsService:           cpsService,
+		miniRepo:             miniRepo,
+		accountLookupService: accountLookupService,
+		logger:               logger,
 	}
 }
 
@@ -62,7 +62,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
 	if err != nil {
 		m.logger.Errorf("Account number validation failed: %v", err)
-		return nil,err
+		return nil, err
 	}
 	now := time.Now()
 	data.Code = utils.RandomGenerator(10)
@@ -90,7 +90,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant,error) {
+func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
 	m.logger.Infof("Updating mini app merchant, id: %s", id)
 
 	old, err := m.repo.FindByID(ctx, id)
@@ -124,12 +124,12 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 			return nil, nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
 	}
-	if check.BankAccountNumber!=""{
-	_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+	if check.BankAccountNumber != "" {
+		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
 		if err != nil {
 			m.logger.Errorf("Account number validation failed: %v", err)
-			return nil,nil,err
-	}
+			return nil, nil, err
+		}
 	}
 
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate)
