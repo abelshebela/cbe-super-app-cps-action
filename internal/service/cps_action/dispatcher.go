@@ -2,8 +2,10 @@ package cpsaction
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 )
@@ -25,8 +27,6 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
 
-	fmt.Printf("RequestAction: %v", action)
-
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
 		return d.app.BankContainer.Authorize(ctx, cpsAction)
@@ -45,6 +45,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Service"):
 		return d.app.ServiceCheckContainer.Authorize(ctx, cpsAction)
+
+	case IsActionInGroup(RequestAction(action), "DeviceVersion"):
+		return d.app.DeviceVersionContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Fayda"):
 		return d.app.FaydaContainer.Authorize(ctx, cpsAction)
@@ -134,6 +137,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.NewsCategoryContainer.Authorize(ctx, cpsAction)
 
 	default:
-		return nil, fmt.Errorf("UNSUPPORTED_REQUEST_ACTION")
+		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }

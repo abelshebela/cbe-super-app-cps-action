@@ -102,6 +102,16 @@ type AccountAPIPort interface {
 	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error)
 }
 
+type DeviceVersionControlRepository interface {
+	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
+	FindOne(ctx context.Context, filter bson.M) (model.DeviceVersionControl, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
+	Update(ctx context.Context, id string, update bson.M) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable (ctx context.Context, id string, enable bool) error
+	
+}
+
 type CPSActionRepository interface {
 	Save(ctx context.Context, cpsAction *model.CPSAction) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)

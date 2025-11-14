@@ -13,6 +13,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"path"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -70,7 +71,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.minioPubUrl, e.logger)
+	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.minioPubUrl, "", e.logger)
 	if err != nil {
 		e.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -101,7 +102,12 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 
 	var URL string
 	if event.CoverImage != nil {
-		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.minioPubUrl, e.logger)
+		var objectkey string
+		if prevEvent.EventInformation.Cover != "" {
+			objectkey = path.Base(prevEvent.EventInformation.Cover)
+		}
+
+		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", e.minioPubUrl, objectkey, e.logger)
 		if err != nil {
 			e.logger.Errorf("UploadFileToMinio failed", "event_id", id, "error", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)

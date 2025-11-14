@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/mini_app_merchant/core"
+
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
@@ -13,6 +14,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"time"
+
+	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -23,13 +26,15 @@ type miniAppMerchantService struct {
 	cpsService service.CPSActionService
 	miniRepo   storage.MiniAppRepository
 	logger     utils.Logger
+	accountLookupService account_lookup.Account
 }
 
-func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, miniRepo storage.MiniAppRepository, logger utils.Logger) service.MiniAppMerchantService {
+func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, miniRepo storage.MiniAppRepository, logger utils.Logger ,accountLookupService account_lookup.Account) service.MiniAppMerchantService {
 	return &miniAppMerchantService{
 		repo:       repo,
 		cpsService: cpsService,
 		miniRepo:   miniRepo,
+		accountLookupService:accountLookupService,
 		logger:     logger,
 	}
 }
@@ -54,7 +59,11 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	if data.ID.IsZero() {
 		data.ID = bson.NewObjectID()
 	}
-
+	_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+	if err != nil {
+		m.logger.Errorf("Account number validation failed: %v", err)
+		return nil,err
+	}
 	now := time.Now()
 	data.Code = utils.RandomGenerator(10)
 	data.CreatedAt = now
@@ -81,7 +90,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant,error) {
 	m.logger.Infof("Updating mini app merchant, id: %s", id)
 
 	old, err := m.repo.FindByID(ctx, id)
@@ -91,8 +100,6 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 	}
 
 	updated := core.MergeMiniAppMerchantData(old, data)
-	updated.Email = ""
-	updated.PhoneNumber = ""
 
 	var check model.CheckMiniAppMerchant
 
@@ -116,6 +123,13 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 			m.logger.Warnf("Merchant with updated data already exists, id: %s", id)
 			return nil, nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
+	}
+	if check.BankAccountNumber!=""{
+	_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+		if err != nil {
+			m.logger.Errorf("Account number validation failed: %v", err)
+			return nil,nil,err
+	}
 	}
 
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate)

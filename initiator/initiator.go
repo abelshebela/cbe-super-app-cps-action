@@ -64,7 +64,7 @@ func Init(ctx context.Context) {
 	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
 	logger.Infof("SMS service initialized")
 
-	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger)
+	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
 	}
@@ -72,16 +72,17 @@ func Init(ctx context.Context) {
 		clientStore.Close()
 	}()
 
-	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	// initiate sitota grpc
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CommonSvcGrpcAddress)
 	if err != nil {
-		logger.Fatalf("Failed to initialize gRPC client for sitota")
+		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
 	sitotagRPCClient.Close()
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, redisRepository, *smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
@@ -116,6 +117,7 @@ func Init(ctx context.Context) {
 		done <- struct{}{}
 	}()
 	<-done
+
 	logger.Infof("Shutdown signal received. Stopping servers...")
 	srv.HTTPServerStop(ctx, logger)
 	server.StopGrpcServer(grpcServer, logger)

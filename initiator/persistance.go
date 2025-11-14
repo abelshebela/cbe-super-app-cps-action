@@ -18,6 +18,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
+	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
@@ -69,22 +70,23 @@ import (
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
-		AccountLookup:                core.NewCBECoreAPI(coreConfig),
-		UserPersistence:              users.NewUserRepository(client, dbName, "members", logger),
-		HQPersistence:                hq.NewHQRepository(client, dbName, "hq", logger),
-		OTPPersistence:               otp.NewOtpRepository(client, dbName, "otps", logger),
-		DeviceLinkHistoryPersistence: device_history.NewDeviceLinkHistoryRepository(client, dbName, "member_device_histories", logger),
-		ResetSessionPersistence:      reset_session.NewResetSessionRepository(client, dbName, "pin_reset_sessions", logger),
-		SMSSenderApi:                 *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
-		CPSAction:                    cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
-		AmountBasedAuthPersistence:   amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tier", logger),
-		AccountBlockPersistence:      account_block.NewAccountBlockRepository(client, dbName, logger),
-		PortalCardPersistence:        portal_card.NewPortalCardRepository(client, dbName, "cards", logger),
-		MiniAppPersistence:           mini_app.NewMiniAppRepository(client, dbName, "mini_app", logger),
-		CityPersistence:              city.NewCityRepository(client, dbName, "cities", logger),
-		RegionPersistence:            region.NewRegionRepository(client, dbName, "regions", logger),
-		DistrictPersistence:          district.NewDistrictRepository(client, dbName, "districts", logger),
-		BranchPersistence:            branch.NewBranchRepository(client, dbName, "branches", logger),
+		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, "device_version_control", logger),
+		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
+		UserPersistence:                 users.NewUserRepository(client, dbName, "members", logger),
+		HQPersistence:                   hq.NewHQRepository(client, dbName, "hq", logger),
+		OTPPersistence:                  otp.NewOtpRepository(client, dbName, "otps", logger),
+		DeviceLinkHistoryPersistence:    device_history.NewDeviceLinkHistoryRepository(client, dbName, "member_device_histories", logger),
+		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, dbName, "pin_reset_sessions", logger),
+		SMSSenderApi:                    *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
+		CPSAction:                       cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
+		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tier", logger),
+		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, logger),
+		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, "cards", logger),
+		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, "mini_app", logger),
+		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
+		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
+		DistrictPersistence:             district.NewDistrictRepository(client, dbName, "districts", logger),
+		BranchPersistence:               branch.NewBranchRepository(client, dbName, "branches", logger),
 		// Additional repositories
 		AccessListPersistence:       access_list.NewAccessListRepository(client, dbName, "access_lists", logger),
 		AvatarPersistence:           avatar.NewAvatarRepository(client, dbName, "avatars", logger),

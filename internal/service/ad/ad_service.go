@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"path"
 
 	"mime/multipart"
 	"time"
@@ -76,7 +77,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
 		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.logger)
+	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, "", s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
 		return errors.New(localization.MsgFileUploadFailed)
@@ -130,7 +131,12 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 
 	var url string
 	if bannerImage != nil {
-		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.logger)
+		var objectkey string
+		if prevAdvert.BannerImage != "" {
+			objectkey = path.Base(prevAdvert.BannerImage)
+		}
+
+		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, objectkey, s.logger)
 		if err != nil {
 			s.logger.Errorf("Failed to upload banner image: %v", err)
 			return err

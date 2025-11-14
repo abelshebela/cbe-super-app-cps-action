@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/kyc_verifier/core"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -19,16 +20,18 @@ import (
 )
 
 type KYCVerifier struct {
-	Repo       storage.KYCVerifierRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
+	Repo           storage.KYCVerifierRepository
+	cpsService     service.CPSActionService
+	AccountService account_lookup.Account
+	logger         utils.Logger
 }
 
-func NewKYCVerifierService(client *mongo.Client, repo storage.KYCVerifierRepository, cpsAction service.CPSActionService, logger utils.Logger) service.KYCVerifierService {
+func NewKYCVerifierService(client *mongo.Client, repo storage.KYCVerifierRepository, accountLookUpService account_lookup.Account, cpsAction service.CPSActionService, logger utils.Logger) service.KYCVerifierService {
 	return &KYCVerifier{
-		Repo:       repo,
-		cpsService: cpsAction,
-		logger:     logger,
+		Repo:           repo,
+		cpsService:     cpsAction,
+		AccountService: accountLookUpService,
+		logger:         logger,
 	}
 }
 
@@ -65,6 +68,7 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
+
 	prev, err := s.Repo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -102,6 +106,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 		if err := s.Repo.Update(ctx, action.UniqueId, updated); err != nil {
 			return nil, err
 		}
+
 	case string(constants.RequestApproveKYC):
 		// CurrentAction contains the fully-updated CustomerKYC
 		updated, err := local_util.JsonUnmarshal[model.CustomerKYC](action.CurrentAction)

@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"path"
 
 	"context"
 	"errors"
@@ -70,7 +71,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorMiniAppMerchantUnexpectedDBError.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", s.cfg.MinioPublicEndPoint, s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", s.cfg.MinioPublicEndPoint, "", s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -116,7 +117,12 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 	var avatarURL string
 	if req.Avatar != nil {
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint, s.logger)
+		var objectkey string
+		if prevWallet.Avatar != "" {
+			objectkey = path.Base(prevWallet.Avatar)
+		}
+
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint, objectkey, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
