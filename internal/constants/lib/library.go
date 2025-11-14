@@ -169,7 +169,8 @@ func UploadFileToMinio(
 	if objectkey != "" {
 		fileName = objectkey
 	} else {
-		fileName = fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano())
+		extension := fileHeader.Filename[len(fileHeader.Filename)-4:]
+		fileName = fmt.Sprintf("%s-%d.%s", prefix, time.Now().UnixNano(), extension)
 	}
 
 	// Upload file

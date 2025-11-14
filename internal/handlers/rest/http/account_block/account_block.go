@@ -16,12 +16,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
-type paginated_region_resp types.PaginatedResponse[[]*accountblock.AccountBlockResponse]
-
-// type paginated_region_resp types.PaginatedResponse[[]*accountblock.RegionResponse]
-// type paginated_city_resp types.PaginatedResponse[[]*accountblock.CityResponse]
-// type paginated_district_resp types.PaginatedResponse[[]*accountblock.DistrictResponse]
-// type paginated_branch_resp types.PaginatedResponse[[]*accountblock.BranchResponse]
+type paginated_account_block_resp types.PaginatedResponse[[]*accountblock.AccountBlockResponse]
 
 type accountBlockAdapter struct {
 	accountBlockApplication service.AccountBlockService
@@ -42,7 +37,7 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 // @Accept json
 // @Produce json
 // @Param branch_code path string true "Branch Code" example(BR001)
-// @Success 200 {object} localization.StandardResponse{data=accountblock.BranchResponse} "Branch retrieved"
+// @Success 200 {object} localization.StandardResponse{data=accountblock.AccountBlockResponse} "Branch retrieved"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -78,7 +73,7 @@ func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Req
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search term" example("Addis")
 // @Param filters query string false "JSON encoded filters (enabled, region, district)" example("{\"enabled\":true}")
-// @Success 200 {object} localization.StandardResponse{data=paginated_branch_resp} "Branches retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=paginated_account_block_resp} "Branches retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/branches [get]
@@ -102,7 +97,7 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 // @Accept json
 // @Produce json
 // @Param region_code path string true "Region Code" example(RG001)
-// @Success 200 {object} localization.StandardResponse{data=accountblock.RegionResponse} "Region retrieved"
+// @Success 200 {object} localization.StandardResponse{data=accountblock.AccountBlockResponse} "Region retrieved"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
@@ -138,7 +133,7 @@ func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Req
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search term" example("Addis")
 // @Param filters query string false "JSON encoded filters (enabled)" example("{\"enabled\":true}")
-// @Success 200 {object} localization.StandardResponse{data=paginated_region_resp} "Regions retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=paginated_account_block_resp} "Regions retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/regions [get]
@@ -162,7 +157,7 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 // @Accept json
 // @Produce json
 // @Param district_code path string true "District Code" example(DS001)
-// @Success 200 {object} localization.StandardResponse{data=accountblock.DistrictResponse} "District retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=accountblock.AccountBlockResponse} "District retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "internal Server error"
@@ -196,7 +191,7 @@ func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.R
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search term" example("Bole")
 // @Param filters query string false "JSON encoded filters (enabled, region)" example("{\"enabled\":true,\"region_id\":\"RG001\"}")
-// @Success 200 {object} localization.StandardResponse{data=paginated_district_resp} "Districts retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=paginated_account_block_resp} "Districts retrieved successfully"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "internal Server error"
 // @Security BearerAuth
 // @Router /account_block/districts [get]
@@ -220,7 +215,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 // @Accept json
 // @Produce json
 // @Param city_code path string true "City Code" example(CT001)
-// @Success 200 {object} localization.StandardResponse{data=accountblock.CityResponse} "City retrieved successfully"
+// @Success 200 {object} localization.StandardResponse{data=accountblock.AccountBlockResponse} "City retrieved successfully"
 // @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
 // @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "internal Server error"
@@ -254,7 +249,7 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 // @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
 // @Param search query string false "Search term" example("Addis")
 // @Param filters query string false "JSON encoded filters (enabled, district)" example("{\"enabled\":true}")
-// @Success 200 {object} localization.StandardResponse{data=paginated_city_resp} "Cities retrieved"
+// @Success 200 {object} localization.StandardResponse{data=paginated_account_block_resp} "Cities retrieved"
 // @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
 // @Security BearerAuth
 // @Router /account_block/cities [get]
