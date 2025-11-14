@@ -35,16 +35,16 @@ func (m *mediaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 	)
 	m.logger.Infof("Media service authorizing action: %s", cpsAction.ActionCode)
 
-	article, err := local_util.JsonUnmarshal[model.NewsArticle](cpsAction.CurrentAction)
+	article, err := local_util.JsonUnmarshal[model.NewsArticleDetail](cpsAction.CurrentAction)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateArticle):
-		err = m.repo.CreateArticle(ctx, article)
+		err = m.repo.CreateArticle(ctx, article.ToNewsArticle())
 	case string(constants.RequestUpdateArticle):
-		err = m.repo.UpdateArticle(ctx, article, cpsAction.UniqueId)
+		err = m.repo.UpdateArticle(ctx, article.ToNewsArticle(), cpsAction.UniqueId)
 
 		cacheKey := fmt.Sprintf(NewsArticleCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
