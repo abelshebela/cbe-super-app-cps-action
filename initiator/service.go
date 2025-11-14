@@ -154,7 +154,7 @@ func InitServiceLayer(
 	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
 	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl, accountLookupAdapter)
 	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
-	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, accountLookupAdapter, nil, logger)
+	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, nil, persistence.LinkedAccountPersistence, *cfg, logger)
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, nil, logger)
 	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, "budget_category", cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, nil, logger)
@@ -214,10 +214,8 @@ func InitServiceLayer(
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
 		KYCVerifierContainer:       kycService,
-
-		// KYC verifier will be set after CPS action wiring
-		NewsTagsServiceContainer: newsTagsService,
-		EncryptionContainer:      encryptionService,
+		NewsTagsServiceContainer:   newsTagsService,
+		EncryptionContainer:        encryptionService,
 	}
 
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
@@ -286,7 +284,7 @@ func InitServiceLayer(
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
 
-	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, accountLookupAdapter, cpsActionService, logger)
+	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	serviceContainer.KYCVerifierContainer = kycService
 
 	// bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
@@ -313,7 +311,7 @@ func InitServiceLayer(
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
 
-	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, accountLookupAdapter, cpsActionService, logger)
+	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
