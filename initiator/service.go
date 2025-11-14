@@ -157,7 +157,7 @@ func InitServiceLayer(
 	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
 	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl, accountLookupAdapter)
 	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
-	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, nil, logger)
+	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, accountLookupAdapter, nil, logger)
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, nil, logger)
 	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, "budget_category", cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, nil, logger)
@@ -171,6 +171,7 @@ func InitServiceLayer(
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
+	deviceVersionService := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, nil, logger)
 	sitotaService := sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
@@ -218,6 +219,7 @@ func InitServiceLayer(
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
 		KYCVerifierContainer:       kycService,
+		DeviceVersionContainer:     deviceVersionService,
 		// KYC verifier will be set after CPS action wiring
 		NewsTagsServiceContainer: newsTagsService,
 		EncryptionContainer:      encryptionService,
@@ -249,9 +251,6 @@ func InitServiceLayer(
 	donationCategoryService = donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, cpsActionService, logger, minioClient, "donation_icon", cfg, minioPubUrl)
 	donationCompanyService = donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation_company_logo", cfg, minioPubUrl, accountLookupAdapter)
 	donationService = donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation", cfg, minioPubUrl)
-	serviceContainer.DonationContainer = donationService
-	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
-	serviceContainer.ServiceCheckContainer = serviceDetails
 
 	permissionService = permission.InitPermissionService(
 		persistence.PermissionPersistence,
@@ -270,8 +269,8 @@ func InitServiceLayer(
 	serviceContainer.CPSUserContainer = cpsUserService
 
 	// Device Version service with CPS wired
-	deviceVersionSvc := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
-	serviceContainer.DeviceVersionContainer = deviceVersionSvc
+	deviceVersionService = deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
+	serviceContainer.DeviceVersionContainer = deviceVersionService
 
 	serviceContainer.BudgetCategoryContainer = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, "budget_category", cfg, minioPubUrl)
 
@@ -289,7 +288,7 @@ func InitServiceLayer(
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, cpsActionService, logger)
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
-	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, cpsActionService, logger)
+	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, accountLookupAdapter, cpsActionService, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
@@ -345,7 +344,7 @@ func InitServiceLayer(
 		Sitota:                 sitotaService,
 		KYCVerifier:            kycService,
 		NewsTagsService:        newsTagsService,
-		DeviceVersion:          deviceVersionSvc,
+		DeviceVersion:          deviceVersionService,
 		Encryption:             encryptionService,
 		BankVault:              bankVaultProductService,
 		VaultGroupCategory:     vaultGroupCategoryService,
