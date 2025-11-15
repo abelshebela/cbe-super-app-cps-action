@@ -14,33 +14,41 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type KYCVerifier struct {
-	Repo           storage.KYCVerifierRepository
-	cpsService     service.CPSActionService
-	AccountService account_lookup.Account
-	logger         utils.Logger
+	repo              storage.KYCVerifierRepository
+	userRepo          storage.UserRepository
+	cpsService        service.CPSActionService
+	accountService    account_lookup.Account
+	linkedAccountRepo storage.LinkedAccountRepository
+	logger            utils.Logger
+	cfg               config.VaultConfig
 }
 
-func NewKYCVerifierService(client *mongo.Client, repo storage.KYCVerifierRepository, accountLookUpService account_lookup.Account, cpsAction service.CPSActionService, logger utils.Logger) service.KYCVerifierService {
+func NewKYCVerifierService(client *mongo.Client, repo storage.KYCVerifierRepository, userRepo storage.UserRepository, accountLookUpService account_lookup.Account, cpsAction service.CPSActionService, linkedAccountRepo storage.LinkedAccountRepository, cfg config.VaultConfig, logger utils.Logger) service.KYCVerifierService {
 	return &KYCVerifier{
-		Repo:           repo,
-		cpsService:     cpsAction,
-		AccountService: accountLookUpService,
-		logger:         logger,
+		repo:              repo,
+		userRepo:          userRepo,
+		cpsService:        cpsAction,
+		accountService:    accountLookUpService,
+		linkedAccountRepo: linkedAccountRepo,
+		logger:            logger,
+		cfg:               cfg,
 	}
 }
 
 func (s *KYCVerifier) FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.KYCVerifierResponse], error) {
-	return s.Repo.FindAllWithPaginationPopulated(ctx, *filterParams)
+	return s.repo.FindAllWithPaginationPopulated(ctx, *filterParams)
 }
 
 func (s *KYCVerifier) FetchKYCByID(ctx context.Context, id string) (*dto.KYCVerifierResponse, error) {
-	return s.Repo.FindByIDPopulated(ctx, id)
+	return s.repo.FindByIDPopulated(ctx, id)
 }
 
 func (s *KYCVerifier) UpdateKYC(ctx context.Context, id string, req dto.UpdateKYCRequest) error {
@@ -48,7 +56,7 @@ func (s *KYCVerifier) UpdateKYC(ctx context.Context, id string, req dto.UpdateKY
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-	prev, err := s.Repo.FindByID(ctx, id)
+	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +77,7 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	prev, err := s.Repo.FindByID(ctx, id)
+	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -97,15 +105,31 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 		s.logger.Errorf("Tried to authorize KYC action without approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
 	}
+
 	switch action.RequestAction {
 	case string(constants.RequestUpdateKYC):
 		updated, err := local_util.JsonUnmarshal[model.CustomerKYC](action.CurrentAction)
 		if err != nil {
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		if err := s.Repo.Update(ctx, action.UniqueId, updated); err != nil {
-			return nil, err
-		}
+
+		lib.GoRoutinBaker(types.BakerOptions{}, func() {
+			if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
+				s.logger.Errorf("[KYCVerifier] Error updating KYC in job proccess: %v", err)
+			}
+		}, func() {
+			bgCtx, cancel := context.WithTimeout(ctx, time.Duration(s.cfg.BgJobTimeout))
+			defer cancel()
+
+			user, err := s.userRepo.FindById(bgCtx, action.UniqueId)
+			if err != nil {
+				s.logger.Errorf("[KYCVerifier] Error finding user in job proccess: %v", err)
+			}
+
+			if err := core.AccountCreator(bgCtx, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
+				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
+			}
+		})
 
 	case string(constants.RequestApproveKYC):
 		// CurrentAction contains the fully-updated CustomerKYC
@@ -113,9 +137,10 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 		if err != nil {
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		if err := s.Repo.Update(ctx, action.UniqueId, updated); err != nil {
+		if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
 			return nil, err
 		}
+
 	default:
 		s.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

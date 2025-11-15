@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-
 )
 
 type miniAppMerchantAdapter struct {
@@ -297,4 +296,30 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, miniAppMerchant)
+}
+
+// Merchant Lookup
+// @Summary Merchant Lookup
+// @Description Retrieves a merchant by ID
+// @Tags MiniAppMerchant
+// @Security BearerAuth
+// @Produce json
+// @Param merchant_id path string true "Merchant ID"
+// @Success 200 {object} localization.StandardResponse{data=merchantlookup.MerchantLookUpResponse}
+// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
+// @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
+func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
+	merchantID := chi.URLParam(r, "merchant_id")
+	if merchantID == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	result, err := h.miniappMerchantService.MerchantLookup(r.Context(), merchantID)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
 }

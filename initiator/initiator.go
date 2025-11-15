@@ -43,7 +43,9 @@ func Init(ctx context.Context) {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("Initializing persistence...")
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, logger)
+	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	merchantApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)

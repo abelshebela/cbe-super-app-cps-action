@@ -1,6 +1,7 @@
 package miniappmerchant
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	miniappmerchat "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -17,6 +18,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 
@@ -26,6 +28,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.FindAllWithPagination,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -34,6 +37,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.FindByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -42,6 +46,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -50,6 +55,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -58,6 +64,7 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -66,6 +73,16 @@ func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddlew
 			Handler: handler.Delete,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/mini-app-merchants/merchant-lookup/{merchant_id}",
+			Handler: handler.MerchantLookup,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 	}

@@ -7,10 +7,82 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+// type KYCInformation struct {
+// 	Name  string `json:"name" bson:"name"`
+// 	Email string `json:"email" bson:"email"`
+// 	Phone string `json:"phone" bson:"phone"`
+// }
+
+// type KYC struct {
+// 	Status         KYCStatus      `json:"status" bson:"status"`
+// 	Representative KYCInformation `json:"representative" bson:"representative"`
+// }
+
+// type BranchInformation struct {
+// 	BranchCode          string `json:"branch_code"`
+// 	BranchName          string `json:"branch_name"`
+// 	BranchAddress       string `json:"branch_address"`
+// 	BranchOwner         string `json:"branch_owner"`
+// 	BranchAccountNumber string `json:"branch_account_number"`
+// }
+
+// type MiniApps struct {
+// 	ID        string `json:"id" bson:"id"`
+// 	Enabled   bool   `json:"enabled" bson:"enabled"`
+// 	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
+// }
+
+type CheckMiniAppMerchant struct {
+	BankAccountNumber string `json:"bank_account_number"`
+	Email             string `json:"email"`
+	PhoneNumber       string `json:"phone_number"`
+}
+type MiniAppMerchantExistOptions struct {
+	ExcludeID string
+}
+
 type BakerOptions struct {
 	Sequential bool
 	UseMutex   bool
 }
+
+// Merchant Data
+
+type Company struct {
+	ID             int     `json:"id"`
+	Name           string  `json:"name"`
+	MerchantID     string  `json:"merchant_id"`
+	BusinessType   *string `json:"business_type"` // null → pointer
+	Email          *string `json:"email"`         // null → pointer
+	Phone          *string `json:"phone"`         // null → pointer
+	APIKey         string  `json:"api_key"`
+	ParentID       int     `json:"parent_id"`
+	ParentMerchant string  `json:"parent_merchant"`
+}
+
+type Branch struct {
+	ID                int     `json:"id"`
+	Name              string  `json:"name"`
+	BranchID          string  `json:"branch_id"`
+	BusinessType      *string `json:"business_type"` // null → pointer
+	AccountNumber     string  `json:"account_number"`
+	AccountHolderName string  `json:"account_holder_name"`
+	APIKey            string  `json:"api_key"`
+	Email             *string `json:"email"` // null
+	Phone             *string `json:"phone"` // null
+}
+
+type UserAccount struct {
+	ID                 int      `json:"id"`
+	Name               string   `json:"name"`
+	Email              string   `json:"email"`
+	CompanyID          int      `json:"company_id"`
+	CompanyIDs         []int    `json:"company_ids"`
+	DefaultMerchantID  string   `json:"default_merchant_id"`
+	AllowedMerchantIDs []string `json:"allowed_merchant_ids"`
+}
+
+// for merchant lookup end
 
 type AccountLookupData struct {
 	AccountNumber  string
