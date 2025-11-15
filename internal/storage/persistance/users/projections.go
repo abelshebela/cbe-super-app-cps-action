@@ -22,7 +22,7 @@ func UserProjection() bson.M {
 		"avatar":                        1,
 		"blocked_on_cps":                1,
 		"profile_theme_type":            1,
-		"kyc_level":                         1,
+		"kyc_level":                     1,
 		"is_verified":                   1,
 		"application_installation_date": 1,
 		"login_attempt_count":           1,

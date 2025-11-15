@@ -1,6 +1,7 @@
 package vaultgroupcategory
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -33,7 +34,7 @@ func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model
 	// Duplicate name check via generated query
 	q := sqlc.New(r.db)
 	if _, err := q.FindVaultGroupCategoryByName(ctx, entity.Name); err == nil {
-		return "", fmt.Errorf("DUPLICATE_VAULT_GROUP_CATEGORY")
+		return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
 	} else if !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
@@ -70,7 +71,10 @@ func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context
 
 	rows, err := q.FindVaultGroupCategory(ctx, params)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	list := make([]*model.VaultGroupCategory, 0, len(rows))

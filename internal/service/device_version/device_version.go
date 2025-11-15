@@ -50,7 +50,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 			d.logger.Errorf("DeviceVersion create action failed: %v", err)
 			return nil, err
 		}
-		case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
+	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
 		if err != nil {
 			return nil, err
@@ -94,7 +94,7 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 		CreatedAt:     time.Now(),
 		ForceUpdate:   deviceVersion.ForceUpdate,
 		ReleaseNotes:  deviceVersion.ReleaseNotes,
-		Enabled: true,
+		Enabled:       true,
 	}
 
 	action := lib.CpsModelBuilder("", makerData, nil, new_device_version, string(constants.RequestCreateDeviceVersion), constants.CREATE)

@@ -13,5 +13,5 @@ type DonationCategory struct {
 	IsDeleted      bool          `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
 	LastModifiedAt time.Time     `json:"last_modified_at" bson:"last_modified_at"`
-	Enabled             bool                  `json:"enabled" bson:"enabled"`
+	Enabled        bool          `json:"enabled" bson:"enabled"`
 }

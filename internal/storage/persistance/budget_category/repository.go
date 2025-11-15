@@ -78,7 +78,7 @@ func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id s
 
 func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error) {
 	filter := bson.M{"is_deleted": false}
-	allowedKeys := []string{"enabled","name"}
+	allowedKeys := []string{"enabled", "name"}
 
 	filter, skip, limit := lib.FilterBuilder(*filterParams, bson.M{}, allowedKeys)
 
@@ -112,7 +112,7 @@ func (b *BudgetCategoryStorage) DeleteBudgetCategory(ctx context.Context, id str
 	}
 
 	filter := bson.M{"_id": objectID, "is_deleted": false}
-	update :=  bson.M{"is_deleted": true, "updated_at": time.Now()}
+	update := bson.M{"is_deleted": true, "updated_at": time.Now()}
 	_, err = b.budgetCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		b.logger.Errorf("failed to delete budget category: %v", err)
@@ -136,4 +136,3 @@ func (b *BudgetCategoryStorage) EnableOrDisableBudgetCategory(ctx context.Contex
 	}
 	return nil
 }
-

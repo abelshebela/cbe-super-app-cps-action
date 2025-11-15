@@ -53,7 +53,7 @@ func Init(router chi.Router, handler permission.PermissionHandler, authMiddlewar
 				authMiddleware.AuthenticateToken,
 			},
 		},
-		
+
 		{
 			Method:  http.MethodPatch,
 			Path:    "/permissions/{group_name}",

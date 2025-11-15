@@ -1,9 +1,10 @@
 package kyc_verifier
 
 import (
-	"time"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type KYCVerifierResponse struct {

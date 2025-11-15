@@ -32,6 +32,7 @@ func PhoneNumberExists(ctx context.Context, repo storage.CpsUserRepository, phon
 	}
 	return user != nil, nil
 }
+
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
 func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
 	return &cpsuser.CPSUserDTO{
@@ -69,7 +70,7 @@ func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
 		PermissionGroup:    req.PermissionGroups,
 		PasswordDisable:    false,
 		IsFirstTimeLogin:   true,
-		Enabled: true,
+		Enabled:            true,
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -43,7 +44,7 @@ func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context
 		if s.logger != nil {
 			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestCreateVaultGroupCategory, err)
 		}
-		return "", err
+		return "", errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 	return req.ID, nil
 }
@@ -57,7 +58,7 @@ func (s *vaultgroupCategoryService) FindAllVaultGroupCategories(ctx context.Cont
 	entities, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		s.logger.Errorf("failed to fetch vault group categories | err=%v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	resp := make([]*vaultgroup_category.VaultGroupCategoryResponse, 0, len(entities.Data))
 	for _, en := range entities.Data {
@@ -72,11 +73,11 @@ func (s *vaultgroupCategoryService) FindAllVaultGroupCategories(ctx context.Cont
 func (s *vaultgroupCategoryService) GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup_category.VaultGroupCategoryResponse, error) {
 	entity, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, localization.ErrorVaultGroupCategoryNotFound
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
 		}
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return helperr.MapVaultGroupCategoryToResponse(entity), nil
 }
@@ -89,7 +90,7 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 			return "", localization.ErrorVaultGroupCategoryNotFound
 		}
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
-		return "", errors.New(localization.ErrorUnexpectedError.Message)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	current := helperr.BuildUpdateVaultGroupCategory(prev, req)
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -103,7 +104,7 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 		if s.logger != nil {
 			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestUpdateVaultGroupCategory, err)
 		}
-		return "", err
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return id, nil
 }
@@ -112,7 +113,7 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 	s.logger.Infof("Deleting vault group category with ID: %s", id)
 	if id == "" {
 		s.logger.Errorf("vault group category id is required")
-		return "", errors.New(localization.ErrorUnexpectedError.Message)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -120,7 +121,7 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return "", localization.ErrorVaultGroupCategoryNotFound
 		}
-		return "", errors.New(localization.ErrorUnexpectedError.Message)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if exist.IsDeleted {
 		s.logger.Errorf("vault group category already deleted with id: %s", id)
@@ -135,7 +136,7 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 		if s.logger != nil {
 			s.logger.Errorf("incomplete user context for vault group category action | context = %v", maker)
 		}
-		return "", errors.New(localization.ErrorUnexpectedError.Message)
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	mongosafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
 
@@ -144,7 +145,7 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 		if s.logger != nil {
 			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestDeleteVaultGroupCategory, err)
 		}
-		return "", err
+		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return id, nil
 }
@@ -152,7 +153,7 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 	s.logger.Infof("Enabling vault group category with ID: %s", id)
 	if id == "" {
 		s.logger.Errorf("vault group category id is required")
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -160,7 +161,7 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return localization.ErrorVaultGroupCategoryNotFound
 		}
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if exist.IsDeleted {
 		s.logger.Errorf("vault group category already deleted with id: %s", id)
@@ -177,7 +178,7 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 		if s.logger != nil {
 			s.logger.Errorf("incomplete user context for vault group category action | context = %v", maker)
 		}
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	// Convert to MongoDB-safe format
 	mongoSafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
@@ -190,7 +191,7 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 	s.logger.Infof("Disabling vault group category with ID: %s", id)
 	if id == "" {
 		s.logger.Errorf("vault group category id is required")
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -198,7 +199,7 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return localization.ErrorVaultGroupCategoryNotFound
 		}
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if !exist.IsActive {
 		s.logger.Errorf("vault group category already disabled with id: %s", id)
@@ -211,7 +212,7 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 		if s.logger != nil {
 			s.logger.Errorf("incomplete user context for vault group category action | context = %v", maker)
 		}
-		return errors.New(localization.ErrorUnexpectedError.Message)
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	// Convert to MongoDB-safe format
 	mongoSafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
@@ -243,7 +244,7 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 		}
 		update := helperr.VaultGroupCategoryUpdate(&vaultgroup)
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, &update); err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		return cpsAction, nil
 
@@ -253,7 +254,7 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if _, err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		return cpsAction, nil
 
@@ -263,7 +264,7 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		return cpsAction, nil
 
@@ -273,7 +274,7 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		return cpsAction, nil
 
