@@ -81,7 +81,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CPSAction:                       cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
 		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tier", logger),
 		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, logger),
-		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, "cards", logger),
+		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, "portal_cards", logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, "mini_app", logger),
 		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
 		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
