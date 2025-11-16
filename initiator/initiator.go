@@ -27,7 +27,7 @@ func Init(ctx context.Context) {
 	coreConfig := core.CBECoreCredential{
 		Username: "SUPERAPP",
 		Password: "123456",
-		Url:      "https://devapisuperapp.cbe.com.et/superapp/parser/proxy/CBESUPERAPPV2/services?target=http://10.1.15.195:8080&wsdl=null",
+		Url:      "http://10.1.15.195:8080/CBESUPERAPPV2/services?wsdl=null",
 	}
 	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
