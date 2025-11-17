@@ -17,32 +17,6 @@ type Client struct {
 	client transactionpb.TransactionServiceClient
 }
 
-// normalizeGrpcAddress removes URL scheme (http://, https://) from gRPC address
-// gRPC addresses should be in format "host:port" without scheme
-// func normalizeGrpcAddress(address string) string {
-// 	address = strings.TrimSpace(address)
-// 	if address == "" {
-// 		return address
-// 	}
-
-// 	// Remove common URL schemes
-// 	address = strings.TrimPrefix(address, "http://")
-// 	address = strings.TrimPrefix(address, "https://")
-// 	address = strings.TrimPrefix(address, "grpc://")
-// 	address = strings.TrimPrefix(address, "grpcs://")
-
-// 	// If it looks like a URL, try to parse it and extract host:port
-// 	if strings.Contains(address, "://") {
-// 		if parsedURL, err := url.Parse(address); err == nil {
-// 			if parsedURL.Host != "" {
-// 				return parsedURL.Host
-// 			}
-// 		}
-// 	}
-
-// 	return address
-// }
-
 func NewSitotagRPCClient(ctx context.Context, logger utils.Logger, gRPCAddress string) (*Client, error) {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
