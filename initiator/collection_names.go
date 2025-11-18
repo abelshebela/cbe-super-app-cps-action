@@ -57,9 +57,9 @@ var (
 	TopUpsBucketName               = "topups"
 	MiniAppsBucketName             = "miniapps"
 	DonationsBucketName            = "donation"
-	DonationIconsBucketName        = "donation_icon"
-	DonationCompanysLogoBucketName = "donation_company_logo"
-	BudgetCategoryBucketName       = "budget_category"
-	AmountBasedAuthBucketName      = "amount_based_auth"
+	DonationIconsBucketName        = "donation-icon"
+	DonationCompanysLogoBucketName = "donation-company-logo"
+	BudgetCategoryBucketName       = "budget-category"
+	AmountBasedAuthBucketName      = "amount-based-auth"
 	AdvertBucketName               = "advert-bucket"
 )
