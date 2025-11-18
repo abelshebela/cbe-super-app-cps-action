@@ -6,6 +6,7 @@ import (
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
+	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -209,6 +210,7 @@ type MiniAppMerchantService interface {
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	MerchantLookup(ctx context.Context, merchantID string) (*merchant_lookup.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {

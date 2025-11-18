@@ -110,6 +110,7 @@ type KYCStatus string
 const (
 	KYCStatusPending  KYCStatus = "PENDING"
 	KYCStatusApproved KYCStatus = "APPROVED"
+	KYCStatusComplete KYCStatus = "COMPLETE"
 	KYCStatusRejected KYCStatus = "REJECTED"
 )
 
@@ -174,6 +175,15 @@ const (
 	PhoneNumber   = "phone_number"
 	WithFayda     = "with_fayda"
 )
+
+// type KYCStatus string
+
+// const (
+// 	KYCStatusPending  KYCStatus = "PENDING"
+// 	KYCStatusApproved KYCStatus = "APPROVED"
+// KYCStatusComplete KYCStatus = "COMPLETE"
+// 	KYCStatusRejected KYCStatus = "REJECTED"
+// )
 
 type MemberType string
 

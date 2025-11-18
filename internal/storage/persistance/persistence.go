@@ -3,6 +3,7 @@ package persistance
 import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call"
+	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
 	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -11,6 +12,7 @@ import (
 type Persistence struct {
 	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
 	AccountLookup                   core.CBECoreAPIInterface
+	MerchantLookup                  merchant_lookup.MerchantLookupAdapter
 	MongoClient                     *mongo.Client
 	UserPersistence                 storage.UserRepository
 	UnlinkAccountPersistence        storage.UnlinkAccount

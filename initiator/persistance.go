@@ -2,7 +2,7 @@ package initiator
 
 import (
 	"cbe-super-app-cps-action/internal/storage/external_call"
-
+	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	// "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
@@ -63,12 +63,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi string, notificationApi string, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, DeviceVersionControllCollection, logger),
@@ -78,12 +79,13 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		OTPPersistence:                  otp.NewOtpRepository(client, dbName, OTPsCollection, logger),
 		DeviceLinkHistoryPersistence:    device_history.NewDeviceLinkHistoryRepository(client, dbName, MemberDevicesHistoryCollection, logger),
 		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, dbName, PINResetsCollection, logger),
-		SMSSenderApi:                    *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
 		CPSAction:                       cps_action.NewCPSActionRepository(client, dbName, CPSActionsCollection, logger),
 		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, dbName, AuthTierCollection, logger),
 		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, AccountBlockCollection, logger),
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
+		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, logger),
+		SMSSenderApi:                    *external_call.NewSMSPersistence(notificationApi, logger),
 		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
 		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
 		DistrictPersistence:             district.NewDistrictRepository(client, dbName, "districts", logger),
