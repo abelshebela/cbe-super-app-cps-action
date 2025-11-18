@@ -42,7 +42,7 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string																	true	"Customer ID"
-//	@Success		200	{object}	localization.StandardResponse{data=dto.CustomerEnableSessionResponse}	"OTP generated successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=customer.CustomerEnableSessionResponse}	"OTP generated successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}									"Bad request - Customer ID required"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}									"Internal server error"
 //	@Security		BearerAuth
@@ -122,7 +122,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string									true	"Customer ID"
-//	@Param			body	body		dto.CustomerEnableDTO					true	"Enable customer payload"
+//	@Param			body	body		customer.CustomerEnableDTO					true	"Enable customer payload"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer enabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required or invalid body"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"

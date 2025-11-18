@@ -19,6 +19,7 @@ import (
 )
 
 type cps_action_resp *model.CPSAction
+type cps_action_dto_Resp *cpsactionDto.ActionRequest
 type cps_actions_paginated_resp *types.PaginatedResponse[[]*model.CPSAction]
 
 type cpsActionAdapter struct {
@@ -81,7 +82,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 //	@Accept			json
 //	@Produce		json
 //	@Param			action_code	path		string									true	"Action Code"
-//	@Param			request		body		cpsactionDto.ActionRequest				true	"Rejection request"
+//	@Param			request		body		cps_action_dto_Resp				true	"Rejection request"
 //	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action rejected successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input or missing rejection reason"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}	"Action not found"

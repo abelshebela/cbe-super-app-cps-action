@@ -37,7 +37,11 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 //	@Tags			Wallet
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			data	formData	walletDto.WalletRequest					false	"Wallet update data"
+//	@Param			name	formData	string									false	"name"
+//	@Param			code	formData	string									false	"code"
+//	@Param			self	formData	bool									false	"self"
+//	@Param			other	formData	bool									false	"other"
+//	@Param			agent	formData	bool									false	"agent"
 //	@Param			avatar	formData	file									fale	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Wallet creation request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
@@ -77,7 +81,11 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Param			id		path		string									true	"Wallet ID"
-//	@Param			data	formData	walletDto.WalletRequest					false	"Wallet update data"
+//	@Param			name	formData	string									false	"name"
+//	@Param			code	formData	string									false	"code"
+//	@Param			self	formData	bool									false	"self"
+//	@Param			other	formData	bool									false	"other"
+//	@Param			agent	formData	bool									false	"agent"
 //	@Param			avatar	formData	file									fale	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Wallet update request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
