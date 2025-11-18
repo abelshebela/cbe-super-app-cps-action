@@ -237,6 +237,7 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 
 	updated := *prev
 	updated.Enabled = true
+	updated.LoginAttemptCount = 0
 	updated.PasswordDisable = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
