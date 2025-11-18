@@ -2,6 +2,8 @@ package initiator
 
 import (
 	"cbe-super-app-cps-action/internal/storage/external_call"
+	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+
 	// "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
@@ -62,22 +64,24 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi string, notificationApi string, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, "device_version_control", logger),
 		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
+		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, logger),
 		UserPersistence:                 users.NewUserRepository(client, dbName, "members", logger),
 		HQPersistence:                   hq.NewHQRepository(client, dbName, "hq", logger),
 		OTPPersistence:                  otp.NewOtpRepository(client, dbName, "otps", logger),
 		DeviceLinkHistoryPersistence:    device_history.NewDeviceLinkHistoryRepository(client, dbName, "member_device_histories", logger),
 		ResetSessionPersistence:         reset_session.NewResetSessionRepository(client, dbName, "pin_reset_sessions", logger),
-		SMSSenderApi:                    *external_call.NewSMSPersistence("https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send", logger),
+		SMSSenderApi:                    *external_call.NewSMSPersistence(notificationApi, logger),
 		CPSAction:                       cps_action.NewCPSActionRepository(client, dbName, "cps_actions", logger),
 		AmountBasedAuthPersistence:      amount_based_auth.NewAmountBasedAuthRepository(client, dbName, "auth_tier", logger),
 		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, logger),

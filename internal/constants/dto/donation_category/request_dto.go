@@ -21,5 +21,3 @@ type DonationCategoryCPSRequest struct {
 type EnableDonationCategoryRequest struct {
 	Enabled bool `json:"enabled" bson:"enabled"`
 }
-
-

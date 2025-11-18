@@ -43,7 +43,9 @@ func Init(ctx context.Context) {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("Initializing persistence...")
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, logger)
+	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	merchantApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)
@@ -53,12 +55,12 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
-	// oracleDB := InitOracle(cfg.OracleConnectionString, logger)
-	// logger.Infof("Oracle database initialized")
+	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
+	logger.Infof("Oracle database initialized")
 
-	// logger.Infof("Initializing Oracle DB client...")
-	// OraclePersistence := InitOraclePersistence(oracleDB, logger)
-	// logger.Infof("Oracle DB client initialized")
+	logger.Infof("Initializing Oracle DB client...")
+	OraclePersistence := InitOraclePersistence(oracleDB, logger)
+	logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing SMS service...")
 	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
@@ -82,7 +84,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {

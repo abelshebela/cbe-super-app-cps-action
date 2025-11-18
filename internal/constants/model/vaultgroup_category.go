@@ -15,8 +15,8 @@ type VaultGroupCategory struct {
 	UpdatedBy   string     `json:"updated_by"`
 }
 type UpdateVaultGroupCategory struct {
-	Name        *string `json:"name"`
-	Description *string `json:"description"`
+	Name        *string   `json:"name"`
+	Description *string   `json:"description"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	UpdatedBy   *string   `json:"updated_by"`
 }

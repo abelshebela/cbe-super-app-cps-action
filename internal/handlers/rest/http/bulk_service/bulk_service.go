@@ -33,19 +33,20 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 }
 
 // GetAllBulkServices retrieves all bulk services with pagination
-// @Summary Get all bulk services
-// @Description Retrieves a paginated list of all bulk services with optional filtering
-// @Tags Bulk Services
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=bulk_services_paginated_resp} "Bulk services retrieved successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /bulk_services [get]
+//
+//	@Summary		Get all bulk services
+//	@Description	Retrieves a paginated list of all bulk services with optional filtering
+//	@Tags			Bulk Services
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																	false	"Page number"		default(1)
+//	@Param			per_page	query		int																	false	"Items per page"	default(10)
+//	@Param			search		query		string																false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bulk_services [get]
 func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
 	filter_params := util.ExtractFilterParams(r)
 	bulk_services, err := h.bulkService.GetAllBulkServices(r.Context(), filter_params)
@@ -59,17 +60,18 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 }
 
 // EnableBulkService enables one or more bulk services
-// @Summary Enable bulk services
-// @Description Enables one or more bulk services by their keys
-// @Tags Bulk Services
-// @Accept json
-// @Produce json
-// @Param request body dto.BulkServiceDTO true "Bulk service enable request"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Bulk services enabled successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /bulk_services/enable [post]
+//
+//	@Summary		Enable bulk services
+//	@Description	Enables one or more bulk services by their keys
+//	@Tags			Bulk Services
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		bulk_service.BulkServiceDTO						true	"Bulk service enable request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bulk services enabled successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bulk_services/enable [post]
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
 	var req dto.BulkServiceDTO
 
@@ -88,17 +90,18 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 }
 
 // DisableBulkService disables one or more bulk services
-// @Summary Disable bulk services
-// @Description Disables one or more bulk services by their keys
-// @Tags Bulk Services
-// @Accept json
-// @Produce json
-// @Param request body dto.BulkServiceDTO true "Bulk service disable request"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Bulk services disabled successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request - Invalid input"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /bulk_services/disable [post]
+//
+//	@Summary		Disable bulk services
+//	@Description	Disables one or more bulk services by their keys
+//	@Tags			Bulk Services
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		bulk_service.BulkServiceDTO						true	"Bulk service disable request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bulk services disabled successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bulk_services/disable [post]
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
 	var req dto.BulkServiceDTO
 

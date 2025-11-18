@@ -96,7 +96,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 			return err
 		}
 	}
-	
+
 	cpsUser := core.CPSUModel(req)
 
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, cpsUser, string(constants.RequestCpsUserCreate), constants.CREATE)
@@ -237,6 +237,7 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 
 	updated := *prev
 	updated.Enabled = true
+	updated.LoginAttemptCount = 0
 	updated.PasswordDisable = false
 
 	maker := local_util.ExtractUserFromContext(ctx)

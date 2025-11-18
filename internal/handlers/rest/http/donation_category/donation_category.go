@@ -29,18 +29,19 @@ func InitDonationCategoryAdapter(donationCategoryApp service.DonationCategorySer
 }
 
 // FetchDonationCategory godoc
-// @Summary List donation categories
-// @Description Retrieve donation categories with pagination and optional search
-// @Tags Donation Category
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=paginatedDonationCategoryListResponse} "Donation categories fetched successfully"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_category [get]
+//
+//	@Summary		List donation categories
+//	@Description	Retrieve donation categories with pagination and optional search
+//	@Tags			Donation Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																			false	"Page number"		default(1)
+//	@Param			per_page	query		int																			false	"Items per page"	default(10)
+//	@Param			search		query		string																		false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedDonationCategoryListResponse}	"Donation categories fetched successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}										"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category [get]
 func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -59,18 +60,19 @@ func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r
 }
 
 // FetchDonationCategoryByID godoc
-// @Summary Get donation category by ID
-// @Description Retrieve a donation category's details by ID
-// @Tags Donation Category
-// @Accept json
-// @Produce json
-// @Param id path string true "Donation Category ID"
-// @Success 200 {object} localization.StandardResponse{data=donation_category.DonationCategoryListResponse} "Donation category retrieved successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_category/{id} [get]
+//
+//	@Summary		Get donation category by ID
+//	@Description	Retrieve a donation category's details by ID
+//	@Tags			Donation Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string																				true	"Donation Category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=donation_category.DonationCategoryListResponse}	"Donation category retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}												"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}												"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}												"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category/{id} [get]
 func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
@@ -92,18 +94,19 @@ func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWrite
 }
 
 // CreateDonationCategory godoc
-// @Summary Create a new donation category
-// @Description Create a new donation category with the provided information
-// @Tags Donation Category
-// @Accept multipart/form-data
-// @Produce json
-// @Param category_name formData string true "Category name"
-// @Param donation_icon formData file true "Donation icon image file"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation category creation request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_category [post]
+//
+//	@Summary		Create a new donation category
+//	@Description	Create a new donation category with the provided information
+//	@Tags			Donation Category
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			category_name	formData	string									true	"Category name"
+//	@Param			donation_icon	formData	file									true	"Donation icon image file"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Donation category creation request sent successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category [post]
 func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, r *http.Request) {
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -129,20 +132,21 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 }
 
 // UpdateDonationCategory godoc
-// @Summary Update a donation category
-// @Description Update a donation category with the provided information
-// @Tags Donation Category
-// @Accept multipart/form-data
-// @Produce json
-// @Param id path string true "Donation Category ID"
-// @Param category_name formData string false "Category name"
-// @Param donation_icon formData file false "Donation icon image file"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation category updated successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_category/{id} [patch]
+//
+//	@Summary		Update a donation category
+//	@Description	Update a donation category with the provided information
+//	@Tags			Donation Category
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			id				path		string									true	"Donation Category ID"
+//	@Param			category_name	formData	string									false	"Category name"
+//	@Param			donation_icon	formData	file									false	"Donation icon image file"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Donation category updated successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category/{id} [patch]
 func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -176,63 +180,63 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 }
 
 // EnableDonationCategory godoc
-// @Summary Enable a donation category
-// @Description Enable a donation category by ID
-// @Tags Donation Category
-// @Accept json
-// @Produce json
-// @Param id path string true "Donation category ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation enable request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_category/enable/{id} [patch]
+//	@Summary		Enable a donation category
+//	@Description	Enable a donation category by ID
+//	@Tags			Donation Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Donation category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation enable request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category/enable/{id} [patch]
 
 func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, r *http.Request) {
-id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation category ID is required for diable")
 		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
 		return
 	}
 
-	if err:= d.donationCategoryApp.EnableDonationCategory(r.Context(),id);err!= nil{
-			d.logger.Errorf("failed to enable donation category: %v", err)
+	if err := d.donationCategoryApp.EnableDonationCategory(r.Context(), id); err != nil {
+		d.logger.Errorf("failed to enable donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
 
 }
 
 // disableDonation godoc
-// @Summary Enable a donation category
-// @Description Enable a donation category by ID
-// @Tags Donation Category
-// @Accept json
-// @Produce json
-// @Param id path string true "Donation category ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation enable request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_category/enable/{id} [patch]
+//	@Summary		Enable a donation category
+//	@Description	Enable a donation category by ID
+//	@Tags			Donation Category
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Donation category ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation enable request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_category/enable/{id} [patch]
 
 func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter, r *http.Request) {
-id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation category ID is required for disable")
 		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
 		return
 	}
 
-	if err:= d.donationCategoryApp.DisableDonationCategory(r.Context(),id);err!= nil{
-			d.logger.Errorf("failed to disable donation category: %v", err)
+	if err := d.donationCategoryApp.DisableDonationCategory(r.Context(), id); err != nil {
+		d.logger.Errorf("failed to disable donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
 
 }

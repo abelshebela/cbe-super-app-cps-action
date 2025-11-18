@@ -81,7 +81,7 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"category_name","enabled"}
+	allowedKeys := []string{"category_name", "enabled"}
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}

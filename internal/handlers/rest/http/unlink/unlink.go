@@ -28,19 +28,20 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 }
 
 // GetArchivedUser godoc
-// @Summary Get archived user
-// @Description Get archived user
-// @Tags Unlink
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=PaginatedArchieveUserResponse} "User retrieved successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /unlink/archived_user [get]
+//
+//	@Summary		Get archived user
+//	@Description	Get archived user
+//	@Tags			Unlink
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																	false	"Page number"
+//	@Param			per_page	query		int																	false	"Items per page"
+//	@Param			search		query		string																false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=PaginatedArchieveUserResponse}	"User retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/unlink/archived_user [get]
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
 	// filter parameter
 	filterParams := local_util.ExtractFilterParams(r)
@@ -58,18 +59,19 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 }
 
 // GetUserByAccount godoc
-// @Summary Get user by account
-// @Description Get user by account
-// @Tags Unlink
-// @Accept json
-// @Produce json
-// @Param account_number path string true "Account number"
-// @Success 200 {object} localization.StandardResponse{data=model.User} "User retrieved successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "User not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /unlink/user-by-account/{account_number} [get]
+//
+//	@Summary		Get user by account
+//	@Description	Get user by account
+//	@Tags			Unlink
+//	@Accept			json
+//	@Produce		json
+//	@Param			account_number	path		string											true	"Account number"
+//	@Success		200				{object}	localization.StandardResponse{data=model.User}	"User retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}			"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}			"User not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}			"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/unlink/user-by-account/{account_number} [get]
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {
 	accNumber := chi.URLParam(r, "account_number")
 	if accNumber == "" {
@@ -86,18 +88,19 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 }
 
 // UnlinkUserCif godoc
-// @Summary Unlink user CIF
-// @Description Unlink user CIF
-// @Tags Unlink
-// @Accept json
-// @Produce json
-// @Param user_code path string true "User code"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Unlink CIF request sent successfully "
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "User not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /unlink/user_cif/{user_code} [patch]
+//
+//	@Summary		Unlink user CIF
+//	@Description	Unlink user CIF
+//	@Tags			Unlink
+//	@Accept			json
+//	@Produce		json
+//	@Param			user_code	path		string									true	"User code"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Unlink CIF request sent successfully "
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}	"User not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/unlink/user_cif/{user_code} [patch]
 func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 
 	userCode := chi.URLParam(r, "user_code")
