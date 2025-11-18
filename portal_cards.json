@@ -1,0 +1,216 @@
+[{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471a6"
+  },
+  "card_name": "vault",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471a7"
+  },
+  "card_name": "budgets",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471a8"
+  },
+  "card_name": "miniapps",
+  "sub_cards": [
+    "miniapp merchants",
+    "miniapp"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471a9"
+  },
+  "card_name": "donation",
+  "sub_cards": [
+    "donation list",
+    "donation categories",
+    "organizers",
+    "transactions"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471aa"
+  },
+  "card_name": "sitota",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471ab"
+  },
+  "card_name": "cbe mudai",
+  "sub_cards": [
+    "withdraw transactions",
+    "saving transactions",
+    "customers"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471ac"
+  },
+  "card_name": "equb",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471ad"
+  },
+  "card_name": "rule engine",
+  "sub_cards": [
+    "service fees",
+    "account number length",
+    "max transfer caps",
+    "min transfer amount",
+    "amount based auth",
+    "cif archive time",
+    "portal password length",
+    "password rule"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471ae"
+  },
+  "card_name": "product codes",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471af"
+  },
+  "card_name": "financial institutions",
+  "sub_cards": [
+    "bank",
+    "wallet",
+    "mobile topup"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b0"
+  },
+  "card_name": "app version",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b1"
+  },
+  "card_name": "bulk user disable",
+  "sub_cards": [
+    "single branch enable",
+    "single branch disable",
+    "bulk branch enable",
+    "bulk branch disable"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b2"
+  },
+  "card_name": "bulk service action",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b3"
+  },
+  "card_name": "unlink account",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b4"
+  },
+  "card_name": "notifications",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b5"
+  },
+  "card_name": "adverts",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b6"
+  },
+  "card_name": "customer feedback",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b7"
+  },
+  "card_name": "cbe media",
+  "sub_cards": [
+    "article and news",
+    "cbe shorts",
+    "tag",
+    "category"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b8"
+  },
+  "card_name": "departments",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471b9"
+  },
+  "card_name": "permission group",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471ba"
+  },
+  "card_name": "users",
+  "sub_cards": [
+    "cps",
+    "bps"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471bb"
+  },
+  "card_name": "customers",
+  "sub_cards": [
+    "new accounts",
+    "linked accounts"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471bc"
+  },
+  "card_name": "merchants",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471bd"
+  },
+  "card_name": "transactions report",
+  "sub_cards": []
+},
+{
+  "_id": {
+    "$oid": "6915cda9ee5925afd64471be"
+  },
+  "card_name": "log",
+  "sub_cards": []
+}]

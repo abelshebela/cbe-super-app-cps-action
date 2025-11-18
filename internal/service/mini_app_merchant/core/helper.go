@@ -54,9 +54,9 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 		IsDeleted:         old.IsDeleted,
 		CreatedAt:         old.CreatedAt,
 		LastModifiedAt:    now,
-		KYC: model.KYC{
+		KYC: types.KYC{
 			Status: old.KYC.Status,
-			Representative: model.KYCInformation{
+			Representative: types.KYCInformation{
 				Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
 				Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
 				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
@@ -148,8 +148,8 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.MiniAppMerchantRepository,
-	data *model.CheckMiniAppMerchant,
-	opts *model.MiniAppMerchantExistOptions,
+	data *types.CheckMiniAppMerchant,
+	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
 		return false, nil
