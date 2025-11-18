@@ -189,5 +189,23 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, categories)
+	// Group by category name and map fields to expected JSON keys
+	grouped := map[string][]map[string]interface{}{}
+	for _, c := range categories {
+		key := c.CategoryName
+		item := map[string]interface{}{
+			"_id":          c.ID.Hex(),
+			"categoryName": c.CategoryName,
+			"access":       c.Access,
+			"permissions":  c.Permissions,
+			"enabled":      c.Enabled,
+			"isDeleted":    c.IsDeleted,
+			"createdAt":    c.CreatedAt,
+			"updatedAt":    c.UpdatedAt,
+			"__v":          0,
+		}
+		grouped[key] = append(grouped[key], item)
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, grouped)
 }
