@@ -35,7 +35,7 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id					path		string										true	"Product Code ID"
+//	@Param			id					path		string									true	"Product Code ID"
 //	@Param			productCode			body		productcode.UpdateProductCodeRequest	true	"Update Product Code Request"
 //	@Success		200					{object}	localization.StandardResponse{data=map[string]model.ProductCode}
 //	@Failure		400,401,403,404,500	{object}	localization.StandardResponse{data=nil}

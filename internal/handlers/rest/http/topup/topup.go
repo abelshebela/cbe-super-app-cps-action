@@ -37,7 +37,7 @@ func InitTopupAdapter(topupApp service.TopupService, logger utils.Logger) topupI
 //	@Tags			Topup
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			data	formData	topup.TopupRequest					false	"Topup update data"
+//	@Param			data	formData	topup.TopupRequest						false	"Topup update data"
 //	@Param			avatar	formData	file									fale	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup creation request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
@@ -78,7 +78,7 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 //	@Accept			multipart/form-data
 //	@Produce		json
 //	@Param			id		path		string									true	"Topup ID"
-//	@Param			data	formData	topup.TopupRequest					false	"Topup update data"
+//	@Param			data	formData	topup.TopupRequest						false	"Topup update data"
 //	@Param			avatar	formData	file									fale	"Avatar image file"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Topup update request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"

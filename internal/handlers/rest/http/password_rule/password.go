@@ -58,7 +58,7 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id				path		string					true	"Password Rule ID"
+//	@Param			id				path		string							true	"Password Rule ID"
 //	@Param			body			body		passwordrule.PasswordRuleUpdate	true	"Password Rule Update DTO"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
