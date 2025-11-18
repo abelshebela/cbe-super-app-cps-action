@@ -169,7 +169,8 @@ func UploadFileToMinio(
 	if objectkey != "" {
 		fileName = objectkey
 	} else {
-		fileName = fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano())
+		extension := fileHeader.Filename[len(fileHeader.Filename)-4:]
+		fileName = fmt.Sprintf("%s-%d.%s", prefix, time.Now().UnixNano(), extension)
 	}
 
 	// Upload file
@@ -189,4 +190,37 @@ func UploadFileToMinio(
 	// Return full URL
 	url := fmt.Sprintf("%s/%s/%s", minioEndpoint, saveObj.Bucket, saveObj.Key)
 	return url, nil
+}
+
+func RemoveFileFromMino(ctx context.Context, client config.MinioClientInterface, bucketName string, objectkey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) error {
+	exist, err := client.BucketExist(ctx, bucketName)
+	if err != nil {
+		logger.Errorf("failed to check bucket '%s': '%v'", bucketName, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if !exist {
+		logger.Errorf("bucket '%s' does not exist", bucketName)
+		return errors.New(localization.ErrorBucketNotFound.Code)
+	}
+
+	isDeleted, err := client.DeleteObject(ctx, config.DeleteObjectBody{
+		BucketName: bucketName,
+		ObjectName: objectkey,
+	})
+	if err != nil {
+		logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectkey, bucketName, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if !isDeleted {
+		logger.Errorf("object '%s' could not be deleted from bucket '%s'", objectkey, bucketName)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
 }

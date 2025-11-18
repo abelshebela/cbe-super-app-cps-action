@@ -33,16 +33,17 @@ func InitServiceAdapter(serviceApp service.ServiceService, logger utils.Logger) 
 }
 
 // Get All Services
-// @Summary Get All Services
-// @Description Retrieves all services with pagination
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Success 200 {object} localization.StandardResponse{data=paginatedServiceDetails}
-// @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /service [get]
+//
+//	@Summary		Get All Services
+//	@Description	Retrieves all services with pagination
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page		query		int	false	"Page number"
+//	@Param			per_page	query		int	false	"Items per page"
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedServiceDetails}
+//	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
+//	@Router			/service [get]
 func (s *serviceAdapter) GetAllService(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -61,16 +62,17 @@ func (s *serviceAdapter) GetAllService(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get All Minimum Transfer Caps
-// @Summary Get All Minimum Transfer Caps
-// @Description Retrieves all minimum transfer caps with pagination
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Success 200 {object} localization.StandardResponse{data=paginatedMinimumTransferCapResponse}
-// @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/minimum [get]
+//
+//	@Summary		Get All Minimum Transfer Caps
+//	@Description	Retrieves all minimum transfer caps with pagination
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page		query		int	false	"Page number"
+//	@Param			per_page	query		int	false	"Items per page"
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedMinimumTransferCapResponse}
+//	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/minimum [get]
 func (s *serviceAdapter) GetAllMinimumTransferCap(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -89,16 +91,17 @@ func (s *serviceAdapter) GetAllMinimumTransferCap(w http.ResponseWriter, r *http
 }
 
 // Get All Maximum Transfer Caps
-// @Summary Get All Maximum Transfer Caps
-// @Description Retrieves all maximum transfer caps with pagination
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Success 200 {object} localization.StandardResponse{data=paginatedMaximumTransferCapResponse}
-// @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/maximum [get]
+//
+//	@Summary		Get All Maximum Transfer Caps
+//	@Description	Retrieves all maximum transfer caps with pagination
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page		query		int	false	"Page number"
+//	@Param			per_page	query		int	false	"Items per page"
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedMaximumTransferCapResponse}
+//	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/maximum [get]
 func (s *serviceAdapter) GetAllMaximumTransferCap(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -117,16 +120,17 @@ func (s *serviceAdapter) GetAllMaximumTransferCap(w http.ResponseWriter, r *http
 }
 
 // Get All Service Fees
-// @Summary Get All Service Fees
-// @Description Retrieves all service fees with pagination
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Success 200 {object} localization.StandardResponse{data=paginatedServiceFeeResponse}
-// @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/service_fee [get]
+//
+//	@Summary		Get All Service Fees
+//	@Description	Retrieves all service fees with pagination
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page		query		int	false	"Page number"
+//	@Param			per_page	query		int	false	"Items per page"
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedServiceFeeResponse}
+//	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/service_fee [get]
 func (s *serviceAdapter) GetAllServiceFee(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -145,14 +149,15 @@ func (s *serviceAdapter) GetAllServiceFee(w http.ResponseWriter, r *http.Request
 }
 
 // Get All Total Transfer Caps
-// @Summary Get All Total Transfer Caps
-// @Description Retrieves all total transfer caps
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Success 200 {object} localization.StandardResponse{data=dto.TotalTransferCapResponse}
-// @Failure 400,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/total/transfer_cap [get]
+//
+//	@Summary		Get All Total Transfer Caps
+//	@Description	Retrieves all total transfer caps
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Success		200		{object}	localization.StandardResponse{data=dto.TotalTransferCapResponse}
+//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/total/transfer_cap [get]
 func (s *serviceAdapter) GetAllTotalTransferCap(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -166,15 +171,16 @@ func (s *serviceAdapter) GetAllTotalTransferCap(w http.ResponseWriter, r *http.R
 }
 
 // Get Service Fee Detail
-// @Summary Get Service Fee Detail
-// @Description Retrieves service fee detail by service ID
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Service ID"
-// @Success 200 {object} localization.StandardResponse{data=dto.ServiceFeeDetailResponse}
-// @Failure 400,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/service_fee/detail/{id} [get]
+//
+//	@Summary		Get Service Fee Detail
+//	@Description	Retrieves service fee detail by service ID
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id			path		string	true	"Service ID"
+//	@Success		200			{object}	localization.StandardResponse{data=dto.ServiceFeeDetailResponse}
+//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/service_fee/detail/{id} [get]
 func (s *serviceAdapter) GetServiceFeeDetail(w http.ResponseWriter, r *http.Request) {
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -194,17 +200,18 @@ func (s *serviceAdapter) GetServiceFeeDetail(w http.ResponseWriter, r *http.Requ
 }
 
 // Update Service Fee
-// @Summary Update Service Fee
-// @Description Updates service fee detail by service ID
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param id path string true "Service ID"
-// @Param body body dto.ServiceFeeDetailDTO true "Service Fee Detail DTO"
-// @Success 200 {object} localization.StandardResponse{data=nil}
-// @Failure 400,404,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/service_fee/update/{id} [put]
+//
+//	@Summary		Update Service Fee
+//	@Description	Updates service fee detail by service ID
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string					true	"Service ID"
+//	@Param			body			body		dto.ServiceFeeDetailDTO	true	"Service Fee Detail DTO"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/service_fee/update/{id} [put]
 func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request) {
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -235,17 +242,18 @@ func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 }
 
 // Update Single Max Transfer
-// @Summary Update Single Max Transfer
-// @Description Updates single max transfer by service ID
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param id path string true "Service ID"
-// @Param body body dto.SingleMaxTransferRequest true "Single Max Transfer DTO"
-// @Success 200 {object} localization.StandardResponse{data=nil}
-// @Failure 400,404,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/single_transfer_max/update/id} [put]
+//
+//	@Summary		Update Single Max Transfer
+//	@Description	Updates single max transfer by service ID
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string							true	"Service ID"
+//	@Param			body			body		dto.SingleMaxTransferRequest	true	"Single Max Transfer DTO"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/single_transfer_max/update/id} [put]
 func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.Request) {
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -278,16 +286,17 @@ func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.
 }
 
 // Update Total Max Transfer Cap
-// @Summary Update Total Max Transfer Cap
-// @Description Updates total max transfer cap
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param body body dto.TotalMaxTransferUpdateRequest true "Total Max Transfer Update DTO"
-// @Success 200 {object} localization.StandardResponse{data=nil}
-// @Failure 400,404,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/total_transfer_max/update [put]
+//
+//	@Summary		Update Total Max Transfer Cap
+//	@Description	Updates total max transfer cap
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body			body		dto.TotalMaxTransferUpdateRequest	true	"Total Max Transfer Update DTO"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/total_transfer_max/update [put]
 func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.TotalMaxTransferUpdateRequest
@@ -313,17 +322,18 @@ func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *htt
 }
 
 // Update Minimum Transfer Cap
-// @Summary Update Minimum Transfer Cap
-// @Description Updates minimum transfer cap by service ID
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param id path string true "Service ID"
-// @Param body body dto.MinimumTransferUpdateRequest true "Minimum Transfer Update DTO"
-// @Success 200 {object} localization.StandardResponse{data=nil}
-// @Failure 400,404,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/minimum_transfer/update/{id} [put]
+//
+//	@Summary		Update Minimum Transfer Cap
+//	@Description	Updates minimum transfer cap by service ID
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		string								true	"Service ID"
+//	@Param			body			body		dto.MinimumTransferUpdateRequest	true	"Minimum Transfer Update DTO"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/minimum_transfer/update/{id} [put]
 func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http.Request) {
 
 	service_id := chi.URLParam(r, "id")
@@ -357,15 +367,16 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 }
 
 // Delete Service Fee Tire
-// @Summary Delete Service Fee Tire
-// @Description Deletes service fee tire by service ID
-// @Tags ServiceDetails
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Service ID"
-// @Success 200 {object} localization.StandardResponse{data=nil}
-// @Failure 400,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /service/service_fee/delete/{id} [delete]
+//
+//	@Summary		Delete Service Fee Tire
+//	@Description	Deletes service fee tire by service ID
+//	@Tags			ServiceDetails
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id			path		string	true	"Service ID"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/service/service_fee/delete/{id} [delete]
 func (s *serviceAdapter) DeleteServiceFeeTire(w http.ResponseWriter, r *http.Request) {
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {

@@ -43,7 +43,7 @@ type DonationRequest struct {
 	IsFeatured          bool                    `json:"is_featured" bson:"is_featured"`
 	Target              int32                   `json:"target" bson:"target"`
 	DonationDescription string                  `json:"donation_description" bson:"donation_description"`
-	RemovedImages		[]string`json:"removed_images" bson:"donation_images"`
+	RemovedImages       []string                `json:"removed_images" bson:"donation_images"`
 	DonationImages      []*multipart.FileHeader `json:"donation_images" bson:"donation_images"`
 	CoverImage          *multipart.FileHeader   `json:"cover_image,omitempty" bson:"cover_image,omitempty"`
 	EndDate             time.Time               `json:"end_date" bson:"end_date"`
@@ -69,4 +69,3 @@ type DonationImageAddRequest struct {
 type EnableDonationRequest struct {
 	Enabled bool `json:"enabled" bson:"enabled"`
 }
-

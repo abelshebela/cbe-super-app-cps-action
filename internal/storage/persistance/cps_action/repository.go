@@ -263,4 +263,3 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	return &result, nil
 }
-

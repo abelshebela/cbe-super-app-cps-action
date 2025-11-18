@@ -119,15 +119,13 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 
 	return s.repo.GetPermissionGroup(groupName)
 }
-func (s *permissionService) GetPermissionGroupById(ctx context.Context,id string) (*model.PermissionGroup, error) {
+func (s *permissionService) GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error) {
 	if id == "" {
 		return nil, errors.New(localization.ErrorPermissionGroupRequired.Code)
 	}
 
-
-	return s.repo.GetPermissionGroupById(ctx,id)
+	return s.repo.GetPermissionGroupById(ctx, id)
 }
-
 
 func (s *permissionService) GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
 	if filterParams == nil {

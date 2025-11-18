@@ -614,6 +614,7 @@ const (
 	// bank vault related error messages
 	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
 	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
+	MsgFailedToBeingTransaction = "Failed to begin transaction"
 
 	// vault group category related error messages
 	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
@@ -957,8 +958,13 @@ const (
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
 
 	// bank vault
-	MsgCannotDeleteActiveBankVault    = "Cannot delete active bank vault"
-	MsgBankVaultProductAlreadyDeleted = "Bank vault product already deleted"
+	MsgCannotDeleteActiveBankVault             = "Cannot delete active bank vault"
+	MsgBankVaultProductAlreadyDeleted          = "Bank vault product already deleted"
+	MsgDuplicatebankProduct                    = "There is an existing bank product"
+	MsgNoBankProductFound                      = "No bank Product found"
+	MsgCannotDeleteBankProduct                 = "Cannot delete bank product"
+	MsgcannotEnableOrDisableDeletedBankProduct = "Cannot enable or disable deleted bank product"
+	MsgDuplicateGroupVaultCategory             = "There is an existing group vault category"
 
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"

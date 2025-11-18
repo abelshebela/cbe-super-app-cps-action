@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -35,19 +36,25 @@ func NewBankVaultService(re storage.BankVaultRepository, cpsS service.CPSActionS
 }
 
 func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error) {
-	makerData := local_util.ExtractUserFromContext(ctx)
-	mongoSafeReq := helperr.ConvertBankVaultToMongoSafe(req)
+	err := s.repo.FindBankVaultByName(ctx, req.Name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			makerData := local_util.ExtractUserFromContext(ctx)
+			mongoSafeReq := helperr.ConvertBankVaultToMongoSafe(req)
 
-	cpsActionModel := lib.CpsModelBuilder("", makerData, mongoSafeReq, mongoSafeReq, string(constants.RequestCreateBankVault), string(constants.CREATE))
+			cpsActionModel := lib.CpsModelBuilder("", makerData, mongoSafeReq, mongoSafeReq, string(constants.RequestCreateBankVault), string(constants.CREATE))
 
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+			if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for bank vault | action=%s | err=%v", constants.RequestCreateBankVault, err)
+				if s.logger != nil {
+					s.logger.Errorf("failed to create CPS action for bank vault | action=%s | err=%v", constants.RequestCreateBankVault, err)
+				}
+				return "", err
+			}
+			return req.ID, nil
 		}
-		return "", err
 	}
-	return req.ID, nil
+	return "", errors.New(localization.ErrorDuplicateBankProduct.Code)
 }
 
 func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*bankvault.BankVaultProductResponse], error) {
@@ -78,6 +85,7 @@ func (s *bankVaultService) GetBankVault(ctx context.Context, id string) (*bankva
 	}
 	return helperr.MapBankVaultToResponse(enitity), nil
 }
+
 func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error) {
 
 	req.UpdatedAt = time.Now().UTC()
@@ -116,7 +124,7 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 
 	if exist.IsActive {
 		s.logger.Errorf("Cannot delete active bank vault product: %s", id)
-		return "", errors.New(localization.ErrorCannotDeleteActiveBankVault.Code)
+		return "", errors.New(localization.ErrorCannotDeletedBankProduct.Code)
 	}
 
 	if exist.IsDeleted {
@@ -168,6 +176,7 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestEnableBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
+
 func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) error {
 	s.logger.Infof("Disabling bank vault: %s", id)
 	if id == "" {

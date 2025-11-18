@@ -16,46 +16,46 @@ import (
 // by converting decimal.Decimal fields to float64 for proper serialization
 func ConvertBankVaultToMongoSafe(product *model.BankVaultProduct) map[string]interface{} {
 	result := map[string]interface{}{
-		"id":                product.ID,
-		"name":              product.Name,
-		"description":       product.Description,
-		"currency":          product.Currency,
-		"ratebps":           func() float64 { f, _ := product.RateBps.Float64(); return f }(),
-		"method":            string(product.Method),
-		"frequency":         string(product.Frequency),
-		"lockperiod":        product.LockPeriod.Nanoseconds(),
-		"minamount":         func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
-		"maxamount":         func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
-		"earlyunlockfeebps": func() float64 { f, _ := product.EarlyUnlockFeeBps.Float64(); return f }(),
-		"isactive":          product.IsActive,
-		"createdat":         product.CreatedAt,
-		"updatedat":         product.UpdatedAt,
-		"deletedat":         product.DeletedAt,
-		"createdby":         product.CreatedBy,
-		"updatedby":         product.UpdatedBy,
-		"isdeleted":         product.IsDeleted,
+		"id":                 product.ID,
+		"name":               product.Name,
+		"description":        product.Description,
+		"currency":           product.Currency,
+		"ratebps":            func() float64 { f, _ := product.RateBps.Float64(); return f }(),
+		"method":             string(product.Method),
+		"frequency":          string(product.Frequency),
+		"lockperiod":         product.LockPeriod.Nanoseconds(),
+		"minamount":          func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
+		"maxamount":          func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
+		"earlyunlockratebps": product.EarlyUnlockRateBps,
+		"isactive":           product.IsActive,
+		"createdat":          product.CreatedAt,
+		"updatedat":          product.UpdatedAt,
+		"deletedat":          product.DeletedAt,
+		"createdby":          product.CreatedBy,
+		"updatedby":          product.UpdatedBy,
+		"isdeleted":          product.IsDeleted,
 	}
 	return result
 }
 
 func MapBankVaultToResponse(bankVault *model.BankVaultProduct) *bankvault.BankVaultProductResponse {
 	return &bankvault.BankVaultProductResponse{
-		ID:                bankVault.ID,
-		Name:              bankVault.Name,
-		Description:       bankVault.Description,
-		Currency:          bankVault.Currency,
-		RateBps:           bankVault.RateBps,
-		Method:            bankVault.Method,
-		Frequency:         bankVault.Frequency,
-		LockPeriod:        bankVault.LockPeriod,
-		MinAmount:         bankVault.MinAmount,
-		MaxAmount:         bankVault.MaxAmount,
-		EarlyUnlockFeeBps: bankVault.EarlyUnlockFeeBps,
-		IsActive:          bankVault.IsActive,
-		IsDeleted:         bankVault.IsDeleted,
-		CreatedAt:         bankVault.CreatedAt,
-		UpdatedAt:         bankVault.UpdatedAt,
-		DeletedAt:         bankVault.DeletedAt,
+		ID:                 bankVault.ID,
+		Name:               bankVault.Name,
+		Description:        bankVault.Description,
+		Currency:           bankVault.Currency,
+		RateBps:            bankVault.RateBps,
+		Method:             bankVault.Method,
+		Frequency:          bankVault.Frequency,
+		LockPeriod:         bankVault.LockPeriod,
+		MinAmount:          bankVault.MinAmount,
+		MaxAmount:          bankVault.MaxAmount,
+		EarlyUnlockRateBps: bankVault.EarlyUnlockRateBps,
+		IsActive:           bankVault.IsActive,
+		IsDeleted:          bankVault.IsDeleted,
+		CreatedAt:          bankVault.CreatedAt,
+		UpdatedAt:          bankVault.UpdatedAt,
+		DeletedAt:          bankVault.DeletedAt,
 	}
 }
 
@@ -80,14 +80,12 @@ func BindBankVaultFromCPSAction(current interface{}) (model.BankVaultProduct, er
 		return v, nil
 	}
 
-	
 	if s, ok := current.(string); ok {
 		if err := json.Unmarshal([]byte(s), &BV); err == nil {
 			return BV, nil
 		}
 	}
 
-	
 	bytes, err := json.Marshal(current)
 	if err != nil {
 		return BV, err
@@ -118,12 +116,12 @@ func MapCamelCaseToBankVaultProduct(jsonBytes []byte) (model.BankVaultProduct, e
 	BV.CreatedBy = getString(data, "createdby")
 	BV.UpdatedBy = getString(data, "updatedby")
 	BV.IsDeleted = getBool(data, "isdeleted")
+	BV.EarlyUnlockRateBps = getBool(data, "earlyunlockfeebps")
 
 	// Handle decimal fields
 	BV.RateBps = getDecimal(data, "ratebps")
 	BV.MinAmount = getDecimal(data, "minamount")
 	BV.MaxAmount = getDecimal(data, "maxamount")
-	BV.EarlyUnlockFeeBps = getDecimal(data, "earlyunlockfeebps")
 
 	// Handle time.Duration field
 	BV.LockPeriod = getDuration(data, "lockperiod")
@@ -292,11 +290,10 @@ func BankUpdateVault(req *model.UpdateBankVault) model.BankVaultProduct {
 }
 
 func MapBankVaultToCreate(bankVault bankvault.CreateBankVaultProductRequest) (*model.BankVaultProduct, error) {
-	// Parse duration string (e.g., "180d") and convert to nanoseconds 
+	// Parse duration string (e.g., "180d") and convert to nanoseconds
 	var lockPeriod time.Duration
 	var err error
 
-	
 	if len(bankVault.LockPeriodDays) > 1 && bankVault.LockPeriodDays[len(bankVault.LockPeriodDays)-1] == 'd' {
 		// Extract number part and convert to hours
 		daysStr := bankVault.LockPeriodDays[:len(bankVault.LockPeriodDays)-1]
@@ -307,7 +304,7 @@ func MapBankVaultToCreate(bankVault bankvault.CreateBankVaultProductRequest) (*m
 		// Convert hours to days * 24
 		lockPeriod = lockPeriod * 24
 	} else {
-		
+
 		lockPeriod, err = time.ParseDuration(bankVault.LockPeriodDays)
 		if err != nil {
 			return nil, fmt.Errorf("invalid lock period format '%s': %w", bankVault.LockPeriodDays, err)
@@ -315,17 +312,17 @@ func MapBankVaultToCreate(bankVault bankvault.CreateBankVaultProductRequest) (*m
 	}
 
 	return &model.BankVaultProduct{
-		Name:              bankVault.Name,
-		Description:       bankVault.Description,
-		Currency:          bankVault.Currency,
-		RateBps:           bankVault.RateBps,
-		Method:            bankvault.ToDomainMethod(bankVault.Method),
-		Frequency:         bankvault.ToDomainFrequency(bankVault.Frequency),
-		LockPeriod:        lockPeriod,
-		MinAmount:         bankVault.MinAmount,
-		MaxAmount:         bankVault.MaxAmount,
-		EarlyUnlockFeeBps: bankVault.EarlyUnlockFeeBps,
-		IsActive:          false,
-		IsDeleted:         false,
+		Name:               bankVault.Name,
+		Description:        bankVault.Description,
+		Currency:           bankVault.Currency,
+		RateBps:            bankVault.RateBps,
+		Method:             bankvault.ToDomainMethod(bankVault.Method),
+		Frequency:          bankvault.ToDomainFrequency(bankVault.Frequency),
+		LockPeriod:         lockPeriod,
+		MinAmount:          bankVault.MinAmount,
+		MaxAmount:          bankVault.MaxAmount,
+		EarlyUnlockRateBps: bankVault.EarlyUnlockRateBps,
+		IsActive:           false,
+		IsDeleted:          false,
 	}, nil
 }

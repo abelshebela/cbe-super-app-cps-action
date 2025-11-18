@@ -11,17 +11,17 @@ import (
 
 func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lockPeriodDays time.Duration) *model.BankVaultProduct {
 	return &model.BankVaultProduct{
-		Name:              req.Name,
-		Description:       req.Description,
-		Currency:          req.Currency,
-		RateBps:           req.RateBps,
-		Method:            helper.ToDomainMethod(req.Method),
-		Frequency:         helper.ToDomainFrequency(req.Frequency),
-		LockPeriod:        lockPeriodDays,
-		MinAmount:         req.MinAmount,
-		MaxAmount:         req.MaxAmount,
-		EarlyUnlockFeeBps: req.EarlyUnlockFeeBps,
-		IsActive:          false,
+		Name:               req.Name,
+		Description:        req.Description,
+		Currency:           req.Currency,
+		RateBps:            req.RateBps,
+		Method:             helper.ToDomainMethod(req.Method),
+		Frequency:          helper.ToDomainFrequency(req.Frequency),
+		LockPeriod:         lockPeriodDays,
+		MinAmount:          req.MinAmount,
+		MaxAmount:          req.MaxAmount,
+		EarlyUnlockRateBps: req.EarlyUnlockRateBps,
+		IsActive:           false,
 	}
 }
 
