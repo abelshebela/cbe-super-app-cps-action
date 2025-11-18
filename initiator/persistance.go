@@ -41,7 +41,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
-	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
@@ -109,7 +108,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		EventPersistence:           event.NewEventRepository(client, dbName, "events", logger),
 		PasswordRulePersistent:     password.NewPasswordRuleRepository(client, dbName, "password_rules", logger),
 		FeedbackPersistence:        feedback.NewFeedbackRepository(client, dbName, "feedback", logger),
-		IconPersistence:            icon.NewIconRepository(client, dbName, "icons", logger),
 		LinkedAccountPersistence:   linked_account.NewLinkedAccountRepository(client, dbName, "linked_account", logger),
 		MiniAppMerchantPersistence: mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, "mini_app_merchant", logger),
 		NotificationPersistence:    notification.NewNotificationRepository(client, dbName, "notifications", logger),
