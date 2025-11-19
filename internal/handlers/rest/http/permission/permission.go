@@ -143,15 +143,18 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	if err := request.Validate(); err != nil {
-		h.logger.Warnf("[UpdatePermissionGroup] validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
-
+	// Extract old group name from path first, then validate
 	oldGroupName := chi.URLParam(r, "group_name")
 	if oldGroupName == "" {
 		localization.SendErrorResponse(w, localization.ErrorGroupNameRequired, nil, nil)
+		return
+	}
+	// ensure validator sees the correct old group name
+	request.OldGroupName = oldGroupName
+
+	if err := request.Validate(); err != nil {
+		h.logger.Warnf("[UpdatePermissionGroup] validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -160,9 +163,6 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-
-	// Set the old group name from URL parameter
-	request.OldGroupName = oldGroupName
 
 	err := h.PermissionService.UpdatePermissionGroup(r.Context(), request)
 	if err != nil {
