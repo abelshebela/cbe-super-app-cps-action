@@ -23,6 +23,7 @@ import (
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
+	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
@@ -101,7 +102,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client, dbName, BudgetCategoryCollection, logger),
 		BulkService:                      bulk_service.InitBulkServicePersistence(client, dbName, []string{CPSActionsCollection, AccessListCollection}, logger),
 		CustomerService:                  customer.InitCustomerDetail(client, dbName, []string{MembersCollection, LinkedAccountsCollection}, logger),
-		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, CPSUsersCollection, logger),
+		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection}, logger),
 		DonationPersistence:              donation.NewDonationRepository(client, dbName, DonationsCollection, logger),
 		DonationCategoryPersistence:      donation_category.NewDonationCategoryRepository(client, dbName, DonationCategoriesCollection, logger),
 		ArchivedUserPersistence:          archived_user.NewArchivedUserRepository(client, dbName, ArchievedUsersCollection, logger),

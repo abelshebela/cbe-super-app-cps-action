@@ -36,7 +36,7 @@ type Persistence struct {
 	BulkService                     storage.BulkServiceRepository
 	BudgetCategoryPersistence       storage.BudgetCategoryRepository
 	RedisService                    storage.RedisRepository
-
+	IconPersistence                 storage.IconRepository
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
 	AvatarPersistence                storage.AvatarRepository
