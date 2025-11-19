@@ -103,7 +103,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client, dbName, "budget_category", logger),
 		BulkService:                      bulk_service.InitBulkServicePersistence(client, dbName, []string{"cps_actions", "access_list"}, logger),
 		CustomerService:                  customer.InitCustomerDetail(client, dbName, []string{"members", "linked_account"}, logger),
-		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, "cps_users", logger),
+		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, "cps_users", []string{"department", "permission", "permission_category", "permission_groups"}, logger),
 		DonationPersistence:              donation.NewDonationRepository(client, dbName, "donations", logger),
 		DonationCategoryPersistence:      donation_category.NewDonationCategoryRepository(client, dbName, "donation_categories", logger),
 
