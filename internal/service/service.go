@@ -82,6 +82,7 @@ type CPSUserService interface {
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
+	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error)
 }
 
 type NotificationService interface {

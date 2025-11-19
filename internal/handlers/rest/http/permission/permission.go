@@ -198,15 +198,15 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 	for _, c := range categories {
 		key := c.CategoryName
 		item := map[string]interface{}{
-			"_id":          c.ID.Hex(),
-			"categoryName": c.CategoryName,
-			"access":       c.Access,
-			"permissions":  c.Permissions,
-			"enabled":      c.Enabled,
-			"isDeleted":    c.IsDeleted,
-			"createdAt":    c.CreatedAt,
-			"updatedAt":    c.UpdatedAt,
-			"__v":          0,
+			"_id":           c.ID.Hex(),
+			"category_name": c.CategoryName,
+			"access":        c.Access,
+			"permissions":   c.Permissions,
+			"enabled":       c.Enabled,
+			"is_deleted":    c.IsDeleted,
+			"created_at":    c.CreatedAt,
+			"updated_at":    c.UpdatedAt,
+			"__v":           0,
 		}
 		grouped[key] = append(grouped[key], item)
 	}

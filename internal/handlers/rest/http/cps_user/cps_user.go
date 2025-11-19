@@ -140,7 +140,8 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.svc.GetPopulatedCpsUser(r.Context(), userCode)
+	// Build detailed response in the service layer
+	user, err := h.svc.GetCpsUserDetail(r.Context(), userCode)
 	if err != nil {
 		h.logger.Errorf("[FetchUserByUserCode] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

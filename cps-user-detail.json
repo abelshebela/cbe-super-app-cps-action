@@ -1,0 +1,5699 @@
+{
+  "statusCode": 200,
+  "error": "",
+  "data": {
+    "user_code": "2798299876326",
+    "full_name": "Rob G",
+    "username": "roba hunter",
+    "user_role": "MAKER",
+    "user_department": "qa test",
+    "user_portal_cards": ["budgets", "product codes", "service fees"],
+    "user_phone": "+251923580731",
+    "user_email": "roba_hunter@wearehackerone.com",
+    "joined_at": "2025-11-05T18:55:36.953Z",
+    "updated_at": "2025-11-06T07:29:42.665Z",
+    "user_status": true,
+    "user_permissions": [
+      {
+        "_id": "690b4305fbde9c7299b9cb6a",
+        "groupName": "testrrrrr",
+        "permissions": [],
+        "permissionCategory": {
+          "account": [
+            {
+              "_id": "675d993017d4ca736445dc52",
+              "categoryName": "account",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3f",
+                  "permissionName": "query account number"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dda0",
+                  "permissionName": "get account length validation"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9c",
+                  "permissionName": "get account length validations paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.115Z",
+              "updatedAt": "2024-12-14T14:41:52.115Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "CHECKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2025-11-05T12:28:53.790Z",
+        "lastModified": "2025-11-05T12:28:53.790Z",
+        "__v": 0
+      },
+      {
+        "_id": "690b3620fbde9c7299b9ca2a",
+        "groupName": "testropr",
+        "permissions": [],
+        "permissionCategory": {
+          "account": [
+            {
+              "_id": "675d993017d4ca736445dc52",
+              "categoryName": "account",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3f",
+                  "permissionName": "query account number"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dda0",
+                  "permissionName": "get account length validation"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9c",
+                  "permissionName": "get account length validations paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.115Z",
+              "updatedAt": "2024-12-14T14:41:52.115Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "MAKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2025-11-05T11:33:52.166Z",
+        "lastModified": "2025-11-05T11:33:52.166Z",
+        "__v": 0
+      },
+      {
+        "_id": "68e79a21586eaa520c6bcea3",
+        "groupName": "CSE CHECKER",
+        "permissions": [],
+        "permissionCategory": {
+          "service fee": [
+            {
+              "_id": "675d992f17d4ca736445dbd4",
+              "categoryName": "service fee",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677a54c2300a6b916c6435f2",
+                  "permissionName": "confirm update service fee"
+                },
+                {
+                  "_id": "677a54c2300a6b916c6435f1",
+                  "permissionName": "confirm create service fee"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:51.999Z",
+              "updatedAt": "2025-01-05T09:46:12.578Z",
+              "__v": 0
+            }
+          ],
+          "permission group": [
+            {
+              "_id": "675d993017d4ca736445dbdb",
+              "categoryName": "permission group",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "675064cc6a47aef80e7f31db",
+                  "permissionName": "approve permission group action"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.007Z",
+              "updatedAt": "2024-12-14T14:41:52.007Z",
+              "__v": 0
+            }
+          ],
+          "vat": [
+            {
+              "_id": "675d993017d4ca736445dbe6",
+              "categoryName": "vat",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfe",
+                  "permissionName": "approve vat"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.021Z",
+              "updatedAt": "2024-12-14T14:41:52.021Z",
+              "__v": 0
+            }
+          ],
+          "loan": [
+            {
+              "_id": "675d993017d4ca736445dc3e",
+              "categoryName": "loan",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0e",
+                  "permissionName": "approve reject loan request"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.101Z",
+              "updatedAt": "2024-12-14T14:41:52.101Z",
+              "__v": 0
+            }
+          ],
+          "authtier": [
+            {
+              "_id": "675d993017d4ca736445dbf8",
+              "categoryName": "authtier",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6776a78bae05acb49588b018",
+                  "permissionName": "approve authtier"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.038Z",
+              "updatedAt": "2025-01-02T15:09:42.809Z",
+              "__v": 0
+            }
+          ],
+          "merchant": [
+            {
+              "_id": "675d993017d4ca736445dbff",
+              "categoryName": "merchant",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.054Z",
+              "updatedAt": "2024-12-14T14:41:52.054Z",
+              "__v": 0
+            }
+          ],
+          "utility": [
+            {
+              "_id": "675d993017d4ca736445dc0a",
+              "categoryName": "utility",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.063Z",
+              "updatedAt": "2024-12-14T14:41:52.063Z",
+              "__v": 0
+            }
+          ],
+          "wallet": [
+            {
+              "_id": "675d993017d4ca736445dc14",
+              "categoryName": "wallet",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e562250f",
+                  "permissionName": "approve wallet request"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.071Z",
+              "updatedAt": "2024-12-14T14:41:52.071Z",
+              "__v": 0
+            }
+          ],
+          "miniapp": [
+            {
+              "_id": "675d993017d4ca736445dc1c",
+              "categoryName": "miniapp",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a31",
+                  "permissionName": "approve create miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a30",
+                  "permissionName": "approve update miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2f",
+                  "permissionName": "approve delete miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a32",
+                  "permissionName": "approve enable disable mini app"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.077Z",
+              "updatedAt": "2025-02-20T07:09:01.533Z",
+              "__v": 0
+            }
+          ],
+          "customer": [
+            {
+              "_id": "675d993017d4ca736445dc26",
+              "categoryName": "customer",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f08",
+                  "permissionName": "verify customer"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.084Z",
+              "updatedAt": "2024-12-14T14:41:52.084Z",
+              "__v": 0
+            }
+          ],
+          "user": [
+            {
+              "_id": "675d993017d4ca736445dc30",
+              "categoryName": "user",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "675064cc6a47aef80e7f31da",
+                  "permissionName": "approve user action"
+                },
+                {
+                  "_id": "675064cc6a47aef80e7f31dc",
+                  "permissionName": "approve enable disable user"
+                },
+                {
+                  "_id": "675064cc6a47aef80e7f31de",
+                  "permissionName": "approve user create"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f4e",
+                  "permissionName": "validate user"
+                },
+                {
+                  "_id": "677823840293e5dcc50153de",
+                  "permissionName": "approve delete user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.092Z",
+              "updatedAt": "2025-01-03T17:51:19.066Z",
+              "__v": 0
+            }
+          ],
+          "transaction": [
+            {
+              "_id": "675d993017d4ca736445dc3a",
+              "categoryName": "transaction",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.098Z",
+              "updatedAt": "2024-12-14T14:41:52.098Z",
+              "__v": 0
+            }
+          ],
+          "region": [
+            {
+              "_id": "675d993017d4ca736445dc46",
+              "categoryName": "region",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.107Z",
+              "updatedAt": "2024-12-14T14:41:52.107Z",
+              "__v": 0
+            }
+          ],
+          "budget": [
+            {
+              "_id": "675d993017d4ca736445dc50",
+              "categoryName": "budget",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751a00ad97ca899a995dad5",
+                  "permissionName": "approve budget action"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.114Z",
+              "updatedAt": "2024-12-14T14:41:52.114Z",
+              "__v": 0
+            }
+          ],
+          "account": [
+            {
+              "_id": "675d993017d4ca736445dc5a",
+              "categoryName": "account",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f4d",
+                  "permissionName": "approve link account"
+                },
+                {
+                  "_id": "67b4af048bcb1c780e57aa65",
+                  "permissionName": "approve validations"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.122Z",
+              "updatedAt": "2025-02-18T16:02:52.006Z",
+              "__v": 0
+            }
+          ],
+          "kazna": [
+            {
+              "_id": "675d993017d4ca736445dc64",
+              "categoryName": "kazna",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67533a042d2c43815192cf36",
+                  "permissionName": "confirm update kazna"
+                },
+                {
+                  "_id": "67533a042d2c43815192cf38",
+                  "permissionName": "confirm delete kazna"
+                },
+                {
+                  "_id": "67533a042d2c43815192cf3a",
+                  "permissionName": "confirm create kazna"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.129Z",
+              "updatedAt": "2024-12-14T14:41:52.129Z",
+              "__v": 0
+            }
+          ],
+          "notification": [
+            {
+              "_id": "675d993017d4ca736445dc6a",
+              "categoryName": "notification",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622512",
+                  "permissionName": "approve public notification"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.133Z",
+              "updatedAt": "2024-12-14T14:41:52.133Z",
+              "__v": 0
+            }
+          ],
+          "advert": [
+            {
+              "_id": "675d993017d4ca736445dc74",
+              "categoryName": "advert",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622509",
+                  "permissionName": "approve advert request"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.140Z",
+              "updatedAt": "2024-12-14T14:41:52.140Z",
+              "__v": 0
+            }
+          ],
+          "cpsaction": [
+            {
+              "_id": "675d993017d4ca736445dc80",
+              "categoryName": "cpsaction",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfa",
+                  "permissionName": "approve cpsaction"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.149Z",
+              "updatedAt": "2024-12-14T14:41:52.149Z",
+              "__v": 0
+            }
+          ],
+          "department": [
+            {
+              "_id": "675d993017d4ca736445dc8a",
+              "categoryName": "department",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "675064cc6a47aef80e7f31d9",
+                  "permissionName": "approve department action"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.155Z",
+              "updatedAt": "2024-12-14T14:41:52.155Z",
+              "__v": 0
+            }
+          ],
+          "cap": [
+            {
+              "_id": "675d993017d4ca736445dc96",
+              "categoryName": "cap",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.164Z",
+              "updatedAt": "2024-12-14T14:41:52.164Z",
+              "__v": 0
+            }
+          ],
+          "limits": [
+            {
+              "_id": "675d993017d4ca736445dca0",
+              "categoryName": "limits",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.171Z",
+              "updatedAt": "2024-12-14T14:41:52.171Z",
+              "__v": 0
+            }
+          ],
+          "activity log": [
+            {
+              "_id": "675d993017d4ca736445dcbe",
+              "categoryName": "activity log",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.191Z",
+              "updatedAt": "2024-12-14T14:41:52.191Z",
+              "__v": 0
+            }
+          ],
+          "saving": [
+            {
+              "_id": "675d993017d4ca736445dcb2",
+              "categoryName": "saving",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.183Z",
+              "updatedAt": "2024-12-14T14:41:52.183Z",
+              "__v": 0
+            }
+          ],
+          "agent": [
+            {
+              "_id": "675d993017d4ca736445dcbc",
+              "categoryName": "agent",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.190Z",
+              "updatedAt": "2024-12-14T14:41:52.190Z",
+              "__v": 0
+            }
+          ],
+          "category": [
+            {
+              "_id": "675d993017d4ca736445dcc4",
+              "categoryName": "category",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.196Z",
+              "updatedAt": "2024-12-14T14:41:52.196Z",
+              "__v": 0
+            }
+          ],
+          "topup": [
+            {
+              "_id": "675d993017d4ca736445dcce",
+              "categoryName": "topup",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.202Z",
+              "updatedAt": "2024-12-14T14:41:52.202Z",
+              "__v": 0
+            }
+          ],
+          "password rule": [
+            {
+              "_id": "677823840293e5dcc501535b",
+              "categoryName": "password rule",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d8",
+                  "permissionName": "approve create password rule"
+                },
+                {
+                  "_id": "677823840293e5dcc50153d7",
+                  "permissionName": "approve update password rule"
+                },
+                {
+                  "_id": "677823840293e5dcc50153d6",
+                  "permissionName": "approve delete password rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.432Z",
+              "updatedAt": "2025-01-03T17:51:18.973Z",
+              "__v": 0
+            }
+          ],
+          "business": [
+            {
+              "_id": "677823840293e5dcc5015365",
+              "categoryName": "business",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d4",
+                  "permissionName": "update business"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c034",
+                  "permissionName": "approve business"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.442Z",
+              "updatedAt": "2025-06-19T15:02:56.004Z",
+              "__v": 0
+            }
+          ],
+          "service rule": [
+            {
+              "_id": "677823840293e5dcc501536f",
+              "categoryName": "service rule",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d0",
+                  "permissionName": "approve update service rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.450Z",
+              "updatedAt": "2025-01-03T17:51:18.988Z",
+              "__v": 0
+            }
+          ],
+          "total rule": [
+            {
+              "_id": "677823840293e5dcc5015379",
+              "categoryName": "total rule",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153cd",
+                  "permissionName": "approve update total rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.458Z",
+              "updatedAt": "2025-01-03T17:51:19.006Z",
+              "__v": 0
+            }
+          ],
+          "minimum service": [
+            {
+              "_id": "677823840293e5dcc5015383",
+              "categoryName": "minimum service",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153ca",
+                  "permissionName": "approve update minimum service"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.465Z",
+              "updatedAt": "2025-01-03T17:51:18.999Z",
+              "__v": 0
+            }
+          ],
+          "bulk transaction limit": [
+            {
+              "_id": "677823840293e5dcc501538d",
+              "categoryName": "bulk transaction limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c7",
+                  "permissionName": "approve update bulk transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.473Z",
+              "updatedAt": "2025-01-03T17:51:19.018Z",
+              "__v": 0
+            }
+          ],
+          "app access": [
+            {
+              "_id": "677823840293e5dcc5015397",
+              "categoryName": "app access",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c1",
+                  "permissionName": "approve update app access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.479Z",
+              "updatedAt": "2025-01-03T17:51:19.012Z",
+              "__v": 0
+            }
+          ],
+          "product code": [
+            {
+              "_id": "677823840293e5dcc50153a1",
+              "categoryName": "product code",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153be",
+                  "permissionName": "approve update product code"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.486Z",
+              "updatedAt": "2025-01-03T17:51:19.017Z",
+              "__v": 0
+            }
+          ],
+          "block time": [
+            {
+              "_id": "677823840293e5dcc50153ab",
+              "categoryName": "block time",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153bb",
+                  "permissionName": "approve update block time"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.492Z",
+              "updatedAt": "2025-01-03T17:51:19.025Z",
+              "__v": 0
+            }
+          ],
+          "encrypt user": [
+            {
+              "_id": "677823840293e5dcc50153b5",
+              "categoryName": "encrypt user",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.501Z",
+              "updatedAt": "2025-01-03T17:51:00.501Z",
+              "__v": 0
+            }
+          ],
+          "transaction limit": [
+            {
+              "_id": "677e482cb047fa6da7851186",
+              "categoryName": "transaction limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c4",
+                  "permissionName": "approve update transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-08T09:41:00.587Z",
+              "updatedAt": "2025-01-08T09:41:00.587Z",
+              "__v": 0
+            }
+          ],
+          "bulk access limit": [
+            {
+              "_id": "6784123905ce4fb042989b57",
+              "categoryName": "bulk access limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b8",
+                  "permissionName": "approve update bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.719Z",
+              "updatedAt": "2025-01-12T19:04:25.719Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b65",
+              "categoryName": "bulk access limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b8",
+                  "permissionName": "approve update bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.733Z",
+              "updatedAt": "2025-01-12T19:04:25.733Z",
+              "__v": 0
+            }
+          ],
+          "password expiry": [
+            {
+              "_id": "67b4472145f81b57003d3892",
+              "categoryName": "password expiry",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a2",
+                  "permissionName": "approve update password expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.540Z",
+              "updatedAt": "2025-02-18T13:01:44.667Z",
+              "__v": 0
+            }
+          ],
+          "archive expiry": [
+            {
+              "_id": "67b4472145f81b57003d389c",
+              "categoryName": "archive expiry",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d389f",
+                  "permissionName": "approve update archive expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.550Z",
+              "updatedAt": "2025-02-18T13:01:44.676Z",
+              "__v": 0
+            }
+          ],
+          "other bank": [
+            {
+              "_id": "67b6d4c9c9c323747b192a1e",
+              "categoryName": "other bank",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a34",
+                  "permissionName": "approve enable disable other bank"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.959Z",
+              "updatedAt": "2025-02-20T07:09:01.739Z",
+              "__v": 0
+            }
+          ],
+          "miniapp merchant": [
+            {
+              "_id": "67b6d4c9c9c323747b192a28",
+              "categoryName": "miniapp merchant",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a2e",
+                  "permissionName": "approve create miniapp merchant"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2c",
+                  "permissionName": "approve delete miniapp merchant"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2b",
+                  "permissionName": "approve update miniapp merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.968Z",
+              "updatedAt": "2025-02-20T07:09:01.744Z",
+              "__v": 0
+            }
+          ],
+          "event": [
+            {
+              "_id": "67d1d03f8e97c429472d6572",
+              "categoryName": "event",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67d1d4950e8020fecc1c0131",
+                  "permissionName": "authorize event update"
+                },
+                {
+                  "_id": "67d1d4950e8020fecc1c0132",
+                  "permissionName": "authorize event update"
+                },
+                {
+                  "_id": "67f37f9e343528b886038623",
+                  "permissionName": "authorize event create"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T18:19:43.666Z",
+              "updatedAt": "2025-04-07T07:37:58.265Z",
+              "__v": 0
+            }
+          ],
+          "archive user": [
+            {
+              "_id": "684939e39358f6c6ab14c010",
+              "categoryName": "archive user",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c028",
+                  "permissionName": "approve archive user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.249Z",
+              "updatedAt": "2025-06-11T08:10:46.983Z",
+              "__v": 0
+            }
+          ],
+          "feedback": [
+            {
+              "_id": "684939e39358f6c6ab14c01a",
+              "categoryName": "feedback",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.259Z",
+              "updatedAt": "2025-06-11T08:10:11.259Z",
+              "__v": 0
+            }
+          ],
+          "branch": [
+            {
+              "_id": "68554b1c20ee3e905d65aa09",
+              "categoryName": "branch",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-20T11:50:52.345Z",
+              "updatedAt": "2025-06-20T11:50:52.345Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "CHECKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2025-10-09T11:18:57.392Z",
+        "lastModified": "2025-10-09T11:18:57.392Z",
+        "__v": 0
+      },
+      {
+        "_id": "68e79a0b586eaa520c6bce80",
+        "groupName": "CSE MAKER",
+        "permissions": [],
+        "permissionCategory": {
+          "service fee": [
+            {
+              "_id": "675d993017d4ca736445dbe1",
+              "categoryName": "service fee",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb76",
+                  "permissionName": "get service lists"
+                },
+                {
+                  "_id": "66e82497d582063e3caee9cf",
+                  "permissionName": "get service fee"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb79",
+                  "permissionName": "get service names"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb77",
+                  "permissionName": "get service fees"
+                },
+                {
+                  "_id": "677a54c2300a6b916c6435ec",
+                  "permissionName": "get single service"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.014Z",
+              "updatedAt": "2025-01-05T09:46:12.738Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d992f17d4ca736445dbd1",
+              "categoryName": "service fee",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb78",
+                  "permissionName": "create service fee"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:51.991Z",
+              "updatedAt": "2024-12-14T14:41:51.991Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbd8",
+              "categoryName": "service fee",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb75",
+                  "permissionName": "update service fee"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.004Z",
+              "updatedAt": "2024-12-14T14:41:52.004Z",
+              "__v": 0
+            }
+          ],
+          "permission group": [
+            {
+              "_id": "675d993017d4ca736445dbd6",
+              "categoryName": "permission group",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f47",
+                  "permissionName": "get permission groups all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.001Z",
+              "updatedAt": "2024-12-14T14:41:52.001Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbe8",
+              "categoryName": "permission group",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f46",
+                  "permissionName": "create permission group"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.023Z",
+              "updatedAt": "2024-12-14T14:41:52.023Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbef",
+              "categoryName": "permission group",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f45",
+                  "permissionName": "update permission group"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.030Z",
+              "updatedAt": "2024-12-14T14:41:52.030Z",
+              "__v": 0
+            }
+          ],
+          "vat": [
+            {
+              "_id": "675d993017d4ca736445dbdd",
+              "categoryName": "vat",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3e00",
+                  "permissionName": "get vat"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.010Z",
+              "updatedAt": "2024-12-14T14:41:52.010Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbdf",
+              "categoryName": "vat",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.012Z",
+              "updatedAt": "2024-12-14T14:41:52.012Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbe3",
+              "categoryName": "vat",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dff",
+                  "permissionName": "update vat"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.017Z",
+              "updatedAt": "2024-12-14T14:41:52.017Z",
+              "__v": 0
+            }
+          ],
+          "loan": [
+            {
+              "_id": "675d993017d4ca736445dc2a",
+              "categoryName": "loan",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb67",
+                  "permissionName": "get loans"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.087Z",
+              "updatedAt": "2024-12-14T14:41:52.087Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbea",
+              "categoryName": "loan",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f11",
+                  "permissionName": "repay loan"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb6c",
+                  "permissionName": "loan manual payment"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb6d",
+                  "permissionName": "apply new loan"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f21",
+                  "permissionName": "request loan"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb66",
+                  "permissionName": "create loan offer"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.025Z",
+              "updatedAt": "2024-12-14T14:41:52.025Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbec",
+              "categoryName": "loan",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb65",
+                  "permissionName": "update loan offer"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.026Z",
+              "updatedAt": "2024-12-14T14:41:52.026Z",
+              "__v": 0
+            }
+          ],
+          "authtier": [
+            {
+              "_id": "675d993017d4ca736445dbf1",
+              "categoryName": "authtier",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b6",
+                  "permissionName": "get authtier"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.032Z",
+              "updatedAt": "2024-12-14T14:41:52.032Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbf3",
+              "categoryName": "authtier",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b7",
+                  "permissionName": "register authtier"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.033Z",
+              "updatedAt": "2024-12-14T14:41:52.033Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbf5",
+              "categoryName": "authtier",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b5",
+                  "permissionName": "update authtier"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.035Z",
+              "updatedAt": "2024-12-14T14:41:52.035Z",
+              "__v": 0
+            }
+          ],
+          "merchant": [
+            {
+              "_id": "675d993017d4ca736445dbfa",
+              "categoryName": "merchant",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1d",
+                  "permissionName": "get single merchant"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1e",
+                  "permissionName": "get merchants paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.039Z",
+              "updatedAt": "2024-12-14T14:41:52.039Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc08",
+              "categoryName": "merchant",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f19",
+                  "permissionName": "upload merchant logo"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1f",
+                  "permissionName": "register merchant"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1c",
+                  "permissionName": "validate merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.061Z",
+              "updatedAt": "2024-12-14T14:41:52.061Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbfc",
+              "categoryName": "merchant",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1a",
+                  "permissionName": "update merchant status"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1b",
+                  "permissionName": "update merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.051Z",
+              "updatedAt": "2024-12-14T14:41:52.051Z",
+              "__v": 0
+            }
+          ],
+          "utility": [
+            {
+              "_id": "675d993017d4ca736445dc01",
+              "categoryName": "utility",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f15",
+                  "permissionName": "get utility"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.055Z",
+              "updatedAt": "2024-12-14T14:41:52.055Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc03",
+              "categoryName": "utility",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f14",
+                  "permissionName": "pay utility"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f16",
+                  "permissionName": "create utility"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.057Z",
+              "updatedAt": "2024-12-14T14:41:52.057Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc05",
+              "categoryName": "utility",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.058Z",
+              "updatedAt": "2024-12-14T14:41:52.058Z",
+              "__v": 0
+            }
+          ],
+          "wallet": [
+            {
+              "_id": "675d993017d4ca736445dc0c",
+              "categoryName": "wallet",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f00",
+                  "permissionName": "get wallet"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f29",
+                  "permissionName": "get wallets all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.065Z",
+              "updatedAt": "2024-12-14T14:41:52.065Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc0e",
+              "categoryName": "wallet",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f01",
+                  "permissionName": "create wallet"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.066Z",
+              "updatedAt": "2024-12-14T14:41:52.066Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc10",
+              "categoryName": "wallet",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70eff",
+                  "permissionName": "update wallet"
+                },
+                {
+                  "_id": "6751bb36f24f7659e5622510",
+                  "permissionName": "disable wallet"
+                },
+                {
+                  "_id": "6751bb36f24f7659e5622511",
+                  "permissionName": "enable wallet"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.068Z",
+              "updatedAt": "2024-12-14T14:41:52.068Z",
+              "__v": 0
+            }
+          ],
+          "miniapp": [
+            {
+              "_id": "675d993017d4ca736445dc16",
+              "categoryName": "miniapp",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012c1",
+                  "permissionName": "get miniapp"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012c2",
+                  "permissionName": "get miniapps paginate"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0c",
+                  "permissionName": "get mini apps all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.072Z",
+              "updatedAt": "2024-12-14T14:41:52.072Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc18",
+              "categoryName": "miniapp",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012bf",
+                  "permissionName": "create miniapp"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.073Z",
+              "updatedAt": "2024-12-14T14:41:52.073Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc78",
+              "categoryName": "miniapp",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0b",
+                  "permissionName": "suspend mini app"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012be",
+                  "permissionName": "update miniapp"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012c0",
+                  "permissionName": "update miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a33",
+                  "permissionName": "enable disable mini app"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.143Z",
+              "updatedAt": "2025-02-20T07:09:01.841Z",
+              "__v": 0
+            }
+          ],
+          "customer": [
+            {
+              "_id": "675d993017d4ca736445dc1e",
+              "categoryName": "customer",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0f",
+                  "permissionName": "get customer detail"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f13",
+                  "permissionName": "get customers paginate"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb68",
+                  "permissionName": "get customer info"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c038",
+                  "permissionName": "get customer by account"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c03a",
+                  "permissionName": "get customer transaction"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.079Z",
+              "updatedAt": "2025-06-21T14:14:51.260Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc20",
+              "categoryName": "customer",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.080Z",
+              "updatedAt": "2024-12-14T14:41:52.080Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc22",
+              "categoryName": "customer",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f09",
+                  "permissionName": "update customer"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c037",
+                  "permissionName": "block customer"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c036",
+                  "permissionName": "approve customer"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.081Z",
+              "updatedAt": "2025-06-11T08:10:47.036Z",
+              "__v": 0
+            }
+          ],
+          "user": [
+            {
+              "_id": "675d993017d4ca736445dc28",
+              "categoryName": "user",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f53",
+                  "permissionName": "get user"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f54",
+                  "permissionName": "get users paginate"
+                },
+                {
+                  "_id": "67125c6269b7dde23a482979",
+                  "permissionName": "query user code"
+                },
+                {
+                  "_id": "677823840293e5dcc50153dd",
+                  "permissionName": "get deleted user"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.085Z",
+              "updatedAt": "2025-06-21T14:14:51.337Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc92",
+              "categoryName": "user",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f50",
+                  "permissionName": "register user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.161Z",
+              "updatedAt": "2024-12-14T14:41:52.161Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc2c",
+              "categoryName": "user",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f51",
+                  "permissionName": "update user status"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f52",
+                  "permissionName": "update user"
+                },
+                {
+                  "_id": "675064cc6a47aef80e7f31dd",
+                  "permissionName": "enable disable user"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f4f",
+                  "permissionName": "upload avatar"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.089Z",
+              "updatedAt": "2024-12-14T14:41:52.089Z",
+              "__v": 0
+            }
+          ],
+          "transaction": [
+            {
+              "_id": "675d993017d4ca736445dc32",
+              "categoryName": "transaction",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f39",
+                  "permissionName": "get single transaction"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3a",
+                  "permissionName": "get transactions paginate"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3b",
+                  "permissionName": "get transactions all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.093Z",
+              "updatedAt": "2024-12-14T14:41:52.093Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc34",
+              "categoryName": "transaction",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.094Z",
+              "updatedAt": "2024-12-14T14:41:52.094Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc36",
+              "categoryName": "transaction",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.096Z",
+              "updatedAt": "2024-12-14T14:41:52.096Z",
+              "__v": 0
+            }
+          ],
+          "region": [
+            {
+              "_id": "675d993017d4ca736445dc3c",
+              "categoryName": "region",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f17",
+                  "permissionName": "get region cities"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f18",
+                  "permissionName": "get regions all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.100Z",
+              "updatedAt": "2024-12-14T14:41:52.100Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc40",
+              "categoryName": "region",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.103Z",
+              "updatedAt": "2024-12-14T14:41:52.103Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc42",
+              "categoryName": "region",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.104Z",
+              "updatedAt": "2024-12-14T14:41:52.104Z",
+              "__v": 0
+            }
+          ],
+          "budget": [
+            {
+              "_id": "675d993017d4ca736445dc48",
+              "categoryName": "budget",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f24",
+                  "permissionName": "get single budget"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f25",
+                  "permissionName": "get budgets paginate"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f26",
+                  "permissionName": "get budgets all"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f5c",
+                  "permissionName": "get budget"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad4",
+                  "permissionName": "get budget action"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad8",
+                  "permissionName": "get budget icons"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad9",
+                  "permissionName": "get budget colors"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.108Z",
+              "updatedAt": "2024-12-14T14:41:52.108Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc4a",
+              "categoryName": "budget",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f23",
+                  "permissionName": "create budget"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dada",
+                  "permissionName": "add budget color"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dadb",
+                  "permissionName": "add budget icon"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.110Z",
+              "updatedAt": "2024-12-14T14:41:52.110Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc4c",
+              "categoryName": "budget",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f5b",
+                  "permissionName": "update budget"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad6",
+                  "permissionName": "update budget color"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad7",
+                  "permissionName": "update budget icon"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.111Z",
+              "updatedAt": "2024-12-14T14:41:52.111Z",
+              "__v": 0
+            }
+          ],
+          "account": [
+            {
+              "_id": "675d993017d4ca736445dc52",
+              "categoryName": "account",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3f",
+                  "permissionName": "query account number"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dda0",
+                  "permissionName": "get account length validation"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9c",
+                  "permissionName": "get account length validations paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.115Z",
+              "updatedAt": "2024-12-14T14:41:52.115Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc54",
+              "categoryName": "account",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9f",
+                  "permissionName": "create account length validation"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.118Z",
+              "updatedAt": "2024-12-14T14:41:52.118Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc56",
+              "categoryName": "account",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f40",
+                  "permissionName": "unlink account number"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f41",
+                  "permissionName": "link account number"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9e",
+                  "permissionName": "update account length validation"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.119Z",
+              "updatedAt": "2024-12-14T14:41:52.119Z",
+              "__v": 0
+            }
+          ],
+          "kazna": [
+            {
+              "_id": "675d993017d4ca736445dc5c",
+              "categoryName": "kazna",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67533a042d2c43815192cf32",
+                  "permissionName": "get kazna products"
+                },
+                {
+                  "_id": "67533a042d2c43815192cf35",
+                  "permissionName": "get kazna"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.123Z",
+              "updatedAt": "2024-12-14T14:41:52.123Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc5e",
+              "categoryName": "kazna",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "67533a042d2c43815192cf3b",
+                  "permissionName": "request create kazna"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.125Z",
+              "updatedAt": "2024-12-14T14:41:52.125Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc60",
+              "categoryName": "kazna",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67533a042d2c43815192cf37",
+                  "permissionName": "request update kazna"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.126Z",
+              "updatedAt": "2024-12-14T14:41:52.126Z",
+              "__v": 0
+            }
+          ],
+          "notification": [
+            {
+              "_id": "675d993017d4ca736445dc7a",
+              "categoryName": "notification",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622513",
+                  "permissionName": "get public notifications paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.144Z",
+              "updatedAt": "2024-12-14T14:41:52.144Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcd0",
+              "categoryName": "notification",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622514",
+                  "permissionName": "create public notification"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.206Z",
+              "updatedAt": "2024-12-14T14:41:52.206Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc66",
+              "categoryName": "notification",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.131Z",
+              "updatedAt": "2024-12-14T14:41:52.131Z",
+              "__v": 0
+            }
+          ],
+          "advert": [
+            {
+              "_id": "675d993017d4ca736445dc6c",
+              "categoryName": "advert",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e562250c",
+                  "permissionName": "get adverts paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.135Z",
+              "updatedAt": "2024-12-14T14:41:52.135Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc6e",
+              "categoryName": "advert",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e562250e",
+                  "permissionName": "create advert"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.136Z",
+              "updatedAt": "2024-12-14T14:41:52.136Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc70",
+              "categoryName": "advert",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e562250d",
+                  "permissionName": "enable advert"
+                },
+                {
+                  "_id": "6751bb36f24f7659e562250a",
+                  "permissionName": "disable advert"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.137Z",
+              "updatedAt": "2024-12-14T14:41:52.137Z",
+              "__v": 0
+            }
+          ],
+          "cpsaction": [
+            {
+              "_id": "675d993017d4ca736445dc76",
+              "categoryName": "cpsaction",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfd",
+                  "permissionName": "get cpsaction"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.142Z",
+              "updatedAt": "2024-12-14T14:41:52.142Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcd4",
+              "categoryName": "cpsaction",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.212Z",
+              "updatedAt": "2024-12-14T14:41:52.212Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc7c",
+              "categoryName": "cpsaction",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfc",
+                  "permissionName": "update cpsaction"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.146Z",
+              "updatedAt": "2024-12-14T14:41:52.146Z",
+              "__v": 0
+            }
+          ],
+          "department": [
+            {
+              "_id": "675d993017d4ca736445dc82",
+              "categoryName": "department",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "674ca1bf4a634fc910744342",
+                  "permissionName": "get departments all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.150Z",
+              "updatedAt": "2024-12-14T14:41:52.150Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc84",
+              "categoryName": "department",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "674ca1bf4a634fc910744340",
+                  "permissionName": "create department"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.152Z",
+              "updatedAt": "2024-12-14T14:41:52.152Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc86",
+              "categoryName": "department",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "674ca1bf4a634fc910744341",
+                  "permissionName": "update department"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.153Z",
+              "updatedAt": "2024-12-14T14:41:52.153Z",
+              "__v": 0
+            }
+          ],
+          "cap": [
+            {
+              "_id": "675d993017d4ca736445dc8c",
+              "categoryName": "cap",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "670a5bf31f840ff98ecb1865",
+                  "permissionName": "get total cap"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.157Z",
+              "updatedAt": "2024-12-14T14:41:52.157Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc8e",
+              "categoryName": "cap",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "670a5bf31f840ff98ecb1864",
+                  "permissionName": "create total cap"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.158Z",
+              "updatedAt": "2024-12-14T14:41:52.158Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc90",
+              "categoryName": "cap",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "670a5bf31f840ff98ecb1863",
+                  "permissionName": "update total cap"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.159Z",
+              "updatedAt": "2024-12-14T14:41:52.159Z",
+              "__v": 0
+            }
+          ],
+          "limits": [
+            {
+              "_id": "675d993017d4ca736445dc98",
+              "categoryName": "limits",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66e991ff77f1bcc0f5cf03d5",
+                  "permissionName": "get daily limits"
+                },
+                {
+                  "_id": "66e991ff77f1bcc0f5cf03d8",
+                  "permissionName": "get daily limit list"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.165Z",
+              "updatedAt": "2024-12-14T14:41:52.165Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc9a",
+              "categoryName": "limits",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66e991ff77f1bcc0f5cf03d7",
+                  "permissionName": "add daily limits"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.167Z",
+              "updatedAt": "2024-12-14T14:41:52.167Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc9c",
+              "categoryName": "limits",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66e991ff77f1bcc0f5cf03d6",
+                  "permissionName": "update daily limits"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.168Z",
+              "updatedAt": "2024-12-14T14:41:52.168Z",
+              "__v": 0
+            }
+          ],
+          "activity log": [
+            {
+              "_id": "675d993017d4ca736445dca2",
+              "categoryName": "activity log",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f42",
+                  "permissionName": "get single activity  log"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f43",
+                  "permissionName": "get activity logs paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.172Z",
+              "updatedAt": "2024-12-14T14:41:52.172Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dca4",
+              "categoryName": "activity log",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f44",
+                  "permissionName": "keep activity log"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.173Z",
+              "updatedAt": "2024-12-14T14:41:52.173Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dca6",
+              "categoryName": "activity log",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.174Z",
+              "updatedAt": "2024-12-14T14:41:52.174Z",
+              "__v": 0
+            }
+          ],
+          "saving": [
+            {
+              "_id": "675d993017d4ca736445dcaa",
+              "categoryName": "saving",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb6f",
+                  "permissionName": "get saving paginate"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb72",
+                  "permissionName": "get saving product"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.178Z",
+              "updatedAt": "2024-12-14T14:41:52.178Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcac",
+              "categoryName": "saving",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb73",
+                  "permissionName": "create saving product"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.179Z",
+              "updatedAt": "2024-12-14T14:41:52.179Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcae",
+              "categoryName": "saving",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb70",
+                  "permissionName": "update saving product"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.180Z",
+              "updatedAt": "2024-12-14T14:41:52.180Z",
+              "__v": 0
+            }
+          ],
+          "agent": [
+            {
+              "_id": "675d993017d4ca736445dcb4",
+              "categoryName": "agent",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012c7",
+                  "permissionName": "get single agent"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012c8",
+                  "permissionName": "get agents paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.184Z",
+              "updatedAt": "2024-12-14T14:41:52.184Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcb6",
+              "categoryName": "agent",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012c9",
+                  "permissionName": "create agent"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.185Z",
+              "updatedAt": "2024-12-14T14:41:52.185Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcb8",
+              "categoryName": "agent",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012c5",
+                  "permissionName": "update agent status"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012c6",
+                  "permissionName": "update agent"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.187Z",
+              "updatedAt": "2024-12-14T14:41:52.187Z",
+              "__v": 0
+            }
+          ],
+          "category": [
+            {
+              "_id": "675d993017d4ca736445dcd2",
+              "categoryName": "category",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb7d",
+                  "permissionName": "get category single"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb7e",
+                  "permissionName": "get category all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.208Z",
+              "updatedAt": "2024-12-14T14:41:52.208Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcd6",
+              "categoryName": "category",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb81",
+                  "permissionName": "create category"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.227Z",
+              "updatedAt": "2024-12-14T14:41:52.227Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcc0",
+              "categoryName": "category",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.193Z",
+              "updatedAt": "2024-12-14T14:41:52.193Z",
+              "__v": 0
+            }
+          ],
+          "topup": [
+            {
+              "_id": "675d993017d4ca736445dcc6",
+              "categoryName": "topup",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b1",
+                  "permissionName": "get topup"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.197Z",
+              "updatedAt": "2024-12-14T14:41:52.197Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcc8",
+              "categoryName": "topup",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b2",
+                  "permissionName": "create topup"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.198Z",
+              "updatedAt": "2024-12-14T14:41:52.198Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcca",
+              "categoryName": "topup",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b0",
+                  "permissionName": "update topup"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.200Z",
+              "updatedAt": "2024-12-14T14:41:52.200Z",
+              "__v": 0
+            }
+          ],
+          "password rule": [
+            {
+              "_id": "677823840293e5dcc5015353",
+              "categoryName": "password rule",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153dc",
+                  "permissionName": "get password rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.422Z",
+              "updatedAt": "2025-01-03T17:51:19.061Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015355",
+              "categoryName": "password rule",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153db",
+                  "permissionName": "create password rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.426Z",
+              "updatedAt": "2025-01-03T17:51:18.967Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015357",
+              "categoryName": "password rule",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153da",
+                  "permissionName": "update password rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.428Z",
+              "updatedAt": "2025-01-03T17:51:18.969Z",
+              "__v": 0
+            }
+          ],
+          "business": [
+            {
+              "_id": "677823840293e5dcc501535d",
+              "categoryName": "business",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d3",
+                  "permissionName": "get business"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c033",
+                  "permissionName": "get business cashiers"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c035",
+                  "permissionName": "get business all"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c032",
+                  "permissionName": "get currencies"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c031",
+                  "permissionName": "get cities"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c030",
+                  "permissionName": "get categories"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c02e",
+                  "permissionName": "get business transactions"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.435Z",
+              "updatedAt": "2025-06-21T14:14:51.307Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501535f",
+              "categoryName": "business",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d5",
+                  "permissionName": "create business"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c02f",
+                  "permissionName": "business account lookup"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.437Z",
+              "updatedAt": "2025-06-11T08:10:47.114Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015361",
+              "categoryName": "business",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d4",
+                  "permissionName": "update business"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.438Z",
+              "updatedAt": "2025-01-03T17:51:18.979Z",
+              "__v": 0
+            }
+          ],
+          "service rule": [
+            {
+              "_id": "677823840293e5dcc5015367",
+              "categoryName": "service rule",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d1",
+                  "permissionName": "get service rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.444Z",
+              "updatedAt": "2025-01-03T17:51:18.984Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015369",
+              "categoryName": "service rule",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.445Z",
+              "updatedAt": "2025-01-03T17:51:00.445Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501536b",
+              "categoryName": "service rule",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d2",
+                  "permissionName": "update service rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.447Z",
+              "updatedAt": "2025-01-03T17:51:18.986Z",
+              "__v": 0
+            }
+          ],
+          "total rule": [
+            {
+              "_id": "677823840293e5dcc5015371",
+              "categoryName": "total rule",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153ce",
+                  "permissionName": "get total rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.451Z",
+              "updatedAt": "2025-01-03T17:51:18.990Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015373",
+              "categoryName": "total rule",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.453Z",
+              "updatedAt": "2025-01-03T17:51:00.453Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015375",
+              "categoryName": "total rule",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153cf",
+                  "permissionName": "update total rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.454Z",
+              "updatedAt": "2025-01-03T17:51:18.992Z",
+              "__v": 0
+            }
+          ],
+          "minimum service": [
+            {
+              "_id": "677823840293e5dcc501537b",
+              "categoryName": "minimum service",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153cb",
+                  "permissionName": "get minimum service"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb77",
+                  "permissionName": "get service fees"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.459Z",
+              "updatedAt": "2025-06-11T08:10:11.347Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501537d",
+              "categoryName": "minimum service",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.461Z",
+              "updatedAt": "2025-01-03T17:51:00.461Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501537f",
+              "categoryName": "minimum service",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153cc",
+                  "permissionName": "update minimum service"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.462Z",
+              "updatedAt": "2025-01-03T17:51:18.997Z",
+              "__v": 0
+            }
+          ],
+          "bulk transaction limit": [
+            {
+              "_id": "677823840293e5dcc5015385",
+              "categoryName": "bulk transaction limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c8",
+                  "permissionName": "get bulk transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.466Z",
+              "updatedAt": "2025-01-03T17:51:19.001Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015387",
+              "categoryName": "bulk transaction limit",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.467Z",
+              "updatedAt": "2025-01-03T17:51:00.467Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015389",
+              "categoryName": "bulk transaction limit",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c9",
+                  "permissionName": "update bulk transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.470Z",
+              "updatedAt": "2025-01-03T17:51:19.003Z",
+              "__v": 0
+            }
+          ],
+          "app access": [
+            {
+              "_id": "677823840293e5dcc501538f",
+              "categoryName": "app access",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c2",
+                  "permissionName": "get app access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.474Z",
+              "updatedAt": "2025-01-03T17:51:19.008Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015391",
+              "categoryName": "app access",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.475Z",
+              "updatedAt": "2025-01-03T17:51:00.475Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015393",
+              "categoryName": "app access",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c3",
+                  "permissionName": "update app access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.477Z",
+              "updatedAt": "2025-01-03T17:51:19.011Z",
+              "__v": 0
+            }
+          ],
+          "product code": [
+            {
+              "_id": "677823840293e5dcc5015399",
+              "categoryName": "product code",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02d",
+                  "permissionName": "fetch all product code"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.481Z",
+              "updatedAt": "2025-06-11T08:10:46.932Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501539b",
+              "categoryName": "product code",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.482Z",
+              "updatedAt": "2025-01-03T17:51:00.482Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501539d",
+              "categoryName": "product code",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153bf",
+                  "permissionName": "update product code"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.483Z",
+              "updatedAt": "2025-01-03T17:51:19.015Z",
+              "__v": 0
+            }
+          ],
+          "block time": [
+            {
+              "_id": "677823840293e5dcc50153a3",
+              "categoryName": "block time",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153bc",
+                  "permissionName": "get block time"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.487Z",
+              "updatedAt": "2025-01-03T17:51:19.021Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc50153a5",
+              "categoryName": "block time",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.488Z",
+              "updatedAt": "2025-01-03T17:51:00.488Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc50153a7",
+              "categoryName": "block time",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153bd",
+                  "permissionName": "update block time"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.490Z",
+              "updatedAt": "2025-01-03T17:51:19.023Z",
+              "__v": 0
+            }
+          ],
+          "encrypt user": [
+            {
+              "_id": "677823840293e5dcc50153ad",
+              "categoryName": "encrypt user",
+              "access": "view",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.494Z",
+              "updatedAt": "2025-01-03T17:51:00.494Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc50153af",
+              "categoryName": "encrypt user",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c0",
+                  "permissionName": "encrypt user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.495Z",
+              "updatedAt": "2025-01-03T17:51:19.027Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc50153b1",
+              "categoryName": "encrypt user",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.497Z",
+              "updatedAt": "2025-01-03T17:51:00.497Z",
+              "__v": 0
+            }
+          ],
+          "transaction limit": [
+            {
+              "_id": "677e482cb047fa6da785117f",
+              "categoryName": "transaction limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c5",
+                  "permissionName": "get transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-08T09:41:00.577Z",
+              "updatedAt": "2025-01-08T09:41:00.577Z",
+              "__v": 0
+            },
+            {
+              "_id": "677e482cb047fa6da7851181",
+              "categoryName": "transaction limit",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-08T09:41:00.582Z",
+              "updatedAt": "2025-01-08T09:41:00.582Z",
+              "__v": 0
+            },
+            {
+              "_id": "677e482cb047fa6da785118b",
+              "categoryName": "transaction limit",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c6",
+                  "permissionName": "update transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-08T09:41:00.594Z",
+              "updatedAt": "2025-01-08T09:41:00.594Z",
+              "__v": 0
+            }
+          ],
+          "bulk access limit": [
+            {
+              "_id": "6784123905ce4fb042989b4f",
+              "categoryName": "bulk access limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b9",
+                  "permissionName": "get bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.709Z",
+              "updatedAt": "2025-01-12T19:04:25.709Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b5d",
+              "categoryName": "bulk access limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b9",
+                  "permissionName": "get bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.727Z",
+              "updatedAt": "2025-01-12T19:04:25.727Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b51",
+              "categoryName": "bulk access limit",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.714Z",
+              "updatedAt": "2025-01-12T19:04:25.714Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b5f",
+              "categoryName": "bulk access limit",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.728Z",
+              "updatedAt": "2025-01-12T19:04:25.728Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b53",
+              "categoryName": "bulk access limit",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153ba",
+                  "permissionName": "update bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.716Z",
+              "updatedAt": "2025-01-12T19:04:25.716Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b61",
+              "categoryName": "bulk access limit",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153ba",
+                  "permissionName": "update bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.730Z",
+              "updatedAt": "2025-01-12T19:04:25.730Z",
+              "__v": 0
+            }
+          ],
+          "password expiry": [
+            {
+              "_id": "67b4472145f81b57003d3889",
+              "categoryName": "password expiry",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a4",
+                  "permissionName": "get password expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.528Z",
+              "updatedAt": "2025-02-18T13:01:44.658Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b4472145f81b57003d388b",
+              "categoryName": "password expiry",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.533Z",
+              "updatedAt": "2025-02-18T08:38:57.533Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b4472145f81b57003d388d",
+              "categoryName": "password expiry",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a3",
+                  "permissionName": "update password expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.535Z",
+              "updatedAt": "2025-02-18T13:01:44.694Z",
+              "__v": 0
+            }
+          ],
+          "archive expiry": [
+            {
+              "_id": "67b4472145f81b57003d3894",
+              "categoryName": "archive expiry",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a1",
+                  "permissionName": "get archive expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.543Z",
+              "updatedAt": "2025-02-18T13:01:44.670Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b4472145f81b57003d3896",
+              "categoryName": "archive expiry",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.545Z",
+              "updatedAt": "2025-02-18T08:38:57.545Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b4472145f81b57003d3898",
+              "categoryName": "archive expiry",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a0",
+                  "permissionName": "update archive expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.546Z",
+              "updatedAt": "2025-02-18T13:01:44.673Z",
+              "__v": 0
+            }
+          ],
+          "other bank": [
+            {
+              "_id": "67b6d4c9c9c323747b192a15",
+              "categoryName": "other bank",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02c",
+                  "permissionName": "get all other bank"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.948Z",
+              "updatedAt": "2025-06-11T08:10:46.958Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b6d4c9c9c323747b192a17",
+              "categoryName": "other bank",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02b",
+                  "permissionName": "create other bank"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.953Z",
+              "updatedAt": "2025-06-11T08:10:46.961Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b6d4c9c9c323747b192a1a",
+              "categoryName": "other bank",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a35",
+                  "permissionName": "enable disable other bank"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.956Z",
+              "updatedAt": "2025-02-20T07:09:01.735Z",
+              "__v": 0
+            }
+          ],
+          "miniapp merchant": [
+            {
+              "_id": "67b6d4c9c9c323747b192a20",
+              "categoryName": "miniapp merchant",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012bd",
+                  "permissionName": "get miniapp merchants paginate"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012bc",
+                  "permissionName": "get miniapp merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.961Z",
+              "updatedAt": "2025-06-11T08:10:11.237Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b6d4c9c9c323747b192a22",
+              "categoryName": "miniapp merchant",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012ba",
+                  "permissionName": "create miniapp merchant"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c025",
+                  "permissionName": "create miniapp delivery"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.963Z",
+              "updatedAt": "2025-06-11T08:10:47.112Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b6d4c9c9c323747b192a24",
+              "categoryName": "miniapp merchant",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012bb",
+                  "permissionName": "update miniapp merchant"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2d",
+                  "permissionName": "delete miniapp merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.965Z",
+              "updatedAt": "2025-02-20T07:09:01.898Z",
+              "__v": 0
+            }
+          ],
+          "event": [
+            {
+              "_id": "67d157bea52db49739770850",
+              "categoryName": "event",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67d15789a9aa2dabb55c1064",
+                  "permissionName": "fetch events paginate"
+                },
+                {
+                  "_id": "67d15789a9aa2dabb55c1063",
+                  "permissionName": "fetch single event"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T09:45:34.323Z",
+              "updatedAt": "2025-03-12T09:45:34.323Z",
+              "__v": 0
+            },
+            {
+              "_id": "67d157bea52db4973977084c",
+              "categoryName": "event",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "67d1c2b8d411eac888c3078a",
+                  "permissionName": "request event create"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T09:45:34.316Z",
+              "updatedAt": "2025-03-12T17:23:03.791Z",
+              "__v": 0
+            },
+            {
+              "_id": "67d157bea52db4973977084e",
+              "categoryName": "event",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "67d15789a9aa2dabb55c1065",
+                  "permissionName": "request event update"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T09:45:34.321Z",
+              "updatedAt": "2025-03-12T09:45:34.321Z",
+              "__v": 0
+            }
+          ],
+          "ticket": [
+            {
+              "_id": "67d157bea52db49739770852",
+              "categoryName": "ticket",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67d15789a9aa2dabb55c1062",
+                  "permissionName": "fetch tickets paginate"
+                },
+                {
+                  "_id": "67d15789a9aa2dabb55c1061",
+                  "permissionName": "fetch single ticket"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T09:45:34.325Z",
+              "updatedAt": "2025-03-12T09:45:34.325Z",
+              "__v": 0
+            }
+          ],
+          "archive user": [
+            {
+              "_id": "684939e39358f6c6ab14c01e",
+              "categoryName": "archive user",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02a",
+                  "permissionName": "get archived user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.267Z",
+              "updatedAt": "2025-06-11T08:10:46.977Z",
+              "__v": 0
+            },
+            {
+              "_id": "684939e39358f6c6ab14c01c",
+              "categoryName": "archive user",
+              "access": "create",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c029",
+                  "permissionName": "archive user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.265Z",
+              "updatedAt": "2025-06-11T08:10:46.979Z",
+              "__v": 0
+            },
+            {
+              "_id": "684939e39358f6c6ab14c00c",
+              "categoryName": "archive user",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.243Z",
+              "updatedAt": "2025-06-11T08:10:11.243Z",
+              "__v": 0
+            }
+          ],
+          "feedback": [
+            {
+              "_id": "684939e39358f6c6ab14c012",
+              "categoryName": "feedback",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c027",
+                  "permissionName": "get feedback paginate"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c026",
+                  "permissionName": "get feedback detail"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.251Z",
+              "updatedAt": "2025-06-11T08:10:46.986Z",
+              "__v": 0
+            },
+            {
+              "_id": "684939e39358f6c6ab14c014",
+              "categoryName": "feedback",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.253Z",
+              "updatedAt": "2025-06-11T08:10:11.253Z",
+              "__v": 0
+            },
+            {
+              "_id": "684939e39358f6c6ab14c016",
+              "categoryName": "feedback",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.256Z",
+              "updatedAt": "2025-06-11T08:10:11.256Z",
+              "__v": 0
+            }
+          ],
+          "branch": [
+            {
+              "_id": "68554b1c20ee3e905d65aa05",
+              "categoryName": "branch",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-20T11:50:52.338Z",
+              "updatedAt": "2025-06-21T14:14:51.341Z",
+              "__v": 0
+            },
+            {
+              "_id": "68554b1c20ee3e905d65aa07",
+              "categoryName": "branch",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-20T11:50:52.342Z",
+              "updatedAt": "2025-06-20T11:50:52.342Z",
+              "__v": 0
+            },
+            {
+              "_id": "68554b1c20ee3e905d65aa0e",
+              "categoryName": "branch",
+              "access": "update",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-20T11:50:52.360Z",
+              "updatedAt": "2025-06-20T11:50:52.360Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "MAKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2025-10-09T11:18:35.453Z",
+        "lastModified": "2025-10-09T11:18:35.453Z",
+        "__v": 0
+      },
+      {
+        "_id": "68a2e592aac5aabbd61919ca",
+        "groupName": "test",
+        "permissions": [],
+        "permissionCategory": {
+          "account": [
+            {
+              "_id": "675d993017d4ca736445dc52",
+              "categoryName": "account",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3f",
+                  "permissionName": "query account number"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dda0",
+                  "permissionName": "get account length validation"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9c",
+                  "permissionName": "get account length validations paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.115Z",
+              "updatedAt": "2024-12-14T14:41:52.115Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc5a",
+              "categoryName": "account",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f4d",
+                  "permissionName": "approve link account"
+                },
+                {
+                  "_id": "67b4af048bcb1c780e57aa65",
+                  "permissionName": "approve validations"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.122Z",
+              "updatedAt": "2025-02-18T16:02:52.006Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "CHECKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2025-08-18T08:34:26.745Z",
+        "lastModified": "2025-08-18T08:34:26.745Z",
+        "__v": 0
+      },
+      {
+        "_id": "689f1d559647652ebfe83f41",
+        "groupName": "kyc",
+        "permissions": [],
+        "permissionCategory": {
+          "customer": [
+            {
+              "_id": "675d993017d4ca736445dc1e",
+              "categoryName": "customer",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0f",
+                  "permissionName": "get customer detail"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f13",
+                  "permissionName": "get customers paginate"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb68",
+                  "permissionName": "get customer info"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c038",
+                  "permissionName": "get customer by account"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c03a",
+                  "permissionName": "get customer transaction"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.079Z",
+              "updatedAt": "2025-06-21T14:14:51.260Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc20",
+              "categoryName": "customer",
+              "access": "create",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.080Z",
+              "updatedAt": "2024-12-14T14:41:52.080Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc22",
+              "categoryName": "customer",
+              "access": "update",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f09",
+                  "permissionName": "update customer"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c037",
+                  "permissionName": "block customer"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c036",
+                  "permissionName": "approve customer"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.081Z",
+              "updatedAt": "2025-06-11T08:10:47.036Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "MAKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2025-08-15T11:43:17.655Z",
+        "lastModified": "2025-08-15T11:43:17.655Z",
+        "__v": 0
+      },
+      {
+        "_id": "676528a7b0281b9a03e5d9cb",
+        "groupName": "All Permission Checker",
+        "permissions": [],
+        "permissionCategory": {
+          "service fee": [
+            {
+              "_id": "675d992f17d4ca736445dbd4",
+              "categoryName": "service fee",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677a54c2300a6b916c6435f2",
+                  "permissionName": "confirm update service fee"
+                },
+                {
+                  "_id": "677a54c2300a6b916c6435f1",
+                  "permissionName": "confirm create service fee"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:51.999Z",
+              "updatedAt": "2025-01-05T09:46:12.578Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbe1",
+              "categoryName": "service fee",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb76",
+                  "permissionName": "get service lists"
+                },
+                {
+                  "_id": "66e82497d582063e3caee9cf",
+                  "permissionName": "get service fee"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb79",
+                  "permissionName": "get service names"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb77",
+                  "permissionName": "get service fees"
+                },
+                {
+                  "_id": "677a54c2300a6b916c6435ec",
+                  "permissionName": "get single service"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.014Z",
+              "updatedAt": "2025-01-05T09:46:12.738Z",
+              "__v": 0
+            }
+          ],
+          "permission group": [
+            {
+              "_id": "675d993017d4ca736445dbdb",
+              "categoryName": "permission group",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "675064cc6a47aef80e7f31db",
+                  "permissionName": "approve permission group action"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.007Z",
+              "updatedAt": "2024-12-14T14:41:52.007Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbd6",
+              "categoryName": "permission group",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f47",
+                  "permissionName": "get permission groups all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.001Z",
+              "updatedAt": "2024-12-14T14:41:52.001Z",
+              "__v": 0
+            }
+          ],
+          "vat": [
+            {
+              "_id": "675d993017d4ca736445dbe6",
+              "categoryName": "vat",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfe",
+                  "permissionName": "approve vat"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.021Z",
+              "updatedAt": "2024-12-14T14:41:52.021Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbdd",
+              "categoryName": "vat",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3e00",
+                  "permissionName": "get vat"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.010Z",
+              "updatedAt": "2024-12-14T14:41:52.010Z",
+              "__v": 0
+            }
+          ],
+          "loan": [
+            {
+              "_id": "675d993017d4ca736445dc3e",
+              "categoryName": "loan",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0e",
+                  "permissionName": "approve reject loan request"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.101Z",
+              "updatedAt": "2024-12-14T14:41:52.101Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc2a",
+              "categoryName": "loan",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb67",
+                  "permissionName": "get loans"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.087Z",
+              "updatedAt": "2024-12-14T14:41:52.087Z",
+              "__v": 0
+            }
+          ],
+          "authtier": [
+            {
+              "_id": "675d993017d4ca736445dbf8",
+              "categoryName": "authtier",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6776a78bae05acb49588b018",
+                  "permissionName": "approve authtier"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.038Z",
+              "updatedAt": "2025-01-02T15:09:42.809Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbf1",
+              "categoryName": "authtier",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b6",
+                  "permissionName": "get authtier"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.032Z",
+              "updatedAt": "2024-12-14T14:41:52.032Z",
+              "__v": 0
+            }
+          ],
+          "merchant": [
+            {
+              "_id": "675d993017d4ca736445dbff",
+              "categoryName": "merchant",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.054Z",
+              "updatedAt": "2024-12-14T14:41:52.054Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dbfa",
+              "categoryName": "merchant",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1d",
+                  "permissionName": "get single merchant"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f1e",
+                  "permissionName": "get merchants paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.039Z",
+              "updatedAt": "2024-12-14T14:41:52.039Z",
+              "__v": 0
+            }
+          ],
+          "utility": [
+            {
+              "_id": "675d993017d4ca736445dc0a",
+              "categoryName": "utility",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.063Z",
+              "updatedAt": "2024-12-14T14:41:52.063Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc01",
+              "categoryName": "utility",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f15",
+                  "permissionName": "get utility"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.055Z",
+              "updatedAt": "2024-12-14T14:41:52.055Z",
+              "__v": 0
+            }
+          ],
+          "wallet": [
+            {
+              "_id": "675d993017d4ca736445dc14",
+              "categoryName": "wallet",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e562250f",
+                  "permissionName": "approve wallet request"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.071Z",
+              "updatedAt": "2024-12-14T14:41:52.071Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc0c",
+              "categoryName": "wallet",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f00",
+                  "permissionName": "get wallet"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f29",
+                  "permissionName": "get wallets all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.065Z",
+              "updatedAt": "2024-12-14T14:41:52.065Z",
+              "__v": 0
+            }
+          ],
+          "miniapp": [
+            {
+              "_id": "675d993017d4ca736445dc1c",
+              "categoryName": "miniapp",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a31",
+                  "permissionName": "approve create miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a30",
+                  "permissionName": "approve update miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2f",
+                  "permissionName": "approve delete miniapp"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a32",
+                  "permissionName": "approve enable disable mini app"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.077Z",
+              "updatedAt": "2025-02-20T07:09:01.533Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc16",
+              "categoryName": "miniapp",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012c1",
+                  "permissionName": "get miniapp"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012c2",
+                  "permissionName": "get miniapps paginate"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0c",
+                  "permissionName": "get mini apps all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.072Z",
+              "updatedAt": "2024-12-14T14:41:52.072Z",
+              "__v": 0
+            }
+          ],
+          "customer": [
+            {
+              "_id": "675d993017d4ca736445dc26",
+              "categoryName": "customer",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f08",
+                  "permissionName": "verify customer"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.084Z",
+              "updatedAt": "2024-12-14T14:41:52.084Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc1e",
+              "categoryName": "customer",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f0f",
+                  "permissionName": "get customer detail"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f13",
+                  "permissionName": "get customers paginate"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb68",
+                  "permissionName": "get customer info"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c038",
+                  "permissionName": "get customer by account"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c03a",
+                  "permissionName": "get customer transaction"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.079Z",
+              "updatedAt": "2025-06-21T14:14:51.260Z",
+              "__v": 0
+            }
+          ],
+          "user": [
+            {
+              "_id": "675d993017d4ca736445dc30",
+              "categoryName": "user",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "675064cc6a47aef80e7f31da",
+                  "permissionName": "approve user action"
+                },
+                {
+                  "_id": "675064cc6a47aef80e7f31dc",
+                  "permissionName": "approve enable disable user"
+                },
+                {
+                  "_id": "675064cc6a47aef80e7f31de",
+                  "permissionName": "approve user create"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f4e",
+                  "permissionName": "validate user"
+                },
+                {
+                  "_id": "677823840293e5dcc50153de",
+                  "permissionName": "approve delete user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.092Z",
+              "updatedAt": "2025-01-03T17:51:19.066Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc28",
+              "categoryName": "user",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f53",
+                  "permissionName": "get user"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f54",
+                  "permissionName": "get users paginate"
+                },
+                {
+                  "_id": "67125c6269b7dde23a482979",
+                  "permissionName": "query user code"
+                },
+                {
+                  "_id": "677823840293e5dcc50153dd",
+                  "permissionName": "get deleted user"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.085Z",
+              "updatedAt": "2025-06-21T14:14:51.337Z",
+              "__v": 0
+            }
+          ],
+          "transaction": [
+            {
+              "_id": "675d993017d4ca736445dc3a",
+              "categoryName": "transaction",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.098Z",
+              "updatedAt": "2024-12-14T14:41:52.098Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc32",
+              "categoryName": "transaction",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f39",
+                  "permissionName": "get single transaction"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3a",
+                  "permissionName": "get transactions paginate"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3b",
+                  "permissionName": "get transactions all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.093Z",
+              "updatedAt": "2024-12-14T14:41:52.093Z",
+              "__v": 0
+            }
+          ],
+          "region": [
+            {
+              "_id": "675d993017d4ca736445dc46",
+              "categoryName": "region",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.107Z",
+              "updatedAt": "2024-12-14T14:41:52.107Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc3c",
+              "categoryName": "region",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f17",
+                  "permissionName": "get region cities"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f18",
+                  "permissionName": "get regions all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.100Z",
+              "updatedAt": "2024-12-14T14:41:52.100Z",
+              "__v": 0
+            }
+          ],
+          "budget": [
+            {
+              "_id": "675d993017d4ca736445dc50",
+              "categoryName": "budget",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751a00ad97ca899a995dad5",
+                  "permissionName": "approve budget action"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.114Z",
+              "updatedAt": "2024-12-14T14:41:52.114Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc48",
+              "categoryName": "budget",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f24",
+                  "permissionName": "get single budget"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f25",
+                  "permissionName": "get budgets paginate"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f26",
+                  "permissionName": "get budgets all"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f5c",
+                  "permissionName": "get budget"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad4",
+                  "permissionName": "get budget action"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad8",
+                  "permissionName": "get budget icons"
+                },
+                {
+                  "_id": "6751a00ad97ca899a995dad9",
+                  "permissionName": "get budget colors"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.108Z",
+              "updatedAt": "2024-12-14T14:41:52.108Z",
+              "__v": 0
+            }
+          ],
+          "account": [
+            {
+              "_id": "675d993017d4ca736445dc5a",
+              "categoryName": "account",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f4d",
+                  "permissionName": "approve link account"
+                },
+                {
+                  "_id": "67b4af048bcb1c780e57aa65",
+                  "permissionName": "approve validations"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.122Z",
+              "updatedAt": "2025-02-18T16:02:52.006Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc52",
+              "categoryName": "account",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f3f",
+                  "permissionName": "query account number"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dda0",
+                  "permissionName": "get account length validation"
+                },
+                {
+                  "_id": "6712606d4dbdd1f6f789dd9c",
+                  "permissionName": "get account length validations paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.115Z",
+              "updatedAt": "2024-12-14T14:41:52.115Z",
+              "__v": 0
+            }
+          ],
+          "kazna": [
+            {
+              "_id": "675d993017d4ca736445dc64",
+              "categoryName": "kazna",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67533a042d2c43815192cf36",
+                  "permissionName": "confirm update kazna"
+                },
+                {
+                  "_id": "67533a042d2c43815192cf38",
+                  "permissionName": "confirm delete kazna"
+                },
+                {
+                  "_id": "67533a042d2c43815192cf3a",
+                  "permissionName": "confirm create kazna"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.129Z",
+              "updatedAt": "2024-12-14T14:41:52.129Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc5c",
+              "categoryName": "kazna",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67533a042d2c43815192cf32",
+                  "permissionName": "get kazna products"
+                },
+                {
+                  "_id": "67533a042d2c43815192cf35",
+                  "permissionName": "get kazna"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.123Z",
+              "updatedAt": "2024-12-14T14:41:52.123Z",
+              "__v": 0
+            }
+          ],
+          "notification": [
+            {
+              "_id": "675d993017d4ca736445dc6a",
+              "categoryName": "notification",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622512",
+                  "permissionName": "approve public notification"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.133Z",
+              "updatedAt": "2024-12-14T14:41:52.133Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc7a",
+              "categoryName": "notification",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622513",
+                  "permissionName": "get public notifications paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.144Z",
+              "updatedAt": "2024-12-14T14:41:52.144Z",
+              "__v": 0
+            }
+          ],
+          "advert": [
+            {
+              "_id": "675d993017d4ca736445dc74",
+              "categoryName": "advert",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e5622509",
+                  "permissionName": "approve advert request"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.140Z",
+              "updatedAt": "2024-12-14T14:41:52.140Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc6c",
+              "categoryName": "advert",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "6751bb36f24f7659e562250c",
+                  "permissionName": "get adverts paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.135Z",
+              "updatedAt": "2024-12-14T14:41:52.135Z",
+              "__v": 0
+            }
+          ],
+          "cpsaction": [
+            {
+              "_id": "675d993017d4ca736445dc80",
+              "categoryName": "cpsaction",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfa",
+                  "permissionName": "approve cpsaction"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.149Z",
+              "updatedAt": "2024-12-14T14:41:52.149Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc76",
+              "categoryName": "cpsaction",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67507eeb5bf4b873f6af3dfd",
+                  "permissionName": "get cpsaction"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.142Z",
+              "updatedAt": "2024-12-14T14:41:52.142Z",
+              "__v": 0
+            }
+          ],
+          "department": [
+            {
+              "_id": "675d993017d4ca736445dc8a",
+              "categoryName": "department",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "675064cc6a47aef80e7f31d9",
+                  "permissionName": "approve department action"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.155Z",
+              "updatedAt": "2024-12-14T14:41:52.155Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc82",
+              "categoryName": "department",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "674ca1bf4a634fc910744342",
+                  "permissionName": "get departments all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.150Z",
+              "updatedAt": "2024-12-14T14:41:52.150Z",
+              "__v": 0
+            }
+          ],
+          "cap": [
+            {
+              "_id": "675d993017d4ca736445dc96",
+              "categoryName": "cap",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.164Z",
+              "updatedAt": "2024-12-14T14:41:52.164Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc8c",
+              "categoryName": "cap",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "670a5bf31f840ff98ecb1865",
+                  "permissionName": "get total cap"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.157Z",
+              "updatedAt": "2024-12-14T14:41:52.157Z",
+              "__v": 0
+            }
+          ],
+          "limits": [
+            {
+              "_id": "675d993017d4ca736445dca0",
+              "categoryName": "limits",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.171Z",
+              "updatedAt": "2024-12-14T14:41:52.171Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dc98",
+              "categoryName": "limits",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66e991ff77f1bcc0f5cf03d5",
+                  "permissionName": "get daily limits"
+                },
+                {
+                  "_id": "66e991ff77f1bcc0f5cf03d8",
+                  "permissionName": "get daily limit list"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.165Z",
+              "updatedAt": "2024-12-14T14:41:52.165Z",
+              "__v": 0
+            }
+          ],
+          "activity log": [
+            {
+              "_id": "675d993017d4ca736445dcbe",
+              "categoryName": "activity log",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.191Z",
+              "updatedAt": "2024-12-14T14:41:52.191Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dca2",
+              "categoryName": "activity log",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f42",
+                  "permissionName": "get single activity  log"
+                },
+                {
+                  "_id": "66cbaeb82ff76f8ef3c70f43",
+                  "permissionName": "get activity logs paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.172Z",
+              "updatedAt": "2024-12-14T14:41:52.172Z",
+              "__v": 0
+            }
+          ],
+          "saving": [
+            {
+              "_id": "675d993017d4ca736445dcb2",
+              "categoryName": "saving",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.183Z",
+              "updatedAt": "2024-12-14T14:41:52.183Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcaa",
+              "categoryName": "saving",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb6f",
+                  "permissionName": "get saving paginate"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb72",
+                  "permissionName": "get saving product"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.178Z",
+              "updatedAt": "2024-12-14T14:41:52.178Z",
+              "__v": 0
+            }
+          ],
+          "agent": [
+            {
+              "_id": "675d993017d4ca736445dcbc",
+              "categoryName": "agent",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.190Z",
+              "updatedAt": "2024-12-14T14:41:52.190Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcb4",
+              "categoryName": "agent",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012c7",
+                  "permissionName": "get single agent"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012c8",
+                  "permissionName": "get agents paginate"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.184Z",
+              "updatedAt": "2024-12-14T14:41:52.184Z",
+              "__v": 0
+            }
+          ],
+          "category": [
+            {
+              "_id": "675d993017d4ca736445dcc4",
+              "categoryName": "category",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.196Z",
+              "updatedAt": "2024-12-14T14:41:52.196Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcd2",
+              "categoryName": "category",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66dea97f61f0f0eeef66eb7d",
+                  "permissionName": "get category single"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb7e",
+                  "permissionName": "get category all"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.208Z",
+              "updatedAt": "2024-12-14T14:41:52.208Z",
+              "__v": 0
+            }
+          ],
+          "topup": [
+            {
+              "_id": "675d993017d4ca736445dcce",
+              "categoryName": "topup",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.202Z",
+              "updatedAt": "2024-12-14T14:41:52.202Z",
+              "__v": 0
+            },
+            {
+              "_id": "675d993017d4ca736445dcc6",
+              "categoryName": "topup",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b1",
+                  "permissionName": "get topup"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2024-12-14T14:41:52.197Z",
+              "updatedAt": "2024-12-14T14:41:52.197Z",
+              "__v": 0
+            }
+          ],
+          "password rule": [
+            {
+              "_id": "677823840293e5dcc501535b",
+              "categoryName": "password rule",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d8",
+                  "permissionName": "approve create password rule"
+                },
+                {
+                  "_id": "677823840293e5dcc50153d7",
+                  "permissionName": "approve update password rule"
+                },
+                {
+                  "_id": "677823840293e5dcc50153d6",
+                  "permissionName": "approve delete password rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.432Z",
+              "updatedAt": "2025-01-03T17:51:18.973Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015353",
+              "categoryName": "password rule",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153dc",
+                  "permissionName": "get password rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.422Z",
+              "updatedAt": "2025-01-03T17:51:19.061Z",
+              "__v": 0
+            }
+          ],
+          "business": [
+            {
+              "_id": "677823840293e5dcc5015365",
+              "categoryName": "business",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d4",
+                  "permissionName": "update business"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c034",
+                  "permissionName": "approve business"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.442Z",
+              "updatedAt": "2025-06-19T15:02:56.004Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501535d",
+              "categoryName": "business",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d3",
+                  "permissionName": "get business"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c033",
+                  "permissionName": "get business cashiers"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c035",
+                  "permissionName": "get business all"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c032",
+                  "permissionName": "get currencies"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c031",
+                  "permissionName": "get cities"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c030",
+                  "permissionName": "get categories"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c02e",
+                  "permissionName": "get business transactions"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.435Z",
+              "updatedAt": "2025-06-21T14:14:51.307Z",
+              "__v": 0
+            }
+          ],
+          "service rule": [
+            {
+              "_id": "677823840293e5dcc501536f",
+              "categoryName": "service rule",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d0",
+                  "permissionName": "approve update service rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.450Z",
+              "updatedAt": "2025-01-03T17:51:18.988Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015367",
+              "categoryName": "service rule",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153d1",
+                  "permissionName": "get service rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.444Z",
+              "updatedAt": "2025-01-03T17:51:18.984Z",
+              "__v": 0
+            }
+          ],
+          "total rule": [
+            {
+              "_id": "677823840293e5dcc5015379",
+              "categoryName": "total rule",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153cd",
+                  "permissionName": "approve update total rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.458Z",
+              "updatedAt": "2025-01-03T17:51:19.006Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015371",
+              "categoryName": "total rule",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153ce",
+                  "permissionName": "get total rule"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.451Z",
+              "updatedAt": "2025-01-03T17:51:18.990Z",
+              "__v": 0
+            }
+          ],
+          "minimum service": [
+            {
+              "_id": "677823840293e5dcc5015383",
+              "categoryName": "minimum service",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153ca",
+                  "permissionName": "approve update minimum service"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.465Z",
+              "updatedAt": "2025-01-03T17:51:18.999Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501537b",
+              "categoryName": "minimum service",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153cb",
+                  "permissionName": "get minimum service"
+                },
+                {
+                  "_id": "66dea97f61f0f0eeef66eb77",
+                  "permissionName": "get service fees"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.459Z",
+              "updatedAt": "2025-06-11T08:10:11.347Z",
+              "__v": 0
+            }
+          ],
+          "bulk transaction limit": [
+            {
+              "_id": "677823840293e5dcc501538d",
+              "categoryName": "bulk transaction limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c7",
+                  "permissionName": "approve update bulk transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.473Z",
+              "updatedAt": "2025-01-03T17:51:19.018Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015385",
+              "categoryName": "bulk transaction limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c8",
+                  "permissionName": "get bulk transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.466Z",
+              "updatedAt": "2025-01-03T17:51:19.001Z",
+              "__v": 0
+            }
+          ],
+          "app access": [
+            {
+              "_id": "677823840293e5dcc5015397",
+              "categoryName": "app access",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c1",
+                  "permissionName": "approve update app access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.479Z",
+              "updatedAt": "2025-01-03T17:51:19.012Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc501538f",
+              "categoryName": "app access",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c2",
+                  "permissionName": "get app access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.474Z",
+              "updatedAt": "2025-01-03T17:51:19.008Z",
+              "__v": 0
+            }
+          ],
+          "product code": [
+            {
+              "_id": "677823840293e5dcc50153a1",
+              "categoryName": "product code",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153be",
+                  "permissionName": "approve update product code"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.486Z",
+              "updatedAt": "2025-01-03T17:51:19.017Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc5015399",
+              "categoryName": "product code",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02d",
+                  "permissionName": "fetch all product code"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.481Z",
+              "updatedAt": "2025-06-11T08:10:46.932Z",
+              "__v": 0
+            }
+          ],
+          "block time": [
+            {
+              "_id": "677823840293e5dcc50153ab",
+              "categoryName": "block time",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153bb",
+                  "permissionName": "approve update block time"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.492Z",
+              "updatedAt": "2025-01-03T17:51:19.025Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc50153a3",
+              "categoryName": "block time",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153bc",
+                  "permissionName": "get block time"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.487Z",
+              "updatedAt": "2025-01-03T17:51:19.021Z",
+              "__v": 0
+            }
+          ],
+          "encrypt user": [
+            {
+              "_id": "677823840293e5dcc50153b5",
+              "categoryName": "encrypt user",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.501Z",
+              "updatedAt": "2025-01-03T17:51:00.501Z",
+              "__v": 0
+            },
+            {
+              "_id": "677823840293e5dcc50153ad",
+              "categoryName": "encrypt user",
+              "access": "view",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-03T17:51:00.494Z",
+              "updatedAt": "2025-01-03T17:51:00.494Z",
+              "__v": 0
+            }
+          ],
+          "transaction limit": [
+            {
+              "_id": "677e482cb047fa6da7851186",
+              "categoryName": "transaction limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c4",
+                  "permissionName": "approve update transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-08T09:41:00.587Z",
+              "updatedAt": "2025-01-08T09:41:00.587Z",
+              "__v": 0
+            },
+            {
+              "_id": "677e482cb047fa6da785117f",
+              "categoryName": "transaction limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153c5",
+                  "permissionName": "get transaction limit"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-08T09:41:00.577Z",
+              "updatedAt": "2025-01-08T09:41:00.577Z",
+              "__v": 0
+            }
+          ],
+          "bulk access limit": [
+            {
+              "_id": "6784123905ce4fb042989b57",
+              "categoryName": "bulk access limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b8",
+                  "permissionName": "approve update bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.719Z",
+              "updatedAt": "2025-01-12T19:04:25.719Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b65",
+              "categoryName": "bulk access limit",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b8",
+                  "permissionName": "approve update bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.733Z",
+              "updatedAt": "2025-01-12T19:04:25.733Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b4f",
+              "categoryName": "bulk access limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b9",
+                  "permissionName": "get bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.709Z",
+              "updatedAt": "2025-01-12T19:04:25.709Z",
+              "__v": 0
+            },
+            {
+              "_id": "6784123905ce4fb042989b5d",
+              "categoryName": "bulk access limit",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "677823840293e5dcc50153b9",
+                  "permissionName": "get bulk access"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-01-12T19:04:25.727Z",
+              "updatedAt": "2025-01-12T19:04:25.727Z",
+              "__v": 0
+            }
+          ],
+          "password expiry": [
+            {
+              "_id": "67b4472145f81b57003d3892",
+              "categoryName": "password expiry",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a2",
+                  "permissionName": "approve update password expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.540Z",
+              "updatedAt": "2025-02-18T13:01:44.667Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b4472145f81b57003d3889",
+              "categoryName": "password expiry",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a4",
+                  "permissionName": "get password expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.528Z",
+              "updatedAt": "2025-02-18T13:01:44.658Z",
+              "__v": 0
+            }
+          ],
+          "archive expiry": [
+            {
+              "_id": "67b4472145f81b57003d389c",
+              "categoryName": "archive expiry",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d389f",
+                  "permissionName": "approve update archive expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.550Z",
+              "updatedAt": "2025-02-18T13:01:44.676Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b4472145f81b57003d3894",
+              "categoryName": "archive expiry",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67b4472145f81b57003d38a1",
+                  "permissionName": "get archive expiry"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-18T08:38:57.543Z",
+              "updatedAt": "2025-02-18T13:01:44.670Z",
+              "__v": 0
+            }
+          ],
+          "other bank": [
+            {
+              "_id": "67b6d4c9c9c323747b192a1e",
+              "categoryName": "other bank",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a34",
+                  "permissionName": "approve enable disable other bank"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.959Z",
+              "updatedAt": "2025-02-20T07:09:01.739Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b6d4c9c9c323747b192a15",
+              "categoryName": "other bank",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02c",
+                  "permissionName": "get all other bank"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.948Z",
+              "updatedAt": "2025-06-11T08:10:46.958Z",
+              "__v": 0
+            }
+          ],
+          "miniapp merchant": [
+            {
+              "_id": "67b6d4c9c9c323747b192a28",
+              "categoryName": "miniapp merchant",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67b6d4cac9c323747b192a2e",
+                  "permissionName": "approve create miniapp merchant"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2c",
+                  "permissionName": "approve delete miniapp merchant"
+                },
+                {
+                  "_id": "67b6d4cac9c323747b192a2b",
+                  "permissionName": "approve update miniapp merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.968Z",
+              "updatedAt": "2025-02-20T07:09:01.744Z",
+              "__v": 0
+            },
+            {
+              "_id": "67b6d4c9c9c323747b192a20",
+              "categoryName": "miniapp merchant",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012bd",
+                  "permissionName": "get miniapp merchants paginate"
+                },
+                {
+                  "_id": "66d5f3dfa78e369592c012bc",
+                  "permissionName": "get miniapp merchant"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-02-20T07:07:53.961Z",
+              "updatedAt": "2025-06-11T08:10:11.237Z",
+              "__v": 0
+            }
+          ],
+          "event": [
+            {
+              "_id": "67d1d03f8e97c429472d6572",
+              "categoryName": "event",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "67d1d4950e8020fecc1c0131",
+                  "permissionName": "authorize event update"
+                },
+                {
+                  "_id": "67d1d4950e8020fecc1c0132",
+                  "permissionName": "authorize event update"
+                },
+                {
+                  "_id": "67f37f9e343528b886038623",
+                  "permissionName": "authorize event create"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T18:19:43.666Z",
+              "updatedAt": "2025-04-07T07:37:58.265Z",
+              "__v": 0
+            },
+            {
+              "_id": "67d157bea52db49739770850",
+              "categoryName": "event",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67d15789a9aa2dabb55c1064",
+                  "permissionName": "fetch events paginate"
+                },
+                {
+                  "_id": "67d15789a9aa2dabb55c1063",
+                  "permissionName": "fetch single event"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T09:45:34.323Z",
+              "updatedAt": "2025-03-12T09:45:34.323Z",
+              "__v": 0
+            }
+          ],
+          "archive user": [
+            {
+              "_id": "684939e39358f6c6ab14c010",
+              "categoryName": "archive user",
+              "access": "approve",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c028",
+                  "permissionName": "approve archive user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.249Z",
+              "updatedAt": "2025-06-11T08:10:46.983Z",
+              "__v": 0
+            },
+            {
+              "_id": "684939e39358f6c6ab14c01e",
+              "categoryName": "archive user",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c02a",
+                  "permissionName": "get archived user"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.267Z",
+              "updatedAt": "2025-06-11T08:10:46.977Z",
+              "__v": 0
+            }
+          ],
+          "feedback": [
+            {
+              "_id": "684939e39358f6c6ab14c01a",
+              "categoryName": "feedback",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.259Z",
+              "updatedAt": "2025-06-11T08:10:11.259Z",
+              "__v": 0
+            },
+            {
+              "_id": "684939e39358f6c6ab14c012",
+              "categoryName": "feedback",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "684939e39358f6c6ab14c027",
+                  "permissionName": "get feedback paginate"
+                },
+                {
+                  "_id": "684939e39358f6c6ab14c026",
+                  "permissionName": "get feedback detail"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-11T08:10:11.251Z",
+              "updatedAt": "2025-06-11T08:10:46.986Z",
+              "__v": 0
+            }
+          ],
+          "branch": [
+            {
+              "_id": "68554b1c20ee3e905d65aa09",
+              "categoryName": "branch",
+              "access": "approve",
+              "permissions": [],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-20T11:50:52.345Z",
+              "updatedAt": "2025-06-20T11:50:52.345Z",
+              "__v": 0
+            },
+            {
+              "_id": "68554b1c20ee3e905d65aa05",
+              "categoryName": "branch",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "66d5f3dfa78e369592c012b3",
+                  "permissionName": "get branch"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e02",
+                  "permissionName": "get district by region"
+                },
+                {
+                  "_id": "67507eeb5bf4b873f6af3e01",
+                  "permissionName": "get branch by district"
+                },
+                {
+                  "_id": "68554b1c20ee3e905d65aa19",
+                  "permissionName": "get region"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-06-20T11:50:52.338Z",
+              "updatedAt": "2025-06-21T14:14:51.341Z",
+              "__v": 0
+            }
+          ],
+          "ticket": [
+            {
+              "_id": "67d157bea52db49739770852",
+              "categoryName": "ticket",
+              "access": "view",
+              "permissions": [
+                {
+                  "_id": "67d15789a9aa2dabb55c1062",
+                  "permissionName": "fetch tickets paginate"
+                },
+                {
+                  "_id": "67d15789a9aa2dabb55c1061",
+                  "permissionName": "fetch single ticket"
+                }
+              ],
+              "enabled": true,
+              "isDeleted": false,
+              "createdAt": "2025-03-12T09:45:34.325Z",
+              "updatedAt": "2025-03-12T09:45:34.325Z",
+              "__v": 0
+            }
+          ]
+        },
+        "realm": "bank",
+        "role": "CHECKER",
+        "enabled": true,
+        "isDeleted": false,
+        "createdAt": "2024-12-20T08:19:51.858Z",
+        "lastModified": "2024-12-20T08:19:51.858Z",
+        "__v": 0
+      }
+    ],
+    "permission_category": {
+      "loan": [
+        {
+          "_id": "675d993017d4ca736445dbea",
+          "categoryName": "loan",
+          "access": "create",
+          "permissions": [
+            {
+              "_id": "66cbaeb82ff76f8ef3c70f11",
+              "permissionName": "repay loan",
+              "__v": 0
+            },
+            {
+              "_id": "66dea97f61f0f0eeef66eb6c",
+              "permissionName": "loan manual payment",
+              "__v": 0
+            },
+            {
+              "_id": "66dea97f61f0f0eeef66eb6d",
+              "permissionName": "apply new loan",
+              "__v": 0
+            },
+            {
+              "_id": "66cbaeb82ff76f8ef3c70f21",
+              "permissionName": "request loan",
+              "__v": 0
+            },
+            {
+              "_id": "66dea97f61f0f0eeef66eb66",
+              "permissionName": "create loan offer",
+              "__v": 0
+            }
+          ],
+          "enabled": true,
+          "isDeleted": false,
+          "createdAt": "2024-12-14T14:41:52.025Z",
+          "updatedAt": "2024-12-14T14:41:52.025Z",
+          "__v": 0
+        },
+        {
+          "_id": "675d993017d4ca736445dbec",
+          "categoryName": "loan",
+          "access": "update",
+          "permissions": [
+            {
+              "_id": "66dea97f61f0f0eeef66eb65",
+              "permissionName": "update loan offer",
+              "__v": 0
+            }
+          ],
+          "enabled": true,
+          "isDeleted": false,
+          "createdAt": "2024-12-14T14:41:52.026Z",
+          "updatedAt": "2024-12-14T14:41:52.026Z",
+          "__v": 0
+        },
+        {
+          "_id": "675d993017d4ca736445dc2a",
+          "categoryName": "loan",
+          "access": "view",
+          "permissions": [
+            {
+              "_id": "66dea97f61f0f0eeef66eb67",
+              "permissionName": "get loans",
+              "__v": 0
+            }
+          ],
+          "enabled": true,
+          "isDeleted": false,
+          "createdAt": "2024-12-14T14:41:52.087Z",
+          "updatedAt": "2024-12-14T14:41:52.087Z",
+          "__v": 0
+        }
+      ]
+    }
+  },
+  "message": ""
+}
