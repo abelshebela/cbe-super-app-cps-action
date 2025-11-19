@@ -71,16 +71,12 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 
 func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permission.UpdatePermissionGroupRequest) error {
 
-	if req.OldGroupName == "" {
-		return errors.New(localization.ErrorInvalidRequest.Code)
-	}
-
-	existingGroup, err := s.repo.GetPermissionGroup(req.OldGroupName)
+	existingGroup, err := s.repo.GetPermissionGroupById(ctx, req.Id)
 	if err != nil {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	if req.NewGroupName != "" && req.NewGroupName != req.OldGroupName {
+	if req.NewGroupName != "" && req.NewGroupName != existingGroup.GroupName {
 		if s.repo.CheckPermissionGroupExists(req.NewGroupName) {
 			return errors.New(localization.ErrorPermissionGroupAlreadyExists.Code)
 		}
@@ -91,6 +87,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 		if err != nil {
 			return err
 		}
+
 		if len(validCategories) != len(req.PermissionCategoryLists) {
 			return errors.New(localization.ErrorPermissionCatagoryNotFound.Code)
 		}

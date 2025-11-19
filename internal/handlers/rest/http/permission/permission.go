@@ -136,6 +136,13 @@ func (h *PermissionHandler) GetPermissionGroupById(w http.ResponseWriter, r *htt
 //	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/permissions/{group_name} [put]
 func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http.Request) {
+	// Extract old group name from path first, then validate
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendErrorResponse(w, localization.ErrorGroupNameRequired, nil, nil)
+		return
+	}
+
 	var request permission.UpdatePermissionGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		h.logger.Errorf("[UpdatePermissionGroup] failed to decode request: %v", err)
@@ -143,14 +150,7 @@ func (h *PermissionHandler) UpdatePermissionGroup(w http.ResponseWriter, r *http
 		return
 	}
 
-	// Extract old group name from path first, then validate
-	oldGroupName := chi.URLParam(r, "group_name")
-	if oldGroupName == "" {
-		localization.SendErrorResponse(w, localization.ErrorGroupNameRequired, nil, nil)
-		return
-	}
-	// ensure validator sees the correct old group name
-	request.OldGroupName = oldGroupName
+	request.Id = id
 
 	if err := request.Validate(); err != nil {
 		h.logger.Warnf("[UpdatePermissionGroup] validation failed: %v", err)
