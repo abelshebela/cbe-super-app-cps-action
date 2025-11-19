@@ -11,7 +11,7 @@ var (
 	CPSActionsCollection             = "cps_actions"
 	AuthTierCollection               = "auth_tier"
 	AccountBlockCollection           = "account_block"
-	CardsCollection                  = "cards"
+	CardsCollection                  = "portal_cards"
 	MiniAppsCollection               = "mini_app"
 	MiniAppMerchantCollection        = "mini_app_merchant"
 	AccessListCollection             = "access_lists"
