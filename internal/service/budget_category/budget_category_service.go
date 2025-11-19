@@ -99,6 +99,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestBudgetCreate), constants.CREATE)
 
+	local_util.PrintRecord("CPS action", cpsActionData)
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
 	}

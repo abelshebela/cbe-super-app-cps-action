@@ -66,7 +66,7 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 //	@Tags			Bulk Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		bulk_service.BulkServiceDTO						true	"Bulk service enable request"
+//	@Param			request	body		bulk_service.BulkServiceDTO				true	"Bulk service enable request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bulk services enabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -96,7 +96,7 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 //	@Tags			Bulk Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		bulk_service.BulkServiceDTO						true	"Bulk service disable request"
+//	@Param			request	body		bulk_service.BulkServiceDTO				true	"Bulk service disable request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bulk services disabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"

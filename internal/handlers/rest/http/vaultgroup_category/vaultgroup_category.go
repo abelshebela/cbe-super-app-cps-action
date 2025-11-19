@@ -31,7 +31,7 @@ func InitVaultGroupCategoryHandler(svc service.VaultGroupCategoryService, logger
 //	@Tags			Vault Group Category
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		vaultgroup_category.CreateVaultGroupCategoryRequest	true	"Vault group category request"
+//	@Param			request	body		vaultgroupcategory.CreateVaultGroupCategoryRequest	true	"Vault group category request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault group category creation request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
@@ -128,7 +128,7 @@ func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) 
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string												true	"Vault group category ID"
-//	@Param			request	body		vaultgroup_category.UpdateVaultGroupCategoryRequest	true	"Vault group category request"
+//	@Param			request	body		vaultgroupcategory.UpdateVaultGroupCategoryRequest	true	"Vault group category request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault group category update request submitted successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
