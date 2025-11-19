@@ -15,6 +15,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"time"
 
+	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
+	vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
+
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	budgetCategorySvc "cbe-super-app-cps-action/internal/service/budget_category"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
@@ -60,106 +63,42 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-type ServiceLayer struct {
-	EventService      service.EventService
-	BulkService       service.BulkService
-	CustomerService   service.CustomerService
-	CPSAction         service.CPSActionService
-	Feedback          service.FeedbackService
-	Unlink            service.UnlinkService
-	BpsUser           service.BPSUserService
-	BudgetCategory    service.BudgetCategoryService
-	Bank              service.BankService
-	PortalCard        service.PortalCardService
-	Advert            service.AdvertService
-	ValidationService service.AccountValidationService
-	Wallet            service.WalletService
-	Topup             service.TopupService
-	MiniAppMerchant   service.MiniAppMerchantService
-	AccountBlock      service.AccountBlockService
-	Department        service.DepartmentService
-	PasswordRule      service.PasswordRuleService
-	HQService         service.HQService
-	MiniAppService    service.MiniAppService
-	Fayda             service.FaydaAccountService
-	Avatar            service.AvatarService
-	AmountBasedAuth   service.AmountBasedAuthService
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, redis storage.RedisRepository, smsService external_call.SMSPersistence) service.ServiceLayer {
 
-	Permission        service.PermissionService
-	CPSUser           service.CPSUserService
-	ServiceDetails    service.ServiceService
-	AccountValidation service.AccountValidationService
-	ProductCode       service.ProductCodeService
-
-	DonationCategory service.DonationCategoryService
-	DonationCompany  service.DonationCompanyService
-	Donation         service.DonationService
-
-	NotificationService    service.NotificationService
-	ArticleService         service.ArticleService
-	ArticleCategoryService service.ArticleCategoryService
-	ShortVideoService      service.ShortVideoService
-	NewsTagService         service.NewsTagService
-	NewsCategoryService    service.NewsCategoryService
-	Sitota                 service.SitotaService
-	KYCVerifier            service.KYCVerifierService
-	NewsTagsService        service.NewsTagsService
-	DeviceVersion          service.DeviceVersionServiceSrv
-	Encryption             service.EncryptionService
-}
-
-var advertBucketName = "advert-bucket"
-
-func InitServiceLayer(
-	mongoClient *mongo.Client,
-	persistence persistance.Persistence,
-	logger utils.Logger,
-	sessionGRPCClient session.SessionServiceClient,
-	sitotagRPCClient transactionpb.TransactionServiceClient,
-	cfg *config.VaultConfig,
-	minioClient config.MinioClientInterface,
-	redis storage.RedisRepository,
-	smsService external_call.SMSPersistence,
-) ServiceLayer {
-	const minioPubUrl = "https://assetscbedev.eaglelionsystems.com"
+	// Initiate Service Layer
+	// Assign variable for minio public url
+	minioPubUrl := cfg.MinioPublicEndPoint
 
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CBEBaseURL, time.Duration(cfg.ServerTimeout))
-	// Create CPS action service with the dispatcher
-	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger)
-	// accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup)
 	keygenService := keygen.NewKeyGenerator(logger, cfg)
-
-	// -----------------------------
-	// Step 1: initialize services with nil CPSAction
-	// -----------------------------
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
-	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, "avatar", minioPubUrl)
+	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, AvatarsBucketName, minioPubUrl)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
-	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, "events", cfg, logger)
+	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl, EventsBucketName, cfg, logger)
 	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)
 	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, nil, logger)
-	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, "banks")
-	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, "wallets", cfg, logger)
-	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, "topups", cfg, logger)
+	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, BanksBucketName)
+	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, WalletsBucketName, cfg, logger)
+	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, TopUpsBucketName, cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil)
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)
-	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, nil, persistence.MiniAppPersistence, logger, accountLookupAdapter)
-	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, "miniapps", cfg, logger)
+	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, nil, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
+	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, MiniAppsBucketName, cfg, logger)
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)
-	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, "", advertBucketName, cfg, logger)
+	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, "", AdvertBucketName, cfg, logger)
 	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger)
-	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
-	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl, accountLookupAdapter)
-	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, "donation", cfg, minioPubUrl)
+	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, DonationsBucketName, cfg, minioPubUrl)
+	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, DonationsBucketName, cfg, minioPubUrl, accountLookupAdapter)
+	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, DonationsBucketName, cfg, minioPubUrl)
 	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, nil, persistence.LinkedAccountPersistence, *cfg, logger)
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, nil, logger)
-	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, "budget_category", cfg, minioPubUrl)
+	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, BudgetCategoryBucketName, cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, nil, logger)
 	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
-	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient, "amount_based_auth", cfg, logger)
+	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient, AmountBasedAuthBucketName, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
@@ -168,13 +107,14 @@ func InitServiceLayer(
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
-
+	deviceVersionService := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, nil, logger)
 	sitotaService := sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
+	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
+	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger)
+	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
-	// -----------------------------
-	// Step 2: wire CPSAction
-	// -----------------------------
+	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
 		EventContainer:             eventService,
 		FeedbackContainer:          feedbackService,
@@ -203,7 +143,7 @@ func InitServiceLayer(
 		AmountBasedAuthContainer:   amountBased,
 		AvatarDomian:               avatarService,
 		NotificationService:        notificationsvc,
-		ProductCodeService:         productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger),
+		ProductCodeService:         productCodeService,
 		DonationContainer:          donationService,
 		DonationCategoryContainer:  donationCategoryService,
 		DonationCompanyContainer:   donationCompanyService,
@@ -214,91 +154,58 @@ func InitServiceLayer(
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
 		KYCVerifierContainer:       kycService,
+		DeviceVersionContainer:     deviceVersionService,
 		NewsTagsServiceContainer:   newsTagsService,
 		EncryptionContainer:        encryptionService,
+		BankProductContainer:       bankVaultProductService,
+		VaultCategoryContainer:     vaultGroupCategoryService,
 	}
 
+	// CPSActionService Appended
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
-
-	// -----------------------------
-	// Step 3: update CPSAction-dependent services
-	// -----------------------------
-	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, "events", cfg, logger)
+	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, EventsBucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
-	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, "banks")
-	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, minioPubUrl, "wallets", cfg, logger)
-	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, "topups", cfg, logger)
+	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, BanksBucketName)
+	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, minioPubUrl, WalletsBucketName, cfg, logger)
+	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, TopUpsBucketName, cfg, logger)
 	accountBlockService = accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
 	departmentService = department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule = password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService = hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
-	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, logger, accountLookupAdapter)
-	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, "miniapps", cfg, logger)
+	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, MiniAppsBucketName, cfg, logger)
+	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	faydaService = fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
-	adService = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
+	adService = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, AdvertBucketName, cfg, logger)
 	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
-	donationCategoryService = donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, cpsActionService, logger, minioClient, "donation_icon", cfg, minioPubUrl)
-	donationCompanyService = donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation_company_logo", cfg, minioPubUrl, accountLookupAdapter)
-	donationService = donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, "donation", cfg, minioPubUrl)
-	serviceContainer.DonationContainer = donationService
-	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
-	serviceContainer.ServiceCheckContainer = serviceDetails
-
-	permissionService = permission.InitPermissionService(
-		persistence.PermissionPersistence,
-		cpsActionService,
-		logger,
-	)
+	donationCategoryService = donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, cpsActionService, logger, minioClient, DonationIconsBucketName, cfg, minioPubUrl)
+	donationCompanyService = donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, DonationCompanysLogoBucketName, cfg, minioPubUrl, accountLookupAdapter)
+	donationService = donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, DonationsBucketName, cfg, minioPubUrl)
+	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, cpsActionService, logger)
 	serviceContainer.PermissionContainer = permissionService
 
-	cpsUserService = cpsusersvc.NewCPSUserService(
-		persistence.CpsUserPersistence,
-		persistence.DepartmentPersistence, // Use actual department repository
-		permissionService,
-		cpsActionService,
-		logger,
-	)
+	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	serviceContainer.CPSUserContainer = cpsUserService
 
-	// Device Version service with CPS wired
-	deviceVersionSvc := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
-	serviceContainer.DeviceVersionContainer = deviceVersionSvc
-
-	serviceContainer.BudgetCategoryContainer = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, "budget_category", cfg, minioPubUrl)
-
+	deviceVersionService = deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
+	serviceContainer.DeviceVersionContainer = deviceVersionService
+	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, BudgetCategoryBucketName, cfg, minioPubUrl)
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
-
 	serviceContainer.BPSUserContainer = bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger)
-
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
-
-	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, advertBucketName, cfg, logger)
-
-	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
-
-	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, "avatar", minioPubUrl)
+	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, AdvertBucketName, cfg, logger)
+	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl)
+	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, cpsActionService, logger)
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
-	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, "amount_based_auth", cfg, logger)
+	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, AmountBasedAuthBucketName, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
 
-	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
-	serviceContainer.KYCVerifierContainer = kycService
-
-	// bankVaultSvc := bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
-	// serviceContainer.BankVaultContainer = bankVaultSvc
-
-	// vaultGroupSvc := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger)
-	// serviceContainer.VaultGroupCategoryContainer = vaultGroupSvc
-
-	// Rebuild dispatcher with the fully wired container so approvals route to BankVault
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	serviceContainer.CPSActionContainer = cpsActionService
-	// Update miniAppMerchantService with the CPS action service
-	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, logger, accountLookupAdapter)
+	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
@@ -320,10 +227,11 @@ func InitServiceLayer(
 	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 
-	// -----------------------------
-	// Step 4: return fully wired layer
-	// -----------------------------
-	return ServiceLayer{
+	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
+	vaultGroupCategoryService = vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger)
+	productCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
+
+	return service.ServiceLayer{
 		CPSAction:              cpsActionService,
 		Feedback:               feedbackService,
 		EventService:           eventService,
@@ -354,7 +262,7 @@ func InitServiceLayer(
 		Donation:               donationService,
 		DonationCategory:       donationCategoryService,
 		DonationCompany:        donationCompanyService,
-		ProductCode:            productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger),
+		ProductCode:            productCodeService,
 		NotificationService:    notificationsvc,
 		ArticleService:         articleService,
 		ArticleCategoryService: articleCategoryService,
@@ -364,7 +272,9 @@ func InitServiceLayer(
 		Sitota:                 sitotaService,
 		KYCVerifier:            kycService,
 		NewsTagsService:        newsTagsService,
-		DeviceVersion:          deviceVersionSvc,
+		DeviceVersion:          deviceVersionService,
 		Encryption:             encryptionService,
+		BankVault:              bankVaultProductService,
+		VaultGroupCategory:     vaultGroupCategoryService,
 	}
 }

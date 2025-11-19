@@ -107,7 +107,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	new_department := model.Department{
 		Department:  department.Department,
 		PortalCards: department.PortalCards,
-		Enabled: true,
+		Enabled:     true,
 	}
 
 	new_department.DepartmentCode = utils.RandomGenerator(20)

@@ -9,7 +9,7 @@ import (
 
 type BPSUser struct {
 	ID                bson.ObjectID   `json:"id" bson:"_id,omitempty"`
-	UserCode          string          `json:"user_code" bson:"user_code"` 
+	UserCode          string          `json:"user_code" bson:"user_code"`
 	FullName          string          `json:"full_name" bson:"full_name"`
 	UserName          string          `json:"username" bson:"username"`
 	PhoneNumber       string          `json:"phone_number" bson:"phone_number"`

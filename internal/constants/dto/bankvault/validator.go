@@ -49,7 +49,7 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 		),
 		validation.Field(&r.LockPeriodDays,
 			validation.Required,
-			// validation.Min(int64(1)),
+			validation.Match(regexp.MustCompile(`^\d+(d|m|y)$`)).Error("must be a number followed by 'd', 'm', or 'y'"),
 		),
 		validation.Field(&r.MinAmount, validation.By(func(value interface{}) error {
 			if v, ok := value.(decimal.Decimal); ok {
@@ -83,17 +83,6 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 				}
 				if v.LessThan(decimal.Zero) {
 					return errors.New("rate_bps must be >= 0")
-				}
-			}
-			return nil
-		})),
-		validation.Field(&r.EarlyUnlockFeeBps, validation.By(func(value interface{}) error {
-			if v, ok := value.(decimal.Decimal); ok {
-				if v.Equal(decimal.Zero) {
-					return errors.New("early_unlock_fee_bps cannnot be empty")
-				}
-				if v.LessThan(decimal.Zero) {
-					return errors.New("early_unlock_fee_bps must be >= 0")
 				}
 			}
 			return nil

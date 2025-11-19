@@ -3,6 +3,7 @@ package persistance
 import (
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call"
+	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
 	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -11,6 +12,7 @@ import (
 type Persistence struct {
 	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
 	AccountLookup                   core.CBECoreAPIInterface
+	MerchantLookup                  merchant_lookup.MerchantLookupAdapter
 	MongoClient                     *mongo.Client
 	UserPersistence                 storage.UserRepository
 	UnlinkAccountPersistence        storage.UnlinkAccount
@@ -20,7 +22,7 @@ type Persistence struct {
 	ResetSessionPersistence         storage.ResetSessionRepository
 	SMSSenderApi                    external_call.SMSPersistence
 	CPSAction                       storage.CPSActionRepository
-	AdvertPersistence               storage.AccountAPIPort
+	AdvertPersistence               storage.AdvertRepository
 	AmountBasedAuthPersistence      storage.AmountBasedAuthRepository
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
@@ -32,11 +34,9 @@ type Persistence struct {
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
-
-	BudgetCategoryPersistence storage.BudgetCategoryRepository
-
-	RedisService storage.RedisRepository
-
+	BudgetCategoryPersistence       storage.BudgetCategoryRepository
+	RedisService                    storage.RedisRepository
+	IconPersistence                 storage.IconRepository
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
 	AvatarPersistence                storage.AvatarRepository
@@ -51,7 +51,6 @@ type Persistence struct {
 	DonationCategoryPersistence      storage.DonationCategoryRepository
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
-	IconPersistence                  storage.IconRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
 	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
 	NotificationPersistence          storage.NotificationRepository

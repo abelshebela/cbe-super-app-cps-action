@@ -4,18 +4,18 @@
 
 package sqlc
 
-// import (
-// 	"context"
-// )
+import (
+	"context"
+)
 
-// type Querier interface {
-// 	ActivateBankVault(ctx context.Context, id string) (string, error)
-// 	DeactivateBankVault(ctx context.Context, id string) (string, error)
-// 	DeleteBankVault(ctx context.Context, id string) (string, error)
-// 	FindBankVault(ctx context.Context, arg FindBankVaultParams) ([]FindBankVaultRow, error)
-// 	FindBankVaultById(ctx context.Context, id string) (BankVaultProduct, error)
-// 	SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error)
-// 	UpdateBankVault(ctx context.Context, arg UpdateBankVaultParams) (string, error)
-// }
+type Querier interface {
+	ActivateBankVault(ctx context.Context, id string) (string, error)
+	DeactivateBankVault(ctx context.Context, id string) (string, error)
+	DeleteBankVault(ctx context.Context, id string) (string, error)
+	FindBankVault(ctx context.Context, arg FindBankVaultParams) ([]FindBankVaultRow, error)
+	FindBankVaultById(ctx context.Context, id string) (BankVaultProduct, error)
+	SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error)
+	UpdateBankVault(ctx context.Context, arg UpdateBankVaultParams) (string, error)
+}
 
-// var _ Querier = (*Queries)(nil)
+var _ Querier = (*Queries)(nil)

@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -26,8 +25,6 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
-
-	fmt.Printf("RequestAction: %v", action)
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
@@ -80,17 +77,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "AmountBasedAuth"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "BudgetCategory"):
-		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
-
-	case IsActionInGroup(RequestAction(action), "BankVault"):
-		if d.app.BankVaultContainer == nil {
-			return nil, fmt.Errorf("BANKVAULT_SERVICE_NOT_WIRED")
-		}
-		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
-
-	// a
-
 	case IsActionInGroup(RequestAction(action), "BulkService"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 
@@ -122,9 +108,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "CPSUser"):
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "BankVault"):
-		return d.app.BankVaultContainer.Authorize(ctx, cpsAction)
+		return d.app.BankProductContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "VaultGroupCategory"):
-		return d.app.VaultGroupCategoryContainer.Authorize(ctx, cpsAction)
+		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "article"):
 		return d.app.ArticleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "articleCategory"):

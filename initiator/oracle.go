@@ -8,11 +8,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// _ "github.com/godror/godror"
+	_ "github.com/godror/godror"
 	"go.uber.org/zap"
 )
 
-func InitOracle1(url string, logger utils.Logger) *sql.DB {
+func InitOracle(url string, logger utils.Logger) *sql.DB {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -23,7 +23,6 @@ func InitOracle1(url string, logger utils.Logger) *sql.DB {
 
 	userPass := strings.Split(values[0], "/")
 	if len(userPass) != 2 {
-		// logger.Fatal(ctx, "invalid oracle connection URL format - missing user/password", zap.String("url", url))
 		logger.Fatalf("invalid oracle connection URL format - missing user/password", zap.String("url", url))
 	}
 

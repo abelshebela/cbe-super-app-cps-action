@@ -6,6 +6,7 @@ import (
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
+	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -81,6 +82,7 @@ type CPSUserService interface {
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
+	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error)
 }
 
 type NotificationService interface {
@@ -209,6 +211,7 @@ type MiniAppMerchantService interface {
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	MerchantLookup(ctx context.Context, merchantID string) (*merchant_lookup.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
@@ -377,54 +380,101 @@ type KeyGeneratorService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type ServiceLayer struct {
+	EventService           EventService
+	BulkService            BulkService
+	CustomerService        CustomerService
+	CPSAction              CPSActionService
+	Feedback               FeedbackService
+	Unlink                 UnlinkService
+	BpsUser                BPSUserService
+	BudgetCategory         BudgetCategoryService
+	Bank                   BankService
+	PortalCard             PortalCardService
+	Advert                 AdvertService
+	ValidationService      AccountValidationService
+	Wallet                 WalletService
+	Topup                  TopupService
+	MiniAppMerchant        MiniAppMerchantService
+	AccountBlock           AccountBlockService
+	Department             DepartmentService
+	PasswordRule           PasswordRuleService
+	HQService              HQService
+	MiniAppService         MiniAppService
+	Fayda                  FaydaAccountService
+	Avatar                 AvatarService
+	AmountBasedAuth        AmountBasedAuthService
+	Permission             PermissionService
+	CPSUser                CPSUserService
+	ServiceDetails         ServiceService
+	AccountValidation      AccountValidationService
+	ProductCode            ProductCodeService
+	BankVault              BankVaultService
+	VaultGroupCategory     VaultGroupCategoryService
+	DonationCategory       DonationCategoryService
+	DonationCompany        DonationCompanyService
+	Donation               DonationService
+	NotificationService    NotificationService
+	ArticleService         ArticleService
+	ArticleCategoryService ArticleCategoryService
+	ShortVideoService      ShortVideoService
+	NewsTagService         NewsTagService
+	NewsCategoryService    NewsCategoryService
+	Sitota                 SitotaService
+	KYCVerifier            KYCVerifierService
+	NewsTagsService        NewsTagsService
+	DeviceVersion          DeviceVersionServiceSrv
+	Encryption             EncryptionService
+}
+
 type ServiceContainer struct {
-	AccountBlockContainer       AccountBlockService
-	AccountContainer            AccountValidationService
-	ActionContainer             ActionService
-	AdContainer                 AdvertService
-	AmountBasedAuthContainer    AmountBasedAuthService
-	AvatarDomian                AvatarService
-	BankContainer               BankService
-	BPSUserContainer            BPSUserService
-	BudgetCategoryContainer     BudgetCategoryService
-	CPSActionContainer          CPSActionService
-	CPSUserContainer            CPSUserService
-	CustomerContainer           CustomerService
-	DepartmentContainer         DepartmentService
-	EventContainer              EventService // fully not ready
-	FaydaContainer              FaydaAccountService
-	FeedbackContainer           FeedbackService
-	HQContainer                 HQService
-	MiniAppContainer            MiniAppService
-	PasswordRuleContainer       PasswordRuleService
-	PermissionContainer         PermissionService
-	PortalCardContainer         PortalCardService
-	UnlinkContainer             UnlinkService
-	WalletContainer             WalletService
-	TopupContainer              TopupService
-	MiniAppMerchantContainer    MiniAppMerchantService
-	AccountLookup               AccountSearchService
-	BulkServiceContainer        BulkService
-	ServiceCheckContainer       ServiceService
-	DeviceVersionContainer      DeviceVersionServiceSrv
-	KeyGenService               KeyGeneratorService
-	NotificationService         NotificationService
-	ProductCodeService          ProductCodeService
-	DonationContainer           DonationService
-	Unlink                      UnlinkService
-	DonationCategoryContainer   DonationCategoryService
-	DonationCompanyContainer    DonationCompanyService
-	BankVaultContainer          BankVaultService
-	VaultGroupCategoryContainer VaultGroupCategoryService
-	ArticleContainer            ArticleService
-	ArticleCategoryContainer    ArticleCategoryService
-	ShortVideoServiceContainer  ShortVideoService
-	NewsTagContainer            NewsTagService
-	NewsCategoryContainer       NewsCategoryService
-	SitotaContainer             SitotaService
-	KYCVerifierContainer        KYCVerifierService
-	NewsTagsServiceContainer    NewsTagsService
-	EncryptionContainer         EncryptionService
+	AccountBlockContainer      AccountBlockService
+	AccountContainer           AccountValidationService
+	ActionContainer            ActionService
+	AdContainer                AdvertService
+	AmountBasedAuthContainer   AmountBasedAuthService
+	AvatarDomian               AvatarService
+	BankContainer              BankService
+	BPSUserContainer           BPSUserService
+	BudgetCategoryContainer    BudgetCategoryService
+	CPSActionContainer         CPSActionService
+	CPSUserContainer           CPSUserService
+	CustomerContainer          CustomerService
+	DepartmentContainer        DepartmentService
+	EventContainer             EventService // fully not ready
+	FaydaContainer             FaydaAccountService
+	FeedbackContainer          FeedbackService
+	HQContainer                HQService
+	MiniAppContainer           MiniAppService
+	PasswordRuleContainer      PasswordRuleService
+	PermissionContainer        PermissionService
+	PortalCardContainer        PortalCardService
+	UnlinkContainer            UnlinkService
+	WalletContainer            WalletService
+	TopupContainer             TopupService
+	MiniAppMerchantContainer   MiniAppMerchantService
+	AccountLookup              AccountSearchService
+	BulkServiceContainer       BulkService
+	ServiceCheckContainer      ServiceService
+	DeviceVersionContainer     DeviceVersionServiceSrv
+	KeyGenService              KeyGeneratorService
+	NotificationService        NotificationService
+	ProductCodeService         ProductCodeService
+	DonationContainer          DonationService
+	Unlink                     UnlinkService
+	DonationCategoryContainer  DonationCategoryService
+	DonationCompanyContainer   DonationCompanyService
+	ArticleContainer           ArticleService
+	ArticleCategoryContainer   ArticleCategoryService
+	ShortVideoServiceContainer ShortVideoService
+	NewsTagContainer           NewsTagService
+	NewsCategoryContainer      NewsCategoryService
+	SitotaContainer            SitotaService
+	KYCVerifierContainer       KYCVerifierService
+	NewsTagsServiceContainer   NewsTagsService
+	EncryptionContainer        EncryptionService
+	BankProductContainer       BankVaultService
+	VaultCategoryContainer     VaultGroupCategoryService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

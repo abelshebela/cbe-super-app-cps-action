@@ -457,6 +457,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableNewsTag:  {},
 	RequestDisableNewsTag: {},
 	RequestDeleteNewsTag:  {},
+
+	RequestCreateDeviceVersion:        {},
+	RequestUpdateDeviceVersion:        {},
+	RequestEnableDeviceVersion:        {},
+	RequestDisableDeviceVersion:       {},
+	RequestDeleteDeviceVersion:        {},
+	RequestEnableDisableDeviceVersion: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {

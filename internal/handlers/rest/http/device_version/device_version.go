@@ -62,7 +62,6 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 		return
 	}
 	req.ID = id
-	req.Platform = strings.ToUpper(req.Platform)
 	req.Clean()
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[UpdateDeviceVersion] validation: %v", err)

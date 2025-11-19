@@ -12,13 +12,12 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
-	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 
-	// bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
-	// vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
+	bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	budgetCategory "cbe-super-app-cps-action/internal/glue/routing/budget_category"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
@@ -30,6 +29,7 @@ import (
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
+	vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
@@ -113,8 +113,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
-	// bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
-	// vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
+	bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
+	vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
 
 	donation.Init(r, handlerLayer.DonationHandler, authMiddleware)
 	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)

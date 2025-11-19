@@ -14,8 +14,9 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -53,9 +54,9 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 		IsDeleted:         old.IsDeleted,
 		CreatedAt:         old.CreatedAt,
 		LastModifiedAt:    now,
-		KYC: model.KYC{
+		KYC: types.KYC{
 			Status: old.KYC.Status,
-			Representative: model.KYCInformation{
+			Representative: types.KYCInformation{
 				Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
 				Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
 				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
@@ -128,7 +129,6 @@ func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppReposito
 	}
 }
 
-
 func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
 		AccountNumber: accountNumber,
@@ -148,8 +148,8 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 func CheckMerchantExists(
 	ctx context.Context,
 	merchantRepo storage.MiniAppMerchantRepository,
-	data *model.CheckMiniAppMerchant,
-	opts *model.MiniAppMerchantExistOptions,
+	data *types.CheckMiniAppMerchant,
+	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
 	if data == nil {
 		return false, nil
@@ -186,11 +186,11 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-	if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
-		return false, nil
+		if err.Error() == localization.ErrorMiniAppMerchantNotFound.Code {
+			return false, nil
+		}
+		return false, err
 	}
-	return false, err
-}
 
 	if res == nil {
 		return false, nil
