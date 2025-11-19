@@ -97,11 +97,6 @@ type SessionGRPCPort interface {
 	Close() error
 }
 
-type AccountAPIPort interface {
-	LookupAccountByPhone(ctx context.Context, phoneNumber string, PhoneLookupUrl string) (bool, error)
-	LookupAccountByAccountNumber(ctx context.Context, account model.AccountLookUpRequest) (*model.AccountInfo, error)
-}
-
 type DeviceVersionControlRepository interface {
 	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
 	FindOne(ctx context.Context, filter bson.M) (model.DeviceVersionControl, error)
@@ -331,15 +326,6 @@ type FeedbackRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*feedback.FeedbackResponse], error)
 }
 
-type IconRepository interface {
-	Create(ctx context.Context, icon *model.Icon) error
-	Update(ctx context.Context, id string, icon *model.Icon) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Icon, error)
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
-}
-
 type LinkedAccountRepository interface {
 	Create(ctx context.Context, account *model.LinkedAccount) error
 	Update(ctx context.Context, id string, account *model.LinkedAccount) error
@@ -549,4 +535,13 @@ type NewsTagsRepository interface {
 	Update(ctx context.Context, newsTag *model.NewsTags, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableDisable(ctx context.Context, id string, isEnable bool) error
+}
+
+type IconRepository interface {
+	Create(ctx context.Context, icon *model.Icon) error
+	Update(ctx context.Context, id string, icon *model.Icon) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.Icon, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
 }

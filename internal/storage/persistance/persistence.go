@@ -22,7 +22,7 @@ type Persistence struct {
 	ResetSessionPersistence         storage.ResetSessionRepository
 	SMSSenderApi                    external_call.SMSPersistence
 	CPSAction                       storage.CPSActionRepository
-	AdvertPersistence               storage.AccountAPIPort
+	AdvertPersistence               storage.AdvertRepository
 	AmountBasedAuthPersistence      storage.AmountBasedAuthRepository
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
@@ -36,7 +36,7 @@ type Persistence struct {
 	BulkService                     storage.BulkServiceRepository
 	BudgetCategoryPersistence       storage.BudgetCategoryRepository
 	RedisService                    storage.RedisRepository
-
+	IconPersistence                 storage.IconRepository
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
 	AvatarPersistence                storage.AvatarRepository
@@ -51,7 +51,6 @@ type Persistence struct {
 	DonationCategoryPersistence      storage.DonationCategoryRepository
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
-	IconPersistence                  storage.IconRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
 	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
 	NotificationPersistence          storage.NotificationRepository
