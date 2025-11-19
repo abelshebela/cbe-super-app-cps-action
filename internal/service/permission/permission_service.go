@@ -70,7 +70,6 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 }
 
 func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permission.UpdatePermissionGroupRequest) error {
-
 	existingGroup, err := s.repo.GetPermissionGroupById(ctx, req.Id)
 	if err != nil {
 		return errors.New(localization.ErrorResourceNotFound.Code)
