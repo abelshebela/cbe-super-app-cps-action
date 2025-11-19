@@ -14,6 +14,7 @@ type CreatePermissionGroupRequest struct {
 }
 
 type UpdatePermissionGroupRequest struct {
+	Id                      string   `json:"id"`
 	OldGroupName            string   `json:"old_group_name"`
 	NewGroupName            string   `json:"new_group_name"`
 	Role                    string   `json:"role"`
