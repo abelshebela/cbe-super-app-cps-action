@@ -47,7 +47,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
-	if err != nil {
+	if err != nil || data == nil {
 		return err
 	}
 	approve, err := ca.dispatcher.Authorize(ctx, data)
