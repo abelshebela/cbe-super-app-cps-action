@@ -43,7 +43,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
-	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
