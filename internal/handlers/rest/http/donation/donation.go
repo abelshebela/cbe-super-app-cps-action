@@ -168,11 +168,11 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 //	@Tags			Donation
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		string														true	"Donation ID"
-//	@Success		200	{object}	localization.StandardResponse{data=dto.DonationResponse}	"Donation retrieved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}						"Bad request"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}						"Not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}						"Internal server error"
+//	@Param			id	path		string															true	"Donation ID"
+//	@Success		200	{object}	localization.StandardResponse{data=donation.DonationResponse}	"Donation retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}							"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}							"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/donation/{id} [get]
 func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Request) {
@@ -246,7 +246,7 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string									true	"Donation ID"
-//	@Param			request	body		dto.DonationImageDeleteRequest			true	"Image delete request"
+//	@Param			request	body		donation.DonationImageDeleteRequest		true	"Image delete request"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Donation image delete request sent successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"

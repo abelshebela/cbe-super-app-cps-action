@@ -237,6 +237,7 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 
 	updated := *prev
 	updated.Enabled = true
+	updated.LoginAttemptCount = 0
 	updated.PasswordDisable = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -289,20 +290,38 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
-	if userCode == "" {
-		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
-	}
+    if userCode == "" {
+        return nil, errors.New(localization.ErrorUserCodeRequired.Code)
+    }
 
-	user, err := s.repo.GetPopulatedByID(ctx, userCode)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
-		return nil, err
-	}
+    user, err := s.repo.GetPopulatedByID(ctx, userCode)
+    if err != nil {
+        if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
+            return nil, errors.New(localization.ErrorResourceNotFound.Code)
+        }
+        return nil, err
+    }
 
-	return user, nil
+    return user, nil
 }
+
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error) {
+    if userCode == "" {
+        return nil, errors.New(localization.ErrorUserCodeRequired.Code)
+    }
+
+    populated, err := s.repo.GetPopulatedByID(ctx, userCode)
+    if err != nil {
+        if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
+            return nil, errors.New(localization.ErrorResourceNotFound.Code)
+        }
+        return nil, err
+    }
+
+    detail := cpsuser.BuildCpsUserDetail(populated)
+    return detail, nil
+}
+
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
 	if filter == nil {
 		f := types.Filter{}
