@@ -34,6 +34,7 @@ import (
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
+	"cbe-super-app-cps-action/internal/service"
 
 	// Handler section
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
@@ -126,7 +127,7 @@ type Handler struct {
 	DeviceVersionHandler      dviface.DeviceVersionHandler
 }
 
-func InitHandler(serviceLayer ServiceLayer, logger utils.Logger) Handler {
+func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
 	pcs := serviceLayer.ProductCode
 	return Handler{
 

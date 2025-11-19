@@ -380,6 +380,53 @@ type KeyGeneratorService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type ServiceLayer struct {
+	EventService           EventService
+	BulkService            BulkService
+	CustomerService        CustomerService
+	CPSAction              CPSActionService
+	Feedback               FeedbackService
+	Unlink                 UnlinkService
+	BpsUser                BPSUserService
+	BudgetCategory         BudgetCategoryService
+	Bank                   BankService
+	PortalCard             PortalCardService
+	Advert                 AdvertService
+	ValidationService      AccountValidationService
+	Wallet                 WalletService
+	Topup                  TopupService
+	MiniAppMerchant        MiniAppMerchantService
+	AccountBlock           AccountBlockService
+	Department             DepartmentService
+	PasswordRule           PasswordRuleService
+	HQService              HQService
+	MiniAppService         MiniAppService
+	Fayda                  FaydaAccountService
+	Avatar                 AvatarService
+	AmountBasedAuth        AmountBasedAuthService
+	Permission             PermissionService
+	CPSUser                CPSUserService
+	ServiceDetails         ServiceService
+	AccountValidation      AccountValidationService
+	ProductCode            ProductCodeService
+	BankVault              BankVaultService
+	VaultGroupCategory     VaultGroupCategoryService
+	DonationCategory       DonationCategoryService
+	DonationCompany        DonationCompanyService
+	Donation               DonationService
+	NotificationService    NotificationService
+	ArticleService         ArticleService
+	ArticleCategoryService ArticleCategoryService
+	ShortVideoService      ShortVideoService
+	NewsTagService         NewsTagService
+	NewsCategoryService    NewsCategoryService
+	Sitota                 SitotaService
+	KYCVerifier            KYCVerifierService
+	NewsTagsService        NewsTagsService
+	DeviceVersion          DeviceVersionServiceSrv
+	Encryption             EncryptionService
+}
+
 type ServiceContainer struct {
 	AccountBlockContainer      AccountBlockService
 	AccountContainer           AccountValidationService
