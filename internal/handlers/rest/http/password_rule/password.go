@@ -34,7 +34,7 @@ func InitPasswordRuleHandler(service service.PasswordRuleService, logger utils.L
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
 //	@Param			per_page	query		int	false	"Items per page"
-//	@Success		200			{object}	localization.StandardResponse{data=dto.PaginatedPasswordRulesResponse}
+//	@Success		200			{object}	localization.StandardResponse{data=passwordrule.PaginatedPasswordRulesResponse}
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/password_rule/ [get]
 func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Request) {
@@ -58,8 +58,8 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id				path		string					true	"Password Rule ID"
-//	@Param			body			body		dto.PasswordRuleUpdate	true	"Password Rule Update DTO"
+//	@Param			id				path		string							true	"Password Rule ID"
+//	@Param			body			body		passwordrule.PasswordRuleUpdate	true	"Password Rule Update DTO"
 //	@Success		200				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/password_rule/{id} [put]
@@ -101,7 +101,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body			body		dto.CheckPasswordDTO	true	"Check Password DTO"
+//	@Param			body			body		passwordrule.CheckPasswordDTO	true	"Check Password DTO"
 //	@Success		200				{object}	object{status=int,message=string,data=object{valid=bool}}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/password_rule/check [post]

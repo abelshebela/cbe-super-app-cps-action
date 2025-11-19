@@ -30,11 +30,11 @@ type PermissionPersistence struct {
 
 var _ storage.PermissionRepository = (*PermissionPersistence)(nil)
 
-func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
-	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, "permission_groups")
-	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, "permission_category")
-	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, "permission")
-	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
+func InitPermission(client *mongo.Client, dbName string, collections []string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
+	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, collections[0])
+	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, collections[1])
+	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, collections[2])
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[3])
 
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,

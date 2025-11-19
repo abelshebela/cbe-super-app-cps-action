@@ -145,6 +145,7 @@ func UploadFileToMinio(
 	// Ensure bucket exists
 	exist, err := uploader.BucketExist(ctx, bucketName)
 	if err != nil {
+		fmt.Println("=====fileName=====", bucketName, err)
 		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}

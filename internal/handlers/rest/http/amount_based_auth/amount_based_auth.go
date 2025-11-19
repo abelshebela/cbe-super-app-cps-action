@@ -63,13 +63,13 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 //	@Tags			Amount-Based-Auth
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path		string												true	"Tier ID"
-//	@Param			method	path		string												true	"Method"			Enums(OPEN,PIN,OTP_PIN)
-	//	@Param			request	body		amount_based_auth.UpdateAmountBasedAuthRequest	true	"Update payload"	example({"min_amount":100,"max_amount":1000})
-//	@Success		200		{object}	localization.StandardResponse{data=nil}				"Update request sent"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Invalid parameters or payload"
-//	@Failure		404		{object}	localization.StandardResponse{data=nil}				"Tier not found"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Server error"
+//	@Param			id		path		string											true	"Tier ID"
+//	@Param			method	path		string											true	"Method"			Enums(OPEN,PIN,OTP_PIN)
+//	@Param			request	body		amount_based_auth.UpdateAmountBasedAuthRequest	true	"Update payload"	example({"min_amount":100,"max_amount":1000})
+//	@Success		200		{object}	localization.StandardResponse{data=nil}			"Update request sent"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}			"Invalid parameters or payload"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}			"Tier not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}			"Server error"
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/update/{method}/{id} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {

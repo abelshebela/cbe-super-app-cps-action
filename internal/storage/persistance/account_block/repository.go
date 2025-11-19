@@ -25,9 +25,9 @@ type AccountBlockStorage struct {
 	logger       utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, dbName string, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock: dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, "account_block"),
+		accountBlock: dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
 		client:       client,
 		dbName:       dbName,
 		logger:       logger,
