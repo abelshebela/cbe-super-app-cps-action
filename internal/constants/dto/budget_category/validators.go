@@ -1,6 +1,8 @@
 package budget_category
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/pkgs/utils"
 	"mime/multipart"
 	"regexp"
 	"strings"
@@ -23,17 +25,19 @@ func hasAllowedExtension(filename string, allowed []string) bool {
 	return false
 }
 
-func validateImage(value interface{}) error {
+func validateBudgetIcon(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
-	if !ok {
-		return validation.NewError("validation_image_invalid", "invalid image file")
+	if !ok || file == nil {
+		return localization.ErrorMissingOrInvalidImage
 	}
-	if file.Size > 10*1024*1024 {
-		return validation.NewError("validation_image_size", "image file size must not exceed 10MB")
+	if !utils.IsValidImage(file) {
+		return localization.ErrorMissingOrInvalidImage
 	}
-	if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
-		return validation.NewError("validation_image_format", "image must be JPG, JPEG, PNG, or GIF")
+
+	if file.Size > (2 << 20) {
+		return validation.NewError("Budget Icon", localization.MsgFileTooLarge)
 	}
+
 	return nil
 }
 
@@ -48,10 +52,7 @@ func (b CreateBudgetRequest) Validate() error {
 			validation.Length(7, 7).Error("color must be 7 characters long"),
 			validation.Match(hexColorRegex).Error("invalid color format, please enter a valid hex color"),
 		),
-		validation.Field(&b.Icon,
-			validation.Required.Error("icon is required"),
-			validation.By(validateImage),
-		),
+		validation.Field(&b.Icon, validation.By(func(value interface{}) error { return validateBudgetIcon(value) })),
 	)
 }
 
@@ -70,7 +71,7 @@ func (r UpdateBudgetRequest) Validate() error {
 		),
 		validation.Field(&r.Icon,
 			validation.When(r.Icon != nil,
-				validation.By(validateImage),
+				validation.By(func(value interface{}) error { return validateBudgetIcon(value) }),
 			),
 		),
 	)

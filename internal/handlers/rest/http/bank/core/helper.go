@@ -33,11 +33,6 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 			}
 			logger.Infof("Logo not provided for update - skipping file update")
 			return nil, nil, nil
-			// else {
-			// 	if err == http.ErrMissingFile {
-			// 		logger.Infof("Logo is not provided in the update")
-			// 	}
-			// }
 		}
 
 		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
@@ -54,10 +49,18 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
 		}
+		if v.Logo != nil {
+			if err := v.Validate(); err != nil {
+				return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
+			}
+		}
 		name, code, bic = &v.Name, &v.Code, &v.BIC
 	case *bank_dto.CreateBankRequest:
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
+		}
+		if err := v.Validate(); err != nil {
+			return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 		}
 		name, code, bic = &v.Name, &v.Code, &v.BIC
 	default:

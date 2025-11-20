@@ -394,7 +394,7 @@ const (
 	// Validation error messages
 	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
 	MsgBankDeleteRequestFailed     = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing  = "Required bank image invalid or missing"
+	MsgBankImageRequiredOrMissing  = "Bank image invalid or missing"
 	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
 
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
