@@ -213,3 +213,20 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 
 	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, grouped)
 }
+
+func (h *PermissionHandler) GetPermissionGroupsByDepartment(w http.ResponseWriter, r *http.Request) {
+	departmentID := chi.URLParam(r, "department_id")
+	if departmentID == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorDepartmentIDRequired.Code)
+		return
+	}
+
+	permissionCategory, err := h.PermissionService.GetPermissionGroupsByDepartment(r.Context(), departmentID)
+	if err != nil {
+		h.logger.Errorf("[GetPermissionCategoriesByDepartment] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, permissionCategory)
+}

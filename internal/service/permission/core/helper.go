@@ -13,6 +13,7 @@ func PermissionGroupModel(req permission.CreatePermissionGroupRequest) model.Per
 	return model.PermissionGroup{
 		GroupName:          strings.ToUpper(req.GroupName),
 		Role:               strings.ToUpper(req.Role),
+		DepartmentID:       req.DepartmentID,
 		PermissionCategory: req.PermissionCategoryLists,
 		Realm:              "bank",
 		Enabled:            true,

@@ -20,13 +20,15 @@ import (
 
 type permissionService struct {
 	repo       storage.PermissionRepository
+	department storage.DepartmentRepository
 	logger     shared_utils.Logger
 	cpsService service.CPSActionService
 }
 
-func InitPermissionService(repo storage.PermissionRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.PermissionService {
+func InitPermissionService(repo storage.PermissionRepository, dept storage.DepartmentRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.PermissionService {
 	return &permissionService{
 		repo:       repo,
+		department: dept,
 		cpsService: cpsService,
 		logger:     logger,
 	}
@@ -51,6 +53,12 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 
 			return errors.New(localization.ErrorPermissionCatagoryNotFound.Code)
 		}
+	}
+
+	dept, err := s.department.FindByID(ctx, req.DepartmentID)
+	if err != nil || dept == nil {
+		s.logger.Errorf("Department not found with ID: %s", req.DepartmentID)
+		return errors.New(localization.ErrorDepartmentNotFound.Code)
 	}
 
 	permissionGroup := core.PermissionGroupModel(req)
@@ -166,6 +174,33 @@ func (s *permissionService) ValidatePermissionGroups(ctx context.Context, groupI
 	}
 
 	return true, nil
+}
+
+func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context, departmentId string) (map[string][]*model.PermissionCategory, error) {
+	department, err := s.department.FindByID(ctx, departmentId)
+	if err != nil || department == nil {
+		s.logger.Errorf("Department not found with ID: %s", departmentId)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	portal_cards := department.PortalCards
+	cardsWithPermission := make(map[string][]*model.PermissionCategory)
+
+	if len(portal_cards) > 0 {
+		for _, card := range portal_cards {
+			categories, err := s.repo.GetAllPermissionCategories(ctx, card)
+			if err != nil {
+				s.logger.Errorf("Permission category can't be found with department ID")
+				return nil, errors.New(localization.ErrorResourceNotFound.Code)
+			}
+
+			if len(categories) != 0 {
+				cardsWithPermission[strings.ToLower(card)] = categories
+			}
+		}
+	}
+
+	return cardsWithPermission, nil
 }
 
 func (s *permissionService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
