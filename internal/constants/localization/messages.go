@@ -343,6 +343,8 @@ const (
 	MsgInvalidEncData = "Invalid encryption data"
 	MsgInvalidPadding = "Invalid padding"
 
+	MsgDepartmentIDRequired = "Department ID is required"
+
 	// User related error messages
 	MsgUserNotFound             = "User not found"
 	MsgUserAlreadyExists        = "User already exists"
