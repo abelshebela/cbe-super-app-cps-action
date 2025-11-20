@@ -45,3 +45,7 @@ export-env.sh
 permission_category_mapped.json
 permission_categlry_flat_ids.json
 portal_card.json
+docs/modules
+docs/templates
+definition_of_done.md
+definition_of_ready.md
