@@ -75,7 +75,7 @@ func ParseAndValidateAdvertRequest(r *http.Request, isUpdate bool, logger utils.
 	bannerImage, err := ParseBannerImage(r, isUpdate, logger)
 	if err != nil {
 		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse banner image: %v", err)
-		return nil, errors.New(localization.ErrorMissingOrInvalidImage.Code)
+		return nil, localization.ErrorMissingOrInvalidImage
 	}
 	req.BannerImage = bannerImage
 
