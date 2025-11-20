@@ -1,6 +1,8 @@
 package budget_category
 
-import "mime/multipart"
+import (
+	"mime/multipart"
+)
 
 type CreateBudgetRequest struct {
 	Name  string                `form:"name" example:"Monthly Groceries"`
