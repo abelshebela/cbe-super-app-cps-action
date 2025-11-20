@@ -10,6 +10,7 @@ import (
 type CreatePermissionGroupRequest struct {
 	GroupName               string   `json:"group_name"`
 	Role                    string   `json:"role"`
+	DepartmentID            string   `json:"department_id"`
 	PermissionCategoryLists []string `json:"permission_category_list"`
 }
 

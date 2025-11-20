@@ -481,7 +481,7 @@ type PermissionRepository interface {
 	// Permission category operations
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
-
+	GetAllPermissionCategories(ctx context.Context, card string) ([]*model.PermissionCategory, error)
 	// Permission group operations
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool

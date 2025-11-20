@@ -11,6 +11,7 @@ type PermissionGroup struct {
 	GroupName          string        `bson:"group_name,omitempty" json:"group_name,omitempty"`
 	Permissions        interface{}   `bson:"permissions,omitempty" json:"permissions,omitempty"`
 	PermissionCategory interface{}   `bson:"permission_category,omitempty" json:"permission_category,omitempty"`
+	DepartmentID       string        `bson:"department_id,omitempty" json:"department_id,omitempty"`
 	Role               string        `bson:"role,omitempty" json:"role,omitempty"`
 	Realm              string        `bson:"realm,omitempty" json:"realm,omitempty"`
 	Enabled            bool          `bson:"enabled,omitempty" json:"enabled,omitempty"`
