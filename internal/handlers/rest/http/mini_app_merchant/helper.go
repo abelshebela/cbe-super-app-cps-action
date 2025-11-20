@@ -36,6 +36,8 @@ func ToMiniAppMerchantResponseDTO(domain *model.MiniAppMerchant) *dto.MiniAppMer
 func ToMiniAppMerchantDomainFromUpdateDTO(d *dto.MiniAppMerchantDTO) *model.MiniAppMerchant {
 	return &model.MiniAppMerchant{
 		ID:                bson.NewObjectID(),
+		MerchantType:      d.Type,
+		Code:              d.MerchantCode,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,
 		Email:             d.Email,

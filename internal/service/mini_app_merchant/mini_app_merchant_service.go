@@ -51,6 +51,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		Email:             data.KYC.Representative.Email,
 		PhoneNumber:       data.KYC.Representative.Phone,
 	}, nil)
+
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
 		return nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
@@ -65,14 +66,18 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		data.ID = bson.NewObjectID()
 	}
 
-	_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
-	if err != nil {
-		m.logger.Errorf("Account number validation failed: %v", err)
-		return nil, err
+	if data.MerchantType == "merchant" {
+		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+		if err != nil {
+			m.logger.Errorf("Account number validation failed: %v", err)
+			return nil, err
+		}
 	}
 
 	now := time.Now()
-	data.Code = utils.RandomGenerator(10)
+	if data.MerchantType == "merchant" {
+		data.Code = utils.RandomGenerator(10)
+	}
 	data.CreatedAt = now
 	data.LastModifiedAt = now
 	data.KYC.Status = string(constants.KYCStatusComplete)
@@ -223,15 +228,14 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 }
 
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-
 	merchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		m.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	merchant.Email = ""
-	merchant.PhoneNumber = ""
+	// merchant.Email = ""
+	// merchant.PhoneNumber = ""
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniAppMerchant):
