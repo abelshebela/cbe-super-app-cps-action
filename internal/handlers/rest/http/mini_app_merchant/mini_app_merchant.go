@@ -118,7 +118,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 
 	// Validate input fields
 	if err := reqDTO.Validate(false); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
