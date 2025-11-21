@@ -477,7 +477,7 @@ type PermissionRepository interface {
 	Delete(ctx context.Context, id string) error
 	// FindByID(ctx context.Context, id string) (*model.PermissionGroup, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
-
+	FindAllGroupsWithPagination(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	// Permission category operations
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)

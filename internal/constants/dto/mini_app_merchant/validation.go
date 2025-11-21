@@ -95,12 +95,12 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			),
 		}
 	} else {
-		if strings.TrimSpace(dto.Type) != "" {
-			rules = append(rules, validation.Field(&dto.Type,
-				validation.Required.Error("type is required"),
-				validation.By(utils.NoSpecialChars)),
-			)
-		}
+		rules = append(rules, validation.Field(&dto.Type,
+			validation.Required.Error("type is required"),
+			validation.By(utils.NoSpecialChars),
+			validation.By(utils.TrimWhiteSpace),
+			validation.In("3-click", "merchant").Error("type must be either '3-click' or 'merchant'"),
+		))
 		if strings.TrimSpace(dto.MerchantName) != "" {
 			rules = append(rules, validation.Field(&dto.MerchantName, validation.By(utils.NoSpecialChars)))
 		}

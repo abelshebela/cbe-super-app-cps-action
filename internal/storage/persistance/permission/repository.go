@@ -108,8 +108,7 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"enabled", "is_deleted", "role", "realm", "group_name"}
+	allowedKeys := []string{"enabled", "is_deleted", "department_id", "role", "realm", "group_name"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
@@ -144,6 +143,43 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
+	return &types.PaginatedResponse[[]*model.PermissionGroup]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+func (s *PermissionPersistence) FindAllGroupsWithPagination(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
+	filter := bson.M{
+		"department_id": departmentId,
+	}
+
+	page := filterParam.Page
+	perPage := filterParam.PerPage
+
+	skip := int64((page - 1) * perPage)
+	limit := int64(perPage)
+
+	pipeline := PermissionGroupsPipeline(filter, skip, limit)
+
+	cursor, err := s.PermissionGroupCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	var data []*model.PermissionGroup
+	if err := cursor.All(ctx, &data); err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	total, err := s.permissionGroupsDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, page, int(limit))
+
 	return &types.PaginatedResponse[[]*model.PermissionGroup]{
 		Data: data,
 		Meta: meta,
