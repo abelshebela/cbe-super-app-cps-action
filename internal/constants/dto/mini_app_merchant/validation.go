@@ -97,7 +97,6 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 	} else {
 		if strings.TrimSpace(dto.Type) != "" {
 			rules = append(rules, validation.Field(&dto.Type,
-				validation.Required.Error("type is required"),
 				validation.By(utils.NoSpecialChars)),
 			)
 		}

@@ -166,17 +166,15 @@ func (s *permissionService) ValidatePermissionGroups(ctx context.Context, groupI
 		return false, errors.New(localization.ErrorPermissionGroupValidationFailed.Code)
 	}
 
-	// Check if all requested groups were validated
 	if len(validGroups) != len(groupIDs) {
 		s.logger.Warnf("Some permission groups were not found. Requested: %d, Valid: %d", len(groupIDs), len(validGroups))
-		// return false, errors.New("SOME_PERMISSION_GROUPS_NOT_FOUND")
 		return false, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 	}
 
 	return true, nil
 }
 
-func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context, departmentId string) (map[string][]*model.PermissionCategory, error) {
+func (s *permissionService) GetPermissionCategoriesByDepartment(ctx context.Context, departmentId string) (map[string][]*model.PermissionCategory, error) {
 	department, err := s.department.FindByID(ctx, departmentId)
 	if err != nil || department == nil {
 		s.logger.Errorf("Department not found with ID: %s", departmentId)
@@ -201,6 +199,16 @@ func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context,
 	}
 
 	return cardsWithPermission, nil
+}
+
+func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
+	department, err := s.repo.FindAllGroupsWithPagination(ctx, departmentId, filterParam)
+	if err != nil || department == nil {
+		s.logger.Errorf("Department not found with ID: %s", departmentId)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	return department, nil
 }
 
 func (s *permissionService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
