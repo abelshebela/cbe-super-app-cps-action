@@ -64,12 +64,12 @@ func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, u
 				IsMain:            true,
 				MakerAndChecker: types.MakerChecker{
 					Linkers: struct {
-						Maker   string "json:\"maker\" bson:\"maker\""
-						Checker string "json:\"checker\" bson:\"checker\""
+						Maker   string `json:"maker" bson:"maker"`
+						Checker string `json:"checker" bson:"checker"`
 					}{Maker: actionData.MakerName, Checker: actionData.CheckerName},
 					Unlinkers: struct {
-						Maker   string "json:\"maker\" bson:\"maker\""
-						Checker string "json:\"checker\" bson:\"checker\""
+						Maker   string `json:"maker" bson:"maker"`
+						Checker string `json:"checker" bson:"checker"`
 					}{Maker: "", Checker: ""},
 				},
 				CreatedAt: time.Now(),
