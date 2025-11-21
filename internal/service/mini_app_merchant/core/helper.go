@@ -40,8 +40,55 @@ func NonZeroUint64(n, fallback uint64) uint64 {
 	return fallback
 }
 
+func nonEmpty(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
+}
+
+func MergeBranches(oldBranches, newBranches []types.BranchInformation) []types.BranchInformation {
+	oldMap := make(map[string]types.BranchInformation, len(oldBranches))
+	for _, ob := range oldBranches {
+		oldMap[ob.BranchCode] = ob
+	}
+
+	merged := make([]types.BranchInformation, 0, len(newBranches))
+
+	for _, nb := range newBranches {
+		// If the branch code exists in old branches, merge the information
+		if ob, ok := oldMap[nb.BranchCode]; ok {
+			merged = append(merged, types.BranchInformation{
+				BranchCode:          ob.BranchCode,
+				BranchName:          nonEmpty(nb.BranchName, ob.BranchName),
+				BranchAddress:       nonEmpty(nb.BranchAddress, ob.BranchAddress),
+				BranchOwner:         nonEmpty(nb.BranchOwner, ob.BranchOwner),
+				BranchAccountNumber: nonEmpty(nb.BranchAccountNumber, ob.BranchAccountNumber),
+			})
+			delete(oldMap, nb.BranchCode)
+		} else {
+			merged = append(merged, types.BranchInformation{
+				BranchCode:          nb.BranchCode,
+				BranchName:          nb.BranchName,
+				BranchAddress:       nb.BranchAddress,
+				BranchOwner:         nb.BranchOwner,
+				BranchAccountNumber: nb.BranchAccountNumber,
+			})
+		}
+	}
+
+	for _, leftover := range oldMap {
+		merged = append(merged, leftover)
+	}
+
+	return merged
+}
+
 func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMerchant {
 	now := time.Now()
+
+	updatedBranches := MergeBranches(old.Branches, data.Branches)
+
 	return &model.MiniAppMerchant{
 		ID:                old.ID,
 		Code:              old.Code,
@@ -62,7 +109,7 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
 			},
 		},
-		Branches: old.Branches,
+		Branches: updatedBranches,
 	}
 }
 
