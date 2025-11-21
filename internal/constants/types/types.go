@@ -119,6 +119,15 @@ type Account struct {
 	UpdatedAt          time.Time `json:"updatedAt"`
 }
 
+type MakerChecker struct {
+	Linkers   Linkers `json:"linkers" bson:"linkers"`
+	Unlinkers Linkers `json:"unlinkers" bson:"unlinkers,omitempty"`
+}
+
+type Linkers struct {
+	Maker   string `json:"maker" bson:"maker"`
+	Checker string `json:"checker" bson:"checker"`
+}
 type AccountInfo struct {
 	ID                 string `json:"id"`
 	AccountBranchType  string `json:"account_branchtype"`
