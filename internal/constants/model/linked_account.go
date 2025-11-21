@@ -2,6 +2,7 @@ package model
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -25,16 +26,7 @@ type LinkedAccount struct {
 	AccountBranchCode string                     `json:"account_branch_code" bson:"account_branch_code"`
 	CurrencyCode      string                     `json:"currency" bson:"curreny"`
 	IsMain            bool                       `json:"is_main" bson:"is_main"` // default: false, first account: true
-	MakerAndChecker   struct {
-		Linkers struct {
-			Maker   string `json:"maker" bson:"maker"`
-			Checker string `json:"checker" bson:"checker"`
-		} `json:"linkers" bson:"linkers"`
-		Unlinkers struct {
-			Maker   string `json:"maker" bson:"maker"`
-			Checker string `json:"checker" bson:"checker"`
-		} `json:"unlinkers" bson:"unlinkers,omitempty"`
-	} `json:"maker_and_checker" bson:"maker_and_checker"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"  bson:"updated_at"`
+	MakerAndChecker   types.MakerChecker
+	CreatedAt         time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"  bson:"updated_at"`
 }

@@ -129,7 +129,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 				s.logger.Errorf("[KYCVerifier] Error finding user in job proccess: %v", err)
 			}
 
-			if err := core.AccountCreator(bgCtx, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
+			if err := core.AccountCreateAndLink(bgCtx, *action, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
 				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
 			}
 		})
