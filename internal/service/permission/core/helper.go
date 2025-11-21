@@ -26,6 +26,7 @@ func PermissionGroupUpdateModel(req permission.UpdatePermissionGroupRequest) mod
 	return model.PermissionGroup{
 		GroupName:          strings.ToUpper(req.NewGroupName),
 		Role:               strings.ToUpper(req.Role),
+		DepartmentID:       req.DepartmentID,
 		PermissionCategory: req.PermissionCategoryLists,
 		Realm:              "bank",
 		Enabled:            true,
