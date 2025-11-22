@@ -14,7 +14,11 @@ func (p CreatePermissionGroupRequest) Validate() error {
 		validation.Field(&p.PermissionCategoryLists, validation.Required, validation.Each(validation.Required)),
 	)
 }
-func (req *UpdatePermissionGroupRequest) Validate() error {
+func (req UpdatePermissionGroupRequest) Validate() error {
+	return validation.ValidateStruct(&req,
+		validation.Field(&req.NewGroupName, validation.By(utils.TrimWhiteSpace), validation.By(utils.NoSpecialChars), validation.Length(1, 50)),
+		validation.Field(&req.Role, validation.In("MAKER", "CHECKER")),
+		validation.Field(&req.DepartmentID),
+	)
 
-	return nil
 }
