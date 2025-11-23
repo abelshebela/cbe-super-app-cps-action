@@ -2,8 +2,8 @@ package persistance
 
 import (
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/external_call"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 
 	"gitlab.com/yohannesteshome/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -20,7 +20,7 @@ type Persistence struct {
 	OTPPersistence                  storage.OTPRepository
 	DeviceLinkHistoryPersistence    storage.DeviceLinkHistoryRepository
 	ResetSessionPersistence         storage.ResetSessionRepository
-	SMSSenderApi                    external_call.SMSPersistence
+	SMSSenderApi                    kafka.NotificationProducer
 	CPSAction                       storage.CPSActionRepository
 	AdvertPersistence               storage.AdvertRepository
 	AmountBasedAuthPersistence      storage.AmountBasedAuthRepository

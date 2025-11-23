@@ -3,6 +3,7 @@ package initiator
 import (
 	session "cbe-super-app-cps-action/grpc"
 	transactionpb "cbe-super-app-cps-action/grpc/sitota"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/service"
 	accountblock "cbe-super-app-cps-action/internal/service/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/service/account_validation"
@@ -29,7 +30,6 @@ import (
 	"cbe-super-app-cps-action/internal/service/event"
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
 
-	"cbe-super-app-cps-action/internal/storage/external_call"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
 
@@ -63,7 +63,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, redis storage.RedisRepository, smsService external_call.SMSPersistence) service.ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient config.MinioClientInterface, redis storage.RedisRepository, smsService *lib.NotificationStore) service.ServiceLayer {
 
 	// Initiate Service Layer
 	// Assign variable for minio public url
@@ -166,7 +166,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, EventsBucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
-	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
+	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, BanksBucketName)
 	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, minioPubUrl, WalletsBucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, TopUpsBucketName, cfg, logger)
@@ -216,7 +216,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
-	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, &smsService, cfg, logger)
+	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
 
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)

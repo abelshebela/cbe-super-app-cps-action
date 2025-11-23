@@ -452,3 +452,28 @@ type Services struct {
 	Other bool `json:"other" bson:"other"`
 	Agent bool `json:"agent" bson:"agent"`
 }
+
+type SMSKafkaMessage struct {
+	Recipient   string `json:"recipient"`
+	MessageBody string `json:"message_body"`
+}
+
+type EmailContact struct {
+	Name  string `json:"name,omitempty" bson:"name,omitempty"`
+	Email string `json:"email" bson:"email"`
+}
+
+type EmailKafkaMessage struct {
+	Recipients         []EmailContact         `json:"recipients"`
+	CC                 []EmailContact         `json:"cc,omitempty"`
+	Subject            string                 `json:"subject"`
+	Type               string                 `json:"type"` // "otp", "message", "transaction", "request"
+	OTPCode            string                 `json:"otp_code,omitempty"`
+	Receiver           string                 `json:"receiver,omitempty"`
+	MessageBody        string                 `json:"message_body,omitempty"`
+	Link               string                 `json:"link,omitempty"`
+	CustomerName       string                 `json:"customer_name,omitempty"`
+	TransactionDetails map[string]interface{} `json:"transaction_details,omitempty"`
+	Priority           int                    `json:"priority,omitempty"`
+	Metadata           map[string]interface{} `json:"metadata,omitempty"`
+}

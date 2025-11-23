@@ -1,10 +1,7 @@
 package permission
 
 import (
-	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
-	"fmt"
-	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -17,9 +14,11 @@ func (p CreatePermissionGroupRequest) Validate() error {
 		validation.Field(&p.PermissionCategoryLists, validation.Required, validation.Each(validation.Required)),
 	)
 }
-func (req *UpdatePermissionGroupRequest) Validate() error {
-	if strings.TrimSpace(req.NewGroupName) == "" {
-		return fmt.Errorf(localization.ErrorInvalidRequest.Code)
-	}
-	return nil
+func (req UpdatePermissionGroupRequest) Validate() error {
+	return validation.ValidateStruct(&req,
+		validation.Field(&req.NewGroupName, validation.By(utils.TrimWhiteSpace), validation.By(utils.NoSpecialChars), validation.Length(1, 50)),
+		validation.Field(&req.Role, validation.In("MAKER", "CHECKER")),
+		validation.Field(&req.DepartmentID),
+	)
+
 }
