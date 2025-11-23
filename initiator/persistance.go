@@ -1,8 +1,8 @@
 package initiator
 
 import (
-	"cbe-super-app-cps-action/internal/storage/external_call"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 
 	// "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -70,7 +70,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi string, notificationApi string, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi string, notificationApi string, kafkaService kafka.NotificationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, DeviceVersionControllCollection, logger),
@@ -86,7 +86,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, logger),
-		SMSSenderApi:                    *external_call.NewSMSPersistence(notificationApi, logger),
+		SMSSenderApi:                    kafkaService,
 		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
 		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
 		DistrictPersistence:             district.NewDistrictRepository(client, dbName, "districts", logger),
