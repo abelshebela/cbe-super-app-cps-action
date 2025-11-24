@@ -262,6 +262,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
@@ -3746,6 +3747,12 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+	ErrorOnDisablingExistingDeviceControl= ResponseCode{
+		Code:       "ERROR_ON_DISABLING_EXISTING_DEVICE_CONTROL",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgOnDisablingExistingDeviceControl,
 		Type:       "error",
 	}
 
