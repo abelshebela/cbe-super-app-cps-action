@@ -10,7 +10,7 @@ import (
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/storage/api"
-	"cbe-super-app-cps-action/internal/storage/external_call"
+	
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
