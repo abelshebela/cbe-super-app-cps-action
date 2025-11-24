@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -23,7 +24,10 @@ type SessionGRPCClient struct {
 }
 
 func NewSessionGRPCClient(serverAddress string, logger utils.Logger) (session.SessionServiceClient, *SessionGRPCClient, error) {
-	conn, err := grpc.Dial(serverAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(serverAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+	)
 	if err != nil {
 		logger.Errorf("Failed to connect to gRPC server: %v", err)
 		return nil, nil, fmt.Errorf("GRPC_CONNECTION_FAILED")

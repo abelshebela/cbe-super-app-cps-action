@@ -3,14 +3,14 @@ package initiator
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"runtime"
 
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/storage/api"
 	"cbe-super-app-cps-action/internal/storage/external_call"
-
-	// "cbe-super-app-cps-action/platform/logger"
+	"cbe-super-app-cps-action/platform/telemetry"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -18,7 +18,6 @@ import (
 
 	"gitlab.com/yohannesteshome/coreio/core"
 
-	// local_logger "cbe-super-app-cps-action/platform/logger"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -33,6 +32,46 @@ func Init(ctx context.Context) {
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
 	logger.Infof("Configuration initialized")
+
+	// Initialize OpenTelemetry Tracing using platform/telemetry package
+	logger.Infof("Initializing OpenTelemetry Tracing...")
+
+	// Build OTEL config from a dedicated helper that reads env vars and provides defaults.
+	otelCfg := NewOtelConfig()
+
+	if otelCfg.Enabled {
+		logger.Infof("Checking OTLP endpoint connectivity at %s...", otelCfg.OTLPEndpoint)
+		if err := telemetry.CheckOTLPConnection(ctx, otelCfg.OTLPEndpoint); err != nil {
+			logger.Warnf("OTLP endpoint connectivity check failed: %v. Continuing without tracing.", err)
+			logger.Infof("To enable tracing, ensure Jaeger or OTLP collector is running at %s", otelCfg.OTLPEndpoint)
+		} else {
+			logger.Infof("OTLP endpoint is reachable. Initializing tracer provider...")
+			tracerProvider, err := telemetry.NewTracerProvider(ctx, otelCfg)
+			if err != nil {
+				logger.Warnf("Failed to initialize OpenTelemetry Tracing: %v. Continuing without tracing.", err)
+			} else {
+				logger.Infof("✓ OpenTelemetry Tracing initialized successfully")
+				defer func() {
+					if err := tracerProvider.Shutdown(ctx); err != nil {
+						logger.Errorf("Failed to shutdown tracer provider: %v", err)
+					}
+				}()
+			}
+		}
+	} else {
+		logger.Infof("OpenTelemetry is disabled in configuration; skipping tracer initialization")
+	}
+
+	// Start Prometheus metrics server on :9090
+	metricsPort := "9090"
+	go func() {
+		mux := http.NewServeMux()
+		telemetry.RegisterMetricsEndpoint(mux)
+		logger.Infof("Starting metrics endpoint on port %s", metricsPort)
+		if err := http.ListenAndServe(":"+metricsPort, mux); err != nil {
+			logger.Errorf("metrics server failed: %v", err)
+		}
+	}()
 
 	logger.Infof("Initializing MongoDB client...")
 	mongoClient := InitMongo(cfg.MongoDBURI, logger)
@@ -71,7 +110,9 @@ func Init(ctx context.Context) {
 		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
 	}
 	defer func() {
-		clientStore.Close()
+		if cerr := clientStore.Close(); cerr != nil {
+			logger.Errorf("error closing client store: %v", cerr)
+		}
 	}()
 
 	// initiate sitota grpc
@@ -79,7 +120,9 @@ func Init(ctx context.Context) {
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
-	sitotagRPCClient.Close()
+	if cerr := sitotagRPCClient.Close(); cerr != nil {
+		logger.Errorf("Failed to close sitota RPC client: %v", cerr)
+	}
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
@@ -98,12 +141,15 @@ func Init(ctx context.Context) {
 	r := chi.NewRouter()
 	InitRoute(ctx, r, handlerLayer, logger, cfg)
 
+	// wrap the router with OpenTelemetry instrumentation handler
+	otlr := telemetry.WrapHandler(r, "http-server")
+
 	go func() {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	}()
 
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, serviceLayer.Topup, logger)
-	srv := server.NewHTTPServer(cfg, r)
+	srv := server.NewHTTPServer(cfg, otlr)
 
 	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)
 
