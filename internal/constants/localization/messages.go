@@ -675,6 +675,7 @@ const (
 	MsgInvalidInput                = "Invalid input provided"
 	MsgMissingRequiredFields       = "Missing required fields"
 	MsgResourceNotFound            = "Resource not found"
+	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
 	MsgResourceAlreadyExists       = "Resource already exists"
 	MsgResourceUpdateFailed        = "Failed to update resource"
 	MsgResourceCreationFailed      = "Failed to create resource"

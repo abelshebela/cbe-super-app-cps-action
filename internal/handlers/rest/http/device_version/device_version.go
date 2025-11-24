@@ -31,7 +31,6 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
-
 	req.Clean()
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[CreateDeviceVersion] validation: %v", err)
