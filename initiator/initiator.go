@@ -8,6 +8,7 @@ import (
 
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/storage/api"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 	"cbe-super-app-cps-action/platform/telemetry"
@@ -81,10 +82,14 @@ func Init(ctx context.Context) {
 	minioClient := InitMinio(cfg.MinioEndPoint, cfg.MinioAccessKey, cfg.MinioSecretKey, logger)
 	logger.Infof("Minio client initialized")
 
+	logger.Infof("initializing kafka")
+	kafkaInit := InitKafkaService(cfg, logger)
+	logger.Infof("kafka initialized")
+
 	logger.Infof("Initializing persistence...")
 	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
 	merchantApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, cfg, logger)
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, *kafkaInit, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)
@@ -102,7 +107,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing SMS service...")
-	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
+	smsService := lib.InitNotificationStore(logger, cfg, kafkaInit)
 	logger.Infof("SMS service initialized")
 
 	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
@@ -127,7 +132,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {

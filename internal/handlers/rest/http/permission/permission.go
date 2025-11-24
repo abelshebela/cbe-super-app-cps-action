@@ -213,3 +213,38 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 
 	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, grouped)
 }
+
+func (h *PermissionHandler) GetPermissionCategoriesByDepartment(w http.ResponseWriter, r *http.Request) {
+	departmentID := chi.URLParam(r, "department_id")
+	if departmentID == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorDepartmentIDRequired.Code)
+		return
+	}
+
+	permissionCategory, err := h.PermissionService.GetPermissionCategoriesByDepartment(r.Context(), departmentID)
+	if err != nil {
+		h.logger.Errorf("[GetPermissionCategoriesByDepartment] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, permissionCategory)
+}
+
+func (h *PermissionHandler) GetPermissionGroupsByDepartment(w http.ResponseWriter, r *http.Request) {
+	departmentID := chi.URLParam(r, "department_id")
+	if departmentID == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorDepartmentIDRequired.Code)
+		return
+	}
+	filterParam := common_utils.ExtractFilterParams(r)
+
+	permissionGroups, err := h.PermissionService.GetPermissionGroupsByDepartment(r.Context(), departmentID, filterParam)
+	if err != nil {
+		h.logger.Errorf("[GetPermissionGroupsByDepartment] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupsFetched, permissionGroups)
+}

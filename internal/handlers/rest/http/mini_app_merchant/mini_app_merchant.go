@@ -36,7 +36,6 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [post]
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
-	h.logger.Debugf(">>> Entered Create endpoint")
 	var reqDTO miniappmerchant.MiniAppMerchantDTO
 
 	// Decode request body
@@ -119,7 +118,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 
 	// Validate input fields
 	if err := reqDTO.Validate(false); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

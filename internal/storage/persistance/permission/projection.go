@@ -16,6 +16,9 @@ func PermissionGroupUpdateMapper(permissionGroup *model.PermissionGroup) bson.M 
 	if permissionGroup.Role != "" {
 		set["role"] = permissionGroup.Role
 	}
+	if permissionGroup.DepartmentID != "" {
+		set["department_id"] = permissionGroup.DepartmentID
+	}
 	if permissionGroup.PermissionCategory != nil {
 		set["permission_category"] = permissionGroup.PermissionCategory
 	}

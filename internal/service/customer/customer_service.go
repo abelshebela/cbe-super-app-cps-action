@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/external_call"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -26,10 +25,10 @@ type customerService struct {
 	cpsService service.CPSActionService
 	cfg        *config.VaultConfig
 	logger     utils.Logger
-	smsService *external_call.SMSPersistence
+	smsService *lib.NotificationStore
 }
 
-func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *external_call.SMSPersistence, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
+func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSActionService, redis storage.RedisRepository, smsService *lib.NotificationStore, cfg *config.VaultConfig, logger utils.Logger) service.CustomerService {
 	return &customerService{
 		repo:       repo,
 		cpsService: cpsService,
@@ -103,8 +102,11 @@ func (c *customerService) CreateEnableCustomerSession(ctx context.Context, id st
 	}
 
 	go func() {
-		err = c.smsService.SendSMS(context.Background(), customer.PhoneNumber, fmt.Sprintf("Your Verification OTP is: %s", otp))
-		if err != nil {
+
+		if err := c.smsService.PublishMessage(context.Background(), types.SMSKafkaMessage{
+			Recipient:   customer.PhoneNumber,
+			MessageBody: fmt.Sprintf("Your Supper app verification OTP: %s ", otp),
+		}); err != nil {
 			c.logger.Errorf("failed to send OTP SMS to customer %s: %v", id, err)
 		}
 	}()

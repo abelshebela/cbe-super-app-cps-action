@@ -87,12 +87,15 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 	// Build the fully updated KYC document to include in CurrentAction
 	updated := *prev
 	updated.KYCApproved = req.Approve
-	if !req.Approve {
-		updated.KYCRejectReason = req.Reason
+	if req.Approve {
+		updated.KYCStatus = constants.KYCStatusApproved
 	} else {
-		updated.KYCRejectReason = ""
+		updated.KYCStatus = constants.KYCStatusRejected
 	}
 	updated.KYCActivityBy = map[string]any{"admin_id": makerData.UserID, "full_name": makerData.FullName, "role": "kyc_verifier"}
+	if !req.Approve {
+		updated.KYCRejectReason = req.Reason
+	}
 	cpsAction := lib.CpsModelBuilder(id, makerData, prev, &updated, string(constants.RequestApproveKYC), constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
@@ -126,7 +129,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 				s.logger.Errorf("[KYCVerifier] Error finding user in job proccess: %v", err)
 			}
 
-			if err := core.AccountCreator(bgCtx, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
+			if err := core.AccountCreateAndLink(bgCtx, *action, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
 				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
 			}
 		})

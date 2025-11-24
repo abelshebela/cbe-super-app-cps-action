@@ -229,8 +229,8 @@ type PermissionService interface {
 	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
-
-	// Validation methods
+	GetPermissionCategoriesByDepartment(ctx context.Context, departmentId string) (map[string][]*model.PermissionCategory, error)
+	GetPermissionGroupsByDepartment(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
 }

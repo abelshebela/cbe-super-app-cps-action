@@ -2973,6 +2973,13 @@ var (
 
 // Error Response Codes
 var (
+	ErrorDepartmentIDRequired = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentIDRequired,
+		Type:       "error",
+	}
+
 	ErrorInvalidKey = ResponseCode{
 		Code:       "ERROR_INVALID_KEY",
 		StatusCode: StatusBadRequest,
