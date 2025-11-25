@@ -40,7 +40,7 @@ func MapBankVaultToResponse(bankVault *model.BankVaultProduct) *bankvault.BankVa
 		ID:                         bankVault.ID,
 		Name:                       bankVault.Name,
 		Currency:                   bankVault.Currency,
-		RateBps:                    bankVault.RateBps,
+		Interest:                   bankVault.RateBps.Div(decimal.NewFromInt(100)),
 		Method:                     bankVault.Method,
 		Frequency:                  bankVault.Frequency,
 		LockPeriod:                 bankVault.LockPeriod,
