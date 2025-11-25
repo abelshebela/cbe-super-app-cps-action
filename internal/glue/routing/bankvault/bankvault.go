@@ -77,14 +77,41 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 			},
 		},
 		{
-			Method:  http.MethodPost,
-			Path:    "/vault/products/enable/{id}",
-			Handler: handler.EnableBankVault,
+			Method:  http.MethodGet,
+			Path:    "/vault/bank-vaults",
+			Handler: handler.GetAllLockedBankVaults,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
+		// {
+		// 	Method:  http.MethodGet,
+		// 	Path:    "/vault/bank-vaults/{transaction_reference}",
+		// 	Handler: handler.GetTransaction,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+		// 	},
+		// },
+		{
+			Method:  http.MethodGet,
+			Path:    "/vault/group-vaults",
+			Handler: handler.GetAllGroupVaults,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			},
+		},
+		// {
+		// 	Method:  http.MethodGet,
+		// 	Path:    "/vault/group-vaults/{id}",
+		// 	Handler: handler.GetGroupVault,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 		authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+		// 	},
+		// },
 	}
 	glue.RegisterRoutes(router, routes)
 
