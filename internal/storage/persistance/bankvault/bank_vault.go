@@ -52,25 +52,17 @@ func (r *bankVaultRepositary) ExecuteInTransaction(ctx context.Context, fn func(
 }
 
 func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVaultProduct) (string, error) {
-	// Convert time.Duration to nanoseconds
-	lockPeriodNanoseconds := product.LockPeriod.Nanoseconds()
-
-	return r.createBankVaultCustom(ctx, product, lockPeriodNanoseconds)
-}
-
-func (r *bankVaultRepositary) createBankVaultCustom(ctx context.Context, product *model.BankVaultProduct, lockPeriodNanoseconds int64) (string, error) {
 	params := sqlc.SaveBankVaultParams{
-		Name:        product.Name,
-		Description: product.Description,
-		Currency:    product.Currency,
-		RateBps:     product.RateBps,
-		Method:      product.Method,
-		Frequency:   product.Frequency,
-		LockPeriod:  product.LockPeriod,
-		MinAmount:   product.MinAmount,
-		MaxAmount:   product.MaxAmount,
-		EarlyUnlockRateBps: sql.NullBool{
-			Bool:  product.EarlyUnlockRateBps,
+		Name:       product.Name,
+		Currency:   product.Currency,
+		RateBps:    product.RateBps,
+		Method:     product.Method,
+		Frequency:  product.Frequency,
+		LockPeriod: product.LockPeriod,
+		MinAmount:  product.MinAmount,
+		MaxAmount:  product.MaxAmount,
+		ApplyInterestOnEarlyUnlock: sql.NullBool{
+			Bool:  product.ApplyInterestOnEarlyUnlock,
 			Valid: true,
 		},
 		IsActive: sql.NullBool{
@@ -131,21 +123,20 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 	var total int64
 	for _, row := range rows {
 		p := &model.BankVaultProduct{
-			ID:                 row.ID,
-			Name:               row.Name,
-			Description:        row.Description,
-			Currency:           row.Currency,
-			RateBps:            row.RateBps,
-			Method:             constants.AccrualMethod(row.Method),
-			Frequency:          constants.AccrualFrequency(row.Frequency),
-			LockPeriod:         row.LockPeriod,
-			MinAmount:          row.MinAmount,
-			MaxAmount:          row.MaxAmount,
-			EarlyUnlockRateBps: utils.NullBoolToBool(row.EarlyUnlockRateBps),
-			IsActive:           utils.NullBoolToBool(row.IsActive),
-			IsDeleted:          utils.NullBoolToBool(row.IsDeleted),
-			CreatedAt:          row.CreatedAt,
-			UpdatedAt:          row.UpdatedAt,
+			ID:                         row.ID,
+			Name:                       row.Name,
+			Currency:                   row.Currency,
+			RateBps:                    row.RateBps,
+			Method:                     constants.AccrualMethod(row.Method),
+			Frequency:                  constants.AccrualFrequency(row.Frequency),
+			LockPeriod:                 row.LockPeriod,
+			MinAmount:                  row.MinAmount,
+			MaxAmount:                  row.MaxAmount,
+			ApplyInterestOnEarlyUnlock: utils.NullBoolToBool(row.ApplyInterestOnEarlyUnlock),
+			IsActive:                   utils.NullBoolToBool(row.IsActive),
+			IsDeleted:                  utils.NullBoolToBool(row.IsDeleted),
+			CreatedAt:                  row.CreatedAt,
+			UpdatedAt:                  row.UpdatedAt,
 		}
 		if row.DeletedAt.Valid {
 			t := row.DeletedAt.Time
@@ -177,21 +168,20 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 	}
 
 	product := &model.BankVaultProduct{
-		ID:                 row.ID,
-		Name:               row.Name,
-		Description:        row.Description,
-		Currency:           row.Currency,
-		RateBps:            row.RateBps,
-		Method:             constants.AccrualMethod(row.Method),
-		Frequency:          constants.AccrualFrequency(row.Frequency),
-		LockPeriod:         row.LockPeriod,
-		MinAmount:          row.MinAmount,
-		MaxAmount:          row.MaxAmount,
-		EarlyUnlockRateBps: utils.NullBoolToBool(row.EarlyUnlockRateBps),
-		IsActive:           utils.NullBoolToBool(row.IsActive),
-		IsDeleted:          utils.NullBoolToBool(row.IsDeleted),
-		CreatedAt:          row.CreatedAt,
-		UpdatedAt:          row.UpdatedAt,
+		ID:                         row.ID,
+		Name:                       row.Name,
+		Currency:                   row.Currency,
+		RateBps:                    row.RateBps,
+		Method:                     constants.AccrualMethod(row.Method),
+		Frequency:                  constants.AccrualFrequency(row.Frequency),
+		LockPeriod:                 row.LockPeriod,
+		MinAmount:                  row.MinAmount,
+		MaxAmount:                  row.MaxAmount,
+		ApplyInterestOnEarlyUnlock: utils.NullBoolToBool(row.ApplyInterestOnEarlyUnlock),
+		IsActive:                   utils.NullBoolToBool(row.IsActive),
+		IsDeleted:                  utils.NullBoolToBool(row.IsDeleted),
+		CreatedAt:                  row.CreatedAt,
+		UpdatedAt:                  row.UpdatedAt,
 	}
 	if row.DeletedAt.Valid {
 		t := row.DeletedAt.Time
@@ -205,13 +195,12 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 func (r *bankVaultRepositary) FindBankVaultByName(ctx context.Context, name string) error {
 	_, err := r.queries.FindBankVaultByName(ctx, name)
 	if err != nil {
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return err
 	}
 	return nil
 }
 
 func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *model.BankVaultProduct) error {
-	// First check if the product exists and is not deleted
 	existingProduct, err := r.FindByID(ctx, id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -223,9 +212,6 @@ func (r *bankVaultRepositary) Update(ctx context.Context, id string, product *mo
 
 	params := sqlc.UpdateBankVaultParams{ID: id}
 
-	if product.Description != "" {
-		params.Description = &product.Description
-	}
 	if f, ok := product.MinAmount.Float64(); ok {
 		params.MinAmount = &sql.NullFloat64{Float64: f, Valid: true}
 	}
@@ -272,8 +258,15 @@ func (r *bankVaultRepositary) EnableOrDisable(ctx context.Context, id string, en
 
 	if enable {
 		_, err = r.queries.ActivateBankVault(ctx, id)
+		if err != nil {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		return nil
+	}
+
+	_, err = r.queries.DeactivateBankVault(ctx, id)
+	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	_, err = r.queries.DeactivateBankVault(ctx, id)
-	return errors.New(localization.ErrorUnexpectedError.Code)
+	return nil
 }

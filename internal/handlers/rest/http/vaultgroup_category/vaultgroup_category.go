@@ -1,7 +1,6 @@
 package vaultgroupcategory
 
 import (
-	"encoding/json"
 	"net/http"
 
 	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
@@ -39,18 +38,25 @@ func InitVaultGroupCategoryHandler(svc service.VaultGroupCategoryService, logger
 //	@Router			/vaultgroupcategory/create [post]
 func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
 	var req vaultgroup_category.CreateVaultGroupCategoryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("[CreateVaultGroupCategory] decode: %v", err)
-		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+
+	file, fileHeader, err := core.ParseMultipartFormFile(r, "cover_image", 10<<20, true, h.logger)
+	if err != nil {
+		h.logger.Errorf("[CreateVaultGroupCategory] parse multipart form file: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorVaultCoverImageMissedOrInvalid, nil, nil)
 		return
 	}
+	defer file.Close()
+
+	req.Name = r.FormValue("name")
+	req.CoverImage = fileHeader
+
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[CreateVaultGroupCategory] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	product := core.ToDomainCreateVaultGroupCategoryRequest(req)
-	id, err := h.service.CreateVaultGroupCategory(r.Context(), product)
+	// product := core.ToDomainCreateVaultGroupCategoryRequest(req)
+	id, err := h.service.CreateVaultGroupCategory(r.Context(), &req)
 	if err != nil {
 		h.logger.Errorf("[CreateVaultGroupCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -148,18 +154,29 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	var req vaultgroup_category.UpdateVaultGroupCategoryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("[UpdateVaultGroupCategory] decode: %v", err)
-		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+
+	file, fileHeader, err := core.ParseMultipartFormFile(r, "cover_image", 10<<20, false, h.logger)
+	if err != nil {
+		h.logger.Errorf("[CreateVaultGroupCategory] parse multipart form file: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorVaultCoverImageMissedOrInvalid, nil, nil)
 		return
 	}
+	if file != nil {
+		defer file.Close()
+		req.CoverImage = fileHeader
+	}
+
+	if name := r.FormValue("name"); name != "" {
+		req.Name = &name
+	}
+
 	if err := req.Validate(); err != nil {
 		h.logger.Errorf("[UpdateVaultGroupCategory] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	updateData := core.ToDomainUpdateVaultGroupCategoryRequest(req)
-	_, err = h.service.UpdateVaultGroupCategory(r.Context(), id, updateData)
+	// updateData := core.ToDomainUpdateVaultGroupCategoryRequest(req)
+	_, err = h.service.UpdateVaultGroupCategory(r.Context(), id, &req)
 	if err != nil {
 		h.logger.Errorf("[UpdateVaultGroupCategory] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

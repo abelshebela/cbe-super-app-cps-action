@@ -5,7 +5,6 @@ import (
 	utils "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -22,25 +21,25 @@ func generateUUID() string {
 const activateBankVault = `-- name: ActivateBankVault :one
 UPDATE bank_vault_products
 SET is_active = 1, updated_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(REPLACE(UPPER(:id), '-', '')) AND deleted_at IS NULL
-RETURNING id INTO :result`
+WHERE id = :1 AND deleted_at IS NULL
+RETURNING id INTO :2`
 
 func (q *Queries) ActivateBankVault(ctx context.Context, id string) (string, error) {
 	var result string
+
 	res, err := q.db.ExecContext(
 		ctx,
 		activateBankVault,
 		id,
 		sql.Out{Dest: &result},
 	)
+	if err != nil {
+		return "", fmt.Errorf("failed to activate bank product: %w", err)
+	}
 
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
 		return "", fmt.Errorf("no bank product found with id %s", id)
-	}
-
-	if err != nil {
-		return "", fmt.Errorf("failed to activate bank product: %w", err)
 	}
 
 	return result, nil
@@ -49,7 +48,7 @@ func (q *Queries) ActivateBankVault(ctx context.Context, id string) (string, err
 const deactivateBankVault = `-- name: DeactivateBankVault :one
 UPDATE bank_vault_products
 SET is_active = 0, updated_at = SYSTIMESTAMP
-WHERE id = HEXTORAW(REPLACE(UPPER(:id), '-', '')) AND deleted_at IS NULL
+WHERE id = :1 AND deleted_at IS NULL
 RETURNING id INTO :result`
 
 func (q *Queries) DeactivateBankVault(ctx context.Context, id string) (string, error) {
@@ -101,7 +100,6 @@ const findBankVault = `-- name: FindBankVault :many
 SELECT
   id,
   name,
-  description,
   currency,
   TO_CHAR(rate_bps) as rate_bps,
   method,
@@ -109,7 +107,7 @@ SELECT
   lock_period,
   TO_CHAR(min_amount) as min_amount,
   TO_CHAR(max_amount) as max_amount,
-  TO_CHAR(early_unlock_rate_bps) as early_unlock_rate_bps,
+  TO_CHAR(apply_interest_on_early_unlock) as apply_interest_on_early_unlock,
   is_active,
   is_deleted,
   created_at,
@@ -141,23 +139,22 @@ type FindBankVaultParams struct {
 }
 
 type FindBankVaultRow struct {
-	ID                 string                     `json:"id"`
-	Name               string                     `json:"name"`
-	Description        string                     `json:"description"`
-	Currency           string                     `json:"currency"`
-	RateBps            decimal.Decimal            `json:"rate_bps"`
-	Method             constants.AccrualMethod    `json:"method"`
-	Frequency          constants.AccrualFrequency `json:"frequency"`
-	LockPeriod         time.Duration              `json:"lock_period"`
-	MinAmount          decimal.Decimal            `json:"min_amount"`
-	MaxAmount          decimal.Decimal            `json:"max_amount"`
-	EarlyUnlockRateBps sql.NullBool               `json:"early_unlock_rate_bps"`
-	IsActive           sql.NullBool               `json:"is_active"`
-	IsDeleted          sql.NullBool               `json:"is_deleted "`
-	CreatedAt          time.Time                  `json:"created_at"`
-	UpdatedAt          time.Time                  `json:"updated_at"`
-	DeletedAt          sql.NullTime               `json:"deleted_at"`
-	TotalCount         int64                      `json:"total_count"`
+	ID                         string                     `json:"id"`
+	Name                       string                     `json:"name"`
+	Currency                   string                     `json:"currency"`
+	RateBps                    decimal.Decimal            `json:"rate_bps"`
+	Method                     constants.AccrualMethod    `json:"method"`
+	Frequency                  constants.AccrualFrequency `json:"frequency"`
+	LockPeriod                 time.Duration              `json:"lock_period"`
+	MinAmount                  decimal.Decimal            `json:"min_amount"`
+	MaxAmount                  decimal.Decimal            `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool               `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool               `json:"is_active"`
+	IsDeleted                  sql.NullBool               `json:"is_deleted "`
+	CreatedAt                  time.Time                  `json:"created_at"`
+	UpdatedAt                  time.Time                  `json:"updated_at"`
+	DeletedAt                  sql.NullTime               `json:"deleted_at"`
+	TotalCount                 int64                      `json:"total_count"`
 }
 
 // --- AccrualMethod ---
@@ -209,7 +206,6 @@ func (q *Queries) FindBankVault(ctx context.Context, arg FindBankVaultParams) ([
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.Description,
 			&i.Currency,
 			&i.RateBps,
 			&i.Method,
@@ -217,7 +213,7 @@ func (q *Queries) FindBankVault(ctx context.Context, arg FindBankVaultParams) ([
 			&i.LockPeriod,
 			&i.MinAmount,
 			&i.MaxAmount,
-			&i.EarlyUnlockRateBps,
+			&i.ApplyInterestOnEarlyUnlock,
 			&i.IsActive,
 			&i.IsDeleted,
 			&i.CreatedAt,
@@ -245,7 +241,6 @@ const findBankVaultById = `-- name: FindBankVaultById :one
 SELECT
   id,
   name,
-  description,
   currency,
   rate_bps,
   method,
@@ -253,7 +248,7 @@ SELECT
   lock_period,
   min_amount,
   max_amount,
-  early_unlock_rate_bps,
+  apply_interest_on_early_unlock,
   is_active,
   is_deleted,
   created_at,
@@ -275,7 +270,6 @@ func (q *Queries) FindBankVaultById(ctx context.Context, id string) (BankVaultPr
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Description,
 		&i.Currency,
 		&rateBps_num,
 		&i.Method,
@@ -283,7 +277,7 @@ func (q *Queries) FindBankVaultById(ctx context.Context, id string) (BankVaultPr
 		&i.LockPeriod,
 		&minAmount_num,
 		&maxAmount_num,
-		&i.EarlyUnlockRateBps,
+		&i.ApplyInterestOnEarlyUnlock,
 		&i.IsActive,
 		&i.IsDeleted,
 		&i.CreatedAt,
@@ -301,7 +295,6 @@ const findBankVaultByName = `--name: FindBankVaultByName :one
 SELECT
   id,
   name,
-  description,
   currency,
   rate_bps,
   method,
@@ -309,7 +302,7 @@ SELECT
   lock_period,
   min_amount,
   max_amount,
-  early_unlock_rate_bps,
+  apply_interest_on_early_unlock,
   is_active,
   created_at,
   updated_at,
@@ -334,7 +327,6 @@ func (q *Queries) FindBankVaultByName(ctx context.Context, name string) (BankVau
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
-		&i.Description,
 		&i.Currency,
 		&rateBps_num,
 		&i.Method,
@@ -348,7 +340,6 @@ func (q *Queries) FindBankVaultByName(ctx context.Context, name string) (BankVau
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
-	i.ID = strings.ToUpper(hex.EncodeToString([]byte(i.ID)))
 	i.RateBps, _ = decimal.NewFromString(rateBps_num.String())
 	i.MinAmount, _ = decimal.NewFromString(minAmount_num.String())
 	i.MaxAmount, _ = decimal.NewFromString(maxAmount_num.String())
@@ -360,7 +351,6 @@ const saveBankVault = `-- name: SaveBankVault :one
 INSERT INTO bank_vault_products (
   id,
   name,
-  description,
   currency,
   rate_bps,
   method,
@@ -368,27 +358,26 @@ INSERT INTO bank_vault_products (
   lock_period,
   min_amount,
   max_amount,
-  early_unlock_rate_bps,
+  apply_interest_on_early_unlock,
   is_active
 ) VALUES (
-  :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12
+  :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11
 )
 RETURNING id INTO :13
 `
 
 type SaveBankVaultParams struct {
-	ID                 string                     `json:"id"`
-	Name               string                     `json:"name"`
-	Description        string                     `json:"description"`
-	Currency           string                     `json:"currency"`
-	RateBps            decimal.Decimal            `json:"rate_bps"`
-	Method             constants.AccrualMethod    `json:"method"`
-	Frequency          constants.AccrualFrequency `json:"frequency"`
-	LockPeriod         time.Duration              `json:"lock_period"`
-	MinAmount          decimal.Decimal            `json:"min_amount"`
-	MaxAmount          decimal.Decimal            `json:"max_amount"`
-	EarlyUnlockRateBps sql.NullBool               `json:"early_unlock_rate_bps"`
-	IsActive           sql.NullBool               `json:"is_active"`
+	ID                         string                     `json:"id"`
+	Name                       string                     `json:"name"`
+	Currency                   string                     `json:"currency"`
+	RateBps                    decimal.Decimal            `json:"rate_bps"`
+	Method                     constants.AccrualMethod    `json:"method"`
+	Frequency                  constants.AccrualFrequency `json:"frequency"`
+	LockPeriod                 time.Duration              `json:"lock_period"`
+	MinAmount                  decimal.Decimal            `json:"min_amount"`
+	MaxAmount                  decimal.Decimal            `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool               `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool               `json:"is_active"`
 }
 
 func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error) {
@@ -397,7 +386,6 @@ func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (s
 	_, err := q.db.ExecContext(ctx, saveBankVault,
 		generateUUID(),
 		arg.Name,
-		arg.Description,
 		strings.ToUpper(arg.Currency),
 		arg.RateBps,
 		string(arg.Method),
@@ -405,7 +393,7 @@ func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (s
 		int64(arg.LockPeriod),
 		arg.MinAmount,
 		arg.MaxAmount,
-		utils.NullBoolToInt(arg.EarlyUnlockRateBps),
+		utils.NullBoolToInt(arg.ApplyInterestOnEarlyUnlock),
 		utils.NullBoolToInt(arg.IsActive),
 		sql.Out{Dest: &id},
 	)
@@ -419,33 +407,30 @@ func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (s
 const updateBankVault = `-- name: UpdateBankVault :one
 UPDATE bank_vault_products
 SET
-	description = COALESCE(:1, description),
-	min_amount  = COALESCE(:2, min_amount),
-	max_amount  = COALESCE(:3, max_amount),
-	is_active   = COALESCE(:4, is_active),
+	min_amount  = COALESCE(:1, min_amount),
+	max_amount  = COALESCE(:2, max_amount),
+	is_active   = COALESCE(:3, is_active),
 	updated_at  = SYSTIMESTAMP
-WHERE id = :5 AND deleted_at IS NULL
+WHERE id = :4 AND deleted_at IS NULL
 RETURNING id INTO :result
 `
 
 type UpdateBankVaultParams struct {
-	Description *string          `json:"description"`
-	MinAmount   *sql.NullFloat64 `json:"min_amount"`
-	MaxAmount   *sql.NullFloat64 `json:"max_amount"`
-	IsActive    sql.NullBool     `json:"is_active"`
-	ID          string           `json:"id"`
+	MinAmount *sql.NullFloat64 `json:"min_amount"`
+	MaxAmount *sql.NullFloat64 `json:"max_amount"`
+	IsActive  sql.NullBool     `json:"is_active"`
+	ID        string           `json:"id"`
 }
 
 func (q *Queries) UpdateBankVault(ctx context.Context, arg UpdateBankVaultParams) (string, error) {
-	var idBytes []byte
+	var id string
 
 	res, err := q.db.ExecContext(ctx, updateBankVault,
-		arg.Description,
 		arg.MinAmount,
 		arg.MaxAmount,
 		utils.NullBoolToIntPtr(arg.IsActive),
 		arg.ID,
-		sql.Out{Dest: &idBytes},
+		sql.Out{Dest: &id},
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to update bank vault: %w", err)
@@ -455,7 +440,6 @@ func (q *Queries) UpdateBankVault(ctx context.Context, arg UpdateBankVaultParams
 	if rows == 0 {
 		return "", fmt.Errorf("bank vault not found or already deleted")
 	}
-	id := strings.ToUpper(hex.EncodeToString(idBytes))
 
 	return id, nil
 }
@@ -484,7 +468,7 @@ FROM locked_vaults
 WHERE product_id = :1 AND deleted_at IS NULL
 `
 
-//   early_unlock_rate_bps,
+//   apply_interest_on_early_unlock,
 
 type BankVaultProductWithLocks struct {
 	BankVaultProduct
@@ -526,7 +510,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 			&rateBps_num,
 			&l.Method,
 			&l.Frequency,
-			// &l.EarlyUnlockRateBps,
+			// &l.ApplyInterestOnEarlyUnlock,
 			&l.LockPeriod,
 			&l.CreatedAt,
 			&l.UpdatedAt,

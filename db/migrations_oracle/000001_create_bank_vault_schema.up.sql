@@ -70,7 +70,6 @@ CREATE SEQUENCE bank_vault_products_seq
 CREATE TABLE bank_vault_products (
     id                    VARCHAR2(36) NOT NULL,
     name                  VARCHAR2(500) NOT NULL,
-    description           VARCHAR2(2000) DEFAULT '',
     currency              VARCHAR2(3) NOT NULL CHECK (LENGTH(currency)=3 AND currency=UPPER(currency)),
     rate_bps              NUMBER(19,4) NOT NULL CHECK (rate_bps >= 0),
     method                VARCHAR2(20) NOT NULL CHECK (method IN ('COMPOUND', 'SIMPLE')),
@@ -78,7 +77,7 @@ CREATE TABLE bank_vault_products (
     lock_period           NUMBER(19,0) NOT NULL CHECK (lock_period > 0),
     min_amount            NUMBER(19,4) NOT NULL CHECK (min_amount > 0),
     max_amount            NUMBER(19,4) NOT NULL CHECK (max_amount > 0),
-    early_unlock_rate_bps NUMBER(1) DEFAULT 0 CHECK (early_unlock_rate_bps IN (0,1)),
+    apply_interest_on_early_unlock NUMBER(1) DEFAULT 0 CHECK (apply_interest_on_early_unlock IN (0,1)),
     is_active             NUMBER(1) DEFAULT 0 CHECK (is_active IN (0,1)),
     created_at            TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at            TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

@@ -5246,6 +5246,12 @@ var (
 		Message:    "Vault group category is already deleted.",
 		Type:       "error",
 	}
+	ErrorVaultCoverImageMissedOrInvalid = ResponseCode{
+		Code:       "ERROR_VAULT_COVER_IMAGE_MISSED_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    "Vault category cover image missed or invalid",
+		Type:       "error",
+	}
 
 	ErrorDuplicateBankProduct = ResponseCode{
 		Code:       "ERROR_DUPLICATE_BANK_PRODUCT",

@@ -18,8 +18,6 @@ import (
 
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 
-	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
-
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
@@ -30,6 +28,8 @@ import (
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -488,10 +488,10 @@ type BankVaultService interface {
 }
 type VaultGroupCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	CreateVaultGroupCategory(ctx context.Context, req *model.VaultGroupCategory) (string, error)
+	CreateVaultGroupCategory(ctx context.Context, req *vaultCategory_dto.CreateVaultGroupCategoryRequest) (string, error)
 	FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup.VaultGroupCategoryResponse], error)
 	GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup.VaultGroupCategoryResponse, error)
-	UpdateVaultGroupCategory(ctx context.Context, id string, req *model.VaultGroupCategory) (string, error)
+	UpdateVaultGroupCategory(ctx context.Context, id string, req *vaultCategory_dto.UpdateVaultGroupCategoryRequest) (string, error)
 	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
 	EnableVaultGroupCategory(ctx context.Context, id string) error
 	DisableVaultGroupCategory(ctx context.Context, id string) error

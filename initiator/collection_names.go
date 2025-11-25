@@ -62,4 +62,5 @@ var (
 	BudgetCategoryBucketName       = "budget-category"
 	AmountBasedAuthBucketName      = "amount-based-auth"
 	AdvertBucketName               = "advert-bucket"
+	VaultCategoryBucketName        = "vault-category"
 )

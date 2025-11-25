@@ -1,11 +1,15 @@
 package vaultgroupcategory
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
+	"fmt"
+	"mime/multipart"
 	"regexp"
 	"strings"
 
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func (r *CreateVaultGroupCategoryRequest) Validate() error {
@@ -15,22 +19,18 @@ func (r *CreateVaultGroupCategoryRequest) Validate() error {
 
 	var err error
 	if r.Name, err = sanitizeString(r.Name); err != nil {
-		return err
-	}
-	if r.Description, err = sanitizeString(r.Description); err != nil {
-		return err
+		return fmt.Errorf("name: %w", err)
 	}
 
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
-			validation.Required,
-			validation.Length(3, 100),
+			validation.Required.Error("name is required"),
+			validation.Length(3, 100).Error("name must be between 3 and 100 characters"),
 			validation.By(noSpecialChars),
 		),
-		validation.Field(&r.Description,
-			validation.Required,
-			validation.Length(3, 255),
-			validation.By(noSpecialChars),
+		validation.Field(&r.CoverImage,
+			validation.Required.Error("cover_image is required"),
+			validation.By(func(value interface{}) error { return validateCoverImage(value) }),
 		),
 	)
 }
@@ -39,27 +39,44 @@ func (r *UpdateVaultGroupCategoryRequest) Validate() error {
 	if r == nil {
 		return errors.New("request is required")
 	}
-	if r.Name == nil && r.Description == nil {
-		return errors.New("at least one field (name or description) must be provided")
+
+	if r.Name == nil && r.CoverImage == nil {
+		return errors.New("at least one field (name, or cover_image) must be provided")
 	}
+
+	if r.Name != nil {
+		sanitized, err := sanitizeString(*r.Name)
+		if err != nil {
+			return fmt.Errorf("name: %w", err)
+		}
+		r.Name = &sanitized
+	}
+
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
-			validation.Length(3, 100),
-			validation.By(noSpecialChars),
+			validation.When(r.Name != nil,
+				validation.Length(3, 100).Error("name must be between 3 and 100 characters"),
+				validation.By(noSpecialChars),
+			),
 		),
-		validation.Field(&r.Description,
-			validation.Length(3, 255),
-			validation.By(noSpecialChars),
+		validation.Field(&r.CoverImage,
+			validation.When(r.CoverImage != nil,
+				validation.By(func(value interface{}) error { return validateCoverImage(value) })),
 		),
 	)
 }
 
-func sanitizeString(s string) (string, error) {
-	trimmed := strings.TrimSpace(s)
-	return trimmed, nil
+func (r *UpdateVaultGroupCategoryRequest) HasUpdates() bool {
+	return r.Name != nil || r.CoverImage != nil
 }
 
-// var reISO4217 = regexp.MustCompile(`^[A-Z]{3}$`)
+func sanitizeString(s string) (string, error) {
+	trimmed := strings.TrimSpace(s)
+	if trimmed == "" {
+		return "", errors.New("cannot be empty or only whitespace")
+	}
+	return trimmed, nil
+}
 
 func noSpecialChars(value interface{}) error {
 	var s string
@@ -68,9 +85,10 @@ func noSpecialChars(value interface{}) error {
 	case string:
 		s = v
 	case *string:
-		if v != nil {
-			s = *v
+		if v == nil {
+			return nil
 		}
+		s = *v
 	default:
 		return nil
 	}
@@ -79,11 +97,27 @@ func noSpecialChars(value interface{}) error {
 		return nil
 	}
 
-	// allow letters, numbers, space, dot, underscore, dash
+	// Allow letters, numbers, space, dot, underscore, dash
 	re := regexp.MustCompile(`^[a-zA-Z0-9 ._-]+$`)
 	if !re.MatchString(s) {
-		// return validation.NewError("validation_no_special_chars", "contains invalid characters")
-		return errors.New("contains invalid characters")
+		return errors.New("contains invalid characters (only letters, numbers, spaces, dots, underscores, and dashes are allowed)")
 	}
+	return nil
+}
+
+func validateCoverImage(value interface{}) error {
+	file, ok := value.(*multipart.FileHeader)
+	if !ok || file == nil {
+		return localization.ErrorBankImageMissingOrInvalid
+	}
+
+	if !utils.IsValidImage(file) {
+		return errors.New(localization.MsgBankImageRequiredOrMissing)
+	}
+
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
+	}
+
 	return nil
 }
