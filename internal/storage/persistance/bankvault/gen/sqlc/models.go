@@ -8,10 +8,13 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
 
+	"github.com/godror/godror"
 	"github.com/shopspring/decimal"
 )
 
@@ -269,4 +272,83 @@ type LockedVault struct {
 	UpdatedAt                  time.Time                  `json:"updated_at"`
 	ClosedAt                   sql.NullTime               `json:"closed_at"`
 	DeletedAt                  sql.NullTime               `json:"deleted_at"`
+}
+
+type NullBoolNumber struct {
+	sql.NullBool
+}
+
+func (n *NullBoolNumber) Scan(src any) error {
+	if src == nil {
+		n.Valid = false
+		return nil
+	}
+
+	switch v := src.(type) {
+	case bool:
+		n.Bool = v
+		n.Valid = true
+		return nil
+	case int64:
+		n.Bool = v != 0
+		n.Valid = true
+		return nil
+	case float64:
+		n.Bool = v != 0
+		n.Valid = true
+		return nil
+	case []byte:
+		s := strings.TrimSpace(string(v))
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.EqualFold(s, "true") || strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	case string:
+		s := strings.TrimSpace(v)
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.EqualFold(s, "true") || strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	case godror.Number:
+		s := strings.TrimSpace(v.String())
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	default:
+		// Fallback: try to use fmt.Sprintf then parse
+		s := strings.TrimSpace(strings.ToLower(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(strings.Trim(strings.Trim(fmt.Sprintf("%v", src), "\n"), "\r")), " "), " ")))
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.EqualFold(s, "true") || strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	}
 }

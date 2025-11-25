@@ -192,12 +192,55 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	updated.IsActive = false
 	maker := local_util.ExtractUserFromContext(ctx)
 
-	// Convert to MongoDB-safe format
 	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
 	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(updated)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestDisAbleBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
+
+func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error) {
+	if filterParams == nil {
+		f := &types.Filter{}
+		filterParams = f
+
+	}
+	results, err := s.repo.FindAllBankLockedVaultsWithPagination(ctx, *filterParams)
+	if err != nil {
+		s.logger.Errorf("failed to fetch bank locked vaults: %v", err)
+		return nil, err
+	}
+	return &types.PaginatedResponse[[]*model.LockedVault]{
+		Data: results.Data,
+		Meta: results.Meta,
+	}, nil
+}
+
+// func (s *bankVaultService) GetBankLockedVault(ctx context.Context, id string) (*bankvault.LockedVaultResponse, error) {
+// 	return nil, nil
+// }
+
+func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error) {
+	if filterParams == nil {
+		f := &types.Filter{}
+		filterParams = f
+	}
+
+	results, err := s.repo.FindAllGroupVaultWithPagination(ctx, *filterParams)
+	if err != nil {
+		s.logger.Errorf("failed to fetch group vaults: %v", err)
+		return nil, err
+	}
+	return &types.PaginatedResponse[[]*model.GroupVault]{
+		Data: results.Data,
+		Meta: results.Meta,
+	}, nil
+
+}
+
+// func (s *bankVaultService) GetGroupVault(ctx context.Context, id string) (*bankvault.GroupVaultResponse, error) {
+// 	return nil, nil
+// }
+
 func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateBankVault):

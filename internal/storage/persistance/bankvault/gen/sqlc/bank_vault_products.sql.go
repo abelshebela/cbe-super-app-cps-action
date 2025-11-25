@@ -2,9 +2,11 @@ package sqlc
 
 import (
 	constants "cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/model"
 	utils "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -533,4 +535,364 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 		BankVaultProduct: product,
 		Locks:            locks,
 	}, nil
+}
+
+const getAllLockedVaults = `-- name: GetAllLockedVaults  :many
+SELECT
+  id,
+  customer_id,
+  linked_account,
+  account_holder_name,
+  transaction_reference,
+  product_id,
+  principal,
+  start_date,
+  maturity_date,
+  status,
+  terms_version,
+  terms_accepted_at,
+  closed_at,
+  min_amount,
+  max_amount,
+  rate_bps,
+  method,
+  frequency,
+  apply_interest_on_early_unlock,
+  lock_period,
+  created_at,
+  updated_at,
+  deleted_at,
+  COUNT(*) OVER() AS total_count
+FROM locked_vaults
+WHERE deleted_at IS NULL
+ORDER BY created_at DESC
+OFFSET NVL(:offset, 0) ROWS
+FETCH NEXT NVL(:limit, 50) ROWS ONLY
+`
+
+type ListLockedVaultParams struct {
+	Status     NullLockedVaultStatus `json:"status"`
+	ProductID  sql.NullString        `json:"product_id"`
+	CustomerID sql.NullString        `json:"customer_id"`
+	StartFrom  sql.NullTime          `json:"start_from"`
+	MaturityTo sql.NullTime          `json:"maturity_to"`
+	Page       sql.NullInt64         `json:"offset_count"`
+	Limit      sql.NullInt64         `json:"limit_count"`
+}
+
+type ListLocksRow struct {
+	ID                         string                     `json:"id"`
+	CustomerID                 string                     `json:"customer_id"`
+	LinkedAccount              string                     `json:"linked_account"`
+	AccountHolderName          string                     `json:"account_holder_name"`
+	TransactionReference       string                     `json:"transaction_reference"`
+	ProductID                  string                     `json:"product_id"`
+	Principal                  decimal.Decimal            `json:"principal"`
+	StartDate                  time.Time                  `json:"start_date"`
+	MaturityDate               time.Time                  `json:"maturity_date"`
+	Status                     constants.VaultStatus      `json:"status"`
+	TermsVersion               string                     `json:"terms_version"`
+	TermsAcceptedAt            time.Time                  `json:"terms_accepted_at"`
+	ClosedAt                   sql.NullTime               `json:"closed_at"`
+	MinAmount                  decimal.Decimal            `json:"min_amount"`
+	MaxAmount                  decimal.Decimal            `json:"max_amount"`
+	RateBps                    decimal.Decimal            `json:"rate_bps"`
+	Method                     constants.AccrualMethod    `json:"method"`
+	Frequency                  constants.AccrualFrequency `json:"frequency"`
+	ApplyInterestOnEarlyUnlock NullBoolNumber             `json:"apply_interest_on_early_unlock"`
+	LockPeriod                 int64                      `json:"lock_period"`
+	CreatedAt                  time.Time                  `json:"created_at"`
+	UpdatedAt                  time.Time                  `json:"updated_at"`
+	DeletedAt                  sql.NullTime               `json:"deleted_at"`
+	TotalCount                 int64                      `json:"total_count"`
+}
+
+func (q *Queries) GetAllLockedVaults(ctx context.Context, arg ListLockedVaultParams) ([]ListLocksRow, error) {
+	offset := (arg.Page.Int64 - 1) * arg.Limit.Int64
+
+	rows, err := q.db.QueryContext(ctx, getAllLockedVaults,
+		sql.Named("offset", offset),
+		sql.Named("limit", arg.Limit),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var (
+		principal_num godror.Number
+		rateBps_num   godror.Number
+		minAmount_num godror.Number
+		maxAmount_num godror.Number
+	)
+
+	items := []ListLocksRow{}
+	for rows.Next() {
+		var i ListLocksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CustomerID,
+			&i.LinkedAccount,
+			&i.AccountHolderName,
+			&i.TransactionReference,
+			&i.ProductID,
+			&principal_num,
+			&i.StartDate,
+			&i.MaturityDate,
+			&i.Status,
+			&i.TermsVersion,
+			&i.TermsAcceptedAt,
+			&i.ClosedAt,
+			&minAmount_num,
+			&maxAmount_num,
+			&rateBps_num,
+			&i.Method,
+			&i.Frequency,
+			&i.ApplyInterestOnEarlyUnlock,
+			&i.LockPeriod,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.TotalCount,
+		); err != nil {
+			return nil, err
+		}
+
+		i.Principal, _ = decimal.NewFromString(principal_num.String())
+		i.MinAmount, _ = decimal.NewFromString(minAmount_num.String())
+		i.MaxAmount, _ = decimal.NewFromString(maxAmount_num.String())
+		i.RateBps, _ = decimal.NewFromString(rateBps_num.String())
+
+		items = append(items, i)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+const getAllGroupVaults = `--- name: GetAllGroupVaults :many
+SELECT
+  id,
+  vault_name,
+  vault_category,
+  purpose,
+  target_amount,
+  status,
+  admin_user_id,
+  frequency,
+  next_run,
+  end_date,
+  vault_type,
+  reminder,
+  tc_version,
+  created_at,
+  updated_at,
+  deleted_at,
+  COUNT(*) OVER() AS total_count
+FROM group_vaults
+WHERE deleted_at IS NULL
+ORDER BY created_at DESC
+OFFSET NVL(:offset, 0) ROWS
+FETCH NEXT NVL(:limit, 50) ROWS ONLY
+`
+
+type GetAllGroupVaultsParams struct {
+	Page  sql.NullInt64 `json:"offset_count"`
+	Limit sql.NullInt64 `json:"limit_count"`
+}
+
+func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsParams) ([]model.GroupVault, error) {
+	offset := (arg.Page.Int64 - 1) * arg.Limit.Int64
+
+	rows, err := q.db.QueryContext(ctx, getAllGroupVaults,
+		sql.Named("offset", offset),
+		sql.Named("limit", arg.Limit),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := []model.GroupVault{}
+	for rows.Next() {
+		var i model.GroupVault
+
+		var targetAmountNum godror.Number
+		var reminder sql.NullBool
+
+		if err := rows.Scan(
+			&i.ID,
+			&i.VaultName,
+			&i.VaultCategory,
+			&i.Purpose,
+			&targetAmountNum,
+			&i.Status,
+			&i.AdminUserID,
+			&i.Recurrence,
+			&i.NextRun,
+			&i.EndDate,
+			&i.VaultType,
+			&reminder,
+			&i.TCVersion,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.TotalCount,
+		); err != nil {
+			return nil, err
+		}
+
+		i.TargetAmount, _ = decimal.NewFromString(targetAmountNum.String())
+		if reminder.Valid {
+			i.Reminder = &reminder.Bool
+		} else {
+			i.Reminder = nil
+		}
+
+		items = append(items, i)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	utils.PrintRecord("Items", items)
+
+	return items, nil
+}
+
+const getAllTransactions = `--- name: GetAllTransactions :many
+SELECT
+  id,
+  transaction_id,
+  ft_number,
+  debit_branch_code,
+  debit_district_code,
+  debit_user_id,
+  debit_account_number,
+  debit_account_holder_name,
+  credit_user_id,
+  credit_account_number,
+  credit_account_holder_name,
+  institution_code,
+  institution_name,
+  currency,
+  service_fee,
+  tip_amount,
+  paid_amount,
+  vat,
+  amount,
+  total_amount,
+  external_reference,
+  transaction_reason,
+  transaction_type,
+  transaction_status,
+  is_ifb,
+  is_reversed,
+  paid_at,
+  reversed_at,
+  metadata,
+  created_at,
+  last_modified_at,
+  COUNT(*) OVER() AS total_count
+FROM transaction
+WHERE ft_number = :1 AND deleted_at IS NULL
+ORDER BY created_at DESC
+OFFSET NVL(:offset, 0) ROWS
+FETCH NEXT NVL(:limit, 50) ROWS ONLY
+`
+
+type GetAllTransactionsParams struct {
+	Page  sql.NullInt64 `json:"offset_count"`
+	Limit sql.NullInt64 `json:"limit_count"`
+}
+
+func (q *Queries) GetAllTransactions(ctx context.Context, arg GetAllTransactionsParams) ([]model.Transaction, error) {
+	offset := (arg.Page.Int64 - 1) * arg.Limit.Int64
+
+	rows, err := q.db.QueryContext(ctx, getAllTransactions,
+		sql.Named("offset", offset),
+		sql.Named("limit", arg.Limit),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := []model.Transaction{}
+	for rows.Next() {
+		var i model.Transaction
+
+		var serviceFee godror.Number
+		var tipAmount godror.Number
+		var paidAmount godror.Number
+		var vat godror.Number
+		var amount godror.Number
+		var totalAmount godror.Number
+
+		var metadata sql.NullString
+
+		if err := rows.Scan(
+			&i.ID,
+			&i.TransactionID,
+			&i.FTNumber,
+			&i.DebitBranchCode,
+			&i.DebitDistrictCode,
+			&i.DebitUserID,
+			&i.DebitAccountNumber,
+			&i.DebitAccountHolderName,
+			&i.CreditUserID,
+			&i.CreditAccountNumber,
+			&i.CreditAccountHolderName,
+			&i.InstitutionCode,
+			&i.InstitutionName,
+			&i.Currency,
+			&serviceFee,
+			&tipAmount,
+			&paidAmount,
+			&vat,
+			&amount,
+			&totalAmount,
+			&i.ExternalReference,
+			&i.TransactionReason,
+			&i.TransactionType,
+			&i.TransactionStatus,
+			&i.IsIFB,
+			&i.IsReversed,
+			&i.PaidAt,
+			&i.ReversedAt,
+			&metadata,
+			&i.CreatedAt,
+			&i.LastModifiedAt,
+			&i.TotalCount,
+		); err != nil {
+			return nil, err
+		}
+
+		// convert decimal fields
+		i.ServiceFee, _ = decimal.NewFromString(serviceFee.String())
+		i.TipAmount, _ = decimal.NewFromString(tipAmount.String())
+		i.PaidAmount, _ = decimal.NewFromString(paidAmount.String())
+		i.VAT, _ = decimal.NewFromString(vat.String())
+		i.Amount, _ = decimal.NewFromString(amount.String())
+		i.TotalAmount, _ = decimal.NewFromString(totalAmount.String())
+
+		// metadata
+		if metadata.Valid {
+			i.Metadata = json.RawMessage(metadata.String)
+		}
+
+		items = append(items, i)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	utils.PrintRecord("Transactions", items)
+
+	return items, nil
 }

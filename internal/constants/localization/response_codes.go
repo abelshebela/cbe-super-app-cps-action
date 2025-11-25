@@ -1215,6 +1215,30 @@ var (
 		Message:    MsgBankVaultDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessAllBankLockedVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_LOCKED_VAULTS_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankLockedVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankLockedVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_LOCKED_VAULT_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankLockedVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessGroupVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_GROUP_VAULTS_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgGroupVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessGroupVaultRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_GROUP_VAULT_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgGroupVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
 	// vaultgroup category related
 	SuccessVaultGroupCategoryCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_CREATION_REQUEST_SUBMITTED",

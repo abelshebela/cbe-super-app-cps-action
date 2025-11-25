@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/shopspring/decimal"
 )
@@ -40,10 +41,10 @@ func MapBankVaultToResponse(bankVault *model.BankVaultProduct) *bankvault.BankVa
 		ID:                         bankVault.ID,
 		Name:                       bankVault.Name,
 		Currency:                   bankVault.Currency,
-		RateBps:                    bankVault.RateBps,
+		Interest:                   bankVault.RateBps.Div(decimal.NewFromInt(100)),
 		Method:                     bankVault.Method,
 		Frequency:                  bankVault.Frequency,
-		LockPeriod:                 bankVault.LockPeriod,
+		LockPeriod:                 fmt.Sprintf("%d months", utils.DurationToMonths(bankVault.LockPeriod)),
 		MinAmount:                  bankVault.MinAmount,
 		MaxAmount:                  bankVault.MaxAmount,
 		ApplyInterestOnEarlyUnlock: bankVault.ApplyInterestOnEarlyUnlock,

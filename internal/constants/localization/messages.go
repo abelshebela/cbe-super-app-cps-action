@@ -178,13 +178,17 @@ const (
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
 	// Bank Vault related success messages
-	MsgBankVaultCreationRequestSubmitted = "Bank vault creation request submitted successfully"
-	MsgBankVaultUpdateRequestSubmitted   = "Bank vault update request submitted successfully"
-	MsgBankVaultDeleteRequestSubmitted   = "Bank vault deleted  request submitted successfully"
-	MsgBankVaultDisableRequestSubmitted  = "Bank vault disabled request submitted successfully"
-	MsgBankVaultEnableRequestSubmitted   = "Bank vault enabled request submitted successfully"
-	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
-	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
+	MsgBankVaultCreationRequestSubmitted     = "Bank vault creation request submitted successfully"
+	MsgBankVaultUpdateRequestSubmitted       = "Bank vault update request submitted successfully"
+	MsgBankVaultDeleteRequestSubmitted       = "Bank vault deleted  request submitted successfully"
+	MsgBankVaultDisableRequestSubmitted      = "Bank vault disabled request submitted successfully"
+	MsgBankVaultEnableRequestSubmitted       = "Bank vault enabled request submitted successfully"
+	MsgBankVaultsRetrievedSuccessfully       = "Bank vaults retrieved successfully"
+	MsgBankVaultRetrievedSuccessfully        = "Bank vault retrieved successfully"
+	MsgBankLockedVaultsRetrievedSuccessfully = "Bank locked vaults retrieved successfully"
+	MsgBankLockedVaultRetrievedSuccessfully  = "Bank locked vault retrieved successfully"
+	MsgGroupVaultsRetrievedSuccessfully      = "Group vaults retrieved successfully"
+	MsgGroupVaultRetrievedSuccessfully       = "Group vault retrieved successfully"
 
 	// vault group category sucess messages
 	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
