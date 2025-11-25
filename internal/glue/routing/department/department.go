@@ -18,6 +18,7 @@ func Init(router chi.Router, departmentHandler department.DepartmentHandler, aut
 			Handler: departmentHandler.GetAllDepartments,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -44,6 +45,7 @@ func Init(router chi.Router, departmentHandler department.DepartmentHandler, aut
 			Handler: departmentHandler.GetDepartmentByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{

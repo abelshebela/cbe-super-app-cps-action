@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
@@ -117,47 +118,47 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
+	_, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, "", b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	bank := model.Bank{
-		Name:    bank_request.Name,
-		BIC:     bank_request.BIC,
-		Code:    bank_request.Code,
-		Logo:    URL,
-		Enabled: true,
-	}
+	// bank := model.Bank{
+	// 	Name:    bank_request.Name,
+	// 	BIC:     bank_request.BIC,
+	// 	Code:    bank_request.Code,
+	// 	Logo:    URL,
+	// 	Enabled: true,
+	// }
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
+	// result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 
-	if err != nil {
-		code, _ := local_util.HandleMongoError(err)
-		if code != localization.ErrorResourceNotFound.Code {
-			return err
-		}
-	}
+	// if err != nil {
+	// 	code, _ := local_util.HandleMongoError(err)
+	// 	if code != localization.ErrorResourceNotFound.Code {
+	// 		return err
+	// 	}
+	// }
 
-	if result != nil {
-		if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
-			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
-		}
-		if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
-			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
-		}
-		if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
-			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
-		}
-	}
-	action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
+	// if result != nil {
+	// 	if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
+	// 		return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
+	// 	}
+	// 	if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
+	// 		return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
+	// 	}
+	// 	if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
+	// 		return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
+	// 	}
+	// }
+	// action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
 
-	err = b.cpsService.CreateCPSAction(ctx, &action)
-	if err != nil {
-		return err
-	}
+	// err = b.cpsService.CreateCPSAction(ctx, &action)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -241,7 +242,12 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return err
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, b.logger)
+	var objectkey string
+	if bank.Logo != "" {
+		objectkey = path.Base(bank.Logo)
+	}
+
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, objectkey, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -286,7 +292,21 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	if bank_request.Logo != nil {
-		URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
+		var objectkey string
+		if bank.Logo != "" {
+			objectkey = path.Base(bank.Logo)
+		}
+
+		URL, err := lib.UploadFileToMinio(
+			ctx,
+			b.minio,
+			b.bucketName,
+			bank_request.Logo,
+			b.bucketName,
+			b.minioPubUrl,
+			objectkey,
+			b.logger,
+		)
 		if err != nil {
 			b.logger.Errorf("UploadFileToMinio failed", "error", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)

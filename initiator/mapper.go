@@ -6,12 +6,12 @@ import (
 
 // ServiceContainerToServiceLayer maps a ServiceContainer to a ServiceLayer
 // Only maps the services that exist in both structures
-func ServiceContainerToServiceLayer(container *service.ServiceContainer) *ServiceLayer {
+func ServiceContainerToServiceLayer(container *service.ServiceContainer) *service.ServiceLayer {
 	if container == nil {
 		return nil
 	}
 
-	return &ServiceLayer{
+	return &service.ServiceLayer{
 		EventService: container.EventContainer,
 		CPSAction:    container.CPSActionContainer,
 		Feedback:     container.FeedbackContainer,
@@ -24,7 +24,7 @@ func ServiceContainerToServiceLayer(container *service.ServiceContainer) *Servic
 
 // ServiceLayerToServiceContainer maps a ServiceLayer to a ServiceContainer
 // Only maps the services that exist in ServiceLayer, other fields will be nil
-func ServiceLayerToServiceContainer(layer *ServiceLayer) *service.ServiceContainer {
+func ServiceLayerToServiceContainer(layer *service.ServiceLayer) *service.ServiceContainer {
 	if layer == nil {
 		return nil
 	}
@@ -43,7 +43,7 @@ func ServiceLayerToServiceContainer(layer *ServiceLayer) *service.ServiceContain
 
 // MergeServiceLayerIntoContainer merges ServiceLayer services into an existing ServiceContainer
 // This preserves existing services in the container while updating with ServiceLayer services
-func MergeServiceLayerIntoContainer(container *service.ServiceContainer, layer *ServiceLayer) {
+func MergeServiceLayerIntoContainer(container *service.ServiceContainer, layer *service.ServiceLayer) {
 	if container == nil || layer == nil {
 		return
 	}

@@ -9,7 +9,7 @@ INSERT INTO bank_vault_products (
   lock_period,
   min_amount,
   max_amount,
-  early_unlock_fee_bps,
+  early_unlock_rate_bps,
   is_active
 ) VALUES (
   sqlc.arg(name),
@@ -21,7 +21,7 @@ INSERT INTO bank_vault_products (
   sqlc.arg(lock_period),
   sqlc.arg(min_amount),
   sqlc.arg(max_amount),
-  sqlc.arg(early_unlock_fee_bps),
+  sqlc.arg(early_unlock_rate_bps),
   sqlc.arg(is_active)
 )
 RETURNING id;
@@ -38,7 +38,7 @@ SELECT
   lock_period,
   min_amount,
   max_amount,
-  early_unlock_fee_bps,
+  early_unlock_rate_bps,
   is_active,
   is_deleted,
   created_at,
@@ -59,7 +59,7 @@ SELECT
   lock_period,
   min_amount,
   max_amount,
-  early_unlock_fee_bps,
+  early_unlock_rate_bps,
   is_active,
   is_deleted,
   created_at,

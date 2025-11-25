@@ -23,6 +23,7 @@ type PermissionPersistence struct {
 	permissionGroupsDal   dal.MongoDal[model.PermissionGroup, model.PermissionGroup]
 	permissionCategoryDal dal.MongoDal[model.PermissionCategory, model.PermissionCategory]
 	permissionDal         dal.MongoDal[model.Permission, model.Permission]
+	PermissionGroupCol    *mongo.Collection
 	cpsdal                dal.MongoDal[model.CPSAction, model.CPSAction]
 	timeout               time.Duration
 	logger                utils.Logger
@@ -30,16 +31,18 @@ type PermissionPersistence struct {
 
 var _ storage.PermissionRepository = (*PermissionPersistence)(nil)
 
-func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
-	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, "permission_groups")
-	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, "permission_category")
-	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, "permission")
-	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
+func InitPermission(client *mongo.Client, dbName string, collections []string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
+	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, collections[0])
+	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, collections[1])
+	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, collections[2])
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[3])
+	PermissionGroupCollections := client.Database(dbName).Collection(collections[0])
 
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
 		permissionCategoryDal: permissionCategoryDal,
 		permissionDal:         permissionDal,
+		PermissionGroupCol:    PermissionGroupCollections,
 		cpsdal:                cpsdal,
 		timeout:               timeout,
 		logger:                logger,
@@ -118,8 +121,16 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := s.permissionGroupsDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	pipeline := PermissionGroupsPipeline(filter, skip, limit)
+
+	cursor, err := s.PermissionGroupCol.Aggregate(ctx, pipeline)
 	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	var data []*model.PermissionGroup
+	if err := cursor.All(ctx, &data); err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 

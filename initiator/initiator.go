@@ -27,7 +27,7 @@ func Init(ctx context.Context) {
 	coreConfig := core.CBECoreCredential{
 		Username: "SUPERAPP",
 		Password: "123456",
-		Url:      "https://devapisuperapp.cbe.com.et/superapp/parser/proxy/CBESUPERAPPV2/services?target=http://10.1.15.195:8080&wsdl=null",
+		Url:      "http://10.1.15.195:8080/CBESUPERAPPV2/services?wsdl=null",
 	}
 	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
@@ -43,7 +43,9 @@ func Init(ctx context.Context) {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("Initializing persistence...")
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, logger)
+	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	merchantApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)
@@ -53,18 +55,18 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
-	// oracleDB := InitOracle(cfg.OracleConnectionString, logger)
-	// logger.Infof("Oracle database initialized")
+	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
+	logger.Infof("Oracle database initialized")
 
-	// logger.Infof("Initializing Oracle DB client...")
-	// OraclePersistence := InitOraclePersistence(oracleDB, logger)
-	// logger.Infof("Oracle DB client initialized")
+	logger.Infof("Initializing Oracle DB client...")
+	OraclePersistence := InitOraclePersistence(oracleDB, logger)
+	logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing SMS service...")
 	smsService := external_call.NewSMSPersistence(cfg.SMSBaseURL, logger)
 	logger.Infof("SMS service initialized")
 
-	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient("cfg.CommonSvcGrpcAddress", logger)
+	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
 	}
@@ -72,16 +74,17 @@ func Init(ctx context.Context) {
 		clientStore.Close()
 	}()
 
-	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	// initiate sitota grpc
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CommonSvcGrpcAddress)
 	if err != nil {
-		logger.Fatalf("Failed to initialize gRPC client for sitota")
+		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
 	sitotagRPCClient.Close()
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, logger, sessionGRPCClient, cfg, minioClient, redisRepository, *smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, *smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {

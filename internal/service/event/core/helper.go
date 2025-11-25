@@ -218,6 +218,6 @@ func CreateEventMapper(event eventdto.EventRequest, code string, coverURL string
 		Ticket:         event.Tickets,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
-		Enabled: true,
+		Enabled:        true,
 	}
 }

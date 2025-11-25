@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func PermissionGroupUpdateMapper(permissionGroup *model.PermissionGroup) bson.M {
@@ -34,4 +35,15 @@ func PermissionCategoryUpdateMapper(permissionCategory *model.PermissionCategory
 	}
 	set["updatedAt"] = time.Now()
 	return set
+}
+
+func PermissionGroupsPipeline(filter bson.M, skip int64, limit int64) mongo.Pipeline {
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: 1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+	}
+
+	return pipeline
 }

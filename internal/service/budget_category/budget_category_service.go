@@ -12,6 +12,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"path"
 	"time"
 
 	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -50,10 +51,10 @@ func NewBudgetCategoryService(
 
 func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	var err error
-		budgetCategory, marshal_err := local_util.JsonUnmarshal[model.BudgetCategory](action.CurrentAction)
-		if marshal_err != nil || budgetCategory == nil {
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
+	budgetCategory, marshal_err := local_util.JsonUnmarshal[model.BudgetCategory](action.CurrentAction)
+	if marshal_err != nil || budgetCategory == nil {
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	}
 	switch action.RequestAction {
 	case string(constants.RequestBudgetCreate):
 
@@ -79,7 +80,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	iconURL := ""
 	if req.Icon != nil {
-		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), b.minioEndPoint, b.logger)
+		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), b.minioEndPoint, "", b.logger)
 		if err != nil {
 			return err
 		}
@@ -98,6 +99,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestBudgetCreate), constants.CREATE)
 
+	local_util.PrintRecord("CPS action", cpsActionData)
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
 	}
@@ -166,6 +168,11 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 		newBudgetCategory.Color = *req.Color
 	}
 	if req.Icon != nil {
+		var objectkey string
+		if existingBudgetCategory.Icon != "" {
+			objectkey = path.Base(existingBudgetCategory.Icon)
+		}
+
 		url, err := lib.UploadFileToMinio(
 			ctx,
 			b.minio,
@@ -173,6 +180,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 			req.Icon,
 			string(constants.BudgetCategoryIcon),
 			b.minioEndPoint,
+			objectkey,
 			b.logger,
 		)
 		if err != nil {
@@ -180,8 +188,8 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 		}
 		newBudgetCategory.Icon = url
 	}
-	if newBudgetCategory==*existingBudgetCategory{
-		return  errors.New(localization.ErrorNoChangesToUpdate.Code)
+	if newBudgetCategory == *existingBudgetCategory {
+		return errors.New(localization.ErrorNoChangesToUpdate.Code)
 	}
 
 	newBudgetCategory.UpdatedAt = time.Now()
@@ -201,7 +209,6 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 
 	return nil
 }
-
 
 func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id string) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)

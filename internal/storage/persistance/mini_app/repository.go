@@ -5,13 +5,14 @@ import (
 	"errors"
 	"time"
 
+	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"cbe-super-app-cps-action/internal/constants/dto/mini_app"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -19,18 +20,18 @@ import (
 )
 
 type MiniAppStorage struct {
-	dal    dal.MongoDal[model.MiniApp, model.MiniApp]
-	client *mongo.Client
+	dal        dal.MongoDal[model.MiniApp, model.MiniApp]
+	client     *mongo.Client
 	collection *mongo.Collection
-	logger utils.Logger
+	logger     utils.Logger
 }
 
 func NewMiniAppRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppRepository {
 	return &MiniAppStorage{
-		dal:    dal.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collection),
-		client: client,
+		dal:        dal.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collection),
+		client:     client,
 		collection: client.Database(dbName).Collection(collection),
-		logger: logger,
+		logger:     logger,
 	}
 }
 
@@ -61,7 +62,7 @@ func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *model.M
 		return errors.New(localization.ErrorUpdateMiniAppEmptyPayload.Code)
 	}
 
-	_, err = m.dal.UpdateOne(ctx, filter,update)
+	_, err = m.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			m.logger.Warnf("MiniApp not found for ID: %s", id)
@@ -248,8 +249,6 @@ func (p *MiniAppStorage) RunInTransaction(ctx context.Context, fn func(ctx conte
 	})
 }
 
-
-
 func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -326,4 +325,3 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 
 	return &resp, nil
 }
-

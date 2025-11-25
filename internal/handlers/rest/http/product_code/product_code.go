@@ -28,17 +28,18 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 }
 
 // Update Product Code
-// @Summary Update a product code
-// @Description Updates an existing product code by its ID. This is a pending action that requires approval.
-// @Tags ProductCode
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param id path string true "Product Code ID"
-// @Param productCode body product_code_dto.UpdateProductCodeRequest true "Update Product Code Request"
-// @Success 200 {object} localization.StandardResponse{data=map[string]model.ProductCode}
-// @Failure 400,401,403,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /product-codes/{id} [patch]
+//
+//	@Summary		Update a product code
+//	@Description	Updates an existing product code by its ID. This is a pending action that requires approval.
+//	@Tags			ProductCode
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id					path		string									true	"Product Code ID"
+//	@Param			productCode			body		productcode.UpdateProductCodeRequest	true	"Update Product Code Request"
+//	@Success		200					{object}	localization.StandardResponse{data=map[string]model.ProductCode}
+//	@Failure		400,401,403,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/product-codes/{id} [patch]
 func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ExtractID(w, r)
 	if err != nil {
@@ -77,15 +78,16 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 }
 
 // Get Product Code by ID
-// @Summary Fetch a product code by ID
-// @Description Retrieves a single product code by its unique ID.
-// @Tags ProductCode
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Product Code ID"
-// @Success 200 {object} localization.StandardResponse{data=product_code_dto.ProductCodeResponse}
-// @Failure 400,401,403,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /product-codes/{id} [get]
+//
+//	@Summary		Fetch a product code by ID
+//	@Description	Retrieves a single product code by its unique ID.
+//	@Tags			ProductCode
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id					path		string	true	"Product Code ID"
+//	@Success		200					{object}	localization.StandardResponse{data=productcode.ProductCodeResponse}
+//	@Failure		400,401,403,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/product-codes/{id} [get]
 func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http.Request) {
 	id, err := utils.ExtractID(w, r)
 	if err != nil {
@@ -104,18 +106,19 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 type ProductCodePaginatedResponse types.PaginatedResponse[[]*product_code_dto.ProductCodeResponse]
 
 // Get All Product Codes
-// @Summary Fetch all product codes
-// @Description Retrieves a paginated list of product codes. Search using service_name.Filter using {_id,service_name,created_at,...}
-// @Tags ProductCode
-// @Security BearerAuth
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Param search query string false "Search term"
-// @Param filter query string false "filter term"
-// @Success 200 {object} localization.StandardResponse{data=ProductCodePaginatedResponse}
-// @Failure 400,401,403,500 {object} localization.StandardResponse{data=nil}
-// @Router /productcodes [get]
+//
+//	@Summary		Fetch all product codes
+//	@Description	Retrieves a paginated list of product codes. Search using service_name.Filter using {_id,service_name,created_at,...}
+//	@Tags			ProductCode
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page			query		int		false	"Page number"
+//	@Param			per_page		query		int		false	"Items per page"
+//	@Param			search			query		string	false	"Search term"
+//	@Param			filter			query		string	false	"filter term"
+//	@Success		200				{object}	localization.StandardResponse{data=ProductCodePaginatedResponse}
+//	@Failure		400,401,403,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/productcodes [get]
 func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Request) {
 	filterParams := utils.ExtractFilterParams(r)
 	list, err := h.productCodeApplication.FetchAllProductCodes(r.Context(), filterParams)

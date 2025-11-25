@@ -16,7 +16,7 @@ func (p CreatePermissionGroupRequest) Validate() error {
 	)
 }
 func (req *UpdatePermissionGroupRequest) Validate() error {
-	if strings.TrimSpace(req.OldGroupName) == "" {
+	if strings.TrimSpace(req.NewGroupName) == "" {
 		return fmt.Errorf(localization.ErrorInvalidRequest.Code)
 	}
 	return nil

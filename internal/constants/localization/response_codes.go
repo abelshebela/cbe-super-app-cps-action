@@ -143,7 +143,19 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAllSitotasRetrieved,
 	SuccessSitotaRetrieved,
 
+	// Encryption
+	SuccessEncryptionGenerated,
+
 	// Error codes
+	ErrorDeviceVersionAlreadyExists,
+	ErrorDeviceVersionAlreadyEnabled,
+	ErrorDeviceVersionAlreadyDisabled,
+	ErrorDeviceVersionNotFound,
+
+	ErrorDeviceVersionUpdateFailed,
+	ErrorDeviceVersionDeleteFailed,
+	ErrorDeviceVersionEnableFailed,
+	ErrorDeviceVersionDisableFailed,
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -466,6 +478,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// OTP related error codes
 	ErrorOTPExpired,
+	ErrorUnsupportedAction,
 	ErrorOTPInvalid,
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
@@ -478,6 +491,37 @@ var ResponseCodesList = []ResponseCode{
 
 	// Sitota Related errors
 	ErrorSitotaRequired,
+
+	// Encryption
+	ErrConfigIsEmpty,
+	ErrMarshalingData,
+	ErrInvalidKeyOrIv,
+
+	// Vault related
+	SuccessVaultGroupCategoryCreationRequestSubmitted,
+	SuccessVaultGroupCategoriesRetrieved,
+	SuccessVaultGroupCategoryRetrieved,
+	SuccessVaultGroupCategoryUpdateRequestSubmitted,
+	SuccessVaultGroupCategoryDeleteRequestSubmitted,
+	SuccessVaultGroupCategoryEnableRequestSubmitted,
+	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	ErrorFailedToBeingTransaction,
+	ErrorDuplicateBankProduct,
+	ErrorVaultGroupCategoryNotFound,
+	ErrorNoBankProductFound,
+	ErrorCannotDeletedBankProduct,
+	ErrorCannotEnableOrDisable,
+	ErrorBankVaultProductAlreadyDeleted,
+	ErrorDuplicateGroupVaultCategory,
+	ErrorBankVaultAlreadyEnabled,
+	ErrorBankVaultAlreadyDisabled,
+	ErrorVaultGroupAlreadyEnabled,
+	ErrorVaultGroupAlreadyDisabled,
+	ErrorBankAlreadyEnabled,
+	ErrorBankAlreadyDisabled,
+	ErrorBankWithNameAlreadyExists,
+	ErrorBankWithBICAlreadyExists,
+	ErrorBankWithCodeAlreadyExists,
 }
 
 // Success Response Codes
@@ -1214,19 +1258,6 @@ var (
 		Type:       "success",
 	}
 	// Event related error response codes for bankvault
-	ErrorCannotDeleteActiveBankVault = ResponseCode{
-		Code:       "ERROR_CANNOT_DELETE_ACTIVE_BANKVAULT",
-		StatusCode: StatusBadRequest,
-		Message:    MsgCannotDeleteActiveBankVault,
-		Type:       "error",
-	}
-	ErrorBankVaultProductAlreadyDeleted = ResponseCode{
-		Code:       "ERROR_BANKVAULT_PRODUCT_ALREADY_DELETED",
-		StatusCode: StatusBadRequest,
-		Message:    MsgBankVaultProductAlreadyDeleted,
-		Type:       "error",
-	}
-
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -2384,6 +2415,14 @@ var (
 		Type:       "success",
 	}
 	// mini app handler related error response codes
+
+	// Encryption
+	SuccessEncryptionGenerated = ResponseCode{
+		Code:       "SUCCESS_ENCRYPTION",
+		StatusCode: StatusOK,
+		Message:    MsgEncryptionSuccessfully,
+		Type:       "success",
+	}
 
 	ErrorMiniAppNotFound = ResponseCode{
 		Code:       "ERROR_MINI_APP_NOT_FOUND",
@@ -3668,6 +3707,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorFailedToBeingTransaction = ResponseCode{
+		Code:       "ERROR_FAILED_TO_BE_TRANSACTION",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgFailedToBeingTransaction,
+		Type:       "error",
+	}
+
 	ErrorLimitExceeded = ResponseCode{
 		Code:       "ERROR_LIMIT_EXCEEDED",
 		StatusCode: StatusBadRequest,
@@ -3939,6 +3985,55 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgMiniAppMerchantUpdateFailed,
+		Type:       "error",
+	}
+
+	ErrorDeviceVersionAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyExists,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionNotFound = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDeviceVersionNotFound,
+		Type:       "error",
+	}
+	ErrorDeviceVersionUpdateFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionUpdateFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDeleteFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDeleteFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionEnableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionEnableFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDisableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDisableFailed,
 		Type:       "error",
 	}
 
@@ -4912,6 +5007,25 @@ var (
 		Type:       "error",
 	}
 
+	ErrConfigIsEmpty = ResponseCode{
+		Code:       "ERROR_CONFIG_IS_EMPTY",
+		StatusCode: StatusInternalServerError,
+		Message:    "Config is empty",
+		Type:       "error",
+	}
+	ErrMarshalingData = ResponseCode{
+		Code:       "ERROR_MARSHALING_DATA",
+		StatusCode: StatusInternalServerError,
+		Message:    "Error while marshaling data",
+		Type:       "error",
+	}
+	ErrInvalidKeyOrIv = ResponseCode{
+		Code:       "ERROR_INVALID_KEY_OR_IV",
+		StatusCode: StatusInternalServerError,
+		Message:    "Invalid key or iv",
+		Type:       "error",
+	}
+
 	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
 		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
 		StatusCode: StatusOK,
@@ -5116,6 +5230,48 @@ var (
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
 		Message:    "Vault group category is already deleted.",
+		Type:       "error",
+	}
+
+	ErrorDuplicateBankProduct = ResponseCode{
+		Code:       "ERROR_DUPLICATE_BANK_PRODUCT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicatebankProduct,
+		Type:       "error",
+	}
+
+	ErrorNoBankProductFound = ResponseCode{
+		Code:       "ERROR_NO_BANK_PRODUCT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgNoBankProductFound,
+		Type:       "error",
+	}
+
+	ErrorCannotDeletedBankProduct = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETED_BANK_PRODUCT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDeleteBankProduct,
+		Type:       "error",
+	}
+
+	ErrorCannotEnableOrDisable = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_OR_DISABLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgcannotEnableOrDisableDeletedBankProduct,
+		Type:       "error",
+	}
+
+	ErrorBankVaultProductAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_BANK_VAULT_PRODUCT_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankVaultProductAlreadyDeleted,
+		Type:       "error",
+	}
+
+	ErrorDuplicateGroupVaultCategory = ResponseCode{
+		Code:       "ERROR_DUPLICATE_GROUP_VAULT_CATEGORY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateGroupVaultCategory,
 		Type:       "error",
 	}
 

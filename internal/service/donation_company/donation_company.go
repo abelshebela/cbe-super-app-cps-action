@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -90,7 +91,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, "", d.logger)
 	if err != nil {
 		return err
 	}
@@ -125,7 +126,12 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 
 	logoURL := existingCompany.CompanyLogo
 	if donationCompany.CompanyLogo != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.logger)
+		var objectkey string
+		if existingCompany.CompanyLogo != "" {
+			objectkey = path.Base(existingCompany.CompanyLogo)
+		}
+
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, objectkey, d.logger)
 		if err != nil {
 			return donationCompany, err
 		}

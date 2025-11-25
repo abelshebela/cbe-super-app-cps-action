@@ -110,6 +110,7 @@ type KYCStatus string
 const (
 	KYCStatusPending  KYCStatus = "PENDING"
 	KYCStatusApproved KYCStatus = "APPROVED"
+	KYCStatusComplete KYCStatus = "COMPLETE"
 	KYCStatusRejected KYCStatus = "REJECTED"
 )
 
@@ -169,6 +170,21 @@ const (
 	Low    RiskLevel = "LOW"
 )
 
+const (
+	AccountNumber = "account_number"
+	PhoneNumber   = "phone_number"
+	WithFayda     = "with_fayda"
+)
+
+// type KYCStatus string
+
+// const (
+// 	KYCStatusPending  KYCStatus = "PENDING"
+// 	KYCStatusApproved KYCStatus = "APPROVED"
+// KYCStatusComplete KYCStatus = "COMPLETE"
+// 	KYCStatusRejected KYCStatus = "REJECTED"
+// )
+
 type MemberType string
 
 const (
@@ -214,44 +230,52 @@ const (
 type RequestAction string
 
 const (
-	RequestUser                     RequestAction = "USER"
-	RequestCpsUserCreate            RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate            RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete            RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable            RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable           RequestAction = "DISABLE_CPS_USER"
-	RequestUpdateKYC                RequestAction = "UPDATE_KYC"
-	RequestApproveKYC               RequestAction = "APPROVE_KYC"
-	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
-	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup    RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestDepartment               RequestAction = "DEPARMTENT"
-	RequestEnableUser               RequestAction = "ENABLE_USER"
-	RequestDisableUser              RequestAction = "DISABLE_USER"
-	RequestBPSUser                  RequestAction = "BPS_USER"
-	RequestDisableBPSUser           RequestAction = "DISABLE_BPS_USER"
-	RequestEnableBPSUser            RequestAction = "ENABLE_BPS_USER"
-	RequestUpdateUser               RequestAction = "UPDATE_USER"
-	RequestTotalDailyLimit          RequestAction = "TOTAL_DAILY_LIMIT"
-	RequestUpdateVAT                RequestAction = "UPDATE_VAT"
-	RequestAuthTier                 RequestAction = "AUTHTIER"
-	RequestDeleteAmountBasedAuth    RequestAction = "DELETE_AMOUNT_BASED_AUTH"
-	RequestCreateAmountBasedAuth    RequestAction = "CREATE_AMOUNT_BASED_AUTH"
-	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
-	RequestCreateAdvert             RequestAction = "CREATE_ADVERT"
-	RequestUpdateAdvert             RequestAction = "UPDATE_ADVERT"
-	RequestEnableAdvert             RequestAction = "ENABLE_ADVERT"
-	RequestDisableAdvert            RequestAction = "DISABLE_ADVERT"
-	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
-	RequestCreateBank               RequestAction = "CREATE_BANK"
-	RequestUpdateBank               RequestAction = "UPDATE_BANK"
-	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO"
-	RequestDeleteBank               RequestAction = "DELETE_BANK"
-	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
-	RequestEnableBank               RequestAction = "ENABLE_BANK"
-	RequestDisableBank              RequestAction = "DISABLE_BANK"
-	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
+	RequestUser                  RequestAction = "USER"
+	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
+	RequestUpdateKYC             RequestAction = "UPDATE_KYC"
+	RequestApproveKYC            RequestAction = "APPROVE_KYC"
+	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
+	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestDepartment            RequestAction = "DEPARMTENT"
+	RequestEnableUser            RequestAction = "ENABLE_USER"
+	RequestDisableUser           RequestAction = "DISABLE_USER"
+	RequestBPSUser               RequestAction = "BPS_USER"
+	RequestDisableBPSUser        RequestAction = "DISABLE_BPS_USER"
+	RequestEnableBPSUser         RequestAction = "ENABLE_BPS_USER"
+	RequestUpdateUser            RequestAction = "UPDATE_USER"
+	RequestTotalDailyLimit       RequestAction = "TOTAL_DAILY_LIMIT"
+	RequestUpdateVAT             RequestAction = "UPDATE_VAT"
+	RequestAuthTier              RequestAction = "AUTHTIER"
+	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestCreateAdvert          RequestAction = "CREATE_ADVERT"
+	RequestUpdateAdvert          RequestAction = "UPDATE_ADVERT"
+	RequestEnableAdvert          RequestAction = "ENABLE_ADVERT"
+	RequestDisableAdvert         RequestAction = "DISABLE_ADVERT"
+	RequestDeleteAdvert          RequestAction = "DELETE_ADVERT"
+	RequestCreateBank            RequestAction = "CREATE_BANK"
+	RequestUpdateBank            RequestAction = "UPDATE_BANK"
+	RequestUpdateBankLogo        RequestAction = "UPDATE_BANK_LOGO"
+	RequestDeleteBank            RequestAction = "DELETE_BANK"
+	RequestEnableDisableBank     RequestAction = "ENABLE_DISABLE_BANK"
+	RequestEnableBank            RequestAction = "ENABLE_BANK"
+	RequestDisableBank           RequestAction = "DISABLE_BANK"
+	RequestCreateDepartment      RequestAction = "CREATE_DEPARTMENT"
+
+	RequestCreateDeviceVersion        RequestAction = "CREATE_DEVICE_VERSION"
+	RequestUpdateDeviceVersion        RequestAction = "UPDATE_DEVICE_VERSION"
+	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
+	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
+	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
+	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+
 	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
 	RequestDeleteDepartment         RequestAction = "DELETE_DEPARTMENT"
 	RequestEnableDepartment         RequestAction = "ENABLE_DEPARTMENT"

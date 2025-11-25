@@ -49,8 +49,6 @@ func BuildUpdateVaultGroupCategory(prev *model.VaultGroupCategory, req *model.Va
 	return prev
 }
 
-
-
 func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultGroupCategory, error) {
 	var VaultGroupCategory model.VaultGroupCategory
 	if v, ok := current.(model.VaultGroupCategory); ok {
