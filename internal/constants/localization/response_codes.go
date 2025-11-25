@@ -262,6 +262,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
@@ -3748,6 +3749,12 @@ var (
 		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
+	ErrorOnDisablingExistingDeviceControl= ResponseCode{
+		Code:       "ERROR_ON_DISABLING_EXISTING_DEVICE_CONTROL",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgOnDisablingExistingDeviceControl,
+		Type:       "error",
+	}
 
 	ErrorMaintenanceMode = ResponseCode{
 		Code:       "ERROR_MAINTENANCE_MODE",
@@ -5237,6 +5244,12 @@ var (
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
 		Message:    "Vault group category is already deleted.",
+		Type:       "error",
+	}
+	ErrorVaultCoverImageMissedOrInvalid = ResponseCode{
+		Code:       "ERROR_VAULT_COVER_IMAGE_MISSED_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    "Vault category cover image missed or invalid",
 		Type:       "error",
 	}
 

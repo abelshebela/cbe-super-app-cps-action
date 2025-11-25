@@ -113,6 +113,26 @@ func New(l *zap.Logger, options Options) Logger {
 				},
 			},
 			{
+				KeyInContext: constants.ContextKey("trace_id"),
+				Func: func(v any) zap.Field {
+					if vString, ok := v.(string); ok {
+						return zap.String("trace_id", vString)
+					}
+
+					return zap.Skip()
+				},
+			},
+			{
+				KeyInContext: constants.ContextKey("span_id"),
+				Func: func(v any) zap.Field {
+					if vString, ok := v.(string); ok {
+						return zap.String("span_id", vString)
+					}
+
+					return zap.Skip()
+				},
+			},
+			{
 				KeyInContext: constants.ContextKey("x-user-id"),
 				Func: func(v any) zap.Field {
 					if vString, ok := v.(string); ok {

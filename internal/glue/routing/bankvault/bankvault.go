@@ -15,7 +15,7 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
-			Path:    "/vault/create",
+			Path:    "/vault/products/create",
 			Handler: handler.CreateBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -24,7 +24,7 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/vault",
+			Path:    "/vault/products",
 			Handler: handler.FindAllBankVaults,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -33,7 +33,7 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/vault/{id}",
+			Path:    "/vault/products/{id}",
 			Handler: handler.GetBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -42,7 +42,7 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/update/{id}",
+			Path:    "/vault/products/update/{id}",
 			Handler: handler.UpdateBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -51,7 +51,7 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		},
 		{
 			Method:  http.MethodDelete,
-			Path:    "/vault/delete/{id}",
+			Path:    "/vault/products/delete/{id}",
 			Handler: handler.DeleteBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -60,7 +60,7 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/disable/{id}",
+			Path:    "/vault/products/disable/{id}",
 			Handler: handler.DisableBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -69,7 +69,16 @@ func Init(router chi.Router, handler bankvault.BankVaultHandler, authMiddleware 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/vault/enable/{id}",
+			Path:    "/vault/products/enable/{id}",
+			Handler: handler.EnableBankVault,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
+			},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/vault/products/enable/{id}",
 			Handler: handler.EnableBankVault,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

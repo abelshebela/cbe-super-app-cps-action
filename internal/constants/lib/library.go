@@ -22,7 +22,6 @@ import (
 )
 
 func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, currentAction any, requestAction, actionType string) model.CPSAction {
-
 	return model.CPSAction{
 		ActionCode:       local_util.GenerateActionCode(),
 		UniqueId:         unique,

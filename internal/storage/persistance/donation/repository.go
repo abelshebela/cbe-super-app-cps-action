@@ -137,7 +137,6 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 	for _, donation := range data {
 
 		companyFilter := bson.M{"_id": donation.CompanyID}
-		fmt.Println("companyFilter", donation.CompanyID)
 		company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch company: %v", err)

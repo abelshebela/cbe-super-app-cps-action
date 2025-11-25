@@ -46,7 +46,7 @@ END;
 CREATE TABLE group_vault_categories (
     id          VARCHAR2(36) NOT NULL PRIMARY KEY,
     name        VARCHAR2(255) NOT NULL,
-    description VARCHAR2(1000),
+    cover_image VARCHAR2(255),
     is_active   NUMBER(1) DEFAULT 0 NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
     updated_at  TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,

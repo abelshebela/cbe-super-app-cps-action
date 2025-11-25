@@ -268,6 +268,7 @@ type VaultGroupCategoryRepository interface {
 	Create(ctx context.Context, vaultGroupCategory *model.VaultGroupCategory) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error)
 	FindByID(ctx context.Context, id string) (*model.VaultGroupCategory, error)
+	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultGroupCategory, error)
 	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultGroupCategory) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
