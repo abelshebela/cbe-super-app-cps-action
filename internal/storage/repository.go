@@ -257,6 +257,8 @@ type CpsUserRepository interface {
 type BankVaultRepository interface {
 	Create(ctx context.Context, bankVault *model.BankVaultProduct) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error)
+	FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error)
+	FindAllGroupVaultWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error)
 	FindBankVaultByName(ctx context.Context, name string) error
 	FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error)
 	Update(ctx context.Context, id string, bankVault *model.BankVaultProduct) error

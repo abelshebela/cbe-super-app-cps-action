@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/shopspring/decimal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -156,6 +157,129 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 		},
 	}
 	return &resp, nil
+}
+
+func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error) {
+	params := sqlc.ListLockedVaultParams{}
+
+	rows, err := r.queries.GetAllLockedVaults(ctx, params)
+	if err != nil {
+		r.logger.Errorf("failed to get locked vaults: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	lockedVaults := make([]*model.LockedVault, 0, len(rows))
+	var total int64
+
+	for _, row := range rows {
+		lv := &model.LockedVault{
+			ID:                         row.ID,
+			CustomerID:                 row.CustomerID,
+			LinkedAccount:              row.LinkedAccount,
+			AccountHolderName:          row.AccountHolderName,
+			TransactionReference:       row.TransactionReference,
+			ProductID:                  row.ProductID,
+			Principal:                  row.Principal,
+			StartDate:                  row.StartDate,
+			MaturityDate:               row.MaturityDate,
+			Status:                     row.Status,
+			TermsVersion:               row.TermsVersion,
+			TermsAcceptedAt:            row.TermsAcceptedAt,
+			MinAmount:                  row.MinAmount,
+			MaxAmount:                  row.MaxAmount,
+			RateBps:                    row.RateBps.Div(decimal.NewFromInt(100)),
+			Method:                     row.Method,
+			Frequency:                  string(row.Frequency),
+			ApplyInterestOnEarlyUnlock: nil,
+			LockPeriod:                 fmt.Sprintf("%d months", utils.DurationToMonths(row.LockPeriod)),
+			CreatedAt:                  row.CreatedAt,
+			UpdatedAt:                  row.UpdatedAt,
+		}
+
+		if row.ApplyInterestOnEarlyUnlock.Valid {
+			val := row.ApplyInterestOnEarlyUnlock.Bool
+			lv.ApplyInterestOnEarlyUnlock = &val
+		}
+
+		if row.ClosedAt.Valid {
+			t := row.ClosedAt.Time
+			lv.ClosedAt = &t
+		}
+		if row.DeletedAt.Valid {
+			t := row.DeletedAt.Time
+			lv.DeletedAt = &t
+		}
+
+		lockedVaults = append(lockedVaults, lv)
+		total = row.TotalCount
+	}
+
+	resp := types.PaginatedResponse[[]*model.LockedVault]{
+		Data: lockedVaults,
+		Meta: types.PaginationMeta{
+			TotalDocs:  total,
+			Limit:      int(params.Limit.Int64),
+			Page:       filterParam.Page,
+			TotalPages: int(total),
+		},
+	}
+
+	return &resp, nil
+}
+
+func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error) {
+	params := sqlc.GetAllGroupVaultsParams{}
+
+	rows, err := r.queries.GetAllGroupVaults(ctx, params)
+	if err != nil {
+		r.logger.Errorf("failed to get group vaults: %v", err)
+		return nil, err
+	}
+
+	groupVaults := make([]*model.GroupVault, 0, len(rows))
+	var total int64
+
+	for _, row := range rows {
+		memberCount := row.MemberCount
+		occVersion := row.OccVersion
+
+		gv := &model.GroupVault{
+			ID:              row.ID,
+			VaultName:       row.VaultName,
+			VaultCategory:   row.VaultCategory,
+			Purpose:         row.Purpose,
+			TargetAmount:    row.TargetAmount,
+			CollectedAmount: row.CollectedAmount,
+			MemberCount:     memberCount,
+			EndDate:         row.EndDate,
+			VaultType:       row.VaultType,
+			Status:          row.Status,
+			AdminUserID:     row.AdminUserID,
+			Recurrence:      row.Recurrence,
+			NextRun:         row.NextRun,
+			Reminder:        row.Reminder,
+			TCVersion:       row.TCVersion,
+			OccVersion:      occVersion,
+			CreatedAt:       row.CreatedAt,
+			UpdatedAt:       row.UpdatedAt,
+			DeletedAt:       row.DeletedAt,
+		}
+
+		groupVaults = append(groupVaults, gv)
+		total = row.TotalCount
+	}
+
+	resp := &types.PaginatedResponse[[]*model.GroupVault]{
+		Data: groupVaults,
+		Meta: types.PaginationMeta{
+			TotalDocs:  total,
+			Limit:      int(params.Limit.Int64),
+			Page:       filterParam.Page,
+			TotalPages: int(total),
+		},
+	}
+
+	return resp, nil
 }
 
 func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error) {

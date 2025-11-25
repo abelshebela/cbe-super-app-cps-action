@@ -485,6 +485,10 @@ type BankVaultService interface {
 	DeleteBankVault(ctx context.Context, id string) (string, error)
 	EnableBankVault(ctx context.Context, id string) error
 	DisableBankVault(ctx context.Context, id string) error
+	FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error)
+	// GetTransactions(ctx context.Context, id string) (*bankvault.LockedVaultResponse, error)
+	FindAllGroupVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error)
+	// GetGroupVault(ctx context.Context, id string) (*bankvault.GroupVaultResponse, error)
 }
 type VaultGroupCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
