@@ -42,6 +42,7 @@ const (
 	MsgFileUploadedSuccessfully  = "File uploaded successfully"
 	MsgFileDeletedSuccessfully   = "File deleted successfully"
 	MsgFileRetrievedSuccessfully = "File retrieved successfully"
+	MsgMissingContentTypeHeader  = "Missing Content-Type header"
 
 	// General success messages
 	MsgOperationCompleted        = "Operation completed successfully"
@@ -396,7 +397,7 @@ const (
 	// Validation error messages
 	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
 	MsgBankDeleteRequestFailed     = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing  = "Bank image invalid or missing"
+	MsgBankImageRequiredOrMissing  = "Image invalid or missing"
 	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
 
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
@@ -617,6 +618,7 @@ const (
 	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
 	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
 	MsgFailedToBeingTransaction = "Failed to begin transaction"
+	Msg
 
 	// vault group category related error messages
 	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"

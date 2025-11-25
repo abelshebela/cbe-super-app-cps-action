@@ -12,6 +12,7 @@ import (
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -55,6 +56,10 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+	// Change the interest rate to rate bps
+	// percent → basis points
+	req.Interest = req.Interest.Mul(decimal.NewFromInt(100))
+
 	product := core.ToDomainCreateBankVaultRequest(req, lockPeriod)
 	id, err := h.service.CreateBankVault(r.Context(), product)
 	if err != nil {

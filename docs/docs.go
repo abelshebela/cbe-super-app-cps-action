@@ -19692,7 +19692,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "12-month fixed deposit for diaspora customers"
                 },
-                "early_unlock_rate_bps": {
+                "apply_interest_on_early_unlock": {
                     "type": "string",
                     "example": "100"
                 },

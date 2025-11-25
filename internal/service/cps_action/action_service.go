@@ -6,7 +6,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
@@ -32,7 +31,6 @@ func NewCPSActionService(repo storage.CPSActionRepository, persistence persistan
 }
 
 func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
-	fmt.Println("====================Creating CPS Action in Service Layer")
 	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, cpsAction.Department)
 
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
@@ -52,8 +50,9 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	}
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
-		err = ca.RollBack(ctx, action)
-		if err != nil {
+		RollErr := ca.RollBack(ctx, action)
+		if RollErr != nil {
+			return RollErr
 		}
 		return err
 	}

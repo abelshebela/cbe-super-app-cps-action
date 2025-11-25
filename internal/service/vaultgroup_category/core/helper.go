@@ -8,46 +8,62 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 )
 
+func CategoryMapper(action map[string]interface{}) model.VaultGroupCategory {
+	category := model.VaultGroupCategory{}
+
+	if v, ok := action["name"]; ok {
+		if name, ok := v.(string); ok {
+			category.Name = name
+		}
+	}
+	if v, ok := action["cover_image"]; ok {
+		if img, ok := v.(string); ok {
+			category.CoverImage = img
+		}
+	}
+	return category
+}
+
 // ConvertVaultGroupCategoryToMongoSafe converts VaultGroupCategory to a MongoDB-safe format
 // by converting decimal.Decimal fields to float64 for proper serialization
-func ConvertVaultGroupCategoryToMongoSafe(vaultGroupCategory *model.VaultGroupCategory) map[string]interface{} {
-	result := map[string]interface{}{
-		"id":          vaultGroupCategory.ID,
-		"name":        vaultGroupCategory.Name,
-		"description": vaultGroupCategory.Description,
-		"isactive":    vaultGroupCategory.IsActive,
-		"createdat":   vaultGroupCategory.CreatedAt,
-		"updatedat":   vaultGroupCategory.UpdatedAt,
-		"deletedat":   vaultGroupCategory.DeletedAt,
-		"createdby":   vaultGroupCategory.CreatedBy,
-		"updatedby":   vaultGroupCategory.UpdatedBy,
-		"isdeleted":   vaultGroupCategory.IsDeleted,
-	}
-	return result
-}
+// func ConvertVaultGroupCategoryToMongoSafe(vaultGroupCategory *model.VaultGroupCategory) map[string]interface{} {
+// 	result := map[string]interface{}{
+// 		"id":        vaultGroupCategory.ID,
+// 		"name":      vaultGroupCategory.Name,
+// 		"isactive":  vaultGroupCategory.IsActive,
+// 		"createdat": vaultGroupCategory.CreatedAt,
+// 		"updatedat": vaultGroupCategory.UpdatedAt,
+// 		"deletedat": vaultGroupCategory.DeletedAt,
+// 		"createdby": vaultGroupCategory.CreatedBy,
+// 		"updatedby": vaultGroupCategory.UpdatedBy,
+// 		"isdeleted": vaultGroupCategory.IsDeleted,
+// 	}
+// 	return result
+// }
 
 func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultGroupCategory) *vaultgroup_category.VaultGroupCategoryResponse {
 	return &vaultgroup_category.VaultGroupCategoryResponse{
-		ID:          vaultGroupCategory.ID,
-		Name:        vaultGroupCategory.Name,
-		Description: vaultGroupCategory.Description,
-		IsActive:    vaultGroupCategory.IsActive,
-		IsDeleted:   vaultGroupCategory.IsDeleted,
-		CreatedAt:   vaultGroupCategory.CreatedAt,
-		UpdatedAt:   vaultGroupCategory.UpdatedAt,
-		DeletedAt:   vaultGroupCategory.DeletedAt,
+		ID:         vaultGroupCategory.ID,
+		Name:       vaultGroupCategory.Name,
+		CoverImage: vaultGroupCategory.CoverImage,
+		IsActive:   vaultGroupCategory.IsActive,
+		IsDeleted:  vaultGroupCategory.IsDeleted,
+		CreatedAt:  vaultGroupCategory.CreatedAt,
+		UpdatedAt:  vaultGroupCategory.UpdatedAt,
+		DeletedAt:  vaultGroupCategory.DeletedAt,
 	}
 }
 
-func BuildUpdateVaultGroupCategory(prev *model.VaultGroupCategory, req *model.VaultGroupCategory) *model.VaultGroupCategory {
-	if req.Name != "" {
-		prev.Name = req.Name
-	}
-	if req.Description != "" {
-		prev.Description = req.Description
-	}
-	return prev
-}
+// func BuildUpdateVaultGroupCategory(prev *model.VaultGroupCategory, req *model.VaultGroupCategory) *model.VaultGroupCategory {
+// 	if req.Name != "" && req.Name != prev.Name {
+// 		req.Name = req.Name
+// 	}
+// 	if req.CoverImage != "" && req.CoverImage != prev.CoverImage {
+// 		req.CoverImage = req.CoverImage
+// 	}
+
+// 	return req
+// }
 
 func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultGroupCategory, error) {
 	var VaultGroupCategory model.VaultGroupCategory
@@ -63,7 +79,6 @@ func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultGroupC
 	if err != nil {
 		return VaultGroupCategory, err
 	}
-	// Use custom mapping function to handle camelCase -> snake_case conversion
 	return MapCamelCaseToVaultGroupCategory(bytes)
 }
 
@@ -79,7 +94,6 @@ func MapCamelCaseToVaultGroupCategory(jsonBytes []byte) (model.VaultGroupCategor
 
 	result.ID = getString(data, "id")
 	result.Name = getString(data, "name")
-	result.Description = getString(data, "description")
 	result.IsActive = getBool(data, "isactive")
 	result.CreatedBy = getString(data, "createdby")
 	result.UpdatedBy = getString(data, "updatedby")
@@ -124,9 +138,6 @@ func MapCamelCaseToUpdateaultGroupCategory(jsonBytes []byte) (model.VaultGroupCa
 	if desc, ok := data["name"].(string); ok && desc != "" {
 		result.Name = desc
 	}
-	if desc, ok := data["description"].(string); ok && desc != "" {
-		result.Description = desc
-	}
 	return result, nil
 }
 
@@ -162,13 +173,10 @@ func getTimePtr(data map[string]interface{}, key string) *time.Time {
 	return nil
 }
 
-func VaultGroupCategoryUpdate(req *model.VaultGroupCategory) model.VaultGroupCategory {
-	result := model.VaultGroupCategory{}
-	if req.Name != "" {
-		result.Name = req.Name
-	}
-	if req.Description != "" {
-		result.Description = req.Description
-	}
-	return result
-}
+// func VaultGroupCategoryUpdate(req *model.VaultGroupCategory) model.VaultGroupCategory {
+// 	result := model.VaultGroupCategory{}
+// 	if req.Name != "" {
+// 		result.Name = req.Name
+// 	}
+// 	return result
+// }
