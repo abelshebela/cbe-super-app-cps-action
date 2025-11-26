@@ -75,6 +75,7 @@ func ValidateFullName(value interface{}) error {
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	var allowedMIMETypes = map[string]bool{
+		"image/jpg":  true,
 		"image/jpeg": true,
 		"image/png":  true,
 		"image/gif":  true,
