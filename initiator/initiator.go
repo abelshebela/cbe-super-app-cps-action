@@ -79,7 +79,7 @@ func Init(ctx context.Context) {
 	logger.Infof("MongoDB client initialized")
 
 	logger.Infof("Initializing Minio client...")
-	minioClient := InitMinio(cfg.MinioEndPoint, cfg.MinioAccessKey, cfg.MinioSecretKey, logger)
+	minioClient := InitMinio(*cfg, logger)
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("initializing kafka")

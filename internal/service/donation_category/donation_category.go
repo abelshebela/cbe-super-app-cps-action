@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -25,13 +26,13 @@ type DonationCategory struct {
 	DonationCategoryRepo storage.DonationCategoryRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
-	minio                config.MinioClientInterface
+	minio                aws.Config
 	bucketName           string
 	cfg                  *config.VaultConfig
 	minioEndPoint        string
 }
 
-func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo storage.DonationCategoryRepository, cpsAction service.CPSActionService, logger utils.Logger, minio config.MinioClientInterface,
+func NewDonationCategoryService(client *mongo.Client, DonationCategoryRepo storage.DonationCategoryRepository, cpsAction service.CPSActionService, logger utils.Logger, minio aws.Config,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -71,7 +72,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 	if donationCategory.Icon == nil {
 		return errors.New(localization.ErrorDonationCategoryIDRequired.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), d.minioEndPoint, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), d.minioEndPoint,d.minio, "", d.logger)
 	if err != nil {
 		return err
 	}
@@ -133,7 +134,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 			objectkey = path.Base(existingCategory.Icon)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), d.minioEndPoint, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), d.minioEndPoint,d.minio, objectkey, d.logger)
 		if err != nil {
 			return donationCategory, err
 		}
