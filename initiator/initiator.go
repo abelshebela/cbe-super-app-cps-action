@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"cbe-super-app-cps-action/cmd/client"
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/storage/api"
@@ -76,6 +77,12 @@ func Init(ctx context.Context) {
 		clientStore.Close()
 	}()
 
+	auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC client for auth: %v", err)
+	}
+	defer auth_client.Close()
+
 	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota")
@@ -98,7 +105,7 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger)
 
 	r := chi.NewRouter()
-	InitRoute(ctx, r, handlerLayer, logger, cfg)
+	InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
 
 	go func() {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())

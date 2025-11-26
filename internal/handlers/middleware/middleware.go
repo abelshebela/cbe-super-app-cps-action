@@ -10,13 +10,16 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/cors"
+	"google.golang.org/grpc/metadata"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 
+	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 )
@@ -66,9 +69,11 @@ type UserPayload struct {
 	Department  string `json:"department,omitempty"`
 	NextStep    string `json:"next_step,omitempty"`
 	Action      string `json:"action"`
+	SessionExp  int64  `json:"session_expiry,omitempty"`
 }
 
 type authMiddleware struct {
+	client       cps_auth.CpsAuthServiceClient
 	logger       utils.Logger
 	JWTSecretKey string
 	Key          string
@@ -82,8 +87,9 @@ type AuthMiddleware interface {
 	RequireFormContentType() func(http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
+		client:       client,
 		JWTSecretKey: secretKey,
 		Key:          key,
 		IV:           iv,
@@ -200,7 +206,33 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
+
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		// refresh token payload if session expiry has less than 1 minute
+		if userPayload.SessionExp != 0 {
+			now := time.Now().Unix()
+			if userPayload.SessionExp < now {
+				a.logger.Warnf("session has expired")
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			}
+
+			if userPayload.SessionExp-now < 60 {
+				// Less than 1 minute left, refresh token
+				a.logger.Infof("session expiring soon, refreshing token")
+				// Inject Bearer token and user_id from context into gRPC metadata
+				md := metadata.New(map[string]string{
+					"authorization": "Bearer " + tokenString,
+				})
+				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+				if err != nil {
+					a.logger.Errorf("failed to refresh token: %v", err)
+				}
+				w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+			}
+		}
+
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
