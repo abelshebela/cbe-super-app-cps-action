@@ -401,12 +401,8 @@ func (p *PermissionPersistence) GetAllPermissionCategories(
 ) ([]*model.PermissionCategory, error) {
 	mongoFilter := bson.M{
 		"is_deleted": false,
-		"portal_card": bson.M{
-			"$regex":   card,
-			"$options": "i",
-		},
+		"portal_card": card,
 	}
-
 	categories, err := p.permissionCategoryDal.FindAllWithPagination(ctx, mongoFilter, bson.M{}, 0, 0)
 	if err != nil {
 		return nil, err
