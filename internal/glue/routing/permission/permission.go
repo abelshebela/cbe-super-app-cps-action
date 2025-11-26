@@ -53,14 +53,30 @@ func Init(router chi.Router, handler permission.PermissionHandler, authMiddlewar
 				authMiddleware.AuthenticateToken,
 			},
 		},
-		
+
 		{
 			Method:  http.MethodPatch,
-			Path:    "/permissions/{group_name}",
+			Path:    "/permissions/{id}",
 			Handler: handler.UpdatePermissionGroup,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 				authMiddleware.AccessControl([]string{role.Maker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/permissions/categories/{department_id}",
+			Handler: handler.GetPermissionCategoriesByDepartment,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/permissions/groups/{department_id}",
+			Handler: handler.GetPermissionGroupsByDepartment,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
 			},
 		},
 	}

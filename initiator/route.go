@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
@@ -13,12 +14,13 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+	"cbe-super-app-cps-action/platform/telemetry"
 
-	// bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
-	// vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
+	bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
 	bpsUser "cbe-super-app-cps-action/internal/glue/routing/bps_user"
 	budgetCategory "cbe-super-app-cps-action/internal/glue/routing/budget_category"
 	"cbe-super-app-cps-action/internal/glue/routing/bulk_service"
@@ -30,6 +32,7 @@ import (
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
+	vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
@@ -44,6 +47,7 @@ import (
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
+	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
@@ -66,6 +70,13 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
+	// Inject trace and span ids from OpenTelemetry span into context for logger extraction
+	router.Use(telemetry.TraceContextMiddleware())
+	// Optional debug middleware to detect missing spans. Enable by setting OTEL_DEBUG_TRACE_PRESENCE=true
+	if os.Getenv("OTEL_DEBUG_TRACE_PRESENCE") == "true" {
+		router.Use(telemetry.SpanPresenceMiddleware(logger))
+	}
+	// Logger middleware runs after trace context is injected so logs include trace/span ids
 	router.Use(customeMiddleware.ChiLogger(logger))
 
 	router.Use(customeMiddleware.HandlePanic(logger))
@@ -73,7 +84,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	router.Use(middleware.Timeout(30 * time.Second))
 	router.Use(middleware.Compress(5, "application/json"))
 
-	r.Get("/api/v1/cbesuperapp/cps_action/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
+	r.Get("/healthcheck", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(map[string]string{"status": "CPS ACTION IS ACTIVE"}); err != nil {
@@ -111,8 +122,9 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
-	// bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
-	// vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
+	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
+	bankvaultroutes.Init(r, handlerLayer.BankVaultHandler, authMiddleware)
+	vaultgroupcategory.Init(r, handlerLayer.VaultGroupCategoryHandler, authMiddleware)
 
 	donation.Init(r, handlerLayer.DonationHandler, authMiddleware)
 	donation_category.Init(r, handlerLayer.DonationCategoryHandler, authMiddleware)
@@ -125,8 +137,10 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
+	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes
 	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(

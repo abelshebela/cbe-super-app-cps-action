@@ -52,35 +52,41 @@ const (
 	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
 	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
-	RequestCreateDepartment        RequestAction = "CREATE_DEPARTMENT"
-	RequestUpdateDepartment        RequestAction = "UPDATE_DEPARTMENT"
-	RequestEnableDisableDepartment RequestAction = "ENABLE_DISABLE_DEPARTMENT"
-	RequestEnableUser              RequestAction = "ENABLE_USER"
-	RequestDisableUser             RequestAction = "DISABLE_USER"
-	RequestBPSUser                 RequestAction = "BPS_USER"
-	RequestDisableBPSUser          RequestAction = "DISABLE_BPS_USER"
-	RequestEnableBPSUser           RequestAction = "ENABLE_BPS_USER"
-	RequestUpdateUser              RequestAction = "UPDATE_USER"
-	RequestTotalDailyLimit         RequestAction = "TOTAL_DAILY_LIMIT"
-	RequestUpdateVAT               RequestAction = "UPDATE_VAT"
-	RequestAuthTier                RequestAction = "AUTHTIER"
-	RequestCreateAdvert            RequestAction = "CREATE_ADVERT"
-	RequestUpdateAdvert            RequestAction = "UPDATE_ADVERT"
-	RequestEnableAdvert            RequestAction = "ENABLE_ADVERT"
-	RequestDisableAdvert           RequestAction = "DISABLE_ADVERT"
-	RequestDeleteAdvert            RequestAction = "DELETE_ADVERT"
-	RequestCreateBank              RequestAction = "CREATE_BANK"
-	RequestUpdateBank              RequestAction = "UPDATE_BANK"
-	RequestDeleteBank              RequestAction = "DELETE_BANK"
-	RequestUpdateBankLogo          RequestAction = "UPDATE_BANK_LOGO"
-	RequestEnableDisableBank       RequestAction = "ENABLE_DISABLE_BANK"
-	RequestEnableBank              RequestAction = "ENABLE_BANK"
-	RequestDisableBank             RequestAction = "DISABLE_BANK"
-	RequestCreateWallet            RequestAction = "CREATE_WALLET"
-	RequestUpdateWallet            RequestAction = "UPDATE_WALLET"
-	RequestDeleteWallet            RequestAction = "DELETE_WALLET"
-	RequestEnableWallet            RequestAction = "ENABLE_WALLET"
-	RequestDisableWallet           RequestAction = "DISABLE_WALLET"
+	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
+	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
+	RequestEnableDisableDepartment    RequestAction = "ENABLE_DISABLE_DEPARTMENT"
+	RequestEnableUser                 RequestAction = "ENABLE_USER"
+	RequestDisableUser                RequestAction = "DISABLE_USER"
+	RequestBPSUser                    RequestAction = "BPS_USER"
+	RequestDisableBPSUser             RequestAction = "DISABLE_BPS_USER"
+	RequestEnableBPSUser              RequestAction = "ENABLE_BPS_USER"
+	RequestUpdateUser                 RequestAction = "UPDATE_USER"
+	RequestTotalDailyLimit            RequestAction = "TOTAL_DAILY_LIMIT"
+	RequestUpdateVAT                  RequestAction = "UPDATE_VAT"
+	RequestAuthTier                   RequestAction = "AUTHTIER"
+	RequestCreateDeviceVersion        RequestAction = "CREATE_DEVICE_VERSION"
+	RequestUpdateDeviceVersion        RequestAction = "UPDATE_DEVICE_VERSION"
+	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
+	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
+	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
+	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+	RequestCreateAdvert               RequestAction = "CREATE_ADVERT"
+	RequestUpdateAdvert               RequestAction = "UPDATE_ADVERT"
+	RequestEnableAdvert               RequestAction = "ENABLE_ADVERT"
+	RequestDisableAdvert              RequestAction = "DISABLE_ADVERT"
+	RequestDeleteAdvert               RequestAction = "DELETE_ADVERT"
+	RequestCreateBank                 RequestAction = "CREATE_BANK"
+	RequestUpdateBank                 RequestAction = "UPDATE_BANK"
+	RequestDeleteBank                 RequestAction = "DELETE_BANK"
+	RequestUpdateBankLogo             RequestAction = "UPDATE_BANK_LOGO"
+	RequestEnableDisableBank          RequestAction = "ENABLE_DISABLE_BANK"
+	RequestEnableBank                 RequestAction = "ENABLE_BANK"
+	RequestDisableBank                RequestAction = "DISABLE_BANK"
+	RequestCreateWallet               RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet               RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet               RequestAction = "DELETE_WALLET"
+	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -226,18 +232,18 @@ const (
 	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
 	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
 	// for bankvault
-	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
-	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
-	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
-	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
-	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+	RequestCreateBankVault  RequestAction = "CREATE_VAULT_BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE_VAULT_BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE_VAULT_BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
 
 	RequestUpdateKYCVerifier RequestAction = "UPDATE_KYC"
 	RequestApproveKYC        RequestAction = "APPROVE_KYC"
@@ -451,6 +457,13 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableNewsTag:  {},
 	RequestDisableNewsTag: {},
 	RequestDeleteNewsTag:  {},
+
+	RequestCreateDeviceVersion:        {},
+	RequestUpdateDeviceVersion:        {},
+	RequestEnableDeviceVersion:        {},
+	RequestDisableDeviceVersion:       {},
+	RequestDeleteDeviceVersion:        {},
+	RequestEnableDisableDeviceVersion: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -778,6 +791,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableNewsTag,
 		RequestDisableNewsTag,
 		RequestDeleteNewsTag,
+	},
+	"DeviceVersion": {
+		RequestCreateDeviceVersion,
+		RequestUpdateDeviceVersion,
+		RequestEnableDeviceVersion,
+		RequestDisableDeviceVersion,
+		RequestDeleteDeviceVersion,
+		RequestEnableDisableDeviceVersion,
 	},
 }
 

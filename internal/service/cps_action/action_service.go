@@ -36,6 +36,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
+
 	if existing != nil {
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}
@@ -43,16 +44,16 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 }
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
-
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
-	if err != nil {
-
+	if err != nil || data == nil {
 		return err
 	}
-
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
-		ca.RollBack(ctx, action)
+		RollErr := ca.RollBack(ctx, action)
+		if RollErr != nil {
+			return RollErr
+		}
 		return err
 	}
 	return nil

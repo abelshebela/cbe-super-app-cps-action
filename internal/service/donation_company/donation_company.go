@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -64,7 +65,6 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
 		return err
@@ -81,19 +81,17 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
-	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService); 
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
 	if err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return err
 	}
-	
-	
 
 	if donationCompany.CompanyLogo == nil {
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, "", d.logger)
 	if err != nil {
 		return err
 	}
@@ -128,7 +126,12 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 
 	logoURL := existingCompany.CompanyLogo
 	if donationCompany.CompanyLogo != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.logger)
+		var objectkey string
+		if existingCompany.CompanyLogo != "" {
+			objectkey = path.Base(existingCompany.CompanyLogo)
+		}
+
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, objectkey, d.logger)
 		if err != nil {
 			return donationCompany, err
 		}
@@ -141,17 +144,16 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 	if donationCompany.CompanyName == "" {
 		updateData.CompanyName = existingCompany.CompanyName
 	}
-	if donationCompany.AccountNumber != "" {	
+	if donationCompany.AccountNumber != "" {
 		accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
-		if  err != nil {
-			return donationCompany,err
+		if err != nil {
+			return donationCompany, err
 		}
-		updateData.AccountHolderName= accountDetail.CustomerName
-	}else{
+		updateData.AccountHolderName = accountDetail.CustomerName
+	} else {
 		updateData.AccountNumber = existingCompany.AccountNumber
-		updateData.AccountHolderName= existingCompany.AccountHolderName
+		updateData.AccountHolderName = existingCompany.AccountHolderName
 	}
-
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCompany, updateData, string(constants.RequestUpdateDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -213,13 +215,13 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 
 // Account lookup end point
 
-func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber string) (*model.AccountInfo, error) {
-	account, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
+func (d *DonationCompany) AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error) {
+	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, accountNumber, d.accountLookupService)
 	if err != nil {
 		d.logger.Errorf("Account number validation failed: %v", err)
 		return nil, err
 	}
-	return account, nil
+	return accountDetail, nil
 }
 
 //MapToDonationCompany

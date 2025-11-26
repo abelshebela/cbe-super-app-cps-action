@@ -62,7 +62,6 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex // choose your searchable field(s)
 		searchKeys["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
@@ -196,6 +195,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
+	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
 	pipeline := mongo.Pipeline{
@@ -245,17 +245,21 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("aggregation failed: %w", err)
 	}
-	defer cur.Close(ctx)
+	defer func() {
+		_ = cur.Close(ctx)
+	}()
 
-	if !cur.Next(ctx) {
-		return nil, nil
+	// Handle empty cursor
+	if cur == nil || !cur.Next(ctx) {
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	var result model.CPSAction
 	if err := cur.Decode(&result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode document: %w", err)
 	}
+
 	return &result, nil
 }

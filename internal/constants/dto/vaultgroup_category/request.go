@@ -1,10 +1,13 @@
 package vaultgroupcategory
 
+import "mime/multipart"
+
 type CreateVaultGroupCategoryRequest struct {
-	Name        string `json:"name" validate:"required"`
-	Description string `json:"description" validate:"required"`
+	Name       string                `form:"name" validate:"required"`
+	CoverImage *multipart.FileHeader `form:"cover_image" validate:"required"`
 }
+
 type UpdateVaultGroupCategoryRequest struct {
-	Name        *string `json:"name,omitempty"`
-	Description *string `json:"description,omitempty"`
+	Name       *string               `form:"name,omitempty"`
+	CoverImage *multipart.FileHeader `form:"cover_image,omitempty"`
 }

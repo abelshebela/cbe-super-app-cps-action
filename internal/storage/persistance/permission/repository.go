@@ -23,6 +23,7 @@ type PermissionPersistence struct {
 	permissionGroupsDal   dal.MongoDal[model.PermissionGroup, model.PermissionGroup]
 	permissionCategoryDal dal.MongoDal[model.PermissionCategory, model.PermissionCategory]
 	permissionDal         dal.MongoDal[model.Permission, model.Permission]
+	PermissionGroupCol    *mongo.Collection
 	cpsdal                dal.MongoDal[model.CPSAction, model.CPSAction]
 	timeout               time.Duration
 	logger                utils.Logger
@@ -30,16 +31,18 @@ type PermissionPersistence struct {
 
 var _ storage.PermissionRepository = (*PermissionPersistence)(nil)
 
-func InitPermission(client *mongo.Client, dbName string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
-	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, "permission_groups")
-	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, "permission_category")
-	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, "permission")
-	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions")
+func InitPermission(client *mongo.Client, dbName string, collections []string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
+	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, collections[0])
+	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, collections[1])
+	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, collections[2])
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[3])
+	PermissionGroupCollections := client.Database(dbName).Collection(collections[0])
 
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
 		permissionCategoryDal: permissionCategoryDal,
 		permissionDal:         permissionDal,
+		PermissionGroupCol:    PermissionGroupCollections,
 		cpsdal:                cpsdal,
 		timeout:               timeout,
 		logger:                logger,
@@ -105,8 +108,7 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"enabled", "is_deleted", "role", "realm", "group_name"}
+	allowedKeys := []string{"enabled", "is_deleted", "department_id", "role", "realm", "group_name"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
@@ -118,8 +120,16 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := s.permissionGroupsDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	pipeline := PermissionGroupsPipeline(filter, skip, limit)
+
+	cursor, err := s.PermissionGroupCol.Aggregate(ctx, pipeline)
 	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	var data []*model.PermissionGroup
+	if err := cursor.All(ctx, &data); err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
@@ -133,6 +143,43 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
+	return &types.PaginatedResponse[[]*model.PermissionGroup]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+func (s *PermissionPersistence) FindAllGroupsWithPagination(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
+	filter := bson.M{
+		"department_id": departmentId,
+	}
+
+	page := filterParam.Page
+	perPage := filterParam.PerPage
+
+	skip := int64((page - 1) * perPage)
+	limit := int64(perPage)
+
+	pipeline := PermissionGroupsPipeline(filter, skip, limit)
+
+	cursor, err := s.PermissionGroupCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	var data []*model.PermissionGroup
+	if err := cursor.All(ctx, &data); err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	total, err := s.permissionGroupsDal.TotalCount(ctx, filter)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, page, int(limit))
+
 	return &types.PaginatedResponse[[]*model.PermissionGroup]{
 		Data: data,
 		Meta: meta,
@@ -346,4 +393,24 @@ func (p *PermissionPersistence) ValidatePermissionGroupByID(ctx context.Context,
 	}
 
 	return true, nil
+}
+
+func (p *PermissionPersistence) GetAllPermissionCategories(
+	ctx context.Context,
+	card string,
+) ([]*model.PermissionCategory, error) {
+	mongoFilter := bson.M{
+		"is_deleted": false,
+		"portal_card": bson.M{
+			"$regex":   card,
+			"$options": "i",
+		},
+	}
+
+	categories, err := p.permissionCategoryDal.FindAllWithPagination(ctx, mongoFilter, bson.M{}, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return categories, nil
 }

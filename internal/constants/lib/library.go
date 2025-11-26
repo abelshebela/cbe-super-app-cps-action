@@ -22,7 +22,6 @@ import (
 )
 
 func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, currentAction any, requestAction, actionType string) model.CPSAction {
-
 	return model.CPSAction{
 		ActionCode:       local_util.GenerateActionCode(),
 		UniqueId:         unique,
@@ -137,6 +136,7 @@ func UploadFileToMinio(
 	fileHeader *multipart.FileHeader,
 	prefix string,
 	minioEndpoint string,
+	objectkey string,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
@@ -144,6 +144,7 @@ func UploadFileToMinio(
 	// Ensure bucket exists
 	exist, err := uploader.BucketExist(ctx, bucketName)
 	if err != nil {
+		fmt.Println("=====fileName=====", bucketName, err)
 		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -164,8 +165,13 @@ func UploadFileToMinio(
 	}
 	defer file.Close()
 
-	// Generate file name
-	fileName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+	var fileName string
+	if objectkey != "" {
+		fileName = objectkey
+	} else {
+		extension := fileHeader.Filename[len(fileHeader.Filename)-4:]
+		fileName = fmt.Sprintf("%s-%d.%s", prefix, time.Now().UnixNano(), extension)
+	}
 
 	// Upload file
 	saveObj, err := uploader.SaveObjectN(ctx, config.SaveObjectBodyN{
@@ -175,6 +181,7 @@ func UploadFileToMinio(
 		Size:        fileHeader.Size,
 		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
 	})
+
 	if err != nil {
 		logger.Errorf("failed to upload file to MinIO: %v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
@@ -183,4 +190,37 @@ func UploadFileToMinio(
 	// Return full URL
 	url := fmt.Sprintf("%s/%s/%s", minioEndpoint, saveObj.Bucket, saveObj.Key)
 	return url, nil
+}
+
+func RemoveFileFromMino(ctx context.Context, client config.MinioClientInterface, bucketName string, objectkey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) error {
+	exist, err := client.BucketExist(ctx, bucketName)
+	if err != nil {
+		logger.Errorf("failed to check bucket '%s': '%v'", bucketName, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if !exist {
+		logger.Errorf("bucket '%s' does not exist", bucketName)
+		return errors.New(localization.ErrorBucketNotFound.Code)
+	}
+
+	isDeleted, err := client.DeleteObject(ctx, config.DeleteObjectBody{
+		BucketName: bucketName,
+		ObjectName: objectkey,
+	})
+	if err != nil {
+		logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectkey, bucketName, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if !isDeleted {
+		logger.Errorf("object '%s' could not be deleted from bucket '%s'", objectkey, bucketName)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return nil
 }

@@ -2,6 +2,7 @@ package mini_app_merchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -19,7 +20,7 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if data.MerchantType != "" {
 		result["merchant_type"] = data.MerchantType
 	}
-	if data.KYC != (model.KYC{}) {
+	if data.KYC != (types.KYC{}) {
 		result["kyc"] = data.KYC
 	}
 	if data.BankAccountNumber != "" {
@@ -50,9 +51,9 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		Code:         miniAppMerchant.Code,
 		MerchantName: miniAppMerchant.MerchantName,
 		MerchantType: miniAppMerchant.MerchantType,
-		KYC: model.KYC{
+		KYC: types.KYC{
 			Status: miniAppMerchant.KYC.Status,
-			Representative: model.KYCInformation{
+			Representative: types.KYCInformation{
 				Name:  miniAppMerchant.KYC.Representative.Name,
 				Email: miniAppMerchant.KYC.Representative.Email,
 				Phone: miniAppMerchant.KYC.Representative.Phone,
@@ -70,10 +71,10 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		DeletedAt:      miniAppMerchant.DeletedAt,
 	}
 }
-func convertBranchesModelToDomain(branches []model.BranchInformation) []model.BranchInformation {
-	result := make([]model.BranchInformation, len(branches))
+func convertBranchesModelToDomain(branches []types.BranchInformation) []types.BranchInformation {
+	result := make([]types.BranchInformation, len(branches))
 	for i, b := range branches {
-		result[i] = model.BranchInformation{
+		result[i] = types.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
 			BranchAddress:       b.BranchAddress,

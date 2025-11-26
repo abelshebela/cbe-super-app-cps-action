@@ -42,6 +42,7 @@ const (
 	MsgFileUploadedSuccessfully  = "File uploaded successfully"
 	MsgFileDeletedSuccessfully   = "File deleted successfully"
 	MsgFileRetrievedSuccessfully = "File retrieved successfully"
+	MsgMissingContentTypeHeader  = "Missing Content-Type header"
 
 	// General success messages
 	MsgOperationCompleted        = "Operation completed successfully"
@@ -177,13 +178,17 @@ const (
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
 	// Bank Vault related success messages
-	MsgBankVaultCreationRequestSubmitted = "Bank vault creation request submitted successfully"
-	MsgBankVaultUpdateRequestSubmitted   = "Bank vault update request submitted successfully"
-	MsgBankVaultDeleteRequestSubmitted   = "Bank vault deleted  request submitted successfully"
-	MsgBankVaultDisableRequestSubmitted  = "Bank vault disabled request submitted successfully"
-	MsgBankVaultEnableRequestSubmitted   = "Bank vault enabled request submitted successfully"
-	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
-	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
+	MsgBankVaultCreationRequestSubmitted     = "Bank vault creation request submitted successfully"
+	MsgBankVaultUpdateRequestSubmitted       = "Bank vault update request submitted successfully"
+	MsgBankVaultDeleteRequestSubmitted       = "Bank vault deleted  request submitted successfully"
+	MsgBankVaultDisableRequestSubmitted      = "Bank vault disabled request submitted successfully"
+	MsgBankVaultEnableRequestSubmitted       = "Bank vault enabled request submitted successfully"
+	MsgBankVaultsRetrievedSuccessfully       = "Bank vaults retrieved successfully"
+	MsgBankVaultRetrievedSuccessfully        = "Bank vault retrieved successfully"
+	MsgBankLockedVaultsRetrievedSuccessfully = "Bank locked vaults retrieved successfully"
+	MsgBankLockedVaultRetrievedSuccessfully  = "Bank locked vault retrieved successfully"
+	MsgGroupVaultsRetrievedSuccessfully      = "Group vaults retrieved successfully"
+	MsgGroupVaultRetrievedSuccessfully       = "Group vault retrieved successfully"
 
 	// vault group category sucess messages
 	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
@@ -343,6 +348,8 @@ const (
 	MsgInvalidEncData = "Invalid encryption data"
 	MsgInvalidPadding = "Invalid padding"
 
+	MsgDepartmentIDRequired = "Department ID is required"
+
 	// User related error messages
 	MsgUserNotFound             = "User not found"
 	MsgUserAlreadyExists        = "User already exists"
@@ -394,7 +401,7 @@ const (
 	// Validation error messages
 	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
 	MsgBankDeleteRequestFailed     = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing  = "Required bank image invalid or missing"
+	MsgBankImageRequiredOrMissing  = "Image invalid or missing"
 	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
 
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
@@ -614,6 +621,8 @@ const (
 	// bank vault related error messages
 	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
 	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
+	MsgFailedToBeingTransaction = "Failed to begin transaction"
+	Msg
 
 	// vault group category related error messages
 	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
@@ -672,6 +681,7 @@ const (
 	MsgInvalidInput                = "Invalid input provided"
 	MsgMissingRequiredFields       = "Missing required fields"
 	MsgResourceNotFound            = "Resource not found"
+	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
 	MsgResourceAlreadyExists       = "Resource already exists"
 	MsgResourceUpdateFailed        = "Failed to update resource"
 	MsgResourceCreationFailed      = "Failed to create resource"
@@ -741,7 +751,7 @@ const (
 
 	// Mini App Merchant related error messages
 	MsgMiniAppMerchantCheckPendingFailed     = "Failed to check pending request"
-	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check permission group existence"
+	MsgMiniAppMerchantExistsCheckFailed      = "Failed to check miniapp merchant existence"
 	MsgMiniAppMerchantFetchCategoriesFailed  = "Failed to fetch permission categories"
 	MsgMiniAppMerchantUnexpectedDBError      = "Unexpected database error occurred"
 	MsgMiniAppMerchantMarshalFailed          = "Failed to marshal current action"
@@ -751,6 +761,16 @@ const (
 	MsgMiniAppMerchantUpdateFailed           = "Failed to update permission group"
 	MsgMiniAppMerchantFetchPermissionsFailed = "Failed to fetch permissions for category"
 	MsgMiniAppMerchantDeleteFailed           = "Failed to fetch delete category"
+
+	// Device Version related error messages
+	MsgDeviceVersionAlreadyExists   = "Device version already exists"
+	MsgDeviceVersionNotFound        = "Device version not found"
+	MsgDeviceVersionUpdateFailed    = "Device version update failed"
+	MsgDeviceVersionDeleteFailed    = "Device version delete failed"
+	MsgDeviceVersionEnableFailed    = "Device version enable failed"
+	MsgDeviceVersionDisableFailed   = "Device version disable failed"
+	MsgDeviceVersionAlreadyEnabled  = "Device version already enabled"
+	MsgDeviceVersionAlreadyDisabled = "Device version already disabled"
 	// Notification related error messages
 	MsgNotificationMapFailed       = "Failed to map notification to document"
 	MsgNotificationAlreadyExists   = "Notification already exists"
@@ -947,8 +967,13 @@ const (
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
 
 	// bank vault
-	MsgCannotDeleteActiveBankVault    = "Cannot delete active bank vault"
-	MsgBankVaultProductAlreadyDeleted = "Bank vault product already deleted"
+	MsgCannotDeleteActiveBankVault             = "Cannot delete active bank vault"
+	MsgBankVaultProductAlreadyDeleted          = "Bank vault product already deleted"
+	MsgDuplicatebankProduct                    = "There is an existing bank product"
+	MsgNoBankProductFound                      = "No bank Product found"
+	MsgCannotDeleteBankProduct                 = "Cannot delete bank product"
+	MsgcannotEnableOrDisableDeletedBankProduct = "Cannot enable or disable deleted bank product"
+	MsgDuplicateGroupVaultCategory             = "There is an existing group vault category"
 
 	// Fayda Account
 	MsgFaydaAccountEnableCreatedSuccessfully  = "Fayda Account enable action submitted successfully"
@@ -981,4 +1006,7 @@ const (
 	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
 	MsgSitotaRetrievedSuccess     = "Sitota retrieved successfully"
 	MsgSitotaRequired             = "Sitota ID is required"
+
+	// Encryption
+	MsgEncryptionSuccessfully = "Encryption generated successfully"
 )

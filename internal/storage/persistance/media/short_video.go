@@ -139,9 +139,6 @@ func buildShortVideoUpdate(updateFields model.ShortVideo) bson.M {
 	if updateFields.Author != "" {
 		update["author"] = updateFields.Author
 	}
-	if updateFields.Language != "" {
-		update["language"] = updateFields.Language
-	}
 
 	if updateFields.Slug != "" {
 		update["slug"] = updateFields.Slug

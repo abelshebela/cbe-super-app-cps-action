@@ -7,11 +7,17 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 )
 
 // ConnectRedis establishes connection to Redis
 func ConnectRedis(ctx context.Context, cfg *config.VaultConfig, logger utils.Logger) (*redis.Client, error) {
+	tr := otel.Tracer("redis-client")
+	ctx, span := tr.Start(ctx, "redis.connect")
+	defer span.End()
+
 	client := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisURI,
 		Password: cfg.RedisPassword,
@@ -20,6 +26,7 @@ func ConnectRedis(ctx context.Context, cfg *config.VaultConfig, logger utils.Log
 
 	_, err := client.Ping(context.Background()).Result()
 	if err != nil {
+		span.SetAttributes(attribute.String("redis.error", err.Error()))
 		log.Fatalf("failed to connect to redis %v", err)
 	}
 	return client, nil

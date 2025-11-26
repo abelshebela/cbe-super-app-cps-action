@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
@@ -117,7 +118,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, "", b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -241,7 +242,12 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return err
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, b.logger)
+	var objectkey string
+	if bank.Logo != "" {
+		objectkey = path.Base(bank.Logo)
+	}
+
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, objectkey, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -286,7 +292,21 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	if bank_request.Logo != nil {
-		URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
+		var objectkey string
+		if bank.Logo != "" {
+			objectkey = path.Base(bank.Logo)
+		}
+
+		URL, err := lib.UploadFileToMinio(
+			ctx,
+			b.minio,
+			b.bucketName,
+			bank_request.Logo,
+			b.bucketName,
+			b.minioPubUrl,
+			objectkey,
+			b.logger,
+		)
 		if err != nil {
 			b.logger.Errorf("UploadFileToMinio failed", "error", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)

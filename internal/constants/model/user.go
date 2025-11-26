@@ -35,8 +35,10 @@ type User struct {
 		MonthlyIncome    uint64 `json:"monthly_incode" bson:"monthly_incode,omitempty"`
 	} `json:"fayda" bson:"fayda,omitempty"`
 
-	FaydaRiskLevel    constants.RiskLevel     `json:"fayda_risk_level" bson:"fayda_risk_level,omitempty"`
-	Address           types.Address           `json:"address" bson:"address,omitempty"`
+	FaydaRiskLevel constants.RiskLevel   `json:"fayda_risk_level" bson:"fayda_risk_level,omitempty"`
+	Address        types.Address         `json:"address" bson:"address,omitempty"`
+	AccountType    constants.AccountType `json:"account_type" bson:"account_type,omitempty"`
+	// AccountBranchType constants.AccountType   `json:"account_branch_type" bson:"account_branch_type,omitempty"`
 	DocumentFront     string                  `json:"document_front" bson:"document_front,omitempty"`
 	DocumentBack      string                  `json:"document_back" bson:"document_back,omitempty"`
 	Photo             string                  `json:"photo" bson:"photo,omitempty"`
@@ -66,6 +68,7 @@ type User struct {
 
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved,omitempty"`
 	IsVerified        bool      `json:"is_verified" bson:"is_verified,omitempty"`
+	IsActivated       bool      `json:"is_activated" bson:"is_activated,omitempty"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register,omitempty"`
 	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps,omitempty"` // will remove
 	IsBlocked         bool      `json:"is_blocked" bson:"is_blocked,omitempty"`

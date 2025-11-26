@@ -2,6 +2,8 @@ package donation
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"path"
+
 	// donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -16,6 +18,7 @@ import (
 	"errors"
 
 	"time"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -79,22 +82,21 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
-	if !category.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	if !category.Enabled {
+		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
 
-	company, err:= d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
+	company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 	if err != nil {
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-	if !company.Enabled{
-			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+	if !company.Enabled {
+		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-
 
 	coverImageURL := ""
 	if donation.CoverImage != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), d.minioEndPoint, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), d.minioEndPoint, "", d.logger)
 		if err != nil {
 			return err
 		}
@@ -104,7 +106,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	donationImages := make([]types.DonationImage, 0)
 	d.logger.Infof("Processing %d donation images", len(donation.DonationImages))
 	for _, img := range donation.DonationImages {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, "", d.logger)
 		if err != nil {
 			d.logger.Errorf("Failed to upload donation image: %v", err)
 			return err
@@ -196,6 +198,11 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	// --- Cover Image Handling ---
 	coverImageURL := existingDonation.CoverImage
 	if donation.CoverImage != nil {
+		var objectkey string
+		if existingDonation.CoverImage != "" {
+			objectkey = path.Base(existingDonation.CoverImage)
+		}
+
 		url, err := lib.UploadFileToMinio(
 			ctx,
 			d.minio,
@@ -203,6 +210,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			donation.CoverImage,
 			string(constants.DonationCoverImage),
 			d.minioEndPoint,
+			objectkey,
 			d.logger,
 		)
 		if err != nil {
@@ -211,15 +219,15 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		coverImageURL = url
 	}
 
-	NewdonationImages:=existingDonation.DonationImages
+	NewdonationImages := existingDonation.DonationImages
 	if len(donation.RemovedImages) > 0 {
-		toRemove := make(map[string]bool, len(donation.RemovedImages))
+		toRemove := make(map[string]struct{}, len(donation.RemovedImages))
 		for _, id := range donation.RemovedImages {
-			toRemove[id] = true
+			toRemove[id] = struct{}{}
 		}
-		filtered := make([]dto.DonationImage, 0, len(NewdonationImages))
-		for _, img := range existingDonation.DonationImages {
-			if !toRemove[img.ID] {
+		filtered := NewdonationImages[:0]
+		for _, img := range NewdonationImages {
+			if _, ok := toRemove[img.ID]; !ok {
 				filtered = append(filtered, img)
 			}
 		}
@@ -228,14 +236,20 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 	// --- Add New Images ---
 	d.logger.Infof("Processing %d new donation images", len(donation.DonationImages))
-	for _, img := range donation.DonationImages {
+	for i, fileHeader := range donation.DonationImages {
+		var objectkey string
+		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
+			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
+		}
+
 		url, err := lib.UploadFileToMinio(
 			ctx,
 			d.minio,
 			d.bucketName,
-			img,
+			fileHeader,
 			string(constants.DonationImage),
 			d.minioEndPoint,
+			objectkey,
 			d.logger,
 		)
 		if err != nil {
@@ -243,9 +257,9 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			return err
 		}
 
-		NewdonationImages = append(existingDonation.DonationImages, dto.DonationImage{
-			ID:        bson.NewObjectID().Hex(),
-			PhotoURL:  url,
+		NewdonationImages = append(NewdonationImages, dto.DonationImage{
+			ID:       bson.NewObjectID().Hex(),
+			PhotoURL: url,
 		})
 
 		d.logger.Infof("Successfully uploaded donation image: %s", url)
@@ -269,7 +283,6 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 	return nil
 }
-
 
 func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto.DonationImageUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -300,7 +313,12 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationImage), d.minioEndPoint, d.logger)
+	var objectkey string
+	if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[0].PhotoURL != "" {
+		objectkey = path.Base(existingDonation.DonationImages[0].PhotoURL)
+	}
+
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationImage), d.minioEndPoint, objectkey, d.logger)
 	if err != nil {
 		return err
 	}
@@ -364,8 +382,13 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 	}
 
 	donationImages := make([]dto.DonationImage, 0)
-	for _, img := range image.DonationImages {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, d.logger)
+	for i, img := range image.DonationImages {
+		var objectkey string
+		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
+			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
+		}
+
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, objectkey, d.logger)
 		if err != nil {
 			return err
 		}
@@ -452,7 +475,6 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		d.logger.Errorf("failed to bind current action to donation: %v", bindErr)
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
-
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonation):

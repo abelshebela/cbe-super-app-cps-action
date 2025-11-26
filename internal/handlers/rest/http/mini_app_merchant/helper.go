@@ -3,6 +3,7 @@ package miniappmerchant
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -36,18 +37,20 @@ func ToMiniAppMerchantDomainFromUpdateDTO(d *dto.MiniAppMerchantDTO) *model.Mini
 	return &model.MiniAppMerchant{
 		ID:                bson.NewObjectID(),
 		MerchantType:      d.Type,
+		Code:              d.MerchantCode,
 		MerchantName:      d.MerchantName,
 		BankAccountNumber: d.AccountNumber,
 		Email:             d.Email,
 		PhoneNumber:       d.PhoneNumber,
-		KYC: model.KYC{
-			Representative: model.KYCInformation{
+		KYC: types.KYC{
+			Representative: types.KYCInformation{
 				Name:  d.MerchantRepresentativeName,
 				Phone: d.PhoneNumber,
 				Email: d.Email,
 			},
 			Status: "",
 		},
+		Branches:       d.Branches,
 		Enabled:        true,
 		IsDeleted:      false,
 		CreatedAt:      time.Now(),

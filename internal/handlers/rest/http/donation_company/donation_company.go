@@ -29,18 +29,19 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 }
 
 // FetchDonationCompany godoc
-// @Summary List donation companies
-// @Description Retrieve donation companies with pagination and optional search
-// @Tags Donation Company
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1)
-// @Param per_page query int false "Items per page" default(10)
-// @Param search query string false "Search term"
-// @Success 200 {object} localization.StandardResponse{data=paginatedDonationCompanyListResponse} "Donation companies retrieved successfully"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_company [get]
+//
+//	@Summary		List donation companies
+//	@Description	Retrieve donation companies with pagination and optional search
+//	@Tags			Donation Company
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																			false	"Page number"		default(1)
+//	@Param			per_page	query		int																			false	"Items per page"	default(10)
+//	@Param			search		query		string																		false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedDonationCompanyListResponse}	"Donation companies retrieved successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}										"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company [get]
 func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -59,18 +60,19 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 }
 
 // FetchDonationCompanyByID godoc
-// @Summary Get donation company by ID
-// @Description Retrieve a donation company's details by ID
-// @Tags Donation Company
-// @Accept json
-// @Produce json
-// @Param id path string true "Donation Company ID"
-// @Success 200 {object} localization.StandardResponse{data=donation_company.DonationCompanyListResponse} "Donation company retrieved successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_company/{id} [get]
+//
+//	@Summary		Get donation company by ID
+//	@Description	Retrieve a donation company's details by ID
+//	@Tags			Donation Company
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string																				true	"Donation Company ID"
+//	@Success		200	{object}	localization.StandardResponse{data=donation_company.DonationCompanyListResponse}	"Donation company retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}												"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}												"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}												"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company/{id} [get]
 func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -90,19 +92,20 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 }
 
 // CreateDonationCompany godoc
-// @Summary Create a new donation company
-// @Description Create a new donation company with the provided information
-// @Tags Donation Company
-// @Accept multipart/form-data
-// @Produce json
-// @Param company_name formData string true "Company name"
-// @Param company_logo formData file true "Company logo image file"
-// @Param account_number formData string true "Account number"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation company creation request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_company [post]
+//
+//	@Summary		Create a new donation company
+//	@Description	Create a new donation company with the provided information
+//	@Tags			Donation Company
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			company_name	formData	string									true	"Company name"
+//	@Param			company_logo	formData	file									true	"Company logo image file"
+//	@Param			account_number	formData	string									true	"Account number"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Donation company creation request sent successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company [post]
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -116,10 +119,9 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
 	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(req.PhoneNumber)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -136,21 +138,22 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 }
 
 // UpdateDonationCompany godoc
-// @Summary Update a donation company
-// @Description Update a donation company with the provided information
-// @Tags Donation Company
-// @Accept multipart/form-data
-// @Produce json
-// @Param id path string true "Donation Company ID"
-// @Param company_name formData string false "Company name"
-// @Param company_logo formData file false "Company logo image file"
-// @Param account_number formData string false "Account number"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation company updated successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_company/{id} [patch]
+//
+//	@Summary		Update a donation company
+//	@Description	Update a donation company with the provided information
+//	@Tags			Donation Company
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			id				path		string									true	"Donation Company ID"
+//	@Param			company_name	formData	string									false	"Company name"
+//	@Param			company_logo	formData	file									false	"Company logo image file"
+//	@Param			account_number	formData	string									false	"Account number"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Donation company updated successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company/{id} [patch]
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -202,18 +205,18 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 }
 
 // EnableDonationCompany godoc
-// @Summary Enable a donation company
-// @Description Enable a donation company by ID
-// @Tags Donation Company
-// @Accept json
-// @Produce json
-// @Param id path string true "Donation company ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation Company enable request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_company/enable/{id} [patch]
+//	@Summary		Enable a donation company
+//	@Description	Enable a donation company by ID
+//	@Tags			Donation Company
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Donation company ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation Company enable request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
@@ -233,18 +236,18 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 }
 
 // disableDonationCompany godoc
-// @Summary Enable a donation company
-// @Description Enable a donation company by ID
-// @Tags Donation company
-// @Accept json
-// @Produce json
-// @Param id path string true "Donation company ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Donation company enable request sent successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Donation not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Internal server error"
-// @Security BearerAuth
-// @Router /donation_company/enable/{id} [patch]
+//	@Summary		Enable a donation company
+//	@Description	Enable a donation company by ID
+//	@Tags			Donation company
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Donation company ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Donation company enable request sent successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Donation not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")

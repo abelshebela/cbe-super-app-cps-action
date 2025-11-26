@@ -1,11 +1,11 @@
-
 package budget_category
 
 import (
-		"cbe-super-app-cps-action/internal/constants/model"
-			"go.mongodb.org/mongo-driver/v2/bson"
+	"cbe-super-app-cps-action/internal/constants/model"
 
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
 func BudgetCategoryMapper(budgetCategory model.BudgetCategory) bson.M {
 	result := bson.M{}
 

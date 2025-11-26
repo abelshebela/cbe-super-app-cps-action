@@ -13,7 +13,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -21,13 +20,15 @@ import (
 
 type permissionService struct {
 	repo       storage.PermissionRepository
+	department storage.DepartmentRepository
 	logger     shared_utils.Logger
 	cpsService service.CPSActionService
 }
 
-func InitPermissionService(repo storage.PermissionRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.PermissionService {
+func InitPermissionService(repo storage.PermissionRepository, dept storage.DepartmentRepository, cpsService service.CPSActionService, logger shared_utils.Logger) service.PermissionService {
 	return &permissionService{
 		repo:       repo,
+		department: dept,
 		cpsService: cpsService,
 		logger:     logger,
 	}
@@ -54,6 +55,12 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 		}
 	}
 
+	dept, err := s.department.FindByID(ctx, req.DepartmentID)
+	if err != nil || dept == nil {
+		s.logger.Errorf("Department not found with ID: %s", req.DepartmentID)
+		return errors.New(localization.ErrorDepartmentNotFound.Code)
+	}
+
 	permissionGroup := core.PermissionGroupModel(req)
 
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -70,17 +77,12 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 }
 
 func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permission.UpdatePermissionGroupRequest) error {
-
-	if req.OldGroupName == "" {
-		return errors.New(localization.ErrorInvalidRequest.Code)
-	}
-
-	existingGroup, err := s.repo.GetPermissionGroup(req.OldGroupName)
+	existingGroup, err := s.repo.GetPermissionGroupById(ctx, req.Id)
 	if err != nil {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
-	if req.NewGroupName != "" && req.NewGroupName != req.OldGroupName {
+	if req.NewGroupName != "" && req.NewGroupName != existingGroup.GroupName {
 		if s.repo.CheckPermissionGroupExists(req.NewGroupName) {
 			return errors.New(localization.ErrorPermissionGroupAlreadyExists.Code)
 		}
@@ -91,6 +93,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 		if err != nil {
 			return err
 		}
+
 		if len(validCategories) != len(req.PermissionCategoryLists) {
 			return errors.New(localization.ErrorPermissionCatagoryNotFound.Code)
 		}
@@ -100,7 +103,7 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	cpsAction := lib.CpsModelBuilder(
-		req.OldGroupName,
+		req.Id,
 		maker,
 		existingGroup,
 		updatedGroup,
@@ -119,15 +122,13 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 
 	return s.repo.GetPermissionGroup(groupName)
 }
-func (s *permissionService) GetPermissionGroupById(ctx context.Context,id string) (*model.PermissionGroup, error) {
+func (s *permissionService) GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error) {
 	if id == "" {
 		return nil, errors.New(localization.ErrorPermissionGroupRequired.Code)
 	}
 
-
-	return s.repo.GetPermissionGroupById(ctx,id)
+	return s.repo.GetPermissionGroupById(ctx, id)
 }
-
 
 func (s *permissionService) GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
 	if filterParams == nil {
@@ -165,25 +166,58 @@ func (s *permissionService) ValidatePermissionGroups(ctx context.Context, groupI
 		return false, errors.New(localization.ErrorPermissionGroupValidationFailed.Code)
 	}
 
-	// Check if all requested groups were validated
 	if len(validGroups) != len(groupIDs) {
 		s.logger.Warnf("Some permission groups were not found. Requested: %d, Valid: %d", len(groupIDs), len(validGroups))
-		// return false, errors.New("SOME_PERMISSION_GROUPS_NOT_FOUND")
 		return false, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 	}
 
 	return true, nil
 }
 
+func (s *permissionService) GetPermissionCategoriesByDepartment(ctx context.Context, departmentId string) (map[string][]*model.PermissionCategory, error) {
+	department, err := s.department.FindByID(ctx, departmentId)
+	if err != nil || department == nil {
+		s.logger.Errorf("Department not found with ID: %s", departmentId)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	portal_cards := department.PortalCards
+	cardsWithPermission := make(map[string][]*model.PermissionCategory)
+
+	if len(portal_cards) > 0 {
+		for _, card := range portal_cards {
+			categories, err := s.repo.GetAllPermissionCategories(ctx, card)
+			if err != nil {
+				s.logger.Errorf("Permission category can't be found with department ID")
+				return nil, errors.New(localization.ErrorResourceNotFound.Code)
+			}
+
+			if len(categories) != 0 {
+				cardsWithPermission[strings.ToLower(card)] = categories
+			}
+		}
+	}
+
+	return cardsWithPermission, nil
+}
+
+func (s *permissionService) GetPermissionGroupsByDepartment(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
+	department, err := s.repo.FindAllGroupsWithPagination(ctx, departmentId, filterParam)
+	if err != nil || department == nil {
+		s.logger.Errorf("Department not found with ID: %s", departmentId)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
+	return department, nil
+}
+
 func (s *permissionService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Println("//// here to authorize", action)
 	switch action.ActionType {
 	case string(constants.CREATE):
 		cur, err := core.BindPermissionGroupFromAction(action.CurrentAction)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		fmt.Println("cuuuuuuuuuuuuurrrrrrr")
 
 		if err := s.repo.Create(ctx, &cur); err != nil {
 			return nil, err
@@ -195,22 +229,15 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		existingGroup, err := s.repo.GetPermissionGroup(action.UniqueId)
+		existingGroup, err := s.repo.GetPermissionGroupById(ctx, action.UniqueId)
 		if err != nil {
-			fmt.Println("Error getting existing group:", err)
-			return nil, err
-		}
-		if existingGroup == nil {
-			fmt.Println("Existing group not found")
-			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 
 		// Update using the existing group's ObjectID
 		if err := s.repo.Update(ctx, existingGroup.ID.Hex(), &upd); err != nil {
-			fmt.Println("Repository update error:", err)
 			return nil, err
 		}
-		fmt.Println("this <<<<<<<<<<<<<<<<<<<<this is error>>>>>>>on repo >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 		return action, nil
 
 	default:

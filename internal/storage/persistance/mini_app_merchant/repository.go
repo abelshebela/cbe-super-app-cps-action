@@ -182,7 +182,6 @@ func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 }
 
 func (m *MiniAppMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error) {
-
 	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

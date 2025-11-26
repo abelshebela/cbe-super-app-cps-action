@@ -36,7 +36,6 @@ func (r *UpdateUserRequest) Normalize() {
 	}
 }
 
-
 func IsObjectIDRequired(value interface{}) error {
 	if value == nil {
 		return validation.NewError("validation_is_objectid_required", "must be a valid ObjectID")

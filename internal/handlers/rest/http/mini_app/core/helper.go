@@ -128,5 +128,3 @@ func ToMiniAppCreateRequest(r miniappdto.MiniAppRequest, isCreate bool) (*miniap
 
 	return &result, nil
 }
-
-

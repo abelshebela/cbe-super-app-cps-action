@@ -98,12 +98,14 @@ func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 func validateAvatar(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
 	if !ok || file == nil {
-		return errors.New(localization.ErrorWalletAvatarInvalid.Code)
+		return localization.ErrorWalletAvatarInvalid
 	}
 	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
+	}
+
 	return nil
 }
-
-

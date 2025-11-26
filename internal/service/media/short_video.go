@@ -36,16 +36,16 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		NewsShortVideoCacheDeleteErrMsg = "failed to delete cache for shortVideo %s: %v"
 	)
 
-	shortVideo, err := local_util.JsonUnmarshal[model.ShortVideo](cpsAction.CurrentAction)
+	shortVideo, err := local_util.JsonUnmarshal[model.ShortVideoDetail](cpsAction.CurrentAction)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateShortVideo):
-		err = m.repo.Create(ctx, shortVideo)
+		err = m.repo.Create(ctx, shortVideo.ToShortVideo())
 	case string(constants.RequestUpdateShortVideo):
-		err = m.repo.Update(ctx, shortVideo, cpsAction.UniqueId)
+		err = m.repo.Update(ctx, shortVideo.ToShortVideo(), cpsAction.UniqueId)
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
