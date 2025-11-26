@@ -44,10 +44,7 @@ func AccountBlockMapperForUpdate(block model.AccountBlock) bson.M {
 	return update
 }
 
-// FindAccountBlocksWithParentPopulated executes an aggregation pipeline to find account blocks
-// with their parent documents populated. This function can be used for any account block type
-// (Region, District, City, Branch) by passing the appropriate filter.
-func FindAccountBlocksWithParentPopulated(
+func FindAccountBlocksWithParentPopulatedRecursive(
 	ctx context.Context,
 	collection *mongo.Collection,
 	filter bson.M,
@@ -56,247 +53,162 @@ func FindAccountBlocksWithParentPopulated(
 	logger utils.Logger,
 ) ([]*model.AccountBlock, error) {
 	pipeline := mongo.Pipeline{
-		// Match documents based on filter
+		// 1. Match documents based on the initial filter
 		{{Key: "$match", Value: filter}},
-		// Lookup parent document
-		{{Key: "$lookup", Value: bson.M{
-			"from":         "account_block",
-			"localField":   "parent_id",
-			"foreignField": "_id",
-			"as":           "parent_docs",
+
+		// 2. Perform recursive lookup for ancestors (parents)
+		{{Key: "$graphLookup", Value: bson.M{
+			"from":                    "account_block",
+			"startWith":               "$parent_id",
+			"connectFromField":        "parent_id",
+			"connectToField":          "_id",
+			"as":                      "ancestors",
+			"depthField":              "depth",
+			"restrictSearchWithMatch": bson.M{"is_deleted": false},
 		}}},
-		// Unwind parent array (preserve null for documents without parent)
-		{{Key: "$unwind", Value: bson.M{
-			"path":                       "$parent_docs",
-			"preserveNullAndEmptyArrays": true,
-		}}},
-		// Project fields including parent
-		{{Key: "$project", Value: bson.M{
-			"_id":       1,
-			"name":      1,
-			"code":      1,
-			"address":   1,
-			"parent_id": 1,
-			"parent": bson.M{
-				"$cond": bson.M{
-					"if":   bson.M{"$ne": []interface{}{"$parent_docs", nil}},
-					"then": "$parent_docs",
-					"else": nil,
-				},
-			},
-			"slug":       1,
-			"type":       1,
-			"is_enabled": 1,
-			"is_deleted": 1,
-			"created_at": 1,
-			"updated_at": 1,
-		}}},
-		// Apply pagination
+
+		// 3. Apply pagination before processing
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
+
+		// 4. Add a field to help with sorting ancestors by depth
+		{{Key: "$addFields", Value: bson.M{
+			"sortedAncestors": bson.M{
+				"$sortArray": bson.M{
+					"input":  "$ancestors",
+					"sortBy": bson.M{"depth": -1}, // Sort by depth descending (deepest first)
+				},
+			},
+		}}},
+
+		// 5. Project final structure
+		{{Key: "$project", Value: bson.M{
+			"_id":             1,
+			"name":            1,
+			"code":            1,
+			"address":         1,
+			"parent_id":       1,
+			"slug":            1,
+			"type":            1,
+			"is_enabled":      1,
+			"is_deleted":      1,
+			"created_at":      1,
+			"updated_at":      1,
+			"sortedAncestors": 1,
+		}}},
 	}
 
 	// Execute aggregation
 	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		logger.Errorf("Error aggregating account blocks with parent: %v", err)
+		logger.Errorf("Error aggregating account blocks with recursive parent: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
-	// Decode results
-	var results []*model.AccountBlock
-	if err := cursor.All(ctx, &results); err != nil {
+	// Decode results into intermediate structure
+	type ResultWithAncestors struct {
+		ID              bson.ObjectID          `bson:"_id,omitempty"`
+		Name            string                 `bson:"name"`
+		Code            string                 `bson:"code"`
+		Address         string                 `bson:"address"`
+		ParentID        *bson.ObjectID         `bson:"parent_id,omitempty"`
+		Slug            string                 `bson:"slug"`
+		Type            model.AccountBlockType `bson:"type"`
+		IsEnabled       bool                   `bson:"is_enabled"`
+		IsDeleted       bool                   `bson:"is_deleted,omitempty"`
+		CreatedAt       time.Time              `bson:"created_at"`
+		UpdatedAt       time.Time              `bson:"updated_at"`
+		SortedAncestors []model.AccountBlock   `bson:"sortedAncestors"`
+	}
+
+	var intermediateResults []ResultWithAncestors
+	if err := cursor.All(ctx, &intermediateResults); err != nil {
 		logger.Errorf("Error decoding account blocks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// Build the nested parent structure
+	results := make([]*model.AccountBlock, 0, len(intermediateResults))
+	for _, item := range intermediateResults {
+		accountBlock := &model.AccountBlock{
+			ID:        item.ID,
+			Name:      item.Name,
+			Code:      item.Code,
+			Address:   item.Address,
+			ParentID:  item.ParentID,
+			Slug:      item.Slug,
+			Type:      item.Type,
+			IsEnabled: item.IsEnabled,
+			IsDeleted: item.IsDeleted,
+			CreatedAt: item.CreatedAt,
+			UpdatedAt: item.UpdatedAt,
+		}
+
+		// Build nested parent structure
+		if len(item.SortedAncestors) > 0 {
+			accountBlock.Parent = buildParentHierarchy(item.SortedAncestors)
+		}
+
+		results = append(results, accountBlock)
 	}
 
 	return results, nil
 }
 
-// FindAccountBlockByCodeWithParentPopulated executes an aggregation pipeline to find a single account block
-// by code with its parent document populated. This function can be used for any account block type
-// (Region, District, City, Branch) by passing the appropriate code and optional type filter.
-func FindAccountBlockByCodeWithParentPopulated(
-	ctx context.Context,
-	collection *mongo.Collection,
-	code string,
-	accountBlockType string, // Optional: "R", "D", "C", "B" or empty string for any type
-	logger utils.Logger,
-) (*model.AccountBlock, error) {
-	// Build filter
-	filter := bson.M{"code": code}
-	if accountBlockType != "" {
-		filter["type"] = accountBlockType
+// buildParentHierarchy constructs the nested parent structure from a sorted list of ancestors
+func buildParentHierarchy(ancestors []model.AccountBlock) *model.AccountBlock {
+	if len(ancestors) == 0 {
+		return nil
 	}
 
-	// Build aggregation pipeline
-	pipeline := mongo.Pipeline{
-		// Match document by code (and optionally by type)
-		{{Key: "$match", Value: filter}},
-		// Lookup parent document
-		{{Key: "$lookup", Value: bson.M{
-			"from":         "account_block",
-			"localField":   "parent_id",
-			"foreignField": "_id",
-			"as":           "parent_docs",
-		}}},
-		// Unwind parent array (preserve null for documents without parent)
-		{{Key: "$unwind", Value: bson.M{
-			"path":                       "$parent_docs",
-			"preserveNullAndEmptyArrays": true,
-		}}},
-		// Project fields including parent
-		{{Key: "$project", Value: bson.M{
-			"_id":       1,
-			"name":      1,
-			"code":      1,
-			"address":   1,
-			"parent_id": 1,
-			"parent": bson.M{
-				"$cond": bson.M{
-					"if":   bson.M{"$ne": []interface{}{"$parent_docs", nil}},
-					"then": "$parent_docs",
-					"else": nil,
-				},
-			},
-			"slug":       1,
-			"type":       1,
-			"is_enabled": 1,
-			"is_deleted": 1,
-			"created_at": 1,
-			"updated_at": 1,
-		}}},
-		// Limit to 1 result
-		{{Key: "$limit", Value: 1}},
+	// Create a map for quick lookup by ID
+	ancestorMap := make(map[bson.ObjectID]*model.AccountBlock)
+	for i := range ancestors {
+		ancestor := &model.AccountBlock{
+			ID:        ancestors[i].ID,
+			Name:      ancestors[i].Name,
+			Code:      ancestors[i].Code,
+			Address:   ancestors[i].Address,
+			ParentID:  ancestors[i].ParentID,
+			Slug:      ancestors[i].Slug,
+			Type:      ancestors[i].Type,
+			IsEnabled: ancestors[i].IsEnabled,
+			IsDeleted: ancestors[i].IsDeleted,
+			CreatedAt: ancestors[i].CreatedAt,
+			UpdatedAt: ancestors[i].UpdatedAt,
+		}
+		ancestorMap[ancestor.ID] = ancestor
 	}
 
-	// Execute aggregation
-	cursor, err := collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		logger.Errorf("Error aggregating account block by code with parent: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	defer cursor.Close(ctx)
-
-	// Check if document exists
-	if !cursor.Next(ctx) {
-		return nil, mongo.ErrNoDocuments
+	// Link each ancestor to its parent
+	for _, ancestor := range ancestorMap {
+		if ancestor.ParentID != nil {
+			if parent, exists := ancestorMap[*ancestor.ParentID]; exists {
+				ancestor.Parent = parent
+			}
+		}
 	}
 
-	// Decode result
-	var result model.AccountBlock
-	if err := cursor.Decode(&result); err != nil {
-		logger.Errorf("Error decoding account block: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// Find the immediate parent (the one at depth 0)
+	for i := range ancestors {
+		if ancestors[i].ParentID != nil {
+			if immediateParent, exists := ancestorMap[ancestors[i].ID]; exists {
+				// Check if this is depth 0 (immediate parent)
+				// Since we sorted by depth descending, the last one should be depth 0
+				if i == len(ancestors)-1 {
+					return immediateParent
+				}
+			}
+		}
 	}
 
-	return &result, nil
+	// Fallback: return the first ancestor
+	if len(ancestorMap) > 0 {
+		for _, v := range ancestorMap {
+			return v
+		}
+	}
+
+	return nil
 }
-
-// func BranchMapperForUpdate(branch model.Branch) bson.M {
-// 	update := bson.M{}
-// 	now := time.Now()
-// 	update["updated_at"] = now
-
-// 	if branch.BranchCode != "" {
-// 		update["branch_code"] = branch.BranchCode
-// 	}
-// 	if branch.BranchName != "" {
-// 		update["branch_name"] = branch.BranchName
-// 	}
-// 	if branch.BranchAddress != "" {
-// 		update["branch_address"] = branch.BranchAddress
-// 	}
-// 	if branch.DistrictCode != "" {
-// 		update["district_code"] = branch.DistrictCode
-// 	}
-// 	if branch.DistrictName != "" {
-// 		update["district_name"] = branch.DistrictName
-// 	}
-// 	if branch.RegionName != "" {
-// 		update["region_name"] = branch.RegionName
-// 	}
-// 	if branch.RecordStat != "" {
-// 		update["record_stat"] = branch.RecordStat
-// 	}
-// 	// Booleans are tricky: include them only if they are explicitly meant to be updated
-// 	update["enabled"] = branch.Enabled
-
-// 	return update
-// }
-
-// func RegionMapperForUpdate(region model.Region) bson.M {
-// 	update := bson.M{}
-// 	now := time.Now()
-// 	update["updated_at"] = now
-
-// 	if region.RegionCode != "" {
-// 		update["region_code"] = region.RegionCode
-// 	}
-// 	if region.RegionName != "" {
-// 		update["region_name"] = region.RegionName
-// 	}
-// 	if region.RegionAddress != "" {
-// 		update["region_address"] = region.RegionAddress
-// 	}
-// 	update["enabled"] = region.Enabled
-
-// 	return update
-// }
-
-// func DistrictMapperForUpdate(district model.District) bson.M {
-// 	update := bson.M{}
-// 	now := time.Now()
-// 	update["updated_at"] = now
-
-// 	if district.DistrictCode != "" {
-// 		update["district_code"] = district.DistrictCode
-// 	}
-// 	if district.DistrictName != "" {
-// 		update["district_name"] = district.DistrictName
-// 	}
-// 	if district.DistrictAddress != "" {
-// 		update["district_address"] = district.DistrictAddress
-// 	}
-// 	if district.RegionID != "" {
-// 		update["region_id"] = district.RegionID
-// 	}
-// 	if district.RegionName != "" {
-// 		update["region_name"] = district.RegionName
-// 	}
-// 	update["enabled"] = district.Enabled
-
-// 	return update
-// }
-
-// func CityMapperForUpdate(city model.City) bson.M {
-// 	update := bson.M{}
-// 	now := time.Now()
-// 	update["updated_at"] = now
-
-// 	if city.CityCode != "" {
-// 		update["city_code"] = city.CityCode
-// 	}
-// 	if city.CityName != "" {
-// 		update["city_name"] = city.CityName
-// 	}
-// 	if city.CityAddress != "" {
-// 		update["city_address"] = city.CityAddress
-// 	}
-// 	if city.DistrictID != "" {
-// 		update["district_id"] = city.DistrictID
-// 	}
-// 	if city.DistrictName != "" {
-// 		update["district_name"] = city.DistrictName
-// 	}
-// 	if city.RegionID != "" {
-// 		update["region_id"] = city.RegionID
-// 	}
-// 	if city.RegionName != "" {
-// 		update["region_name"] = city.RegionName
-// 	}
-// 	update["enabled"] = city.Enabled
-
-// 	return update
-// }
