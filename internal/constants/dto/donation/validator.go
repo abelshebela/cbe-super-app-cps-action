@@ -33,13 +33,12 @@ func (d DonationRequest) Validate() error {
 		),
 		validation.Field(&d.DonationImages,
 			validation.Required.Error("donation image is required"),
-			validation.By(func(value interface{}) error { return validateImage(value) }),
+			validation.By(func(value interface{}) error { return validateImages(value) }),
 		),
 		validation.Field(&d.CoverImage,
 			validation.Required.Error("cover image is required"),
 			validation.By(func(value interface{}) error { return validateImage(value) }),
 		),
-
 		validation.Field(&d.StartDate,
 			validation.When(!d.StartDate.IsZero(), validation.By(validateStartDate)),
 		),
@@ -104,6 +103,21 @@ func validateImage(value interface{}) error {
 
 	if file.Size > (2 << 20) {
 		return validation.NewError("logo", localization.MsgFileTooLarge)
+	}
+
+	return nil
+}
+
+func validateImages(value interface{}) error {
+	files, ok := value.([]*multipart.FileHeader)
+	if !ok || len(files) == 0 {
+		return localization.ErrorMissingOrInvalidImage
+	}
+
+	for _, f := range files {
+		if err := validateImage(f); err != nil {
+			return err
+		}
 	}
 
 	return nil
