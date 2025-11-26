@@ -1,23 +1,28 @@
 package lib
 
 import (
+	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/localization"
+	// "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"maps"
 	"mime/multipart"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
-	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -131,96 +136,162 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 func UploadFileToMinio(
 	ctx context.Context,
-	uploader config.MinioClientInterface,
+	uploader aws.Config,
 	bucketName string,
 	fileHeader *multipart.FileHeader,
 	prefix string,
 	minioEndpoint string,
+	cfg aws.Config,
 	objectkey string,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
 ) (string, error) {
-	// Ensure bucket exists
-	exist, err := uploader.BucketExist(ctx, bucketName)
-	if err != nil {
-		fmt.Println("=====fileName=====", bucketName, err)
-		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	}
 
-	if !exist {
-		created, err := uploader.MakeBucket(ctx, bucketName)
-		if err != nil || !created {
-			logger.Errorf("failed to create bucket '%s': %v", bucketName, err)
-			return "", errors.New(localization.ErrorUnexpectedError.Code)
-		}
-	}
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.DisableLogOutputChecksumValidationSkipped = true
+	})
 
-	// Open file
+	// Open file and buffer its content
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.Errorf("failed to open file: %v", err)
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(err.Error())
 	}
 	defer file.Close()
 
-	var fileName string
-	if objectkey != "" {
-		fileName = objectkey
-	} else {
-		extension := fileHeader.Filename[len(fileHeader.Filename)-4:]
-		fileName = fmt.Sprintf("%s-%d.%s", prefix, time.Now().UnixNano(), extension)
-	}
-
-	// Upload file
-	saveObj, err := uploader.SaveObjectN(ctx, config.SaveObjectBodyN{
-		BucketName:  bucketName,
-		ObjectName:  fileName,
-		Reader:      file,
-		Size:        fileHeader.Size,
-		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
-	})
-
+	buf := new(bytes.Buffer)
+	n, err := io.Copy(buf, file)
 	if err != nil {
-		logger.Errorf("failed to upload file to MinIO: %v", err)
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		logger.Errorf("failed to read uploaded file error: %v", err)
+		return "", errors.New(err.Error())
 	}
 
-	// Return full URL
-	url := fmt.Sprintf("%s/%s/%s", minioEndpoint, saveObj.Bucket, saveObj.Key)
+	// Build object key under a folder (bucketName used as folder/prefix)
+	// and generate unique filename based on prefix and timestamp to avoid collisions
+	genName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+	key := genName
+	// key := path.Join(bucketName, genName)
+
+	// Determine content type
+	contentType := fileHeader.Header.Get("Content-Type")
+	if strings.TrimSpace(contentType) == "" {
+		contentType = "application/octet-stream"
+	}
+
+	// Upload using the buffered bytes to avoid EOF issues
+	cl := n
+	putInput := &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName), // secrets.AWS_BUCKET_NAME
+		Key:           aws.String(key),
+		Body:          bytes.NewReader(buf.Bytes()),
+		ContentType:   aws.String(contentType),
+		ContentLength: &cl,
+	}
+
+	if _, err := s3Client.PutObject(context.TODO(), putInput); err != nil {
+		logger.Errorf("upload failed error: %v", err)
+		return "", errors.New(err.Error())
+	}
+
+	// Build streamed URL served by the uploader service
+	url := fmt.Sprintf("%s/%s", minioEndpoint, strings.TrimPrefix(key, "/"))
 	return url, nil
+
 }
 
-func RemoveFileFromMino(ctx context.Context, client config.MinioClientInterface, bucketName string, objectkey string,
+// func UploadFileToMinio(
+// 	ctx context.Context,
+// 	uploader aws.Config,
+// 	bucketName string,
+// 	fileHeader *multipart.FileHeader,
+// 	prefix string,
+// 	minioEndpoint string,
+// 	objectkey string,
+// 	logger interface {
+// 		Errorf(format string, args ...any)
+// 	},
+// ) (string, error) {
+// 	// Ensure bucket exists
+// 	exist, err := uploader.BucketExist(ctx, bucketName)
+// 	if err != nil {
+// 		fmt.Println("=====fileName=====", bucketName, err)
+// 		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
+// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	if !exist {
+// 		created, err := uploader.MakeBucket(ctx, bucketName)
+// 		if err != nil || !created {
+// 			logger.Errorf("failed to create bucket '%s': %v", bucketName, err)
+// 			return "", errors.New(localization.ErrorUnexpectedError.Code)
+// 		}
+// 	}
+
+// 	// Open file
+// 	file, err := fileHeader.Open()
+// 	if err != nil {
+// 		logger.Errorf("failed to open file: %v", err)
+// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+// 	defer file.Close()
+
+// 	var fileName string
+// 	if objectkey != "" {
+// 		fileName = objectkey
+// 	} else {
+// 		extension := fileHeader.Filename[len(fileHeader.Filename)-4:]
+// 		fileName = fmt.Sprintf("%s-%d.%s", prefix, time.Now().UnixNano(), extension)
+// 	}
+
+// 	// Upload file
+// 	saveObj, err := uploader.SaveObjectN(ctx, config.SaveObjectBodyN{
+// 		BucketName:  bucketName,
+// 		ObjectName:  fileName,
+// 		Reader:      file,
+// 		Size:        fileHeader.Size,
+// 		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
+// 	})
+
+// 	if err != nil {
+// 		logger.Errorf("failed to upload file to MinIO: %v", err)
+// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	// Return full URL
+// 	url := fmt.Sprintf("%s/%s/%s", minioEndpoint, saveObj.Bucket, saveObj.Key)
+// 	return url, nil
+// }
+
+func RemoveFileFromMino(ctx context.Context, client aws.Config, bucketName string, objectkey string,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
 ) error {
-	exist, err := client.BucketExist(ctx, bucketName)
-	if err != nil {
-		logger.Errorf("failed to check bucket '%s': '%v'", bucketName, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// exist, err := client.BucketExist(ctx, bucketName)
+	// if err != nil {
+	// 	logger.Errorf("failed to check bucket '%s': '%v'", bucketName, err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	if !exist {
-		logger.Errorf("bucket '%s' does not exist", bucketName)
-		return errors.New(localization.ErrorBucketNotFound.Code)
-	}
+	// if !exist {
+	// 	logger.Errorf("bucket '%s' does not exist", bucketName)
+	// 	return errors.New(localization.ErrorBucketNotFound.Code)
+	// }
 
-	isDeleted, err := client.DeleteObject(ctx, config.DeleteObjectBody{
-		BucketName: bucketName,
-		ObjectName: objectkey,
-	})
-	if err != nil {
-		logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectkey, bucketName, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// isDeleted, err := client.DeleteObject(ctx, config.DeleteObjectBody{
+	// 	BucketName: bucketName,
+	// 	ObjectName: objectkey,
+	// })
+	// if err != nil {
+	// 	logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectkey, bucketName, err)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
-	if !isDeleted {
-		logger.Errorf("object '%s' could not be deleted from bucket '%s'", objectkey, bucketName)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
+	// if !isDeleted {
+	// 	logger.Errorf("object '%s' could not be deleted from bucket '%s'", objectkey, bucketName)
+	// 	return errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 
 	return nil
 }
