@@ -12,13 +12,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"path"
 
 	"mime/multipart"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -28,14 +28,14 @@ type advertService struct {
 	Repository  storage.AdvertRepository
 	cpsService  service.CPSActionService
 	logger      utils.Logger
-	minioClient config.MinioClientInterface
+	minioClient aws.Config
 	bucketName  string
 	minioPubUrl string
 	cfg         *config.VaultConfig
 }
 
 // NewAdvertService creates a new advert service instance
-func NewAdvertService(repository storage.AdvertRepository, cpsService service.CPSActionService, minioClient config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AdvertService {
+func NewAdvertService(repository storage.AdvertRepository, cpsService service.CPSActionService, minioClient aws.Config, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AdvertService {
 	return &advertService{
 		Repository:  repository,
 		cpsService:  cpsService,
@@ -77,7 +77,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
 		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, "", s.logger)
+	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.minioClient,"" ,s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
 		return errors.New(localization.MsgFileUploadFailed)
@@ -131,12 +131,8 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 
 	var url string
 	if bannerImage != nil {
-		var objectkey string
-		if prevAdvert.BannerImage != "" {
-			objectkey = path.Base(prevAdvert.BannerImage)
-		}
 
-		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, objectkey, s.logger)
+		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.minioClient,"", s.logger)
 		if err != nil {
 			s.logger.Errorf("Failed to upload banner image: %v", err)
 			return err
