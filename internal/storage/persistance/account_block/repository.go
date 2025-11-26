@@ -38,7 +38,10 @@ func NewAccountBlockRepository(client *mongo.Client, dbName string, collection s
 
 func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	result, err := FindAccountBlockByCodeWithParentPopulated(ctx, collection, branchCode, "B", a.logger)
+	// result, err := FindAccountBlockByCodeWithParentPopulated(ctx, collection, branchCode, "B", a.logger)
+	filter := bson.M{"code": branchCode}
+	filter["type"] = "B"
+	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorBranchNotFound.Code)
@@ -46,7 +49,7 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode st
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return result, nil
+	return result[0], nil
 }
 
 func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.AccountBlock) error {
@@ -153,7 +156,7 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	filter["is_deleted"] = false
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	results, err := FindAccountBlocksWithParentPopulated(ctx, collection, filter, skip, limit, a.logger)
+	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
 		a.logger.Errorf("Error finding cities with pagination: %v", err)
 		return nil, err
@@ -176,7 +179,9 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 
 func (a *AccountBlockStorage) GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	result, err := FindAccountBlockByCodeWithParentPopulated(ctx, collection, regionCode, "R", a.logger)
+	filter := bson.M{"code": regionCode}
+	filter["type"] = "R"
+	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorRegionNotFound.Code)
@@ -184,7 +189,7 @@ func (a *AccountBlockStorage) GetRegionByCode(ctx context.Context, regionCode st
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return result, nil
+	return result[0], nil
 }
 
 func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.AccountBlock) error {
@@ -291,7 +296,7 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 
 	// Fetch paginated data
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	results, err := FindAccountBlocksWithParentPopulated(ctx, collection, filter, skip, limit, a.logger)
+	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
 		a.logger.Errorf("Error finding cities with pagination: %v", err)
 		return nil, err
@@ -314,7 +319,9 @@ func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, 
 
 func (a *AccountBlockStorage) GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	result, err := FindAccountBlockByCodeWithParentPopulated(ctx, collection, districtCode, "D", a.logger)
+	filter := bson.M{"code": districtCode}
+	filter["type"] = "D"
+	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorDistrictNotFound.Code)
@@ -322,7 +329,7 @@ func (a *AccountBlockStorage) GetDistrictByCode(ctx context.Context, districtCod
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return result, nil
+	return result[0], nil
 }
 
 func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *model.AccountBlock) error {
@@ -429,7 +436,7 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 
 	// Fetch paginated results
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	results, err := FindAccountBlocksWithParentPopulated(ctx, collection, filter, skip, limit, a.logger)
+	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
 		a.logger.Errorf("Error finding cities with pagination: %v", err)
 		return nil, err
@@ -453,7 +460,9 @@ func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context
 
 func (a *AccountBlockStorage) GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	result, err := FindAccountBlockByCodeWithParentPopulated(ctx, collection, cityCode, "C", a.logger)
+	filter := bson.M{"code": cityCode}
+	filter["type"] = "C"
+	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorCityNotFound.Code)
@@ -461,7 +470,7 @@ func (a *AccountBlockStorage) GetCityByCode(ctx context.Context, cityCode string
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return result, nil
+	return result[0], nil
 }
 
 func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.AccountBlock) error {
@@ -567,7 +576,7 @@ func (a *AccountBlockStorage) FindAllCitiesWithPagination(ctx context.Context, f
 	filter["type"] = "C"
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
-	results, err := FindAccountBlocksWithParentPopulated(ctx, collection, filter, skip, limit, a.logger)
+	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
 		a.logger.Errorf("Error finding cities with pagination: %v", err)
 		return nil, err
