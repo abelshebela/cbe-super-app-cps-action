@@ -52,12 +52,11 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"gender": searchRegex},
 			{"user_name": searchRegex},
 			{"user_code": searchRegex},
+			{"is_blocked": searchRegex},
 		}
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["is_blocked"] = false
-	filter["enabled"] = true
 
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

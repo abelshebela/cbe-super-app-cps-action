@@ -1,6 +1,7 @@
 package permission
 
 import (
+	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -100,6 +101,65 @@ func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return result, nil
+}
+func (r *PermissionPersistence) FindByIDPopulated(ctx context.Context, id string) (cps_user_dto.PermissionGroupResponse, error) {
+	objectID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{
+			"_id":        objectID,
+			"is_deleted": bson.M{"$ne": true},
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "permission_category",
+			"let":  bson.M{"categoryIds": "$permission_category"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
+					"$in": []interface{}{"$_id", IdConverter("$$categoryIds")},
+				}}}},
+				bson.D{{Key: "$match", Value: bson.M{
+					"is_deleted": bson.M{"$ne": true},
+				}}},
+				bson.D{{Key: "$project", Value: bson.M{
+					"category_name": 1,
+					"access":        1,
+					"permissions":   1,
+				}}},
+			},
+			"as": "permission_category_docs",
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"id":                  "$_id",
+			"group_name":          1,
+			"permission_category": "$permission_category_docs",
+			"created_at":          1,
+			"updated_at":          1,
+		}}},
+	}
+
+	cursor, err := r.PermissionGroupCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Errorf("Failed to aggregate Permission Group, id: %s, error: %v", id, err)
+		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var groups []cps_user_dto.PermissionGroupResponse
+	if err := cursor.All(ctx, &groups); err != nil {
+		r.logger.Errorf("Failed to decode Permission Group aggregation, error: %v", err)
+		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if len(groups) == 0 {
+		r.logger.Warnf("Permission group not found, id: %s", id)
+		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+	}
+
+	return groups[0], nil
 }
 
 func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
@@ -400,7 +460,7 @@ func (p *PermissionPersistence) GetAllPermissionCategories(
 	card string,
 ) ([]*model.PermissionCategory, error) {
 	mongoFilter := bson.M{
-		"is_deleted": false,
+		"is_deleted":  false,
 		"portal_card": card,
 	}
 	categories, err := p.permissionCategoryDal.FindAllWithPagination(ctx, mongoFilter, bson.M{}, 0, 0)
@@ -409,4 +469,135 @@ func (p *PermissionPersistence) GetAllPermissionCategories(
 	}
 
 	return categories, nil
+}
+
+func (p *PermissionPersistence) GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []string) ([]cps_user_dto.PermissionCategoryResponse, error) {
+	if len(categoryIDs) == 0 {
+		return []cps_user_dto.PermissionCategoryResponse{}, nil
+	}
+	objectIDs := make([]bson.ObjectID, 0, len(categoryIDs))
+	for _, id := range categoryIDs {
+		objectID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, err
+		}
+		objectIDs = append(objectIDs, objectID)
+	}
+
+	filter := bson.M{
+		"_id":        bson.M{"$in": objectIDs},
+		"is_deleted": bson.M{"$ne": true},
+	}
+
+	categories, err := p.permissionCategoryDal.FindAllWithPagination(ctx, filter, bson.M{}, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]cps_user_dto.PermissionCategoryResponse, 0, len(categories))
+	for _, cat := range categories {
+		var permissions []cps_user_dto.PermissionResponse
+		if cat.Permissions != nil {
+			switch perms := cat.Permissions.(type) {
+			case []interface{}:
+				for _, p := range perms {
+					if permMap, ok := p.(map[string]interface{}); ok {
+						perm := cps_user_dto.PermissionResponse{}
+						if id, ok := permMap["_id"].(bson.ObjectID); ok {
+							perm.ID = id
+						}
+						if name, ok := permMap["permission_name"].(string); ok {
+							perm.Name = name
+						}
+						permissions = append(permissions, perm)
+					}
+				}
+			}
+		}
+
+		result = append(result, cps_user_dto.PermissionCategoryResponse{
+			ID:           cat.ID,
+			Access:       cat.Access,
+			CategoryName: cat.CategoryName,
+			Permissions:  permissions,
+		})
+	}
+
+	return result, nil
+}
+
+func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context, groupIDs []string) ([]cps_user_dto.PermissionGroupResponse, error) {
+	if len(groupIDs) == 0 {
+		return []cps_user_dto.PermissionGroupResponse{}, nil
+	}
+	
+	objectIDs := make([]bson.ObjectID, 0, len(groupIDs))
+	for _, id := range groupIDs {
+		objectID, err := bson.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, err
+		}
+		objectIDs = append(objectIDs, objectID)
+	}
+
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.M{
+			"_id":        bson.M{"$in": objectIDs},
+			"is_deleted": bson.M{"$ne": true},
+		}}},
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "permission_categories",
+			"let":  bson.M{"categoryIds": "$permission_category"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
+					"$in": []interface{}{
+						"$id", 
+						bson.M{
+							"$map": bson.M{
+								"input": "$$categoryIds",
+								"as":    "catId",
+								"in": bson.M{
+									"$cond": bson.M{
+										"if":   bson.M{"$eq": []interface{}{bson.M{"$type": "$$catId"}, "string"}},
+										"then": bson.M{"$toObjectId": "$$catId"},
+										"else": "$$catId",
+									},
+								},
+							},
+						},
+					},
+				}}}},
+				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
+				bson.D{{Key: "$project", Value: bson.M{
+					"category_name": 1,
+					"access":        1,
+					"permissions":   1,
+				}}},
+			},
+			"as": "permission_category",
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"group_name":         1,
+			"permission_category": 1,
+			"department_id":      1,
+			"role":               1,
+			"realm":              1,
+			"enabled":            1,
+			"created_at":         1,
+			"updated_at":         1,
+		}}},
+	}
+
+	cursor, err := p.PermissionGroupCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var groups []cps_user_dto.PermissionGroupResponse
+	if err := cursor.All(ctx, &groups); err != nil {
+		return nil, err
+	}
+
+	return groups, nil
 }
