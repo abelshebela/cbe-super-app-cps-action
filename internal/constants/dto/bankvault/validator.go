@@ -31,10 +31,10 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 	// }
 	// r.Method = strings.ToUpper(r.Method)
 
-	if r.Frequency, err = sanitizeString(r.Frequency); err != nil {
-		return err
-	}
-	r.Frequency = strings.ToUpper(r.Frequency)
+	// if r.Frequency, err = sanitizeString(r.Frequency); err != nil {
+	// 	return err
+	// }
+	// r.Frequency = strings.ToUpper(r.Frequency)
 
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
@@ -87,6 +87,20 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 			}
 			return nil
 		})),
+		validation.Field(&r.Frequency, validation.Required, validation.By(func(value interface{}) error {
+			if v, ok := value.(int64); ok {
+				if v <= 0 {
+					return errors.New("frequency must be > 0")
+				}
+				if v > 365 {
+					return errors.New("frequency must be <= 365")
+				}
+			} else {
+				return errors.New("value must be an integer")
+			}
+
+			return nil
+		})),
 		// validation.Field(&r.RateBps, validation.By(func(value interface{}) error {
 		// 	if v, ok := value.(decimal.Decimal); ok {
 		// 		if v.Equal(decimal.Zero) {
@@ -99,7 +113,6 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 		// 	return nil
 		// })),
 		// validation.Field(&r.Method, validation.Required, validation.In("SIMPLE", "COMPOUND"), validation.By(noSpecialChars)),
-		validation.Field(&r.Frequency, validation.Required, validation.In("DAILY", "MONTHLY", "QUARTERLY", "ANNUALLY"), validation.By(noSpecialChars)),
 		// validation.Field(&r.Description, validation.Required, validation.By(noSpecialChars)),
 	)
 }
