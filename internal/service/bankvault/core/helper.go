@@ -20,7 +20,7 @@ func ConvertBankVaultToMongoSafe(product *model.BankVaultProduct) map[string]int
 		"currency":                       product.Currency,
 		"rate_bps":                       func() float64 { f, _ := product.RateBps.Float64(); return f }(),
 		"method":                         string(product.Method),
-		"frequency":                      string(product.Frequency),
+		"frequency":                      product.Frequency,
 		"lock_period":                    product.LockPeriod.Nanoseconds(),
 		"min_amount":                     func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
 		"max_amount":                     func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
@@ -93,7 +93,7 @@ func MapBankVaultProduct(data map[string]interface{}) (model.BankVaultProduct, e
 	BV.Name = getString(data, "name")
 	BV.Currency = getString(data, "currency")
 	BV.Method = constants.AccrualMethod(getString(data, "method"))
-	BV.Frequency = constants.AccrualFrequency(getString(data, "frequency"))
+	BV.Frequency = getInteger(data, "frequency")
 
 	BV.RateBps = getDecimal(data, "rate_bps")
 	BV.MinAmount = getDecimal(data, "min_amount")
@@ -121,6 +121,20 @@ func getString(data map[string]interface{}, key string) string {
 		return val
 	}
 	return ""
+}
+
+func getInteger(data map[string]interface{}, key string) int64 {
+	if val, ok := data[key]; ok {
+		switch v := val.(type) {
+		case int:
+			return int64(v)
+		case int64:
+			return v
+		case float64:
+			return int64(v)
+		}
+	}
+	return 0
 }
 
 func getBool(data map[string]interface{}, key string) bool {
