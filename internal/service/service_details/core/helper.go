@@ -58,6 +58,16 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 		if dto.ServiceType != "" {
 			updatedService.ServiceType = dto.ServiceType
 		}
+		if dto.DailyCapLevelOne > 0 {
+			updatedService.DailyCapLevelOne = dto.DailyCapLevelOne
+		}
+		if dto.SingleCapLevelOne > 0 {
+			updatedService.SingleCapLevelOne = dto.SingleCapLevelOne
+		}
+		if dto.MinAmountVIRTUAL > 0 {
+			updatedService.MinAmountVirtual = dto.MinAmountVIRTUAL
+		}
+
 		if dto.PaymentType != "" {
 			updatedService.PaymentType = string(dto.PaymentType)
 		}

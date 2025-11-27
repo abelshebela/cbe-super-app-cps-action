@@ -38,9 +38,9 @@ func ServiceMapper(service *model.ServiceDetails, input dto.ServiceFeeDetailDTO)
 
 	service.ServiceType = input.ServiceType
 	service.PaymentType = string(input.PaymentType)
-	service.SingleCapLevelOne = uint64(input.SingleCapLevelOne)
-	service.DailyCapLevelOne = uint64(input.DailyCapLevelOne)
-	service.MinAmountVirtual = uint64(input.MinAmountVIRTUAL)
+	service.SingleCapLevelOne = input.SingleCapLevelOne
+	service.DailyCapLevelOne = input.DailyCapLevelOne
+	service.MinAmountVirtual = input.MinAmountVIRTUAL
 	service.AboveAmount = input.AboveAmount
 	service.AboveServiceFee = input.AboveServiceFee
 	// map tiers from DTO to model types
