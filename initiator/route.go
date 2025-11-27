@@ -91,7 +91,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 			logger.Errorf("Failed to write health check response", zap.Error(err))
 		}
 	})
-	authMiddleware := customeMiddleware.InitAuthMiddleware(client, cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
+	authMiddleware := customeMiddleware.InitAuthMiddleware(client, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	budgetCategory.Init(r, handlerLayer.BudgetCategoryHandler, authMiddleware)

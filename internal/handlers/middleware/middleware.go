@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/cors"
 	"google.golang.org/grpc/metadata"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -61,15 +62,17 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 }
 
 type UserPayload struct {
-	PhoneNumber string `json:"phone_number,omitempty"`
-	UserRole    string `json:"user_role,omitempty"`
-	UserID      string `json:"user_id,omitempty"`
-	UserCode    string `json:"user_code,omitempty"`
-	FullName    string `json:"full_name,omitempty"`
-	Department  string `json:"department,omitempty"`
-	NextStep    string `json:"next_step,omitempty"`
-	Action      string `json:"action"`
-	SessionExp  int64  `json:"session_expiry,omitempty"`
+	PhoneNumber string   `json:"phone_number,omitempty"`
+	UserRole    string   `json:"user_role,omitempty"`
+	UserID      string   `json:"user_id,omitempty"`
+	UserCode    string   `json:"user_code,omitempty"`
+	FullName    string   `json:"full_name,omitempty"`
+	Department  string   `json:"department,omitempty"`
+	NextStep    string   `json:"next_step,omitempty"`
+	Action      string   `json:"action"`
+	SessionExp  int64    `json:"session_expiry,omitempty"`
+	Environment string   `json:"environment"`
+	Permission  []string `json:"permission_group"`
 }
 
 type authMiddleware struct {
@@ -78,6 +81,7 @@ type authMiddleware struct {
 	JWTSecretKey string
 	Key          string
 	IV           string
+	cfg          config.VaultConfig
 }
 
 type AuthMiddleware interface {
@@ -87,12 +91,13 @@ type AuthMiddleware interface {
 	RequireFormContentType() func(http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
 		client:       client,
 		JWTSecretKey: secretKey,
 		Key:          key,
 		IV:           iv,
+		cfg:          cfg,
 		logger:       logger,
 	}
 }
@@ -206,7 +211,10 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-
+		if userPayload.Environment != a.cfg.GoEnv {
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+			return
+		}
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		// refresh token payload if session expiry has less than 1 minute
 		if userPayload.SessionExp != 0 {
@@ -296,6 +304,8 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
 	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)
+	ctx = context.WithValue(ctx, constants.ContextKey("permission"), userPayload.Permission)
+	ctx = context.WithValue(ctx, constants.ContextKey("environment"), userPayload.Environment)
 	return ctx
 }
 
