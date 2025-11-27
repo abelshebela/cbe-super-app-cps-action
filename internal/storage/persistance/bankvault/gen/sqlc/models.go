@@ -39,28 +39,28 @@ func (e *AccrualFrequency) Scan(src interface{}) error {
 	return nil
 }
 
-type NullAccrualFrequency struct {
-	AccrualFrequency AccrualFrequency `json:"accrual_frequency"`
-	Valid            bool             `json:"valid"` // Valid is true if AccrualFrequency is not NULL
-}
+// type NullAccrualFrequency struct {
+// 	AccrualFrequency AccrualFrequency `json:"accrual_frequency"`
+// 	Valid            bool             `json:"valid"` // Valid is true if AccrualFrequency is not NULL
+// }
 
-// Scan implements the Scanner interface.
-func (ns *NullAccrualFrequency) Scan(value interface{}) error {
-	if value == nil {
-		ns.AccrualFrequency, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.AccrualFrequency.Scan(value)
-}
+// // Scan implements the Scanner interface.
+// func (ns *NullAccrualFrequency) Scan(value interface{}) error {
+// 	if value == nil {
+// 		ns.AccrualFrequency, ns.Valid = "", false
+// 		return nil
+// 	}
+// 	ns.Valid = true
+// 	return ns.AccrualFrequency.Scan(value)
+// }
 
-// Value implements the driver Valuer interface.
-func (ns NullAccrualFrequency) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.AccrualFrequency), nil
-}
+// // Value implements the driver Valuer interface.
+// func (ns NullAccrualFrequency) Value() (driver.Value, error) {
+// 	if !ns.Valid {
+// 		return nil, nil
+// 	}
+// 	return string(ns.AccrualFrequency), nil
+// }
 
 type AccrualMethod string
 
@@ -234,44 +234,44 @@ func (ns NullTransactionType) Value() (driver.Value, error) {
 }
 
 type BankVaultProduct struct {
-	ID                         string                     `json:"id"`
-	Name                       string                     `json:"name"`
-	Description                string                     `json:"description"`
-	Currency                   string                     `json:"currency"`
-	RateBps                    decimal.Decimal            `json:"rate_bps"`
-	Method                     constants.AccrualMethod    `json:"method"`
-	Frequency                  constants.AccrualFrequency `json:"frequency"`
-	LockPeriod                 time.Duration              `json:"lock_period"`
-	MinAmount                  decimal.Decimal            `json:"min_amount"`
-	MaxAmount                  decimal.Decimal            `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock sql.NullBool               `json:"apply_interest_on_early_unlock"`
-	IsActive                   sql.NullBool               `json:"is_active"`
-	IsDeleted                  sql.NullBool               `json:"is_deleted"`
-	CreatedAt                  time.Time                  `json:"created_at"`
-	UpdatedAt                  time.Time                  `json:"updated_at"`
-	DeletedAt                  sql.NullTime               `json:"deleted_at"`
+	ID                         string                  `json:"id"`
+	Name                       string                  `json:"name"`
+	Description                string                  `json:"description"`
+	Currency                   string                  `json:"currency"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	LockPeriod                 time.Duration           `json:"lock_period"`
+	MinAmount                  decimal.Decimal         `json:"min_amount"`
+	MaxAmount                  decimal.Decimal         `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool            `json:"is_active"`
+	IsDeleted                  sql.NullBool            `json:"is_deleted"`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	DeletedAt                  sql.NullTime            `json:"deleted_at"`
 }
 
 type LockedVault struct {
-	ID                         string                     `json:"id"`
-	CustomerID                 string                     `json:"customer_id"`
-	LinkedAccount              string                     `json:"linked_account"`
-	ProductID                  string                     `json:"product_id"`
-	Principal                  decimal.Decimal            `json:"principal"`
-	StartDate                  time.Time                  `json:"start_date"`
-	MaturityDate               time.Time                  `json:"maturity_date"`
-	Status                     constants.VaultStatus      `json:"status"`
-	TermsVersion               string                     `json:"terms_version"`
-	TermsAcceptedAt            time.Time                  `json:"terms_accepted_at"`
-	RateBps                    decimal.Decimal            `json:"rate_bps"`
-	Method                     constants.AccrualMethod    `json:"method"`
-	Frequency                  constants.AccrualFrequency `json:"frequency"`
-	ApplyInterestOnEarlyUnlock decimal.Decimal            `json:"apply_interest_on_early_unlock"`
-	LockPeriod                 time.Duration              `json:"lock_period"`
-	CreatedAt                  time.Time                  `json:"created_at"`
-	UpdatedAt                  time.Time                  `json:"updated_at"`
-	ClosedAt                   sql.NullTime               `json:"closed_at"`
-	DeletedAt                  sql.NullTime               `json:"deleted_at"`
+	ID                         string                  `json:"id"`
+	CustomerID                 string                  `json:"customer_id"`
+	LinkedAccount              string                  `json:"linked_account"`
+	ProductID                  string                  `json:"product_id"`
+	Principal                  decimal.Decimal         `json:"principal"`
+	StartDate                  time.Time               `json:"start_date"`
+	MaturityDate               time.Time               `json:"maturity_date"`
+	Status                     constants.VaultStatus   `json:"status"`
+	TermsVersion               string                  `json:"terms_version"`
+	TermsAcceptedAt            time.Time               `json:"terms_accepted_at"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	ApplyInterestOnEarlyUnlock decimal.Decimal         `json:"apply_interest_on_early_unlock"`
+	LockPeriod                 time.Duration           `json:"lock_period"`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	ClosedAt                   sql.NullTime            `json:"closed_at"`
+	DeletedAt                  sql.NullTime            `json:"deleted_at"`
 }
 
 type NullBoolNumber struct {

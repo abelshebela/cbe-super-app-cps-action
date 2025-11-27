@@ -122,41 +122,39 @@ WHERE (:is_deleted IS NULL AND deleted_at IS NULL AND is_deleted = 0
   AND (:is_active IS NULL OR is_active = :is_active)
   AND (:name IS NULL OR UPPER(name) LIKE :name)
   AND (:currency IS NULL OR currency = :currency)
-  AND (:method IS NULL OR UPPER(method) = UPPER(:method))
-  AND (:frequency IS NULL OR UPPER(frequency) = UPPER(:frequency))
 ORDER BY created_at DESC
 OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY
 `
 
 type FindBankVaultParams struct {
-	IsActive  sql.NullBool         `json:"is_active"`
-	IsDeleted sql.NullBool         `json:"is_deleted"`
-	NameQuery sql.NullString       `json:"name"`
-	Currency  sql.NullString       `json:"currency"`
-	Method    NullAccrualMethod    `json:"method"`
-	Frequency NullAccrualFrequency `json:"frequency"`
-	Page      sql.NullInt64        `json:"page"`
-	Limit     sql.NullInt64        `json:"limit"`
+	IsActive  sql.NullBool   `json:"is_active"`
+	IsDeleted sql.NullBool   `json:"is_deleted"`
+	NameQuery sql.NullString `json:"name"`
+	Currency  sql.NullString `json:"currency"`
+	// Method    NullAccrualMethod `json:"method"`
+	// Frequency int64             `json:"frequency"`
+	Page  sql.NullInt64 `json:"page"`
+	Limit sql.NullInt64 `json:"limit"`
 }
 
 type FindBankVaultRow struct {
-	ID                         string                     `json:"id"`
-	Name                       string                     `json:"name"`
-	Currency                   string                     `json:"currency"`
-	RateBps                    decimal.Decimal            `json:"rate_bps"`
-	Method                     constants.AccrualMethod    `json:"method"`
-	Frequency                  constants.AccrualFrequency `json:"frequency"`
-	LockPeriod                 time.Duration              `json:"lock_period"`
-	MinAmount                  decimal.Decimal            `json:"min_amount"`
-	MaxAmount                  decimal.Decimal            `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock sql.NullBool               `json:"apply_interest_on_early_unlock"`
-	IsActive                   sql.NullBool               `json:"is_active"`
-	IsDeleted                  sql.NullBool               `json:"is_deleted "`
-	CreatedAt                  time.Time                  `json:"created_at"`
-	UpdatedAt                  time.Time                  `json:"updated_at"`
-	DeletedAt                  sql.NullTime               `json:"deleted_at"`
-	TotalCount                 int64                      `json:"total_count"`
+	ID                         string                  `json:"id"`
+	Name                       string                  `json:"name"`
+	Currency                   string                  `json:"currency"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	LockPeriod                 time.Duration           `json:"lock_period"`
+	MinAmount                  decimal.Decimal         `json:"min_amount"`
+	MaxAmount                  decimal.Decimal         `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool            `json:"is_active"`
+	IsDeleted                  sql.NullBool            `json:"is_deleted "`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	DeletedAt                  sql.NullTime            `json:"deleted_at"`
+	TotalCount                 int64                   `json:"total_count"`
 }
 
 // --- AccrualMethod ---
@@ -169,19 +167,19 @@ func nullAccrualMethodToPtr(am NullAccrualMethod) *string {
 }
 
 // --- AccrualFrequency ---
-func nullAccrualFrequencyToPtr(af NullAccrualFrequency) *string {
-	if !af.Valid {
-		return (*string)(nil)
-	}
-	f := string(af.AccrualFrequency)
-	return &f
-}
+// func nullAccrualFrequencyToPtr(af NullAccrualFrequency) *string {
+// 	if !af.Valid {
+// 		return (*string)(nil)
+// 	}
+// 	f := string(af.AccrualFrequency)
+// 	return &f
+// }
 
 func (q *Queries) FindBankVault(ctx context.Context, arg FindBankVaultParams) ([]FindBankVaultRow, error) {
 	namePtr := utils.NullStringToPtrLike(arg.NameQuery)
 	currencyPtr := utils.NullStringToPtr(arg.Currency)
-	methodPtr := nullAccrualMethodToPtr(arg.Method)
-	frequencyPtr := nullAccrualFrequencyToPtr(arg.Frequency)
+	// methodPtr := nullAccrualMethodToPtr(arg.Method)
+	// frequencyPtr := nullAccrualFrequencyToPtr(arg.Frequency)
 	limitPtr := utils.NullInt64ToPtr(arg.Limit)
 	offsetPtr := (arg.Page.Int64 - 1) * arg.Limit.Int64
 
@@ -190,8 +188,6 @@ func (q *Queries) FindBankVault(ctx context.Context, arg FindBankVaultParams) ([
 		sql.Named("is_deleted", arg.IsDeleted),
 		sql.Named("name", namePtr),
 		sql.Named("currency", currencyPtr),
-		sql.Named("method", methodPtr),
-		sql.Named("frequency", frequencyPtr),
 		sql.Named("offset", offsetPtr),
 		sql.Named("limit", limitPtr),
 	)
@@ -369,17 +365,17 @@ RETURNING id INTO :13
 `
 
 type SaveBankVaultParams struct {
-	ID                         string                     `json:"id"`
-	Name                       string                     `json:"name"`
-	Currency                   string                     `json:"currency"`
-	RateBps                    decimal.Decimal            `json:"rate_bps"`
-	Method                     constants.AccrualMethod    `json:"method"`
-	Frequency                  constants.AccrualFrequency `json:"frequency"`
-	LockPeriod                 time.Duration              `json:"lock_period"`
-	MinAmount                  decimal.Decimal            `json:"min_amount"`
-	MaxAmount                  decimal.Decimal            `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock sql.NullBool               `json:"apply_interest_on_early_unlock"`
-	IsActive                   sql.NullBool               `json:"is_active"`
+	ID                         string                  `json:"id"`
+	Name                       string                  `json:"name"`
+	Currency                   string                  `json:"currency"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	LockPeriod                 time.Duration           `json:"lock_period"`
+	MinAmount                  decimal.Decimal         `json:"min_amount"`
+	MaxAmount                  decimal.Decimal         `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool            `json:"is_active"`
 }
 
 func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error) {
@@ -391,7 +387,7 @@ func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (s
 		strings.ToUpper(arg.Currency),
 		arg.RateBps,
 		string(arg.Method),
-		string(arg.Frequency),
+		arg.Frequency,
 		int64(arg.LockPeriod),
 		arg.MinAmount,
 		arg.MaxAmount,
@@ -581,30 +577,30 @@ type ListLockedVaultParams struct {
 }
 
 type ListLocksRow struct {
-	ID                         string                     `json:"id"`
-	CustomerID                 string                     `json:"customer_id"`
-	LinkedAccount              string                     `json:"linked_account"`
-	AccountHolderName          string                     `json:"account_holder_name"`
-	TransactionReference       string                     `json:"transaction_reference"`
-	ProductID                  string                     `json:"product_id"`
-	Principal                  decimal.Decimal            `json:"principal"`
-	StartDate                  time.Time                  `json:"start_date"`
-	MaturityDate               time.Time                  `json:"maturity_date"`
-	Status                     constants.VaultStatus      `json:"status"`
-	TermsVersion               string                     `json:"terms_version"`
-	TermsAcceptedAt            time.Time                  `json:"terms_accepted_at"`
-	ClosedAt                   sql.NullTime               `json:"closed_at"`
-	MinAmount                  decimal.Decimal            `json:"min_amount"`
-	MaxAmount                  decimal.Decimal            `json:"max_amount"`
-	RateBps                    decimal.Decimal            `json:"rate_bps"`
-	Method                     constants.AccrualMethod    `json:"method"`
-	Frequency                  constants.AccrualFrequency `json:"frequency"`
-	ApplyInterestOnEarlyUnlock NullBoolNumber             `json:"apply_interest_on_early_unlock"`
-	LockPeriod                 int64                      `json:"lock_period"`
-	CreatedAt                  time.Time                  `json:"created_at"`
-	UpdatedAt                  time.Time                  `json:"updated_at"`
-	DeletedAt                  sql.NullTime               `json:"deleted_at"`
-	TotalCount                 int64                      `json:"total_count"`
+	ID                         string                  `json:"id"`
+	CustomerID                 string                  `json:"customer_id"`
+	LinkedAccount              string                  `json:"linked_account"`
+	AccountHolderName          string                  `json:"account_holder_name"`
+	TransactionReference       string                  `json:"transaction_reference"`
+	ProductID                  string                  `json:"product_id"`
+	Principal                  decimal.Decimal         `json:"principal"`
+	StartDate                  time.Time               `json:"start_date"`
+	MaturityDate               time.Time               `json:"maturity_date"`
+	Status                     constants.VaultStatus   `json:"status"`
+	TermsVersion               string                  `json:"terms_version"`
+	TermsAcceptedAt            time.Time               `json:"terms_accepted_at"`
+	ClosedAt                   sql.NullTime            `json:"closed_at"`
+	MinAmount                  decimal.Decimal         `json:"min_amount"`
+	MaxAmount                  decimal.Decimal         `json:"max_amount"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	ApplyInterestOnEarlyUnlock NullBoolNumber          `json:"apply_interest_on_early_unlock"`
+	LockPeriod                 int64                   `json:"lock_period"`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	DeletedAt                  sql.NullTime            `json:"deleted_at"`
+	TotalCount                 int64                   `json:"total_count"`
 }
 
 func (q *Queries) GetAllLockedVaults(ctx context.Context, arg ListLockedVaultParams) ([]ListLocksRow, error) {
