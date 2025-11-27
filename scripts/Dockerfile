@@ -19,6 +19,8 @@ RUN go mod download
 
 COPY . .
 
+RUN go mod tidy
+
 RUN go build -o supperapp-cps-action cmd/main.go
 
 FROM scratch
