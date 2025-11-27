@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
@@ -63,7 +64,7 @@ import (
 	_ "cbe-super-app-cps-action/docs" // Import generated docs
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logger utils.Logger, cfg *config.VaultConfig) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, logger utils.Logger, cfg *config.VaultConfig) {
 
 	r := chi.NewRouter()
 
@@ -90,7 +91,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, logge
 			logger.Errorf("Failed to write health check response", zap.Error(err))
 		}
 	})
-	authMiddleware := customeMiddleware.InitAuthMiddleware(cfg.JwtSecretKey, cfg.Key, cfg.IV, logger)
+	authMiddleware := customeMiddleware.InitAuthMiddleware(client, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	budgetCategory.Init(r, handlerLayer.BudgetCategoryHandler, authMiddleware)
