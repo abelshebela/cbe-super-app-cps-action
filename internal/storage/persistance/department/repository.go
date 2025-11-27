@@ -21,12 +21,14 @@ type DepartmentStorage struct {
 	dal    dal.MongoDal[model.Department, model.Department]
 	client *mongo.Client
 	logger utils.Logger
+	collection *mongo.Collection
 }
 
 func NewDepartmentRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DepartmentRepository {
 	return &DepartmentStorage{
 		dal:    dal.NewMongoDal[model.Department, model.Department](client, dbName, collection),
 		client: client,
+		collection: client.Database(dbName).Collection(collection),
 		logger: logger,
 	}
 }

@@ -478,18 +478,18 @@ type PermissionRepository interface {
 	Create(ctx context.Context, permissionGroup *model.PermissionGroup) error
 	Update(ctx context.Context, id string, permissionGroup *model.PermissionGroup) error
 	Delete(ctx context.Context, id string) error
-	// FindByID(ctx context.Context, id string) (*model.PermissionGroup, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	FindAllGroupsWithPagination(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
-	// Permission category operations
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
 	GetAllPermissionCategories(ctx context.Context, card string) ([]*model.PermissionCategory, error)
-	// Permission group operations
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
 	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
+	FindByIDPopulated(ctx context.Context, id string) (cps_user_dto.PermissionGroupResponse, error)
+	GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []string) ([]cps_user_dto.PermissionCategoryResponse, error)
+	GetPopulatedPermissionGroups(ctx context.Context, groupIDs []string) ([]cps_user_dto.PermissionGroupResponse, error)
 }
 
 // ExternalCallServices type alias for external call services

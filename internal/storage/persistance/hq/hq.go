@@ -21,6 +21,7 @@ import (
 type HQStorage struct {
 	dal    dal.MongoDal[model.HQ, model.HQ]
 	client *mongo.Client
+	collection *mongo.Collection
 	logger utils.Logger
 }
 
@@ -29,6 +30,7 @@ func NewHQRepository(client *mongo.Client, dbName string, collection string, log
 		dal:    dal.NewMongoDal[model.HQ, model.HQ](client, dbName, collection),
 		client: client,
 		logger: logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 

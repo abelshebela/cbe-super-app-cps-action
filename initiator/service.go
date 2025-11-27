@@ -185,7 +185,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	donationService = donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, DonationsBucketName, cfg, minioPubUrl)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, cpsActionService, logger)
 	serviceContainer.PermissionContainer = permissionService
-
+		accountValidationService := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, cpsActionService, logger)
+	serviceContainer.AccountContainer = accountValidationService
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	serviceContainer.CPSUserContainer = cpsUserService
 
@@ -244,8 +245,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BudgetCategory:         budgetCategoryService,
 		PortalCard:             portalCardService,
 		AmountBasedAuth:        amountBased,
-		ValidationService:      accountValidation,
-		AccountValidation:      accountValidation,
+		// ValidationService:      accountValidation,
+		AccountValidation:      accountValidationService,
 		Wallet:                 walletService,
 		Topup:                  topupService,
 		PasswordRule:           passwordRule,
