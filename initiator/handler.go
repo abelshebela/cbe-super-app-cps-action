@@ -144,7 +144,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		WalletHandler:             walletHandler.InitWalletAdapter(serviceLayer.Wallet, logger),
 		TopupHandler:              TopupHandler.InitTopupAdapter(serviceLayer.Topup, logger),
 		PasswordHandler:           passwordHandler.InitPasswordRuleHandler(serviceLayer.PasswordRule, logger),
-		AccountValidation:         accountValidation.NewHttpAccountValidation(serviceLayer.ValidationService, logger),
+		AccountValidation:         accountValidation.NewHttpAccountValidation(serviceLayer.AccountValidation, logger),
 		AccountBlockHandler:       accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 		DepartmentHandler:         department.NewDepartmentHandler(serviceLayer.Department, logger),
 		HqHandler:                 hqHandler.InitHQAdapter(serviceLayer.HQService, logger),

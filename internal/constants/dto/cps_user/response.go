@@ -17,8 +17,8 @@ type CPSUserDTO struct {
 	Email              string          `json:"email" example:"john.doe@example.com"`
 	UserName           string          `json:"username" example:"john.doe"`
 	Realm              string          `json:"realm" example:"cps"`
-	PermissionCategory []bson.ObjectID `json:"permission_category" example:"[\"507f1f77bcf86cd799439011\"]"`
-	PermissionGroup    []bson.ObjectID `json:"permission_group" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionCategory []string `json:"permission_category" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionGroup    []string `json:"permission_group" example:"[\"507f1f77bcf86cd799439011\"]"`
 
 	Enabled      bool       `json:"enabled" example:"true"`
 	DateJoined   *time.Time `json:"date_joined" example:"2024-01-15T10:30:00Z"`

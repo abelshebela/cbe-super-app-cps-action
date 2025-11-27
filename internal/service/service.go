@@ -233,6 +233,8 @@ type PermissionService interface {
 	GetPermissionGroupsByDepartment(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
+	GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []string) ([]cpsuser.PermissionCategoryResponse, error)
+	GetPopulatedPermissionGroups(ctx context.Context, groupIDs []string) ([]cpsuser.PermissionGroupResponse, error)
 }
 
 type PortalCardService interface {
