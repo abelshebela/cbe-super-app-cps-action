@@ -24,7 +24,7 @@ type PermissionPersistence struct {
 	permissionGroupsDal   dal.MongoDal[model.PermissionGroup, model.PermissionGroup]
 	permissionCategoryDal dal.MongoDal[model.PermissionCategory, model.PermissionCategory]
 	permissionDal         dal.MongoDal[model.Permission, model.Permission]
-	PermissionGroupCol    *mongo.Collection
+	collections           []mongo.Collection
 	cpsdal                dal.MongoDal[model.CPSAction, model.CPSAction]
 	timeout               time.Duration
 	logger                utils.Logger
@@ -32,23 +32,36 @@ type PermissionPersistence struct {
 
 var _ storage.PermissionRepository = (*PermissionPersistence)(nil)
 
-func InitPermission(client *mongo.Client, dbName string, collections []string, timeout time.Duration, logger utils.Logger) *PermissionPersistence {
-	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, collections[0])
-	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, collections[1])
-	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, collections[2])
-	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[3])
-	PermissionGroupCollections := client.Database(dbName).Collection(collections[0])
+func InitPermission(
+	client *mongo.Client,
+	dbName string,
+	collectionNames []string,
+	timeout time.Duration,
+	logger utils.Logger,
+) *PermissionPersistence {
+
+	permissionGroupsDal := dal.NewMongoDal[model.PermissionGroup, model.PermissionGroup](client, dbName, collectionNames[0])
+	permissionCategoryDal := dal.NewMongoDal[model.PermissionCategory, model.PermissionCategory](client, dbName, collectionNames[1])
+	permissionDal := dal.NewMongoDal[model.Permission, model.Permission](client, dbName, collectionNames[2])
+	cpsdal := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collectionNames[3])
+
+	// build []mongo.Collection
+	var cols []mongo.Collection
+	for _, name := range collectionNames {
+		cols = append(cols, *client.Database(dbName).Collection(name))
+	}
 
 	return &PermissionPersistence{
 		permissionGroupsDal:   permissionGroupsDal,
 		permissionCategoryDal: permissionCategoryDal,
 		permissionDal:         permissionDal,
-		PermissionGroupCol:    PermissionGroupCollections,
+		collections:           cols,
 		cpsdal:                cpsdal,
 		timeout:               timeout,
 		logger:                logger,
 	}
 }
+
 
 // Basic CRUD operations
 func (r *PermissionPersistence) Create(ctx context.Context, permissionGroup *model.PermissionGroup) error {
@@ -141,7 +154,7 @@ func (r *PermissionPersistence) FindByIDPopulated(ctx context.Context, id string
 		}}},
 	}
 
-	cursor, err := r.PermissionGroupCol.Aggregate(ctx, pipeline)
+	cursor, err := r.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
 		r.logger.Errorf("Failed to aggregate Permission Group, id: %s, error: %v", id, err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
@@ -182,7 +195,7 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	// 5. Fetch data
 	pipeline := PermissionGroupsPipeline(filter, skip, limit)
 
-	cursor, err := s.PermissionGroupCol.Aggregate(ctx, pipeline)
+	cursor, err := s.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
@@ -222,7 +235,7 @@ func (s *PermissionPersistence) FindAllGroupsWithPagination(ctx context.Context,
 
 	pipeline := PermissionGroupsPipeline(filter, skip, limit)
 
-	cursor, err := s.PermissionGroupCol.Aggregate(ctx, pipeline)
+	cursor, err := s.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
@@ -588,7 +601,7 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 		}}},
 	}
 
-	cursor, err := p.PermissionGroupCol.Aggregate(ctx, pipeline)
+	cursor, err := p.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
