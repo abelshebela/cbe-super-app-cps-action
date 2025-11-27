@@ -220,7 +220,6 @@ func (h *PermissionHandler) GetPermissionCategoriesByDepartment(w http.ResponseW
 		localization.SendErrorByCodeResponse(w, localization.ErrorDepartmentIDRequired.Code)
 		return
 	}
-
 	permissionCategory, err := h.PermissionService.GetPermissionCategoriesByDepartment(r.Context(), departmentID)
 	if err != nil {
 		h.logger.Errorf("[GetPermissionCategoriesByDepartment] service error: %v", err)

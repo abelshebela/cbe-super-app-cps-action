@@ -17,8 +17,8 @@ type CreateUserRequest struct {
 	Role               string          `json:"role" bson:"role,omitempty" example:"Maker"`
 	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty" example:"Male"`
 	Email              string          `json:"email,omitempty" bson:"email,omitempty" example:"john.doe@example.com"`
-	PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
-	PermissionGroups   []bson.ObjectID `json:"permission_groups" bson:"permission_groups,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionCategory []string `json:"permission_category" bson:"permission_category,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionGroups   []string `json:"permission_groups" bson:"permission_groups,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
 }
 
 type UpdateUserRequest struct {
@@ -30,8 +30,8 @@ type UpdateUserRequest struct {
 	Role               string          `json:"role,omitempty" bson:"role,omitempty" example:"Checker"`
 	Gender             string          `json:"gender,omitempty" bson:"gender,omitempty" example:"Male"`
 	Email              string          `json:"email,omitempty" bson:"email,omitempty" example:"john.doe.updated@example.com"`
-	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
-	PermissionGroups   []bson.ObjectID `json:"permission_groups,omitempty" bson:"permission_groups,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionCategory []string `json:"permission_category,omitempty" bson:"permission_category,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionGroups   []string `json:"permission_groups,omitempty" bson:"permission_groups,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
 }
 
 type ApproveCPSAction struct {
