@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -31,9 +30,10 @@ func NewPasswordRuleRepository(client *mongo.Client, dbName string, collection s
 		client:     client,
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
+	
 	}
 }
-
+	
 func (p *PasswordRuleStorage) Create(ctx context.Context, rule *model.PasswordRule) error {
 	_, err := p.dal.InsertOne(ctx, *rule)
 	if err != nil {
