@@ -78,17 +78,21 @@ func ServiceMapper(service *model.ServiceDetails, input dto.ServiceFeeDetailDTO)
 // MapToServiceFeeResponse maps ServiceDetails to ServiceFeeResponse
 func MapToServiceFeeResponse(service *model.ServiceDetails) *dto.ServiceFeeResponse {
 	return &dto.ServiceFeeResponse{
-		ID:              service.ID,
-		ServiceName:     service.ServiceName,
-		ServiceKey:      service.Key,
-		ServiceType:     service.ServiceType,
-		PaymentType:     service.PaymentType,
-		Tiers:           service.Tiers,
-		MinAmount:       service.AboveAmount,
-		ProductCodes:    service.CBEProductCodes,
-		IFBProductCodes: service.CBEIFBProductCodes,
-		GLEntry:         service.CBGLEntry,
-		CreatedAt:       service.CreatedAt,
+		ID:                service.ID,
+		ServiceName:       service.ServiceName,
+		DailyCapLevelOne:  service.DailyCapLevelOne,
+		MinAmountVirtual:  service.MinAmountVirtual,
+		SingleCapLevelOne: service.SingleCapLevelOne,
+		ServiceKey:        service.Key,
+		ServiceType:       service.ServiceType,
+		PaymentType:       service.PaymentType,
+		Tiers:             service.Tiers,
+		MinAmount:         service.AboveAmount,
+		ProductCodes:      service.CBEProductCodes,
+		IFBProductCodes:   service.CBEIFBProductCodes,
+		GLEntry:           service.CBGLEntry,
+		UpdatedAt:         service.LastModifiedAt,
+		CreatedAt:         service.CreatedAt,
 	}
 }
 
