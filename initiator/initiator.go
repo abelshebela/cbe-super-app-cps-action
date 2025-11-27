@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"cbe-super-app-cps-action/cmd/client"
+	// "cbe-super-app-cps-action/cmd/client"
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -121,11 +121,11 @@ func Init(ctx context.Context) {
 		}
 	}()
 
-	auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
-	if err != nil {
-		logger.Fatalf("Failed to initialize gRPC client for auth: %v", err)
-	}
-	defer auth_client.Close()
+	// auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
+	// if err != nil {
+	// 	logger.Fatalf("Failed to initialize gRPC client for auth: %v", err)
+	// }
+	// defer auth_client.Close()
 
 	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
 	if err != nil {
@@ -150,7 +150,8 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger)
 
 	r := chi.NewRouter()
-	InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
+	InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
+	// InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "http-server")
