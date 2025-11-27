@@ -281,6 +281,15 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 		s.logger.Errorf("Failed to map service details for update: %v", err)
 		return err
 	}
+	if &updatedService.DailyCapLevelOne != nil {
+		updatedService.DailyCapLevelOne = existingService.DailyCapLevelOne
+	}
+	if &updatedService.SingleCapLevelOne != nil {
+		updatedService.SingleCapLevelOne = existingService.SingleCapLevelOne
+	}
+	if &updatedService.MinAmountVirtual != nil {
+		updatedService.MinAmountVirtual = existingService.MinAmountVirtual
+	}
 	return s.serviceRepo.Update(ctx, serviceID, updatedService)
 }
 
