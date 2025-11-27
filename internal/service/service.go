@@ -18,8 +18,6 @@ import (
 
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 
-	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
-
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
@@ -30,6 +28,8 @@ import (
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
+	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -229,8 +229,8 @@ type PermissionService interface {
 	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
 	GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
-
-	// Validation methods
+	GetPermissionCategoriesByDepartment(ctx context.Context, departmentId string) (map[string][]*model.PermissionCategory, error)
+	GetPermissionGroupsByDepartment(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
 }
@@ -485,13 +485,17 @@ type BankVaultService interface {
 	DeleteBankVault(ctx context.Context, id string) (string, error)
 	EnableBankVault(ctx context.Context, id string) error
 	DisableBankVault(ctx context.Context, id string) error
+	FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error)
+	// GetTransactions(ctx context.Context, id string) (*bankvault.LockedVaultResponse, error)
+	FindAllGroupVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error)
+	// GetGroupVault(ctx context.Context, id string) (*bankvault.GroupVaultResponse, error)
 }
 type VaultGroupCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	CreateVaultGroupCategory(ctx context.Context, req *model.VaultGroupCategory) (string, error)
+	CreateVaultGroupCategory(ctx context.Context, req *vaultCategory_dto.CreateVaultGroupCategoryRequest) (string, error)
 	FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup.VaultGroupCategoryResponse], error)
 	GetVaultGroupCategory(ctx context.Context, id string) (*vaultgroup.VaultGroupCategoryResponse, error)
-	UpdateVaultGroupCategory(ctx context.Context, id string, req *model.VaultGroupCategory) (string, error)
+	UpdateVaultGroupCategory(ctx context.Context, id string, req *vaultCategory_dto.UpdateVaultGroupCategoryRequest) (string, error)
 	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
 	EnableVaultGroupCategory(ctx context.Context, id string) error
 	DisableVaultGroupCategory(ctx context.Context, id string) error

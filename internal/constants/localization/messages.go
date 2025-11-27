@@ -42,6 +42,7 @@ const (
 	MsgFileUploadedSuccessfully  = "File uploaded successfully"
 	MsgFileDeletedSuccessfully   = "File deleted successfully"
 	MsgFileRetrievedSuccessfully = "File retrieved successfully"
+	MsgMissingContentTypeHeader  = "Missing Content-Type header"
 
 	// General success messages
 	MsgOperationCompleted        = "Operation completed successfully"
@@ -177,13 +178,17 @@ const (
 	MsgDepartmentDisableRequestedSuccessfully = "Department disable requested successfully"
 
 	// Bank Vault related success messages
-	MsgBankVaultCreationRequestSubmitted = "Bank vault creation request submitted successfully"
-	MsgBankVaultUpdateRequestSubmitted   = "Bank vault update request submitted successfully"
-	MsgBankVaultDeleteRequestSubmitted   = "Bank vault deleted  request submitted successfully"
-	MsgBankVaultDisableRequestSubmitted  = "Bank vault disabled request submitted successfully"
-	MsgBankVaultEnableRequestSubmitted   = "Bank vault enabled request submitted successfully"
-	MsgBankVaultsRetrievedSuccessfully   = "Bank vaults retrieved successfully"
-	MsgBankVaultRetrievedSuccessfully    = "Bank vault retrieved successfully"
+	MsgBankVaultCreationRequestSubmitted     = "Bank vault creation request submitted successfully"
+	MsgBankVaultUpdateRequestSubmitted       = "Bank vault update request submitted successfully"
+	MsgBankVaultDeleteRequestSubmitted       = "Bank vault deleted  request submitted successfully"
+	MsgBankVaultDisableRequestSubmitted      = "Bank vault disabled request submitted successfully"
+	MsgBankVaultEnableRequestSubmitted       = "Bank vault enabled request submitted successfully"
+	MsgBankVaultsRetrievedSuccessfully       = "Bank vaults retrieved successfully"
+	MsgBankVaultRetrievedSuccessfully        = "Bank vault retrieved successfully"
+	MsgBankLockedVaultsRetrievedSuccessfully = "Bank locked vaults retrieved successfully"
+	MsgBankLockedVaultRetrievedSuccessfully  = "Bank locked vault retrieved successfully"
+	MsgGroupVaultsRetrievedSuccessfully      = "Group vaults retrieved successfully"
+	MsgGroupVaultRetrievedSuccessfully       = "Group vault retrieved successfully"
 
 	// vault group category sucess messages
 	MsgVaultGroupCategoryCreationRequestSubmitted = "Vault group category creation request submitted successfully"
@@ -343,6 +348,8 @@ const (
 	MsgInvalidEncData = "Invalid encryption data"
 	MsgInvalidPadding = "Invalid padding"
 
+	MsgDepartmentIDRequired = "Department ID is required"
+
 	// User related error messages
 	MsgUserNotFound             = "User not found"
 	MsgUserAlreadyExists        = "User already exists"
@@ -394,7 +401,7 @@ const (
 	// Validation error messages
 	MsgMiniAppNameAlreadyExists    = "Mini App name already exists"
 	MsgBankDeleteRequestFailed     = "Bank delete request failed"
-	MsgBankImageRequiredOrMissing  = "Required bank image invalid or missing"
+	MsgBankImageRequiredOrMissing  = "Image invalid or missing"
 	MsgTopupImageRequiredOrMissing = "Required topup image invalid or missing"
 
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
@@ -615,6 +622,7 @@ const (
 	MsgBankVaultAlreadyEnabled  = "Bank vault already enabled"
 	MsgBankVaultAlreadyDisabled = "Bank vault already disabled"
 	MsgFailedToBeingTransaction = "Failed to begin transaction"
+	Msg
 
 	// vault group category related error messages
 	MsgVaultGroupAlreadyEnabled  = "Vault group category already enabled"
@@ -673,6 +681,7 @@ const (
 	MsgInvalidInput                = "Invalid input provided"
 	MsgMissingRequiredFields       = "Missing required fields"
 	MsgResourceNotFound            = "Resource not found"
+	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
 	MsgResourceAlreadyExists       = "Resource already exists"
 	MsgResourceUpdateFailed        = "Failed to update resource"
 	MsgResourceCreationFailed      = "Failed to create resource"

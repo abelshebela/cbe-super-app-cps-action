@@ -18,23 +18,23 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 	if r.Name, err = sanitizeString(r.Name); err != nil {
 		return err
 	}
-	if r.Description, err = sanitizeString(r.Description); err != nil {
-		return err
-	}
-	if r.Currency, err = sanitizeString(r.Currency); err != nil {
-		return err
-	}
-	r.Currency = strings.ToUpper(r.Currency)
+	// if r.Description, err = sanitizeString(r.Description); err != nil {
+	// 	return err
+	// }
+	// if r.Currency, err = sanitizeString(r.Currency); err != nil {
+	// 	return err
+	// }
+	// r.Currency = strings.ToUpper(r.Currency)
 
-	if r.Method, err = sanitizeString(r.Method); err != nil {
-		return err
-	}
-	r.Method = strings.ToUpper(r.Method)
+	// if r.Method, err = sanitizeString(r.Method); err != nil {
+	// 	return err
+	// }
+	// r.Method = strings.ToUpper(r.Method)
 
-	if r.Frequency, err = sanitizeString(r.Frequency); err != nil {
-		return err
-	}
-	r.Frequency = strings.ToUpper(r.Frequency)
+	// if r.Frequency, err = sanitizeString(r.Frequency); err != nil {
+	// 	return err
+	// }
+	// r.Frequency = strings.ToUpper(r.Frequency)
 
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
@@ -42,11 +42,11 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 			validation.Length(3, 100),
 			validation.By(noSpecialChars),
 		),
-		validation.Field(&r.Currency,
-			validation.Required,
-			validation.Match(reISO4217),
-			validation.By(noSpecialChars),
-		),
+		// validation.Field(&r.Currency,
+		// 	validation.Required,
+		// 	validation.Match(reISO4217),
+		// 	validation.By(noSpecialChars),
+		// ),
 		validation.Field(&r.LockPeriodDays,
 			validation.Required,
 			validation.Match(regexp.MustCompile(`^\d+(d|m|y)$`)).Error("must be a number followed by 'd', 'm', or 'y'"),
@@ -76,20 +76,44 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 			}
 			return nil
 		})),
-		validation.Field(&r.RateBps, validation.By(func(value interface{}) error {
+		validation.Field(&r.Interest, validation.By(func(value interface{}) error {
 			if v, ok := value.(decimal.Decimal); ok {
 				if v.Equal(decimal.Zero) {
-					return errors.New("rate_bps cannnot be empty")
+					return errors.New("interest cannnot be empty")
 				}
 				if v.LessThan(decimal.Zero) {
-					return errors.New("rate_bps must be >= 0")
+					return errors.New("interest must be >= 0")
 				}
 			}
 			return nil
 		})),
-		validation.Field(&r.Method, validation.Required, validation.In("SIMPLE", "COMPOUND"), validation.By(noSpecialChars)),
-		validation.Field(&r.Frequency, validation.Required, validation.In("DAILY", "MONTHLY", "QUARTERLY", "ANNUALLY"), validation.By(noSpecialChars)),
-		validation.Field(&r.Description, validation.Required, validation.By(noSpecialChars)),
+		validation.Field(&r.Frequency, validation.Required, validation.By(func(value interface{}) error {
+			if v, ok := value.(int64); ok {
+				if v <= 0 {
+					return errors.New("frequency must be > 0")
+				}
+				if v > 365 {
+					return errors.New("frequency must be <= 365")
+				}
+			} else {
+				return errors.New("value must be an integer")
+			}
+
+			return nil
+		})),
+		// validation.Field(&r.RateBps, validation.By(func(value interface{}) error {
+		// 	if v, ok := value.(decimal.Decimal); ok {
+		// 		if v.Equal(decimal.Zero) {
+		// 			return errors.New("rate_bps cannnot be empty")
+		// 		}
+		// 		if v.LessThan(decimal.Zero) {
+		// 			return errors.New("rate_bps must be >= 0")
+		// 		}
+		// 	}
+		// 	return nil
+		// })),
+		// validation.Field(&r.Method, validation.Required, validation.In("SIMPLE", "COMPOUND"), validation.By(noSpecialChars)),
+		// validation.Field(&r.Description, validation.Required, validation.By(noSpecialChars)),
 	)
 }
 
@@ -97,12 +121,8 @@ func (r *UpdateBankVaultProductRequest) Validate() error {
 	if r == nil {
 		return errors.New("request is required")
 	}
-	if r.Description == nil && r.MinAmount == nil && r.MaxAmount == nil {
-		return errors.New("provide at least one of: description, min_amount, max_amount, is_active")
-	}
 
 	return validation.ValidateStruct(r,
-		validation.Field(&r.Description, validation.By(noSpecialChars)),
 		validation.Field(&r.MinAmount, validation.By(func(value interface{}) error {
 			if v, ok := value.(*float64); ok && v != nil {
 				if decimal.NewFromFloat(*v).LessThanOrEqual(decimal.Zero) {

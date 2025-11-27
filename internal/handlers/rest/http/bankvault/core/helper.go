@@ -7,31 +7,25 @@ import (
 	"time"
 )
 
-// map dto to model for create
-
 func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lockPeriodDays time.Duration) *model.BankVaultProduct {
 	return &model.BankVaultProduct{
-		Name:               req.Name,
-		Description:        req.Description,
-		Currency:           req.Currency,
-		RateBps:            req.RateBps,
-		Method:             helper.ToDomainMethod(req.Method),
-		Frequency:          helper.ToDomainFrequency(req.Frequency),
-		LockPeriod:         lockPeriodDays,
-		MinAmount:          req.MinAmount,
-		MaxAmount:          req.MaxAmount,
-		EarlyUnlockRateBps: req.EarlyUnlockRateBps,
-		IsActive:           false,
+		Name:                       req.Name,
+		Currency:                   "ETB",
+		RateBps:                    req.Interest,
+		Method:                     helper.ToDomainMethod("COMPOUND"),
+		Frequency:                  req.Frequency,
+		LockPeriod:                 lockPeriodDays,
+		MinAmount:                  req.MinAmount,
+		MaxAmount:                  req.MaxAmount,
+		ApplyInterestOnEarlyUnlock: req.ApplyInterestOnEarlyUnlock,
+		IsActive:                   false,
 	}
 }
 
-// map updaterequest dto to model
-
 func ToDomainUpdateBankVaultRequest(req helper.UpdateBankVaultProductRequest, lockPeriodDays *time.Duration) *model.UpdateBankVault {
 	return &model.UpdateBankVault{
-		Description: req.Description,
-		MinAmount:   req.MinAmount,
-		MaxAmount:   req.MaxAmount,
-		UpdatedAt:   time.Now().UTC(),
+		MinAmount: req.MinAmount,
+		MaxAmount: req.MaxAmount,
+		UpdatedAt: time.Now().UTC(),
 	}
 }

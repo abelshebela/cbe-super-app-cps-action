@@ -14,7 +14,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func AccountCreator(ctx context.Context, id string, userData model.User, accountLookupService accountLookup.Account, userRepo storage.UserRepository, linkedAccountRepo storage.LinkedAccountRepository, logger utils.Logger) error {
+func AccountCreateAndLink(ctx context.Context, actionData model.CPSAction, id string, userData model.User, accountLookupService accountLookup.Account, userRepo storage.UserRepository, linkedAccountRepo storage.LinkedAccountRepository, logger utils.Logger) error {
 
 	data := accountLookupDto.CreateAccountRequest{
 		CustomerAddress:    userData.Address.Zone + userData.Address.Region + userData.Address.Woreda + userData.Address.Kebele,
@@ -33,7 +33,7 @@ func AccountCreator(ctx context.Context, id string, userData model.User, account
 		return err
 	}
 
-	if err := AccountLinker(ctx, id, userData, accountResponse, userRepo, linkedAccountRepo, logger); err != nil {
+	if err := AccountLinker(ctx, actionData, id, userData, accountResponse, userRepo, linkedAccountRepo, logger); err != nil {
 		logger.Errorf("failed to link account: %v", err)
 		return err
 	}
@@ -41,7 +41,7 @@ func AccountCreator(ctx context.Context, id string, userData model.User, account
 	return nil
 }
 
-func AccountLinker(ctx context.Context, id string, userData model.User, account types.Account, userRepo storage.UserRepository, linkedAccountRepo storage.LinkedAccountRepository, logger utils.Logger) error {
+func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, userData model.User, account types.Account, userRepo storage.UserRepository, linkedAccountRepo storage.LinkedAccountRepository, logger utils.Logger) error {
 
 	lib.GoRoutinBaker(types.BakerOptions{UseMutex: true},
 		func() {
@@ -53,7 +53,7 @@ func AccountLinker(ctx context.Context, id string, userData model.User, account 
 				AccountType:       account.AccountType,
 				BranchCode:        account.AccountBranchCode,
 				LinkedStatus:      true,
-				LastLinkedStatus:  false,
+				LastLinkedStatus:  userData.LastAccountLinked,
 				LinkedAt:          time.Now(),
 				LinkedBranch:      userData.BranchCode,
 				RegistrationType:  constants.RegistrationTypeNew,
@@ -62,12 +62,39 @@ func AccountLinker(ctx context.Context, id string, userData model.User, account 
 				AccountBranchCode: account.AccountBranchCode,
 				CurrencyCode:      account.AccountCurrency,
 				IsMain:            true,
-				CreatedAt:         time.Now(),
+				MakerAndChecker: types.MakerChecker{
+					Linkers: struct {
+						Maker   string `json:"maker" bson:"maker"`
+						Checker string `json:"checker" bson:"checker"`
+					}{Maker: actionData.MakerName, Checker: actionData.CheckerName},
+					Unlinkers: struct {
+						Maker   string `json:"maker" bson:"maker"`
+						Checker string `json:"checker" bson:"checker"`
+					}{Maker: "", Checker: ""},
+				},
+				CreatedAt: time.Now(),
 			}); err != nil {
 				logger.Errorf("failed to create linked account: %v", err)
 			}
 		},
 		func() {
+			userData.LastAccountLinked = true
+			userData.IsActivated = true
+			userData.MainAccount = account.AccountNumber
+			userData.CustomerNumber = account.CustomerNumber
+			userData.AccountType = constants.AccountType(account.AccountType)
+			userData.MemberType = constants.MemberType(account.AccountBranchType)
+			userData.IsVerified = true
+			userData.IsSelfRegister = true
+			userData.Gender = constants.Gender(account.Gender)
+			userData.Address.Zone = account.CustomerAddress
+			userData.Address.Region = account.CustomerAddress
+			userData.Address.Woreda = account.CustomerAddress
+			userData.Address.Kebele = account.CustomerAddress
+			userData.MotherName = account.CustomerMotherName
+			userData.Avatar = account.Picture
+			userData.BranchCode = account.AccountBranchCode
+
 			if err := userRepo.Update(ctx, id, &userData); err != nil {
 				logger.Errorf("failed to update user: %v", err)
 			}

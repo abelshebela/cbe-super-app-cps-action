@@ -7,17 +7,20 @@ import (
 
 // AccountBlockResponse represents any region, district, city, or branch
 type AccountBlockResponse struct {
-	ID        string              `json:"id,omitempty"`
-	Name      string              `json:"name"`
-	Code      string              `json:"code"`
-	Address   string              `json:"address"`
-	Slug      string              `json:"slug"`
-	ParentID  string              `json:"parent_id,omitempty"`
-	Parent    *model.AccountBlock `json:"parent,omitempty"`
-	Type      string              `json:"type"` // R=Region, D=District, C=City, B=Branch
-	IsEnabled bool                `json:"is_enabled"`
-	CreatedAt time.Time           `json:"created_at"`
-	UpdatedAt time.Time           `json:"updated_at"`
+	ID         string              `json:"id,omitempty"`
+	Name       string              `json:"name"`
+	Code       string              `json:"code"`
+	Address    string              `json:"address"`
+	Slug       string              `json:"slug"`
+	ParentID   string              `json:"parent_id,omitempty"`
+	Parent     *model.AccountBlock `json:"parent,omitempty"`
+	Type       string              `json:"type"` // R=Region, D=District, C=City, B=Branch
+	CityID     string              `bson:"city_id,omitempty" json:"city_id,omitempty"`
+	RegionID   string              `bson:"region_id,omitempty" json:"region_id,omitempty"`
+	DistrictID string              `bson:"district_id,omitempty" json:"district_id,omitempty"`
+	IsEnabled  bool                `json:"is_enabled"`
+	CreatedAt  time.Time           `json:"created_at"`
+	UpdatedAt  time.Time           `json:"updated_at"`
 }
 
 // // BranchResponse represents a branch entity

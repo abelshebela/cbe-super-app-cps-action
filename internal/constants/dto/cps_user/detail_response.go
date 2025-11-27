@@ -32,15 +32,15 @@ type CpsUserDetail struct {
 	UserCode           string                                `json:"user_code"`
 	FullName           string                                `json:"full_name"`
 	Username           string                                `json:"username"`
-	UserRole           string                                `json:"user_role"`
-	UserDepartment     string                                `json:"user_department"`
-	UserPortalCards    []string                              `json:"user_portal_cards"`
-	UserPhone          string                                `json:"user_phone"`
-	UserEmail          string                                `json:"user_email"`
+	UserRole           string                                `json:"role"`
+	UserDepartment     string                                `json:"department"`
+	UserPortalCards    []string                              `json:"portal_cards"`
+	UserPhone          string                                `json:"phone"`
+	UserEmail          string                                `json:"email"`
 	JoinedAt           time.Time                             `json:"joined_at"`
 	UpdatedAt          time.Time                             `json:"updated_at"`
-	UserStatus         bool                                  `json:"user_status"`
-	UserPermissions    []GroupDetail                         `json:"user_permissions"`
+	UserStatus         bool                                  `json:"enabled"`
+	UserPermissions    []GroupDetail                         `json:"permissions"`
 	PermissionCategory map[string][]PermissionCategoryDetail `json:"permission_category"`
 }
 

@@ -182,7 +182,7 @@ definitions:
       description:
         example: 12-month fixed deposit for diaspora customers
         type: string
-      early_unlock_rate_bps:
+      apply_interest_on_early_unlock:
         example: "100"
         type: string
       frequency:

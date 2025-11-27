@@ -20,20 +20,21 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 type DonationCompany struct {
 	DonationCompanyRepo  storage.DonationCompanyRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
-	minio                config.MinioClientInterface
+	minio                aws.Config
 	bucketName           string
 	cfg                  *config.VaultConfig
 	minioEndPoint        string
 	accountLookupService account_lookup.Account
 }
 
-func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio config.MinioClientInterface,
+func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio aws.Config,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -91,7 +92,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.minio,"", d.logger)
 	if err != nil {
 		return err
 	}
@@ -131,7 +132,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 			objectkey = path.Base(existingCompany.CompanyLogo)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint,d.minio, objectkey, d.logger)
 		if err != nil {
 			return donationCompany, err
 		}

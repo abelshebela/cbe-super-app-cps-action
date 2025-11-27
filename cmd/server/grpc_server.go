@@ -14,6 +14,7 @@ import (
 	"net"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -255,7 +256,11 @@ func StartGrpcServer(s *server, logger utils.Logger) (*grpc.Server, net.Listener
 	if err != nil {
 		logger.Fatalf("failed to listen: %v", err)
 	}
-	grpcServer := grpc.NewServer()
+	// create gRPC server with OpenTelemetry stats handler
+	statsHandler := otelgrpc.NewServerHandler()
+	grpcServer := grpc.NewServer(
+		grpc.StatsHandler(statsHandler),
+	)
 	bankpb.RegisterBankServiceServer(grpcServer, s)
 	walletpb.RegisterWalletServiceServer(grpcServer, s)
 	servicepb.RegisterServiceDetailsServiceServer(grpcServer, s)

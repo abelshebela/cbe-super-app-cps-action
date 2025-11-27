@@ -12,6 +12,7 @@ import (
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
+	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -55,6 +56,8 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+	req.Interest = req.Interest.Mul(decimal.NewFromInt(100))
+
 	product := core.ToDomainCreateBankVaultRequest(req, lockPeriod)
 	id, err := h.service.CreateBankVault(r.Context(), product)
 	if err != nil {
@@ -311,3 +314,73 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 	h.logger.Infof("Bank vault enabled with ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultEnableRequestSubmitted, nil)
 }
+
+func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request) {
+	params := common_utils.ExtractFilterParams(r)
+	result, err := h.service.FindAllBankLockedVaultsWithPagination(r.Context(), params)
+	if err != nil {
+		h.logger.Errorf("[FindAllBankLockedVaults] service: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAllBankLockedVaultsRetrievedSuccessfully, result)
+}
+
+// On development
+// func (h *handler) GetTransaction(w http.ResponseWriter, r *http.Request) {
+// 	transactionReference, err := common_utils.ExtractID(w, r)
+// 	if transactionReference == "" {
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
+
+// 	if err != nil {
+// 		h.logger.Errorf("[GetBankLockedVaults] extract ID: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
+
+// 	result, err := h.service.GetTransactions(r.Context(), transactionReference)
+// 	if err != nil {
+// 		h.logger.Errorf("[GetBankLockedVaults] service: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
+// 	h.logger.Infof("Bank Locked vaults retrieved with FT: %s", transactionReference)
+// 	localization.SendSuccessResponse(w, localization.SuccessBankLockedVaultsRetrievedSuccessfully, result)
+// }
+
+func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
+	params := common_utils.ExtractFilterParams(r)
+	results, err := h.service.FindAllGroupVaultsWithPagination(r.Context(), params)
+	if err != nil {
+		h.logger.Errorf("[FindAllGroupVaults] service: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessGroupVaultsRetrievedSuccessfully, results)
+}
+
+// On development
+// func (h *handler) GetGroupVault(w http.ResponseWriter, r *http.Request) {
+// 	id, err := common_utils.ExtractID(w, r)
+// 	if id == "" {
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
+
+// 	if err != nil {
+// 		h.logger.Errorf("[GetGroupVault] extract ID: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
+
+// 	result, err := h.service.GetGroupVault(r.Context(), id)
+// 	if err != nil {
+// 		h.logger.Errorf("[GetGroupVault] service: %v", err)
+// 		localization.SendErrorByCodeResponse(w, err.Error())
+// 		return
+// 	}
+// 	h.logger.Infof("Bank Locked vaults retrieved with ID: %s", id)
+// 	localization.SendSuccessResponse(w, localization.SuccessGroupVaultRetrievedSuccessfully, result)
+// }

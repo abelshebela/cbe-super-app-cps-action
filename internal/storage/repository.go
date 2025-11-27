@@ -257,6 +257,8 @@ type CpsUserRepository interface {
 type BankVaultRepository interface {
 	Create(ctx context.Context, bankVault *model.BankVaultProduct) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error)
+	FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error)
+	FindAllGroupVaultWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error)
 	FindBankVaultByName(ctx context.Context, name string) error
 	FindByID(ctx context.Context, id string) (*model.BankVaultProduct, error)
 	Update(ctx context.Context, id string, bankVault *model.BankVaultProduct) error
@@ -268,6 +270,7 @@ type VaultGroupCategoryRepository interface {
 	Create(ctx context.Context, vaultGroupCategory *model.VaultGroupCategory) (string, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error)
 	FindByID(ctx context.Context, id string) (*model.VaultGroupCategory, error)
+	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultGroupCategory, error)
 	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultGroupCategory) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
@@ -477,11 +480,11 @@ type PermissionRepository interface {
 	Delete(ctx context.Context, id string) error
 	// FindByID(ctx context.Context, id string) (*model.PermissionGroup, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
-
+	FindAllGroupsWithPagination(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	// Permission category operations
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
-
+	GetAllPermissionCategories(ctx context.Context, card string) ([]*model.PermissionCategory, error)
 	// Permission group operations
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool

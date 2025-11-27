@@ -68,6 +68,7 @@ type User struct {
 
 	BranchApproved    bool      `json:"branch_approved" bson:"branch_approved,omitempty"`
 	IsVerified        bool      `json:"is_verified" bson:"is_verified,omitempty"`
+	IsActivated       bool      `json:"is_activated" bson:"is_activated,omitempty"`
 	IsSelfRegister    bool      `json:"is_self_register" bson:"is_self_register,omitempty"`
 	BlockedOnCPS      bool      `json:"blocked_on_cps" bson:"blocked_on_cps,omitempty"` // will remove
 	IsBlocked         bool      `json:"is_blocked" bson:"is_blocked,omitempty"`

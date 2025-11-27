@@ -11,42 +11,68 @@ import (
 	helperr "cbe-super-app-cps-action/internal/service/vaultgroup_category/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
+	"fmt"
+	"strings"
+
 	"context"
 	"database/sql"
 	"errors"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type vaultgroupCategoryService struct {
-	repo       storage.VaultGroupCategoryRepository
-	cpsService service.CPSActionService
-	logger     shared_utils.Logger
+	repo        storage.VaultGroupCategoryRepository
+	cpsService  service.CPSActionService
+	logger      shared_utils.Logger
+	minio       aws.Config
+	minioPubUrl string
+	bucketName  string
 }
 
-func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS service.CPSActionService, logger shared_utils.Logger) *vaultgroupCategoryService {
+func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS service.CPSActionService, logger shared_utils.Logger,minio  aws.Config, minioPubUrl, bucketName string) *vaultgroupCategoryService {
 	return &vaultgroupCategoryService{
-		repo:       re,
-		cpsService: cpsS,
-		logger:     logger,
+		repo:        re,
+		cpsService:  cpsS,
+		logger:      logger,
+		minio:       minio,
+		minioPubUrl: minioPubUrl,
+		bucketName:  bucketName,
 	}
 }
 
-func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context, req *model.VaultGroupCategory) (string, error) {
-	makerData := local_util.ExtractUserFromContext(ctx)
-	mongoSafeReq := helperr.ConvertVaultGroupCategoryToMongoSafe(req)
+func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context, req *vaultgroup_category.CreateVaultGroupCategoryRequest) (string, error) {
+	_, err := s.repo.GetGroupcategoryByName(ctx, req.Name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			makerData := local_util.ExtractUserFromContext(ctx)
 
-	cpsActionModel := lib.CpsModelBuilder("", makerData, mongoSafeReq, mongoSafeReq, string(constants.RequestCreateVaultGroupCategory), string(constants.CREATE))
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+			coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", s.minioPubUrl,s.minio, "", s.logger)
+			if err != nil {
+				s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
+			}
 
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestCreateVaultGroupCategory, err)
+			req_data := &model.VaultGroupCategory{
+				Name:       req.Name,
+				CoverImage: coverImageUrl,
+				IsActive:   false,
+			}
+
+			cpsActionModel := lib.CpsModelBuilder("", makerData, nil, req_data, string(constants.RequestCreateVaultGroupCategory), string(constants.CREATE))
+			if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+				if s.logger != nil {
+					s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestCreateVaultGroupCategory, err)
+				}
+				return "", err
+			}
+			return "", nil
 		}
-		return "", errors.New(localization.ErrorCPSActionFailed.Code)
 	}
-	return req.ID, nil
+	return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
 }
 
 func (s *vaultgroupCategoryService) FindAllVaultGroupCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*vaultgroup_category.VaultGroupCategoryResponse], error) {
@@ -81,9 +107,7 @@ func (s *vaultgroupCategoryService) GetVaultGroupCategory(ctx context.Context, i
 	}
 	return helperr.MapVaultGroupCategoryToResponse(entity), nil
 }
-
-func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context, id string, req *model.VaultGroupCategory) (string, error) {
-	req.UpdatedAt = time.Now().UTC()
+func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context, id string, req *vaultgroup_category.UpdateVaultGroupCategoryRequest) (string, error) {
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -92,20 +116,42 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	current := helperr.BuildUpdateVaultGroupCategory(prev, req)
-	makerData := local_util.ExtractUserFromContext(ctx)
 
-	mongosafePrev := helperr.ConvertVaultGroupCategoryToMongoSafe(prev)
-	mongosafeCurrent := helperr.ConvertVaultGroupCategoryToMongoSafe(current)
+	updatedName := strings.ToUpper(prev.Name)
+	updatedCover := prev.CoverImage
 
-	cpsActionModel := lib.CpsModelBuilder(id, makerData, mongosafePrev, mongosafeCurrent, string(constants.RequestUpdateVaultGroupCategory), string(constants.UPDATE))
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestUpdateVaultGroupCategory, err)
-		}
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+	if req.Name != nil {
+		updatedName = *req.Name
 	}
+
+	var coverImageUrl string
+	if req.CoverImage != nil {
+		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", s.minioPubUrl,s.minio, "", s.logger)
+		if err != nil {
+			s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
+			return "", errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		updatedCover = coverImageUrl
+	}
+
+	req_data := &model.VaultGroupCategory{
+		Name:       updatedName,
+		CoverImage: updatedCover,
+		UpdatedAt:  time.Now(),
+		IsActive:   prev.IsActive,
+	}
+
+	makerData := local_util.ExtractUserFromContext(ctx)
+	cpsActionModel := lib.CpsModelBuilder(id, makerData, prev, req_data, string(constants.RequestUpdateVaultGroupCategory), string(constants.UPDATE))
+
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+		if s.logger != nil {
+			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v",
+				constants.RequestUpdateVaultGroupCategory, err)
+		}
+		return "", err
+	}
+
 	return id, nil
 }
 
@@ -138,9 +184,9 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 		}
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	mongosafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
+	// mongosafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
 
-	cpsActionModel := lib.CpsModelBuilder(id, maker, mongosafeExist, mongosafeExist, string(constants.RequestDeleteVaultGroupCategory), string(constants.DELETE))
+	cpsActionModel := lib.CpsModelBuilder(id, maker, exist, exist, string(constants.RequestDeleteVaultGroupCategory), string(constants.DELETE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		if s.logger != nil {
 			s.logger.Errorf("failed to create CPS action for vault group category | action=%s | err=%v", constants.RequestDeleteVaultGroupCategory, err)
@@ -181,9 +227,9 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	// Convert to MongoDB-safe format
-	mongoSafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
-	mongoSafeUpdated := helperr.ConvertVaultGroupCategoryToMongoSafe(updated)
-	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafeExist, mongoSafeUpdated, string(constants.RequestEnableVaultGroupCategory), string(constants.UPDATE))
+	// mongoSafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
+	// mongoSafeUpdated := helperr.ConvertVaultGroupCategoryToMongoSafe(updated)
+	cpsActionModel := lib.CpsModelBuilder(id, maker, exist, updated, string(constants.RequestEnableVaultGroupCategory), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
 
@@ -215,39 +261,39 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	// Convert to MongoDB-safe format
-	mongoSafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
-	mongoSafeUpdated := helperr.ConvertVaultGroupCategoryToMongoSafe(updated)
-	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafeExist, mongoSafeUpdated, string(constants.RequestDisAbleVaultGroupCategory), string(constants.UPDATE))
+	// mongoSafeExist := helperr.ConvertVaultGroupCategoryToMongoSafe(exist)
+	// mongoSafeUpdated := helperr.ConvertVaultGroupCategoryToMongoSafe(updated)
+	cpsActionModel := lib.CpsModelBuilder(id, maker, exist, updated, string(constants.RequestDisAbleVaultGroupCategory), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
 
 func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	cpsAction.MakerActionTime = time.Now()
-	cpsAction.LastModifiedAt = cpsAction.MakerActionTime
+	var actionMap interface{}
+	marshaled, err := json.Marshal(cpsAction.CurrentAction)
+	if err != nil {
+		s.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+	}
+
+	err = json.Unmarshal(marshaled, &actionMap)
+	if err != nil {
+		s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
+		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+	}
+
+	actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateVaultGroupCategory):
-		create, err := helperr.BindVaultGroupCategoryFromCPSAction(cpsAction.CurrentAction)
+		_, err := s.repo.Create(ctx, &actionData)
 		if err != nil {
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
-
-		if _, err := s.repo.Create(ctx, &create); err != nil {
+			s.logger.Errorf("[VaultCategory Authorize] failed to authorize category creation %v", err)
 			return nil, err
 		}
-		return cpsAction, nil
-
 	case string(constants.RequestUpdateVaultGroupCategory):
-		vaultgroup, err := helperr.BindVaultGroupCategoryUpdateFromCPSAction(cpsAction.CurrentAction)
-		if err != nil {
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
-		update := helperr.VaultGroupCategoryUpdate(&vaultgroup)
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, &update); err != nil {
+		if err := s.repo.Update(ctx, cpsAction.UniqueId, &actionData); err != nil {
 			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
-		return cpsAction, nil
-
 	case string(constants.RequestDeleteVaultGroupCategory):
 		_, err := helperr.BindVaultGroupCategoryFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
@@ -279,6 +325,6 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 		return cpsAction, nil
 
 	}
-	return nil, errors.New(localization.ErrorInvalidRequest.Code)
-
+	// return nil, errors.New(localization.ErrorInvalidRequest.Code)
+	return cpsAction, nil
 }

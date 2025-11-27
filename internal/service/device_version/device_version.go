@@ -46,7 +46,11 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateDeviceVersion):
 		actionData.CreatedAt = time.Now()
-		if err := d.deviceVersionRepo.Save(ctx, *actionData); err != nil {
+		err = d.DisableExistingDeviceVersion(ctx,actionData.Platform)
+		if err!=nil{
+			return nil, err
+		}
+		if err = d.deviceVersionRepo.Save(ctx, *actionData); err != nil {
 			d.logger.Errorf("DeviceVersion create action failed: %v", err)
 			return nil, err
 		}
@@ -183,7 +187,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		return err
 	}
 
-	if &existing == nil {
+	if existing == (model.DeviceVersionControl{}) {
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	// apply updates
@@ -195,6 +199,23 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 	action := lib.CpsModelBuilder(existing.ID.Hex(), makerData, &existing, update, string(constants.RequestUpdateDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,platform string) error {
+	filter := bson.M{"enabled": true,"platform":platform}
+	existing, err := d.deviceVersionRepo.FindOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	if existing == (model.DeviceVersionControl{}) {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	err = d.deviceVersionRepo.EnableOrDisable(ctx,existing.ID.Hex(),false)
+	if err != nil {
+		return errors.New(localization.ErrorOnDisablingExistingDeviceControl.Code)
 	}
 
 	return nil

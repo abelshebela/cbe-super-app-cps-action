@@ -348,18 +348,18 @@ const (
 	RequestDisableMultiBranches   RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 
 	// for bankvault
-	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
-	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
-	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
-	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
-	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+	RequestCreateBankVault  RequestAction = "CREATE_VAULT_BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE_VAULT_BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE_VAULT_BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
 
 	// Newly added for block_account
 	// Branch
@@ -586,14 +586,14 @@ const (
 	AccrualMethodSimple   AccrualMethod = "SIMPLE"
 )
 
-type AccrualFrequency string
+// type AccrualFrequency string
 
-const (
-	AccrualFreqDaily     AccrualFrequency = "DAILY"
-	AccrualFreqMonthly   AccrualFrequency = "MONTHLY"
-	AccrualFreqQuarterly AccrualFrequency = "QUARTERLY"
-	AccrualFreqAnnually  AccrualFrequency = "ANNUALLY"
-)
+// const (
+// 	AccrualFreqDaily     AccrualFrequency = "DAILY"
+// 	AccrualFreqMonthly   AccrualFrequency = "MONTHLY"
+// 	AccrualFreqQuarterly AccrualFrequency = "QUARTERLY"
+// 	AccrualFreqAnnually  AccrualFrequency = "ANNUALLY"
+// )
 
 type VaultStatus string
 

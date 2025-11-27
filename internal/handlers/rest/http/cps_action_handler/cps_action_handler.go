@@ -66,7 +66,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	approvalAction := core.MapCPSActionToApproval(action, &userData)
 	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), approvalAction); err != nil {
-		fmt.Printf("errorsss : %v\n", err)
+		fmt.Printf("Errors : %v\n", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

@@ -20,6 +20,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -30,12 +31,12 @@ type BankService struct {
 	logger      utils.Logger
 	repo        storage.BankRepository
 	cfg         *config.VaultConfig
-	minio       config.MinioClientInterface
+	minio       aws.Config
 	minioPubUrl string
 	bucketName  string
 }
 
-func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
+func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio       aws.Config, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
 		logger:      logger,
 		repo:        repo,
@@ -118,47 +119,47 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	_, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, "", b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio,"", bank_request.Logo, b.bucketName, b.minioPubUrl,b.minio, "", b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	// bank := model.Bank{
-	// 	Name:    bank_request.Name,
-	// 	BIC:     bank_request.BIC,
-	// 	Code:    bank_request.Code,
-	// 	Logo:    URL,
-	// 	Enabled: true,
-	// }
+	bank := model.Bank{
+		Name:    bank_request.Name,
+		BIC:     bank_request.BIC,
+		Code:    bank_request.Code,
+		Logo:    URL,
+		Enabled: true,
+	}
 
-	// result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 
-	// if err != nil {
-	// 	code, _ := local_util.HandleMongoError(err)
-	// 	if code != localization.ErrorResourceNotFound.Code {
-	// 		return err
-	// 	}
-	// }
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code != localization.ErrorResourceNotFound.Code {
+			return err
+		}
+	}
 
-	// if result != nil {
-	// 	if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
-	// 		return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
-	// 	}
-	// 	if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
-	// 		return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
-	// 	}
-	// 	if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
-	// 		return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
-	// 	}
-	// }
-	// action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
+	if result != nil {
+		if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
+			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
+		}
+		if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
+			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
+		}
+		if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
+			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
+		}
+	}
+	action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
 
-	// err = b.cpsService.CreateCPSAction(ctx, &action)
-	// if err != nil {
-	// 	return err
-	// }
+	err = b.cpsService.CreateCPSAction(ctx, &action)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -247,7 +248,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		objectkey = path.Base(bank.Logo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, objectkey, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl,b.minio, objectkey, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -304,6 +305,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			bank_request.Logo,
 			b.bucketName,
 			b.minioPubUrl,
+			b.minio,
 			objectkey,
 			b.logger,
 		)

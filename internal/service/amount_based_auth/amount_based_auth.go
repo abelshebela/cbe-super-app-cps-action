@@ -14,6 +14,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -29,12 +30,12 @@ type amountBasedAuthService struct {
 	Repository  storage.AmountBasedAuthRepository
 	cpsService  service.CPSActionService
 	logger      utils.Logger
-	minioClient config.MinioClientInterface
+	minioClient aws.Config
 	bucketName  string
 	cfg         *config.VaultConfig
 }
 
-func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cpsService service.CPSActionService, minioClient config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AmountBasedAuthService {
+func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cpsService service.CPSActionService, minioClient aws.Config, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AmountBasedAuthService {
 	return &amountBasedAuthService{
 		Repository:  repository,
 		cpsService:  cpsService,

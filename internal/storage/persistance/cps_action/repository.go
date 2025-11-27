@@ -195,6 +195,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	for k, v := range baseFilter {
 		dynamicFilter[k] = v
 	}
+	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
 
 	pipeline := mongo.Pipeline{

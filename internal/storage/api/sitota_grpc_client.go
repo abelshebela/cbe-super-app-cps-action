@@ -8,6 +8,7 @@ import (
 	transactionpb "cbe-super-app-cps-action/grpc/sitota"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -24,6 +25,7 @@ func NewSitotagRPCClient(ctx context.Context, logger utils.Logger, gRPCAddress s
 	cc, err := grpc.NewClient(
 		gRPCAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 		grpc.WithConnectParams(grpc.ConnectParams{
 			MinConnectTimeout: 5 * time.Second,
 		}),

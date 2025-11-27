@@ -262,6 +262,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
@@ -1212,6 +1213,30 @@ var (
 		Code:       "SUCCESS_BANKVAULT_DISABLE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    MsgBankVaultDisableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessAllBankLockedVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_LOCKED_VAULTS_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankLockedVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankLockedVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_LOCKED_VAULT_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankLockedVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessGroupVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_GROUP_VAULTS_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgGroupVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessGroupVaultRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_GROUP_VAULT_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgGroupVaultRetrievedSuccessfully,
 		Type:       "success",
 	}
 	// vaultgroup category related
@@ -2973,6 +2998,13 @@ var (
 
 // Error Response Codes
 var (
+	ErrorDepartmentIDRequired = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentIDRequired,
+		Type:       "error",
+	}
+
 	ErrorInvalidKey = ResponseCode{
 		Code:       "ERROR_INVALID_KEY",
 		StatusCode: StatusBadRequest,
@@ -3739,6 +3771,12 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+	ErrorOnDisablingExistingDeviceControl= ResponseCode{
+		Code:       "ERROR_ON_DISABLING_EXISTING_DEVICE_CONTROL",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgOnDisablingExistingDeviceControl,
 		Type:       "error",
 	}
 
@@ -5230,6 +5268,12 @@ var (
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
 		Message:    "Vault group category is already deleted.",
+		Type:       "error",
+	}
+	ErrorVaultCoverImageMissedOrInvalid = ResponseCode{
+		Code:       "ERROR_VAULT_COVER_IMAGE_MISSED_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    "Vault category cover image missed or invalid",
 		Type:       "error",
 	}
 

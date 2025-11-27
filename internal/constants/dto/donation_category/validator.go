@@ -1,10 +1,9 @@
 package donation_category
 
 import (
-	"mime/multipart"
-	"strings"
-
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
+	"mime/multipart"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -39,35 +38,19 @@ func (d DonationCategoryRequest) Validate() error {
 		),
 	)
 }
+
 func validateImage(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
-	if !ok {
-		return validation.NewError("validation_image_invalid", "invalid image file")
+	if !ok || file == nil {
+		return localization.ErrorMissingOrInvalidImage
+	}
+	if !utils.IsValidImage(file) {
+		return localization.ErrorMissingOrInvalidImage
 	}
 
-	// Check file size
-	if file.Size > 10*1024*1024 {
-		return validation.NewError("validation_image_size", "image file size must not exceed 10MB")
-	}
-
-	// Check file extension
-	if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
-		return validation.NewError("validation_image_format", "image must be JPG, JPEG, PNG, or GIF")
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 
 	return nil
-}
-
-func hasAllowedExtension(filename string, allowed []string) bool {
-	if filename == "" {
-		return false
-	}
-
-	filename = strings.ToLower(strings.TrimSpace(filename))
-	for _, ext := range allowed {
-		if strings.HasSuffix(filename, strings.ToLower(ext)) {
-			return true
-		}
-	}
-	return false
 }
