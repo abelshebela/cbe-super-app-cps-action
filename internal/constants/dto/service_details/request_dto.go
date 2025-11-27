@@ -44,9 +44,9 @@ type IFBglEntryDTO struct {
 type ServiceFeeDetailDTO struct {
 	ServiceType       string        `json:"service_type" bson:"service_type"`
 	PaymentType       PaymentType   `json:"payment_type" bson:"payment_type"`
-	SingleCapLevelOne uint64        `json:"single_cap_level_one" bson:"single_cap_level_one"`
-	DailyCapLevelOne  uint64        `json:"daily_cap_level_one" bson:"daily_cap_level_one"`
-	MinAmountVIRTUAL  uint64        `json:"min_amount_virtual" bson:"min_amount_virtual"`
+	SingleCapLevelOne int           `json:"single_cap_level_one" bson:"single_cap_level_one"`
+	DailyCapLevelOne  int           `json:"daily_cap_level_one" bson:"daily_cap_level_one"`
+	MinAmountVIRTUAL  int           `json:"min_amount_virtual" bson:"min_amount_virtual"`
 	AboveAmount       uint64        `json:"above_amount" bson:"above_amount"`
 	AboveServiceFee   uint64        `json:"above_service_fee" bson:"above_service_fee"`
 	Tiers             []TierDTO     `json:"tiers" bson:"tiers"`
