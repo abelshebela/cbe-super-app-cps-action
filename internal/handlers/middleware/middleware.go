@@ -209,41 +209,81 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-		if userPayload.Environment != a.cfg.GoEnv {
-			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-			return
-		}
+
+		fmt.Println("userPayload", userPayload)
 		ctx := a.setUserPayload(r.Context(), userPayload)
-		// refresh token payload if session expiry has less than 1 minute
-		// if userPayload.SessionExp != 0 {
-		// 	now := time.Now().Unix()
-		// 	if userPayload.SessionExp < now {
-		// 		a.logger.Warnf("session has expired")
-		// 		localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-		// 		return
-		// 	}
-
-		// 	if userPayload.SessionExp-now < 60 {
-		// 		// Less than 1 minute left, refresh token
-		// 		a.logger.Infof("session expiring soon, refreshing token")
-		// 		// Inject Bearer token and user_id from context into gRPC metadata
-		// 		md := metadata.New(map[string]string{
-		// 			"authorization": "Bearer " + tokenString,
-		// 		})
-		// 		ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
-		// 		refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
-		// 		if err != nil {
-		// 			a.logger.Errorf("failed to refresh token: %v", err)
-		// 		}
-		// 		w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
-		// 	}
-		// }
-
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
 }
+
+// func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+// 		authHeader := r.Header.Get("Authorization")
+// 		bearer := "Bearer "
+
+// 		if !strings.HasPrefix(authHeader, bearer) {
+// 			a.logger.Warnf("bearer token is not present")
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+
+// 		tokenString := authHeader[len(bearer):]
+
+// 		if tokenString == "" {
+// 			a.logger.Warnf("empty token string provided")
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+
+// 		data, err := a.validateToken(r.Context(), tokenString)
+// 		if err != nil {
+// 			localization.SendErrorResponse(w, localization.ErrorInvalidToken, nil, nil)
+// 			return
+// 		}
+
+// 		userPayload, err := a.extractUserPayload(r.Context(), data)
+// 		if err != nil {
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		if userPayload.Environment != a.cfg.GoEnv {
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		ctx := a.setUserPayload(r.Context(), userPayload)
+// 		// refresh token payload if session expiry has less than 1 minute
+// 		// if userPayload.SessionExp != 0 {
+// 		// 	now := time.Now().Unix()
+// 		// 	if userPayload.SessionExp < now {
+// 		// 		a.logger.Warnf("session has expired")
+// 		// 		localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+// 		// 		return
+// 		// 	}
+
+// 		// 	if userPayload.SessionExp-now < 60 {
+// 		// 		// Less than 1 minute left, refresh token
+// 		// 		a.logger.Infof("session expiring soon, refreshing token")
+// 		// 		// Inject Bearer token and user_id from context into gRPC metadata
+// 		// 		md := metadata.New(map[string]string{
+// 		// 			"authorization": "Bearer " + tokenString,
+// 		// 		})
+// 		// 		ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+// 		// 		refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+// 		// 		if err != nil {
+// 		// 			a.logger.Errorf("failed to refresh token: %v", err)
+// 		// 		}
+// 		// 		w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+// 		// 	}
+// 		// }
+
+// 		r = r.WithContext(ctx)
+
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
 
 func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) (string, error) {
 	jwtSecret := []byte(a.JWTSecretKey)
