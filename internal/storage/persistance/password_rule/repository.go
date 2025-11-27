@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -17,17 +18,18 @@ import (
 )
 
 type PasswordRuleStorage struct {
-	dal    dal.MongoDal[model.PasswordRule, model.PasswordRule]
-	client *mongo.Client
+	dal        dal.MongoDal[model.PasswordRule, model.PasswordRule]
+	client     *mongo.Client
 	collection *mongo.Collection
-	logger utils.Logger
+	logger     utils.Logger
 }
 
 func NewPasswordRuleRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.PasswordRuleRepository {
+	fmt.Println("PasswordRuleRepository initialized", dbName)
 	return &PasswordRuleStorage{
-		dal:    dal.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collection),
+		client:     client,
+		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
 	}
 }
