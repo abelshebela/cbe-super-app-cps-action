@@ -140,7 +140,7 @@ func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*m
 
 func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"name", "code", "address", "is_enabled", "is_deleted"}
+	allowedKeys := []string{"name", "code", "address", "is_enabled", "is_deleted", "city_id", "district_id", "region_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -148,6 +148,9 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 			{"name": searchRegex},
 			{"code": searchRegex},
 			{"address": searchRegex},
+			{"city_id": searchRegex},
+			{"district_id": searchRegex},
+			{"region_id": searchRegex},
 		}
 	}
 
@@ -174,8 +177,6 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 		Meta: meta,
 	}, nil
 }
-
-// Standard CRUD operations for Region
 
 func (a *AccountBlockStorage) GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error) {
 	collection := a.client.Database(a.dbName).Collection("account_block")
