@@ -5,7 +5,7 @@ import "github.com/shopspring/decimal"
 type CreateBankVaultProductRequest struct {
 	Name                       string          `json:"name"               example:"Diaspora Fixed Deposit"`
 	Interest                   decimal.Decimal `json:"interest"           swaggertype:"string" example:"6"`
-	Frequency                  string          `json:"frequency"          example:"MONTHLY"`
+	Frequency                  int64           `json:"frequency"          example:"365"`
 	LockPeriodDays             string          `json:"lock_period_days"   example:"180"`
 	MinAmount                  decimal.Decimal `json:"min_amount"         swaggertype:"string" example:"1000"`
 	MaxAmount                  decimal.Decimal `json:"max_amount"         swaggertype:"string" example:"500000"`

@@ -586,14 +586,14 @@ const (
 	AccrualMethodSimple   AccrualMethod = "SIMPLE"
 )
 
-type AccrualFrequency string
+// type AccrualFrequency string
 
-const (
-	AccrualFreqDaily     AccrualFrequency = "DAILY"
-	AccrualFreqMonthly   AccrualFrequency = "MONTHLY"
-	AccrualFreqQuarterly AccrualFrequency = "QUARTERLY"
-	AccrualFreqAnnually  AccrualFrequency = "ANNUALLY"
-)
+// const (
+// 	AccrualFreqDaily     AccrualFrequency = "DAILY"
+// 	AccrualFreqMonthly   AccrualFrequency = "MONTHLY"
+// 	AccrualFreqQuarterly AccrualFrequency = "QUARTERLY"
+// 	AccrualFreqAnnually  AccrualFrequency = "ANNUALLY"
+// )
 
 type VaultStatus string
 

@@ -8,21 +8,21 @@ import (
 )
 
 type BankVaultProductResponse struct {
-	ID                         string                     `json:"id"`
-	Name                       string                     `json:"name"`
-	Currency                   string                     `json:"currency"`
-	Interest                   decimal.Decimal            `json:"interest"`
-	Method                     constants.AccrualMethod    `json:"method"`
-	Frequency                  constants.AccrualFrequency `json:"frequency"`
-	LockPeriod                 string                     `json:"lock_period"`
-	MinAmount                  decimal.Decimal            `json:"min_amount"`
-	MaxAmount                  decimal.Decimal            `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock bool                       `json:"apply_interest_on_early_unlock"`
-	IsActive                   bool                       `json:"is_active"`
-	IsDeleted                  bool                       `json:"is_deleted"`
-	CreatedAt                  time.Time                  `json:"created_at"`
-	UpdatedAt                  time.Time                  `json:"updated_at"`
-	DeletedAt                  *time.Time                 `json:"deleted_at,omitempty"`
+	ID                         string                  `json:"id"`
+	Name                       string                  `json:"name"`
+	Currency                   string                  `json:"currency"`
+	Interest                   decimal.Decimal         `json:"interest"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	LockPeriod                 string                  `json:"lock_period"`
+	MinAmount                  decimal.Decimal         `json:"min_amount"`
+	MaxAmount                  decimal.Decimal         `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock bool                    `json:"apply_interest_on_early_unlock"`
+	IsActive                   bool                    `json:"is_active"`
+	IsDeleted                  bool                    `json:"is_deleted"`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	DeletedAt                  *time.Time              `json:"deleted_at,omitempty"`
 }
 
 //	type LockedVault struct {
