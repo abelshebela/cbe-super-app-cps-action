@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -154,12 +155,16 @@ func parseValue(value string) interface{} {
 		return false
 	}
 
-	if parsed, err := strconv.Atoi(value); err == nil {
-		return parsed
-	}
-
-	if parsed, err := strconv.ParseFloat(value, 64); err == nil {
-		return parsed
+	if isDigitString(value) {
+		if parsed, err := strconv.ParseInt(value, 10, 64); err == nil {
+			return parsed
+		} else if errors.Is(err, strconv.ErrRange) {
+			return value
+		}
+	} else if strings.ContainsAny(value, ".eE") {
+		if parsed, err := strconv.ParseFloat(value, 64); err == nil {
+			return parsed
+		}
 	}
 
 	if strings.Contains(value, ",") {
@@ -177,6 +182,18 @@ func parseValue(value string) interface{} {
 	}
 
 	return value
+}
+
+func isDigitString(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, r := range value {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func BuildPaginationMeta(totalDocs int64, page, limit int) types.PaginationMeta {
