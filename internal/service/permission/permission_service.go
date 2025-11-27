@@ -2,6 +2,7 @@ package permission
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/permission"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -243,4 +244,42 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 	default:
 		return nil, errors.New("UNHANDLED_ACTION_TYPE")
 	}
+}
+
+func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []string) ([]cps_user_dto.PermissionCategoryResponse, error) {
+	if len(categoryIDs) == 0 {
+		return []cps_user_dto.PermissionCategoryResponse{}, nil
+	}
+
+	validCategories, err := s.repo.ValidatePermissionCategories(ctx, categoryIDs)
+	if err != nil {
+		s.logger.Errorf("Failed to validate permission categories: %v", err)
+		return nil, err
+	}
+
+	if len(validCategories) != len(categoryIDs) {
+		s.logger.Warnf("Some permission categories were not found. Requested: %d, Valid: %d", len(categoryIDs), len(validCategories))
+		return nil, errors.New(localization.ErrorPermissionCategoryNotFound.Code)
+	}
+
+	return s.repo.GetPopulatedPermissionCategories(ctx, categoryIDs)
+}
+
+func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, groupIDs []string) ([]cps_user_dto.PermissionGroupResponse, error) {
+	if len(groupIDs) == 0 {
+		return []cps_user_dto.PermissionGroupResponse{}, nil
+	}
+
+	validGroups, err := s.repo.ValidatePermissionGroups(ctx, groupIDs)
+	if err != nil {
+		s.logger.Errorf("Failed to validate permission groups: %v", err)
+		return nil, err
+	}
+
+	if len(validGroups) != len(groupIDs) {
+		s.logger.Warnf("Some permission groups were not found. Requested: %d, Valid: %d", len(groupIDs), len(validGroups))
+		return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+	}
+
+	return s.repo.GetPopulatedPermissionGroups(ctx, groupIDs)
 }

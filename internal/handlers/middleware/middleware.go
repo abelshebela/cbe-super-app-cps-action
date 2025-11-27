@@ -13,10 +13,12 @@ import (
 
 	"github.com/go-chi/cors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 
+	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 )
@@ -58,21 +60,26 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 }
 
 type UserPayload struct {
-	PhoneNumber string `json:"phone_number,omitempty"`
-	UserRole    string `json:"user_role,omitempty"`
-	UserID      string `json:"user_id,omitempty"`
-	UserCode    string `json:"user_code,omitempty"`
-	FullName    string `json:"full_name,omitempty"`
-	Department  string `json:"department,omitempty"`
-	NextStep    string `json:"next_step,omitempty"`
-	Action      string `json:"action"`
+	PhoneNumber string   `json:"phone_number,omitempty"`
+	UserRole    string   `json:"user_role,omitempty"`
+	UserID      string   `json:"user_id,omitempty"`
+	UserCode    string   `json:"user_code,omitempty"`
+	FullName    string   `json:"full_name,omitempty"`
+	Department  string   `json:"department,omitempty"`
+	NextStep    string   `json:"next_step,omitempty"`
+	Action      string   `json:"action"`
+	SessionExp  int64    `json:"session_expiry,omitempty"`
+	Environment string   `json:"environment"`
+	Permission  []string `json:"permission_group"`
 }
 
 type authMiddleware struct {
+	client       cps_auth.CpsAuthServiceClient
 	logger       utils.Logger
 	JWTSecretKey string
 	Key          string
 	IV           string
+	cfg          config.VaultConfig
 }
 
 type AuthMiddleware interface {
@@ -82,11 +89,13 @@ type AuthMiddleware interface {
 	RequireFormContentType() func(http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
+		client:       client,
 		JWTSecretKey: secretKey,
 		Key:          key,
 		IV:           iv,
+		cfg:          cfg,
 		logger:       logger,
 	}
 }
@@ -200,9 +209,36 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-
-		fmt.Println("userPayload", userPayload)
+		if userPayload.Environment != a.cfg.GoEnv {
+			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+			return
+		}
 		ctx := a.setUserPayload(r.Context(), userPayload)
+		// refresh token payload if session expiry has less than 1 minute
+		// if userPayload.SessionExp != 0 {
+		// 	now := time.Now().Unix()
+		// 	if userPayload.SessionExp < now {
+		// 		a.logger.Warnf("session has expired")
+		// 		localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+		// 		return
+		// 	}
+
+		// 	if userPayload.SessionExp-now < 60 {
+		// 		// Less than 1 minute left, refresh token
+		// 		a.logger.Infof("session expiring soon, refreshing token")
+		// 		// Inject Bearer token and user_id from context into gRPC metadata
+		// 		md := metadata.New(map[string]string{
+		// 			"authorization": "Bearer " + tokenString,
+		// 		})
+		// 		ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+		// 		refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+		// 		if err != nil {
+		// 			a.logger.Errorf("failed to refresh token: %v", err)
+		// 		}
+		// 		w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+		// 	}
+		// }
+
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
@@ -266,6 +302,8 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
 	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)
+	ctx = context.WithValue(ctx, constants.ContextKey("permission"), userPayload.Permission)
+	ctx = context.WithValue(ctx, constants.ContextKey("environment"), userPayload.Environment)
 	return ctx
 }
 
