@@ -10,8 +10,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/cors"
+	"google.golang.org/grpc/metadata"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -242,8 +244,8 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			}
 		}
 
-		fmt.Println("userPayload", userPayload)
-		ctx := a.setUserPayload(r.Context(), userPayload)
+		// fmt.Println("userPayload", userPayload)
+		// ctx = a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
