@@ -3773,7 +3773,7 @@ var (
 		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
-	ErrorOnDisablingExistingDeviceControl= ResponseCode{
+	ErrorOnDisablingExistingDeviceControl = ResponseCode{
 		Code:       "ERROR_ON_DISABLING_EXISTING_DEVICE_CONTROL",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgOnDisablingExistingDeviceControl,
@@ -5209,21 +5209,21 @@ var (
 	ErrorBulkServiceAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "Bulk service is already enabled for the given key.",
+		Message:    "One or more bulk services are already enabled",
 		Type:       "error",
 	}
 
 	ErrorBulkServiceAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "Bulk service is already disabled for the given key.",
+		Message:    "One or more bulk services are already enabled",
 		Type:       "error",
 	}
 
 	ErrorInvalidBulkServiceKey = ResponseCode{
 		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
 		StatusCode: StatusBadRequest,
-		Message:    "One or more provided bulk service keys are invalid.",
+		Message:    "One or more provided bulk service keys is/are invalid.",
 		Type:       "error",
 	}
 	ErrorInvalidRequiredAction = ResponseCode{

@@ -166,20 +166,10 @@ func nullAccrualMethodToPtr(am NullAccrualMethod) *string {
 	return &a
 }
 
-// --- AccrualFrequency ---
-// func nullAccrualFrequencyToPtr(af NullAccrualFrequency) *string {
-// 	if !af.Valid {
-// 		return (*string)(nil)
-// 	}
-// 	f := string(af.AccrualFrequency)
-// 	return &f
-// }
-
 func (q *Queries) FindBankVault(ctx context.Context, arg FindBankVaultParams) ([]FindBankVaultRow, error) {
 	namePtr := utils.NullStringToPtrLike(arg.NameQuery)
 	currencyPtr := utils.NullStringToPtr(arg.Currency)
 	// methodPtr := nullAccrualMethodToPtr(arg.Method)
-	// frequencyPtr := nullAccrualFrequencyToPtr(arg.Frequency)
 	limitPtr := utils.NullInt64ToPtr(arg.Limit)
 	offsetPtr := (arg.Page.Int64 - 1) * arg.Limit.Int64
 
