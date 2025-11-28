@@ -72,7 +72,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 	if donationCategory.Icon == nil {
 		return errors.New(localization.ErrorDonationCategoryIDRequired.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), d.minioEndPoint,d.minio, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, d.minio, "", d.logger)
 	if err != nil {
 		return err
 	}
@@ -134,7 +134,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 			objectkey = path.Base(existingCategory.Icon)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), d.minioEndPoint,d.minio, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, d.minio, objectkey, d.logger)
 		if err != nil {
 			return donationCategory, err
 		}

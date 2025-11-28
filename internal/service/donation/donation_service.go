@@ -97,7 +97,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 
 	coverImageURL := ""
 	if donation.CoverImage != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), d.minioEndPoint, d.minio,"", d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), *d.cfg, d.minio, "", d.logger)
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	donationImages := make([]types.DonationImage, 0)
 	d.logger.Infof("Processing %d donation images", len(donation.DonationImages))
 	for _, img := range donation.DonationImages {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, d.minio,"", d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), *d.cfg, d.minio, "", d.logger)
 		if err != nil {
 			d.logger.Errorf("Failed to upload donation image: %v", err)
 			return err
@@ -210,7 +210,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			d.bucketName,
 			donation.CoverImage,
 			string(constants.DonationCoverImage),
-			d.minioEndPoint,d.minio,
+			*d.cfg, d.minio,
 			objectkey,
 			d.logger,
 		)
@@ -249,7 +249,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			d.bucketName,
 			fileHeader,
 			string(constants.DonationImage),
-			d.minioEndPoint,
+			*d.cfg,
 			d.minio,
 			objectkey,
 			d.logger,
@@ -320,7 +320,7 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 		objectkey = path.Base(existingDonation.DonationImages[0].PhotoURL)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationImage), d.minioEndPoint,d.minio, objectkey, d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationImage), *d.cfg, d.minio, objectkey, d.logger)
 	if err != nil {
 		return err
 	}
@@ -390,7 +390,7 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint,d.minio, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), *d.cfg, d.minio, objectkey, d.logger)
 		if err != nil {
 			return err
 		}

@@ -3,6 +3,7 @@ package lib
 import (
 	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
+
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -19,9 +20,13 @@ import (
 	"sync"
 	"time"
 
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -140,7 +145,7 @@ func UploadFileToMinio(
 	bucketName string,
 	fileHeader *multipart.FileHeader,
 	prefix string,
-	minioEndpoint string,
+	env config.VaultConfig,
 	cfg aws.Config,
 	objectkey string,
 	logger interface {
@@ -148,7 +153,25 @@ func UploadFileToMinio(
 	},
 ) (string, error) {
 
+	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(),
+		awsConfig.WithRegion("us-east-1"),
+		awsConfig.WithBaseEndpoint(env.S3BucketURL),
+		awsConfig.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				env.S3AccessKeyID,
+				env.S3SecretAccessKey,
+				"",
+			),
+		),
+	)
+
+	if err != nil {
+		logger.Errorf("failed to load AWS config: %v", err)
+		return "", nil
+	}
+
 	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = true
 		o.DisableLogOutputChecksumValidationSkipped = true
 	})
 
@@ -195,7 +218,7 @@ func UploadFileToMinio(
 	}
 
 	// Build streamed URL served by the uploader service
-	url := fmt.Sprintf("%s/%s", minioEndpoint, strings.TrimPrefix(key, "/"))
+	url := fmt.Sprintf("%s/%s", env.MinioEndPoint, strings.TrimPrefix(key, "/"))
 	return url, nil
 
 }
