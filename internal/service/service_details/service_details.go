@@ -120,7 +120,7 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 	if err != nil {
 		return err
 	}
-
+	
 	serviceData := *serviceDetail
 	serviceMap := core.ServiceMapper(&serviceData, req)
 	cpsAction := lib.CpsModelBuilder(id, makerData, serviceDetail, serviceMap, string(constants.RequestUpdateServiceFee), constants.UPDATE)

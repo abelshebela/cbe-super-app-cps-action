@@ -44,7 +44,6 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-
 	// Normalize and validate request
 	req.Normalize()
 	if err := req.Validate(); err != nil {
