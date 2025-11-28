@@ -114,6 +114,10 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 				}
 			}
 			updatedService.Tiers = tiers
+			updatedService.DailyCapLevelOne = uint64(dto.DailyCapLevelOne)
+			updatedService.SingleCapLevelOne = uint64(dto.SingleCapLevelOne)
+			updatedService.MinAmountVirtual = uint64(dto.MinAmountVIRTUAL)
+			updatedService.Tiers = tiers
 			updatedService.AboveAmount = tiers[len(tiers)-1].Max
 		}
 

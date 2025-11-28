@@ -98,16 +98,6 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 	if v, ok := filterParam.Filters["currency"].(string); ok && v != "" {
 		params.Currency = sql.NullString{String: v, Valid: true}
 	}
-	// if v, ok := filterParam.Filters["method"].(string); ok && v != "" {
-	// 	params.Method = sqlc.NullAccrualMethod{AccrualMethod: sqlc.AccrualMethod(v), Valid: true}
-	// }
-	// if v, ok := filterParam.Filters["frequency"].(string); ok && v != "" {
-	// 	params.Frequency = sqlc.NullAccrualFrequency{AccrualFrequency: sqlc.AccrualFrequency(v), Valid: true}
-	// } else if v, ok := filterParam.Filters["frequency"]; ok {
-	// 	if freqStr := fmt.Sprintf("%v", v); freqStr != "" {
-	// 		params.Frequency = sqlc.NullAccrualFrequency{AccrualFrequency: sqlc.AccrualFrequency(freqStr), Valid: true}
-	// 	}
-	// }
 	if filterParam.Page > 0 {
 		params.Page = sql.NullInt64{Int64: int64(filterParam.Page), Valid: true}
 	}
