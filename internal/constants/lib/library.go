@@ -155,11 +155,11 @@ func UploadFileToMinio(
 
 	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(),
 		awsConfig.WithRegion("us-east-1"),
-		awsConfig.WithBaseEndpoint(env.MinioEndPoint),
+		awsConfig.WithBaseEndpoint(env.S3BucketURL),
 		awsConfig.WithCredentialsProvider(
 			credentials.NewStaticCredentialsProvider(
-				env.MinioAccessKey,
-				env.MinioSecretKey,
+				env.S3AccessKeyID,
+				env.S3SecretAccessKey,
 				"",
 			),
 		),
