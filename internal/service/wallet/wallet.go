@@ -72,7 +72,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorMiniAppMerchantUnexpectedDBError.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", s.cfg.MinioPublicEndPoint,s.minio, "", s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", *s.cfg, s.minio, "", s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -123,7 +123,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			objectkey = path.Base(prevWallet.Avatar)
 		}
 
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint,s.minio, objectkey, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", *s.cfg, s.minio, objectkey, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}

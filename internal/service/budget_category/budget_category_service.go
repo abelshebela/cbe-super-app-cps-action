@@ -81,7 +81,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	iconURL := ""
 	if req.Icon != nil {
-		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), b.minioEndPoint, b.minio,"", b.logger)
+		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), *b.cfg, b.minio, "", b.logger)
 		if err != nil {
 			return err
 		}
@@ -180,7 +180,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 			b.bucketName,
 			req.Icon,
 			string(constants.BudgetCategoryIcon),
-			b.minioEndPoint,
+			*b.cfg,
 			b.minio,
 			objectkey,
 			b.logger,

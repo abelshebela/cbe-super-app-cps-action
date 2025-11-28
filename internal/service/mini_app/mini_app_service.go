@@ -89,7 +89,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 
 	var appIconURL, bannerImageURL string
 	if req.AppIcon != nil {
-		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", s.minioPubUrl, s.minio,"", s.logger)
+		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", *s.cfg, s.minio, "", s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for app icon, error: %v", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -98,7 +98,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 	}
 
 	if req.BannerImage != nil {
-		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", s.minioPubUrl,s.minio, "", s.logger)
+		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", *s.cfg, s.minio, "", s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for banner image, error: %v", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -181,7 +181,7 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 			objectkey = path.Base(prevMiniApp.AppIcon)
 		}
 
-		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", s.minioPubUrl,s.minio, objectkey, s.logger)
+		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", *s.cfg, s.minio, objectkey, s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for app icon, app_id: %s, error: %v", req.ID, err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -197,7 +197,7 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 			objectkey = path.Base(prevMiniApp.BannerImage)
 		}
 
-		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", s.minioPubUrl,s.minio, objectkey, s.logger)
+		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", *s.cfg, s.minio, objectkey, s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for banner image, app_id: %s, error: %v", req.ID, err)
 			return errors.New(localization.ErrorUnhandledServer.Code)

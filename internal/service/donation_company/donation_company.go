@@ -17,10 +17,10 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"github.com/aws/aws-sdk-go-v2/aws"
 )
 
 type DonationCompany struct {
@@ -92,7 +92,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint, d.minio,"", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, d.minio, "", d.logger)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 			objectkey = path.Base(existingCompany.CompanyLogo)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), d.minioEndPoint,d.minio, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, d.minio, objectkey, d.logger)
 		if err != nil {
 			return donationCompany, err
 		}

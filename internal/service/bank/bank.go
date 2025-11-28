@@ -36,7 +36,7 @@ type BankService struct {
 	bucketName  string
 }
 
-func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio       aws.Config, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
+func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio aws.Config, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
 		logger:      logger,
 		repo:        repo,
@@ -119,7 +119,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio,"", bank_request.Logo, b.bucketName, b.minioPubUrl,b.minio, "", b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, "", bank_request.Logo, b.bucketName, *b.cfg, b.minio, "", b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -248,7 +248,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		objectkey = path.Base(bank.Logo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl,b.minio, objectkey, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, b.minio, objectkey, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -304,7 +304,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			b.bucketName,
 			bank_request.Logo,
 			b.bucketName,
-			b.minioPubUrl,
+			*b.cfg,
 			b.minio,
 			objectkey,
 			b.logger,

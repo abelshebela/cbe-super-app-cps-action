@@ -74,32 +74,32 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	keygenService := keygen.NewKeyGenerator(logger, cfg)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
-	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient, /*AvatarsBucketName*/cfg.S3BucketName, minioPubUrl)
+	avatarService := avatar.NewAvatarService(persistence.AvatarPersistence, nil, logger, minioClient /*AvatarsBucketName*/, cfg.S3BucketName, minioPubUrl, *cfg)
 	accountValidation := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, nil, logger)
-	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl,/* EventsBucketName*/cfg.S3BucketName, cfg, logger)
+	eventService := event.NewEventService(persistence.EventPersistence, nil, nil, persistence.UserPersistence, minioClient, minioPubUrl /* EventsBucketName*/, cfg.S3BucketName, cfg, logger)
 	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)
 	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, nil, logger)
-	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, /*BanksBucketName*/cfg.S3BucketName)
-	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, /*WalletsBucketName*/cfg.S3BucketName, cfg, logger)
-	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, /*TopUpsBucketName*/cfg.S3BucketName, cfg, logger)
+	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg /*BanksBucketName*/, cfg.S3BucketName)
+	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl /*WalletsBucketName*/, cfg.S3BucketName, cfg, logger)
+	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl /*TopUpsBucketName*/, cfg.S3BucketName, cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil)
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)
 	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, nil, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
-	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl,/* MiniAppsBucketName*/cfg.S3BucketName, cfg, logger)
+	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl /* MiniAppsBucketName*/, cfg.S3BucketName, cfg, logger)
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)
-	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, "", /*AdvertBucketName*/cfg.S3BucketName, cfg, logger)
+	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, "" /*AdvertBucketName*/, cfg.S3BucketName, cfg, logger)
 	serviceDetails := service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, nil, logger)
-	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient, /*DonationsBucketName*/cfg.S3BucketName, cfg, minioPubUrl)
-	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient, /*DonationsBucketName*/cfg.S3BucketName, cfg, minioPubUrl, accountLookupAdapter)
-	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient, /*DonationsBucketName*/cfg.S3BucketName, cfg, minioPubUrl)
+	donationCategoryService := donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, nil, logger, minioClient /*DonationsBucketName*/, cfg.S3BucketName, cfg, minioPubUrl)
+	donationCompanyService := donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, nil, logger, minioClient /*DonationsBucketName*/, cfg.S3BucketName, cfg, minioPubUrl, accountLookupAdapter)
+	donationService := donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, nil, logger, minioClient /*DonationsBucketName*/, cfg.S3BucketName, cfg, minioPubUrl)
 	kycService := kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, nil, persistence.LinkedAccountPersistence, *cfg, logger)
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, nil, logger)
-	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, /*BudgetCategoryBucketName*/cfg.S3BucketName, cfg, minioPubUrl)
+	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient /*BudgetCategoryBucketName*/, cfg.S3BucketName, cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, nil, logger)
 	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
-	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient,/* AmountBasedAuthBucketName*/cfg.S3BucketName, cfg, logger)
+	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, minioClient /* AmountBasedAuthBucketName*/, cfg.S3BucketName, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
@@ -112,7 +112,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	sitotaService := sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
-	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName)
+	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 
 	// Attach Service to Container
@@ -185,7 +185,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	donationService = donation.NewDonationService(mongoClient, persistence.DonationPersistence, persistence.DonationCategoryPersistence, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, DonationsBucketName, cfg, minioPubUrl)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, cpsActionService, logger)
 	serviceContainer.PermissionContainer = permissionService
-		accountValidationService := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, cpsActionService, logger)
+	accountValidationService := accountvalidation.NewAccountValidationService(persistence.ValidationRulePersistence, cpsActionService, logger)
 	serviceContainer.AccountContainer = accountValidationService
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	serviceContainer.CPSUserContainer = cpsUserService
@@ -197,8 +197,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.BPSUserContainer = bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger)
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, AdvertBucketName, cfg, logger)
-	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl)
-	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl)
+	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl, *cfg)
+	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl, *cfg)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, cpsActionService, logger)
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, AmountBasedAuthBucketName, cfg, logger)
@@ -230,21 +230,21 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 
 	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
-	vaultGroupCategoryService = vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger, minioClient, minioPubUrl, VaultCategoryBucketName)
+	vaultGroupCategoryService = vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 
 	return service.ServiceLayer{
-		CPSAction:              cpsActionService,
-		Feedback:               feedbackService,
-		EventService:           eventService,
-		Avatar:                 avatarService,
-		Advert:                 adService,
-		BpsUser:                bpsUserService,
-		Bank:                   bank_service,
-		Unlink:                 unlinkService,
-		BudgetCategory:         budgetCategoryService,
-		PortalCard:             portalCardService,
-		AmountBasedAuth:        amountBased,
+		CPSAction:       cpsActionService,
+		Feedback:        feedbackService,
+		EventService:    eventService,
+		Avatar:          avatarService,
+		Advert:          adService,
+		BpsUser:         bpsUserService,
+		Bank:            bank_service,
+		Unlink:          unlinkService,
+		BudgetCategory:  budgetCategoryService,
+		PortalCard:      portalCardService,
+		AmountBasedAuth: amountBased,
 		// ValidationService:      accountValidation,
 		AccountValidation:      accountValidationService,
 		Wallet:                 walletService,
