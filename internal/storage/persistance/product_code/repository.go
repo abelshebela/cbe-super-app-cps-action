@@ -40,9 +40,13 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	searchKeys := bson.M{}
 	if filterParams.Search != "" {
 		searchRegex := bson.M{"$regex": filterParams.Search, "$options": "i"}
-		searchKeys["service_name"] = searchRegex
+		searchKeys["$or"] = []bson.M{
+			{"service_name": searchRegex},
+			{"cbe_product_codes.prd": searchRegex},
+			{"cbe_ifb_product_codes.prd": searchRegex},
+		}
 	}
-	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at"}
+	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at", "cbe_product_codes.prd", "cbe_ifb_product_codes.prd"}
 
 	filter, skip, limit := lib.FilterBuilder(*filterParams, searchKeys, allowedKeys)
 	pipeline := mongo.Pipeline{
@@ -105,10 +109,14 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
-	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at"}
+	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at", "cbe_product_codes.prd", "cbe_ifb_product_codes.prd"}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["service_name"] = searchRegex
+		searchKeys["$or"] = []bson.M{
+			{"service_name": searchRegex},
+			{"cbe_product_codes.prd": searchRegex},
+			{"cbe_ifb_product_codes.prd": searchRegex},
+		}
 	}
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
@@ -195,7 +203,7 @@ func (p *ProductCodeStorage) FindByName(ctx context.Context, name string) (*mode
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			p.logger.Infof("[productcode.FindByName] No product code found with name: %s", name)
-			return nil, nil 
+			return nil, nil
 		}
 		p.logger.Errorf("[productcode.FindByName] Database query failed for name %s: %v", name, err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
