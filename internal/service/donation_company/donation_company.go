@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -27,14 +27,14 @@ type DonationCompany struct {
 	DonationCompanyRepo  storage.DonationCompanyRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
-	minio                aws.Config
+	minio                *s3.Client
 	bucketName           string
 	cfg                  *config.VaultConfig
 	minioEndPoint        string
 	accountLookupService account_lookup.Account
 }
 
-func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio aws.Config,
+func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -92,7 +92,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, d.minio, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, "", d.logger)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 			objectkey = path.Base(existingCompany.CompanyLogo)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, d.minio, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, objectkey, d.logger)
 		if err != nil {
 			return donationCompany, err
 		}
