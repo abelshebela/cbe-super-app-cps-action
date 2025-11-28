@@ -77,6 +77,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorDepartmentNotFound.Code)
 	}
 
+	// Populate permission categories if provided
 	var populatedCategories []cpsuser.PermissionCategoryResponse
 	if len(req.PermissionCategory) > 0 {
 		populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
@@ -85,7 +86,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		}
 		populatedCategories = populated
 	}
-
 	var populatedGroups []cpsuser.PermissionGroupResponse
 	if len(req.PermissionGroups) > 0 {
 		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
@@ -94,15 +94,15 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		}
 		populatedGroups = populated
 	}
+
 	cpsUser := core.CPSUModel(req)
 
-	payload := map[string]interface{}{
-		"user":                  cpsUser,
-		"permission_categories": populatedCategories,
-		"permission_groups":     populatedGroups,
-		"portal_cards":          dep.PortalCards,
+	payload := cpsuser.CPSUserActionPayload{
+		User:                 cpsUser,
+		PermissionCategories: populatedCategories,
+		PermissionGroups:     populatedGroups,
+		PortalCards:          dep.PortalCards,
 	}
-
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, payload, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {

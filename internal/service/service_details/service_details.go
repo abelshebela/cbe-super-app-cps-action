@@ -120,7 +120,7 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 	if err != nil {
 		return err
 	}
-
+	
 	serviceData := *serviceDetail
 	serviceMap := core.ServiceMapper(&serviceData, req)
 	cpsAction := lib.CpsModelBuilder(id, makerData, serviceDetail, serviceMap, string(constants.RequestUpdateServiceFee), constants.UPDATE)
@@ -280,6 +280,15 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 	if err != nil {
 		s.logger.Errorf("Failed to map service details for update: %v", err)
 		return err
+	}
+	if &updatedService.DailyCapLevelOne != nil {
+		updatedService.DailyCapLevelOne = existingService.DailyCapLevelOne
+	}
+	if &updatedService.SingleCapLevelOne != nil {
+		updatedService.SingleCapLevelOne = existingService.SingleCapLevelOne
+	}
+	if &updatedService.MinAmountVirtual != nil {
+		updatedService.MinAmountVirtual = existingService.MinAmountVirtual
 	}
 	return s.serviceRepo.Update(ctx, serviceID, updatedService)
 }

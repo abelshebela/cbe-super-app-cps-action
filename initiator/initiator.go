@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"cbe-super-app-cps-action/cmd/client"
+	// "cbe-super-app-cps-action/cmd/client"
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -152,7 +152,8 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger)
 
 	r := chi.NewRouter()
-	InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
+	InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
+	// InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "http-server")

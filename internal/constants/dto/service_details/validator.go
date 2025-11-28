@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	// "cbe-super-app-cps-action/internal/constants"
+
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -147,6 +148,7 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 		validation.Field(&dto.Tiers,
 			validation.Required.Error("tiers are required"),
 			validation.Length(1, 0).Error("at least one tier is required"),
+			validation.By(validateServiceTypeWithFeeTierPercentage(dto.ServiceType, dto.Tiers)),
 		),
 		validation.Field(&dto.CBglEntry, validation.Required.Error("cbgl_entry is required")),
 		validation.Field(&dto.IFBglEntry, validation.Required.Error("ifbgl_entry is required")),
@@ -204,6 +206,24 @@ func (dto *ServiceFeeDetailDTO) Validate() error {
 	}
 
 	return nil
+}
+
+func validateServiceTypeWithFeeTierPercentage(serviceType string, tier []TierDTO) validation.RuleFunc {
+	return validation.RuleFunc(func(value interface{}) error {
+		if serviceType == "" {
+			return fmt.Errorf("service_type is required")
+		}
+		if tier == nil {
+			return fmt.Errorf("tier is required")
+		}
+
+		for _, t := range tier {
+			if serviceType != "percentage" && t.FeeAmount > 100 {
+				return fmt.Errorf("service_fee cannot exceed 100 when service_type is percentage")
+			}
+		}
+		return nil
+	})
 }
 
 func (r *SingleMaxTransferRequest) Validate() error {
