@@ -129,13 +129,13 @@ func Init(ctx context.Context) {
 	}
 	defer auth_client.Close()
 
-	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CommonSvcGrpcAddress)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
-	if cerr := sitotagRPCClient.Close(); cerr != nil {
-		logger.Errorf("Failed to close sitota RPC client: %v", cerr)
-	}
+	// if cerr := sitotagRPCClient.Close(); cerr != nil {
+	// 	logger.Errorf("Failed to close sitota RPC client: %v", cerr)
+	// }
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
