@@ -108,11 +108,12 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.logger.Errorf("failed to decode payload")
 	}
-	action_code, err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
+
+	err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
 	if err != nil {
 		h.logger.Errorf("Disable bulk service request failed: %v\n", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, action_code)
+	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, nil)
 }
