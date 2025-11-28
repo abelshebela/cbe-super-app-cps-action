@@ -238,9 +238,11 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
 				if err != nil {
 					a.logger.Errorf("failed to refresh token: %v", err)
-				} else {
-					a.logger.Infof("refresh token sent successfully", refresh_response)
+				}
+				if refresh_response != nil {
 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+				} else {
+					a.logger.Errorf("refresh token response from grpc is nil")
 				}
 			}
 		}
