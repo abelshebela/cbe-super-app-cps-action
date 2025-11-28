@@ -20,14 +20,11 @@ import (
 	"sync"
 	"time"
 
-	awsConfig "github.com/aws/aws-sdk-go-v2/config"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -146,34 +143,12 @@ func UploadFileToMinio(
 	fileHeader *multipart.FileHeader,
 	prefix string,
 	env config.VaultConfig,
-	cfg aws.Config,
 	objectkey string,
+	s3Client *s3.Client,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
 ) (string, error) {
-
-	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(),
-		awsConfig.WithRegion("us-east-1"),
-		awsConfig.WithBaseEndpoint(env.S3BucketURL),
-		awsConfig.WithCredentialsProvider(
-			credentials.NewStaticCredentialsProvider(
-				env.S3AccessKeyID,
-				env.S3SecretAccessKey,
-				"",
-			),
-		),
-	)
-
-	if err != nil {
-		logger.Errorf("failed to load AWS config: %v", err)
-		return "", nil
-	}
-
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-		o.DisableLogOutputChecksumValidationSkipped = true
-	})
 
 	// Open file and buffer its content
 	file, err := fileHeader.Open()
