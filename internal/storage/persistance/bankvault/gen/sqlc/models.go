@@ -18,50 +18,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type AccrualFrequency string
-
-const (
-	AccrualFrequencyDAILY     AccrualFrequency = "DAILY"
-	AccrualFrequencyMONTHLY   AccrualFrequency = "MONTHLY"
-	AccrualFrequencyQUARTERLY AccrualFrequency = "QUARTERLY"
-	AccrualFrequencyANNUALLY  AccrualFrequency = "ANNUALLY"
-)
-
-func (e *AccrualFrequency) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = AccrualFrequency(s)
-	case string:
-		*e = AccrualFrequency(s)
-	default:
-		return fmt.Errorf("unsupported scan type for AccrualFrequency: %T", src)
-	}
-	return nil
-}
-
-// type NullAccrualFrequency struct {
-// 	AccrualFrequency AccrualFrequency `json:"accrual_frequency"`
-// 	Valid            bool             `json:"valid"` // Valid is true if AccrualFrequency is not NULL
-// }
-
-// // Scan implements the Scanner interface.
-// func (ns *NullAccrualFrequency) Scan(value interface{}) error {
-// 	if value == nil {
-// 		ns.AccrualFrequency, ns.Valid = "", false
-// 		return nil
-// 	}
-// 	ns.Valid = true
-// 	return ns.AccrualFrequency.Scan(value)
-// }
-
-// // Value implements the driver Valuer interface.
-// func (ns NullAccrualFrequency) Value() (driver.Value, error) {
-// 	if !ns.Valid {
-// 		return nil, nil
-// 	}
-// 	return string(ns.AccrualFrequency), nil
-// }
-
 type AccrualMethod string
 
 const (
