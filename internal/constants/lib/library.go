@@ -138,13 +138,12 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 func UploadFileToMinio(
 	ctx context.Context,
-	uploader aws.Config,
+	s3Client *s3.Client,
 	bucketName string,
 	fileHeader *multipart.FileHeader,
 	prefix string,
 	env config.VaultConfig,
 	objectkey string,
-	s3Client *s3.Client,
 	logger interface {
 		Errorf(format string, args ...any)
 	},

@@ -16,7 +16,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -26,14 +26,14 @@ import (
 type avatarService struct {
 	logger        utils.Logger
 	avatar        storage.AvatarRepository
-	minio         aws.Config
+	minio         *s3.Client
 	cpsService    service.CPSActionService
 	bucketName    string
 	minioEndPoint string
 	cfg           config.VaultConfig
 }
 
-func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSActionService, logger utils.Logger, minio aws.Config, buckateName string, minioEndPoint string, cfg config.VaultConfig) service.AvatarService {
+func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSActionService, logger utils.Logger, minio *s3.Client, buckateName string, minioEndPoint string, cfg config.VaultConfig) service.AvatarService {
 	return &avatarService{
 		cpsService:    cpsService,
 		avatar:        avatar,
