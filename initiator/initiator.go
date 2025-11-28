@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime"
 
-	// "cbe-super-app-cps-action/cmd/client"
+	"cbe-super-app-cps-action/cmd/client"
 	"cbe-super-app-cps-action/cmd/server"
 	local "cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/lib"
