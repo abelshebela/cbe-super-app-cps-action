@@ -217,6 +217,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		// refresh token payload if session expiry has less than 1 minute
 		now := time.Now().Unix()
 		if userPayload.SessionExp != 0 {
+			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now)
 			if userPayload.SessionExp < now {
 				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
@@ -235,6 +236,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				if err == nil {
 					a.logger.Errorf("failed to refresh token: %v", err)
 				} else {
+					a.logger.Infof("refresh token sent successfully", refresh_response)
 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
 				}
 			}
