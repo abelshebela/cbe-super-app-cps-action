@@ -121,11 +121,13 @@ func Init(ctx context.Context) {
 		}
 	}()
 
-	// auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
-	// if err != nil {
-	// 	logger.Fatalf("Failed to initialize gRPC client for auth: %v", err)
-	// }
-	// defer auth_client.Close()
+	auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
+	if err != nil {
+		logger.Fatalf("Failed to initialize gRPC client for auth: %v", err)
+	} else {
+		logger.Infof("grpc is live and running at:%s", cfg.CPSAuthSvcGrpcAddress)
+	}
+	defer auth_client.Close()
 
 	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
 	if err != nil {
