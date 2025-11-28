@@ -16,7 +16,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -29,7 +28,7 @@ type eventService struct {
 	userRepo        storage.UserRepository
 	bucketName      string
 	logger          utils.Logger
-	minio           *s3.Client,
+	minio           *s3.Client
 	minioPubUrl     string
 	cfg             *config.VaultConfig
 }
@@ -73,7 +72,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, e.minio, "", e.logger)
+	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, "", e.logger)
 	if err != nil {
 		e.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -109,7 +108,7 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 			objectkey = path.Base(prevEvent.EventInformation.Cover)
 		}
 
-		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, e.minio, objectkey, e.logger)
+		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, objectkey, e.logger)
 		if err != nil {
 			e.logger.Errorf("UploadFileToMinio failed", "event_id", id, "error", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)

@@ -119,7 +119,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, "", bank_request.Logo, b.bucketName, *b.cfg, b.minio, "", b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, "", bank_request.Logo, b.bucketName, *b.cfg, "", b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -248,7 +248,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		objectkey = path.Base(bank.Logo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, b.minio, objectkey, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, objectkey, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -305,7 +305,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			bank_request.Logo,
 			b.bucketName,
 			*b.cfg,
-			b.minio,
 			objectkey,
 			b.logger,
 		)

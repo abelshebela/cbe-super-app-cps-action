@@ -178,7 +178,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, keygenService, minioClient, minioPubUrl, MiniAppsBucketName, cfg, logger)
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	faydaService = fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
-	adService = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, AdvertBucketName, cfg, logger)
+	adService = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, AdvertBucketName, cfg, logger)
 	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
 	donationCategoryService = donation_category.NewDonationCategoryService(mongoClient, persistence.DonationCategoryPersistence, cpsActionService, logger, minioClient, DonationIconsBucketName, cfg, minioPubUrl)
 	donationCompanyService = donation_company.NewDonationCompanyService(mongoClient, persistence.DonationCompanyPersistence, cpsActionService, logger, minioClient, DonationCompanysLogoBucketName, cfg, minioPubUrl, accountLookupAdapter)
@@ -196,12 +196,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
 	serviceContainer.BPSUserContainer = bpsService.NewBPSUserService(persistence.BPSUserPersistence, cpsActionService, logger)
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
-	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, minioPubUrl, AdvertBucketName, cfg, logger)
+	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, AdvertBucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl, *cfg)
 	avatarService = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, AvatarsBucketName, minioPubUrl, *cfg)
 	permissionService = permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, cpsActionService, logger)
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
-	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, minioClient, AmountBasedAuthBucketName, cfg, logger)
+	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
 
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
