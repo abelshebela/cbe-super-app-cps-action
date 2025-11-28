@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -179,4 +180,69 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 	}
 
 	return nil
+}
+func (p *ProductCodeStorage) FindByName(ctx context.Context, name string) (*model.ProductCode, error) {
+	p.logger.Infof("[productcode.FindByName] Searching for product code with name: %s", name)
+
+	filter := bson.M{
+		"service_name": bson.M{
+			"$regex":   "^" + strings.ToLower(name) + "$",
+			"$options": "i",
+		},
+		"is_deleted": false,
+	}
+	result, err := p.producCodeDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			p.logger.Infof("[productcode.FindByName] No product code found with name: %s", name)
+			return nil, nil 
+		}
+		p.logger.Errorf("[productcode.FindByName] Database query failed for name %s: %v", name, err)
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+	}
+
+	pc := productcode.ToProducCode(*result)
+	p.logger.Infof("[productcode.FindByName] Successfully found product code with name: %s", name)
+	return pc, nil
+}
+
+func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD string) ([]*model.ProductCode, error) {
+	p.logger.Infof("[productcode.FindByPRD] Searching for product codes with CBE PRD: %s or CBE IFB PRD: %s", cbePRD, cbeIFBPRD)
+
+	// Build the $or query to check both PRD fields efficiently
+	orConditions := []bson.M{}
+
+	if cbePRD != "" {
+		orConditions = append(orConditions, bson.M{"cbe_product_codes.prd": cbePRD})
+	}
+
+	if cbeIFBPRD != "" {
+		orConditions = append(orConditions, bson.M{"cbe_ifb_product_codes.prd": cbeIFBPRD})
+	}
+
+	// If both are empty, return empty result
+	if len(orConditions) == 0 {
+		p.logger.Infof("[productcode.FindByPRD] Both PRD values are empty, skipping search")
+		return []*model.ProductCode{}, nil
+	}
+
+	filter := bson.M{
+		"is_deleted": false,
+		"$or":        orConditions,
+	}
+
+	results, err := p.producCodeDal.FindAll(ctx, filter, bson.M{})
+	if err != nil {
+		p.logger.Errorf("[productcode.FindByPRD] Database query failed: %v", err)
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+	}
+
+	// Convert ServiceDetails to ProductCode
+	productCodes := make([]*model.ProductCode, 0, len(results))
+	for _, result := range results {
+		productCodes = append(productCodes, productcode.ToProducCode(*result))
+	}
+
+	p.logger.Infof("[productcode.FindByPRD] Found %d product code(s) with matching PRD values", len(productCodes))
+	return productCodes, nil
 }
