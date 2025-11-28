@@ -183,7 +183,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		a.logger.Infof("/////////////////////////////////////////")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
 
@@ -212,6 +212,8 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
+		a.logger.Infof("/////////////////////////////////////////", userPayload)
+
 		// if userPayload.Environment != a.cfg.GoEnv {
 		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 		// 	return
@@ -219,6 +221,8 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		// refresh token payload if session expiry has less than 1 minute
 		now := time.Now().Unix()
+		a.logger.Infof("/////////////////////////////////////////", now, ctx)
+
 		if userPayload.SessionExp != 0 {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now)
 			if userPayload.SessionExp < now {
@@ -238,9 +242,11 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
 				if err != nil {
 					a.logger.Errorf("failed to refresh token: %v", err)
-				} else {
-					a.logger.Infof("refresh token sent successfully", refresh_response)
+				}
+				if refresh_response != nil {
 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+				} else {
+					a.logger.Errorf("refresh token response from grpc is nil")
 				}
 			}
 		}
@@ -248,6 +254,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		// fmt.Println("userPayload", userPayload)
 		// ctx = a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
+		a.logger.Infof("/////////////////////////////////////////")
 
 		next.ServeHTTP(w, r)
 	})

@@ -3,6 +3,7 @@ package lib
 import (
 	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
+
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -136,21 +138,16 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 
 func UploadFileToMinio(
 	ctx context.Context,
-	uploader aws.Config,
+	s3Client *s3.Client,
 	bucketName string,
 	fileHeader *multipart.FileHeader,
 	prefix string,
-	minioEndpoint string,
-	cfg aws.Config,
+	env config.VaultConfig,
 	objectkey string,
 	logger interface {
 		Errorf(format string, args ...any)
 	},
 ) (string, error) {
-
-	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.DisableLogOutputChecksumValidationSkipped = true
-	})
 
 	// Open file and buffer its content
 	file, err := fileHeader.Open()
@@ -195,7 +192,7 @@ func UploadFileToMinio(
 	}
 
 	// Build streamed URL served by the uploader service
-	url := fmt.Sprintf("%s/%s", minioEndpoint, strings.TrimPrefix(key, "/"))
+	url := fmt.Sprintf("%s/%s", env.MinioEndPoint, strings.TrimPrefix(key, "/"))
 	return url, nil
 
 }
