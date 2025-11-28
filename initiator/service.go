@@ -70,7 +70,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Assign variable for minio public url
 	minioPubUrl := cfg.MinioPublicEndPoint
 
-	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CBEBaseURL, time.Duration(cfg.ServerTimeout))
+	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout))
 	keygenService := keygen.NewKeyGenerator(logger, cfg)
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
