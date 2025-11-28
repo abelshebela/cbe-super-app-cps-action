@@ -217,15 +217,15 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		// refresh token payload if session expiry has less than 1 minute
+		now := time.Now().Unix()
 		if userPayload.SessionExp != 0 {
-			now := time.Now().Unix()
 			if userPayload.SessionExp < now {
 				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
 
-			if userPayload.SessionExp-now < 60 {
+			if userPayload.SessionExp-now < 60000 {
 				// Less than 1 minute left, refresh token
 				a.logger.Infof("session expiring soon, refreshing token")
 				// Inject Bearer token and user_id from context into gRPC metadata
@@ -234,10 +234,11 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				})
 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
-				if err != nil {
+				if err == nil {
 					a.logger.Errorf("failed to refresh token: %v", err)
+				} else {
+					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
 				}
-				w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
 			}
 		}
 

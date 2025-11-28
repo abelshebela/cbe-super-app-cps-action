@@ -20,7 +20,7 @@ func NewAuthGRPCClient(serverAddress string, logger utils.Logger) (*AuthGRPCClie
 	address := strings.Split(serverAddress, ":")
 	conn, err := grpc.Dial(address[0]+":"+address[1], grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		logger.Errorf("Failed to connect to gRPC server: %v", err)
+		logger.Errorf("Failed to connect to gRPC server at:%s err:%v", serverAddress, err)
 		return nil, fmt.Errorf("GRPC_CONNECTION_FAILED")
 	}
 
@@ -33,7 +33,6 @@ func NewAuthGRPCClient(serverAddress string, logger utils.Logger) (*AuthGRPCClie
 	}, nil
 }
 
-// ////////////////
 // Close closes the gRPC connection
 func (c *AuthGRPCClient) Close() error {
 	if c.conn != nil {
