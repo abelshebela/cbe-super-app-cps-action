@@ -17,7 +17,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -26,13 +26,13 @@ type topupService struct {
 	repo        storage.TopupRepository
 	cpsService  service.CPSActionService
 	logger      utils.Logger
-	minio       aws.Config
+	minio       *s3.Client
 	bucketName  string
 	minioPubUrl string
 	cfg         *config.VaultConfig
 }
 
-func NewTopupService(repo storage.TopupRepository, cps service.CPSActionService, minio aws.Config, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.TopupService {
+func NewTopupService(repo storage.TopupRepository, cps service.CPSActionService, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.TopupService {
 	return &topupService{
 		repo:       repo,
 		cpsService: cps,
@@ -69,7 +69,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "topup", s.cfg.MinioPublicEndPoint, s.minio,"", s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "topup", *s.cfg, "", s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -122,7 +122,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 			objectkey = path.Base(prevtopup.Avatar)
 		}
 
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint,s.minio, objectkey, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", *s.cfg, objectkey, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
