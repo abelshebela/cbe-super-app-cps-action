@@ -254,7 +254,7 @@ func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context
 	validCategories, err := s.repo.ValidatePermissionCategories(ctx, categoryIDs)
 	if err != nil {
 		s.logger.Errorf("Failed to validate permission categories: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorPermissionCategoryNotFound.Code)
 	}
 
 	if len(validCategories) != len(categoryIDs) {
@@ -273,7 +273,7 @@ func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, gr
 	validGroups, err := s.repo.ValidatePermissionGroups(ctx, groupIDs)
 	if err != nil {
 		s.logger.Errorf("Failed to validate permission groups: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 	}
 
 	if len(validGroups) != len(groupIDs) {
