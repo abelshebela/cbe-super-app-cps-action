@@ -90,12 +90,61 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		CreatedAt:          existing.CreatedAt,
 		LastUpdatedAt:      time.Now(),
 	}
+
+	// Check for duplicate product name if name is being changed
+	if existing.ProductName != updated.ProductName {
+		s.logger.Infof("[ProductCode.Update] Product name changed from '%s' to '%s', checking for duplicates", existing.ProductName, updated.ProductName)
+		duplicate, err := s.repo.FindByName(ctx, updated.ProductName)
+		if err != nil {
+			s.logger.Errorf("[ProductCode.Update] failed to check for duplicate product name: %v", err)
+			return nil, nil, err
+		}
+		if duplicate != nil && duplicate.ID != existing.ID {
+			s.logger.Warnf("[ProductCode.Update] duplicate product name detected: '%s' already exists with ID: %s", updated.ProductName, duplicate.ID)
+			return nil, nil, fmt.Errorf("%s", localization.ErrorDuplicateProductName.Code)
+		}
+	}
+
+	// Check for duplicate PRD codes if either CBE or CBE IFB PRD has changed
+	cbePRDChanged := existing.CBEProductCodes.PRD != updated.CBEProductCodes.PRD
+	cbeIFBPRDChanged := existing.CBEIFBProductCodes.PRD != updated.CBEIFBProductCodes.PRD
+
+	if cbePRDChanged || cbeIFBPRDChanged {
+		s.logger.Infof("[ProductCode.Update] PRD values changed, checking for duplicates. CBE PRD: %s, CBE IFB PRD: %s",
+			updated.CBEProductCodes.PRD, updated.CBEIFBProductCodes.PRD)
+
+		duplicates, err := s.repo.FindByPRD(ctx, updated.CBEProductCodes.PRD, updated.CBEIFBProductCodes.PRD)
+		if err != nil {
+			s.logger.Errorf("[ProductCode.Update] failed to check for duplicate PRD codes: %v", err)
+			return nil, nil, err
+		}
+
+		// Check if any duplicate belongs to a different product code
+		for _, dup := range duplicates {
+			if dup.ID != existing.ID {
+				// Determine which PRD field is duplicated
+				if updated.CBEProductCodes.PRD != "" && dup.CBEProductCodes.PRD == updated.CBEProductCodes.PRD {
+					s.logger.Warnf("[ProductCode.Update] duplicate CBE PRD detected: '%s' already exists in product code ID: %s",
+						updated.CBEProductCodes.PRD, dup.ID)
+					return nil, nil, fmt.Errorf("%s", localization.ErrorDuplicateCBEProductCode.Code)
+				}
+				if updated.CBEIFBProductCodes.PRD != "" && dup.CBEIFBProductCodes.PRD == updated.CBEIFBProductCodes.PRD {
+					s.logger.Warnf("[ProductCode.Update] duplicate CBE IFB PRD detected: '%s' already exists in product code ID: %s",
+						updated.CBEIFBProductCodes.PRD, dup.ID)
+					return nil, nil, fmt.Errorf("%s", localization.ErrorDuplicateCBEIFBProductCode.Code)
+				}
+			}
+		}
+		s.logger.Infof("[ProductCode.Update] No duplicate PRD codes found")
+	}
+
 	thereIsUpdate := true
 	if existing.ProductName == updated.ProductName &&
 		existing.CBEIFBProductCodes == updated.CBEIFBProductCodes &&
 		existing.CBEProductCodes == updated.CBEProductCodes {
 		thereIsUpdate = false
 	}
+
 	if thereIsUpdate {
 		s.logger.Infof("ProductCode update detected, creating CPS action for approval. ProductCode ID: %s", updated.ID)
 		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, *existing, *updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
