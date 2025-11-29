@@ -192,7 +192,7 @@ func UploadFileToMinio(
 	}
 
 	// Build streamed URL served by the uploader service
-	url := fmt.Sprintf("%s/%s", env.MinioEndPoint, strings.TrimPrefix(key, "/"))
+	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
 	return url, nil
 
 }
