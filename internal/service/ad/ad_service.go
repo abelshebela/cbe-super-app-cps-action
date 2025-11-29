@@ -75,6 +75,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
 		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 	}
+
 	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
