@@ -17,6 +17,8 @@ import (
 	"strings"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type permissionService struct {
@@ -121,8 +123,16 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 	}
 	groupName = strings.ToUpper(groupName)
 
-	return s.repo.GetPermissionGroup(groupName)
+	permissionGroup, err := s.repo.GetPermissionGroup(groupName)
+	if err != nil {
+		if err == mongo.ErrNoDocuments || err.Error() == "mongo: no documents in result" {
+			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+		}
+		return nil, err
+	}
+	return permissionGroup, nil
 }
+
 func (s *permissionService) GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error) {
 	if id == "" {
 		return nil, errors.New(localization.ErrorPermissionGroupRequired.Code)
@@ -236,7 +246,8 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 		}
 
 		// Update using the existing group's ObjectID
-		if err := s.repo.Update(ctx, existingGroup.ID.Hex(), &upd); err != nil {
+		err = s.repo.Update(ctx, existingGroup.ID.Hex(), &upd)
+		if err != nil {
 			return nil, err
 		}
 		return action, nil
@@ -246,9 +257,13 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 	}
 }
 
-func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []string) ([]cps_user_dto.PermissionCategoryResponse, error) {
-	if len(categoryIDs) == 0 {
+func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context, categoryIDsObject []bson.ObjectID) ([]cps_user_dto.PermissionCategoryResponse, error) {
+	if len(categoryIDsObject) == 0 {
 		return []cps_user_dto.PermissionCategoryResponse{}, nil
+	}
+	var categoryIDs []string
+	for _, id := range categoryIDsObject {
+		categoryIDs = append(categoryIDs, id.Hex())
 	}
 
 	validCategories, err := s.repo.ValidatePermissionCategories(ctx, categoryIDs)
@@ -265,9 +280,13 @@ func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context
 	return s.repo.GetPopulatedPermissionCategories(ctx, categoryIDs)
 }
 
-func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, groupIDs []string) ([]cps_user_dto.PermissionGroupResponse, error) {
-	if len(groupIDs) == 0 {
+func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, groupIDsObject []bson.ObjectID) ([]cps_user_dto.PermissionGroupResponse, error) {
+	if len(groupIDsObject) == 0 {
 		return []cps_user_dto.PermissionGroupResponse{}, nil
+	}
+	var groupIDs []string
+	for _, id := range groupIDsObject {
+		groupIDs = append(groupIDs, id.Hex())
 	}
 
 	validGroups, err := s.repo.ValidatePermissionGroups(ctx, groupIDs)

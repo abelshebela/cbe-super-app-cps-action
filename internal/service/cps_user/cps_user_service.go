@@ -237,7 +237,6 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 	if userCode == "" {
 		return errors.New(localization.ErrorUserCodeRequired.Code)
 	}
-
 	prev, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
