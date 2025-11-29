@@ -1,15 +1,11 @@
 package bulk_service
 
 import (
-	// "cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
-
-	// "strings"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -19,7 +15,6 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	// "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -100,8 +95,8 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccess
 
 	return bulkServices, nil
 }
-func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
 
+func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
 	parentKeys := []string{}
 
 	for _, key := range keys {
@@ -115,16 +110,18 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 				// Parent not found → update child
 				childFilter := bson.M{"sub_access_list.key": key}
 				childUpdate := bson.M{"sub_access_list.$.enabled": state}
-				_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
+				child, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
 					b.logger.Errorf("failed to update child: %v", err)
-					return fmt.Errorf(localization.ErrorFailToUpdateChild.Code)
+					return errors.New(localization.ErrorFailToUpdateChild.Code)
 				}
+				parentKeys = append(parentKeys, child.Key)
+
 				continue
 			}
 			// Other parent update errors
 			b.logger.Errorf("failed to update parent: %v", err)
-			return fmt.Errorf(localization.ErrorFailToUpdateParent.Code)
+			return errors.New(localization.ErrorFailToUpdateParent.Code)
 		}
 
 		// Parent exists → manually loop over children and update each one
@@ -135,12 +132,24 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {
 				b.logger.Errorf("failed to update child %s: %v", sub.Key, err)
-				return fmt.Errorf(localization.ErrorFailToUpdateChild.Code)
+				return errors.New(localization.ErrorFailToUpdateChild.Code)
 			}
 		}
 
-		// Collect parent keys for final consistency check
-		parentKeys = append(parentKeys, key)
 	}
+
+	if state {
+		for _, key := range parentKeys {
+			parentFilter := bson.M{"key": key}
+			parentUpdate := bson.M{"enabled": state}
+
+			_, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
+			if err != nil {
+				b.logger.Errorf("failed to update parent %s: %v", key, err)
+				return errors.New(localization.ErrorFailToUpdateParent.Code)
+			}
+		}
+	}
+
 	return nil
 }
