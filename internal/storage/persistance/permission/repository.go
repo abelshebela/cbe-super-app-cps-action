@@ -50,7 +50,6 @@ func InitPermission(
 	for _, name := range collectionNames {
 
 		cols = append(cols, *client.Database(dbName).Collection(name))
-		fmt.Println("//////cols", cols)
 	}
 
 	return &PermissionPersistence{
