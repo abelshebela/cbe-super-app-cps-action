@@ -634,7 +634,7 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 			"is_deleted": bson.M{"$ne": true},
 		}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": "permission_category",
+			"from": p.collections[1].Name(),
 			"let":  bson.M{"categoryIds": "$permission_category"},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
@@ -659,7 +659,6 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 				bson.D{{Key: "$project", Value: bson.M{
 					"category_name": 1,
 					"access":        1,
-					"permissions":   1,
 				}}},
 			},
 			"as": "permission_category",
@@ -679,12 +678,14 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 
 	cursor, err := p.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
+		p.logger.Errorf("Failed to aggregate Permission Groups, groupIDs: %v, error: %v", groupIDs, err)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
 	var groups []cps_user_dto.PermissionGroupResponse
 	if err := cursor.All(ctx, &groups); err != nil {
+		p.logger.Errorf("Failed to decode Permission Groups aggregation, groupIDs: %v, error: %v", groupIDs, err)
 		return nil, err
 	}
 

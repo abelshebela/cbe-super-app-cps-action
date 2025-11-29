@@ -455,6 +455,8 @@ type ProductCodeRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
 	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
 	Update(ctx context.Context, productCode *model.ProductCode) error
+	FindByName(ctx context.Context, name string) (*model.ProductCode, error)
+	FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD string) ([]*model.ProductCode, error)
 }
 
 type FaydaRepository interface {
