@@ -151,7 +151,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDeviceVersionAlreadyEnabled,
 	ErrorDeviceVersionAlreadyDisabled,
 	ErrorDeviceVersionNotFound,
-
+	ErrorDuplicateProductName,
 	ErrorDeviceVersionUpdateFailed,
 	ErrorDeviceVersionDeleteFailed,
 	ErrorDeviceVersionEnableFailed,
@@ -413,6 +413,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
 	ErrorBulkServiceAlreadyEnabled,
+	ErrorDuplicateCBEIFBProductCode,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -448,6 +449,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCategoryNameDuplicated,
 	ErrorDonationCompanyLookupFailed,
 	ErrorDonationCategoryIDRequired,
+	ErrorDuplicateCBEProductCode,
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
@@ -3950,6 +3952,28 @@ var (
 		Message:    MsgProductCodeNotFound,
 		Type:       "error",
 	}
+
+	ErrorDuplicateProductName = ResponseCode{
+		Code:       "ERROR_DUPLICATE_PRODUCT_NAME",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateProductName,
+		Type:       "error",
+	}
+
+	ErrorDuplicateCBEProductCode = ResponseCode{
+		Code:       "ERROR_DUPLICATE_CBE_PRODUCT_CODE",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateCBEProductCode,
+		Type:       "error",
+	}
+
+	ErrorDuplicateCBEIFBProductCode = ResponseCode{
+		Code:       "ERROR_DUPLICATE_CBE_IFB_PRODUCT_CODE",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateCBEIFBProductCode,
+		Type:       "error",
+	}
+
 	// Mini App Merchant related error response codes
 	ErrorMiniAppMerchantCheckPendingFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_CHECK_PENDING_FAILED",
