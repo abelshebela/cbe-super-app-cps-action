@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
-	"fmt"
 
 	"net/http"
 
@@ -101,7 +100,6 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := account_validation_dto.ToModel(req)
-	fmt.Println("/////////////here in the handler",rule)
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

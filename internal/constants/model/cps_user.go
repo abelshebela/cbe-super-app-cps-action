@@ -19,8 +19,8 @@ type CPSUser struct {
 	Email              string          `json:"email,omitempty" bson:"email"`
 	UserName           string          `json:"username,omitempty" bson:"username"`
 	Realm              string          `json:"realm,omitempty" bson:"realm"`
-	PermissionCategory []string `json:"permission_category,omitempty" bson:"permission_category"`
-	PermissionGroup    []string `json:"permission_group,omitempty" bson:"permission_group"`
+	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group"`
 
 	Password                 types.Password `json:"password" bson:"password"`
 	PasswordDisable          bool           `json:"password_disable,omitempty" bson:"password_disable"`

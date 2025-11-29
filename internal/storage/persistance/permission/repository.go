@@ -50,7 +50,6 @@ func InitPermission(
 	for _, name := range collectionNames {
 
 		cols = append(cols, *client.Database(dbName).Collection(name))
-		fmt.Println("//////cols", cols)
 	}
 
 	return &PermissionPersistence{
@@ -78,6 +77,7 @@ func (r *PermissionPersistence) Update(ctx context.Context, id string, permissio
 
 	filter := bson.M{"_id": objectID}
 	update := PermissionGroupUpdateMapper(permissionGroup)
+	update = bson.M{"$set": update}
 
 	_, err = r.collections[0].UpdateOne(ctx, filter, update)
 	return err
