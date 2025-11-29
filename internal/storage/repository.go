@@ -5,12 +5,12 @@ import (
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
+	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
-	"cbe-super-app-cps-action/internal/constants/dto/feedback"
-
-	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 
 	"cbe-super-app-cps-action/internal/constants"
 
@@ -115,6 +115,7 @@ type CPSActionRepository interface {
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
+	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 }
 
 // Avatar persistence
