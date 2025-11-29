@@ -74,6 +74,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 	}
 	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, "", d.logger)
 	if err != nil {
+		d.logger.Errorf("failed to upload image to minio: %v", err)
 		return err
 	}
 	result := dto.DonationCategoryResponse{
