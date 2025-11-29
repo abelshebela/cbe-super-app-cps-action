@@ -92,6 +92,7 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
 			{"notification_body": searchRegex},
+			{"notification_type": searchRegex},
 		}
 	}
 

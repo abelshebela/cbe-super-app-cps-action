@@ -241,7 +241,6 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	filterParams := common_utils.ExtractFilterParams(r)
-
 	data, err := h.service.FetchNotifications(r.Context(), filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())

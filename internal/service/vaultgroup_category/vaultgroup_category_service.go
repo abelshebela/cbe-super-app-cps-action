@@ -20,7 +20,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,12 +30,13 @@ type vaultgroupCategoryService struct {
 	repo        storage.VaultGroupCategoryRepository
 	cpsService  service.CPSActionService
 	logger      shared_utils.Logger
-	minio       aws.Config
+	minio       *s3.Client
 	minioPubUrl string
 	bucketName  string
+	cfg         *config.VaultConfig
 }
 
-func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS service.CPSActionService, logger shared_utils.Logger,minio  aws.Config, minioPubUrl, bucketName string) *vaultgroupCategoryService {
+func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS service.CPSActionService, logger shared_utils.Logger, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig) *vaultgroupCategoryService {
 	return &vaultgroupCategoryService{
 		repo:        re,
 		cpsService:  cpsS,
@@ -42,6 +44,7 @@ func NewVaultGroupCategoryService(re storage.VaultGroupCategoryRepository, cpsS 
 		minio:       minio,
 		minioPubUrl: minioPubUrl,
 		bucketName:  bucketName,
+		cfg:         cfg,
 	}
 }
 
@@ -51,7 +54,7 @@ func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context
 		if errors.Is(err, sql.ErrNoRows) {
 			makerData := local_util.ExtractUserFromContext(ctx)
 
-			coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", s.minioPubUrl,s.minio, "", s.logger)
+			coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", *s.cfg, "", s.logger)
 			if err != nil {
 				s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
 			}
@@ -126,7 +129,7 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 
 	var coverImageUrl string
 	if req.CoverImage != nil {
-		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", s.minioPubUrl,s.minio, "", s.logger)
+		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", *s.cfg, "", s.logger)
 		if err != nil {
 			s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
 			return "", errors.New(localization.ErrorUnexpectedError.Code)

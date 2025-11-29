@@ -17,7 +17,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -26,13 +26,13 @@ type walletService struct {
 	repo        storage.WalletRepository
 	cpsService  service.CPSActionService
 	logger      utils.Logger
-	minio       aws.Config
+	minio       *s3.Client
 	bucketName  string
 	minioPubUrl string
 	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio aws.Config, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:       repo,
 		cpsService: cps,
@@ -72,7 +72,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorMiniAppMerchantUnexpectedDBError.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", s.cfg.MinioPublicEndPoint,s.minio, "", s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", *s.cfg, "", s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -123,7 +123,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			objectkey = path.Base(prevWallet.Avatar)
 		}
 
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint,s.minio, objectkey, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", *s.cfg, objectkey, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}

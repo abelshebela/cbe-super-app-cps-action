@@ -15,7 +15,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -24,7 +24,7 @@ type BudgetCategoryService struct {
 	budgetCategoryRepo storage.BudgetCategoryRepository
 	cpsService         service.CPSActionService
 	logger             utils.Logger
-	minio              aws.Config
+	minio              *s3.Client
 	bucketName         string
 	cfg                *config.VaultConfig
 	minioEndPoint      string
@@ -34,7 +34,7 @@ func NewBudgetCategoryService(
 	budgetCategoryRepo storage.BudgetCategoryRepository,
 	cpsService service.CPSActionService,
 	logger utils.Logger,
-	minio aws.Config,
+	minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -81,7 +81,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	iconURL := ""
 	if req.Icon != nil {
-		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), b.minioEndPoint, b.minio,"", b.logger)
+		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), *b.cfg, "", b.logger)
 		if err != nil {
 			return err
 		}
@@ -180,8 +180,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 			b.bucketName,
 			req.Icon,
 			string(constants.BudgetCategoryIcon),
-			b.minioEndPoint,
-			b.minio,
+			*b.cfg,
 			objectkey,
 			b.logger,
 		)

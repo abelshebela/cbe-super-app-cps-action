@@ -109,6 +109,22 @@ func BindCPSUserFromAction(currentAction interface{}) (model.CPSUser, error) {
 	if err != nil {
 		return user, err
 	}
+
+	// Try to unmarshal as CPSUserActionPayload first
+	var payload cpsuser.CPSUserActionPayload
+	if err := json.Unmarshal(bytes, &payload); err == nil && payload.User != nil {
+		// Extract user from payload
+		userBytes, err := json.Marshal(payload.User)
+		if err != nil {
+			return user, err
+		}
+		if err := json.Unmarshal(userBytes, &user); err != nil {
+			return user, err
+		}
+		return user, nil
+	}
+
+	// Fallback: try to unmarshal directly as CPSUser
 	if err := json.Unmarshal(bytes, &user); err != nil {
 		return user, err
 	}
