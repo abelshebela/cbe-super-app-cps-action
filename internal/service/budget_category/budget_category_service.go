@@ -57,12 +57,12 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	switch action.RequestAction {
-	case string(constants.RequestBudgetCreate):
+	case string(constants.RequestCreateBudgetCategory):
 
 		err = b.budgetCategoryRepo.CreateBudgetCategory(ctx, budgetCategory)
-	case string(constants.RequestBudgetUpdate):
+	case string(constants.RequestUpdateBudgetCategory):
 		err = b.budgetCategoryRepo.UpdateBudgetCategory(ctx, action.UniqueId, budgetCategory)
-	case string(constants.RequestBudgetDelete):
+	case string(constants.RequestDeleteBudgetCategory):
 		err = b.budgetCategoryRepo.DeleteBudgetCategory(ctx, action.UniqueId)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
@@ -98,9 +98,8 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		UpdatedAt: time.Now(),
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestBudgetCreate), constants.CREATE)
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestCreateBudgetCategory), constants.CREATE)
 
-	local_util.PrintRecord("CPS action", cpsActionData)
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
 	}
@@ -200,7 +199,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 		makerUser,
 		existingBudgetCategory,
 		&newBudgetCategory,
-		string(constants.RequestBudgetUpdate),
+		string(constants.RequestUpdateBudgetCategory),
 		constants.UPDATE,
 	)
 
@@ -219,7 +218,7 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 		return err
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestBudgetDelete), constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestDeleteBudgetCategory), constants.DELETE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
@@ -239,7 +238,7 @@ func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Contex
 	existingBudgetCategory.Enabled = enable
 	existingBudgetCategory.UpdatedAt = time.Now()
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestBudgetUpdate), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestDeleteBudgetCategory), constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
