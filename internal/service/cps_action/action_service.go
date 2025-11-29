@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"context"
@@ -93,4 +94,8 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {
 	return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_id": "", "checker_name": "", "checker_phone_number": ""})
+}
+
+func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
+	return ca.repo.GetCountByDepartment(ctx, department)
 }

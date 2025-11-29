@@ -219,3 +219,20 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
 }
+
+func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
+	userData, err := local_util.ParseUserContext(r)
+	if err != nil {
+		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
+		return
+	}
+
+	actions, err := a.cpsActionApplication.GetActionCountsByDepartemnt(r.Context(), userData.Department)
+	if err != nil {
+		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
+}

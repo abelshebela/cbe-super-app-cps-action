@@ -88,7 +88,7 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": objID}
+	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -111,6 +111,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
 			{"description": searchRegex},
+			{"is_deleted": false},
 		}
 	}
 

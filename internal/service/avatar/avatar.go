@@ -20,7 +20,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type avatarService struct {
@@ -48,11 +47,6 @@ func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSAct
 func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	existing, err := a.avatar.Find(ctx, bson.M{"label": avatar.Label}, nil)
-	if err != nil {
-		if err.Error() != mongo.ErrNoDocuments.Error() {
-			return errors.New(localization.ErrorAvatarAlreadyExist.Code)
-		}
-	}
 
 	if existing != nil {
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)

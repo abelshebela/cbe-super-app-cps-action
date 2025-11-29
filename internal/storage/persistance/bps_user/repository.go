@@ -33,7 +33,7 @@ func NewBPSUserRepository(client *mongo.Client, dbName string, collection string
 
 func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) {
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
-	result, err := b.dal.FindOne(ctx, filter, nil)
+	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		return nil, err
 	}

@@ -50,7 +50,6 @@ func InitPermission(
 	for _, name := range collectionNames {
 
 		cols = append(cols, *client.Database(dbName).Collection(name))
-		fmt.Println("//////cols",cols)
 	}
 
 	return &PermissionPersistence{
@@ -63,7 +62,6 @@ func InitPermission(
 		logger:                logger,
 	}
 }
-
 
 // Basic CRUD operations
 func (r *PermissionPersistence) Create(ctx context.Context, permissionGroup *model.PermissionGroup) error {
@@ -79,6 +77,7 @@ func (r *PermissionPersistence) Update(ctx context.Context, id string, permissio
 
 	filter := bson.M{"_id": objectID}
 	update := PermissionGroupUpdateMapper(permissionGroup)
+	update = bson.M{"$set": update}
 
 	_, err = r.collections[0].UpdateOne(ctx, filter, update)
 	return err
@@ -620,7 +619,7 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 	if len(groupIDs) == 0 {
 		return []cps_user_dto.PermissionGroupResponse{}, nil
 	}
-	
+
 	objectIDs := make([]bson.ObjectID, 0, len(groupIDs))
 	for _, id := range groupIDs {
 		objectID, err := bson.ObjectIDFromHex(id)
@@ -636,12 +635,12 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 			"is_deleted": bson.M{"$ne": true},
 		}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": "permission_category",
+			"from": p.collections[1].Name(),
 			"let":  bson.M{"categoryIds": "$permission_category"},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
 					"$in": []interface{}{
-						"$_id", 
+						"$_id",
 						bson.M{
 							"$map": bson.M{
 								"input": "$$categoryIds",
@@ -661,32 +660,33 @@ func (p *PermissionPersistence) GetPopulatedPermissionGroups(ctx context.Context
 				bson.D{{Key: "$project", Value: bson.M{
 					"category_name": 1,
 					"access":        1,
-					"permissions":   1,
 				}}},
 			},
 			"as": "permission_category",
 		}}},
 		bson.D{{Key: "$project", Value: bson.M{
-			"id":              "$_id",
-			"group_name":      1,
+			"id":                  "$_id",
+			"group_name":          1,
 			"permission_category": 1,
-			"department_id":   1,
-			"role":            1,
-			"realm":           1,
-			"enabled":         1,
-			"created_at":      1,
-			"updated_at":      1,
+			"department_id":       1,
+			"role":                1,
+			"realm":               1,
+			"enabled":             1,
+			"created_at":          1,
+			"updated_at":          1,
 		}}},
 	}
 
 	cursor, err := p.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
+		p.logger.Errorf("Failed to aggregate Permission Groups, groupIDs: %v, error: %v", groupIDs, err)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
 	var groups []cps_user_dto.PermissionGroupResponse
 	if err := cursor.All(ctx, &groups); err != nil {
+		p.logger.Errorf("Failed to decode Permission Groups aggregation, groupIDs: %v, error: %v", groupIDs, err)
 		return nil, err
 	}
 
