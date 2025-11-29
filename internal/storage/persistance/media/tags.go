@@ -20,19 +20,19 @@ var (
 
 type newsTags struct {
 	logger      shared_utils.Logger
-	newsTagsDal dal.MongoDal[model.NewsTags, model.NewsTags]
+	newsTagsDal dal.MongoDal[model.NewsTagModel, model.NewsTagModel]
 	client      *mongo.Client
 }
 
 func NewNewsTagsRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.NewsTagsRepository {
 	return &newsTags{
 		logger:      logger,
-		newsTagsDal: dal.NewMongoDal[model.NewsTags, model.NewsTags](client, dbName, collectionName),
+		newsTagsDal: dal.NewMongoDal[model.NewsTagModel, model.NewsTagModel](client, dbName, collectionName),
 		client:      client,
 	}
 }
 
-func (n *newsTags) Create(ctx context.Context, newsTag *model.NewsTags) error {
+func (n *newsTags) Create(ctx context.Context, newsTag *model.NewsTagModel) error {
 	_, err := n.newsTagsDal.InsertOne(ctx, *newsTag)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -40,7 +40,7 @@ func (n *newsTags) Create(ctx context.Context, newsTag *model.NewsTags) error {
 	return nil
 }
 
-func (n *newsTags) Update(ctx context.Context, newsTag *model.NewsTags, id string) error {
+func (n *newsTags) Update(ctx context.Context, newsTag *model.NewsTagModel, id string) error {
 	objId, err := bson.ObjectIDFromHex(id)
 
 	if err != nil {
@@ -103,7 +103,7 @@ func (n *newsTags) EnableDisable(ctx context.Context, id string, isEnable bool) 
 	return nil
 }
 
-func buildNewsTagUpdate(newsTag model.NewsTags) bson.M {
+func buildNewsTagUpdate(newsTag model.NewsTagModel) bson.M {
 	update := bson.M{
 		"name":       newsTag.Name,
 		"is_enabled": newsTag.IsEnabled,

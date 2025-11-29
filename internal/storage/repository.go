@@ -536,8 +536,8 @@ type NewsCategoryRepository interface {
 }
 
 type NewsTagsRepository interface {
-	Create(ctx context.Context, newsTag *model.NewsTags) error
-	Update(ctx context.Context, newsTag *model.NewsTags, id string) error
+	Create(ctx context.Context, newsTag *model.NewsTagModel) error
+	Update(ctx context.Context, newsTag *model.NewsTagModel, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableDisable(ctx context.Context, id string, isEnable bool) error
 }
