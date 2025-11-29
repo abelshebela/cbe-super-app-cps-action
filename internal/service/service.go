@@ -10,11 +10,11 @@ import (
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
-
-	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 
@@ -46,6 +46,7 @@ type CPSActionService interface {
 	CreateCPSAction(ctx context.Context, action *model.CPSAction) error
 	RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)

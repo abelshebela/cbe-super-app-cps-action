@@ -172,13 +172,15 @@ const (
 	RequestDisableFaydaAccount   RequestAction = "DISABLE_FAYDA_ACCOUNT"
 	RequestEnableFaydaAccount    RequestAction = "ENABLE_FAYDA_ACCOUNT"
 
-	RequestAccountUpdate          RequestAction = "REQUEST_ACCOUNT_UPDATE"
-	RequestCreatePermissionGroup  RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup  RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup  RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestCreateBudgetCategory   RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory   RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory   RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestAccountUpdate         RequestAction = "REQUEST_ACCOUNT_UPDATE"
+	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
+
+	RequestCreateBudgetCategory RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory RequestAction = "UPDATE_BUDGET_CATEGORY"
+
 	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
 	RequestUnlinkUser             RequestAction = "UNLINK_USER"
 	RequestUpdateHQBlockTime      RequestAction = "UPDATE_HQ_BLOCK_TIME"
@@ -667,9 +669,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableCities,
 	},
 	"BudgetCategory": {
-		RequestAction("CREATE_BUDGET_CATEGORY"),
-		RequestAction("UPDATE_BUDGET_CATEGORY"),
-		RequestAction("DELETE_BUDGET_CATEGORY"),
+		RequestCreateBudgetCategory,
+		RequestUpdateBudgetCategory,
+		RequestDeleteBudgetCategory,
 	},
 	"UnlinkDevice": {
 		RequestUnlinkDevice,
