@@ -123,6 +123,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.NewsTagsServiceContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "news_category"):
 		return d.app.NewsCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "BudgetCategory"):
+		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
