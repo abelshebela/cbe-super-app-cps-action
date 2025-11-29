@@ -51,7 +51,6 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		Email:             data.KYC.Representative.Email,
 		PhoneNumber:       data.KYC.Representative.Phone,
 	}, nil)
-
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
 		return nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
@@ -81,8 +80,6 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	data.CreatedAt = now
 	data.LastModifiedAt = now
 	data.KYC.Status = string(constants.KYCStatusComplete)
-	data.Email = data.Email
-	data.PhoneNumber = data.PhoneNumber
 	data.Enabled = true
 	err = core.HandleCPSActionForMiniAppMerchant(
 		ctx,

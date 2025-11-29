@@ -59,7 +59,6 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	}
 
 	reqDTO.PhoneNumber = formattedPhone
-
 	// Extract User Context
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
