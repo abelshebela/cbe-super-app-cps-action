@@ -28,7 +28,7 @@ func NewMediaTagsService(repo storage.NewsTagsRepository, logger utils.Logger) s
 func (m *mediaTagsService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	m.logger.Infof("Media tags service authorizing action: %s", cpsAction.ActionCode)
 
-	tags, err := local_util.JsonUnmarshal[model.NewsTags](cpsAction.CurrentAction)
+	tags, err := local_util.JsonUnmarshal[model.NewsTagModel](cpsAction.CurrentAction)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
