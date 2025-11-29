@@ -111,7 +111,7 @@ func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection b
 }
 
 func (a *AvatarStorage) Find(ctx context.Context, filter bson.M, projection bson.M) (*model.Avatar, error) {
-	filter = bson.M{"is_deleted": false}
+	filter["is_deleted"] = false
 	avatar, err := a.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
