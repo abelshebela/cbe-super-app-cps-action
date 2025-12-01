@@ -70,7 +70,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("request validation failed: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

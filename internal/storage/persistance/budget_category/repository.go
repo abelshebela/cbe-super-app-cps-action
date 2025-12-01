@@ -3,6 +3,8 @@ package budget_category
 import (
 	"context"
 	"errors"
+	"fmt"
+	"regexp"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -135,4 +137,30 @@ func (b *BudgetCategoryStorage) EnableOrDisableBudgetCategory(ctx context.Contex
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return nil
+}
+
+func (b *BudgetCategoryStorage) FindByName(ctx context.Context, name string) (*model.BudgetCategory, error) {
+	b.logger.Infof("[budgetname.FindByName] Searching for budget with name: %s", name)
+
+	filter := bson.M{
+		"name": bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(name) + "$", // exact match, case-insensitive
+			"$options": "i",
+		},
+		"is_deleted": false,
+	}
+
+	result, err := b.budgetCategoryDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			b.logger.Infof("[budgetname.FindByName]  No budget category  found with name: %s", name)
+			return nil, nil
+		}
+		b.logger.Errorf("[budgetname.FindByName]  Database query failed for name %s: %v", name, err)
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+	}
+
+	
+	b.logger.Infof("[budgetname.FindByName]  Successfully found budget category with name: %s", name)
+	return result, nil
 }
