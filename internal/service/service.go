@@ -538,7 +538,7 @@ type NewsCategoryService interface {
 }
 
 type SitotaService interface {
-	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
+	GetAllSitotas(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
 	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }
 
