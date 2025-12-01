@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -32,7 +34,8 @@ func InitSitotaHandler(svc service.SitotaService, logger utils.Logger) *handler 
 //	@Security		BearerAuth
 //	@Router			/sitotas [get]
 func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
-	sitotas, err := h.svc.GetAllSitotas(r.Context())
+	params := local_util.ExtractFilterParams(r)
+	sitotas, err := h.svc.GetAllSitotas(r.Context(), params)
 	if err != nil {
 		h.logger.Errorf("[GetAllSitotas] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

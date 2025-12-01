@@ -551,3 +551,8 @@ type IconRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
 }
+
+type SitotaRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
+	Get(ctx context.Context, id string) (*model.SitotaTransaction, error)
+}
