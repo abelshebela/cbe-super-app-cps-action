@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
-	"fmt"
 	"mime/multipart"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -21,22 +20,13 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 			validation.When(!isUpdate, validation.Required.Error("advert for is required")),
 			validation.In(string(constants.BOTH_ADVERT_FOR), string(constants.IFB_ADVERT_FOR), string(constants.CB_ADVERT_FOR)).Error("invalid advert for field"),
 		),
-		validation.Field(&c.BannerImage, validation.By(func(value interface{}) error { return validateBannerImage(value) })),
-	)
+		validation.Field(&c.BannerImage,
+				validation.When(c.BannerImage != nil, validation.By(func(value interface{}) error { return validateBannerImage(value) })),
+	),)
 
 	if err != nil {
 		return err
 	}
-
-	// Ensure at least one field is provided for update
-	if isUpdate &&
-		c.Title == "" &&
-		c.Description == "" &&
-		c.AdvertFor == "" &&
-		c.BannerImage == nil {
-		return fmt.Errorf("NO_DATA_PROVIDED_FOR_UPDATE")
-	}
-
 	return nil
 }
 
