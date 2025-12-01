@@ -43,7 +43,7 @@ func MapTransactionToSitota(tx any) *model.SitotaTransaction {
 		}
 		if paidAtStr := t.GetPaidAt(); paidAtStr != "" {
 			if tm, err := parseTime(paidAtStr); err == nil {
-				sitota.ClaimedAt = &tm
+				sitota.ClaimedAt = tm
 			}
 		}
 
