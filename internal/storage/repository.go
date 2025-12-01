@@ -144,6 +144,7 @@ type BudgetCategoryRepository interface {
 	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error)
 	DeleteBudgetCategory(ctx context.Context, id string) error
 	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
+	FindByName(ctx context.Context, name string) (*model.BudgetCategory, error)
 }
 
 // AmountBasedAuth persistence

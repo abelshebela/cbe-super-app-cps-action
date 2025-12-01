@@ -197,6 +197,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDescriptionLength30To100,
 	ErrorAdvertAlreadyDisabled,
 	ErrorAdvertTitleAlreadyExists,
+	ErrorBudgetCategoryNameAlreadyExists,
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
@@ -1375,6 +1376,12 @@ var (
 		Code:       "ERROR_ADVERT_TITLE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Advert title already exists",
+		Type:       "error",
+	}
+	ErrorBudgetCategoryNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "budget category name already exists",
 		Type:       "error",
 	}
 
