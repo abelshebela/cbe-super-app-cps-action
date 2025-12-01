@@ -109,7 +109,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 	deviceVersionService := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, nil, logger)
-	sitotaService := sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
+	sitotaService := sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
@@ -222,7 +222,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
 
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
-	sitotaService = sitota_service.NewSitotaTransactionService(sitotagRPCClient, logger)
+	sitotaService = sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
 	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)

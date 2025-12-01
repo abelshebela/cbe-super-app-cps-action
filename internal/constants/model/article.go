@@ -27,10 +27,10 @@ type NewsArticle struct {
 }
 type NewsArticleDetail struct {
 	ID               bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Category         NewsCategoryModel  `bson:"category" json:"category"`
+	Category         NewsCategory  `bson:"category" json:"category"`
 	Title            string        `bson:"title" json:"title"`
 	Content          string        `bson:"content" json:"content"`
-	Tags             []NewsTagModel     `bson:"tags" json:"tags"`
+	Tags             []NewsTag     `bson:"tags" json:"tags"`
 	Language         string        `bson:"language" json:"language"`
 	Author           string        `bson:"author" json:"author"`
 	Thumbnail        string        `bson:"thumbnail" json:"thumbnail"`
@@ -47,7 +47,7 @@ type NewsArticleDetail struct {
 }
 
 type NewsCategoryModel struct {
-	ID        bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name      string        `bson:"name" json:"name"`
 	Color     string        `bson:"color" json:"color"`
 	IsActive  bool          `bson:"is_active" json:"is_active"`
@@ -80,10 +80,10 @@ type ShortVideo struct {
 
 type ShortVideoDetail struct {
 	ID               bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Category         NewsCategoryModel  `bson:"category" json:"category"`
+	Category         NewsCategory  `bson:"category" json:"category"`
 	Title            string        `bson:"title" json:"title"`
 	Caption          string        `bson:"caption" json:"caption"`
-	Tags             []NewsTagModel     `bson:"tags" json:"tags"`
+	Tags             []NewsTag     `bson:"tags" json:"tags"`
 	Thumbnail        string        `bson:"thumbnail" json:"thumbnail"`
 	ThumbnailAltText string        `bson:"thumbnail_alt_text" json:"thumbnail_alt_text"`
 	VideoURL         string        `bson:"video_url" json:"video_url"`
@@ -101,8 +101,8 @@ type ShortVideoDetail struct {
 	PublishedAt      *time.Time    `bson:"published_at,omitempty" json:"published_at,omitempty"`
 }
 
-type NewsTagModel struct {
-	ID        bson.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+type NewsTags struct {
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name      string        `bson:"name" json:"name"`
 	Color     string        `bson:"color" json:"color"`
 	IsEnabled bool          `bson:"is_enabled" json:"is_enabled"`
@@ -158,7 +158,7 @@ func (m *ShortVideoDetail) ToShortVideo() *ShortVideo {
 	}
 }
 
-func extractTagIDs(tags []NewsTagModel) []bson.ObjectID {
+func extractTagIDs(tags []NewsTag) []bson.ObjectID {
 	var tagIDs []bson.ObjectID
 	for _, tag := range tags {
 		tagIDs = append(tagIDs, tag.ID)
