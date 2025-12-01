@@ -51,7 +51,11 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
+	if err := req.Validate(false); err != nil {
+		a.logger.Errorf("advert create  update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 	domainReq, err := core.ToAdvert(req)
 	if err != nil {
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
@@ -162,7 +166,11 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	if err := req.Validate(true); err != nil {
+		a.logger.Errorf("advert update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 	domainReq, _ := core.ToAdvert(req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil {
