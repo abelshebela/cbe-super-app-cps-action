@@ -38,9 +38,9 @@ SELECT
   credit_account_number,
   credit_user_id,
   amount,
-  paid_at,
   institution_code,
   transaction_status,
+  paid_at,
   created_at,
   last_modified_at
 FROM transaction
@@ -48,8 +48,6 @@ WHERE transaction_type = 'sitota'
   AND transaction_id = :1`
 
 type FindSitotaTransactionsParams struct {
-	// Status sql.NullString `json:"status"`
-	// Search sql.NullString `json:"search"`
 	Page  sql.NullInt64 `json:"page"`
 	Limit sql.NullInt64 `json:"limit"`
 }
