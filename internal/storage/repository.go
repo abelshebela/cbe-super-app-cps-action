@@ -196,6 +196,7 @@ type AdvertRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Advert, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FindByTitle(ctx context.Context, title string) (*model.Advert, error)
 }
 
 type ArchivedUserRepository interface {

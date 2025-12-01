@@ -11,7 +11,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
+	"regexp"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -194,11 +194,12 @@ func (p *ProductCodeStorage) FindByName(ctx context.Context, name string) (*mode
 
 	filter := bson.M{
 		"service_name": bson.M{
-			"$regex":   "^" + strings.ToLower(name) + "$",
+			"$regex":   "^" + regexp.QuoteMeta(name) + "$", // exact match, case-insensitive
 			"$options": "i",
 		},
 		"is_deleted": false,
 	}
+
 	result, err := p.producCodeDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -213,6 +214,7 @@ func (p *ProductCodeStorage) FindByName(ctx context.Context, name string) (*mode
 	p.logger.Infof("[productcode.FindByName] Successfully found product code with name: %s", name)
 	return pc, nil
 }
+
 
 func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD string) ([]*model.ProductCode, error) {
 	p.logger.Infof("[productcode.FindByPRD] Searching for product codes with CBE PRD: %s or CBE IFB PRD: %s", cbePRD, cbeIFBPRD)
