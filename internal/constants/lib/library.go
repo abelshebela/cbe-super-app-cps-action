@@ -197,69 +197,6 @@ func UploadFileToMinio(
 
 }
 
-// func UploadFileToMinio(
-// 	ctx context.Context,
-// 	uploader aws.Config,
-// 	bucketName string,
-// 	fileHeader *multipart.FileHeader,
-// 	prefix string,
-// 	minioEndpoint string,
-// 	objectkey string,
-// 	logger interface {
-// 		Errorf(format string, args ...any)
-// 	},
-// ) (string, error) {
-// 	// Ensure bucket exists
-// 	exist, err := uploader.BucketExist(ctx, bucketName)
-// 	if err != nil {
-// 		fmt.Println("=====fileName=====", bucketName, err)
-// 		logger.Errorf("failed to check bucket '%s': %v", bucketName, err)
-// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	if !exist {
-// 		created, err := uploader.MakeBucket(ctx, bucketName)
-// 		if err != nil || !created {
-// 			logger.Errorf("failed to create bucket '%s': %v", bucketName, err)
-// 			return "", errors.New(localization.ErrorUnexpectedError.Code)
-// 		}
-// 	}
-
-// 	// Open file
-// 	file, err := fileHeader.Open()
-// 	if err != nil {
-// 		logger.Errorf("failed to open file: %v", err)
-// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-// 	defer file.Close()
-
-// 	var fileName string
-// 	if objectkey != "" {
-// 		fileName = objectkey
-// 	} else {
-// 		extension := fileHeader.Filename[len(fileHeader.Filename)-4:]
-// 		fileName = fmt.Sprintf("%s-%d.%s", prefix, time.Now().UnixNano(), extension)
-// 	}
-
-// 	// Upload file
-// 	saveObj, err := uploader.SaveObjectN(ctx, config.SaveObjectBodyN{
-// 		BucketName:  bucketName,
-// 		ObjectName:  fileName,
-// 		Reader:      file,
-// 		Size:        fileHeader.Size,
-// 		ContentType: config.ContentType(fileHeader.Header.Get("Content-Type")),
-// 	})
-
-// 	if err != nil {
-// 		logger.Errorf("failed to upload file to MinIO: %v", err)
-// 		return "", errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	// Return full URL
-// 	url := fmt.Sprintf("%s/%s/%s", minioEndpoint, saveObj.Bucket, saveObj.Key)
-// 	return url, nil
-// }
-
 func RemoveFileFromMino(ctx context.Context, client aws.Config, bucketName string, objectkey string,
 	logger interface {
 		Errorf(format string, args ...any)

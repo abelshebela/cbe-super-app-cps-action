@@ -5,7 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
-	"gitlab.com/yohannesteshome/coreio/core"
+	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 

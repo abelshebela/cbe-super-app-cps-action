@@ -3,7 +3,6 @@ package cpsuser
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -89,7 +88,6 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 	var populatedGroups []cpsuser.PermissionGroupResponse
 	if len(req.PermissionGroups) > 0 {
-		fmt.Printf("////////lololllllllllllllllllllll   -1111111111111111111111111")
 		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
 		if err != nil {
 			return err
@@ -98,14 +96,12 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	cpsUser := core.CPSUModel(req)
-	fmt.Printf("////////lololllllllllllllllllllll   00000000000000000000",cpsUser)
 	payload := cpsuser.CPSUserActionPayload{
 		User:                 cpsUser,
 		PermissionCategories: populatedCategories,
 		PermissionGroups:     populatedGroups,
 		PortalCards:          dep.PortalCards,
 	}
-fmt.Printf("////////lololllllllllllllllllllll    1111111111111111111111111",payload)
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, payload, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
@@ -241,7 +237,6 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 	if userCode == "" {
 		return errors.New(localization.ErrorUserCodeRequired.Code)
 	}
-
 	prev, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {

@@ -18,22 +18,22 @@ import (
 
 	"log"
 
-	"gitlab.com/yohannesteshome/coreio/core"
-
 	"github.com/go-chi/chi/v5"
+	"github.com/hugokessem/coreio/core"
 )
 
 func Init(ctx context.Context) {
 	done := make(chan struct{})
-	coreConfig := core.CBECoreCredential{
-		Username: "SUPERAPP",
-		Password: "123456",
-		Url:      "http://10.1.15.195:8080/CBESUPERAPPV2/services?wsdl=null",
-	}
 	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
 	logger.Infof("Configuration initialized")
+
+	coreConfig := core.CBECoreCredential{
+		Username: cfg.CbeCoreUsername,
+		Password: cfg.CbeCorePassword,
+		Url:      cfg.CbeCoreUrl,
+	}
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")

@@ -58,13 +58,13 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 		if dto.ServiceType != "" {
 			updatedService.ServiceType = dto.ServiceType
 		}
-		if dto.DailyCapLevelOne > 0 {
+		if &dto.DailyCapLevelOne != nil {
 			updatedService.DailyCapLevelOne = uint64(dto.DailyCapLevelOne)
 		}
-		if dto.SingleCapLevelOne > 0 {
+		if &dto.SingleCapLevelOne != nil {
 			updatedService.SingleCapLevelOne = uint64(dto.SingleCapLevelOne)
 		}
-		if dto.MinAmountVIRTUAL > 0 {
+		if &dto.MinAmountVIRTUAL != nil {
 			updatedService.MinAmountVirtual = uint64(dto.MinAmountVIRTUAL)
 		}
 
@@ -113,10 +113,6 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 					FeeAmount: tier.FeeAmount,
 				}
 			}
-			updatedService.Tiers = tiers
-			updatedService.DailyCapLevelOne = uint64(dto.DailyCapLevelOne)
-			updatedService.SingleCapLevelOne = uint64(dto.SingleCapLevelOne)
-			updatedService.MinAmountVirtual = uint64(dto.MinAmountVIRTUAL)
 			updatedService.Tiers = tiers
 			updatedService.AboveAmount = tiers[len(tiers)-1].Max
 		}

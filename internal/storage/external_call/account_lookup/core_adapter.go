@@ -12,7 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 
-	"gitlab.com/yohannesteshome/coreio/core"
+	"github.com/hugokessem/coreio/core"
 )
 
 type Account interface {

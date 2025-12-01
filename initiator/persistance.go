@@ -64,9 +64,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
+	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"gitlab.com/yohannesteshome/coreio/core"
+
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
