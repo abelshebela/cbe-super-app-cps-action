@@ -100,7 +100,7 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
