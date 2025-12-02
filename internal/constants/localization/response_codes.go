@@ -1587,7 +1587,7 @@ var (
 	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Wallet with the given name already exists",
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
