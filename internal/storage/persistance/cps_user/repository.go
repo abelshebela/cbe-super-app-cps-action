@@ -1,0 +1,283 @@
+package cps_user
+
+import (
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
+	"context"
+	"errors"
+
+	"time"
+
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+)
+
+type CPSUserStorage struct {
+	dal               dal.MongoDal[model.CPSUser, model.CPSUser]
+	cpsAction         dal.MongoDal[model.CPSAction, model.CPSAction]
+	client            *mongo.Client
+	collection        *mongo.Collection
+	relatedCollection []string
+	logger            utils.Logger
+}
+
+func NewCPSUserRepository(client *mongo.Client, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
+	return &CPSUserStorage{
+		dal:               dal.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collection),
+		cpsAction:         dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions"),
+		client:            client,
+		collection:        client.Database(dbName).Collection(collection),
+		relatedCollection: relatedCollection,
+		logger:            logger,
+	}
+}
+
+// Implement actual repository methods for CPS action authorization
+func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *model.CPSUser) error {
+	_, err := r.dal.InsertOne(ctx, *cpsUser)
+	if err != nil {
+		r.logger.Errorf("failed to create CPS user: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return nil
+}
+
+func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *model.CPSUser) error {
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
+	update := CPSUserUpdateMapper(cpsUser)
+
+	_, err := r.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("failed to update CPS user: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return nil
+}
+
+func (r *CPSUserStorage) Delete(ctx context.Context, userCode string) error {
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
+	update := bson.M{"is_deleted": true}
+
+	_, err := r.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("failed to delete CPS user: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return nil
+}
+
+func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, enable bool) error {
+	filter := bson.M{"user_code": userCode, "is_deleted": false}
+	update := bson.M{"enabled": enable, "last_modified": time.Now()}
+
+	_, err := r.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.Errorf("failed to enable/disable CPS user: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return nil
+}
+
+// FindByID supports both ObjectID and user_code lookups
+func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*model.CPSUser, error) {
+	filter := bson.M{"username": username}
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil // Return nil, nil when no document found (not an error)
+		}
+		r.logger.Errorf("failed to find CPS user by username: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
+func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error) {
+	filter := bson.M{"phone_number": phoneNumber}
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		r.logger.Errorf("failed to find CPS user by phone number: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
+func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*model.CPSUser, error) {
+	filter := bson.M{"email": email}
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		r.logger.Errorf("failed to find CPS user by email: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
+
+// FindByID supports both ObjectID and user_code lookups
+func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*model.CPSUser, error) {
+
+	filter := bson.M{"user_code": id, "is_deleted": false}
+
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
+
+func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
+	searchKeys := bson.M{}
+
+	allowedKeys := []string{"enabled", "department", "role"}
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"full_name": searchRegex},
+			{"email": searchRegex},
+			{"username": searchRegex},
+			{"user_code": searchRegex},
+			{"phone_number": searchRegex},
+		}
+	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	filter["is_deleted"] = false
+
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":                 1,
+			"user_code":           1,
+			"full_name":           1,
+			"role":                1,
+			"department":          1,
+			"gender":              1,
+			"phone_number":        1,
+			"email":               1,
+			"username":            1,
+			"realm":               1,
+			"permission_category": 1,
+			"permission_group":    1,
+			"enabled":             1,
+			"date_joined":         1,
+			"last_modified":       1,
+			"country":             1,
+			"region":              1,
+		}}},
+
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "department",
+			"localField":   "department",
+			"foreignField": "_id",
+			"as":           "department_info",
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":        1,
+					"department": 1,
+				}}},
+			},
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$department_info",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"department": bson.M{
+				"id":   "$department_info._id",
+				"name": "$department_info.department",
+			},
+		}}},
+		bson.D{{Key: "$project", Value: bson.M{
+			"department_info": 0,
+		}}},
+
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "full_name", Value: 1}}}},
+
+		// Use $facet for concurrent data fetching and counting
+		bson.D{{Key: "$facet", Value: bson.M{
+			"data": []bson.D{
+				{{Key: "$skip", Value: skip}},
+				{{Key: "$limit", Value: limit}},
+			},
+			"total": []bson.D{
+				{{Key: "$count", Value: "count"}},
+			},
+		}}},
+	}
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Errorf("failed to execute optimized aggregation pipeline: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	var results []struct {
+		Data  []*cpsuser.CPSUserWithDepartment `bson:"data"`
+		Total []struct {
+			Count int64 `bson:"count"`
+		} `bson:"total"`
+	}
+
+	if err := cursor.All(ctx, &results); err != nil {
+		r.logger.Errorf("failed to decode aggregation results: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	if len(results) == 0 {
+		return &types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment]{
+			Data: []*cpsuser.CPSUserWithDepartment{},
+			Meta: local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage),
+		}, nil
+	}
+
+	var total int64
+	if len(results[0].Total) > 0 {
+		total = results[0].Total[0].Count
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	return &types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment]{
+		Data: results[0].Data,
+		Meta: meta,
+	}, nil
+}
+
+func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
+
+	pipeline := PipelineBuilder(userCode, r.relatedCollection[0], r.relatedCollection[3], r.relatedCollection[1], r.relatedCollection[2])
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Errorf("failed to aggregate cps user by id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	var resp cpsuser.CpsUserResponse
+	if err := cursor.Decode(&resp); err != nil {
+		r.logger.Errorf("failed to decode cps user response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	return &resp, nil
+}

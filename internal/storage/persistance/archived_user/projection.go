@@ -1,0 +1,104 @@
+package archived_user
+
+import (
+	"cbe-super-app-cps-action/internal/constants/model"
+
+	"go.mongodb.org/mongo-driver/bson"
+)
+
+func Projection() bson.M {
+	return bson.M{
+		"_id":                1,
+		"user_code":          1,
+		"full_name":          1,
+		"mother_name":        1,
+		"nationality":        1,
+		"birth_date":         1,
+		"residential_status": 1,
+		"phone_number":       1,
+		"gender":             1,
+		"marital_status":     1,
+		"email":              1,
+		"created_at":         1,
+		"account_status":     1,
+		"main_account":       1,
+		"branch_name":        1,
+		"district_name":      1,
+		"kyc_level":          1,
+		"is_verified":        1,
+		"is_blocked":         1,
+		"last_login":         1,
+	}
+}
+
+func UserToArchivedUser(user *model.User) *model.ArchivedUser {
+	if user == nil {
+		return nil
+	}
+	return &model.ArchivedUser{
+		ID:                  user.ID,
+		UserCode:            user.UserCode,
+		FullName:            user.FullName,
+		MotherName:          user.MotherName,
+		Nationality:         user.Nationality,
+		BirthDate:           user.BirthDate,
+		BranchName:          user.BranchName,
+		DistrictName:        user.DistrictName,
+		BranchCode:          user.BranchCode,
+		DistrictCode:        user.DistrictCode,
+		ResidentialStatus:   user.ResidentialStatus,
+		IssuedDate:          user.IssuedDate,
+		PhoneNumber:         user.PhoneNumber,
+		Gender:              user.Gender,
+		ProfileThemeType:    user.ProfileThemeType,
+		Address:             user.Address,
+		DocumentFront:       user.DocumentFront,
+		DocumentBack:        user.DocumentBack,
+		Photo:               user.Photo,
+		Signature:           user.Signature,
+		Avatar:              user.Avatar,
+		Email:               user.Email,
+		Username:            user.Username,
+		PushToken:           user.PushToken,
+		Realm:               user.Realm,
+		IsAccountBlocked:    user.IsAccountBlocked,
+		MainAccount:         user.MainAccount,
+		LastMainAccount:     user.LastMainAccount,
+		AccountLinked:       user.AccountLinked,
+		LastAccountLinked:   user.LastAccountLinked,
+		MemberType:          user.MemberType,
+		AccountStatus:       user.AccountStatus,
+		KYCLevel:            user.KYCLevel,
+		BranchApproved:      user.BranchApproved,
+		IsVerified:          user.IsVerified,
+		IsSelfRegister:      user.IsSelfRegister,
+		BlockedOnCPS:        user.BlockedOnCPS,
+		IsBlocked:           user.IsBlocked,
+		RegisterBy:          user.RegisterBy,
+		LoginAttemptCount:   user.LoginAttemptCount,
+		NextLoginAttempt:    user.NextLoginAttempt,
+		LastLoginAttempt:    user.LastLoginAttempt,
+		LastOnlineDate:      user.LastOnlineDate,
+		LastLogin:           user.LastLogin,
+		BPSStatus:           user.BPSStatus,
+		BPSRejectionReason:  user.BPSRejectionReason,
+		BPSRejectionField:   user.BPSRejectionField,
+		LoginPIN:            user.LoginPIN,
+		DeviceUUID:          user.DeviceUUID,
+		AppVersion:          user.AppVersion,
+		Platform:            user.Platform,
+		APPInstallationDate: user.APPInstallationDate,
+		CustomerNumber:      user.CustomerNumber,
+		InitialLinkedDate:   user.InitialLinkedDate,
+		LoanScore:           user.LoanScore,
+		DeviceStatus:        user.DeviceStatus,
+		Enabled:             user.Enabled,
+		FirstPinSet:         user.FirstPinSet,
+		PINChangedAt:        user.PINChangedAt,
+		OTPVerifyCount:      user.OTPVerifyCount,
+		InitialiLinkedAt:    user.InitialiLinkedAt,
+		CreatedAt:           user.CreatedAt,
+		LastModifiedAt:      user.LastModifiedAt,
+		IsDeleted:           user.IsDeleted,
+	}
+}

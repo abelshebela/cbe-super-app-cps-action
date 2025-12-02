@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cps-action",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd",
+<<<<<<< HEAD
+            "envFile": "${workspaceFolder}/.env",
+=======
+            "envFile": "${workspaceFolder}/.env"
+>>>>>>> 0516d4eb (bugs reported from qa are fixed)
+        }
+    ]
+}

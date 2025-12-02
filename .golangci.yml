@@ -1,0 +1,112 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+  go: "1.25"
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - gosimple
+    - unused
+    - typecheck
+    - revive
+    - gofmt
+    - goimports
+    - gofumpt
+    - misspell
+    - gocyclo
+    - dupl
+    - goconst
+    - nakedret
+    - unconvert
+    - prealloc
+    - whitespace
+    - exportloopref
+    - gosec
+    - gocritic
+    - stylecheck
+    - nolintlint
+    - predeclared
+    - dogsled
+    - bodyclose
+    - durationcheck
+    - errorlint
+    - cyclop
+    - funlen
+  disable:
+    - depguard
+
+linters-settings:
+  revive:
+    severity: warning
+    rules:
+      - name: exported
+      - name: package-comments
+      - name: var-naming
+      - name: indent-error-flow
+      - name: if-return
+      - name: blank-imports
+      - name: context-keys-type
+      - name: empty-lines
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: cbe-super-app-cps-action,gitlab.com/bersufekadgetachew/cbe-super-app-shared
+  gocyclo:
+    min-complexity: 12
+  misspell:
+    locale: US
+  dupl:
+    threshold: 120
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  gosec:
+    excludes:
+      - G304 # file path provided as taint input
+      - G306 # Expect WriteFile permissions to be 0600 or less
+    severity: medium
+    confidence: medium
+  cyclop:
+    max-complexity: 12
+  funlen:
+    lines: 120
+    statements: 70
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - diagnostic
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+
+issues:
+  exclude-dirs:
+    - docs
+    - grpc
+    - mock-test/mocks
+    - vendor
+  exclude-files:
+    - ".*\\.pb\\.go"
+    - ".*_grpc\\.pb\\.go"
+    - ".*mock.*\\.go"
+  exclude-rules:
+    - path: _test\\.go
+      linters:
+        - gocyclo
+        - dupl
+        - funlen
+    - path: internal/constants/.*
+      linters:
+        - goconst
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: true
+
+output:
+  sort-results: true
