@@ -179,7 +179,7 @@ func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.
 			MaxAmount:                  row.MaxAmount,
 			RateBps:                    row.RateBps.Div(decimal.NewFromInt(100)),
 			Method:                     row.Method,
-			Frequency:                  string(row.Frequency),
+			Frequency:                  row.Frequency,
 			ApplyInterestOnEarlyUnlock: nil,
 			LockPeriod:                 fmt.Sprintf("%d months", utils.DurationToMonths(row.LockPeriod)),
 			CreatedAt:                  row.CreatedAt,

@@ -53,17 +53,16 @@ type DepartmentResponse struct {
 }
 
 type CpsUserResponse struct {
-	ID          bson.ObjectID       `json:"id" bson:"_id"`
-	UserCode    string              `json:"user_code" bson:"user_code"`
-	FullName    string              `json:"full_name" bson:"full_name"`
-	Role        string              `json:"role" bson:"role"`
-	Department  *DepartmentResponse `json:"department" bson:"department"`
-	Gender      string              `json:"gender" bson:"gender"`
-	PhoneNumber string              `json:"phone_number" bson:"phone_number"`
-	Email       string              `json:"email" bson:"email"`
-	UserName    string              `json:"username" bson:"username"`
-	Realm       string              `json:"realm" bson:"realm"`
-
+	ID               bson.ObjectID             `json:"id" bson:"_id"`
+	UserCode         string                    `json:"user_code" bson:"user_code"`
+	FullName         string                    `json:"full_name" bson:"full_name"`
+	Role             string                    `json:"role" bson:"role"`
+	Department       *DepartmentResponse       `json:"department" bson:"department"`
+	Gender           string                    `json:"gender" bson:"gender"`
+	PhoneNumber      string                    `json:"phone_number" bson:"phone_number"`
+	Email            string                    `json:"email" bson:"email"`
+	UserName         string                    `json:"username" bson:"username"`
+	Realm            string                    `json:"realm" bson:"realm"`
 	Enabled          bool                      `json:"enabled" bson:"enabled"`
 	DateJoined       time.Time                 `json:"date_joined" bson:"date_joined"`
 	LastModified     time.Time                 `json:"last_modified" bson:"last_modified"`
