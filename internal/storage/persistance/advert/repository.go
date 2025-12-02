@@ -20,18 +20,18 @@ import (
 )
 
 type AdvertStorage struct {
-	dal    dal.MongoDal[model.Advert, model.Advert]
-	client *mongo.Client
-	logger utils.Logger
-	collection   *mongo.Collection
+	dal        dal.MongoDal[model.Advert, model.Advert]
+	client     *mongo.Client
+	logger     utils.Logger
+	collection *mongo.Collection
 }
 
 func NewAdvertRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AdvertRepository {
 	return &AdvertStorage{
-		dal:    dal.NewMongoDal[model.Advert, model.Advert](client, dbName, collection),
-		client: client,
-		logger: logger,
-		collection:    client.Database(dbName).Collection(collection),
+		dal:        dal.NewMongoDal[model.Advert, model.Advert](client, dbName, collection),
+		client:     client,
+		logger:     logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 
@@ -115,7 +115,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
 			{"description": searchRegex},
-			{"is_deleted": false},
+			// {"is_deleted": false},
 		}
 	}
 
@@ -140,8 +140,9 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		Meta: meta,
 	}, nil
 }
+
 func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.Advert, error) {
-a.logger.Infof("[Adver.FindByTitle] Searching for Advert by title: %s", title)
+	a.logger.Infof("[Adver.FindByTitle] Searching for Advert by title: %s", title)
 
 	filter := bson.M{
 		"title": bson.M{
@@ -161,5 +162,5 @@ a.logger.Infof("[Adver.FindByTitle] Searching for Advert by title: %s", title)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
-	return result,nil
+	return result, nil
 }
