@@ -140,6 +140,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		Meta: meta,
 	}, nil
 }
+
 func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.Advert, error) {
 	a.logger.Infof("[Adver.FindByTitle] Searching for Advert by title: %s", title)
 
