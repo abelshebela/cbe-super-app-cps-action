@@ -58,7 +58,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 	}
 
 	if accountDetail == nil {
-		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
+		return nil, err
 	}
 
 	return accountDetail, nil
