@@ -119,11 +119,7 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(req.PhoneNumber)
-	if err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 
 	req.PhoneNumber = formattedPhone
 

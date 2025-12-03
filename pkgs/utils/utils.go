@@ -467,7 +467,7 @@ func NoSpecialChars(value any) error {
 		return validation.NewError("validation", "invalid type")
 	}
 	str = strings.TrimSpace(str)
-	
+
 	if str == "" {
 		return nil
 	}
@@ -504,6 +504,27 @@ func FormatPhoneNumber(phoneNumber string) string {
 	}
 
 	return ""
+}
+
+func ExtractLast9Digits(s interface{}) string {
+	str, ok := s.(string)
+	if !ok {
+		// fallback: try fmt.Sprintf
+		str = fmt.Sprintf("%v", s)
+	}
+
+	digits := ""
+	for _, r := range str {
+		if r >= '0' && r <= '9' {
+			digits += string(r)
+		}
+	}
+
+	if len(digits) >= 9 {
+		return digits[len(digits)-9:]
+	}
+
+	return digits
 }
 
 func TrimWhiteSpace(value interface{}) error {

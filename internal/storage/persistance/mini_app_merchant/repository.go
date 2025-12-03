@@ -153,8 +153,8 @@ func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 			{"bank_account_number": searchRegex},
 			{"merchant_name": searchRegex},
 			{"merchant_code": searchRegex},
-			{"email": searchRegex},
 			{"phone_number": searchRegex},
+			{"email": searchRegex},
 		}
 	}
 

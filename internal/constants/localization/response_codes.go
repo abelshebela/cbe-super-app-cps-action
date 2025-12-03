@@ -455,6 +455,8 @@ var ResponseCodesList = []ResponseCode{
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
+	ErrorEmailAlreadyExist,
+	ErrorPhonenumberAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
@@ -1547,7 +1549,7 @@ var (
 	ErrorTopupNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Topup with the given name already exists",
+		Message:    "Topup with the given name and code already exists",
 		Type:       "error",
 	}
 	ErrorTopupCodeAlreadyExists = ResponseCode{
@@ -4292,6 +4294,18 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorEmailAlreadyExist = ResponseCode{
+		Code:       "ERROR_EMAIL_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEmailAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPhonenumberAlreadyExist = ResponseCode{
+		Code:       "ERROR_PHONENUMBER_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPhonenumberAlreadyExists,
 		Type:       "error",
 	}
 

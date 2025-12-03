@@ -53,7 +53,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
-		return nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
+		return nil, err
 	}
 
 	if exist {
