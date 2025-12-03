@@ -182,7 +182,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
 
@@ -233,15 +233,17 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				md := metadata.New(map[string]string{
 					"authorization": "Bearer " + tokenString,
 				})
+
 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
 				if err == nil {
 					a.logger.Errorf("failed to refresh token: %v", err)
-				} else {
-					a.logger.Infof("refresh token sent successfully", refresh_response)
+				}
+				if refresh_response != nil {
 					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
 				}
 			}
+
 		}
 
 		r = r.WithContext(ctx)
