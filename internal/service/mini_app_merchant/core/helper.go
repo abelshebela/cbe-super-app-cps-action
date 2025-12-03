@@ -183,7 +183,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 	accountDetail, err := accountLookupService.LookupAccountByAccountNumber(ctx, accountRequest)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
 	if accountDetail == nil {
@@ -241,6 +241,16 @@ func CheckMerchantExists(
 
 	if res == nil {
 		return false, nil
+	}
+
+	if res.BankAccountNumber == data.BankAccountNumber {
+		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	}
+	if res.Email == data.Email {
+		return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
+	}
+	if res.PhoneNumber == data.PhoneNumber {
+		return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 	}
 
 	return true, nil

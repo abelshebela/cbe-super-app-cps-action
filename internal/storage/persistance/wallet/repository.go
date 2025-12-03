@@ -133,14 +133,25 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 
 func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wallet, error) {
 	filter := bson.M{
-		"$or": []bson.M{
-			{"code": code},
-			{"name": name},
-		},
 		"is_deleted": false,
 	}
 
-	// filter := bson.M{key: value, "is_deleted": false}
+	var orFilters []bson.M
+
+	if code != "" {
+		// Exact match, case-sensitive
+		orFilters = append(orFilters, bson.M{"code": code})
+	}
+
+	if name != "" {
+		// Regex match for name (case-insensitive)
+		orFilters = append(orFilters, bson.M{"name": bson.M{"$regex": name, "$options": "i"}})
+	}
+
+	if len(orFilters) > 0 {
+		filter["$or"] = orFilters
+	}
+
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
