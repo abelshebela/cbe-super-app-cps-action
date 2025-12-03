@@ -144,7 +144,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 
 func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"merchant_type", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
+	allowedKeys := []string{"search", "merchant_type", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
