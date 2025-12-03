@@ -46,7 +46,8 @@ func NewWalletService(repo storage.WalletRepository, cps service.CPSActionServic
 func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRequest) error {
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "name", req.Name)
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	local_util.PrintRecord("Data", exist)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -58,18 +59,6 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	code, err := core.GeneratePrefixedName("WAL", req.Code, s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	existCode, err := s.repo.Find(ctx, req.Code, req.Name)
-	if err != nil {
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	if existCode != nil {
-		if existCode.Code == req.Code {
-			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
-		} else if existCode.Name == req.Name {
-			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
-		}
-		return errors.New(localization.ErrorMiniAppMerchantUnexpectedDBError.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", *s.cfg, "", s.logger)

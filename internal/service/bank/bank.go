@@ -119,8 +119,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, *b.cfg, "", b.logger)
-
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, "banks", *b.cfg, "", b.logger)
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
