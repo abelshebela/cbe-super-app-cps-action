@@ -114,13 +114,10 @@ func (s *BankStorage) FindByNameOrBICOrCode(ctx context.Context, bic, code, name
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
-	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
-	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
+	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
-	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
@@ -132,26 +129,21 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 		}
 
 	}
-	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		fmt.Println(err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.Bank]{
 		Data: data,
 		Meta: meta,
