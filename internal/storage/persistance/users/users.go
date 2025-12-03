@@ -43,14 +43,14 @@ func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 }
 
 func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
-	projection := UserProjection()
+	// projection := UserProjection()
 	filter, err := UserIdFilterAttachMent(id)
 	if err != nil {
 		r.logger.Errorf("invalid user id for FindById")
 		return nil, err
 	}
 
-	user, err := r.userDal.FindOne(ctx, filter, projection)
+	user, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			r.logger.Warnf("no user found for the provided id")
@@ -122,8 +122,8 @@ func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*
 	filter := bson.M{
 		"user_code": userCode,
 	}
-	projection := UserProjection()
-	user, err := r.userDal.FindOne(ctx, filter, projection)
+	// projection := UserProjection()
+	user, err := r.userDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorUserNotFound.Code)

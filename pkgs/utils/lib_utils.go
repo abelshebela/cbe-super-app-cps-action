@@ -17,6 +17,18 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+var counter uint64
+
+func NewNotificationID() string {
+	// timestamp format: YYYYMMDDHHMMSS
+	timestamp := time.Now().Format("20060102150405")
+
+	// atomic counter for uniqueness inside same second
+	// c := atomic.AddUint64(&counter, 1)
+
+	return fmt.Sprintf("%s", timestamp)
+}
+
 func ParseTime(date string) time.Time {
 	parsedTime, err := time.Parse("2006-01-02", date)
 	if err != nil {
