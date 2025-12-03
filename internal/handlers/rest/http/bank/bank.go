@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -303,9 +304,15 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.Update), b.logger)
 	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-		return
+		// var ErrorFileNotFound = errors.New("file not found")
+		if strings.Contains(err.Error(), "file not found") {
+			b.logger.Infof("No logo uploaded; skipping logo update")
+			// return
+		} else {
+			b.logger.Errorf("error parsing file: %v", err)
+			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+			return
+		}
 	}
 	if file == nil || fileHeader == nil {
 		b.logger.Infof("No logo uploaded; skipping logo update")
@@ -317,6 +324,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
+	updateRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		b.logger.Errorf("invalid input", response_code)
