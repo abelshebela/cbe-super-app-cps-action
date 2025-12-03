@@ -26,7 +26,6 @@ import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
@@ -197,12 +196,6 @@ type HQService interface {
 }
 
 type MiniAppService interface {
-	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
-	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
-	DeleteMiniApp(ctx context.Context, id string) error
-	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
-	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
