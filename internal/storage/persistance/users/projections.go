@@ -81,12 +81,6 @@ func UserBuilder(update model.User) bson.M {
 	if update.Gender != "" {
 		data["gender"] = update.Gender
 	}
-	if update.Fayda.FaydaID != "" {
-		data["fayda.id_number"] = update.Fayda.FaydaID
-	}
-	if update.Fayda.EmploymentStatus != "" {
-		data["fayda.employement_status"] = update.Fayda.EmploymentStatus
-	}
 	if update.Avatar != "" {
 		data["photo"] = update.Avatar
 	}

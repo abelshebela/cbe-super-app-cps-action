@@ -5,12 +5,12 @@ import (
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
+	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
-	"cbe-super-app-cps-action/internal/constants/dto/feedback"
-
-	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
+	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 
 	"cbe-super-app-cps-action/internal/constants"
 
@@ -115,6 +115,7 @@ type CPSActionRepository interface {
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
 	Delete(ctx context.Context, id string) error
+	GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 }
 
 // Avatar persistence
@@ -143,6 +144,7 @@ type BudgetCategoryRepository interface {
 	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error)
 	DeleteBudgetCategory(ctx context.Context, id string) error
 	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
+	FindByName(ctx context.Context, name string) (*model.BudgetCategory, error)
 }
 
 // AmountBasedAuth persistence
@@ -195,6 +197,7 @@ type AdvertRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Advert, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FindByTitle(ctx context.Context, title string) (*model.Advert, error)
 }
 
 type ArchivedUserRepository interface {
@@ -454,6 +457,8 @@ type ProductCodeRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
 	FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
 	Update(ctx context.Context, productCode *model.ProductCode) error
+	FindByName(ctx context.Context, name string) (*model.ProductCode, error)
+	FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD string) ([]*model.ProductCode, error)
 }
 
 type FaydaRepository interface {
@@ -478,18 +483,18 @@ type PermissionRepository interface {
 	Create(ctx context.Context, permissionGroup *model.PermissionGroup) error
 	Update(ctx context.Context, id string, permissionGroup *model.PermissionGroup) error
 	Delete(ctx context.Context, id string) error
-	// FindByID(ctx context.Context, id string) (*model.PermissionGroup, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	FindAllGroupsWithPagination(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
-	// Permission category operations
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) ([]string, error)
 	GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error)
 	GetAllPermissionCategories(ctx context.Context, card string) ([]*model.PermissionCategory, error)
-	// Permission group operations
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) ([]string, error)
 	CheckPermissionGroupExists(groupName string) bool
 	GetPermissionGroup(groupName string) (*model.PermissionGroup, error)
 	GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error)
+	FindByIDPopulated(ctx context.Context, id string) (cps_user_dto.PermissionGroupResponse, error)
+	GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []string) ([]cps_user_dto.PermissionCategoryResponse, error)
+	GetPopulatedPermissionGroups(ctx context.Context, groupIDs []string) ([]cps_user_dto.PermissionGroupResponse, error)
 }
 
 // ExternalCallServices type alias for external call services
@@ -547,4 +552,9 @@ type IconRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+}
+
+type SitotaRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
+	Get(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }

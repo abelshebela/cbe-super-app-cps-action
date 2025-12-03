@@ -16,22 +16,23 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type avatarService struct {
 	logger        utils.Logger
 	avatar        storage.AvatarRepository
-	minio         aws.Config
+	minio         *s3.Client
 	cpsService    service.CPSActionService
 	bucketName    string
 	minioEndPoint string
+	cfg           config.VaultConfig
 }
 
-func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSActionService, logger utils.Logger, minio  aws.Config, buckateName, minioEndPoint string) service.AvatarService {
+func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSActionService, logger utils.Logger, minio *s3.Client, buckateName string, minioEndPoint string, cfg config.VaultConfig) service.AvatarService {
 	return &avatarService{
 		cpsService:    cpsService,
 		avatar:        avatar,
@@ -39,23 +40,19 @@ func NewAvatarService(avatar storage.AvatarRepository, cpsService service.CPSAct
 		minio:         minio,
 		bucketName:    buckateName,
 		minioEndPoint: minioEndPoint,
+		cfg:           cfg,
 	}
 }
 
 func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, fileHeader *multipart.FileHeader) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	existing, err := a.avatar.Find(ctx, bson.M{"label": avatar.Label}, nil)
-	if err != nil {
-		if err.Error() != mongo.ErrNoDocuments.Error() {
-			return errors.New(localization.ErrorAvatarAlreadyExist.Code)
-		}
-	}
 
 	if existing != nil {
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.minioEndPoint,a.minio, "", a.logger)
+	url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.cfg, "", a.logger)
 	if err != nil {
 		return err
 	}
@@ -97,7 +94,7 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 			objectkey = path.Base(existed.Avatar)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.minioEndPoint, a.minio,objectkey, a.logger)
+		url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.cfg, objectkey, a.logger)
 		if err != nil {
 			return err
 		}

@@ -18,22 +18,22 @@ import (
 
 	"log"
 
-	"gitlab.com/yohannesteshome/coreio/core"
-
 	"github.com/go-chi/chi/v5"
+	"github.com/hugokessem/coreio/core"
 )
 
 func Init(ctx context.Context) {
 	done := make(chan struct{})
-	coreConfig := core.CBECoreCredential{
-		Username: "SUPERAPP",
-		Password: "123456",
-		Url:      "http://10.1.15.195:8080/CBESUPERAPPV2/services?wsdl=null",
-	}
 	logger := utils.NewLogger()
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
 	logger.Infof("Configuration initialized")
+
+	coreConfig := core.CBECoreCredential{
+		Username: cfg.CbeCoreUsername,
+		Password: cfg.CbeCorePassword,
+		Url:      cfg.CbeCoreUrl,
+	}
 
 	// Initialize OpenTelemetry Tracing using platform/telemetry package
 	logger.Infof("Initializing OpenTelemetry Tracing...")
@@ -129,13 +129,13 @@ func Init(ctx context.Context) {
 	}
 	defer auth_client.Close()
 
-	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CbeToCbeGrpcAddress)
+	sitotagRPCClient, err := api.NewSitotagRPCClient(ctx, logger, cfg.CommonSvcGrpcAddress)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
-	if cerr := sitotagRPCClient.Close(); cerr != nil {
-		logger.Errorf("Failed to close sitota RPC client: %v", cerr)
-	}
+	// if cerr := sitotagRPCClient.Close(); cerr != nil {
+	// 	logger.Errorf("Failed to close sitota RPC client: %v", cerr)
+	// }
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
@@ -152,6 +152,7 @@ func Init(ctx context.Context) {
 	handlerLayer := InitHandler(serviceLayer, logger)
 
 	r := chi.NewRouter()
+	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
 	InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler

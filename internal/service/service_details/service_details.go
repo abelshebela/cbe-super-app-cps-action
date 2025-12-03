@@ -116,6 +116,7 @@ func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dt
 	projection := bson.M{
 		"tiers": 1,
 	}
+
 	serviceDetail, err := s.serviceRepo.FindByID(ctx, projection, id)
 	if err != nil {
 		return err
@@ -281,6 +282,7 @@ func (s *ServiceDetails) applyServiceUpdate(ctx context.Context, cpsAction *mode
 		s.logger.Errorf("Failed to map service details for update: %v", err)
 		return err
 	}
+
 	return s.serviceRepo.Update(ctx, serviceID, updatedService)
 }
 

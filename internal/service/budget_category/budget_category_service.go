@@ -15,7 +15,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -24,7 +24,7 @@ type BudgetCategoryService struct {
 	budgetCategoryRepo storage.BudgetCategoryRepository
 	cpsService         service.CPSActionService
 	logger             utils.Logger
-	minio              aws.Config
+	minio              *s3.Client
 	bucketName         string
 	cfg                *config.VaultConfig
 	minioEndPoint      string
@@ -34,7 +34,7 @@ func NewBudgetCategoryService(
 	budgetCategoryRepo storage.BudgetCategoryRepository,
 	cpsService service.CPSActionService,
 	logger utils.Logger,
-	minio aws.Config,
+	minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -57,12 +57,12 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	switch action.RequestAction {
-	case string(constants.RequestBudgetCreate):
+	case string(constants.RequestCreateBudgetCategory):
 
 		err = b.budgetCategoryRepo.CreateBudgetCategory(ctx, budgetCategory)
-	case string(constants.RequestBudgetUpdate):
+	case string(constants.RequestUpdateBudgetCategory):
 		err = b.budgetCategoryRepo.UpdateBudgetCategory(ctx, action.UniqueId, budgetCategory)
-	case string(constants.RequestBudgetDelete):
+	case string(constants.RequestDeleteBudgetCategory):
 		err = b.budgetCategoryRepo.DeleteBudgetCategory(ctx, action.UniqueId)
 	default:
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
@@ -81,11 +81,20 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	iconURL := ""
 	if req.Icon != nil {
-		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), b.minioEndPoint, b.minio,"", b.logger)
+		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), *b.cfg, "", b.logger)
 		if err != nil {
 			return err
 		}
 		iconURL = url
+	}
+	isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx,req.Name)
+	if err != nil {
+		b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if isDuplicate!=nil {
+		b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
+		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 	}
 
 	budgetCategory := &model.BudgetCategory{
@@ -98,9 +107,8 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		UpdatedAt: time.Now(),
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestBudgetCreate), constants.CREATE)
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, budgetCategory, string(constants.RequestCreateBudgetCategory), constants.CREATE)
 
-	local_util.PrintRecord("CPS action", cpsActionData)
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
 	}
@@ -162,11 +170,22 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 
 	newBudgetCategory := *existingBudgetCategory
 
-	if req.Name != nil {
-		newBudgetCategory.Name = *req.Name
+	if req.Name != "" {
+		
+		isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx,req.Name)
+	if err != nil {
+		b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
-	if req.Color != nil {
-		newBudgetCategory.Color = *req.Color
+	if isDuplicate!=nil&& isDuplicate.ID.Hex()!=id {
+		b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
+		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
+	}
+	
+		newBudgetCategory.Name = req.Name
+	}
+	if req.Color != "" {
+		newBudgetCategory.Color = req.Color
 	}
 	if req.Icon != nil {
 		var objectkey string
@@ -180,8 +199,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 			b.bucketName,
 			req.Icon,
 			string(constants.BudgetCategoryIcon),
-			b.minioEndPoint,
-			b.minio,
+			*b.cfg,
 			objectkey,
 			b.logger,
 		)
@@ -201,7 +219,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 		makerUser,
 		existingBudgetCategory,
 		&newBudgetCategory,
-		string(constants.RequestBudgetUpdate),
+		string(constants.RequestUpdateBudgetCategory),
 		constants.UPDATE,
 	)
 
@@ -220,7 +238,7 @@ func (b *BudgetCategoryService) DeleteBudgetCategory(ctx context.Context, id str
 		return err
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestBudgetDelete), constants.DELETE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestDeleteBudgetCategory), constants.DELETE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err
@@ -240,7 +258,7 @@ func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Contex
 	existingBudgetCategory.Enabled = enable
 	existingBudgetCategory.UpdatedAt = time.Now()
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestBudgetUpdate), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestDeleteBudgetCategory), constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err

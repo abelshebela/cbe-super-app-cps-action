@@ -151,7 +151,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDeviceVersionAlreadyEnabled,
 	ErrorDeviceVersionAlreadyDisabled,
 	ErrorDeviceVersionNotFound,
-
+	ErrorDuplicateProductName,
 	ErrorDeviceVersionUpdateFailed,
 	ErrorDeviceVersionDeleteFailed,
 	ErrorDeviceVersionEnableFailed,
@@ -197,6 +197,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDescriptionLength30To100,
 	ErrorAdvertAlreadyDisabled,
 	ErrorAdvertTitleAlreadyExists,
+	ErrorBudgetCategoryNameAlreadyExists,
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
@@ -413,6 +414,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
 	ErrorBulkServiceAlreadyEnabled,
+	ErrorDuplicateCBEIFBProductCode,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -448,6 +450,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCategoryNameDuplicated,
 	ErrorDonationCompanyLookupFailed,
 	ErrorDonationCategoryIDRequired,
+	ErrorDuplicateCBEProductCode,
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
@@ -1375,6 +1378,12 @@ var (
 		Message:    "Advert title already exists",
 		Type:       "error",
 	}
+	ErrorBudgetCategoryNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "budget category name already exists",
+		Type:       "error",
+	}
 
 	ErrorAdvertTitleNotChanged = ResponseCode{
 		Code:       "ERROR_ADVERT_TITLE_NOT_CHANGED",
@@ -1578,7 +1587,7 @@ var (
 	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Wallet with the given name already exists",
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
@@ -3773,7 +3782,7 @@ var (
 		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
-	ErrorOnDisablingExistingDeviceControl= ResponseCode{
+	ErrorOnDisablingExistingDeviceControl = ResponseCode{
 		Code:       "ERROR_ON_DISABLING_EXISTING_DEVICE_CONTROL",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgOnDisablingExistingDeviceControl,
@@ -3950,6 +3959,28 @@ var (
 		Message:    MsgProductCodeNotFound,
 		Type:       "error",
 	}
+
+	ErrorDuplicateProductName = ResponseCode{
+		Code:       "ERROR_DUPLICATE_PRODUCT_NAME",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateProductName,
+		Type:       "error",
+	}
+
+	ErrorDuplicateCBEProductCode = ResponseCode{
+		Code:       "ERROR_DUPLICATE_CBE_PRODUCT_CODE",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateCBEProductCode,
+		Type:       "error",
+	}
+
+	ErrorDuplicateCBEIFBProductCode = ResponseCode{
+		Code:       "ERROR_DUPLICATE_CBE_IFB_PRODUCT_CODE",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateCBEIFBProductCode,
+		Type:       "error",
+	}
+
 	// Mini App Merchant related error response codes
 	ErrorMiniAppMerchantCheckPendingFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_CHECK_PENDING_FAILED",
@@ -5209,21 +5240,21 @@ var (
 	ErrorBulkServiceAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "Bulk service is already enabled for the given key.",
+		Message:    "One or more bulk services are already enabled",
 		Type:       "error",
 	}
 
 	ErrorBulkServiceAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "Bulk service is already disabled for the given key.",
+		Message:    "One or more bulk services are already enabled",
 		Type:       "error",
 	}
 
 	ErrorInvalidBulkServiceKey = ResponseCode{
 		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
 		StatusCode: StatusBadRequest,
-		Message:    "One or more provided bulk service keys are invalid.",
+		Message:    "One or more provided bulk service keys is/are invalid.",
 		Type:       "error",
 	}
 	ErrorInvalidRequiredAction = ResponseCode{

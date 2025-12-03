@@ -10,11 +10,11 @@ import (
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
+	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	vaultgroup "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
-
-	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 
@@ -39,6 +39,8 @@ import (
 
 	"context"
 	"mime/multipart"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type CPSActionService interface {
@@ -46,6 +48,7 @@ type CPSActionService interface {
 	CreateCPSAction(ctx context.Context, action *model.CPSAction) error
 	RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error)
@@ -68,7 +71,7 @@ type BudgetCategoryService interface {
 type BulkService interface {
 	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
 	EnableBulkService(ctx context.Context, keys []string) error
-	DisableBulkService(ctx context.Context, keys []string) (string, error)
+	DisableBulkService(ctx context.Context, keys []string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -97,7 +100,7 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
 	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
@@ -233,6 +236,8 @@ type PermissionService interface {
 	GetPermissionGroupsByDepartment(ctx context.Context, departmentId string, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error)
 	ValidatePermissionCategories(ctx context.Context, categoryIDs []string) (bool, error)
 	ValidatePermissionGroups(ctx context.Context, groupIDs []string) (bool, error)
+	GetPopulatedPermissionCategories(ctx context.Context, categoryIDs []bson.ObjectID) ([]cpsuser.PermissionCategoryResponse, error)
+	GetPopulatedPermissionGroups(ctx context.Context, groupIDs []bson.ObjectID) ([]cpsuser.PermissionGroupResponse, error)
 }
 
 type PortalCardService interface {
@@ -533,7 +538,7 @@ type NewsCategoryService interface {
 }
 
 type SitotaService interface {
-	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
+	GetAllSitotas(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
 	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }
 

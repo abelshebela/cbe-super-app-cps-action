@@ -56,29 +56,27 @@ func IsObjectIDRequired(value interface{}) error {
 	}
 }
 
-func IsObjectIDSliceRequired(value interface{}) error {
-	if value == nil {
-		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
+func IsStringSliceRequired(value interface{}) error {
+	slice, ok := value.([]string)
+	if !ok {
+		return validation.NewError("validation_string_slice_required", "must be a non-empty list of strings")
 	}
-	switch v := value.(type) {
-	case []bson.ObjectID:
-		if len(v) == 0 {
-			return validation.NewError("validation_is_objectid_slice_required", "list cannot be empty")
+	if len(slice) > 0 {
+	for i, s := range slice {
+		trimmed := strings.TrimSpace(s)
+		if trimmed == "" {
+			return validation.NewError("validation_string_slice_required",
+				fmt.Sprintf("item at index %d cannot be empty", i))
 		}
-		return nil
-	case []*bson.ObjectID:
-		if len(v) == 0 {
-			return validation.NewError("validation_is_objectid_slice_required", "list cannot be empty")
+
+		// Reuse your existing utils.NoSpecialChars
+		if err := utils.NoSpecialChars(trimmed); err != nil {
+			return validation.NewError("validation_string_slice_required",
+				fmt.Sprintf("item at index %d is invalid: %s", i, err.Error()))
 		}
-		for _, id := range v {
-			if id == nil || id.Hex() == "" {
-				return validation.NewError("validation_is_objectid_slice_required", "all elements must be valid ObjectID")
-			}
-		}
-		return nil
-	default:
-		return validation.NewError("validation_is_objectid_slice_required", "must be a non-empty list of ObjectIDs")
-	}
+	}}
+
+	return nil
 }
 
 func (r CreateUserRequest) Validate() error {
@@ -113,8 +111,8 @@ func (r CreateUserRequest) Validate() error {
 			validation.In("maker", "checker").Error("role must be maker or checker"),
 		),
 		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		validation.Field(&r.PermissionCategory, validation.By(IsObjectIDSliceRequired)),
-		validation.Field(&r.PermissionGroups, validation.By(IsObjectIDSliceRequired)),
+		validation.Field(&r.PermissionCategory),
+		validation.Field(&r.PermissionGroups),
 		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
 		validation.Field(&r.Email, validation.Required.Error("email is required")),
 	)

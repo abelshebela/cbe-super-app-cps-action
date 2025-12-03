@@ -2,6 +2,7 @@ package permission
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/permission"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -16,6 +17,8 @@ import (
 	"strings"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type permissionService struct {
@@ -120,8 +123,16 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 	}
 	groupName = strings.ToUpper(groupName)
 
-	return s.repo.GetPermissionGroup(groupName)
+	permissionGroup, err := s.repo.GetPermissionGroup(groupName)
+	if err != nil {
+		if err == mongo.ErrNoDocuments || err.Error() == "mongo: no documents in result" {
+			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+		}
+		return nil, err
+	}
+	return permissionGroup, nil
 }
+
 func (s *permissionService) GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error) {
 	if id == "" {
 		return nil, errors.New(localization.ErrorPermissionGroupRequired.Code)
@@ -235,7 +246,8 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 		}
 
 		// Update using the existing group's ObjectID
-		if err := s.repo.Update(ctx, existingGroup.ID.Hex(), &upd); err != nil {
+		err = s.repo.Update(ctx, existingGroup.ID.Hex(), &upd)
+		if err != nil {
 			return nil, err
 		}
 		return action, nil
@@ -243,4 +255,50 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 	default:
 		return nil, errors.New("UNHANDLED_ACTION_TYPE")
 	}
+}
+
+func (s *permissionService) GetPopulatedPermissionCategories(ctx context.Context, categoryIDsObject []bson.ObjectID) ([]cps_user_dto.PermissionCategoryResponse, error) {
+	if len(categoryIDsObject) == 0 {
+		return []cps_user_dto.PermissionCategoryResponse{}, nil
+	}
+	var categoryIDs []string
+	for _, id := range categoryIDsObject {
+		categoryIDs = append(categoryIDs, id.Hex())
+	}
+
+	validCategories, err := s.repo.ValidatePermissionCategories(ctx, categoryIDs)
+	if err != nil {
+		s.logger.Errorf("Failed to validate permission categories: %v", err)
+		return nil, errors.New(localization.ErrorPermissionCategoryNotFound.Code)
+	}
+
+	if len(validCategories) != len(categoryIDs) {
+		s.logger.Warnf("Some permission categories were not found. Requested: %d, Valid: %d", len(categoryIDs), len(validCategories))
+		return nil, errors.New(localization.ErrorPermissionCategoryNotFound.Code)
+	}
+
+	return s.repo.GetPopulatedPermissionCategories(ctx, categoryIDs)
+}
+
+func (s *permissionService) GetPopulatedPermissionGroups(ctx context.Context, groupIDsObject []bson.ObjectID) ([]cps_user_dto.PermissionGroupResponse, error) {
+	if len(groupIDsObject) == 0 {
+		return []cps_user_dto.PermissionGroupResponse{}, nil
+	}
+	var groupIDs []string
+	for _, id := range groupIDsObject {
+		groupIDs = append(groupIDs, id.Hex())
+	}
+
+	validGroups, err := s.repo.ValidatePermissionGroups(ctx, groupIDs)
+	if err != nil {
+		s.logger.Errorf("Failed to validate permission groups: %v", err)
+		return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+	}
+
+	if len(validGroups) != len(groupIDs) {
+		s.logger.Warnf("Some permission groups were not found. Requested: %d, Valid: %d", len(groupIDs), len(validGroups))
+		return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
+	}
+
+	return s.repo.GetPopulatedPermissionGroups(ctx, groupIDs)
 }

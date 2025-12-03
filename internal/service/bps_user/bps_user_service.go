@@ -89,6 +89,10 @@ func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, sta
 		return err
 	}
 
+	if user == nil {
+		return errors.New(localization.ErrorUserNotFound.Code)
+	}
+
 	if user.Enabled && status {
 		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
 	}
@@ -107,7 +111,7 @@ func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, sta
 		requestAction = string(constants.RequestDisableBPSUser)
 
 	}
-	fmt.Println(requestAction)
+	fmt.Println(requestAction, user.ID.Hex(), user, updatedUser, constants.UPDATE)
 
 	cpsActionData := lib.CpsModelBuilder(user.ID.Hex(), makerData, user, updatedUser, requestAction, constants.UPDATE)
 

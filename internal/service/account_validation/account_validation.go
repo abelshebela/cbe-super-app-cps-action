@@ -34,7 +34,6 @@ func (s *accountValidationService) Update(ctx context.Context, id string, rule *
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
-
 	validationRule, err := s.validationRule.FindByID(ctx, id)
 	if err != nil {
 		return err

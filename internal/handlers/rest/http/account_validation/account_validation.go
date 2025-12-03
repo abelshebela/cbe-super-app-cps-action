@@ -100,7 +100,6 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := account_validation_dto.ToModel(req)
-
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

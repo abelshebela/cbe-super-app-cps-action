@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -259,6 +260,53 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 	var result model.CPSAction
 	if err := cur.Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode document: %w", err)
+	}
+
+	return &result, nil
+}
+
+func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
+	pipeline := mongo.Pipeline{
+		// match stage
+		{{Key: "$match", Value: bson.M{
+			"is_deleted": false,
+			"department": department,
+		}}},
+		// group stage
+		{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "Pending", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "PENDING"}}}, 1, 0}}}},
+			}},
+			{Key: "Approved", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "APPROVED"}}}, 1, 0}}}},
+			}},
+			{Key: "Rejected", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "REJECTED"}}}, 1, 0}}}},
+			}},
+		}}},
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("aggregation failed: %w", err)
+	}
+	defer func() {
+		_ = cur.Close(ctx)
+	}()
+
+	var result actionDto.CPSActionCountResponse
+	if cur.Next(ctx) {
+		if err := cur.Decode(&result); err != nil {
+			return nil, fmt.Errorf("failed to decode document: %w", err)
+		}
+	} else {
+		// If no documents match, return zero counts instead of error
+		return &actionDto.CPSActionCountResponse{
+			Pending:  0,
+			Approved: 0,
+			Rejected: 0,
+		}, nil
 	}
 
 	return &result, nil

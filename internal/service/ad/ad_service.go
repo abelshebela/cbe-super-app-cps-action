@@ -12,13 +12,12 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-
 	"mime/multipart"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -28,21 +27,19 @@ type advertService struct {
 	Repository  storage.AdvertRepository
 	cpsService  service.CPSActionService
 	logger      utils.Logger
-	minioClient aws.Config
+	minioClient *s3.Client
 	bucketName  string
-	minioPubUrl string
 	cfg         *config.VaultConfig
 }
 
 // NewAdvertService creates a new advert service instance
-func NewAdvertService(repository storage.AdvertRepository, cpsService service.CPSActionService, minioClient aws.Config, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AdvertService {
+func NewAdvertService(repository storage.AdvertRepository, cpsService service.CPSActionService, minioClient *s3.Client, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AdvertService {
 	return &advertService{
 		Repository:  repository,
 		cpsService:  cpsService,
 		logger:      logger,
 		minioClient: minioClient,
 		bucketName:  bucketName,
-		minioPubUrl: minioPubUrl,
 		cfg:         cfg,
 	}
 }
@@ -68,16 +65,18 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 // CreateAdvert prepares a new advert without persisting
 func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Creating advert, title: %s", ad.Title)
-	isDuplicate, err := core.DuplicateAdvertChecker(ctx, *ad, s.Repository, true, "")
+	isDuplicate, err := s.Repository.FindByTitle(ctx,ad.Title)
 	if err != nil {
 		s.logger.Errorf("Failed to check for duplicate advert, title: %s, error: %v", ad.Title, err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
-	if isDuplicate {
+	if isDuplicate!=nil {
 		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
 		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.minioClient,"" ,s.logger)
+	
+
+	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
 	if err != nil {
 		s.logger.Errorf("Failed to upload banner image: %v", err)
 		return errors.New(localization.MsgFileUploadFailed)
@@ -112,27 +111,28 @@ func (s *advertService) FetchAdvertByID(ctx context.Context, id string) (*model.
 // // UpdateAdvert updates an existing advert without persisting
 func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error {
 	s.logger.Infof("Updating advert, id: %s", id)
-
-	isDuplicate, err := core.DuplicateAdvertChecker(ctx, *ad, s.Repository, false, id)
-	if err != nil {
-		s.logger.Errorf("Failed to check for duplicate advert, title: %s, error: %v", ad.Title, err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	if isDuplicate {
-		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
-		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
-	}
-
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch advert, id: %s, error: %v", id, err)
 		return err
 	}
+	if ad.Title!= ""{
+		isDuplicate, err := s.Repository.FindByTitle(ctx,ad.Title)
+	if err != nil {
+		s.logger.Errorf("Failed to check for duplicate advert, title: %s, error: %v", ad.Title, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if isDuplicate!=nil&& isDuplicate.ID.Hex()!=id {
+		s.logger.Errorf("Duplicate advert title found, title: %s", ad.Title)
+		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
+	}
+	}
+	
 
 	var url string
 	if bannerImage != nil {
 
-		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, "advert", s.minioPubUrl, s.minioClient,"", s.logger)
+		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
 		if err != nil {
 			s.logger.Errorf("Failed to upload banner image: %v", err)
 			return err
@@ -150,7 +150,6 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		CreatedAt:     prevAdvert.CreatedAt,
 		LastUpdatedAt: time.Now(),
 	}
-
 	err = s.handleCPSAction(ctx, id, cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
 		s.logger.Errorf("Failed to handle CPS action for advert update, id: %s, error: %v", id, err)
