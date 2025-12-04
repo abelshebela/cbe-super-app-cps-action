@@ -52,11 +52,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	formattedPhone, err := local_util.ValidateAndNormalizePhoneNumber(reqDTO.PhoneNumber)
-	if err != nil {
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+	formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
 
 	reqDTO.PhoneNumber = formattedPhone
 	// Extract User Context
@@ -293,6 +289,14 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 		return
 	}
 	ctx := r.Context()
+
+	phoneNumber, ok := filterParams.Filters["phone_number"].(string)
+	if !ok {
+		h.logger.Errorf("Phone number is not present")
+	}
+	formattedPhone := local_util.FormatPhoneNumber(phoneNumber)
+
+	filterParams.Filters["phone_number"] = formattedPhone
 
 	miniAppMerchant, err := h.miniappMerchantService.FindAllWithPagination(ctx, filterParams)
 	if err != nil {

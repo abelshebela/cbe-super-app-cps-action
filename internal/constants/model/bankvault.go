@@ -60,7 +60,7 @@ type LockedVault struct {
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
 	RateBps                    decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
-	Frequency                  string                  `json:"frequency"`
+	Frequency                  int64                   `json:"frequency"`
 	ApplyInterestOnEarlyUnlock *bool                   `json:"apply_interest_on_early_unlock,omitempty"`
 	LockPeriod                 string                  `json:"lock_period"`
 	CreatedAt                  time.Time               `json:"created_at"`

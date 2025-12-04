@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"time"
@@ -183,6 +184,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
 
@@ -215,6 +217,12 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		now := time.Now().Unix()
 
+		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
+		if err != nil || remainTime == 0 {
+			remainTime = 120
+		} else {
+			remainTime *= 60
+		}
 		if userPayload.SessionExp != 0 {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 			if userPayload.SessionExp < now {
@@ -226,13 +234,14 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			if userPayload.SessionExp-now <= 0 {
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
-			} else if userPayload.SessionExp-now < 60 {
+			} else if userPayload.SessionExp-now < int64(remainTime) {
 				// Less than 1 minute left, refresh token
 				a.logger.Infof("session expiring soon, refreshing token")
 				// Inject Bearer token and user_id from context into gRPC metadata
 				md := metadata.New(map[string]string{
 					"authorization": "Bearer " + tokenString,
 				})
+
 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
 				if err != nil {
@@ -244,6 +253,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 					a.logger.Errorf("refresh token response from grpc is nil")
 				}
 			}
+
 		}
 
 		r = r.WithContext(ctx)
