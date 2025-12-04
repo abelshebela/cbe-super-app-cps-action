@@ -36,6 +36,9 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 	value = strings.ToUpper(strings.ReplaceAll(value, " ", "_"))
 	prefix = strings.ToUpper(strings.ReplaceAll(prefix, " ", "_"))
+	if strings.HasPrefix(value, prefix+"-") {
+		return value, nil
+	}
 	result := strings.Join([]string{prefix, value}, "-")
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil

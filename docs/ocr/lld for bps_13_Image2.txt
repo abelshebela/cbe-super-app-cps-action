@@ -1,0 +1,50 @@
+Link Account - Complete Flow
+SS =
+| POST linked accountookup i H H H H H i i H H H H
+| Gezount number: phone number) } i i H H i i i i i H H
+4 Y wookupaccount d i ! i : i i : i H '
+i } i i i ‘ caices am i i : : : i }
+i i : : i Frenec if account aready inked d 4 : ' i :
+‘ : : : : {eAccountsttus | : 4 : : H i
+: | Account details i d H : i H ' : i : i
+{rast wtpigenerate ‘ i i ‘ i i 1 i i i : :
+| (onone, umber, tp_for:UNK ACCOUNT’) i : : : H ‘ : : H : H :
+: ; d i d : [eagtesaancose | : : i i j
+i t H H t H { Save OTP (expires in $ min) | i : i t H
+: i i i i : { Publish SMS event i i t ! : {
+a BT We Ra
+| post lotpverty i d : i : i : ' : : : i
+1 Bhane nut tp code H i »! i H i i : i: : i i
+i i : jewyorey i : i i i i
+i H i i i i | Fetch OT by phone_number! d i : i :
+i i i i i i |e otPrecorg i i ;
+i i ' i ‘ t Tcneck expiration i y i ' 5 !
+: H d d H i {paotestatusto verineD | : H i : i
+{OTP verted : d : i ‘ i { i : : : :
+| OST hinted accounting i ‘ i i i i i : : i : }
+{ faser_code, decount- number, ot verified: tue) i i ! ! i i H i i i H !
+' : f : : 1 revcnusertuser code) | ‘ : : ' 4 :
+: : : i : i i d ‘query members collection! ; i i
+d : i i i { checkpendingactionsuber code, "UNK ACCOUNT?) | ; id ' ‘ i
+i i i i i : : "query pening actions i i i : ;
+i i i i i ‘ i {No pending actions : ; } i }
+: : : d : LeOktopreed | : j i ; :
+; ! ! ! ! Tpuactoncrete | i ; , ot : !
+i : i i : 7 i "ula BPsActon entity i : i i :
+i : 4 d : i ‘ {make trom JWT : : : i i
+i , 4 4 , 1 i {Acton created i $ ; i ;
+: d i i d {epsacion entity i : i i : d
+: d 4 : ‘Success i i : : : : i :
+1 toctin coe, stan: PENDING") : d d ; i i : 4 : | i i
+Sn nT 2 eT
+i ‘ i d ‘ ‘ i d i H ' | Post rors acvoniaprove i
+4 i i : i : i | BPSAction entity : : i i :
+d : i i : : i {Stat = Pendin d i i H i
+i i d d i i i {Update status to APPROVED : : { H H
+: : ‘ ‘ : H ‘ | Secchecker a vetieg at : : ‘ H ‘
+: i i i i | pcsinaeiacsoanet : : : i H 4
+i : ! H : ‘ser int inked account collection i : >! : : ;
+i i : : i $ updatevseraccount kad: te) i ' : : : :
+: i 4 i i ‘ i ; | Update members colecton, | i H i
+i H i i H | pulisn account nked event i d i ; : :
+‘ 1 ‘ ‘ 1 ‘ ‘ | Success ‘ ‘ 1 ‘ ‘

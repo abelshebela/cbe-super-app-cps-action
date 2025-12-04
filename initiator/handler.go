@@ -21,7 +21,6 @@ import (
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
-	miniAppInbound "cbe-super-app-cps-action/internal/constants/interfaces/mini_app"
 	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
@@ -66,7 +65,6 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
-	miniapphandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app"
 	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
@@ -100,7 +98,6 @@ type Handler struct {
 	PortalCardHander          portalCardInterface.PortalCardAdapter
 	AccountValidation         accountvalidationInterface.AccountValidation
 	HqHandler                 hqInbound.HQAdapter
-	MiniAPPHandler            miniAppInbound.MiniAppInbound
 	MiniAppMerchantHandler    miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler       accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler     service_details.ServiceAdapter
@@ -148,7 +145,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		AccountBlockHandler:       accountBlockHandler.InitAccountBlockAdapter(serviceLayer.AccountBlock, logger),
 		DepartmentHandler:         department.NewDepartmentHandler(serviceLayer.Department, logger),
 		HqHandler:                 hqHandler.InitHQAdapter(serviceLayer.HQService, logger),
-		MiniAPPHandler:            miniapphandler.InitMiniAppAdapter(serviceLayer.MiniAppService, logger),
 		bulkServiceHandler:        bulkServiceHandler.InitBulkServiceAdapter(serviceLayer.BulkService, logger),
 		customerHandler:           CustomerHandler.InitCustomerAdapter(serviceLayer.CustomerService, logger),
 		FaydaHandler:              faydaHandler.InitFaydaHandler(serviceLayer.Fayda, logger),

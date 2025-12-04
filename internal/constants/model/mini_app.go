@@ -12,6 +12,7 @@ type MiniApp struct {
 	ID                  bson.ObjectID               `bson:"_id" json:"id"`
 	AppName             string                      `bson:"app_name" json:"app_name"`
 	AppIcon             string                      `bson:"app_icon" json:"app_icon"`
+	AppCode             string                      `bson:"app_code" json:"app_code"`
 	BannerImage         string                      `bson:"banner_image" json:"banner_image"`
 	CommissionGLAccount string                      `bson:"commison_gl_account" json:"commison_gl_account,omitempty"`
 	AppType             constants.AppType           `bson:"app_type" json:"app_type"`
