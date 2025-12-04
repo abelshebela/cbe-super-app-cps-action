@@ -87,7 +87,6 @@ func PermissionCategoryProjection(permissionColl, permissionCategoryColl string)
 		},
 		"as": "permission_category_docs",
 	}}}
-
 }
 
 func PipelineBuilder(userCode string, departmentColl, permissionGroupColl, permissionColl, permissionCategoryColl string) mongo.Pipeline {
@@ -151,6 +150,13 @@ func PipelineBuilder(userCode string, departmentColl, permissionGroupColl, permi
 						"id":           "$department_doc._id",
 						"name":         "$department_doc.department",
 						"portal_cards": "$department_doc.portal_cards",
+						// "portal_cards": bson.M{
+						// 	"$map": bson.M{
+						// 		"input": "$department_doc.portal_cards",
+						// 		"as":    "card",
+						// 		"in":    "$$card.card_name",
+						// 	},
+						// },
 					},
 					"else": nil,
 				},

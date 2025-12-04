@@ -24,11 +24,16 @@ func (u UpdateBankRequest) Validate() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.Name,
 			validation.NilOrNotEmpty,
-			validation.Length(3, 10),
+			validation.Length(3, 50),
 			is.Alpha,
 		),
-		validation.Field(&u.Code, validation.Required.Error(localization.MsgBankCodeRequired)),
-		validation.Field(&u.BIC, validation.Required.Error(localization.MsgBankBICRequired)),
+		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
+			if value == nil {
+				return nil
+			}
+			return validateLogo(value)
+		})),
+		// Code and BIC are optional on update — allow empty values by not validating them here
 	)
 }
 

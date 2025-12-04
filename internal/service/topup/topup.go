@@ -46,7 +46,7 @@ func NewTopupService(repo storage.TopupRepository, cps service.CPSActionService,
 func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupRequest) error {
 	s.logger.Infof("Createtopup called", "topup_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "name", req.Name)
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}

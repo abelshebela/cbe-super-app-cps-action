@@ -467,7 +467,7 @@ func NoSpecialChars(value any) error {
 		return validation.NewError("validation", "invalid type")
 	}
 	str = strings.TrimSpace(str)
-	
+
 	if str == "" {
 		return nil
 	}

@@ -64,6 +64,9 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 		// 1. Match documents based on the initial filter
 		{{Key: "$match", Value: filter}},
 
+		// Sorting main documents
+		{{Key: "$sort", Value: bson.D{{"created_at", -1}}}},
+
 		// 2. Perform recursive lookup for ancestors (parents)
 		{{Key: "$graphLookup", Value: bson.M{
 			"from":                    "account_block",

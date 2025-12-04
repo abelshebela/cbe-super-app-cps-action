@@ -106,7 +106,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
 
 	searchKeys := bson.M{}
-	allowedKeys := []string{"title", "is_featured", "enabled", "donation_code", "target", "end_date"}
+	allowedKeys := []string{"search", "title", "is_featured", "enabled", "donation_code", "target", "end_date"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
