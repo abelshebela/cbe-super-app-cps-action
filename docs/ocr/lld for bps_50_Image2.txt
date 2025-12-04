@@ -1,0 +1,38 @@
+Change Email - Complete Flow
+lomumemawane | ae
+| {user_code, new_email} i ' ' ' ' ' ' '
+' | Validate mail() i ' ' ' ' ' '
+' ' | CheckEmailExists(new_email) -+ ' ‘ ' ' ‘
+' ' ' Query by email} H i ' '
+| post change emailisendotp
+' {new_email} ' ' ' ' ' ' ' '
+' | GenerateOTP(new_email, "CHANGE_EMAIL") t { ' ' ' '
+' ' ‘ ' {Save OTP t ' ' '
+' ' ' ' ‘Publish email event _ ' ' ‘
+' 1 OTP sent ' ' ' ' ' ' '
+|_ Verification email sent i ' ' '
+| POST /change_email/verify_otp t ' ' ' ' ' ' '
+' {new_email, otp_code} \ ' ' ' ' ' ' '
+' | VerifyOTP() ' ' t ' ' ' '
+' ' ' ' ' Validate ' ' ' '
+' | _Netified ' i ' ' ' ' '
+Verified i ' ' ' ' ' ' '
+' POST /change_email/request ' ‘ ' ' ‘ ' ' ‘
+| {user_code, new_email} ‘ ' ' ' ' ' ' '
+' | CreatechangeEmailéction() | ' ' ' ' ' '
+| BpsactionCreate() ! ! ! ' ' '
+' ' ' ' ' | = request_action: CHANGE_EMAIL | ' '
+' ' ' ' ' ' = previou_action: {email: old} | { '
+' ' ' ' ' Suse act {email:new) | ' ‘
+' ' ' ' ' | Insert bps_action ' ' ‘
+‘ ' ' ' ' Created ' ' '
+' ' 1 BPSAction ' ' ' ' ' '
+' {Success H ' ' ' ' ' '
+' | POST /bps_action/approve ' ' ' ' i i
+\ \ faction code} H H H ! H H '
+' ' ‘ ' ' | Update status = APPROVED ' ‘
+' ' ' |_¢UpdateUserEmailllser_code, new email)! ' ' '
+‘ ' ' | Update members.email ' ' ‘ '
+' ' ' | Publish email_changed event 1 1 1 '
+' {Success H H i ' ' ' '
+' Email updated : : E E ' ' '
