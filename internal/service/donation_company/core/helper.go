@@ -87,6 +87,7 @@ func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enab
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
 	return dto.DonationCompanyResponse{
 		CompanyName:   donationCompany.CompanyName,
+		CompanyCode:   donationCompany.CompanyCode,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
 		PhoneNumber:   donationCompany.PhoneNumber,
@@ -101,6 +102,7 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 	return dto.DonationCompanyCPSRequest{
 		ID:            id,
 		CompanyName:   donationCompany.CompanyName,
+		CompanyCode:   donationCompany.CompanyCode,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
 		PhoneNumber:   donationCompany.PhoneNumber,
@@ -113,6 +115,7 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.DonationCompanyRequest {
 	return dto.DonationCompanyRequest{
 		CompanyName:   cpsRequest.CompanyName,
+		CompanyCode:   cpsRequest.CompanyCode,
 		AccountNumber: cpsRequest.AccountNumber,
 		PhoneNumber:   cpsRequest.PhoneNumber,
 		Email:         cpsRequest.Email,
@@ -123,6 +126,11 @@ func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.D
 func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
 	// Check if company name is the same (if provided in request)
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
+		return false
+	}
+
+	// Check if the company code is the same
+	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
 

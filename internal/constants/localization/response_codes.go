@@ -1683,7 +1683,7 @@ var (
 	ErrorWalletRechangeOption = ResponseCode{
 		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
 		StatusCode: 400,
-		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
+		Message:    "At Least one of the three rechange options should be enabled(self,other,agent)",
 		Type:       "error",
 	}
 
