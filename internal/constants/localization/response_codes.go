@@ -454,6 +454,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
+	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
@@ -1683,7 +1684,7 @@ var (
 	ErrorWalletRechangeOption = ResponseCode{
 		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
 		StatusCode: 400,
-		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
+		Message:    "At Least one of the three rechange options should be enabled(self,other,agent)",
 		Type:       "error",
 	}
 
@@ -4287,6 +4288,12 @@ var (
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCompanyNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCompanyCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_COMPANY_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCompanyCodeAlreadyExists,
 		Type:       "error",
 	}
 

@@ -47,7 +47,6 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
 	exist, err := s.repo.Find(ctx, req.Code, req.Name)
-	local_util.PrintRecord("Data", exist)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -81,13 +80,17 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error {
 	s.logger.Infof("UpdateWallet called", "wallet_id", id)
 
+	if !(req.Agent || req.Self || req.Other) {
+		return errors.New(localization.ErrorWalletRechangeOption.Code)
+	}
+
 	prevWallet, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return errors.New(localization.ErrorWalletNotFound.Code)
 	}
 
-	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, "name", req.Name)
+	if req.Name != "" || req.Code != "" {
+		exist, err := s.repo.Find(ctx, req.Code, req.Name)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
@@ -97,14 +100,13 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	if req.Code != "" {
-		exist, err := s.repo.Find(ctx, "code", req.Code)
+		code, err := core.GeneratePrefixedName("WAL", req.Code, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		if exist != nil && exist.ID.Hex() != id {
-			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
-		}
+		req.Code = code
 	}
+
 	var avatarURL string
 	if req.Avatar != nil {
 		var objectkey string
@@ -127,10 +129,6 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 
 	if change_count == 0 {
 		return errors.New(localization.ErrorNoChangesDetected.Code)
-	}
-
-	if !(UpdateWallet.Services.Agent || UpdateWallet.Services.Self || UpdateWallet.Services.Other) {
-		return errors.New(localization.ErrorWalletRechangeOption.Code)
 	}
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, UpdateWallet, *prevWallet, constants.ActionUpdate); err != nil {

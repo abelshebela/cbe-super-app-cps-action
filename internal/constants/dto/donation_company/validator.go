@@ -12,7 +12,7 @@ import (
 
 func (d DonationCompanyRequest) ValidateForUpdate() error {
 	// First check if at least one field is provided
-	if d.CompanyName == "" && d.CompanyLogo == nil && d.AccountNumber == "" {
+	if d.CompanyName == "" && d.CompanyCode == "" && d.CompanyLogo == nil && d.AccountNumber == "" {
 		return validation.NewError("validation_at_least_one_field", "at least one field must be provided for update")
 	}
 
@@ -20,6 +20,11 @@ func (d DonationCompanyRequest) ValidateForUpdate() error {
 		validation.Field(&d.CompanyName,
 			validation.When(d.CompanyName != "", validation.Required.Error("company name is required"),
 				validation.Length(3, 100).Error("company name must be between 3 and 100 characters"),
+				validation.By(utils.NoSpecialChars)),
+		),
+		validation.Field(&d.CompanyCode,
+			validation.When(d.CompanyCode != "",
+				validation.Length(3, 50).Error("company code must be between 3 and 50 characters"),
 				validation.By(utils.NoSpecialChars)),
 		),
 		validation.Field(&d.CompanyLogo,
@@ -46,6 +51,11 @@ func (d DonationCompanyRequest) Validate() error {
 		validation.Field(&d.CompanyName,
 			validation.Required.Error("company name is required"),
 			validation.Length(3, 100).Error("company name must be between 3 and 100 characters"),
+			validation.By(utils.NoSpecialChars),
+		),
+		validation.Field(&d.CompanyCode,
+			validation.Required.Error("company code is required"),
+			validation.Length(3, 100).Error("company code must be between 3 and 50 characters"),
 			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&d.CompanyLogo,

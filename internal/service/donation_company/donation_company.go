@@ -14,7 +14,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"path"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -139,7 +138,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 		logoURL = url
 	}
 
-	updateData := core.MapToDonationCompanyCPSRequest(id, donationCompany, logoURL)
+	updateData := core.MapToDonationCompanyonUpdateCPSRequest(id, *existingCompany, donationCompany, logoURL)
 
 	// Use existing values if not provided in update
 	if donationCompany.CompanyName == "" {
@@ -166,7 +165,6 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 }
 
 func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	fmt.Println("Donation Company Authorize called")
 	if action.ActionStatus != constants.Approved {
 		d.logger.Errorf("Tried to authorize service action without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
@@ -185,7 +183,6 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			return nil, err
 		}
 	case string(constants.RequestUpdateDonationCompany):
-
 		err := d.DonationCompanyRepo.Update(ctx, action.UniqueId, donationCompoany)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation company: %v", err)

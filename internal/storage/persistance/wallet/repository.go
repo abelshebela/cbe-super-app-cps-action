@@ -139,12 +139,10 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 	var orFilters []bson.M
 
 	if code != "" {
-		// Exact match, case-sensitive
 		orFilters = append(orFilters, bson.M{"code": code})
 	}
 
 	if name != "" {
-		// Regex match for name (case-insensitive)
 		orFilters = append(orFilters, bson.M{"name": bson.M{"$regex": name, "$options": "i"}})
 	}
 
@@ -159,11 +157,6 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 			return nil, nil
 		}
 		w.logger.Errorf("FindBy code:%s name:%s wallet failed: %v", code, name, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	if err != nil {
-		w.logger.Errorf("Failed to convert document to wallet: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
