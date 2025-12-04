@@ -144,6 +144,7 @@ type BudgetCategoryRepository interface {
 	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error)
 	DeleteBudgetCategory(ctx context.Context, id string) error
 	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
+	FindByName(ctx context.Context, name string) (*model.BudgetCategory, error)
 }
 
 // AmountBasedAuth persistence
@@ -196,6 +197,7 @@ type AdvertRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Advert, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FindByTitle(ctx context.Context, title string) (*model.Advert, error)
 }
 
 type ArchivedUserRepository interface {
@@ -233,7 +235,7 @@ type DepartmentRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Department, error)
 	FindByName(ctx context.Context, name string) (*model.Department, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.Department], error)
 }
 
 type PortalCardRepository interface {
@@ -553,9 +555,14 @@ type IconRepository interface {
 }
 
 type ActionRoleRepository interface {
-    Create(ctx context.Context, actionRole *model.ActionRole) error
-    UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
-    EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
-    FindByActionCode(ctx context.Context, actionCode string) (*model.ActionRole, error)
-    FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+	Create(ctx context.Context, actionRole *model.ActionRole) error
+	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
+	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	FindByActionCode(ctx context.Context, actionCode string) (*model.ActionRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+}
+
+type SitotaRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
+	Get(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }

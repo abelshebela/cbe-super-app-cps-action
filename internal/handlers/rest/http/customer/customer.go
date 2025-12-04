@@ -12,9 +12,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
-
-	"strconv"
-
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -169,22 +166,8 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
-	var kycLevelInt int
-	var err error
-	kycLevel := r.URL.Query().Get("kyc_level")
 	filterParams := util.ExtractFilterParams(r)
-
-	if kycLevel != "" {
-		kycLevelInt, err = strconv.Atoi(kycLevel)
-		if err != nil {
-			localization.SendBadRequestResponse(w, "Invalid kyc_level parameter")
-			return
-		}
-	} else {
-		kycLevelInt = 0
-	}
-
-	customers, err := c.customerService.GetCustomersDetail(r.Context(), kycLevelInt, filterParams)
+	customers, err := c.customerService.GetCustomersDetail(r.Context(), filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetCustomerDetail.Code)
 		return

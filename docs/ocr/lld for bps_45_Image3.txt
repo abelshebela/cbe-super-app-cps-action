@@ -1,0 +1,33 @@
+Create Transfer Limit - Complete Flow
+eerareiecunmuariiss | Po
+1 {user_code} 1 i f i 1 i 4 4
+' | GetDefaultLimits() i ' ' ' ' ' '
+' i ' FetchUser(user_code) ' ' ' ' ' '
+' ' ' '_ user (KYC level) ' ' ' ' '
+1 1 1 - KYC 0: 5000/day 1 £ 1 £ 1 1
+' ' 1 =KYC1:25000/day ' i ' 4 4
+H ' as 100000/day i f 1 f J J
+' | Default limits j ' ' ' ' ' '
+' POST transfer limiticreate_otp | ' ' ' ' ' ' '
+: {user_code} ‘ i i t i i 1 1
+i | GenerateOTP() i i t ' t 1 1
+' POST /transfer_limitiverify create | ' ‘ ‘ ‘ ‘ ' '
+1 {otp_code, limits} 1 i i ‘ i ‘ i i
+' ‘VerifyOTP() H H ' ' ' ' '
+1 {user_code, limits} ' i i ‘ i ‘ i i
+' | CreateLimitAction() ' ' ' ' ' ' '
+' ' | BpsActionCreate() ' ' ' ‘ ' '
+' ' ' ' ' | Build action: i i i
+7 ' i ‘ i | request_action: CREATE_TRANSFER_LIMIT !
+' ' ' ' ' cemertnctirs limits: new} ' ' '
+' ' ' ' ' 1 Created ' ' '
+' ' 1 BPSAction ' ' ' ‘ ' '
+' 1 Success ' ' ' ' ' ' '
+: | post /bps action/approve | | i ' ; | |
+{ ' faction code} ! ! H ' H ! !
+' ' ' ‘ ‘ \ Update status = APPROVED ' ‘ ‘
+‘ ' 1 ExecuteCreateLimits() | ' ' ' ' '
+' ' | Insert transaction _limits | ' ' ' ' '
+' ' | Publish limits_created event f i f 1 '
+' |g Success ' ' ' ' ' ' ‘
+‘ | Limits created ' ' H ' ' ' '

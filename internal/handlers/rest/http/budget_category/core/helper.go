@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -38,14 +39,15 @@ func ParseUpdateRequestFromMultipartForm(r *http.Request) (budget_category.Updat
 	}
 
 	if name := r.FormValue("name"); name != "" {
-		req.Name = &name
+		req.Name = name
 	}
 	if color := r.FormValue("color"); color != "" {
-		req.Color = &color
+		req.Color = color
 	}
 
 	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", 10<<20)
 	if err != nil {
+		fmt.Println("///error for icon",err)
 		if !errors.Is(err, http.ErrMissingFile) {
 			return req, err
 		}

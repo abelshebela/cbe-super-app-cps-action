@@ -1,0 +1,31 @@
+Reset Transfer Limit - Complete Flow
+| {user_code} \ ' ' ' ' ' '
+' | GetResetPreview() i ' ' ' ' '
+' | Fetch current limits _!
+' ' Hace defaults | ' ' ' '
+SL ! ! [Phase 2: OTP | f ! ! f
+! post [transfer_limit/reset_otp '
+' {user_code} ' ' ' ' ' ' '
+lsmeote | boot
+' ' ' \ Publish SMS ' t ' '
+' 1g OTP sent ' ' ' ' ' '
+OTP sent ' ' ' ' ' ' '
+| POST /transfer_limit/verify reset | ' ' ' ' ' '
+' fotp_code} ' ' ' ' ' ' '
+| {user_code} ' ‘ ‘ ' ' ' '
+t | CreateResetAction() t i i i i i
+' ' ' ' ' Build action: ' ' '
+' ' ' ' | - request_action: RESET_TRANSFER_LIMIT | ' '
+' ' ' ' ' previous action: {currant} 4 ! d
+' ' ' ' -ement ton: {defaults} ' ' '
+' ' ' ' 1 Created ' ' '
+' ' | BPSAction ' ' ' ' '
+‘ |g Success ' ' ' ' ' '
+\_ faction_code, status: "PENDING"} | ' ' ' ' ' '
+' ' POST /bps_action/approve ‘ ' ‘ ' '
+' \ _ {action _code} t 1 H ee
+‘BpsActionapproved) |
+' ' ' ' | Update status = APPROVED ; ' '
+' ' | Publish limits reset event \ t ' '
+‘ | Success ' ' ' ' ' '
+' | Limits reset ' H ' ' H '

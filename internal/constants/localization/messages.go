@@ -475,7 +475,9 @@ const (
 	MsgCompanyNameAlreadyExists           = "Company name already exists"
 	MsgDonationTitleAlreadyExists         = "Donation title already exists"
 	MsgDonationAccountNumberAlreadyExists = "Account number already exists"
-	MsgAccountNumberAlreadyExists         = "representative data already exists"
+	MsgAccountNumberAlreadyExists         = "Account number already exists"
+	MsgEmailAlreadyExists                 = "Email already exists"
+	MsgPhonenumberAlreadyExists           = "Phone number already exists"
 	MsgLogoIsRequired                     = "Company logo is required"
 	MsgAccountNumberValidationFailed      = "Account number validation failed"
 	MsgAccountNotFound                    = "Account number not found"
@@ -1005,13 +1007,13 @@ const (
 	MsgNewsTagFetchedSuccess             = "News tag fetched successfully"
 	MsgNewsTagCreatedSuccess             = "News tag created request sent successfully"
 
-    // Action Role success messages
-    MsgActionRolesFetchedSuccess            = "Action roles fetched successfully"
-    MsgActionRoleFetchedSuccess             = "Action role fetched successfully"
-    MsgActionRoleCreateRequestCreated       = "Action role create request sent successfully"
-    MsgActionRoleUpdateRequestCreated       = "Action role update request sent successfully"
-    MsgActionRoleEnableRequestCreated       = "Action role enable request sent successfully"
-    MsgActionRoleDisableRequestCreated      = "Action role disable request sent successfully"
+	// Action Role success messages
+	MsgActionRolesFetchedSuccess       = "Action roles fetched successfully"
+	MsgActionRoleFetchedSuccess        = "Action role fetched successfully"
+	MsgActionRoleCreateRequestCreated  = "Action role create request sent successfully"
+	MsgActionRoleUpdateRequestCreated  = "Action role update request sent successfully"
+	MsgActionRoleEnableRequestCreated  = "Action role enable request sent successfully"
+	MsgActionRoleDisableRequestCreated = "Action role disable request sent successfully"
 
 	// Sitota related
 	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"

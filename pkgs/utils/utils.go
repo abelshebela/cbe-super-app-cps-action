@@ -463,9 +463,11 @@ var allowedChars = "a-zA-Z0-9\\s._-"
 func NoSpecialChars(value any) error {
 	str, ok := value.(string)
 	if !ok {
+
 		return validation.NewError("validation", "invalid type")
 	}
 	str = strings.TrimSpace(str)
+
 	if str == "" {
 		return nil
 	}

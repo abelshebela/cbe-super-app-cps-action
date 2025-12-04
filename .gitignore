@@ -9,6 +9,10 @@
 *.dylib
 cmd/_debug_bin.*
 cmd/.env
+<<<<<<< HEAD
+cmd/__debug_bin.exe*
+=======
+>>>>>>> dev
 # Test binary, built with `go test -c`
 *.test
 
@@ -49,5 +53,3 @@ docs/modules
 docs/templates
 definition_of_done.md
 definition_of_ready.md
-docs
-tools

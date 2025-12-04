@@ -5,7 +5,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"errors"
-	"mime/multipart"
 	"time"
 
 	"net/http"
@@ -58,36 +57,41 @@ func ParseTime(timeStr, fieldName string, isOptional bool, logger utils.Logger) 
 }
 
 // parseBannerImage handles banner image parsing with size limit of 2MB
-func ParseBannerImage(r *http.Request, isUpdate bool, logger utils.Logger) (*multipart.FileHeader, error) {
-	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
-	if err != nil && (err.Error() != localization.ErrorMissingFile.Code && !isUpdate) {
-		logger.Errorf("[ad.parseBannerImage] error parsing file: %v", err)
-		return nil, err
-	}
-	return fileHeader, nil
-}
+// func ParseBannerImage(r *http.Request, isUpdate bool, logger utils.Logger) (*multipart.FileHeader, error) {
+// 	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
+// 	fmt.Println("lorlighdigjdfhgdfjb",isUpdate)
+	
+// if err != nil && (err.Error() != localization.ErrorMissingFile.Code) && isUpdate {
+//     fmt.Printf("advert update - isUpdate: %v, error: %v\n", isUpdate, err)
+//     logger.Errorf("[ad.parseBannerImage] error parsing file: %v", err)
+//     return nil, err
+// }
+// fmt.Printf("advert update - fileHeader: %v\n", fileHeader)
+// return fileHeader, nil
+// }
 
-// parseAndValidateAdvertRequest parses and validates the advert request from multipart form
-func ParseAndValidateAdvertRequest(r *http.Request, isUpdate bool, logger utils.Logger) (*ad.AdvertRequest, error) {
+func ParseBannerImage(r *http.Request, isCreate bool) (ad.AdvertRequest, error) {
 	var req ad.AdvertRequest
 
-	// Parse banner image
-	bannerImage, err := ParseBannerImage(r, isUpdate, logger)
+	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
 	if err != nil {
-		logger.Errorf("[event.parseAndValidateAdvertRequest] failed to parse banner image: %v", err)
-		return nil, localization.ErrorMissingOrInvalidImage
-	}
-	req.BannerImage = bannerImage
+		if errors.Is(err, http.ErrMissingFile) {
+			if isCreate {
+				return req, localization.ErrorInvalidFileUpload
+			}
 
-	// Parse form values
+		} else {
+			return req, nil
+		}
+	} else {
+		req.BannerImage = fileHeader
+	}
+
 	req.ID = r.FormValue("id")
 	req.Title = r.FormValue("title")
 	req.Description = r.FormValue("description")
 	req.AdvertFor = r.FormValue("advert_for")
 
-	if err := req.Validate(isUpdate); err != nil {
-		logger.Errorf("[event.parseAndValidateAdvertRequest] validation failed: %v", err)
-		return nil, err
-	}
-	return &req, nil
+	return req, nil
 }
+

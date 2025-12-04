@@ -205,6 +205,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDescriptionLength30To100,
 	ErrorAdvertAlreadyDisabled,
 	ErrorAdvertTitleAlreadyExists,
+	ErrorBudgetCategoryNameAlreadyExists,
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
@@ -462,6 +463,8 @@ var ResponseCodesList = []ResponseCode{
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
+	ErrorEmailAlreadyExist,
+	ErrorPhonenumberAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
@@ -1385,6 +1388,12 @@ var (
 		Message:    "Advert title already exists",
 		Type:       "error",
 	}
+	ErrorBudgetCategoryNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "budget category name already exists",
+		Type:       "error",
+	}
 
 	ErrorAdvertTitleNotChanged = ResponseCode{
 		Code:       "ERROR_ADVERT_TITLE_NOT_CHANGED",
@@ -1548,7 +1557,7 @@ var (
 	ErrorTopupNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Topup with the given name already exists",
+		Message:    "Topup with the given name and code already exists",
 		Type:       "error",
 	}
 	ErrorTopupCodeAlreadyExists = ResponseCode{
@@ -1588,7 +1597,7 @@ var (
 	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Wallet with the given name already exists",
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
@@ -4333,6 +4342,18 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorEmailAlreadyExist = ResponseCode{
+		Code:       "ERROR_EMAIL_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEmailAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPhonenumberAlreadyExist = ResponseCode{
+		Code:       "ERROR_PHONENUMBER_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPhonenumberAlreadyExists,
 		Type:       "error",
 	}
 
