@@ -2,10 +2,13 @@ package action_role_repo
 
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -14,16 +17,16 @@ import (
 )
 
 type ActionRoleRepository struct {
-	client  *mongo.Client
+	client   *mongo.Client
 	mongoDal dal.MongoDal[model.ActionRole, model.ActionRole]
-	logger  utils.Logger
+	logger   utils.Logger
 }
 
 func NewActionRoleRepository(client *mongo.Client, database, collection string, logger utils.Logger) storage.ActionRoleRepository {
 	return &ActionRoleRepository{
-		client:  client,
+		client:   client,
 		mongoDal: dal.NewMongoDal[model.ActionRole, model.ActionRole](client, database, collection),
-		logger:  logger,
+		logger:   logger,
 	}
 }
 
@@ -66,41 +69,20 @@ func (r *ActionRoleRepository) FindAllWithPagination(ctx context.Context, filter
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	items, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	totalDocs, err := r.mongoDal.TotalCount(ctx, filter)
+
+	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
-		totalDocs = int64(skip) + int64(len(items))
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	if limit <= 0 {
-		if len(items) > 0 { limit = int64(len(items)) } else { limit = 1 }
-	}
-	page := filterParam.Page
-	if page <= 0 { page = 1 }
-	totalPages := int((totalDocs + int64(limit) - 1) / int64(limit))
-	if totalPages == 0 { totalPages = 1 }
-	pagingCounter := (int64(page)-1)*limit + 1
-	hasPrev := page > 1
-	hasNext := page < totalPages
-	var prevPage *int
-	if hasPrev { p := page - 1; prevPage = &p }
-	var nextPage *int
-	if hasNext { n := page + 1; nextPage = &n }
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	return &types.PaginatedResponse[[]*model.ActionRole]{
-		Data: items,
-		Meta: types.PaginationMeta{
-			TotalDocs:     totalDocs,
-			Limit:         int(limit),
-			TotalPages:    totalPages,
-			Page:          page,
-			PagingCounter: int(pagingCounter),
-			HasPrevPage:   hasPrev,
-			HasNextPage:   hasNext,
-			PrevPage:      prevPage,
-			NextPage:      nextPage,
-		},
+		Data: data,
+		Meta: meta,
 	}, nil
 }
