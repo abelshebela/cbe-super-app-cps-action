@@ -1,0 +1,12 @@
+package actionrole
+
+import "net/http"
+
+type ActionRoleHandler interface {
+	GetAll(w http.ResponseWriter, r *http.Request)
+	GetByActionCode(w http.ResponseWriter, r *http.Request)
+	Create(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
+	Enable(w http.ResponseWriter, r *http.Request)
+	Disable(w http.ResponseWriter, r *http.Request)
+}

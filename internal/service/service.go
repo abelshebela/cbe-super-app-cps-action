@@ -430,6 +430,7 @@ type ServiceLayer struct {
 	NewsTagsService        NewsTagsService
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
+	ActionRole             ActionRoleService
 }
 
 type ServiceContainer struct {
@@ -480,7 +481,28 @@ type ServiceContainer struct {
 	EncryptionContainer        EncryptionService
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
+	ActionRoleContainer        ActionRoleService
 }
+
+type ActionRoleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+	GetByActionCode(ctx context.Context, actionCode string) (*model.ActionRole, error)
+	Create(ctx context.Context, req struct {
+		ActionCode       string
+		ActionName       string
+		AssignedMakers   []string
+		AssignedCheckers [][]string
+	}) error
+	Update(ctx context.Context, actionCode string, req struct {
+		ActionName       string
+		AssignedMakers   []string
+		AssignedCheckers [][]string
+	}) error
+	Enable(ctx context.Context, actionCode string) error
+	Disable(ctx context.Context, actionCode string) error
+}
+
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error)

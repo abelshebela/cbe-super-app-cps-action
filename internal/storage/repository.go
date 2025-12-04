@@ -551,3 +551,11 @@ type IconRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
 }
+
+type ActionRoleRepository interface {
+    Create(ctx context.Context, actionRole *model.ActionRole) error
+    UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
+    EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+    FindByActionCode(ctx context.Context, actionCode string) (*model.ActionRole, error)
+    FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+}

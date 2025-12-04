@@ -27,6 +27,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
+	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/action_role"
 	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
 	"time"
 
@@ -131,6 +132,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NewsCategoryPersistence:          newscategory_repo.NewNewsCategoryRepository(client, dbName, NewsCategoryCollection, logger),
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
+		ActionRolePersistence:            actionrole_repo.NewActionRoleRepository(client, dbName, ActionRolesCollection, logger),
 	}
 
 	return data

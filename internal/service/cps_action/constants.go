@@ -270,6 +270,12 @@ const (
 	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
 	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
 
+	// Action Role Mapper
+	RequestCreateActionRole  RequestAction = "CREATE_ACTION_ROLE"
+	RequestUpdateActionRole  RequestAction = "UPDATE_ACTION_ROLE"
+	RequestEnableActionRole  RequestAction = "ENABLE_ACTION_ROLE"
+	RequestDisableActionRole RequestAction = "DISABLE_ACTION_ROLE"
+
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
 	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
@@ -459,6 +465,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableNewsTag:  {},
 	RequestDisableNewsTag: {},
 	RequestDeleteNewsTag:  {},
+
+	// Action Role Mapper
+	RequestCreateActionRole:  {},
+	RequestUpdateActionRole:  {},
+	RequestEnableActionRole:  {},
+	RequestDisableActionRole: {},
 
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
@@ -782,26 +794,32 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestApproveFaydaCustomer,
 	},
 
-	"news_category": {
-		RequestAction("CREATE_NEWS_CATEGORY"),
-		RequestAction("UPDATE_NEWS_CATEGORY"),
-		RequestAction("DELETE_NEWS_CATEGORY"),
-	},
-	"news_tag": {
-		RequestCreateNewsTag,
-		RequestUpdateNewsTag,
-		RequestEnableNewsTag,
-		RequestDisableNewsTag,
-		RequestDeleteNewsTag,
-	},
-	"DeviceVersion": {
-		RequestCreateDeviceVersion,
-		RequestUpdateDeviceVersion,
-		RequestEnableDeviceVersion,
-		RequestDisableDeviceVersion,
-		RequestDeleteDeviceVersion,
-		RequestEnableDisableDeviceVersion,
-	},
+"news_category": {
+	RequestAction("CREATE_NEWS_CATEGORY"),
+	RequestAction("UPDATE_NEWS_CATEGORY"),
+	RequestAction("DELETE_NEWS_CATEGORY"),
+},
+"news_tag": {
+	RequestCreateNewsTag,
+	RequestUpdateNewsTag,
+	RequestEnableNewsTag,
+	RequestDisableNewsTag,
+	RequestDeleteNewsTag,
+},
+"ActionRole": {
+	RequestCreateActionRole,
+	RequestUpdateActionRole,
+	RequestEnableActionRole,
+	RequestDisableActionRole,
+},
+"DeviceVersion": {
+	RequestCreateDeviceVersion,
+	RequestUpdateDeviceVersion,
+	RequestEnableDeviceVersion,
+	RequestDisableDeviceVersion,
+	RequestDeleteDeviceVersion,
+	RequestEnableDisableDeviceVersion,
+},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {

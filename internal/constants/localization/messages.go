@@ -1005,6 +1005,14 @@ const (
 	MsgNewsTagFetchedSuccess             = "News tag fetched successfully"
 	MsgNewsTagCreatedSuccess             = "News tag created request sent successfully"
 
+    // Action Role success messages
+    MsgActionRolesFetchedSuccess            = "Action roles fetched successfully"
+    MsgActionRoleFetchedSuccess             = "Action role fetched successfully"
+    MsgActionRoleCreateRequestCreated       = "Action role create request sent successfully"
+    MsgActionRoleUpdateRequestCreated       = "Action role update request sent successfully"
+    MsgActionRoleEnableRequestCreated       = "Action role enable request sent successfully"
+    MsgActionRoleDisableRequestCreated      = "Action role disable request sent successfully"
+
 	// Sitota related
 	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
 	MsgSitotaRetrievedSuccess     = "Sitota retrieved successfully"

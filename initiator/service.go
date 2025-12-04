@@ -29,6 +29,7 @@ import (
 	deviceversion "cbe-super-app-cps-action/internal/service/device_version"
 	"cbe-super-app-cps-action/internal/service/event"
 	miniapp "cbe-super-app-cps-action/internal/service/mini_app"
+	action_role_service "cbe-super-app-cps-action/internal/service/action_role"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/pkgs/keygen"
@@ -114,6 +115,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
+	actionRoleService := action_role_service.NewActionRoleService(persistence.ActionRolePersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -160,6 +162,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		EncryptionContainer:        encryptionService,
 		BankProductContainer:       bankVaultProductService,
 		VaultCategoryContainer:     vaultGroupCategoryService,
+		ActionRoleContainer:        actionRoleService,
 	}
 
 	// CPSActionService Appended
@@ -204,6 +207,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
+	actionRoleService = action_role_service.NewActionRoleService(persistence.ActionRolePersistence, cpsActionService, logger)
+	serviceContainer.ActionRoleContainer = actionRoleService
 
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
@@ -246,7 +251,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BudgetCategory:  budgetCategoryService,
 		PortalCard:      portalCardService,
 		AmountBasedAuth: amountBased,
-		// ValidationService:      accountValidation,
 		AccountValidation:      accountValidationService,
 		Wallet:                 walletService,
 		Topup:                  topupService,
@@ -279,5 +283,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Encryption:             encryptionService,
 		BankVault:              bankVaultProductService,
 		VaultGroupCategory:     vaultGroupCategoryService,
+		ActionRole:             actionRoleService,
 	}
 }

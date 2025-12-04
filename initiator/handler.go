@@ -25,6 +25,7 @@ import (
 	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
+	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
@@ -70,6 +71,7 @@ import (
 	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
+	actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/action_role"
 	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
 	passwordHandler "cbe-super-app-cps-action/internal/handlers/rest/http/password_rule"
 	permissionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/permission"
@@ -121,6 +123,7 @@ type Handler struct {
 	VaultGroupCategoryHandler vaultgroupcategory.VaultGroupCategoryHandler
 	NewsCategoryHandler       newscategory_adaptor.NewsCategoryAdaptor
 	NewsTagHandler            newstag_adaptor.NewsTagAdaptor
+	ActionRoleHandler         actionrole_iface.ActionRoleHandler
 	SitotaHandler             sitotaInbound.SitotaAdapter
 	KYCVerifierHandler        kycInbound.KYCVerifierAdapter
 	EncryptionHandler         encryptionInbound.EncryptionAdapter
@@ -166,6 +169,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		DonationCompanyHandler:    donationCompanyHandler.InitDonationCompanyAdapter(serviceLayer.DonationCompany, logger),
 		NewsCategoryHandler:       newscategory_handler.NewNewsCategoryHandler(serviceLayer.NewsCategoryService, logger),
 		NewsTagHandler:            newstag_handler.NewNewsTagHandler(serviceLayer.NewsTagService, logger),
+		ActionRoleHandler:         actionrole_handler.NewActionRoleHandler(serviceLayer.ActionRole, logger),
 		SitotaHandler:             sitotaHandler.InitSitotaHandler(serviceLayer.Sitota, logger),
 		KYCVerifierHandler:        kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
 		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
