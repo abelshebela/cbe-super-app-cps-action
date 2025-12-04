@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault"
+	"cbe-super-app-cps-action/internal/storage/persistance/sitota"
 	vaultgroupcategory "cbe-super-app-cps-action/internal/storage/persistance/vaultgroup_category"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -13,11 +14,13 @@ import (
 type OraclePersistence struct {
 	BankVault          storage.BankVaultRepository
 	vaultGroupCategory storage.VaultGroupCategoryRepository
+	Sitota             storage.SitotaRepository
 }
 
 func InitOraclePersistence(db *sql.DB, log utils.Logger) OraclePersistence {
 	return OraclePersistence{
 		BankVault:          bankvault.NewBankVaultRepository(db, log),
 		vaultGroupCategory: vaultgroupcategory.NewVaultGroupCategoryRepository(db, log),
+		Sitota:             sitota.NewSitotaRepository(db, log),
 	}
 }

@@ -144,6 +144,7 @@ type BudgetCategoryRepository interface {
 	FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error)
 	DeleteBudgetCategory(ctx context.Context, id string) error
 	EnableOrDisableBudgetCategory(ctx context.Context, id string, enable bool) error
+	FindByName(ctx context.Context, name string) (*model.BudgetCategory, error)
 }
 
 // AmountBasedAuth persistence
@@ -196,6 +197,7 @@ type AdvertRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Advert, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FindByTitle(ctx context.Context, title string) (*model.Advert, error)
 }
 
 type ArchivedUserRepository interface {
@@ -233,7 +235,7 @@ type DepartmentRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Department, error)
 	FindByName(ctx context.Context, name string) (*model.Department, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.Department], error)
 }
 
 type PortalCardRepository interface {
@@ -537,8 +539,8 @@ type NewsCategoryRepository interface {
 }
 
 type NewsTagsRepository interface {
-	Create(ctx context.Context, newsTag *model.NewsTagModel) error
-	Update(ctx context.Context, newsTag *model.NewsTagModel, id string) error
+	Create(ctx context.Context, newsTag *model.NewsTags) error
+	Update(ctx context.Context, newsTag *model.NewsTags, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableDisable(ctx context.Context, id string, isEnable bool) error
 }
@@ -550,4 +552,9 @@ type IconRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+}
+
+type SitotaRepository interface {
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
+	Get(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }

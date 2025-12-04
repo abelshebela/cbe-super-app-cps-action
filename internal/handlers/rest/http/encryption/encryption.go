@@ -45,7 +45,7 @@ func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
 
 	if err := req.Validate(); err != nil {
 		enc.logger.Errorf("[Encryption] validation failed: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

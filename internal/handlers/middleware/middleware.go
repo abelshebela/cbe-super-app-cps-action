@@ -183,7 +183,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.logger.Infof("/////////////////////////////////////////")
+		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
 
@@ -212,32 +212,29 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-		a.logger.Infof("/////////////////////////////////////////", userPayload)
 
-		// if userPayload.Environment != a.cfg.GoEnv {
-		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-		// 	return
-		// }
 		ctx := a.setUserPayload(r.Context(), userPayload)
-		// refresh token payload if session expiry has less than 1 minute
 		now := time.Now().Unix()
-		a.logger.Infof("/////////////////////////////////////////", now, ctx)
 
 		if userPayload.SessionExp != 0 {
-			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now)
+			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 			if userPayload.SessionExp < now {
 				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
 
-			if userPayload.SessionExp-now < 60000 {
+			if userPayload.SessionExp-now <= 0 {
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			} else if userPayload.SessionExp-now < 60 {
 				// Less than 1 minute left, refresh token
 				a.logger.Infof("session expiring soon, refreshing token")
 				// Inject Bearer token and user_id from context into gRPC metadata
 				md := metadata.New(map[string]string{
 					"authorization": "Bearer " + tokenString,
 				})
+
 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
 				if err != nil {
@@ -249,13 +246,10 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 					a.logger.Errorf("refresh token response from grpc is nil")
 				}
 			}
+
 		}
 
-		// fmt.Println("userPayload", userPayload)
-		// ctx = a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
-		a.logger.Infof("/////////////////////////////////////////")
-
 		next.ServeHTTP(w, r)
 	})
 }

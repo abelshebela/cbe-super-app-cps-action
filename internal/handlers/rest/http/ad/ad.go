@@ -46,13 +46,17 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/adverts [post]
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	req, err := core.ParseAndValidateAdvertRequest(r, false, a.logger)
+	req, err := core.ParseBannerImage(r, true)
 	if err != nil {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
-	domainReq, err := core.ToAdvert(*req)
+	if err := req.Validate(false); err != nil {
+		a.logger.Errorf("advert create  update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	domainReq, err := core.ToAdvert(req)
 	if err != nil {
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
@@ -156,14 +160,18 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := core.ParseAndValidateAdvertRequest(r, true, a.logger)
+	req, err := core.ParseBannerImage(r, false)
 	if err != nil {
 		a.logger.Errorf("[event.UpdateAdvert] failed to parse and validate advert request, id: %s, error: %v", id, err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	domainReq, _ := core.ToAdvert(*req)
+	if err := req.Validate(true); err != nil {
+		a.logger.Errorf("advert update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	domainReq, _ := core.ToAdvert(req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)

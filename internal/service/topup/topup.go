@@ -46,7 +46,7 @@ func NewTopupService(repo storage.TopupRepository, cps service.CPSActionService,
 func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupRequest) error {
 	s.logger.Infof("Createtopup called", "topup_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "name", req.Name)
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -58,15 +58,6 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-
-	existCode, err := s.repo.Find(ctx, "code", req.Code)
-
-	if err != nil {
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	if existCode != nil {
-		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "topup", *s.cfg, "", s.logger)
