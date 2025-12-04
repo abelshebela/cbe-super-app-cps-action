@@ -87,6 +87,7 @@ func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enab
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
 	return dto.DonationCompanyResponse{
 		CompanyName:   donationCompany.CompanyName,
+		CompanyCode:   donationCompany.CompanyCode,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
 		PhoneNumber:   donationCompany.PhoneNumber,
@@ -101,6 +102,7 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 	return dto.DonationCompanyCPSRequest{
 		ID:            id,
 		CompanyName:   donationCompany.CompanyName,
+		CompanyCode:   donationCompany.CompanyCode,
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
 		PhoneNumber:   donationCompany.PhoneNumber,
@@ -109,10 +111,59 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 	}
 }
 
+func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyCPSRequest {
+	result := dto.DonationCompanyCPSRequest{ID: id}
+
+	if donationCompany.CompanyName != "" && donationCompany.CompanyName != existing.CompanyName {
+		result.CompanyName = donationCompany.CompanyName
+	} else {
+		result.CompanyName = existing.CompanyName
+	}
+
+	if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
+		result.CompanyCode = donationCompany.CompanyCode
+	} else {
+		result.CompanyCode = existing.CompanyCode
+	}
+
+	if donationCompany.AccountNumber != existing.AccountNumber {
+		result.AccountNumber = donationCompany.AccountNumber
+	} else {
+		result.AccountNumber = existing.AccountNumber
+	}
+
+	if donationCompany.PhoneNumber != "" && donationCompany.PhoneNumber != existing.PhoneNumber {
+		result.PhoneNumber = donationCompany.PhoneNumber
+	} else {
+		result.PhoneNumber = existing.PhoneNumber
+	}
+
+	if donationCompany.Email != "" && donationCompany.Email != existing.Email {
+		result.Email = donationCompany.Email
+	} else {
+		result.Email = existing.Email
+	}
+
+	if donationCompany.PhoneNumber != "" && donationCompany.Address != existing.Address {
+		result.Address = donationCompany.Address
+	} else {
+		result.Address = existing.Address
+	}
+
+	if logoURL != existing.CompanyLogo {
+		result.CompanyLogo = logoURL
+	} else {
+		result.CompanyLogo = existing.CompanyLogo
+	}
+
+	return result
+}
+
 // MapToDonationCompanyRequest creates a request DTO from CPS request DTO
 func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.DonationCompanyRequest {
 	return dto.DonationCompanyRequest{
 		CompanyName:   cpsRequest.CompanyName,
+		CompanyCode:   cpsRequest.CompanyCode,
 		AccountNumber: cpsRequest.AccountNumber,
 		PhoneNumber:   cpsRequest.PhoneNumber,
 		Email:         cpsRequest.Email,
@@ -123,6 +174,11 @@ func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.D
 func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
 	// Check if company name is the same (if provided in request)
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
+		return false
+	}
+
+	// Check if the company code is the same
+	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
 
@@ -149,6 +205,7 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 	// Convert existing DTO to model for similarity check
 	existingModel := &model.DonationCompany{
 		CompanyName:   existing.CompanyName,
+		CompanyCode:   existing.CompanyCode,
 		CompanyLogo:   existing.CompanyLogo,
 		AccountNumber: existing.AccountNumber,
 		IsDeleted:     existing.IsDeleted,
@@ -162,6 +219,16 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 	// Check if company name is being updated and if it already exists
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		ok, err := CompanyNameExists(ctx, request.CompanyName, donationCompanyRepo)
+		if err != nil {
+			return err
+		}
+		if ok {
+			return errors.New(localization.ErrorCompanyNameAlreadyExists.Code)
+		}
+	}
+
+	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
+		ok, err := CompanyNameExists(ctx, request.CompanyCode, donationCompanyRepo)
 		if err != nil {
 			return err
 		}

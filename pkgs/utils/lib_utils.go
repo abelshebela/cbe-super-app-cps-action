@@ -164,13 +164,13 @@ func parseValue(value string) interface{} {
 
 	if isDigitString(value) {
 		if parsed, err := strconv.ParseInt(value, 10, 64); err == nil {
-		return parsed
+			return parsed
 		} else if errors.Is(err, strconv.ErrRange) {
 			return value
-	}
+		}
 	} else if strings.ContainsAny(value, ".eE") {
-	if parsed, err := strconv.ParseFloat(value, 64); err == nil {
-		return parsed
+		if parsed, err := strconv.ParseFloat(value, 64); err == nil {
+			return parsed
 		}
 	}
 
