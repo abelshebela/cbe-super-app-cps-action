@@ -38,15 +38,14 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
+
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
 		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			break
 		}
-		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
-			return s.repo.Create(ctx, miniApp)
-		})
+		err = s.repo.Create(ctx, miniApp)
 
 	case string(constants.RequestUpdateMiniApp):
 		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)

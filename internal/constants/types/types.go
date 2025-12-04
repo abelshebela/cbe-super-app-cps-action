@@ -336,7 +336,7 @@ type Restriction struct {
 }
 
 type ProductCode struct {
-	ID             string               `json:"id" bson:"id"`
+	ID             string               `json:"_id" bson:"_id"`
 	BranchType     constants.BranchType `json:"branch_type" bson:"branch_type"`
 	ProductCode    string               `json:"product_code" bson:"product_code"`
 	VATCode        string               `json:"vat_code" bson:"vat_code"`
@@ -344,7 +344,7 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	ID            bson.ObjectID             `bson:"_id" json:"id"`
+	ID            bson.ObjectID             `bson:"_id" json:"_id"`
 	Environment   constants.EnvironmentType `bson:"environment" json:"environment"`
 	MerchantAppID string                    `bson:"merchant_app_id" json:"merchant_app_id"`
 	FabricAppID   string                    `bson:"fabric_app_id" json:"fabric_app_id"`
@@ -358,7 +358,7 @@ type CredentialInformation struct {
 }
 
 type MiniApps struct {
-	ID        bson.ObjectID `json:"id" bson:"id"`
+	ID        bson.ObjectID `json:"_id" bson:"_id"`
 	Enabled   bool          `json:"enabled" bson:"enabled"`
 	IsDeleted bool          `json:"is_deleted" bson:"is_deleted"`
 }
