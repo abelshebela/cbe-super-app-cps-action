@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"time"
@@ -216,6 +217,12 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		now := time.Now().Unix()
 
+		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
+		if err != nil || remainTime == 0 {
+			remainTime = 120
+		} else {
+			remainTime *= 60
+		}
 		if userPayload.SessionExp != 0 {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 			if userPayload.SessionExp < now {
@@ -227,7 +234,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			if userPayload.SessionExp-now <= 0 {
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
-			} else if userPayload.SessionExp-now < 60 {
+			} else if userPayload.SessionExp-now < int64(remainTime) {
 				// Less than 1 minute left, refresh token
 				a.logger.Infof("session expiring soon, refreshing token")
 				// Inject Bearer token and user_id from context into gRPC metadata

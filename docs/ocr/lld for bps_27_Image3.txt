@@ -1,0 +1,25 @@
+Access Control - Complete Flow
+| GET /access_control/{user code} ; ' ' ' '
+' ' | Query user_access collection ' ' '
+' ' ‘Access list ' ' '
+' |g Current access ' ' ‘ '
+1 ' ' ' ' '
+| “transfer: true, : ! j ! !
+| bill_payment: true, ' ' ' ' '
+| airtime: false : ' j ' j
+a ' ' ' '
+' POST Jaccess_control/update ' ' ‘ ' '
+| fuser code, access list: {airtime: true}} ' ' ' '
+: | ValidateAccessChanges() _ | : : f
+' Valid '
+' ' CreateAccessAction() 1 ' ' '
+' ' | BpsActionCreate() ! ' '
+' ' ' ' = previous action: {old access list} | '
+coment ew access tit}
+L eesacti ‘
+' | ¢ {action code} i ' ' '
+' | BpsActionApprove() i q ' '
+i i i | Fetch action i f
+‘ ' ‘ | Update status = APPROVED q '
+' ' 1 ExecuteAccessUpdate() ' ' '
+' ‘ | Update user_access collection t ' '

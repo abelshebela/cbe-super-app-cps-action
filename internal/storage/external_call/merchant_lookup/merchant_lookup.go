@@ -12,17 +12,19 @@ import (
 )
 
 type MerchantLookupAdapter struct {
-	Url    string
-	cfg    config.VaultConfig
-	logger utils.Logger
-	client *http.Client
+	Url       string
+	cfg       config.VaultConfig
+	x_api_key string
+	logger    utils.Logger
+	client    *http.Client
 }
 
-func NewMerchantLookupAdapter(url string, cfg config.VaultConfig, logger utils.Logger) *MerchantLookupAdapter {
+func NewMerchantLookupAdapter(url string, cfg config.VaultConfig, x_api_key string, logger utils.Logger) *MerchantLookupAdapter {
 	return &MerchantLookupAdapter{
-		Url:    url,
-		cfg:    cfg,
-		logger: logger,
+		Url:       url,
+		cfg:       cfg,
+		logger:    logger,
+		x_api_key: x_api_key,
 		client: &http.Client{
 			Timeout: time.Duration(cfg.ServerTimeout),
 		},
@@ -31,7 +33,7 @@ func NewMerchantLookupAdapter(url string, cfg config.VaultConfig, logger utils.L
 
 func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID string) (merchant_lookup.MerchantLookUpResponse, error) {
 
-	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, m.Url, merchantID)
+	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, m.x_api_key, m.Url, merchantID)
 	if err != nil {
 		return merchant_lookup.MerchantLookUpResponse{}, err
 	}

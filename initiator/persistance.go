@@ -86,7 +86,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, AccountBlockCollection, logger),
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
-		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, logger),
+		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, "0e404061ea76caf9536bc7a38369ca38520aac3c", logger),
 		SMSSenderApi:                    kafkaService,
 		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
 		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
