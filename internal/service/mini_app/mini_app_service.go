@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
-	miniappcore "cbe-super-app-cps-action/internal/service/mini_app/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -41,14 +40,14 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
-		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			break
 		}
 		err = s.repo.Create(ctx, miniApp)
 
 	case string(constants.RequestUpdateMiniApp):
-		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			break
 		}
@@ -58,7 +57,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		err = s.repo.Delete(ctx, cpsAction.UniqueId)
 
 	case string(constants.RequestEnableMiniApp):
-		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			break
 		}
@@ -82,4 +81,22 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	s.logger.Infof("Action %s approved for MiniApp %s", cpsAction.RequestAction, miniApp.AppName)
 
 	return cpsAction, nil
+}
+
+func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchantService) error {
+	merchant, err := merchantService.FindByID(ctx, MerchantID)
+	if err != nil {
+		s.logger.Errorf("Failed to get merchant details", "merchantID", MerchantID, "error", err)
+		return errors.New(localization.ErrorMerchantNotFound.Code)
+	}
+	if merchant.IsDeleted {
+		s.logger.Errorf("Merchant is deleted", "merchantID", MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
+	}
+
+	if !merchant.Enabled {
+		s.logger.Errorf("Merchant is disabled", "merchantID", MerchantID)
+		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
+	}
+	return nil
 }
