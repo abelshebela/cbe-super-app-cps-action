@@ -29,29 +29,34 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 }
 
 // CreateAdvert godoc
-// @Summary Create a new advert (maker)
-// @Description Submit an advert create request. Requires multipart/form-data with optional banner image.
-// @Tags Adverts
-// @Accept mpfd
-// @Produce json
-// @Param title formData string true "Title" minLength(3) maxLength(20) example("New Promo")
-// @Param description formData string true "Description" minLength(30) maxLength(100) example("Enjoy our new promotion valid this weekend only.")
-// @Param advert_for formData string true "Advert audience" Enums(IFB,CB,ALL) example(ALL)
-// @Param banner_image formData file false "Banner image (<=2MB; jpeg/png/gif/webp)"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Advert create request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid request"
-// @Failure 409 {object} localization.StandardResponse{data=nil} "Duplicate or conflict"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /adverts [post]
+//
+//	@Summary		Create a new advert (maker)
+//	@Description	Submit an advert create request. Requires multipart/form-data with optional banner image.
+//	@Tags			Adverts
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			title			formData	string									true	"Title"				minLength(3)		maxLength(20)	example("New Promo")
+//	@Param			description		formData	string									true	"Description"		minLength(30)		maxLength(100)	example("Enjoy our new promotion valid this weekend only.")
+//	@Param			advert_for		formData	string									true	"Advert audience"	Enums(IFB,CB,ALL)	example(ALL)
+//	@Param			banner_image	formData	file									false	"Banner image (<=2MB; jpeg/png/gif/webp)"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Advert create request sent"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"Invalid request"
+//	@Failure		409				{object}	localization.StandardResponse{data=nil}	"Duplicate or conflict"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/adverts [post]
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	req, err := core.ParseAndValidateAdvertRequest(r, false, a.logger)
+	req, err := core.ParseBannerImage(r, true)
 	if err != nil {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
-	domainReq, err := core.ToAdvert(*req)
+	if err := req.Validate(false); err != nil {
+		a.logger.Errorf("advert create  update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	domainReq, err := core.ToAdvert(req)
 	if err != nil {
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
@@ -69,19 +74,20 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 // FetchAdverts godoc
-// @Summary List adverts
-// @Description Fetch adverts with pagination and optional text search.
-// @Tags Adverts
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1) minimum(1) example(1)
-// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
-// @Param search query string false "Search by title/description" example("promo")
-// @Success 200 {object} localization.StandardResponse{data=paginated_advert_response} "Adverts fetched successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid pagination params"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /adverts [get]
+//
+//	@Summary		List adverts
+//	@Description	Fetch adverts with pagination and optional text search.
+//	@Tags			Adverts
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int																false	"Page number"					default(1)	minimum(1)	example(1)
+//	@Param			per_page	query		int																false	"Items per page"				default(10)	minimum(1)	maximum(100)	example(10)
+//	@Param			search		query		string															false	"Search by title/description"	example("promo")
+//	@Success		200			{object}	localization.StandardResponse{data=paginated_advert_response}	"Adverts fetched successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Invalid pagination params"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Server error"
+//	@Security		BearerAuth
+//	@Router			/adverts [get]
 func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	list, err := a.advertApplication.FetchAdverts(r.Context(), *filterParams)
@@ -99,18 +105,19 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 }
 
 // FetchAdvertByID godoc
-// @Summary Get advert by ID
-// @Description Retrieve a single advert by its identifier.
-// @Tags Adverts
-// @Accept json
-// @Produce json
-// @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse{data=ad.AdvertResponse} "Advert fetched successfully"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /adverts/{id} [get]
+//
+//	@Summary		Get advert by ID
+//	@Description	Retrieve a single advert by its identifier.
+//	@Tags			Adverts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string													true	"Advert ID"
+//	@Success		200	{object}	localization.StandardResponse{data=ad.AdvertResponse}	"Advert fetched successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}					"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}					"Advert not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}					"Server error"
+//	@Security		BearerAuth
+//	@Router			/adverts/{id} [get]
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -129,22 +136,23 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 }
 
 // UpdateAdvert godoc
-// @Summary Update existing advert (maker)
-// @Description Submit an advert update request. Provide only fields to change. Multipart/form-data supported for banner_image.
-// @Tags Adverts
-// @Accept mpfd
-// @Produce json
-// @Param id path string true "Advert ID"
-// @Param title formData string false "Title" minLength(3) maxLength(20) example("Weekend Promo")
-// @Param description formData string false "Description" minLength(30) maxLength(100)
-// @Param advert_for formData string false "Advert audience" Enums(IFB,CB,ALL)
-// @Param banner_image formData file false "Banner image (<=2MB; jpeg/png/gif/webp)"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Advert update request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "No data provided for update / invalid payload"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /adverts/{id} [patch]
+//
+//	@Summary		Update existing advert (maker)
+//	@Description	Submit an advert update request. Provide only fields to change. Multipart/form-data supported for banner_image.
+//	@Tags			Adverts
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			id				path		string									true	"Advert ID"
+//	@Param			title			formData	string									false	"Title"				minLength(3)	maxLength(20)	example("Weekend Promo")
+//	@Param			description		formData	string									false	"Description"		minLength(30)	maxLength(100)
+//	@Param			advert_for		formData	string									false	"Advert audience"	Enums(IFB,CB,ALL)
+//	@Param			banner_image	formData	file									false	"Banner image (<=2MB; jpeg/png/gif/webp)"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"Advert update request sent"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}	"No data provided for update / invalid payload"
+//	@Failure		404				{object}	localization.StandardResponse{data=nil}	"Advert not found"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/adverts/{id} [patch]
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -152,14 +160,18 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := core.ParseAndValidateAdvertRequest(r, true, a.logger)
+	req, err := core.ParseBannerImage(r, false)
 	if err != nil {
 		a.logger.Errorf("[event.UpdateAdvert] failed to parse and validate advert request, id: %s, error: %v", id, err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	domainReq, _ := core.ToAdvert(*req)
+	if err := req.Validate(true); err != nil {
+		a.logger.Errorf("advert update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	domainReq, _ := core.ToAdvert(req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)
@@ -177,18 +189,19 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteAdvert godoc
-// @Summary Delete advert (maker)
-// @Description Submit an advert delete request.
-// @Tags Adverts
-// @Accept json
-// @Produce json
-// @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Delete request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /advert/{id} [delete]
+//
+//	@Summary		Delete advert (maker)
+//	@Description	Submit an advert delete request.
+//	@Tags			Adverts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Advert ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Delete request sent"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Advert not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/advert/{id} [delete]
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -205,18 +218,19 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 // EnableAdvert godoc
-// @Summary Enable advert (checker)
-// @Description Approve enable request for an advert.
-// @Tags Adverts
-// @Accept json
-// @Produce json
-// @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Enable request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /adverts/{id}/enable [patch]
+//
+//	@Summary		Enable advert (checker)
+//	@Description	Approve enable request for an advert.
+//	@Tags			Adverts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Advert ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Enable request sent"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Advert not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/adverts/{id}/enable [patch]
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -234,18 +248,19 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 }
 
 // DisableAdvert godoc
-// @Summary Disable advert (checker)
-// @Description Approve disable request for an advert.
-// @Tags Adverts
-// @Accept json
-// @Produce json
-// @Param id path string true "Advert ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Disable request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Advert not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /adverts/{id}/disable [patch]
+//
+//	@Summary		Disable advert (checker)
+//	@Description	Approve disable request for an advert.
+//	@Tags			Adverts
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Advert ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Disable request sent"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Advert not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/adverts/{id}/disable [patch]
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {

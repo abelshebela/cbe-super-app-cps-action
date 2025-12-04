@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -35,19 +36,22 @@ func NewBankVaultService(re storage.BankVaultRepository, cpsS service.CPSActionS
 }
 
 func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error) {
-	makerData := local_util.ExtractUserFromContext(ctx)
-	mongoSafeReq := helperr.ConvertBankVaultToMongoSafe(req)
-
-	cpsActionModel := lib.CpsModelBuilder("", makerData, mongoSafeReq, mongoSafeReq, string(constants.RequestCreateBankVault), string(constants.CREATE))
-
-	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for bank vault | action=%s | err=%v", constants.RequestCreateBankVault, err)
+	err := s.repo.FindBankVaultByName(ctx, req.Name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			makerData := local_util.ExtractUserFromContext(ctx)
+			current := helperr.ConvertBankVaultToMongoSafe(req)
+			cpsActionModel := lib.CpsModelBuilder("", makerData, nil, current, string(constants.RequestCreateBankVault), string(constants.CREATE))
+			if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+				if s.logger != nil {
+					s.logger.Errorf("failed to create CPS action for bank vault | action=%s | err=%v", constants.RequestCreateBankVault, err)
+				}
+				return "", err
+			}
+			return "", nil
 		}
-		return "", err
 	}
-	return req.ID, nil
+	return "", errors.New(localization.ErrorDuplicateBankProduct.Code)
 }
 
 func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*bankvault.BankVaultProductResponse], error) {
@@ -78,8 +82,8 @@ func (s *bankVaultService) GetBankVault(ctx context.Context, id string) (*bankva
 	}
 	return helperr.MapBankVaultToResponse(enitity), nil
 }
-func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error) {
 
+func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error) {
 	req.UpdatedAt = time.Now().UTC()
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -116,7 +120,7 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 
 	if exist.IsActive {
 		s.logger.Errorf("Cannot delete active bank vault product: %s", id)
-		return "", errors.New(localization.ErrorCannotDeleteActiveBankVault.Code)
+		return "", errors.New(localization.ErrorCannotDeletedBankProduct.Code)
 	}
 
 	if exist.IsDeleted {
@@ -168,6 +172,7 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestEnableBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
+
 func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) error {
 	s.logger.Infof("Disabling bank vault: %s", id)
 	if id == "" {
@@ -187,15 +192,56 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	updated.IsActive = false
 	maker := local_util.ExtractUserFromContext(ctx)
 
-	// Convert to MongoDB-safe format
 	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
 	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(updated)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestDisAbleBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
+
+func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error) {
+	if filterParams == nil {
+		f := &types.Filter{}
+		filterParams = f
+
+	}
+	results, err := s.repo.FindAllBankLockedVaultsWithPagination(ctx, *filterParams)
+	if err != nil {
+		s.logger.Errorf("failed to fetch bank locked vaults: %v", err)
+		return nil, err
+	}
+	return &types.PaginatedResponse[[]*model.LockedVault]{
+		Data: results.Data,
+		Meta: results.Meta,
+	}, nil
+}
+
+// func (s *bankVaultService) GetBankLockedVault(ctx context.Context, id string) (*bankvault.LockedVaultResponse, error) {
+// 	return nil, nil
+// }
+
+func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.GroupVault], error) {
+	if filterParams == nil {
+		f := &types.Filter{}
+		filterParams = f
+	}
+
+	results, err := s.repo.FindAllGroupVaultWithPagination(ctx, *filterParams)
+	if err != nil {
+		s.logger.Errorf("failed to fetch group vaults: %v", err)
+		return nil, err
+	}
+	return &types.PaginatedResponse[[]*model.GroupVault]{
+		Data: results.Data,
+		Meta: results.Meta,
+	}, nil
+
+}
+
+// func (s *bankVaultService) GetGroupVault(ctx context.Context, id string) (*bankvault.GroupVaultResponse, error) {
+// 	return nil, nil
+// }
+
 func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	cpsAction.MakerActionTime = time.Now()
-	cpsAction.LastModifiedAt = cpsAction.MakerActionTime
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateBankVault):
 		bankvault, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
@@ -203,7 +249,7 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
-		if _, err := s.repo.Create(ctx, &bankvault); err != nil {
+		if _, err := s.repo.Create(ctx, bankvault); err != nil {
 			return nil, err
 		}
 		return cpsAction, nil
@@ -214,35 +260,22 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
-		update := helperr.BankUpdateVault(&bankvault)
-		if err := s.repo.Update(ctx, cpsAction.UniqueId, &update); err != nil {
+		if err := s.repo.Update(ctx, cpsAction.UniqueId, bankvault); err != nil {
 			return nil, err
 		}
 		return cpsAction, nil
 
 	case string(constants.RequestDeleteBankVault):
-		_, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
-		if err != nil {
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
 		if _, err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
 			return nil, err
 		}
 		return cpsAction, nil
 	case string(constants.RequestEnableBankVault):
-		_, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
-		if err != nil {
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
 			return nil, err
 		}
 		return cpsAction, nil
 	case string(constants.RequestDisAbleBankVault):
-		_, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
-		if err != nil {
-			return nil, errors.New(localization.ErrorInvalidRequest.Code)
-		}
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
 			return nil, err
 		}

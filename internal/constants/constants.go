@@ -110,6 +110,7 @@ type KYCStatus string
 const (
 	KYCStatusPending  KYCStatus = "PENDING"
 	KYCStatusApproved KYCStatus = "APPROVED"
+	KYCStatusComplete KYCStatus = "COMPLETE"
 	KYCStatusRejected KYCStatus = "REJECTED"
 )
 
@@ -122,11 +123,19 @@ const (
 	BPSStatusInitiated  BPSStatus = "INITIATED"
 )
 
+type Vendor string
+
+const (
+	Fayda    Vendor = "FAYDA"
+	Verigram Vendor = "Verigram"
+)
+
 type BlockedOn string
 
 const (
-	BPS BlockedOn = "BPS"
-	CPS BlockedOn = "CPS"
+	NotBlocked BlockedOn = ""
+	BPS        BlockedOn = "BPS"
+	CPS        BlockedOn = "CPS"
 )
 
 type MaritalStatus string
@@ -160,6 +169,21 @@ const (
 	Midium RiskLevel = "MIDIUM"
 	Low    RiskLevel = "LOW"
 )
+
+const (
+	AccountNumber = "account_number"
+	PhoneNumber   = "phone_number"
+	WithFayda     = "with_fayda"
+)
+
+// type KYCStatus string
+
+// const (
+// 	KYCStatusPending  KYCStatus = "PENDING"
+// 	KYCStatusApproved KYCStatus = "APPROVED"
+// KYCStatusComplete KYCStatus = "COMPLETE"
+// 	KYCStatusRejected KYCStatus = "REJECTED"
+// )
 
 type MemberType string
 
@@ -206,43 +230,52 @@ const (
 type RequestAction string
 
 const (
-	RequestUser           RequestAction = "USER"
-	RequestCpsUserCreate  RequestAction = "CREATE_CPS_USER"
-	RequestCpsUserUpdate  RequestAction = "UPDATE_CPS_USER"
-	RequestCpsUserDelete  RequestAction = "DELETE_CPS_USER"
-	RequestCpsUserEnable  RequestAction = "ENABLE_CPS_USER"
-	RequestCpsUserDisable RequestAction = "DISABLE_CPS_USER"
+	RequestUser                  RequestAction = "USER"
+	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
+	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
+	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
+	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
+	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
+	RequestUpdateKYC             RequestAction = "UPDATE_KYC"
+	RequestApproveKYC            RequestAction = "APPROVE_KYC"
+	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
+	RequestCreatePermissionGroup RequestAction = "CREATE_PERMISSION_GROUP"
+	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
+	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
+	RequestDepartment            RequestAction = "DEPARMTENT"
+	RequestEnableUser            RequestAction = "ENABLE_USER"
+	RequestDisableUser           RequestAction = "DISABLE_USER"
+	RequestBPSUser               RequestAction = "BPS_USER"
+	RequestDisableBPSUser        RequestAction = "DISABLE_BPS_USER"
+	RequestEnableBPSUser         RequestAction = "ENABLE_BPS_USER"
+	RequestUpdateUser            RequestAction = "UPDATE_USER"
+	RequestTotalDailyLimit       RequestAction = "TOTAL_DAILY_LIMIT"
+	RequestUpdateVAT             RequestAction = "UPDATE_VAT"
+	RequestAuthTier              RequestAction = "AUTHTIER"
+	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
+	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
+	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
+	RequestCreateAdvert          RequestAction = "CREATE_ADVERT"
+	RequestUpdateAdvert          RequestAction = "UPDATE_ADVERT"
+	RequestEnableAdvert          RequestAction = "ENABLE_ADVERT"
+	RequestDisableAdvert         RequestAction = "DISABLE_ADVERT"
+	RequestDeleteAdvert          RequestAction = "DELETE_ADVERT"
+	RequestCreateBank            RequestAction = "CREATE_BANK"
+	RequestUpdateBank            RequestAction = "UPDATE_BANK"
+	RequestUpdateBankLogo        RequestAction = "UPDATE_BANK_LOGO"
+	RequestDeleteBank            RequestAction = "DELETE_BANK"
+	RequestEnableDisableBank     RequestAction = "ENABLE_DISABLE_BANK"
+	RequestEnableBank            RequestAction = "ENABLE_BANK"
+	RequestDisableBank           RequestAction = "DISABLE_BANK"
+	RequestCreateDepartment      RequestAction = "CREATE_DEPARTMENT"
 
-	RequestPermissionGroup          RequestAction = "PERMISSION_GROUP"
-	RequestCreatePermissionGroup    RequestAction = "CREATE_PERMISSION_GROUP"
-	RequestUpdatePermissionGroup    RequestAction = "UPDATE_PERMISSION_GROUP"
-	RequestDeletePermissionGroup    RequestAction = "DELETE_PERMISSION_GROUP"
-	RequestDepartment               RequestAction = "DEPARMTENT"
-	RequestEnableUser               RequestAction = "ENABLE_USER"
-	RequestDisableUser              RequestAction = "DISABLE_USER"
-	RequestBPSUser                  RequestAction = "BPS_USER"
-	RequestDisableBPSUser           RequestAction = "DISABLE_BPS_USER"
-	RequestEnableBPSUser            RequestAction = "ENABLE_BPS_USER"
-	RequestUpdateUser               RequestAction = "UPDATE_USER"
-	RequestTotalDailyLimit          RequestAction = "TOTAL_DAILY_LIMIT"
-	RequestUpdateVAT                RequestAction = "UPDATE_VAT"
-	RequestAuthTier                 RequestAction = "AUTHTIER"
-	RequestDeleteAmountBasedAuth    RequestAction = "DELETE_AMOUNT_BASED_AUTH"
-	RequestCreateAmountBasedAuth    RequestAction = "CREATE_AMOUNT_BASED_AUTH"
-	RequestUpdateAmountBasedAuth    RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
-	RequestCreateAdvert             RequestAction = "CREATE_ADVERT"
-	RequestUpdateAdvert             RequestAction = "UPDATE_ADVERT"
-	RequestEnableAdvert             RequestAction = "ENABLE_ADVERT"
-	RequestDisableAdvert            RequestAction = "DISABLE_ADVERT"
-	RequestDeleteAdvert             RequestAction = "DELETE_ADVERT"
-	RequestCreateBank               RequestAction = "CREATE_BANK"
-	RequestUpdateBank               RequestAction = "UPDATE_BANK"
-	RequestUpdateBankLogo           RequestAction = "UPDATE_BANK_LOGO"
-	RequestDeleteBank               RequestAction = "DELETE_BANK"
-	RequestEnableDisableBank        RequestAction = "ENABLE_DISABLE_BANK"
-	RequestEnableBank               RequestAction = "ENABLE_BANK"
-	RequestDisableBank              RequestAction = "DISABLE_BANK"
-	RequestCreateDepartment         RequestAction = "CREATE_DEPARTMENT"
+	RequestCreateDeviceVersion        RequestAction = "CREATE_DEVICE_VERSION"
+	RequestUpdateDeviceVersion        RequestAction = "UPDATE_DEVICE_VERSION"
+	RequestEnableDeviceVersion        RequestAction = "ENABLE_DEVICE_VERSION"
+	RequestDisableDeviceVersion       RequestAction = "DISABLE_DEVICE_VERSION"
+	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
+	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
+
 	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
 	RequestDeleteDepartment         RequestAction = "DELETE_DEPARTMENT"
 	RequestEnableDepartment         RequestAction = "ENABLE_DEPARTMENT"
@@ -315,18 +348,18 @@ const (
 	RequestDisableMultiBranches   RequestAction = "REQUEST_DISABLE_MULTI_BRANCHES"
 
 	// for bankvault
-	RequestCreateBankVault  RequestAction = "CREATE VAULT BANK"
-	RequestUpdateBankVault  RequestAction = "UPDATE VAULT BANK"
-	RequestDeleteBankVault  RequestAction = "DELETE VAULT BANK"
-	RequestEnableBankVault  RequestAction = "ENABLE VAULT BANK"
-	RequestDisAbleBankVault RequestAction = "DISABLE VAULT BANK"
+	RequestCreateBankVault  RequestAction = "CREATE_VAULT_BANK"
+	RequestUpdateBankVault  RequestAction = "UPDATE_VAULT_BANK"
+	RequestDeleteBankVault  RequestAction = "DELETE_VAULT_BANK"
+	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
+	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
 	// for vault group category
-	RequestCreateVaultGroupCategory  RequestAction = "CREATE VAULT GROUP CATEGORY"
-	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE VAULT GROUP CATEGORY"
-	RequestDeleteVaultGroupCategory  RequestAction = "DELETE VAULT GROUP CATEGORY"
-	RequestEnableVaultGroupCategory  RequestAction = "ENABLE VAULT GROUP CATEGORY"
-	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE VAULT GROUP CATEGORY"
+	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
+	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
+	RequestDeleteVaultGroupCategory  RequestAction = "DELETE_VAULT_GROUP_CATEGORY"
+	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
+	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
 
 	// Newly added for block_account
 	// Branch
@@ -360,13 +393,10 @@ const (
 	RequestUpdateHQBlockTime       RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 
-	RequestCreateBudget RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestUpdateBudget RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestDeleteBudget RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestCreateBudgetCategory RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory RequestAction = "UPDATE_BUDGET_CATEGORY"
 
-	RequestBudgetUpdate   RequestAction = "UPDATE_BUDGET_CATEGORY"
-	RequestBudgetCreate   RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestBudgetDelete   RequestAction = "DELETE_BUDGET_CATEGORY"
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
 	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
@@ -377,23 +407,23 @@ const (
 	RequestCIFRemove         RequestAction = "CIF_REMOVE"
 	RequestServiceFlagUpdate RequestAction = "SERVICE_FLAG_UPDATE"
 
-	RequestDisableFaydaAccount    RequestAction = "DISABLE_FAYDA_ACCOUNT"
-	RequestEnableFaydaAccount     RequestAction = "ENABLE_FAYDA_ACCOUNT"
-	RequestCreateDonationCategory RequestAction = "CREATE_DONATION_CATEGORY"
-	RequestUpdateDonationCategory RequestAction = "UPDATE_DONATION_CATEGORY"
-	RequestEnableDonationCategory        RequestAction = "ENABLE_DONATION_CATEGORY"
-	RequestDisableDonationCategory        RequestAction = "DISABLE_DONATION_CATEGORY"
-	RequestEnableDonationCompany        RequestAction = "ENABLE_DONATION_COMPANY"
-	RequestDisableDonationCompany       RequestAction = "DISABLE_DONATION_COMPANY"
-	RequestCreateDonationCompany  RequestAction = "CREATE_DONATION_COMPANY"
-	RequestUpdateDonationCompany  RequestAction = "UPDATE_DONATION_COMPANY"
-	RequestCreateDonation         RequestAction = "CREATE_DONATION"
-	RequestUpdateDonation         RequestAction = "UPDATE_DONATION"
-	RequestUpdateDonationImage    RequestAction = "UPDATE_DONATION_IMAGE"
-	RequestDeleteDonationImage    RequestAction = "DELETE_DONATION_IMAGE"
-	RequestAddDonationImage       RequestAction = "ADD_DONATION_IMAGE"
-	RequestEnableDonation         RequestAction = "ENABLE_DONATION"
-	RequestDisableDonation        RequestAction = "DISABLE_DONATION"
+	RequestDisableFaydaAccount     RequestAction = "DISABLE_FAYDA_ACCOUNT"
+	RequestEnableFaydaAccount      RequestAction = "ENABLE_FAYDA_ACCOUNT"
+	RequestCreateDonationCategory  RequestAction = "CREATE_DONATION_CATEGORY"
+	RequestUpdateDonationCategory  RequestAction = "UPDATE_DONATION_CATEGORY"
+	RequestEnableDonationCategory  RequestAction = "ENABLE_DONATION_CATEGORY"
+	RequestDisableDonationCategory RequestAction = "DISABLE_DONATION_CATEGORY"
+	RequestEnableDonationCompany   RequestAction = "ENABLE_DONATION_COMPANY"
+	RequestDisableDonationCompany  RequestAction = "DISABLE_DONATION_COMPANY"
+	RequestCreateDonationCompany   RequestAction = "CREATE_DONATION_COMPANY"
+	RequestUpdateDonationCompany   RequestAction = "UPDATE_DONATION_COMPANY"
+	RequestCreateDonation          RequestAction = "CREATE_DONATION"
+	RequestUpdateDonation          RequestAction = "UPDATE_DONATION"
+	RequestUpdateDonationImage     RequestAction = "UPDATE_DONATION_IMAGE"
+	RequestDeleteDonationImage     RequestAction = "DELETE_DONATION_IMAGE"
+	RequestAddDonationImage        RequestAction = "ADD_DONATION_IMAGE"
+	RequestEnableDonation          RequestAction = "ENABLE_DONATION"
+	RequestDisableDonation         RequestAction = "DISABLE_DONATION"
 
 	RequestCreateArticle  RequestAction = "CREATE_ARTICLE"
 	RequestUpdateArticle  RequestAction = "UPDATE_ARTICLE"
@@ -430,6 +460,10 @@ const (
 	ActionPending  RequestAction = "PENDING"
 	ActionApproved RequestAction = "APPROVED"
 	ActionRejected RequestAction = "REJECTED"
+
+	RequestCreateNewsCategory RequestAction = "CREATE_NEWS_CATEGORY"
+	RequestUpdateNewsCategory RequestAction = "UPDATE_NEWS_CATEGORY"
+	RequestDeleteNewsCategory RequestAction = "DELETE_NEWS_CATEGORY"
 )
 
 type RegistrationType string
@@ -547,15 +581,6 @@ type AccrualMethod string
 const (
 	AccrualMethodCompound AccrualMethod = "COMPOUND"
 	AccrualMethodSimple   AccrualMethod = "SIMPLE"
-)
-
-type AccrualFrequency string
-
-const (
-	AccrualFreqDaily     AccrualFrequency = "DAILY"
-	AccrualFreqMonthly   AccrualFrequency = "MONTHLY"
-	AccrualFreqQuarterly AccrualFrequency = "QUARTERLY"
-	AccrualFreqAnnually  AccrualFrequency = "ANNUALLY"
 )
 
 type VaultStatus string

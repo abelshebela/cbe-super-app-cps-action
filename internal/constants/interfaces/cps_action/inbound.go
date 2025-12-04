@@ -8,4 +8,5 @@ type CPSActionAdapter interface {
 	GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByID(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)
+	GetActionCounts(w http.ResponseWriter, r *http.Request)
 }

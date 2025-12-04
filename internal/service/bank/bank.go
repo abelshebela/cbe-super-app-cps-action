@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -18,6 +20,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -28,12 +31,12 @@ type BankService struct {
 	logger      utils.Logger
 	repo        storage.BankRepository
 	cfg         *config.VaultConfig
-	minio       config.MinioClientInterface
+	minio       *s3.Client
 	minioPubUrl string
 	bucketName  string
 }
 
-func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
+func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio *s3.Client, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
 		logger:      logger,
 		repo:        repo,
@@ -116,8 +119,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
-
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, "banks", *b.cfg, "", b.logger)
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -141,13 +143,13 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	if result != nil {
-		if bank_request.BIC != "" && result.BIC == bank_request.BIC {
+		if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-		if bank_request.Code != "" && result.Code == bank_request.Code {
+		if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
-		if bank_request.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
@@ -240,7 +242,12 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		return err
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, b.minioPubUrl, b.logger)
+	var objectkey string
+	if bank.Logo != "" {
+		objectkey = path.Base(bank.Logo)
+	}
+
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, objectkey, b.logger)
 
 	if err != nil {
 		b.logger.Errorf("UploadFileToMinio failed", "error", err)
@@ -285,7 +292,21 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	if bank_request.Logo != nil {
-		URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, b.bucketName, b.minioPubUrl, b.logger)
+		var objectkey string
+		if bank.Logo != "" {
+			objectkey = path.Base(bank.Logo)
+		}
+
+		URL, err := lib.UploadFileToMinio(
+			ctx,
+			b.minio,
+			b.bucketName,
+			bank_request.Logo,
+			b.bucketName,
+			*b.cfg,
+			objectkey,
+			b.logger,
+		)
 		if err != nil {
 			b.logger.Errorf("UploadFileToMinio failed", "error", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -304,13 +325,13 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 
 	if result != nil {
-		if bank_request.BIC != "" && result.BIC == bank_request.BIC {
+		if bank_request.BIC != "" && strings.EqualFold(result.BIC, bank_request.BIC) {
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-		if bank_request.Code != "" && result.Code == bank_request.Code {
+		if bank_request.Code != "" && strings.EqualFold(result.Code, bank_request.Code) {
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
-		if bank_request.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && strings.EqualFold(result.Name, bank_request.Name) {
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}

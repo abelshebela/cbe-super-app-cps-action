@@ -7,8 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"errors"
 
-	// "strconv"
-	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -17,11 +15,7 @@ import (
 	"context"
 	"fmt"
 
-	//   "fmt"
 	"math/rand"
-	// "time"
-
-	// "time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 
@@ -66,54 +60,12 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		return nil, errors.New("not a bson.A")
 	}
 
-	var result []string
+	var keys []string
 	for _, v := range arr {
 		if s, ok := v.(string); ok {
-			result = append(result, s)
+			keys = append(keys, s)
 		}
 	}
-
-	allAccessLists, err := s.repo.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var flag bool
-	switch cpsAction.RequestAction {
-	case string(constants.RequestBulkServiceEnable):
-		flag = true
-	case string(constants.RequestBulkServiceDisable):
-		flag = false
-	}
-
-	validAccessList := storedAccessListToMAP(allAccessLists)
-	invalidDatas, validKeys, _ := validaterAccessKey(validAccessList, result, flag)
-
-	if len(invalidDatas) > 0 {
-		s.logger.Errorf("one or more Servive not found")
-		return nil, fmt.Errorf(localization.ErrorInvalidBulkServiceKey.Code)
-	}
-	// if !isActionAllowed {
-	// 	s.logger.Infof("you enter a key  satisfy the action")
-	// 	return nil, fmt.Errorf(localization.ErrorBulkServiceActionNotSatisfied.Code)
-	// }
-
-	for key, value := range validKeys {
-
-		switch strings.ToUpper(cpsAction.RequestAction) {
-		case string(constants.RequestBulkServiceEnable):
-			if value {
-				s.logger.Infof("you enter already enabled service: %v", key)
-				return nil, errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
-			}
-		case string(constants.RequestBulkServiceDisable):
-			if !value {
-				s.logger.Infof("you enter already disabled service: %v", key)
-				return nil, errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
-			}
-
-		}
-	}
-	keys := GetAllKeysFromMaps(validKeys)
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestBulkServiceEnable):
@@ -121,12 +73,10 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	case string(constants.RequestBulkServiceDisable):
 		return nil, s.repo.Update(ctx, keys, false)
 	default:
-		return nil, fmt.Errorf(localization.ErrorInvalidRequiredAction.Code)
+		return nil, errors.New(localization.ErrorInvalidRequiredAction.Code)
 	}
-
-	// return s.repo.Update(ctx, &updateData)
-
 }
+
 func GetAllKeysFromMaps(maps map[string]bool) []string {
 	var keys []string
 	// keySet := make(map[string]struct{}) // to avoid duplicates
@@ -176,28 +126,74 @@ func validaterAccessKey(validAccessMap map[string]bool, accessList []string, fla
 }
 
 func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
-
 	return s.repo.FindAllWithPagination(ctx, *filterParams)
 }
+
+func (s *bulkService) CheckServiceIsEnabledOrDisabled(ctx context.Context, keys []string, isEnabled bool) ([]string, error) {
+	allAccessLists, err := s.repo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	validAccessList := storedAccessListToMAP(allAccessLists)
+	invalidDatas, validKeys, _ := validaterAccessKey(validAccessList, keys, isEnabled)
+
+	if len(invalidDatas) > 0 {
+		s.logger.Errorf("one or more Servive not found")
+		return nil, errors.New(localization.ErrorInvalidBulkServiceKey.Code)
+	}
+
+	for key, value := range validKeys {
+		if isEnabled {
+
+			if value {
+				s.logger.Infof("you enter already enabled service: %v", key)
+				return nil, errors.New(localization.ErrorBulkServiceAlreadyEnabled.Code)
+			}
+		} else {
+
+			if !value {
+				s.logger.Infof("you enter already disabled service: %v", key)
+				return nil, errors.New(localization.ErrorBulkServiceAlreadyDisabled.Code)
+			}
+		}
+
+	}
+	VK := GetAllKeysFromMaps(validKeys)
+
+	return VK, nil
+}
+
 func (s *bulkService) EnableBulkService(ctx context.Context, keys []string) error {
 	if len(keys) == 0 {
 		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
 	}
+
+	validKeys, err := s.CheckServiceIsEnabledOrDisabled(ctx, keys, true)
+	if err != nil {
+		return err
+	}
+
 	userPayload := local_util.ExtractUserFromContext(ctx)
 
 	type currAction struct {
 		Keys []string
 	}
 	cpsAction := lib.CpsModelBuilder("", userPayload, nil, currAction{
-		Keys: keys,
+		Keys: validKeys,
 	}, string(constants.RequestBulkServiceEnable), string(constants.UpdateAction))
 
 	return s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
 }
 
-func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) (string, error) {
+func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) error {
 	if len(keys) == 0 {
-		return "", errors.New(localization.ErrorKeyRequiredForBulkService.Code)
+		return errors.New(localization.ErrorKeyRequiredForBulkService.Code)
+	}
+
+	validKeys, err := s.CheckServiceIsEnabledOrDisabled(ctx, keys, false)
+	if err != nil {
+		return err
 	}
 
 	userPayload := local_util.ExtractUserFromContext(ctx)
@@ -207,11 +203,10 @@ func (s *bulkService) DisableBulkService(ctx context.Context, keys []string) (st
 	}
 	unicode := GenerateUnique14DigitCode()
 	cpsAction := lib.CpsModelBuilder(unicode, userPayload, nil, currAction{
-		Keys: keys,
+		Keys: validKeys,
 	}, string(constants.RequestBulkServiceDisable), string(constants.UpdateAction))
 
-	err := s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
-	return "", err
+	return s.cpsActionRepo.CreateCPSAction(ctx, &cpsAction)
 }
 
 func GenerateUnique14DigitCode() string {

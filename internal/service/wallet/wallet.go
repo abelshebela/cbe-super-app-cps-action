@@ -11,11 +11,13 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"path"
 
 	"context"
 	"errors"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -24,13 +26,13 @@ type walletService struct {
 	repo        storage.WalletRepository
 	cpsService  service.CPSActionService
 	logger      utils.Logger
-	minio       config.MinioClientInterface
+	minio       *s3.Client
 	bucketName  string
 	minioPubUrl string
 	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio config.MinioClientInterface, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
 		repo:       repo,
 		cpsService: cps,
@@ -44,7 +46,8 @@ func NewWalletService(repo storage.WalletRepository, cps service.CPSActionServic
 func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRequest) error {
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "name", req.Name)
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	local_util.PrintRecord("Data", exist)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -58,15 +61,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	existCode, err := s.repo.Find(ctx, "code", req.Code)
-	if err != nil {
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	if existCode != nil {
-		return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
-	}
-
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", s.cfg.MinioPublicEndPoint, s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", *s.cfg, "", s.logger)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -75,7 +70,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	wallet.Enabled = true
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
-	if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
+	if err := core.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
 		s.logger.Errorf("CPS action failed for wallet %s: %v", wallet.Code, err)
 		return err
 	}
@@ -112,7 +107,12 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 	var avatarURL string
 	if req.Avatar != nil {
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", s.cfg.MinioPublicEndPoint, s.logger)
+		var objectkey string
+		if prevWallet.Avatar != "" {
+			objectkey = path.Base(prevWallet.Avatar)
+		}
+
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", *s.cfg, objectkey, s.logger)
 		if err != nil {
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}

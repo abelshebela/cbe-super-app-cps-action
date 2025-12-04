@@ -77,29 +77,32 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorDepartmentNotFound.Code)
 	}
 
+	// Populate permission categories if provided
+	var populatedCategories []cpsuser.PermissionCategoryResponse
 	if len(req.PermissionCategory) > 0 {
-		categoryIDs := make([]string, len(req.PermissionCategory))
-		for i, id := range req.PermissionCategory {
-			categoryIDs[i] = id.Hex()
-		}
-		if _, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs); err != nil {
+		populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
+		if err != nil {
 			return err
 		}
+		populatedCategories = populated
 	}
-
+	var populatedGroups []cpsuser.PermissionGroupResponse
 	if len(req.PermissionGroups) > 0 {
-		groupIDs := make([]string, len(req.PermissionGroups))
-		for i, id := range req.PermissionGroups {
-			groupIDs[i] = id.Hex()
-		}
-		if _, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs); err != nil {
+		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
+		if err != nil {
 			return err
 		}
+		populatedGroups = populated
 	}
-	
-	cpsUser := core.CPSUModel(req)
 
-	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, cpsUser, string(constants.RequestCpsUserCreate), constants.CREATE)
+	cpsUser := core.CPSUModel(req)
+	payload := cpsuser.CPSUserActionPayload{
+		User:                 cpsUser,
+		PermissionCategories: populatedCategories,
+		PermissionGroups:     populatedGroups,
+		PortalCards:          dep.PortalCards,
+	}
+	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, payload, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		return err
@@ -148,35 +151,47 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 
 	}
 
-	// department validation - only if department is being updated
+	var dep *model.Department
 	if !req.Department.IsZero() {
-		dep, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
+		d, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
 		if err != nil {
 			return err
 		}
-		if !dep.Enabled || dep.IsDeleted {
+		if !d.Enabled || d.IsDeleted {
 			return errors.New(localization.ErrorDepartmentNotFound.Code)
 		}
+		dep = d
 	}
 
+	var populatedCategories []cpsuser.PermissionCategoryResponse
 	if len(req.PermissionCategory) > 0 {
-		categoryIDs := make([]string, len(req.PermissionCategory))
-		for i, id := range req.PermissionCategory {
-			categoryIDs[i] = id.Hex()
-		}
-		if _, err := s.permissionService.ValidatePermissionCategories(ctx, categoryIDs); err != nil {
+		populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
+		if err != nil {
 			return err
 		}
+		populatedCategories = populated
 	}
 
+	var populatedGroups []cpsuser.PermissionGroupResponse
 	if len(req.PermissionGroups) > 0 {
-		groupIDs := make([]string, len(req.PermissionGroups))
-		for i, id := range req.PermissionGroups {
-			groupIDs[i] = id.Hex()
-		}
-		if _, err := s.permissionService.ValidatePermissionGroups(ctx, groupIDs); err != nil {
+		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
+		if err != nil {
 			return err
 		}
+		populatedGroups = populated
+	}
+
+	payload := map[string]interface{}{
+		"user": req,
+	}
+	if len(populatedCategories) > 0 {
+		payload["permission_categories"] = populatedCategories
+	}
+	if len(populatedGroups) > 0 {
+		payload["permission_groups"] = populatedGroups
+	}
+	if dep != nil {
+		payload["portal_cards"] = dep.PortalCards
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -184,7 +199,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		req.UserCode,
 		makerData,
 		nil,
-		req,
+		payload,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
 	)
@@ -222,7 +237,6 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 	if userCode == "" {
 		return errors.New(localization.ErrorUserCodeRequired.Code)
 	}
-
 	prev, err := s.repo.FindByID(ctx, userCode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
@@ -237,6 +251,7 @@ func (s *cpsUserService) EnableUser(ctx context.Context, userCode string) error 
 
 	updated := *prev
 	updated.Enabled = true
+	updated.LoginAttemptCount = 0
 	updated.PasswordDisable = false
 
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -299,10 +314,29 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		return nil, err
+
 	}
 
 	return user, nil
 }
+
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error) {
+	if userCode == "" {
+		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
+	}
+
+	populated, err := s.repo.GetPopulatedByID(ctx, userCode)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		return nil, err
+	}
+
+	detail := cpsuser.BuildCpsUserDetail(populated)
+	return detail, nil
+}
+
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
 	if filter == nil {
 		f := types.Filter{}

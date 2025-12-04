@@ -9,7 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
-	
+
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -30,18 +30,19 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 }
 
 // FindById godoc
-// @Summary Get account validation by ID
-// @Description Retrieve a specific account validation rule by its ID.
-// @Tags Account Validation
-// @Accept json
-// @Produce json
-// @Param id path string true "Validation Rule ID"
-// @Success 200 {object} localization.StandardResponse{data=account_validation_dto.ValidationRuleDTO} "Validation rule retrieved"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /account_validation/{id} [get]
+//
+//	@Summary		Get account validation by ID
+//	@Description	Retrieve a specific account validation rule by its ID.
+//	@Tags			Account Validation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string																	true	"Validation Rule ID"
+//	@Success		200	{object}	localization.StandardResponse{data=accountvalidation.ValidationRuleDTO}	"Validation rule retrieved"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}									"Bad request"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}									"Not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}									"Server error"
+//	@Security		BearerAuth
+//	@Router			/account_validation/{id} [get]
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -61,19 +62,20 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 }
 
 // Update godoc
-// @Summary Update account validation rule
-// @Description Update an existing account validation rule. MinLength must not exceed MaxLength.
-// @Tags Account Validation
-// @Accept json
-// @Produce json
-// @Param id path string true "Validation Rule ID"
-// @Param request body account_validation_dto.ValidationRuleDTO true "Validation rule data" example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
-// @Success 200 {object} localization.StandardResponse{data=nil} "Validation rule updated"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Validation failed"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /account_validation/update/{id} [patch]
+//
+//	@Summary		Update account validation rule
+//	@Description	Update an existing account validation rule. MinLength must not exceed MaxLength.
+//	@Tags			Account Validation
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string									true	"Validation Rule ID"
+//	@Param			request	body		accountvalidation.ValidationRuleDTO		true	"Validation rule data"	example({"entity_type":"ACCOUNT","validation_for":"NUMBER","identifier":"ACCOUNT_NUMBER","min_length":5,"max_length":20,"enabled":true})
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Validation rule updated"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Validation failed"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/account_validation/update/{id} [patch]
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -98,7 +100,6 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := account_validation_dto.ToModel(req)
-	
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -109,19 +110,20 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 }
 
 // FindAllWithPagination godoc
-// @Summary List account validation rules
-// @Description Retrieve account validation rules with pagination and optional search.
-// @Tags Account Validation
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1) minimum(1) example(1)
-// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
-// @Param search query string false "Search term" example("ACCOUNT_NUMBER")
-// @Success 200 {object} localization.StandardResponse{data=paginated_resp} "Validation rules retrieved"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Bad request"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /account_validation [get]
+//
+//	@Summary		List account validation rules
+//	@Description	Retrieve account validation rules with pagination and optional search.
+//	@Tags			Account Validation
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int													false	"Page number"		default(1)	minimum(1)	example(1)
+//	@Param			per_page	query		int													false	"Items per page"	default(10)	minimum(1)	maximum(100)	example(10)
+//	@Param			search		query		string												false	"Search term"		example("ACCOUNT_NUMBER")
+//	@Success		200			{object}	localization.StandardResponse{data=paginated_resp}	"Validation rules retrieved"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}				"Server error"
+//	@Security		BearerAuth
+//	@Router			/account_validation [get]
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {

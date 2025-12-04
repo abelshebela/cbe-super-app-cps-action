@@ -138,9 +138,24 @@ var ResponseCodesList = []ResponseCode{
 	SuccessMiniAppActionCompleted,
 	ErrorMiniAppMerchantNotFound,
 	ErrorMiniAppMerchantDisabled,
-	// Error codes
+
+	// Sitota Related success
+	SuccessAllSitotasRetrieved,
+	SuccessSitotaRetrieved,
+
+	// Encryption
+	SuccessEncryptionGenerated,
 
 	// Error codes
+	ErrorDeviceVersionAlreadyExists,
+	ErrorDeviceVersionAlreadyEnabled,
+	ErrorDeviceVersionAlreadyDisabled,
+	ErrorDeviceVersionNotFound,
+	ErrorDuplicateProductName,
+	ErrorDeviceVersionUpdateFailed,
+	ErrorDeviceVersionDeleteFailed,
+	ErrorDeviceVersionEnableFailed,
+	ErrorDeviceVersionDisableFailed,
 	ErrorInvalidKey,
 	ErrorInvalidEncData,
 	ErrorInvalidPadding,
@@ -182,6 +197,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDescriptionLength30To100,
 	ErrorAdvertAlreadyDisabled,
 	ErrorAdvertTitleAlreadyExists,
+	ErrorBudgetCategoryNameAlreadyExists,
 	ErrorAdvertTitleNotChanged,
 	ErrorValidationRuleApproved,
 	ErrorAccountNumberRequired,
@@ -247,6 +263,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
@@ -397,6 +414,7 @@ var ResponseCodesList = []ResponseCode{
 	BulkServiceDisableRequestSuccess,
 	ErrorAvatarNotExist,
 	ErrorBulkServiceAlreadyEnabled,
+	ErrorDuplicateCBEIFBProductCode,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -432,10 +450,13 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationCategoryNameDuplicated,
 	ErrorDonationCompanyLookupFailed,
 	ErrorDonationCategoryIDRequired,
+	ErrorDuplicateCBEProductCode,
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
+	ErrorEmailAlreadyExist,
+	ErrorPhonenumberAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
@@ -463,10 +484,50 @@ var ResponseCodesList = []ResponseCode{
 
 	// OTP related error codes
 	ErrorOTPExpired,
+	ErrorUnsupportedAction,
 	ErrorOTPInvalid,
 	ErrorOTPAlreadyExists,
 	ErrorOTPTooManyAttempts,
 	ErrorOTPSendFailed,
+
+	ErrorNewsCategoryInvalidID,
+	ErrorNewsTagInvalidID,
+	ErrorNewsTagWithNameAlreadyExists,
+	ErrorNewsCategoryWithNameAlreadyExists,
+
+	// Sitota Related errors
+	ErrorSitotaRequired,
+
+	// Encryption
+	ErrConfigIsEmpty,
+	ErrMarshalingData,
+	ErrInvalidKeyOrIv,
+
+	// Vault related
+	SuccessVaultGroupCategoryCreationRequestSubmitted,
+	SuccessVaultGroupCategoriesRetrieved,
+	SuccessVaultGroupCategoryRetrieved,
+	SuccessVaultGroupCategoryUpdateRequestSubmitted,
+	SuccessVaultGroupCategoryDeleteRequestSubmitted,
+	SuccessVaultGroupCategoryEnableRequestSubmitted,
+	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	ErrorFailedToBeingTransaction,
+	ErrorDuplicateBankProduct,
+	ErrorVaultGroupCategoryNotFound,
+	ErrorNoBankProductFound,
+	ErrorCannotDeletedBankProduct,
+	ErrorCannotEnableOrDisable,
+	ErrorBankVaultProductAlreadyDeleted,
+	ErrorDuplicateGroupVaultCategory,
+	ErrorBankVaultAlreadyEnabled,
+	ErrorBankVaultAlreadyDisabled,
+	ErrorVaultGroupAlreadyEnabled,
+	ErrorVaultGroupAlreadyDisabled,
+	ErrorBankAlreadyEnabled,
+	ErrorBankAlreadyDisabled,
+	ErrorBankWithNameAlreadyExists,
+	ErrorBankWithBICAlreadyExists,
+	ErrorBankWithCodeAlreadyExists,
 }
 
 // Success Response Codes
@@ -781,6 +842,27 @@ var (
 		Code:       "SUCCESS_DONATION_COMPANY_UPDATED",
 		StatusCode: StatusOK,
 		Message:    MsgSuccessDonationCompanyUpdated,
+		Type:       "success",
+	}
+
+	SuccessKYCApproved = ResponseCode{
+		Code:       "SUCCESS_KYC_APPROVE_REQUESTED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCApproved,
+		Type:       "success",
+	}
+
+	SuccessKYCUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_KYC_UPDATED_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgKYCUpdatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessKYCFetched = ResponseCode{
+		Code:       "SUCCESS_KYC_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCFetched,
 		Type:       "success",
 	}
 
@@ -1138,6 +1220,30 @@ var (
 		Message:    MsgBankVaultDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessAllBankLockedVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_LOCKED_VAULTS_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankLockedVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessBankLockedVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_BANK_LOCKED_VAULT_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgBankLockedVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessGroupVaultsRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_GROUP_VAULTS_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgGroupVaultsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessGroupVaultRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_GROUP_VAULT_RETRIEVED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgGroupVaultRetrievedSuccessfully,
+		Type:       "success",
+	}
 	// vaultgroup category related
 	SuccessVaultGroupCategoryCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_VAULTGROUPCATEGORY_CREATION_REQUEST_SUBMITTED",
@@ -1182,19 +1288,6 @@ var (
 		Type:       "success",
 	}
 	// Event related error response codes for bankvault
-	ErrorCannotDeleteActiveBankVault = ResponseCode{
-		Code:       "ERROR_CANNOT_DELETE_ACTIVE_BANKVAULT",
-		StatusCode: StatusBadRequest,
-		Message:    MsgCannotDeleteActiveBankVault,
-		Type:       "error",
-	}
-	ErrorBankVaultProductAlreadyDeleted = ResponseCode{
-		Code:       "ERROR_BANKVAULT_PRODUCT_ALREADY_DELETED",
-		StatusCode: StatusBadRequest,
-		Message:    MsgBankVaultProductAlreadyDeleted,
-		Type:       "error",
-	}
-
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
 		StatusCode: StatusBadRequest,
@@ -1285,6 +1378,12 @@ var (
 		Code:       "ERROR_ADVERT_TITLE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Advert title already exists",
+		Type:       "error",
+	}
+	ErrorBudgetCategoryNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "budget category name already exists",
 		Type:       "error",
 	}
 
@@ -1450,7 +1549,7 @@ var (
 	ErrorTopupNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Topup with the given name already exists",
+		Message:    "Topup with the given name and code already exists",
 		Type:       "error",
 	}
 	ErrorTopupCodeAlreadyExists = ResponseCode{
@@ -1488,13 +1587,13 @@ var (
 	//wallet related error codes
 
 	ErrorWalletNameAlreadyExists = ResponseCode{
-		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Wallet with the given name already exists",
+		Message:    "Wallet with the given name or code already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
-		Code:       "ERROR_WALLET_ALREADY_EXISTS",
+		Code:       "ERROR_WALLET_WITH_CODE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given code already exists",
 		Type:       "error",
@@ -2353,6 +2452,14 @@ var (
 	}
 	// mini app handler related error response codes
 
+	// Encryption
+	SuccessEncryptionGenerated = ResponseCode{
+		Code:       "SUCCESS_ENCRYPTION",
+		StatusCode: StatusOK,
+		Message:    MsgEncryptionSuccessfully,
+		Type:       "success",
+	}
+
 	ErrorMiniAppNotFound = ResponseCode{
 		Code:       "ERROR_MINI_APP_NOT_FOUND",
 		StatusCode: StatusNotFound,
@@ -2902,6 +3009,13 @@ var (
 
 // Error Response Codes
 var (
+	ErrorDepartmentIDRequired = ResponseCode{
+		Code:       "ERROR_DEPARTMENT_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDepartmentIDRequired,
+		Type:       "error",
+	}
+
 	ErrorInvalidKey = ResponseCode{
 		Code:       "ERROR_INVALID_KEY",
 		StatusCode: StatusBadRequest,
@@ -3636,6 +3750,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorFailedToBeingTransaction = ResponseCode{
+		Code:       "ERROR_FAILED_TO_BE_TRANSACTION",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgFailedToBeingTransaction,
+		Type:       "error",
+	}
+
 	ErrorLimitExceeded = ResponseCode{
 		Code:       "ERROR_LIMIT_EXCEEDED",
 		StatusCode: StatusBadRequest,
@@ -3661,6 +3782,12 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+	ErrorOnDisablingExistingDeviceControl = ResponseCode{
+		Code:       "ERROR_ON_DISABLING_EXISTING_DEVICE_CONTROL",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgOnDisablingExistingDeviceControl,
 		Type:       "error",
 	}
 
@@ -3834,6 +3961,28 @@ var (
 		Message:    MsgProductCodeNotFound,
 		Type:       "error",
 	}
+
+	ErrorDuplicateProductName = ResponseCode{
+		Code:       "ERROR_DUPLICATE_PRODUCT_NAME",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateProductName,
+		Type:       "error",
+	}
+
+	ErrorDuplicateCBEProductCode = ResponseCode{
+		Code:       "ERROR_DUPLICATE_CBE_PRODUCT_CODE",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateCBEProductCode,
+		Type:       "error",
+	}
+
+	ErrorDuplicateCBEIFBProductCode = ResponseCode{
+		Code:       "ERROR_DUPLICATE_CBE_IFB_PRODUCT_CODE",
+		StatusCode: StatusConflict,
+		Message:    MsgDuplicateCBEIFBProductCode,
+		Type:       "error",
+	}
+
 	// Mini App Merchant related error response codes
 	ErrorMiniAppMerchantCheckPendingFailed = ResponseCode{
 		Code:       "ERROR_MINI_APP_MERCHANT_CHECK_PENDING_FAILED",
@@ -3907,6 +4056,55 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_UPDATE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgMiniAppMerchantUpdateFailed,
+		Type:       "error",
+	}
+
+	ErrorDeviceVersionAlreadyExists = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyExists,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgDeviceVersionAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorDeviceVersionNotFound = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgDeviceVersionNotFound,
+		Type:       "error",
+	}
+	ErrorDeviceVersionUpdateFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_UPDATE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionUpdateFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDeleteFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DELETE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDeleteFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionEnableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionEnableFailed,
+		Type:       "error",
+	}
+	ErrorDeviceVersionDisableFailed = ResponseCode{
+		Code:       "ERROR_DEVICE_VERSION_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgDeviceVersionDisableFailed,
 		Type:       "error",
 	}
 
@@ -4096,6 +4294,18 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorEmailAlreadyExist = ResponseCode{
+		Code:       "ERROR_EMAIL_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEmailAlreadyExists,
+		Type:       "error",
+	}
+	ErrorPhonenumberAlreadyExist = ResponseCode{
+		Code:       "ERROR_PHONENUMBER_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgPhonenumberAlreadyExists,
 		Type:       "error",
 	}
 
@@ -4880,6 +5090,25 @@ var (
 		Type:       "error",
 	}
 
+	ErrConfigIsEmpty = ResponseCode{
+		Code:       "ERROR_CONFIG_IS_EMPTY",
+		StatusCode: StatusInternalServerError,
+		Message:    "Config is empty",
+		Type:       "error",
+	}
+	ErrMarshalingData = ResponseCode{
+		Code:       "ERROR_MARSHALING_DATA",
+		StatusCode: StatusInternalServerError,
+		Message:    "Error while marshaling data",
+		Type:       "error",
+	}
+	ErrInvalidKeyOrIv = ResponseCode{
+		Code:       "ERROR_INVALID_KEY_OR_IV",
+		StatusCode: StatusInternalServerError,
+		Message:    "Invalid key or iv",
+		Type:       "error",
+	}
+
 	SuccessCustomerDetailSuccessfullyFetched = ResponseCode{
 		Code:       "SUCCESS_CUSTOMER_DETAIL_FETCHED",
 		StatusCode: StatusOK,
@@ -5025,21 +5254,21 @@ var (
 	ErrorBulkServiceAlreadyEnabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "Bulk service is already enabled for the given key.",
+		Message:    "One or more bulk services are already enabled",
 		Type:       "error",
 	}
 
 	ErrorBulkServiceAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_BULK_SERVICE_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
-		Message:    "Bulk service is already disabled for the given key.",
+		Message:    "One or more bulk services are already enabled",
 		Type:       "error",
 	}
 
 	ErrorInvalidBulkServiceKey = ResponseCode{
 		Code:       "ERROR_INVALID_BULK_SERVICE_KEY",
 		StatusCode: StatusBadRequest,
-		Message:    "One or more provided bulk service keys are invalid.",
+		Message:    "One or more provided bulk service keys is/are invalid.",
 		Type:       "error",
 	}
 	ErrorInvalidRequiredAction = ResponseCode{
@@ -5084,6 +5313,54 @@ var (
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_ALREADY_DELETED",
 		StatusCode: StatusBadRequest,
 		Message:    "Vault group category is already deleted.",
+		Type:       "error",
+	}
+	ErrorVaultCoverImageMissedOrInvalid = ResponseCode{
+		Code:       "ERROR_VAULT_COVER_IMAGE_MISSED_OR_INVALID",
+		StatusCode: StatusBadRequest,
+		Message:    "Vault category cover image missed or invalid",
+		Type:       "error",
+	}
+
+	ErrorDuplicateBankProduct = ResponseCode{
+		Code:       "ERROR_DUPLICATE_BANK_PRODUCT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicatebankProduct,
+		Type:       "error",
+	}
+
+	ErrorNoBankProductFound = ResponseCode{
+		Code:       "ERROR_NO_BANK_PRODUCT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgNoBankProductFound,
+		Type:       "error",
+	}
+
+	ErrorCannotDeletedBankProduct = ResponseCode{
+		Code:       "ERROR_CANNOT_DELETED_BANK_PRODUCT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotDeleteBankProduct,
+		Type:       "error",
+	}
+
+	ErrorCannotEnableOrDisable = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_OR_DISABLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgcannotEnableOrDisableDeletedBankProduct,
+		Type:       "error",
+	}
+
+	ErrorBankVaultProductAlreadyDeleted = ResponseCode{
+		Code:       "ERROR_BANK_VAULT_PRODUCT_ALREADY_DELETED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankVaultProductAlreadyDeleted,
+		Type:       "error",
+	}
+
+	ErrorDuplicateGroupVaultCategory = ResponseCode{
+		Code:       "ERROR_DUPLICATE_GROUP_VAULT_CATEGORY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDuplicateGroupVaultCategory,
 		Type:       "error",
 	}
 
@@ -5139,6 +5416,103 @@ var (
 		Code:       "ERROR_Topup_IMAGE_MISSING_OR_INVALID",
 		StatusCode: StatusBadRequest,
 		Message:    MsgTopupImageRequiredOrMissing,
+		Type:       "error",
+	}
+
+	ErrorNewsCategoryInvalidID = ResponseCode{
+		Code:       "ERROR_NEWS_CATEGORY_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsCategoryInvalidID,
+		Type:       "error",
+	}
+
+	ErrorNewsTagInvalidID = ResponseCode{
+		Code:       "ERROR_NEWS_TAG_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsTagInvalidID,
+		Type:       "error",
+	}
+
+	ErrorNewsCategoryWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_NEWS_CATEGORY_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsCategoryWithNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorNewsTagWithNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_NEWS_TAG_WITH_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgNewsTagWithNameAlreadyExists,
+		Type:       "error",
+	}
+
+	SuccessNewsCategoryCreated = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryCreatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryFetched = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_FETCHE",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryUpdated = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryUpdatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsCategoryDeleted = ResponseCode{
+		Code:       "SUCCESS_NEWS_CATEGORY_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsCategoryDeletedSuccess,
+		Type:       "success",
+	}
+
+	SuccessNewsTagCreated = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_CREATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagCreatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagFetched = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_FETCHE",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagUpdated = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_UPDATE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagUpdatedSuccess,
+		Type:       "success",
+	}
+	SuccessNewsTagDeleted = ResponseCode{
+		Code:       "SUCCESS_NEWS_TAG_DELETE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgNewsTagDeletedSuccess,
+		Type:       "success",
+	}
+	// Sitota Related Responses
+	SuccessAllSitotasRetrieved = ResponseCode{
+		Code:       "SUCCESS_ALL_SITOTAS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAllSitotasRetrievedSuccess,
+		Type:       "success",
+	}
+	SuccessSitotaRetrieved = ResponseCode{
+		Code:       "SUCCESS_SITOTA_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgSitotaRetrievedSuccess,
+		Type:       "success",
+	}
+
+	ErrorSitotaRequired = ResponseCode{
+		Code:       "ERROR_SITOTA_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgSitotaRequired,
 		Type:       "error",
 	}
 )

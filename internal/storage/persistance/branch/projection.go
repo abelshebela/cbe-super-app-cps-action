@@ -16,7 +16,7 @@ func BranchMapper(branch model.Branch) bson.M {
 			"branch_address": branch.BranchAddress,
 			"district_code":  branch.DistrictCode,
 			"district_name":  branch.DistrictName,
-			"region_name":  branch.RegionName,
+			"region_name":    branch.RegionName,
 			"record_stat":    branch.RecordStat,
 			"enabled":        branch.Enabled,
 			"updated_at":     time.Now(),

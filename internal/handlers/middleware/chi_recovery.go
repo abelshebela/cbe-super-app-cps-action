@@ -11,8 +11,24 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/platform/logger"
 
+	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 )
+
+func ChiCORS() func(http.Handler) http.Handler {
+	return cors.Handler(cors.Options{
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowedHeaders: []string{
+			"Accept", "Authorization", "Content-Type", "X-CSRF-Token",
+			"access-control-allow-origin", "x-api-applicationid",
+			// Custom headers used by the API
+		},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	})
+}
 
 func ChiCustomRecovery(logger logger.Logger, stack bool) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

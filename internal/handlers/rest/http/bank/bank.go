@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -29,21 +30,22 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 }
 
 // CreateOneBank godoc
-// @Summary Create bank (maker)
-// @Description Submit a bank create request with logo.
-// @Tags Banks
-// @Accept mpfd
-// @Produce json
-// @Param name formData string true "Bank name" example("Commercial Bank")
-// @Param code formData string true "Bank code" example("CBE")
-// @Param bic formData string true "Bank BIC" example("CBETETAA")
-// @Param logo formData file true "Bank logo (<=2MB; jpeg/png/gif/webp)"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Bank create request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid input or logo"
-// @Failure 409 {object} localization.StandardResponse{data=nil} "Duplicate"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks [post]
+//
+//	@Summary		Create bank (maker)
+//	@Description	Submit a bank create request with logo.
+//	@Tags			Banks
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			name	formData	string									true	"Bank name"	example("Commercial Bank")
+//	@Param			code	formData	string									true	"Bank code"	example("CBE")
+//	@Param			bic		formData	string									true	"Bank BIC"	example("CBETETAA")
+//	@Param			logo	formData	file									true	"Bank logo (<=2MB; jpeg/png/gif/webp)"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank create request sent"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid input or logo"
+//	@Failure		409		{object}	localization.StandardResponse{data=nil}	"Duplicate"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks [post]
 func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	var bankRequest bank_dto.CreateBankRequest
 
@@ -76,18 +78,19 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteOneBank godoc
-// @Summary Delete bank (maker)
-// @Description Submit a delete request for a bank by ID.
-// @Tags Banks
-// @Accept json
-// @Produce json
-// @Param id path string true "Bank ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Delete request created"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks/{id} [delete]
+//
+//	@Summary		Delete bank (maker)
+//	@Description	Submit a delete request for a bank by ID.
+//	@Tags			Banks
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Bank ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Delete request created"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Bank not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks/{id} [delete]
 func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -108,18 +111,19 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 // Disable godoc
-// @Summary Disable bank (checker)
-// @Description Approve disable request for a bank.
-// @Tags Banks
-// @Accept json
-// @Produce json
-// @Param id path string true "Bank ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Bank disable request created"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks/{id}/disable [patch]
+//
+//	@Summary		Disable bank (checker)
+//	@Description	Approve disable request for a bank.
+//	@Tags			Banks
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Bank ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Bank disable request created"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Bank not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks/{id}/disable [patch]
 func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -138,18 +142,19 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 }
 
 // Enable godoc
-// @Summary Enable bank (checker)
-// @Description Approve enable request for a bank.
-// @Tags Banks
-// @Accept json
-// @Produce json
-// @Param id path string true "Bank ID"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Bank enable request created"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks/{id}/enable [patch]
+//
+//	@Summary		Enable bank (checker)
+//	@Description	Approve enable request for a bank.
+//	@Tags			Banks
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string									true	"Bank ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Bank enable request created"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Bank not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks/{id}/enable [patch]
 func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -168,18 +173,19 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAllBank godoc
-// @Summary List banks
-// @Description Retrieve banks with pagination and optional search.
-// @Tags Banks
-// @Accept json
-// @Produce json
-// @Param page query int false "Page number" default(1) minimum(1) example(1)
-// @Param per_page query int false "Items per page" default(10) minimum(1) maximum(100) example(10)
-// @Param search query string false "Search term" example("CBE")
-// @Success 200 {object} localization.StandardResponse{data=paginatedBankResp} "Banks fetched"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks [get]
+//
+//	@Summary		List banks
+//	@Description	Retrieve banks with pagination and optional search.
+//	@Tags			Banks
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int														false	"Page number"		default(1)	minimum(1)	example(1)
+//	@Param			per_page	query		int														false	"Items per page"	default(10)	minimum(1)	maximum(100)	example(10)
+//	@Param			search		query		string													false	"Search term"		example("CBE")
+//	@Success		200			{object}	localization.StandardResponse{data=paginatedBankResp}	"Banks fetched"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}					"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks [get]
 func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -194,18 +200,19 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetOneBank godoc
-// @Summary Get bank by ID
-// @Description Retrieve a single bank by ID.
-// @Tags Banks
-// @Accept json
-// @Produce json
-// @Param id path string true "Bank ID"
-// @Success 200 {object} localization.StandardResponse{data=bank_dto.BankResponse} "Bank fetched"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid ID"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks/{id} [get]
+//
+//	@Summary		Get bank by ID
+//	@Description	Retrieve a single bank by ID.
+//	@Tags			Banks
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string														true	"Bank ID"
+//	@Success		200	{object}	localization.StandardResponse{data=bank_dto.BankResponse}	"Bank fetched"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}						"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}						"Bank not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}						"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks/{id} [get]
 func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -226,19 +233,20 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateLogo godoc
-// @Summary Update bank logo (maker)
-// @Description Upload a new logo for the bank.
-// @Tags Banks
-// @Accept mpfd
-// @Produce json
-// @Param id path string true "Bank ID"
-// @Param logo formData file true "Bank logo (<=2MB; jpeg/png/gif/webp)"
-// @Success 200 {object} localization.StandardResponse{data=nil} "Logo uploaded"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid logo"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks/{id}/logo [patch]
+//
+//	@Summary		Update bank logo (maker)
+//	@Description	Upload a new logo for the bank.
+//	@Tags			Banks
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			id		path		string									true	"Bank ID"
+//	@Param			logo	formData	file									true	"Bank logo (<=2MB; jpeg/png/gif/webp)"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Logo uploaded"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid logo"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Bank not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks/{id}/logo [patch]
 func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	var uploadLogo bank_dto.UpdateLogo
 	id := chi.URLParam(r, "id")
@@ -270,19 +278,20 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateOneBank godoc
-// @Summary Update bank (maker)
-// @Description Update bank name/code/bic.
-// @Tags Banks
-// @Accept json
-// @Produce json
-// @Param id path string true "Bank ID"
-// @Param request body bank_dto.UpdateBankRequest true "Update payload" example({"name":"New Name","code":"NEW","bic":"NEWBIC"})
-// @Success 200 {object} localization.StandardResponse{data=nil} "Bank update request sent"
-// @Failure 400 {object} localization.StandardResponse{data=nil} "Invalid input"
-// @Failure 404 {object} localization.StandardResponse{data=nil} "Bank not found"
-// @Failure 500 {object} localization.StandardResponse{data=nil} "Server error"
-// @Security BearerAuth
-// @Router /banks/{id} [patch]
+//
+//	@Summary		Update bank (maker)
+//	@Description	Update bank name/code/bic.
+//	@Tags			Banks
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string									true	"Bank ID"
+//	@Param			request	body		bank_dto.UpdateBankRequest				true	"Update payload"	example({"name":"New Name","code":"NEW","bic":"NEWBIC"})
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank update request sent"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid input"
+//	@Failure		404		{object}	localization.StandardResponse{data=nil}	"Bank not found"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Server error"
+//	@Security		BearerAuth
+//	@Router			/banks/{id} [patch]
 func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -295,11 +304,22 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.Update), b.logger)
 	if err != nil {
-		b.logger.Errorf("error parsing file: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-		return
+		// var ErrorFileNotFound = errors.New("file not found")
+		if strings.Contains(err.Error(), "file not found") {
+			b.logger.Infof("No logo uploaded; skipping logo update")
+			// return
+		} else {
+			b.logger.Errorf("error parsing file: %v", err)
+			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+			return
+		}
 	}
-	defer file.Close()
+	if file == nil || fileHeader == nil {
+		b.logger.Infof("No logo uploaded; skipping logo update")
+	} else {
+		defer file.Close()
+		updateRequest.Logo = fileHeader
+	}
 
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")

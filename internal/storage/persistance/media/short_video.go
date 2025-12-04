@@ -139,12 +139,13 @@ func buildShortVideoUpdate(updateFields model.ShortVideo) bson.M {
 	if updateFields.Author != "" {
 		update["author"] = updateFields.Author
 	}
-	if updateFields.Language != "" {
-		update["language"] = updateFields.Language
-	}
 
 	if updateFields.Slug != "" {
 		update["slug"] = updateFields.Slug
+	}
+
+	if updateFields.ThumbnailAltText != "" {
+		update["thumbnail_alt_text"] = updateFields.ThumbnailAltText
 	}
 
 	update["updated_at"] = time.Now()

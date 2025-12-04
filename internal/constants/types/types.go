@@ -7,20 +7,144 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+// type KYCInformation struct {
+// 	Name  string `json:"name" bson:"name"`
+// 	Email string `json:"email" bson:"email"`
+// 	Phone string `json:"phone" bson:"phone"`
+// }
+
+// type KYC struct {
+// 	Status         KYCStatus      `json:"status" bson:"status"`
+// 	Representative KYCInformation `json:"representative" bson:"representative"`
+// }
+
+// type BranchInformation struct {
+// 	BranchCode          string `json:"branch_code"`
+// 	BranchName          string `json:"branch_name"`
+// 	BranchAddress       string `json:"branch_address"`
+// 	BranchOwner         string `json:"branch_owner"`
+// 	BranchAccountNumber string `json:"branch_account_number"`
+// }
+
+// type MiniApps struct {
+// 	ID        string `json:"id" bson:"id"`
+// 	Enabled   bool   `json:"enabled" bson:"enabled"`
+// 	IsDeleted bool   `json:"is_deleted" bson:"is_deleted"`
+// }
+
+type CheckMiniAppMerchant struct {
+	BankAccountNumber string `json:"bank_account_number"`
+	Email             string `json:"email"`
+	PhoneNumber       string `json:"phone_number"`
+}
+type MiniAppMerchantExistOptions struct {
+	ExcludeID string
+}
+
 type BakerOptions struct {
 	Sequential bool
 	UseMutex   bool
 }
 
-type Address struct {
-	Zone        string `json:"zone" bson:"zone"`
-	Wereda      string `json:"wereda" bson:"wereda"`
-	Kebele      string `json:"kebele" bson:"kebele"`
-	Region      string `json:"region" bson:"region"`
-	City        string `json:"city" bson:"city"`
-	SubCity     string `json:"sub_city" bson:"sub_city"`
-	StreetName  string `json:"street_name" bson:"street_name"`
-	HouseNumber string `json:"house_number" bson:"house_number"`
+// Merchant Data
+
+type Company struct {
+	ID             int     `json:"id"`
+	Name           string  `json:"name"`
+	MerchantID     string  `json:"merchant_id"`
+	BusinessType   *string `json:"business_type"` // null → pointer
+	Email          *string `json:"email"`         // null → pointer
+	Phone          *string `json:"phone"`         // null → pointer
+	APIKey         string  `json:"api_key"`
+	ParentID       int     `json:"parent_id"`
+	ParentMerchant string  `json:"parent_merchant"`
+}
+
+type Branch struct {
+	ID                int     `json:"id"`
+	Name              string  `json:"name"`
+	BranchID          string  `json:"branch_id"`
+	BusinessType      *string `json:"business_type"` // null → pointer
+	AccountNumber     string  `json:"account_number"`
+	AccountHolderName string  `json:"account_holder_name"`
+	APIKey            string  `json:"api_key"`
+	Email             *string `json:"email"` // null
+	Phone             *string `json:"phone"` // null
+}
+
+type UserAccount struct {
+	ID                 int      `json:"id"`
+	Name               string   `json:"name"`
+	Email              string   `json:"email"`
+	CompanyID          int      `json:"company_id"`
+	CompanyIDs         []int    `json:"company_ids"`
+	DefaultMerchantID  string   `json:"default_merchant_id"`
+	AllowedMerchantIDs []string `json:"allowed_merchant_ids"`
+}
+
+// for merchant lookup end
+
+type AccountLookupData struct {
+	AccountNumber  string
+	CustomerName   string
+	Restriction    string
+	Currency       string
+	AccountType    string
+	AccountStatus  string
+	AccountHolder  string
+	WorkingBalance string
+	CustomerID     string
+}
+
+type Account struct {
+	ID                 string    `json:"id"`
+	AccountBranchType  string    `json:"account_branchtype"`
+	AccountBranchCode  string    `json:"account_branchcode"`
+	AccountNumber      string    `json:"account_number"`
+	CustomerNumber     string    `json:"customer_number"`
+	CustomerName       string    `json:"customer_name"`
+	CustomerMotherName string    `json:"customer_mother_name"`
+	PhoneNumber        string    `json:"phone_number"`
+	CustomerAddress    string    `json:"customer_address"`
+	AccountType        string    `json:"account_type"`
+	Gender             string    `json:"gender"`
+	Picture            string    `json:"picture"`
+	DebitAllowed       bool      `json:"debit_allowed"`
+	CreditAllowed      bool      `json:"credit_allowed"`
+	AccountFrozen      bool      `json:"account_frozen"`
+	AccountDormant     bool      `json:"account_dormant"`
+	ActiveAccount      bool      `json:"active_account"`
+	AccountCurrency    string    `json:"account_currency"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}
+
+type MakerChecker struct {
+	Linkers   Linkers `json:"linkers" bson:"linkers"`
+	Unlinkers Linkers `json:"unlinkers" bson:"unlinkers,omitempty"`
+}
+
+type Linkers struct {
+	Maker   string `json:"maker" bson:"maker"`
+	Checker string `json:"checker" bson:"checker"`
+}
+type AccountInfo struct {
+	ID                 string `json:"id"`
+	AccountBranchType  string `json:"account_branchtype"`
+	AccountBranchCode  string `json:"account_branchcode"`
+	AccountNumber      string `json:"account_number"`
+	CustomerNumber     string `json:"customer_number"`
+	CustomerName       string `json:"customer_name"`
+	AccountDescription string `json:"account_description"`
+	PhoneNumber        string `json:"phone_number"`
+	CustomerAddress    string `json:"customer_address"`
+	DebitAllowed       bool   `json:"debit_allowed"`
+	CreditAllowed      bool   `json:"credit_allowed"`
+	AccountType        string `json:"account_type"`
+	AccountFrozen      bool   `json:"account_frozen"`
+	AccountDormant     bool   `json:"account_dormant"`
+	ActiveAccount      bool   `json:"active_account"`
+	AccountCurrency    string `json:"account_currency"`
 }
 
 type LoginPIN struct {
@@ -160,6 +284,32 @@ type Ticket struct {
 	NumberOfTicker uint8  `json:"number_of_ticker" bson:"number_of_ticker"`
 }
 
+type Address struct {
+	Zone   string `json:"zone" bson:"zone"`
+	Kebele string `json:"kebele" bson:"kebele"`
+	Woreda string `json:"woreda" bson:"woreda"`
+	Region string `json:"region" bson:"region"`
+}
+
+type KYCData struct {
+	Sub           string           `json:"sub" bson:"sub"`
+	FullName      string           `json:"full_name" bson:"full_name"`
+	PhoneNumber   string           `json:"phone_number" bson:"phone_number"`
+	Gender        string           `json:"gender" bson:"gender"`
+	Picture       string           `json:"picture" bson:"picture"`
+	SelfiePhoto   string           `json:"selfie_photo" bson:"selfie_photo"`
+	Nationality   string           `json:"nationality" bson:"nationality"`
+	BirthDate     time.Time        `json:"birth_date" bson:"birth_date"`
+	DocumentFront string           `json:"document_front" bson:"document_front"`
+	DocumentBack  string           `json:"document_back" bson:"document_back"`
+	MonthlyIncome string           `json:"monthly_income" bson:"monthly_income"`
+	AccountType   string           `json:"account_type" bson:"account_type"`
+	Country       string           `json:"country" bson:"country"`
+	MothersName   string           `json:"mothers_name" bson:"mothers_name"`
+	Vendor        constants.Vendor `json:"vendor" bson:"vendor"`
+	Address       Address          `json:"address" bson:"address"`
+}
+
 type TicketStatistics struct {
 	Category           string `json:"category" bson:"category"`
 	Revenue            uint64 `json:"revenue" bson:"revenue"`
@@ -214,11 +364,11 @@ type MiniApps struct {
 }
 
 type BranchInformation struct {
-	BranchCode          string `json:"branch_code"`
-	BranchName          string `json:"branch_name"`
-	BranchAddress       string `json:"branch_address"`
-	BranchOwner         string `json:"branch_owner"`
-	BranchAccountNumber string `json:"branch_account_number"`
+	BranchCode          string `json:"branch_code" bson:"branch_code"`
+	BranchName          string `json:"branch_name" bson:"branch_name"`
+	BranchAddress       string `json:"branch_address" bson:"branch_address"`
+	BranchOwner         string `json:"branch_owner" bson:"branch_owner"`
+	BranchAccountNumber string `json:"branch_account_number" bson:"branch_account_number"`
 }
 type KYCInformation struct {
 	Name  string `json:"name" bson:"name"`
@@ -301,4 +451,29 @@ type Services struct {
 	Self  bool `json:"self" bson:"self"`
 	Other bool `json:"other" bson:"other"`
 	Agent bool `json:"agent" bson:"agent"`
+}
+
+type SMSKafkaMessage struct {
+	Recipient   string `json:"recipient"`
+	MessageBody string `json:"message_body"`
+}
+
+type EmailContact struct {
+	Name  string `json:"name,omitempty" bson:"name,omitempty"`
+	Email string `json:"email" bson:"email"`
+}
+
+type EmailKafkaMessage struct {
+	Recipients         []EmailContact         `json:"recipients"`
+	CC                 []EmailContact         `json:"cc,omitempty"`
+	Subject            string                 `json:"subject"`
+	Type               string                 `json:"type"` // "otp", "message", "transaction", "request"
+	OTPCode            string                 `json:"otp_code,omitempty"`
+	Receiver           string                 `json:"receiver,omitempty"`
+	MessageBody        string                 `json:"message_body,omitempty"`
+	Link               string                 `json:"link,omitempty"`
+	CustomerName       string                 `json:"customer_name,omitempty"`
+	TransactionDetails map[string]interface{} `json:"transaction_details,omitempty"`
+	Priority           int                    `json:"priority,omitempty"`
+	Metadata           map[string]interface{} `json:"metadata,omitempty"`
 }

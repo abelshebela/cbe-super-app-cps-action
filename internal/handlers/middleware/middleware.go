@@ -11,12 +11,17 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/cors"
+	"time"
 
+	"github.com/go-chi/cors"
+	"google.golang.org/grpc/metadata"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/golang-jwt/jwt/v5"
 
+	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 )
@@ -58,21 +63,26 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 }
 
 type UserPayload struct {
-	PhoneNumber string `json:"phone_number,omitempty"`
-	UserRole    string `json:"user_role,omitempty"`
-	UserID      string `json:"user_id,omitempty"`
-	UserCode    string `json:"user_code,omitempty"`
-	FullName    string `json:"full_name,omitempty"`
-	Department  string `json:"department,omitempty"`
-	NextStep    string `json:"next_step,omitempty"`
-	Action      string `json:"action"`
+	PhoneNumber string   `json:"phone_number,omitempty"`
+	UserRole    string   `json:"user_role,omitempty"`
+	UserID      string   `json:"user_id,omitempty"`
+	UserCode    string   `json:"user_code,omitempty"`
+	FullName    string   `json:"full_name,omitempty"`
+	Department  string   `json:"department,omitempty"`
+	NextStep    string   `json:"next_step,omitempty"`
+	Action      string   `json:"action"`
+	SessionExp  int64    `json:"session_expiry,omitempty"`
+	Environment string   `json:"environment"`
+	Permission  []string `json:"permission_group"`
 }
 
 type authMiddleware struct {
+	client       cps_auth.CpsAuthServiceClient
 	logger       utils.Logger
 	JWTSecretKey string
 	Key          string
 	IV           string
+	cfg          config.VaultConfig
 }
 
 type AuthMiddleware interface {
@@ -82,11 +92,13 @@ type AuthMiddleware interface {
 	RequireFormContentType() func(http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(secretKey, key, iv string, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
+		client:       client,
 		JWTSecretKey: secretKey,
 		Key:          key,
 		IV:           iv,
+		cfg:          cfg,
 		logger:       logger,
 	}
 }
@@ -171,7 +183,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
 
@@ -200,12 +212,114 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-		ctx := a.setUserPayload(r.Context(), userPayload)
-		r = r.WithContext(ctx)
 
+		ctx := a.setUserPayload(r.Context(), userPayload)
+		now := time.Now().Unix()
+
+		if userPayload.SessionExp != 0 {
+			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
+			if userPayload.SessionExp < now {
+				a.logger.Warnf("session has expired")
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			}
+
+			if userPayload.SessionExp-now <= 0 {
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			} else if userPayload.SessionExp-now < 60 {
+				// Less than 1 minute left, refresh token
+				a.logger.Infof("session expiring soon, refreshing token")
+				// Inject Bearer token and user_id from context into gRPC metadata
+				md := metadata.New(map[string]string{
+					"authorization": "Bearer " + tokenString,
+				})
+
+				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+				if err != nil {
+					a.logger.Errorf("failed to refresh token: %v", err)
+				}
+				if refresh_response != nil {
+					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+				} else {
+					a.logger.Errorf("refresh token response from grpc is nil")
+				}
+			}
+
+		}
+
+		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
 }
+
+// func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+// 		authHeader := r.Header.Get("Authorization")
+// 		bearer := "Bearer "
+
+// 		if !strings.HasPrefix(authHeader, bearer) {
+// 			a.logger.Warnf("bearer token is not present")
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+
+// 		tokenString := authHeader[len(bearer):]
+
+// 		if tokenString == "" {
+// 			a.logger.Warnf("empty token string provided")
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+
+// 		data, err := a.validateToken(r.Context(), tokenString)
+// 		if err != nil {
+// 			localization.SendErrorResponse(w, localization.ErrorInvalidToken, nil, nil)
+// 			return
+// 		}
+
+// 		userPayload, err := a.extractUserPayload(r.Context(), data)
+// 		if err != nil {
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		if userPayload.Environment != a.cfg.GoEnv {
+// 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
+// 			return
+// 		}
+// 		ctx := a.setUserPayload(r.Context(), userPayload)
+// 		// refresh token payload if session expiry has less than 1 minute
+// 		// if userPayload.SessionExp != 0 {
+// 		// 	now := time.Now().Unix()
+// 		// 	if userPayload.SessionExp < now {
+// 		// 		a.logger.Warnf("session has expired")
+// 		// 		localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+// 		// 		return
+// 		// 	}
+
+// 		// 	if userPayload.SessionExp-now < 60 {
+// 		// 		// Less than 1 minute left, refresh token
+// 		// 		a.logger.Infof("session expiring soon, refreshing token")
+// 		// 		// Inject Bearer token and user_id from context into gRPC metadata
+// 		// 		md := metadata.New(map[string]string{
+// 		// 			"authorization": "Bearer " + tokenString,
+// 		// 		})
+// 		// 		ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+// 		// 		refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+// 		// 		if err != nil {
+// 		// 			a.logger.Errorf("failed to refresh token: %v", err)
+// 		// 		}
+// 		// 		w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+// 		// 	}
+// 		// }
+
+// 		r = r.WithContext(ctx)
+
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
 
 func (a *authMiddleware) validateToken(ctx context.Context, tokenString string) (string, error) {
 	jwtSecret := []byte(a.JWTSecretKey)
@@ -264,6 +378,8 @@ func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPay
 	ctx = context.WithValue(ctx, constants.ContextKey("department"), userPayload.Department)
 	ctx = context.WithValue(ctx, constants.ContextKey("next_step"), userPayload.NextStep)
 	ctx = context.WithValue(ctx, constants.ContextKey("action"), userPayload.Action)
+	ctx = context.WithValue(ctx, constants.ContextKey("permission"), userPayload.Permission)
+	ctx = context.WithValue(ctx, constants.ContextKey("environment"), userPayload.Environment)
 	return ctx
 }
 

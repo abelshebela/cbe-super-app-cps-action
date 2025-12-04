@@ -6,18 +6,10 @@ import (
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/pkgs/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
-
-const maxFileSize = 2 * 1024 * 1024
-
-var allowedMIMETypes = map[string]bool{
-	"image/jpeg": true,
-	"image/png":  true,
-	"image/gif":  true,
-	"image/webp": true,
-}
 
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
@@ -42,13 +34,13 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	}
 
 	if isCreate {
-		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, true, localization.ErrorWalletNameRequired.Code))))
+		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, true, localization.ErrorWalletNameRequired.Code)), validation.By(utils.TrimWhiteSpace)))
 	} else if w.Name != "" {
 		rules = append(rules, validation.Field(&w.Name, validation.By(validateString("name", w.Name, false, localization.ErrorWalletNameRequired.Code))))
 	}
 
 	if isCreate {
-		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, true, localization.ErrorWalletCodeRequired.Code))))
+		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, true, localization.ErrorWalletCodeRequired.Code)), validation.By(utils.TrimWhiteSpace)))
 	} else if w.Code != "" {
 		rules = append(rules, validation.Field(&w.Code, validation.By(validateString("code", w.Code, false, localization.ErrorWalletCodeRequired.Code))))
 	}
@@ -106,46 +98,14 @@ func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 func validateAvatar(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)
 	if !ok || file == nil {
-		return errors.New(localization.ErrorWalletAvatarInvalid.Code)
+		return localization.ErrorWalletAvatarInvalid
 	}
-	if !isImageFormat(file) {
+	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
-
-	if file.Size > maxFileSize {
-		return errors.New(localization.ErrorWalletAvatarTooLarge.Code)
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 
-	// this is causing issue with mobile and front end upload
-	// ct := file.Header.Get("Content-Type")
-	// if ct == "" || !allowedMIMETypes[ct] {
-	// 	return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
-	// }
 	return nil
-}
-
-// use this for image validation this works with the mobile and the frontend
-func isImageFormat(fileHeader *multipart.FileHeader) bool {
-	if fileHeader == nil {
-		return false
-	}
-	contentType := fileHeader.Header.Get("Content-Type")
-
-	// Acceptable image formats
-	ext := strings.ToLower(strings.TrimPrefix(strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, "."):]), "."))
-	switch ext {
-	case "jpg", "jpeg":
-		contentType = "image/jpeg"
-	case "png":
-		contentType = "image/png"
-	case "gif":
-		contentType = "image/gif"
-	}
-
-	switch contentType {
-	case "image/jpeg", "image/png", "image/gif":
-		return true
-	default:
-		return false
-	}
 }

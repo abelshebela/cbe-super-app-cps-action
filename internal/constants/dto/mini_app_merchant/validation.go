@@ -31,20 +31,43 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 				validation.Required.Error("type is required"),
 				validation.By(utils.NoSpecialChars),
 				validation.By(utils.TrimWhiteSpace),
+				validation.In("3-click", "merchant").Error("type must be either '3-click' or 'merchant'"),
 			),
 			validation.Field(&dto.MerchantName,
 				validation.Required.Error("merchant name is required"),
 				validation.By(utils.TrimWhiteSpace),
 				validation.By(utils.NoSpecialChars),
 			),
+			validation.Field(&dto.MerchantCode,
+				validation.By(func(value interface{}) error {
+					if dto.Type != "3-click" {
+						return nil
+					}
+					validation.By(utils.TrimWhiteSpace)
+					if err := validation.Required.Error("mercahnt code is required").Validate(value); err != nil {
+						return err
+					}
+					validation.By(utils.NoSpecialChars)
+					return nil
+				}),
+			),
 			validation.Field(&dto.MerchantRepresentativeName,
-				validation.Required.Error("representative name is required"),
-				validation.By(utils.TrimWhiteSpace),
-				validation.By(utils.NoSpecialChars),
+				validation.By(func(value interface{}) error {
+					if dto.Type != "merchant" {
+						return nil
+					}
+					if err := validation.Required.Error("representative name is required").Validate(value); err != nil {
+						return err
+					}
+					validation.By(utils.TrimWhiteSpace)
+					validation.By(utils.NoSpecialChars)
+
+					return nil
+				}),
 			),
 			validation.Field(&dto.PhoneNumber,
 				validation.Required.Error("phone number is required"),
-				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)9\d{8}$`)).Error("invalid phone number format"),
+				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)(9|7)\d{8}$`)).Error("invalid phone number format"),
 				validation.By(utils.TrimWhiteSpace),
 			),
 			validation.Field(&dto.Email,
@@ -53,15 +76,27 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 				validation.By(utils.TrimWhiteSpace),
 			),
 			validation.Field(&dto.AccountNumber,
-				validation.Required.Error("account number is required"),
-				validation.By(utils.TrimWhiteSpace),
-				validation.By(utils.NoSpecialChars),
+				validation.By(func(value interface{}) error {
+					if dto.Type != "merchant" {
+						return nil
+					}
+					if err := validation.Required.Error("account number is required").Validate(value); err != nil {
+						return err
+					}
+					validation.By(utils.TrimWhiteSpace)
+					validation.By(utils.NoSpecialChars)
+					validation.By(utils.NumbersOnly)
+					if err := validation.Length(13, 13).Error("account number must be 13 digits").Validate(value); err != nil {
+						return err
+					}
+
+					return nil
+				}),
 			),
 		}
 	} else {
 		if strings.TrimSpace(dto.Type) != "" {
 			rules = append(rules, validation.Field(&dto.Type,
-				validation.Required.Error("type is required"),
 				validation.By(utils.NoSpecialChars)),
 			)
 		}

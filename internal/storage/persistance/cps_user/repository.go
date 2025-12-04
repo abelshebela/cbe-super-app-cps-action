@@ -21,20 +21,22 @@ import (
 )
 
 type CPSUserStorage struct {
-	dal        dal.MongoDal[model.CPSUser, model.CPSUser]
-	cpsAction  dal.MongoDal[model.CPSAction, model.CPSAction]
-	client     *mongo.Client
-	collection *mongo.Collection
-	logger     utils.Logger
+	dal               dal.MongoDal[model.CPSUser, model.CPSUser]
+	cpsAction         dal.MongoDal[model.CPSAction, model.CPSAction]
+	client            *mongo.Client
+	collection        *mongo.Collection
+	relatedCollection []string
+	logger            utils.Logger
 }
 
-func NewCPSUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.CpsUserRepository {
+func NewCPSUserRepository(client *mongo.Client, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
-		dal:        dal.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collection),
-		cpsAction:  dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions"),
-		client:     client,
-		collection: client.Database(dbName).Collection(collection),
-		logger:     logger,
+		dal:               dal.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collection),
+		cpsAction:         dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions"),
+		client:            client,
+		collection:        client.Database(dbName).Collection(collection),
+		relatedCollection: relatedCollection,
+		logger:            logger,
 	}
 }
 
@@ -145,6 +147,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"full_name": searchRegex},
+			{"email": searchRegex},
 			{"username": searchRegex},
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
@@ -255,158 +258,8 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 }
 
 func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
-	const (
-		departmentColl         = "department"
-		permissionGroupsColl   = "permission_groups"
-		permissionCategoryColl = "permission_category"
-		permissionColl         = "permission"
-	)
 
-	// Universal ID converter function for handling both string and ObjectID types
-	convertIDs := func(fieldName string) bson.M {
-		return bson.M{
-			"$map": bson.M{
-				"input": fieldName,
-				"as":    "id",
-				"in": bson.M{
-					"$cond": bson.M{
-						"if":   bson.M{"$eq": []interface{}{bson.M{"$type": "$$id"}, "string"}},
-						"then": bson.M{"$toObjectId": "$$id"},
-						"else": "$$id",
-					},
-				},
-			},
-		}
-	}
-
-	// Lookup pipeline for permission categories with nested permissions
-	categoryLookup := bson.D{{Key: "$lookup", Value: bson.M{
-		"from": permissionCategoryColl,
-		"let":  bson.M{"categoryIds": "$permission_category"},
-		"pipeline": mongo.Pipeline{
-			bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
-				"$in": []interface{}{"$_id", convertIDs("$$categoryIds")},
-			}}}},
-			bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
-			bson.D{{Key: "$project", Value: bson.M{
-				"category_name": 1,
-				"access":        1,
-				"permissions":   1,
-			}}},
-			bson.D{{Key: "$lookup", Value: bson.M{
-				"from": permissionColl,
-				"let":  bson.M{"permissionIds": "$permissions"},
-				"pipeline": mongo.Pipeline{
-					bson.D{{Key: "$match", Value: bson.M{"$expr": bson.M{
-						"$in": []interface{}{"$_id", convertIDs("$$permissionIds")},
-					}}}},
-					bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
-					bson.D{{Key: "$project", Value: bson.M{"permission_name": 1}}},
-				},
-				"as": "permissions_docs",
-			}}},
-		},
-		"as": "permission_category_docs",
-	}}}
-
-	pipeline := mongo.Pipeline{
-		// Match the user by user_code and ensure it's not deleted
-		bson.D{{Key: "$match", Value: bson.M{"user_code": userCode, "is_deleted": false}}},
-
-		// Lookup department information
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         departmentColl,
-			"localField":   "department",
-			"foreignField": "_id",
-			"as":           "department_doc",
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"_id":          1,
-					"department":   1,
-					"portal_cards": 1,
-				}}},
-			},
-		}}},
-
-		// Unwind department (preserve null for users without department)
-		bson.D{{Key: "$unwind", Value: bson.M{"path": "$department_doc", "preserveNullAndEmptyArrays": true}}},
-
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         permissionGroupsColl,
-			"localField":   "permission_group",
-			"foreignField": "_id",
-			"as":           "permission_groups_raw",
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"group_name":          1,
-					"permission_category": 1,
-				}}},
-				categoryLookup,
-			},
-		}}},
-
-		bson.D{{Key: "$project", Value: bson.M{
-			"_id":           1,
-			"user_code":     1,
-			"full_name":     1,
-			"role":          1,
-			"gender":        1,
-			"phone_number":  1,
-			"email":         1,
-			"username":      1,
-			"realm":         1,
-			"enabled":       1,
-			"date_joined":   1,
-			"last_modified": 1,
-			"country":       1,
-			"region":        1,
-			"department": bson.M{
-				"$cond": bson.M{
-					"if": bson.M{"$ne": []interface{}{"$department_doc", nil}},
-					"then": bson.M{
-						"id":           "$department_doc._id",
-						"name":         "$department_doc.department",
-						"portal_cards": "$department_doc.portal_cards",
-					},
-					"else": nil,
-				},
-			},
-			// Permission groups with nested structure
-			"permission_groups": bson.M{
-				"$map": bson.M{
-					"input": "$permission_groups_raw",
-					"as":    "pg",
-					"in": bson.M{
-						"id":         "$$pg._id",
-						"group_name": "$$pg.group_name",
-						"permission_category": bson.M{
-							"$map": bson.M{
-								"input": "$$pg.permission_category_docs",
-								"as":    "cat",
-								"in": bson.M{
-									"id":            "$$cat._id",
-									"category_name": "$$cat.category_name",
-									"access":        "$$cat.access",
-									"permissions": bson.M{
-										"$map": bson.M{
-											"input": "$$cat.permissions_docs",
-											"as":    "perm",
-											"in": bson.M{
-												"id":              "$$perm._id",
-												"permission_name": "$$perm.permission_name",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		}}},
-	}
+	pipeline := PipelineBuilder(userCode, r.relatedCollection[0], r.relatedCollection[3], r.relatedCollection[1], r.relatedCollection[2])
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {

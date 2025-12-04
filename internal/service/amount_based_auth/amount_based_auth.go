@@ -26,22 +26,18 @@ import (
 )
 
 type amountBasedAuthService struct {
-	Repository  storage.AmountBasedAuthRepository
-	cpsService  service.CPSActionService
-	logger      utils.Logger
-	minioClient config.MinioClientInterface
-	bucketName  string
-	cfg         *config.VaultConfig
+	Repository storage.AmountBasedAuthRepository
+	cpsService service.CPSActionService
+	logger     utils.Logger
+	cfg        *config.VaultConfig
 }
 
-func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cpsService service.CPSActionService, minioClient config.MinioClientInterface, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.AmountBasedAuthService {
+func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cpsService service.CPSActionService, cfg *config.VaultConfig, logger utils.Logger) service.AmountBasedAuthService {
 	return &amountBasedAuthService{
-		Repository:  repository,
-		cpsService:  cpsService,
-		logger:      logger,
-		minioClient: minioClient,
-		bucketName:  bucketName,
-		cfg:         cfg,
+		Repository: repository,
+		cpsService: cpsService,
+		logger:     logger,
+		cfg:        cfg,
 	}
 }
 

@@ -15,7 +15,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (dto.Donation
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			if isCreate {
-				return req, errors.New(localization.ErrorInvalidFileUpload.Code)
+				return req, localization.ErrorInvalidFileUpload
 			}
 
 		} else {

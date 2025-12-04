@@ -33,7 +33,7 @@ func NewBPSUserRepository(client *mongo.Client, dbName string, collection string
 
 func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) {
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
-	result, err := b.dal.FindOne(ctx, filter, nil)
+	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"branch_code", "branch_name", "enabled", "role", "first_password_set"}
+	allowedKeys := []string{"branch_code", "branch_name", "enabled", "role", "first_password_set", "full_name", "user_code", "phone_number", "username", "branch_code"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {

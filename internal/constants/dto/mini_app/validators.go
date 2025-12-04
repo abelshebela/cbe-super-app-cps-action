@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"mime/multipart"
 	"net/url"
@@ -23,60 +24,32 @@ func (r MiniAppRequest) Validate(isCreate bool) error {
 				// validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)).Error(localization.ErrorInvalidAppNameFormat.Code),
 			),
 			validation.Field(&r.MerchantID, validation.Required.Error(localization.ErrorMiniAppMerchantIDRequired.Code)),
-			validation.Field(&r.AppIcon, validation.Required.Error(localization.ErrorAppIconRequired.Code), validation.By(validateFile)),
+			validation.Field(&r.AppIcon, validation.Required.Error(localization.ErrorAppIconRequired.Code), validation.By(validateImage)),
 			validation.Field(&r.AppViewType, validation.Required.Error(localization.ErrorAppViewTypeRequired.Code), validation.By(ValidateAppViewType(r, isCreate))),
 			validation.Field(&r.URL, validation.Required.Error(localization.ErrorMiniAppURLRequired.Code), validation.By(validateURL)),
-			validation.Field(&r.BannerImage, validation.By(validateFile)),
+			validation.Field(&r.BannerImage, validation.By(validateImage)),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.AppIcon, validation.By(validateFile)),
-			validation.Field(&r.BannerImage, validation.By(validateFile)),
+			validation.Field(&r.AppIcon, validation.By(validateImage)),
+			validation.Field(&r.BannerImage, validation.By(validateImage)),
 		}
 	}
 
 	return validation.ValidateStruct(&r, fieldRules...)
 }
 
-const MaxAvatarSize = 2 * 1024 * 1024
-
-func isImageFormat(fileHeader *multipart.FileHeader) bool {
-	if fileHeader == nil {
-		return false
+func validateImage(value interface{}) error {
+	file, ok := value.(*multipart.FileHeader)
+	if !ok || file == nil {
+		return localization.ErrorMissingOrInvalidImage
 	}
-	contentType := fileHeader.Header.Get("Content-Type")
-
-	// Acceptable image formats
-	ext := strings.ToLower(strings.TrimPrefix(strings.ToLower(fileHeader.Filename[strings.LastIndex(fileHeader.Filename, "."):]), "."))
-	switch ext {
-	case "jpg", "jpeg":
-		contentType = "image/jpeg"
-	case "png":
-		contentType = "image/png"
-	case "gif":
-		contentType = "image/gif"
+	if !utils.IsValidImage(file) {
+		return localization.ErrorMissingOrInvalidImage
 	}
 
-	switch contentType {
-	case "image/jpeg", "image/png", "image/gif":
-		return true
-	default:
-		return false
-	}
-}
-
-func validateFile(value any) error {
-	fileHeader, ok := value.(*multipart.FileHeader)
-	if !ok || fileHeader == nil {
-		return nil // Nothing to validate
-	}
-
-	if fileHeader.Size > MaxAvatarSize {
-		return errors.New(localization.ErrorFileTooLarge.Code)
-	}
-
-	if !isImageFormat(fileHeader) {
-		return errors.New(localization.ErrorInvalidImageFormat.Code)
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package vaultgroupcategory
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
@@ -10,8 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	utils "cbe-super-app-cps-action/pkgs/utils"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -33,15 +32,15 @@ func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model
 	// Duplicate name check via generated query
 	q := sqlc.New(r.db)
 	if _, err := q.FindVaultGroupCategoryByName(ctx, entity.Name); err == nil {
-		return "", fmt.Errorf("DUPLICATE_VAULT_GROUP_CATEGORY")
+		return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
 	} else if !errors.Is(err, sql.ErrNoRows) {
 		return "", err
 	}
 
 	params := sqlc.SaveVaultGroupCategoryParams{
-		Name:        entity.Name,
-		Description: sql.NullString{String: entity.Description, Valid: entity.Description != ""},
-		IsActive:    sql.NullBool{Bool: entity.IsActive, Valid: true},
+		Name:       strings.ToUpper(entity.Name),
+		CoverImage: entity.CoverImage,
+		IsActive:   sql.NullBool{Bool: entity.IsActive, Valid: true},
 	}
 	id, err := q.SaveVaultGroupCategory(ctx, params)
 	if err != nil {
@@ -70,18 +69,21 @@ func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context
 
 	rows, err := q.FindVaultGroupCategory(ctx, params)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	list := make([]*model.VaultGroupCategory, 0, len(rows))
 	var total int64
 	for _, rrow := range rows {
 		e := &model.VaultGroupCategory{
-			ID:          rrow.ID,
-			Name:        rrow.Name,
-			Description: utils.NonEmptyString(rrow.Description.String, ""),
-			IsActive:    rrow.IsActive,
-			IsDeleted:   rrow.IsDeleted,
+			ID:         rrow.ID,
+			Name:       rrow.Name,
+			CoverImage: rrow.CoverImage,
+			IsActive:   rrow.IsActive,
+			IsDeleted:  rrow.IsDeleted,
 		}
 		if rrow.CreatedAt.Valid {
 			e.CreatedAt = rrow.CreatedAt.Time
@@ -125,11 +127,11 @@ func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) 
 		return nil, err
 	}
 	e := &model.VaultGroupCategory{
-		ID:          rrow.ID,
-		Name:        rrow.Name,
-		Description: utils.NonEmptyString(rrow.Description.String, ""),
-		IsActive:    rrow.IsActive,
-		IsDeleted:   rrow.IsDeleted,
+		ID:         rrow.ID,
+		Name:       rrow.Name,
+		CoverImage: rrow.CoverImage,
+		IsActive:   rrow.IsActive,
+		IsDeleted:  rrow.IsDeleted,
 	}
 	if rrow.CreatedAt.Valid {
 		e.CreatedAt = rrow.CreatedAt.Time
@@ -143,6 +145,33 @@ func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) 
 	return e, nil
 }
 
+func (r *VaultGroupCategoryRepository) GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultGroupCategory, error) {
+	q := sqlc.New(r.db)
+	category, err := q.FindVaultGroupCategoryByName(ctx, groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	vc := &model.VaultGroupCategory{
+		ID:         category.ID,
+		Name:       category.Name,
+		CoverImage: category.CoverImage,
+		IsActive:   category.IsActive,
+		IsDeleted:  category.IsDeleted,
+	}
+	if category.CreatedAt.Valid {
+		vc.CreatedAt = category.CreatedAt.Time
+	}
+	if category.UpdatedAt.Valid {
+		vc.UpdatedAt = category.UpdatedAt.Time
+	}
+	if category.DeletedAt.Valid {
+		vc.DeletedAt = &category.DeletedAt.Time
+	}
+
+	return vc, nil
+}
+
 // Update updates name/description; prevents updates on deleted records
 func (r *VaultGroupCategoryRepository) Update(ctx context.Context, id string, entity *model.VaultGroupCategory) error {
 	// Ensure not deleted
@@ -154,10 +183,9 @@ func (r *VaultGroupCategoryRepository) Update(ctx context.Context, id string, en
 		return fmt.Errorf("CANNOT_UPDATE_DELETED_VAULT_GROUP_CATEGORY %s", id)
 	}
 
-	// Use edited SQLC method (Oracle-compatible)
 	name := sql.NullString{String: entity.Name, Valid: entity.Name != ""}
-	desc := sql.NullString{String: entity.Description, Valid: entity.Description != ""}
-	params := sqlc.UpdateVaultGroupCategoryParams{Name: name, Description: desc, ID: id}
+	coverImage := sql.NullString{String: entity.CoverImage, Valid: entity.CoverImage != ""}
+	params := sqlc.UpdateVaultGroupCategoryParams{Name: name, CoverImage: coverImage, ID: id}
 	_, err = sqlc.New(r.db).UpdateVaultGroupCategory(ctx, params)
 	return err
 }

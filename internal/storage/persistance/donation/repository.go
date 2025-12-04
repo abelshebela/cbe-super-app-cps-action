@@ -106,7 +106,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {
 
 	searchKeys := bson.M{}
-	allowedKeys := []string{"title", "is_featured", "enabled", "donation_code", "target", "end_date"}
+	allowedKeys := []string{"search", "title", "is_featured", "enabled", "donation_code", "target", "end_date"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -135,6 +135,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	var result []donation_dto.DonationListResponse
 	for _, donation := range data {
+
 		companyFilter := bson.M{"_id": donation.CompanyID}
 		company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 		if err != nil {
@@ -142,6 +143,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 
 		categoryFilter := bson.M{"_id": donation.CategoryID}
+		fmt.Println("categoryFilter", donation.CategoryID)
 		category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch category: %v", err)

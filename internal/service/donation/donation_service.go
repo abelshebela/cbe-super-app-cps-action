@@ -2,6 +2,8 @@ package donation
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"path"
+
 	// donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -17,6 +19,7 @@ import (
 
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -29,13 +32,13 @@ type Donation struct {
 	DonationCompanyRepo  storage.DonationCompanyRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
-	minio                config.MinioClientInterface
+	minio                *s3.Client
 	bucketName           string
 	cfg                  *config.VaultConfig
 	minioEndPoint        string
 }
 
-func NewDonationService(client *mongo.Client, DonationRepo storage.DonationRepository, DonationCategoryRepo storage.DonationCategoryRepository, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio config.MinioClientInterface,
+func NewDonationService(client *mongo.Client, DonationRepo storage.DonationRepository, DonationCategoryRepo storage.DonationCategoryRepository, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -80,22 +83,21 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
-	if !category.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+	if !category.Enabled {
+		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
 
-	company, err:= d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
+	company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
 	if err != nil {
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-	if !company.Enabled{
-			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+	if !company.Enabled {
+		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-
 
 	coverImageURL := ""
 	if donation.CoverImage != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), d.minioEndPoint, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), *d.cfg, "", d.logger)
 		if err != nil {
 			return err
 		}
@@ -105,7 +107,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	donationImages := make([]types.DonationImage, 0)
 	d.logger.Infof("Processing %d donation images", len(donation.DonationImages))
 	for _, img := range donation.DonationImages {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), *d.cfg, "", d.logger)
 		if err != nil {
 			d.logger.Errorf("Failed to upload donation image: %v", err)
 			return err
@@ -145,10 +147,11 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 
 func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.DonationRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
+	// Fetch existing donation
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -157,6 +160,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
+	// Prepare existing model for validation
 	existingModel := &model.Donation{
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
@@ -167,48 +171,113 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		EndDate:             core.ParseTime(existingDonation.EndDate),
 	}
 
+	// Validate and check for data duplication
 	if err := core.CheckDataSimilarityAndValidation(ctx, donation, existingModel, d.DonationRepo); err != nil {
 		return err
 	}
 
+	// --- Category Validation ---
 	if donation.CategoryID != "" {
 		category, err := d.DonationCategoryRepo.FindByID(ctx, donation.CategoryID)
-		if err != nil {
+		if err != nil || category == nil || !category.Enabled {
 			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 		}
-		if !category.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
-	}
-
 	} else {
 		donation.CategoryID = existingDonation.Category.ID
 	}
 
+	// --- Company Validation ---
 	if donation.CompanyID != "" {
 		company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
-		if err != nil {
+		if err != nil || company == nil || !company.Enabled {
 			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 		}
-		if !company.Enabled{
-			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
-	}
 	} else {
 		donation.CompanyID = existingDonation.Company.ID
 	}
 
+	// --- Cover Image Handling ---
 	coverImageURL := existingDonation.CoverImage
 	if donation.CoverImage != nil {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donation.CoverImage, string(constants.DonationCoverImage), d.minioEndPoint, d.logger)
+		var objectkey string
+		if existingDonation.CoverImage != "" {
+			objectkey = path.Base(existingDonation.CoverImage)
+		}
+
+		url, err := lib.UploadFileToMinio(
+			ctx,
+			d.minio,
+			d.bucketName,
+			donation.CoverImage,
+			string(constants.DonationCoverImage),
+			*d.cfg,
+			objectkey,
+			d.logger,
+		)
 		if err != nil {
 			return err
 		}
 		coverImageURL = url
 	}
 
-	donationImages := existingDonation.DonationImages
-	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, donationImages)
+	NewdonationImages := existingDonation.DonationImages
+	if len(donation.RemovedImages) > 0 {
+		toRemove := make(map[string]struct{}, len(donation.RemovedImages))
+		for _, id := range donation.RemovedImages {
+			toRemove[id] = struct{}{}
+		}
+		filtered := NewdonationImages[:0]
+		for _, img := range NewdonationImages {
+			if _, ok := toRemove[img.ID]; !ok {
+				filtered = append(filtered, img)
+			}
+		}
+		NewdonationImages = filtered
+	}
 
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestUpdateDonation), constants.UPDATE)
+	// --- Add New Images ---
+	d.logger.Infof("Processing %d new donation images", len(donation.DonationImages))
+	for i, fileHeader := range donation.DonationImages {
+		var objectkey string
+		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
+			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
+		}
+
+		url, err := lib.UploadFileToMinio(
+			ctx,
+			d.minio,
+			d.bucketName,
+			fileHeader,
+			string(constants.DonationImage),
+			*d.cfg,
+			objectkey,
+			d.logger,
+		)
+		if err != nil {
+			d.logger.Errorf("Failed to upload donation image: %v", err)
+			return err
+		}
+
+		NewdonationImages = append(NewdonationImages, dto.DonationImage{
+			ID:       bson.NewObjectID().Hex(),
+			PhotoURL: url,
+		})
+
+		d.logger.Infof("Successfully uploaded donation image: %s", url)
+	}
+
+	// --- Map Update Data ---
+	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, NewdonationImages)
+
+	// --- CPS Action ---
+	cpsAction := lib.CpsModelBuilder(
+		id,
+		makerData,
+		existingDonation,
+		updateData,
+		string(constants.RequestUpdateDonation),
+		constants.UPDATE,
+	)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
@@ -245,7 +314,12 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationImage), d.minioEndPoint, d.logger)
+	var objectkey string
+	if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[0].PhotoURL != "" {
+		objectkey = path.Base(existingDonation.DonationImages[0].PhotoURL)
+	}
+
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, image.Image, string(constants.DonationImage), *d.cfg, objectkey, d.logger)
 	if err != nil {
 		return err
 	}
@@ -309,8 +383,13 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 	}
 
 	donationImages := make([]dto.DonationImage, 0)
-	for _, img := range image.DonationImages {
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), d.minioEndPoint, d.logger)
+	for i, img := range image.DonationImages {
+		var objectkey string
+		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
+			objectkey = path.Base(existingDonation.DonationImages[i].PhotoURL)
+		}
+
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), *d.cfg, objectkey, d.logger)
 		if err != nil {
 			return err
 		}
@@ -396,17 +475,6 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 	if bindErr != nil {
 		d.logger.Errorf("failed to bind current action to donation: %v", bindErr)
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
-	}
-	if action.UniqueId != "" {
-		existingDonation, err := d.DonationRepo.FindByID(ctx, action.UniqueId)
-		if err != nil {
-			d.logger.Errorf("Failed to find donation for image addition: %v", err)
-			return nil, err
-		}
-		if existingDonation == nil {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
-
 	}
 
 	switch action.RequestAction {

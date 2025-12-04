@@ -3,7 +3,7 @@ package ad
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"fmt"
+	"cbe-super-app-cps-action/pkgs/utils"
 	"mime/multipart"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -21,31 +21,26 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 			validation.In(string(constants.BOTH_ADVERT_FOR), string(constants.IFB_ADVERT_FOR), string(constants.CB_ADVERT_FOR)).Error("invalid advert for field"),
 		),
 		validation.Field(&c.BannerImage,
-			validation.When(!isUpdate, validation.Required.Error(localization.ErrorMissingOrInvalidImage.Code)),
-			validation.When(c.BannerImage != nil, validation.By(func(value interface{}) error {
-				file, ok := value.(*multipart.FileHeader)
-				if !ok {
-					return localization.ErrorMissingOrInvalidImage
-				}
-				if file.Size > (2 << 20) {
-					return localization.ErrorFileTooLarge
-				}
-				return nil
-			})),
-		),
-	)
+				validation.When(c.BannerImage != nil, validation.By(func(value interface{}) error { return validateBannerImage(value) })),
+	),)
 
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	// Ensure at least one field is provided for update
-	if isUpdate &&
-		c.Title == "" &&
-		c.Description == "" &&
-		c.AdvertFor == "" &&
-		c.BannerImage == nil {
-		return fmt.Errorf("NO_DATA_PROVIDED_FOR_UPDATE")
+func validateBannerImage(value interface{}) error {
+	file, ok := value.(*multipart.FileHeader)
+	if !ok || file == nil {
+		return localization.ErrorMissingOrInvalidImage
+	}
+	if !utils.IsValidImage(file) {
+		return localization.ErrorMissingOrInvalidImage
+	}
+
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 
 	return nil

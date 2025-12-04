@@ -161,10 +161,6 @@ func (s *notificationService) FetchNotificationByID(ctx context.Context, id stri
 }
 
 func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error) {
-	if filterParam == nil {
-		f := types.Filter{}
-		filterParam = &f
-	}
 	entities, err := s.repo.FindAllWithPagination(ctx, *filterParam)
 	if err != nil {
 		return nil, err

@@ -70,7 +70,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 
 	if err := req.Validate(); err != nil {
 		b.logger.Errorf("request validation failed: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameter, nil, nil)
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -155,7 +155,7 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	Enabled:= true
+	Enabled := true
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {
 		b.logger.Errorf("Incomplete user information")
@@ -182,7 +182,7 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 		return
 	}
 
-	Enabled:= false
+	Enabled := false
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {
 		b.logger.Errorf("Incomplete user information")
@@ -201,4 +201,3 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryToggleSubmittedForApproval, map[string]string{"action": action})
 }
-

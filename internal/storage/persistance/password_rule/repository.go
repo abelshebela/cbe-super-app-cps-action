@@ -17,16 +17,18 @@ import (
 )
 
 type PasswordRuleStorage struct {
-	dal    dal.MongoDal[model.PasswordRule, model.PasswordRule]
-	client *mongo.Client
-	logger utils.Logger
+	dal        dal.MongoDal[model.PasswordRule, model.PasswordRule]
+	client     *mongo.Client
+	collection *mongo.Collection
+	logger     utils.Logger
 }
 
 func NewPasswordRuleRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.PasswordRuleRepository {
 	return &PasswordRuleStorage{
-		dal:    dal.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collection),
+		client:     client,
+		logger:     logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 

@@ -107,7 +107,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	new_department := model.Department{
 		Department:  department.Department,
 		PortalCards: department.PortalCards,
-		Enabled: true,
+		Enabled:     true,
 	}
 
 	new_department.DepartmentCode = utils.RandomGenerator(20)
@@ -161,7 +161,7 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 }
 
 // GetAllDepartments implements service.DepartmentService.
-func (d *DepartmentService) GetAllDepartments(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Department], error) {
+func (d *DepartmentService) GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.Department], error) {
 	return d.repo.FindAllWithPagination(ctx, *filterParams)
 }
 

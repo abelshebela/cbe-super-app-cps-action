@@ -24,18 +24,18 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 }
 
 // Create Mini App Merchant
-// @Summary Create Mini App Merchant
-// @Description Creates a new mini app merchant
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param body body miniappmerchant.MiniAppMerchantDTO true "Mini App Merchant DTO"
-// @Success 201 {object} localization.StandardResponse{data=miniappmerchant.MiniAppMerchantDTO}
-// @Failure 400,401,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants [post]
+//
+//	@Summary		Create Mini App Merchant
+//	@Description	Creates a new mini app merchant
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body			body		miniappmerchant.MiniAppMerchantDTO	true	"Mini App Merchant DTO"
+//	@Success		201				{object}	localization.StandardResponse{data=miniappmerchant.MiniAppMerchantDTO}
+//	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants [post]
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
-	h.logger.Debugf(">>> Entered Create endpoint")
 	var reqDTO miniappmerchant.MiniAppMerchantDTO
 
 	// Decode request body
@@ -48,10 +48,13 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Validate DTO
 	if err := reqDTO.Validate(true); err != nil {
 		h.logger.Errorf("Validation failed: %v", err)
-		localization.SendBadRequestResponse(w,err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
+	formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
+
+	reqDTO.PhoneNumber = formattedPhone
 	// Extract User Context
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
@@ -60,8 +63,8 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Convert DTO → Domain Model
 	merchantDomain := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
+
 	h.logger.Debugf("Converted to domain model: %+v", merchantDomain)
 	// Call service to create merchant
 	createdMerchant, err := h.miniappMerchantService.Create(r.Context(), merchantDomain)
@@ -77,17 +80,18 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 }
 
 // Update Mini App Merchant
-// @Summary Update Mini App Merchant
-// @Description Updates an existing mini app merchant
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param id path string true "Merchant ID"
-// @Param body body miniappmerchant.MiniAppMerchantDTO true "Mini App Merchant DTO"
-// @Success 200 {object} localization.StandardResponse
-// @Failure 400,401,404,422,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants/{id} [put]
+//
+//	@Summary		Update Mini App Merchant
+//	@Description	Updates an existing mini app merchant
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id					path		string								true	"Merchant ID"
+//	@Param			body				body		miniappmerchant.MiniAppMerchantDTO	true	"Mini App Merchant DTO"
+//	@Success		200					{object}	localization.StandardResponse
+//	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants/{id} [put]
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -109,7 +113,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 
 	// Validate input fields
 	if err := reqDTO.Validate(false); err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
@@ -134,15 +138,16 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 }
 
 // Delete Mini App Merchant
-// @Summary Delete Mini App Merchant
-// @Description Deletes a mini app merchant by ID
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Merchant ID"
-// @Success 200 {object} localization.StandardResponse
-// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants/{id} [delete]
+//
+//	@Summary		Delete Mini App Merchant
+//	@Description	Deletes a mini app merchant by ID
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"Merchant ID"
+//	@Success		200				{object}	localization.StandardResponse
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants/{id} [delete]
 func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -168,15 +173,16 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 }
 
 // Enable Mini App Merchant
-// @Summary Enable Mini App Merchant
-// @Description Enables a mini app merchant by ID
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Merchant ID"
-// @Success 200 {object} localization.StandardResponse
-// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants/enable/{id} [patch]
+//
+//	@Summary		Enable Mini App Merchant
+//	@Description	Enables a mini app merchant by ID
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"Merchant ID"
+//	@Success		200				{object}	localization.StandardResponse
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants/enable/{id} [patch]
 func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -198,15 +204,16 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 }
 
 // Disable Mini App Merchant
-// @Summary Disable Mini App Merchant
-// @Description Disables a mini app merchant by ID
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Merchant ID"
-// @Success 200 {object} localization.StandardResponse
-// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants/disable/{id} [patch]
+//
+//	@Summary		Disable Mini App Merchant
+//	@Description	Disables a mini app merchant by ID
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"Merchant ID"
+//	@Success		200				{object}	localization.StandardResponse
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants/disable/{id} [patch]
 func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -236,15 +243,16 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 // }
 
 // Get Mini App Merchant by ID
-// @Summary Get Mini App Merchant by ID
-// @Description Retrieves a mini app merchant by ID
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Produce json
-// @Param id path string true "Merchant ID"
-// @Success 200 {object} localization.StandardResponse{data=miniappmerchant.MiniAppMerchantResponseDTO}
-// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants/{id} [get]
+//
+//	@Summary		Get Mini App Merchant by ID
+//	@Description	Retrieves a mini app merchant by ID
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"Merchant ID"
+//	@Success		200				{object}	localization.StandardResponse{data=miniappmerchant.MiniAppMerchantResponseDTO}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants/{id} [get]
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -263,16 +271,17 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 }
 
 // List Mini App Merchants with Pagination
-// @Summary List Mini App Merchants
-// @Description Retrieves a paginated list of mini app merchants
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Produce json
-// @Param page query int false "Page number"
-// @Param per_page query int false "Items per page"
-// @Success 200 {object} localization.StandardResponse{data=miniappmerchant.PaginatedMiniAppResponseResponse}
-// @Failure 400,401,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants [get]
+//
+//	@Summary		List Mini App Merchants
+//	@Description	Retrieves a paginated list of mini app merchants
+//	@Tags			MiniAppMerchant
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			page		query		int	false	"Page number"
+//	@Param			per_page	query		int	false	"Items per page"
+//	@Success		200			{object}	localization.StandardResponse{data=miniappmerchant.PaginatedMiniAppResponseResponse}
+//	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/mini-app-merchants [get]
 func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -281,6 +290,14 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 	}
 	ctx := r.Context()
 
+	phoneNumber, ok := filterParams.Filters["phone_number"].(string)
+	if !ok {
+		h.logger.Errorf("Phone number is not present")
+	}
+	formattedPhone := local_util.FormatPhoneNumber(phoneNumber)
+
+	filterParams.Filters["phone_number"] = formattedPhone
+
 	miniAppMerchant, err := h.miniappMerchantService.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -288,4 +305,30 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, miniAppMerchant)
+}
+
+// Merchant Lookup
+// @Summary Merchant Lookup
+// @Description Retrieves a merchant by ID
+// @Tags MiniAppMerchant
+// @Security BearerAuth
+// @Produce json
+// @Param merchant_id path string true "Merchant ID"
+// @Success 200 {object} localization.StandardResponse{data=merchantlookup.MerchantLookUpResponse}
+// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
+// @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
+func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
+	merchantID := chi.URLParam(r, "merchant_id")
+	if merchantID == "" {
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	result, err := h.miniappMerchantService.MerchantLookup(r.Context(), merchantID)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
 }

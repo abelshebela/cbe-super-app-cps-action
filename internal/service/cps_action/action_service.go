@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"context"
@@ -36,6 +37,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		return err
 	}
+
 	if existing != nil {
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}
@@ -43,16 +45,16 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 }
 
 func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
-
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
-	if err != nil {
-
+	if err != nil || data == nil {
 		return err
 	}
-
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
-		ca.RollBack(ctx, action)
+		RollErr := ca.RollBack(ctx, action)
+		if RollErr != nil {
+			return RollErr
+		}
 		return err
 	}
 	return nil
@@ -75,7 +77,7 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 		ca.logger.Errorf("their is error when try to parse the string to bson object in service")
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID})
+	return ca.repo.SanitizedFindOne(ctx, bson.M{"_id": objID, "department": department})
 }
 func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
 	filter := bson.M{
@@ -92,4 +94,8 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {
 	return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_id": "", "checker_name": "", "checker_phone_number": ""})
+}
+
+func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
+	return ca.repo.GetCountByDepartment(ctx, department)
 }

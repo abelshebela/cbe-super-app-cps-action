@@ -32,7 +32,6 @@ func NewDonationCompanyRepository(client *mongo.Client, dbName string, collectio
 }
 
 func (s *DonationCompanyStorage) Create(ctx context.Context, details *model.DonationCompany) error {
-
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -83,7 +82,7 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"company_name", "account_number","enabled"}
+	allowedKeys := []string{"company_name", "account_number", "enabled"}
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}

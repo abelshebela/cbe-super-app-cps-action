@@ -59,6 +59,15 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/actions/counts",
+			Handler: handler.GetActionCounts,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

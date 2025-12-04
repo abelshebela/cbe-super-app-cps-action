@@ -18,16 +18,18 @@ import (
 )
 
 type DepartmentStorage struct {
-	dal    dal.MongoDal[model.Department, model.Department]
-	client *mongo.Client
-	logger utils.Logger
+	dal        dal.MongoDal[model.Department, model.Department]
+	client     *mongo.Client
+	logger     utils.Logger
+	collection *mongo.Collection
 }
 
 func NewDepartmentRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DepartmentRepository {
 	return &DepartmentStorage{
-		dal:    dal.NewMongoDal[model.Department, model.Department](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.Department, model.Department](client, dbName, collection),
+		client:     client,
+		collection: client.Database(dbName).Collection(collection),
+		logger:     logger,
 	}
 }
 
@@ -114,7 +116,7 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 	return result, nil
 }
 
-func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Department], error) {
+func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.Department], error) {
 
 	searchKeys := bson.M{}
 
@@ -132,26 +134,31 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 		}
 
 	}
-	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
+	Filter := dal.FilterOp{
+		Filter: filter,
+		Limit:  limit,
+	}
 
-	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		s.logger.Errorf("Error fetching Department list")
+		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.Department]{
+	s.logger.Infof("Successfully fetched paginated department list. Total: %d", total)
+	return types.PaginatedResponse[[]model.Department]{
 		Data: data,
 		Meta: meta,
 	}, nil

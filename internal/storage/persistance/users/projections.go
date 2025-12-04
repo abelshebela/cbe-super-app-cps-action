@@ -22,7 +22,7 @@ func UserProjection() bson.M {
 		"avatar":                        1,
 		"blocked_on_cps":                1,
 		"profile_theme_type":            1,
-		"kyc_level":                         1,
+		"kyc_level":                     1,
 		"is_verified":                   1,
 		"application_installation_date": 1,
 		"login_attempt_count":           1,
@@ -80,12 +80,6 @@ func UserBuilder(update model.User) bson.M {
 
 	if update.Gender != "" {
 		data["gender"] = update.Gender
-	}
-	if update.Fayda.FaydaID != "" {
-		data["fayda.id_number"] = update.Fayda.FaydaID
-	}
-	if update.Fayda.EmploymentStatus != "" {
-		data["fayda.employement_status"] = update.Fayda.EmploymentStatus
 	}
 	if update.Avatar != "" {
 		data["photo"] = update.Avatar

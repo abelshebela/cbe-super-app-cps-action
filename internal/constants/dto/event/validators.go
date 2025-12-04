@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/pkgs/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -54,7 +55,7 @@ func (e EventRequest) Validate(isCreate bool) error {
 			validation.Field(&e.EventDescription, validation.By(validateString("event_description", e.EventDescription, true))),
 			validation.Field(&e.StartDate, validation.Required.Error(localization.ErrorStartDateRequired.Code), validation.By(validateStartDate(e))),
 			validation.Field(&e.DueDate, validation.Required.Error(localization.ErrorDueDateRequired.Code), validation.By(validateDueDate(e))),
-			validation.Field(&e.CoverImage, validation.Required.Error(localization.ErrorCoverImageRequired.Code), validation.By(validateCoverImage(e))),
+			validation.Field(&e.CoverImage, validation.Required.Error(localization.ErrorCoverImageRequired.Code), validation.By(validateImage)),
 			validation.Field(&e.TotalTicketCount, validation.Required.Error(localization.ErrorTotalTicketCountRequired.Code), validation.Min(uint(1)).Error(localization.ErrorInvalidTicketCount.Code)),
 			validation.Field(&e.Tickets, validation.Required.Error(localization.ErrorTicketsRequired.Code), validation.By(validateTickets(e, isCreate))),
 		}
@@ -78,7 +79,7 @@ func (e EventRequest) Validate(isCreate bool) error {
 			rules = append(rules, validation.Field(&e.DueDate, validation.By(validateDueDate(e))))
 		}
 		if e.CoverImage != nil {
-			rules = append(rules, validation.Field(&e.CoverImage, validation.By(validateCoverImage(e))))
+			rules = append(rules, validation.Field(&e.CoverImage, validation.By(validateImage)))
 		}
 		if strings.TrimSpace(e.EventDescription) != "" {
 			rules = append(rules, validation.Field(&e.EventDescription, validation.By(validateString("event_description", e.EventDescription, true))))
@@ -121,21 +122,20 @@ func validateDueDate(e EventRequest) validation.RuleFunc {
 	}
 }
 
-func validateCoverImage(e EventRequest) validation.RuleFunc {
-	return func(value interface{}) error {
-		file, ok := value.(*multipart.FileHeader)
-		if !ok || file == nil {
-			return nil
-		}
-		if file.Size > (2 << 20) {
-			return errors.New("cover_image file too large (max 2MB)")
-		}
-		ct := file.Header.Get("Content-Type")
-		if ct == "" || (ct != "image/jpeg" && ct != "image/png" && ct != "image/gif" && ct != "image/webp") {
-			return errors.New("cover_image must be jpeg, png, gif, webp")
-		}
-		return nil
+func validateImage(value interface{}) error {
+	file, ok := value.(*multipart.FileHeader)
+	if !ok || file == nil {
+		return localization.ErrorMissingOrInvalidImage
 	}
+	if !utils.IsValidImage(file) {
+		return localization.ErrorMissingOrInvalidImage
+	}
+
+	if file.Size > (2 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
+	}
+
+	return nil
 }
 
 func validateTickets(e EventRequest, isCreate bool) validation.RuleFunc {

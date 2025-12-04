@@ -1,306 +1,100 @@
 basePath: /api/v1/cbesuperapp/cps_action
 definitions:
-  cbe-super-app-cps-action_internal_constants.AccountStatus:
-    enum:
-    - ACTIVE
-    - INACTIVE
-    type: string
-    x-enum-varnames:
-    - Active
-    - InActive
-  cbe-super-app-cps-action_internal_constants.AdvertFor:
-    enum:
-    - IFB
-    - CB
-    - ALL
-    type: string
-    x-enum-varnames:
-    - IFB_ADVERT_FOR
-    - CB_ADVERT_FOR
-    - BOTH_ADVERT_FOR
-  cbe-super-app-cps-action_internal_constants.AppType:
-    enum:
-    - URL
-    - UAT
-    - PRODUCATION
-    - TEST
-    - DEV
-    type: string
-    x-enum-varnames:
-    - URL
-    - UATApp
-    - Production
-    - Test
-    - Dev
-  cbe-super-app-cps-action_internal_constants.AppViewType:
-    enum:
-    - BOTH
-    - CB
-    - IFB
-    type: string
-    x-enum-varnames:
-    - AppViewTypeBoth
-    - AppViewTypeCB
-    - AppViewTypeIFB
-  cbe-super-app-cps-action_internal_constants.BPSStatus:
-    enum:
-    - AUTHORIZED
-    - DENIED
-    - PENDING
-    - INITIATED
-    type: string
-    x-enum-varnames:
-    - BPSStatusAuthorized
-    - BPSStatusDenied
-    - BPSStatusPending
-    - BPSStatusInitiated
-  cbe-super-app-cps-action_internal_constants.BranchType:
-    enum:
-    - IFB
-    - CB
-    type: string
-    x-enum-varnames:
-    - IFB
-    - CB
-  cbe-super-app-cps-action_internal_constants.DeviceStatus:
-    enum:
-    - LINKED
-    - UNLINKED
-    type: string
-    x-enum-varnames:
-    - Linked
-    - UnLinked
-  cbe-super-app-cps-action_internal_constants.EnvironmentType:
-    enum:
-    - UAT
-    - DEV
-    - TEST
-    - PRODUCTION
-    type: string
-    x-enum-varnames:
-    - UatEnvironment
-    - DevEnvironment
-    - TestEnvironment
-    - ProductionEnvironment
-  cbe-super-app-cps-action_internal_constants.EventStatus:
-    enum:
-    - UPCOMMING
-    - LIVE
-    - CLOSED
-    type: string
-    x-enum-varnames:
-    - EventUpcomming
-    - EventLive
-    - EventClosed
-  cbe-super-app-cps-action_internal_constants.Gender:
-    enum:
-    - MALE
-    - FEMALE
-    type: string
-    x-enum-varnames:
-    - Male
-    - Female
-  cbe-super-app-cps-action_internal_constants.KYCStatus:
-    enum:
-    - PENDING
-    - APPROVED
-    - REJECTED
-    type: string
-    x-enum-varnames:
-    - KYCStatusPending
-    - KYCStatusApproved
-    - KYCStatusRejected
-  cbe-super-app-cps-action_internal_constants.MemberType:
-    enum:
-    - CB
-    - IFB
-    type: string
-    x-enum-varnames:
-    - CBT
-    - IFBT
-  cbe-super-app-cps-action_internal_constants.Method:
-    enum:
-    - OPEN
-    - PIN
-    - OTP_PIN
-    type: string
-    x-enum-varnames:
-    - OPEN
-    - PIN
-    - OTPANDPIN
-  cbe-super-app-cps-action_internal_constants.Platform:
-    enum:
-    - ANDROID
-    - IOS
-    type: string
-    x-enum-varnames:
-    - Android
-    - Ios
-  cbe-super-app-cps-action_internal_constants.Realm:
-    enum:
-    - ELST
-    - BANK
-    - DISTRICT
-    - BRANCH
-    - MERCHANT
-    - COMPANY
-    - MEMBER
-    type: string
-    x-enum-varnames:
-    - ELST_REALM
-    - BANK_REALM
-    - DISTRICT_REALM
-    - BRANCH_REALM
-    - MERCHANT_REALM
-    - COMPANY_REALM
-    - MEMBER_REALM
-  cbe-super-app-cps-action_internal_constants.RestrictionType:
-    enum:
-    - AGE_RESTRICTION
-    type: string
-    x-enum-varnames:
-    - AgeRestriction
-  cbe-super-app-cps-action_internal_constants.Stage:
-    enum:
-    - UAT
-    type: string
-    x-enum-varnames:
-    - StageUat
-  cbe-super-app-cps-action_internal_constants_dto_account_block.BranchResponse:
+  accountblock.AccountBlockResponse:
     properties:
-      branch_address:
+      address:
         type: string
-      branch_code:
-        type: string
-      branch_name:
-        type: string
-      branch_region:
+      code:
         type: string
       created_at:
         type: string
-      district_code:
-        type: string
-      district_name:
-        type: string
-      enabled:
-        type: boolean
       id:
         type: string
-      record_stat:
-        type: string
-      updated_at:
-        type: string
-    type: object
-  accountblock.CityResponse:
-    properties:
-      city_address:
-        type: string
-      city_code:
-        type: string
-      city_name:
-        type: string
-      created_at:
-        type: string
-      district_id:
-        type: string
-      district_name:
-        type: string
-      enabled:
+      is_enabled:
         type: boolean
-      id:
+      name:
         type: string
-      region_id:
+      parent:
+        $ref: '#/definitions/model.AccountBlock'
+      parent_id:
         type: string
-      region_name:
+      slug:
         type: string
-      updated_at:
-        type: string
-    type: object
-  accountblock.DistrictResponse:
-    properties:
-      created_at:
-        type: string
-      district_address:
-        type: string
-      district_code:
-        type: string
-      district_name:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      region_id:
-        type: string
-      region_name:
+      type:
+        description: R=Region, D=District, C=City, B=Branch
         type: string
       updated_at:
         type: string
     type: object
   accountblock.EnableOrDisableBranches:
     properties:
-      branches_code:
+      branch_codes:
         example:
         - BR001
         - BR002
         items:
           type: string
+        minItems: 1
         type: array
+      reason:
+        example: Maintenance
+        type: string
+    required:
+    - branch_codes
+    - reason
     type: object
   accountblock.EnableOrDisableCities:
     properties:
-      city_code:
+      city_codes:
         example:
         - CT001
         - CT002
         items:
           type: string
+        minItems: 1
         type: array
+      reason:
+        example: Regulatory Compliance
+        type: string
+    required:
+    - city_codes
+    - reason
     type: object
   accountblock.EnableOrDisableDistricts:
     properties:
-      districts_code:
+      district_codes:
         example:
         - DS001
         - DS002
         items:
           type: string
+        minItems: 1
         type: array
+      reason:
+        example: Operational Change
+        type: string
+    required:
+    - district_codes
+    - reason
     type: object
   accountblock.EnableOrDisableRegions:
     properties:
-      regions_code:
+      reason:
+        example: Policy Update
+        type: string
+      region_codes:
         example:
         - RG001
         - RG002
         items:
           type: string
+        minItems: 1
         type: array
+    required:
+    - reason
+    - region_codes
     type: object
-  accountblock.RegionResponse:
-    properties:
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      region_address:
-        type: string
-      region_code:
-        type: string
-      region_name:
-        type: string
-      updated_at:
-        type: string
-    type: object
-  accountblock.paginated_branch_resp:
-    type: object
-  accountblock.paginated_city_resp:
-    type: object
-  accountblock.paginated_district_resp:
-    type: object
-  accountblock.paginated_region_resp:
+  accountblock.paginated_account_block_resp:
     type: object
   accountvalidation.ValidationRuleDTO:
     properties:
@@ -325,13 +119,6 @@ definitions:
     type: object
   accountvalidation.paginated_resp:
     type: object
-  ad.AdvertDate:
-    properties:
-      expired_at:
-        type: string
-      started_at:
-        type: string
-    type: object
   ad.AdvertResponse:
     properties:
       advert_for:
@@ -340,8 +127,6 @@ definitions:
         type: string
       created_at:
         type: string
-      date:
-        $ref: '#/definitions/ad.AdvertDate'
       description:
         type: string
       enabled:
@@ -386,24 +171,57 @@ definitions:
         type: string
     type: object
   bank_dto.UpdateBankRequest:
-    properties:
-      _id:
-        type: string
-      bic:
-        type: string
-      code:
-        type: string
-      name:
-        type: string
     type: object
   bankHandler.paginatedBankResp:
     type: object
+  bankvault.CreateBankVaultProductRequest:
+    properties:
+      currency:
+        example: ETB
+        type: string
+      description:
+        example: 12-month fixed deposit for diaspora customers
+        type: string
+      apply_interest_on_early_unlock:
+        example: "100"
+        type: string
+      frequency:
+        example: MONTHLY
+        type: string
+      lock_period_days:
+        example: "180"
+        type: string
+      max_amount:
+        example: "500000"
+        type: string
+      method:
+        example: SIMPLE
+        type: string
+      min_amount:
+        example: "1000"
+        type: string
+      name:
+        example: Diaspora Fixed Deposit
+        type: string
+      rate_bps:
+        example: "450"
+        type: string
+    type: object
+  bankvault.UpdateBankVaultProductRequest:
+    properties:
+      description:
+        example: Updated marketing description
+        type: string
+      max_amount:
+        example: "750000"
+        type: string
+      min_amount:
+        example: "2000"
+        type: string
+    type: object
   bpsmakerhandler.bps_user_resp:
     properties:
-      UserName:
-        type: string
       branch_code:
-        description: IFB, CB, HomeBranch(CB == Homebranch) ice versa
         items:
           type: string
         type: array
@@ -413,70 +231,22 @@ definitions:
         type: string
       enabled:
         type: boolean
-      first_password_set:
-        type: boolean
       full_name:
         type: string
       home_branch:
         type: string
       id:
         type: string
-      is_deleted:
-        type: boolean
-      is_first_time_login:
-        type: boolean
-      last_login:
-        type: string
-      last_login_attempt:
-        type: string
-      last_modifed_at:
-        type: string
-      login_attempt_count:
-        type: integer
-      next_login_attempt:
-        type: string
-      otp_last_tried_at:
-        type: string
-      otp_last_verified_at:
-        type: string
-      otp_verfy_count:
-        type: integer
-      password:
-        $ref: '#/definitions/types.Password'
-      permission_group:
-        items:
-          type: string
-        type: array
-      permissions:
-        items:
-          type: string
-        type: array
       phone_number:
         type: string
       role:
-        description: 'enum: maker, checker, aduditer'
         type: string
       user_code:
-        description: generated
+        type: string
+      username:
         type: string
     type: object
   bpsmakerhandler.paginated_resp:
-    type: object
-  budget.BudgetCreateColor:
-    properties:
-      color:
-        example: '#FF5733'
-        type: string
-    type: object
-  budget.UpdateColorRequest:
-    properties:
-      color:
-        example: '#33FF57'
-        type: string
-    type: object
-  budget.budget_colors_paginated_resp:
-    type: object
-  budget.budget_icons_paginated_resp:
     type: object
   bulk_service.BulkServiceDTO:
     properties:
@@ -495,6 +265,14 @@ definitions:
     x-enum-varnames:
     - Active
     - InActive
+  constants.AccountType:
+    enum:
+    - IFB
+    - CB
+    type: string
+    x-enum-varnames:
+    - AccountTypeIFB
+    - AccountTypeCB
   constants.AdvertFor:
     enum:
     - IFB
@@ -541,6 +319,16 @@ definitions:
     - BPSStatusDenied
     - BPSStatusPending
     - BPSStatusInitiated
+  constants.BlockedOn:
+    enum:
+    - ""
+    - BPS
+    - CPS
+    type: string
+    x-enum-varnames:
+    - NotBlocked
+    - BPS
+    - CPS
   constants.BranchType:
     enum:
     - IFB
@@ -637,79 +425,25 @@ definitions:
     type: string
     x-enum-varnames:
     - AgeRestriction
+  constants.RiskLevel:
+    enum:
+    - ""
+    - HIGH
+    - MIDIUM
+    - LOW
+    type: string
+    x-enum-varnames:
+    - None
+    - High
+    - Midium
+    - Low
   constants.Stage:
     enum:
     - UAT
     type: string
     x-enum-varnames:
     - StageUat
-  cps_user.cps_user_resp:
-    properties:
-      country:
-        example: Ethiopia
-        type: string
-      date_joined:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      department:
-        example: 507f1f77bcf86cd799439011
-        type: string
-      email:
-        example: john.doe@example.com
-        type: string
-      enabled:
-        example: true
-        type: boolean
-      full_name:
-        example: John Doe
-        type: string
-      gender:
-        example: Male
-        type: string
-      id:
-        example: 507f1f77bcf86cd799439011
-        type: string
-      last_modified:
-        example: "2024-01-15T10:30:00Z"
-        type: string
-      permission_category:
-        example:
-        - '["507f1f77bcf86cd799439011"]'
-        items:
-          type: string
-        type: array
-      permission_group:
-        example:
-        - '["507f1f77bcf86cd799439011"]'
-        items:
-          type: string
-        type: array
-      phone_number:
-        example: "+251911234567"
-        type: string
-      realm:
-        example: cps
-        type: string
-      region:
-        example: Addis Ababa
-        type: string
-      role:
-        example: Maker
-        type: string
-      user_code:
-        example: USR001
-        type: string
-      username:
-        example: john.doe
-        type: string
-    type: object
-  cps_user.cps_users_paginated_resp:
-    type: object
-  cpsaction.ActionRequest:
-    properties:
-      rejection_reason:
-        example: Insufficient documentation provided
-        type: string
+  cpsactionhandler.cps_action_dto_Resp:
     type: object
   cpsactionhandler.cps_action_resp:
     properties:
@@ -831,6 +565,16 @@ definitions:
         example: john.doe.updated
         type: string
     type: object
+  customer.CustomerEnableDTO:
+    properties:
+      user_otp:
+        type: string
+    type: object
+  customer.CustomerEnableSessionResponse:
+    properties:
+      otp:
+        type: string
+    type: object
   customer.customer_resp:
     properties:
       account_branch_type:
@@ -839,6 +583,8 @@ definitions:
         type: boolean
       account_status:
         $ref: '#/definitions/constants.AccountStatus'
+      account_type:
+        $ref: '#/definitions/constants.AccountType'
       address:
         $ref: '#/definitions/types.Address'
       app_version:
@@ -849,20 +595,21 @@ definitions:
         type: string
       birth_date:
         type: string
+      blocked_on:
+        $ref: '#/definitions/constants.BlockedOn'
       blocked_on_cps:
-        description: 'default: false'
+        description: will remove
         type: boolean
+      blocked_reason:
+        type: string
       bps_reject_failed:
-        description: questioned
         items:
           type: string
         type: array
       bps_reject_reason:
         type: string
       bps_reject_status:
-        allOf:
-        - $ref: '#/definitions/constants.BPSStatus'
-        description: questioned
+        $ref: '#/definitions/constants.BPSStatus'
       branch_approved:
         type: boolean
       branch_code:
@@ -884,6 +631,8 @@ definitions:
       document_back:
         type: string
       document_front:
+        description: AccountBranchType constants.AccountType   `json:"account_branch_type"
+          bson:"account_branch_type,omitempty"`
         type: string
       email:
         type: string
@@ -904,6 +653,8 @@ definitions:
           monthly_incode:
             type: integer
         type: object
+      fayda_risk_level:
+        $ref: '#/definitions/constants.RiskLevel'
       first_pin_set:
         type: boolean
       full_name:
@@ -919,7 +670,6 @@ definitions:
       is_account_blocked:
         type: boolean
       is_blocked:
-        description: 'default: false'
         type: boolean
       is_deleted:
         type: boolean
@@ -931,10 +681,7 @@ definitions:
         type: string
       kyc:
         properties:
-          kyc_activity_by:
-            additionalProperties:
-              type: object
-            type: object
+          kyc_activity_by: {}
           kyc_approved:
             type: boolean
           kyc_reject_reason:
@@ -1006,12 +753,12 @@ definitions:
   department_dto.CreateDepartmentRequest:
     properties:
       department:
+        example: IT Department
         type: string
-      permission_groups:
-        items:
-          type: string
-        type: array
       portal_cards:
+        example:
+        - '["card1"'
+        - ' "card2"]'
         items:
           type: string
         type: array
@@ -1019,12 +766,12 @@ definitions:
   department_dto.UpdateDepartmentRequest:
     properties:
       department:
+        example: IT Department Updated
         type: string
-      permission_groups:
-        items:
-          type: string
-        type: array
       portal_cards:
+        example:
+        - '["card1"'
+        - ' "card2"]'
         items:
           type: string
         type: array
@@ -1083,6 +830,8 @@ definitions:
         type: string
       donation_icon:
         type: string
+      enabled:
+        type: boolean
       id:
         type: string
       is_deleted:
@@ -1094,7 +843,11 @@ definitions:
     type: object
   donation_company.DonationCompanyListResponse:
     properties:
+      account_holder_name:
+        type: string
       account_number:
+        type: string
+      address:
         type: string
       company_logo:
         type: string
@@ -1102,11 +855,17 @@ definitions:
         type: string
       created_at:
         type: string
+      email:
+        type: string
+      enabled:
+        type: boolean
       id:
         type: string
       is_deleted:
         type: boolean
       last_modified_at:
+        type: string
+      phone_number:
         type: string
     type: object
   donation_company.paginatedDonationCompanyListResponse:
@@ -1121,6 +880,10 @@ definitions:
         type: string
       cbgl_service_branchcode:
         type: string
+      cbgl_vat_account:
+        type: string
+      cbgl_vat_branch_code:
+        type: string
     type: object
   dto.IFBglEntryDTO:
     properties:
@@ -1131,6 +894,10 @@ definitions:
       ifbgl_service_account:
         type: string
       ifbgl_service_branchcode:
+        type: string
+      ifbgl_vat_account:
+        type: string
+      ifbgl_vat_branch_code:
         type: string
     type: object
   dto.MinimumTransferUpdateRequest:
@@ -1173,42 +940,48 @@ definitions:
     type: object
   dto.ServiceFeeDetailResponse:
     properties:
-      aboveAmount:
+      above_amount:
         type: integer
-      aboveServiceFee:
+      above_service_fee:
         type: integer
       cap:
         $ref: '#/definitions/types.Cap'
-      cbeglentry:
+      cbe_gl_entry:
         $ref: '#/definitions/types.GLEntry'
-      cbeifbglentry:
-        $ref: '#/definitions/types.GLEntry'
-      cbeifbproductCodes:
+      cbe_ifb_gl_entry:
+        $ref: '#/definitions/types.IFBglEntry'
+      cbe_ifb_product_codes:
         $ref: '#/definitions/types.ProductCodes'
-      cbeproductCodes:
+      cbe_product_codes:
         $ref: '#/definitions/types.ProductCodes'
-      createdAt:
+      created_at:
         type: string
-      deletedAt:
+      daily_cap_level_one:
+        type: integer
+      deleted_at:
         type: string
       enabled:
         type: boolean
       id:
         type: string
-      isDeleted:
+      is_deleted:
         type: boolean
       key:
         type: string
-      lastModifiedAt:
+      last_modified_at:
         type: string
-      paymentType:
+      min_amount_virtual:
+        type: integer
+      payment_type:
         type: string
-      serviceCode:
+      service_code:
         type: string
-      serviceName:
+      service_name:
         type: string
-      serviceType:
+      service_type:
         type: string
+      single_cap_level_one:
+        type: integer
       tiers:
         items:
           $ref: '#/definitions/types.Tier'
@@ -1248,6 +1021,18 @@ definitions:
       total_cap:
         type: integer
       updated_at_total_cap:
+        type: string
+    type: object
+  encryption.EncryptionRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  encryption.EncryptionResponse:
+    properties:
+      encryption:
         type: string
     type: object
   feedback.FeedbackRequest:
@@ -1298,6 +1083,13 @@ definitions:
       timestamp:
         type: string
     type: object
+  miniappdto.Merchant:
+    properties:
+      id:
+        type: string
+      merchant_name:
+        type: string
+    type: object
   miniappdto.MiniAppResponse:
     properties:
       app_icon:
@@ -1326,8 +1118,8 @@ definitions:
         type: boolean
       last_modified_at:
         type: string
-      merchant_id:
-        type: string
+      merchant:
+        $ref: '#/definitions/miniappdto.Merchant'
       product_code:
         items:
           $ref: '#/definitions/types.ProductCode'
@@ -1379,10 +1171,6 @@ definitions:
         type: string
       merchant_name:
         type: string
-      mini_apps:
-        items:
-          $ref: '#/definitions/model.MiniApps'
-        type: array
       type:
         type: string
     type: object
@@ -1404,6 +1192,43 @@ definitions:
       phone:
         type: string
     type: object
+  model.AccountBlock:
+    properties:
+      address:
+        type: string
+      code:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_enabled:
+        type: boolean
+      name:
+        type: string
+      parent:
+        $ref: '#/definitions/model.AccountBlock'
+      parent_id:
+        type: string
+      slug:
+        type: string
+      type:
+        $ref: '#/definitions/model.AccountBlockType'
+      updated_at:
+        type: string
+    type: object
+  model.AccountBlockType:
+    enum:
+    - R
+    - D
+    - C
+    - B
+    type: string
+    x-enum-varnames:
+    - TypeRegion
+    - TypeDistrict
+    - TypeCity
+    - TypeBranch
   model.Avatar:
     properties:
       avatar:
@@ -1538,14 +1363,35 @@ definitions:
       ticketStatistics:
         $ref: '#/definitions/types.TicketStatistics'
     type: object
-  model.MiniApps:
+  model.NewsCategory:
     properties:
-      enabled:
-        type: boolean
+      category_name:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
       id:
         type: string
       is_deleted:
         type: boolean
+      last_modified_at:
+        type: string
+    type: object
+  model.NewsTag:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      last_modified_at:
+        type: string
+      tag_name:
+        type: string
     type: object
   model.PaginatedDepartmentResponse:
     properties:
@@ -1612,6 +1458,60 @@ definitions:
       vatprd:
         type: string
     type: object
+  model.SitotaTransaction:
+    properties:
+      claimed_at:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      gl_account_number:
+        type: string
+      id:
+        type: string
+      recipient_account_number:
+        type: string
+      recipient_name:
+        type: string
+      recipient_phone_number:
+        type: string
+      sender_account_number:
+        type: string
+      sender_name:
+        type: string
+      sender_phone_number:
+        type: string
+      sitota_amount:
+        type: number
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.Topup:
+    properties:
+      avatar:
+        type: string
+      code:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      last_modified_at:
+        type: string
+      name:
+        type: string
+      services:
+        $ref: '#/definitions/types.Services'
+    type: object
   model.User:
     properties:
       account_branch_type:
@@ -1620,6 +1520,8 @@ definitions:
         type: boolean
       account_status:
         $ref: '#/definitions/constants.AccountStatus'
+      account_type:
+        $ref: '#/definitions/constants.AccountType'
       address:
         $ref: '#/definitions/types.Address'
       app_version:
@@ -1630,20 +1532,21 @@ definitions:
         type: string
       birth_date:
         type: string
+      blocked_on:
+        $ref: '#/definitions/constants.BlockedOn'
       blocked_on_cps:
-        description: 'default: false'
+        description: will remove
         type: boolean
+      blocked_reason:
+        type: string
       bps_reject_failed:
-        description: questioned
         items:
           type: string
         type: array
       bps_reject_reason:
         type: string
       bps_reject_status:
-        allOf:
-        - $ref: '#/definitions/constants.BPSStatus'
-        description: questioned
+        $ref: '#/definitions/constants.BPSStatus'
       branch_approved:
         type: boolean
       branch_code:
@@ -1665,6 +1568,8 @@ definitions:
       document_back:
         type: string
       document_front:
+        description: AccountBranchType constants.AccountType   `json:"account_branch_type"
+          bson:"account_branch_type,omitempty"`
         type: string
       email:
         type: string
@@ -1685,6 +1590,8 @@ definitions:
           monthly_incode:
             type: integer
         type: object
+      fayda_risk_level:
+        $ref: '#/definitions/constants.RiskLevel'
       first_pin_set:
         type: boolean
       full_name:
@@ -1700,7 +1607,6 @@ definitions:
       is_account_blocked:
         type: boolean
       is_blocked:
-        description: 'default: false'
         type: boolean
       is_deleted:
         type: boolean
@@ -1712,10 +1618,7 @@ definitions:
         type: string
       kyc:
         properties:
-          kyc_activity_by:
-            additionalProperties:
-              type: object
-            type: object
+          kyc_activity_by: {}
           kyc_approved:
             type: boolean
           kyc_reject_reason:
@@ -1801,6 +1704,32 @@ definitions:
       last_modified_at:
         type: string
       name:
+        type: string
+      services:
+        $ref: '#/definitions/types.Services'
+    type: object
+  newscategory_dto.CreateNewsCategoryRequest:
+    properties:
+      category_name:
+        items:
+          type: string
+        type: array
+    type: object
+  newscategory_dto.UpdateNewsCategoryRequest:
+    properties:
+      category_name:
+        type: string
+    type: object
+  newstag_dto.CreateNewsTagRequest:
+    properties:
+      tag_name:
+        items:
+          type: string
+        type: array
+    type: object
+  newstag_dto.UpdateNewsTagRequest:
+    properties:
+      tag_name:
         type: string
     type: object
   notification.NotificationResponse:
@@ -1975,965 +1904,15 @@ definitions:
     type: object
   service_details.paginatedServiceFeeResponse:
     type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.MinimumTransferUpdateRequest:
-    properties:
-      min_amount:
-        type: integer
+  topup.PaginatedTopupResponse:
     type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.PaymentType:
-    enum:
-    - flat_fee
-    - percentage
-    type: string
-    x-enum-varnames:
-    - PaymentTypeFlatFee
-    - PaymentTypePercentage
-  cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailDTO:
+  types.Address:
     properties:
-      above_amount:
-        type: integer
-      above_service_fee:
-        type: integer
-      cbgl_entry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.CBglEntryDTO'
-      daily_cap_level_one:
-        type: integer
-      ifbgl_entry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.IFBglEntryDTO'
-      min_amount_virtual:
-        type: integer
-      payment_type:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.PaymentType'
-      service_type:
-        type: string
-      single_cap_level_one:
-        type: integer
-      tiers:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO'
-        type: array
-    type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeDetailResponse:
-    properties:
-      aboveAmount:
-        type: integer
-      aboveServiceFee:
-        type: integer
-      cap:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap'
-      cbeglentry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
-      cbeifbglentry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
-      cbeifbproductCodes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
-      cbeproductCodes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      isDeleted:
-        type: boolean
-      key:
-        type: string
-      lastModifiedAt:
-        type: string
-      paymentType:
-        type: string
-      serviceCode:
-        type: string
-      serviceName:
-        type: string
-      serviceType:
-        type: string
-      tiers:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier'
-        type: array
-    type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.ServiceFeeResponse:
-    properties:
-      created_at:
-        type: string
-      gl_entry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
-      id:
-        type: string
-      ifb_product_codes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
-      min_amount:
-        type: integer
-      payment_type:
-        type: string
-      product_codes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
-      service_key:
-        type: string
-      service_name:
-        type: string
-      service_type:
-        type: string
-      tiers:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier'
-        type: array
-    type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.SingleMaxTransferRequest:
-    properties:
-      corporate_daily_cap:
-        type: integer
-      corporate_single_cap:
-        type: integer
-      individual_daily_cap:
-        type: integer
-      individual_single_cap:
-        type: integer
-    type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.TierDTO:
-    properties:
-      fee_amount:
-        type: integer
-      max:
-        type: integer
-      min:
-        type: integer
-    type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.TotalMaxTransferUpdateRequest:
-    properties:
-      total_cap:
-        type: integer
-    type: object
-  cbe-super-app-cps-action_internal_constants_dto_service_details.TotalTransferCapResponse:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      total_cap:
-        type: integer
-      updated_at_total_cap:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_localization.ResponseCode:
-    properties:
-      code:
-        type: string
-      message:
-        type: string
-      status_code:
-        type: integer
-      timestamp:
-        type: string
-      type:
-        description: '"success", "error", "warning", "info"'
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_localization.StandardResponse:
-    properties:
-      data: {}
-      message:
-        type: string
-      ok:
-        type: boolean
-      status:
-        type: integer
-      timestamp:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.APPAccessList:
-    properties:
-      access_list_name:
-        type: string
-      enabled:
-        type: boolean
-      key:
-        type: string
-      sub_access_list:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.SubAccessList'
-        type: array
-      ussd_enabled:
-        type: boolean
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.ArchivedUser:
-    properties:
-      account_branch_type:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.MemberType'
-      account_linked:
-        type: boolean
-      account_status:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus'
-      address:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Address'
-      app_version:
-        type: string
-      application_installation_date:
-        type: string
-      avater:
-        type: string
-      birth_date:
-        type: string
-      blocked_on_cps:
-        description: 'default: false'
-        type: boolean
-      bps_reject_failed:
-        description: questioned
-        items:
-          type: string
-        type: array
-      bps_reject_reason:
-        type: string
-      bps_reject_status:
-        allOf:
-        - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus'
-        description: questioned
-      branch_approved:
-        type: boolean
-      branch_code:
-        type: string
-      branch_name:
-        type: string
-      created_at:
-        type: string
-      customer_number:
-        type: string
-      device_status:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus'
-      device_uuid:
-        type: string
-      district_code:
-        type: string
-      district_name:
-        type: string
-      document_back:
-        type: string
-      document_front:
-        type: string
-      email:
-        type: string
-      enabled:
-        type: boolean
-      fayda:
-        properties:
-          employer_name:
-            type: string
-          employment_status:
-            type: string
-          fayda_access_token:
-            type: string
-          id_number:
-            type: string
-          issued_by:
-            type: string
-          monthly_incode:
-            type: integer
-        type: object
-      first_pin_set:
-        type: boolean
-      full_name:
-        type: string
-      gender:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Gender'
-      id:
-        type: string
-      initial_linked_at:
-        type: string
-      initial_linked_date:
-        type: string
-      is_account_blocked:
-        type: boolean
-      is_blocked:
-        description: 'default: false'
-        type: boolean
-      is_deleted:
-        type: boolean
-      is_self_register:
-        type: boolean
-      is_verified:
-        type: boolean
-      issued_date:
-        type: string
-      kyc:
-        properties:
-          kyc_activity_by:
-            additionalProperties:
-              type: object
-            type: object
-          kyc_approved:
-            type: boolean
-          kyc_reject_reason:
-            type: string
-          kyc_reject_reason_failed:
-            additionalProperties:
-              type: object
-            type: object
-          kyc_status:
-            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus'
-        type: object
-      kyc_level:
-        type: integer
-      last_account_linked:
-        type: boolean
-      last_login:
-        type: string
-      last_login_attempt:
-        type: string
-      last_main_account:
-        type: string
-      last_modified_at:
-        type: string
-      last_online_date:
-        type: string
-      loan_score:
-        type: integer
-      login_attempt_count:
-        type: integer
-      login_pin:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN'
-      main_account:
-        type: string
-      mother_name:
-        type: string
-      nationality:
-        type: string
-      next_attempt_count:
-        type: string
-      otp_verify_count:
-        type: integer
-      phone_number:
-        type: string
-      photo:
-        type: string
-      pin_changed_at:
-        type: string
-      platform:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Platform'
-      profile_theme_type:
-        type: string
-      push_token:
-        type: string
-      realm:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Realm'
-      register_by:
-        type: object
-      residential_status:
-        type: string
-      signature:
-        type: string
-      user_code:
-        type: string
-      username:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.AuthTier:
-    properties:
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      last_modified:
-        type: string
-      max_amount:
-        type: integer
-      method:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Method'
-      min_amount:
-        type: integer
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Avatar:
-    properties:
-      avatar:
-        type: string
-      created_at:
-        type: string
-      deleted_at:
-        type: string
-      enable:
-        type: boolean
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      label:
-        type: string
-      last_modified_at:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.BPSUser:
-    properties:
-      UserName:
-        type: string
-      branch_code:
-        description: IFB, CB, HomeBranch(CB == Homebranch) ice versa
-        items:
-          type: string
-        type: array
-      branch_name:
-        type: string
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      first_password_set:
-        type: boolean
-      full_name:
-        type: string
-      home_branch:
-        type: string
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      is_first_time_login:
-        type: boolean
-      last_login:
-        type: string
-      last_login_attempt:
-        type: string
-      last_modifed_at:
-        type: string
-      login_attempt_count:
-        type: integer
-      next_login_attempt:
-        type: string
-      otp_last_tried_at:
-        type: string
-      otp_last_verified_at:
-        type: string
-      otp_verfy_count:
-        type: integer
-      password:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Password'
-      permission_group:
-        items:
-          type: string
-        type: array
-      permissions:
-        items:
-          type: string
-        type: array
-      phone_number:
-        type: string
-      role:
-        description: 'enum: maker, checker, aduditer'
-        type: string
-      user_code:
-        description: generated
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.CPSAction:
-    properties:
-      action_code:
-        type: string
-      action_status:
-        type: string
-      action_type:
-        type: string
-      checker_action_time:
-        type: string
-      checker_id:
-        type: string
-      checker_name:
-        type: string
-      checker_phone_number:
-        type: string
-      created_at:
-        type: string
-      current_action: {}
-      department:
-        type: string
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      last_modified_at:
-        type: string
-      maker_action_time:
-        type: string
-      maker_id:
-        type: string
-      maker_name:
-        type: string
-      maker_phone_number:
-        type: string
-      previous_action: {}
-      rejection_reason:
-        type: string
-      request_action:
-        type: string
-      unique_id:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Card:
-    properties:
-      card_name:
-        type: string
-      id:
-        type: string
-      sub_cards:
-        items:
-          type: string
-        type: array
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Color:
-    properties:
-      color:
-        type: string
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      updated_at:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Department:
-    properties:
-      created_at:
-        type: string
-      department:
-        type: string
-      department_code:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      last_modified:
-        type: string
-      portal_cards:
-        items:
-          type: string
-        type: array
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Event:
-    properties:
-      accountNumber:
-        type: string
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      enabled:
-        type: boolean
-      eventCity:
-        type: string
-      eventCode:
-        type: string
-      eventInformation:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.EventInformation'
-      eventName:
-        type: string
-      eventVenue:
-        type: string
-      hasRestriction:
-        type: boolean
-      id:
-        type: string
-      isDeleted:
-        type: boolean
-      lastModifiedAt:
-        type: string
-      merchantInformation:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.MerchantInformation'
-      micsinfo:
-        items:
-          type: string
-        type: array
-      refundPolicy:
-        items:
-          type: string
-        type: array
-      restriction:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Restriction'
-      status:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.EventStatus'
-      ticket:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Ticket'
-        type: array
-      ticketInformation:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.TicketInformation'
-      ticketStatistics:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.TicketStatistics'
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Icon:
-    properties:
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      icon:
-        type: string
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      last_modified:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.MiniApps:
-    properties:
-      enabled:
-        type: boolean
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.PaginatedDepartmentResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Department'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.PaginatedEventResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Event'
-        type: array
-      meta:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.PaginationMeta'
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.PasswordRule:
-    properties:
-      _id:
-        type: string
-      capital_letters:
-        type: boolean
-      characters:
-        type: boolean
-      created_at:
-        type: string
-      max_length:
-        type: integer
-      min_length:
-        type: integer
-      name:
-        type: string
-      numbers:
-        type: boolean
-      small_letters:
-        type: boolean
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.ProductCode:
-    properties:
-      cbe_ifb_product_codes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
-      cbe_product_codes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.ProductCodes'
-      created_at:
-        type: string
-      id:
-        type: string
-      last_modified_at:
-        type: string
-      service_name:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.ProductCodes:
-    properties:
-      prd:
-        type: string
-      sfprd:
-        type: string
-      trxn:
-        type: string
-      vatprd:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.ServiceDetails:
-    properties:
-      aboveAmount:
-        type: integer
-      aboveServiceFee:
-        type: integer
-      cap:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Cap'
-      cbeglentry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
-      cbeifbglentry:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.GLEntry'
-      cbeifbproductCodes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
-      cbeproductCodes:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.ProductCodes'
-      createdAt:
-        type: string
-      deletedAt:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      isDeleted:
-        type: boolean
-      key:
-        type: string
-      lastModifiedAt:
-        type: string
-      paymentType:
-        type: string
-      serviceCode:
-        type: string
-      serviceName:
-        type: string
-      serviceType:
-        type: string
-      tiers:
-        items:
-          $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Tier'
-        type: array
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.User:
-    properties:
-      account_branch_type:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.MemberType'
-      account_linked:
-        type: boolean
-      account_status:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.AccountStatus'
-      address:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.Address'
-      app_version:
-        type: string
-      application_installation_date:
-        type: string
-      avater:
-        type: string
-      birth_date:
-        type: string
-      blocked_on_cps:
-        description: 'default: false'
-        type: boolean
-      bps_reject_failed:
-        description: questioned
-        items:
-          type: string
-        type: array
-      bps_reject_reason:
-        type: string
-      bps_reject_status:
-        allOf:
-        - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.BPSStatus'
-        description: questioned
-      branch_approved:
-        type: boolean
-      branch_code:
-        type: string
-      branch_name:
-        type: string
-      created_at:
-        type: string
-      customer_number:
-        type: string
-      device_status:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.DeviceStatus'
-      device_uuid:
-        type: string
-      district_code:
-        type: string
-      district_name:
-        type: string
-      document_back:
-        type: string
-      document_front:
-        type: string
-      email:
-        type: string
-      enabled:
-        type: boolean
-      fayda:
-        properties:
-          employer_name:
-            type: string
-          employment_status:
-            type: string
-          fayda_access_token:
-            type: string
-          id_number:
-            type: string
-          issued_by:
-            type: string
-          monthly_incode:
-            type: integer
-        type: object
-      first_pin_set:
-        type: boolean
-      full_name:
-        type: string
-      gender:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Gender'
-      id:
-        type: string
-      initial_linked_at:
-        type: string
-      initial_linked_date:
-        type: string
-      is_account_blocked:
-        type: boolean
-      is_blocked:
-        description: 'default: false'
-        type: boolean
-      is_deleted:
-        type: boolean
-      is_self_register:
-        type: boolean
-      is_verified:
-        type: boolean
-      issued_date:
-        type: string
-      kyc:
-        properties:
-          kyc_activity_by:
-            additionalProperties:
-              type: object
-            type: object
-          kyc_approved:
-            type: boolean
-          kyc_reject_reason:
-            type: string
-          kyc_reject_reason_failed:
-            additionalProperties:
-              type: object
-            type: object
-          kyc_status:
-            $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.KYCStatus'
-        type: object
-      kyc_level:
-        type: integer
-      last_account_linked:
-        type: boolean
-      last_login:
-        type: string
-      last_login_attempt:
-        type: string
-      last_main_account:
-        type: string
-      last_modified_at:
-        type: string
-      last_online_date:
-        type: string
-      loan_score:
-        type: integer
-      login_attempt_count:
-        type: integer
-      login_pin:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_types.LoginPIN'
-      main_account:
-        type: string
-      mother_name:
-        type: string
-      nationality:
-        type: string
-      next_attempt_count:
-        type: string
-      otp_verify_count:
-        type: integer
-      phone_number:
-        type: string
-      photo:
-        type: string
-      pin_changed_at:
-        type: string
-      platform:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Platform'
-      profile_theme_type:
-        type: string
-      push_token:
-        type: string
-      realm:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.Realm'
-      register_by:
-        type: object
-      residential_status:
-        type: string
-      signature:
-        type: string
-      user_code:
-        type: string
-      username:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.ValidationRule:
-    properties:
-      created_at:
-        type: string
-      enabled:
-        type: boolean
-      entity_type:
-        type: string
-      id:
-        type: string
-      identifier:
-        type: string
-      is_deleted:
-        type: boolean
-      last_modified_at:
-        type: string
-      max_length:
-        type: integer
-      min_length:
-        type: integer
-      service_id:
-        type: string
-      validation_for:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_model.Wallet:
-    properties:
-      avatar:
-        type: string
-      code:
-        type: string
-      created_at:
-        type: string
-      deleted_at:
-        type: string
-      enabled:
-        type: boolean
-      id:
-        type: string
-      is_deleted:
-        type: boolean
-      last_modified_at:
-        type: string
-      name:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_types.Address:
-    properties:
-      city:
-        type: string
-      house_number:
-        type: string
       kebele:
         type: string
       region:
         type: string
-      street_name:
-        type: string
-      sub_city:
-        type: string
-      wereda:
+      woreda:
         type: string
       zone:
         type: string
@@ -2976,7 +1955,7 @@ definitions:
       timestamp:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.EventInformation:
+  types.EventInformation:
     properties:
       cover:
         type: string
@@ -2989,7 +1968,22 @@ definitions:
       video_link:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.GLEntry:
+  types.GLEntry:
+    properties:
+      product_account:
+        type: string
+      product_branch_code:
+        type: string
+      service_account:
+        type: string
+      service_branch_code:
+        type: string
+      vat_account:
+        type: string
+      vat_branch_code:
+        type: string
+    type: object
+  types.IFBglEntry:
     properties:
       product_account:
         type: string
@@ -3015,7 +2009,7 @@ definitions:
           type: string
         type: array
     type: object
-  cbe-super-app-cps-action_internal_constants_types.MerchantInformation:
+  types.MerchantInformation:
     properties:
       merchant_email:
         type: string
@@ -3026,7 +2020,7 @@ definitions:
       merchant_phone_number:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.PaginationMeta:
+  types.PaginationMeta:
     properties:
       has_next_page:
         type: boolean
@@ -3047,30 +2041,17 @@ definitions:
       total_pages:
         type: integer
     type: object
-  types.Password:
-    properties:
-      current_password:
-        type: string
-      old_password:
-        items:
-          type: string
-        type: array
-      password_changed_at:
-        type: string
-      salt:
-        type: string
-    type: object
   types.ProductCode:
     properties:
-      branchType:
+      branch_type:
         $ref: '#/definitions/constants.BranchType'
       id:
         type: string
-      productCode:
+      product_code:
         type: string
-      serviceFeeCode:
+      service_fee_code:
         type: string
-      vatcode:
+      vat_code:
         type: string
     type: object
   types.ProductCodes:
@@ -3093,19 +2074,21 @@ definitions:
       type:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.Restriction:
-    properties:
-      description:
-        type: string
-      type:
-        $ref: '#/definitions/cbe-super-app-cps-action_internal_constants.RestrictionType'
-    type: object
-  cbe-super-app-cps-action_internal_constants_types.SubAccessList:
+  types.Restriction:
     properties:
       description:
         type: string
       type:
         $ref: '#/definitions/constants.RestrictionType'
+    type: object
+  types.Services:
+    properties:
+      agent:
+        type: boolean
+      other:
+        type: boolean
+      self:
+        type: boolean
     type: object
   types.Ticket:
     properties:
@@ -3120,20 +2103,7 @@ definitions:
       type:
         type: string
     type: object
-  cbe-super-app-cps-action_internal_constants_types.Ticket:
-    properties:
-      category:
-        type: string
-      name:
-        type: string
-      number_of_ticker:
-        type: integer
-      price:
-        type: integer
-      type:
-        type: string
-    type: object
-  cbe-super-app-cps-action_internal_constants_types.TicketInformation:
+  types.TicketInformation:
     properties:
       total_number_of_available_ticket:
         type: integer
@@ -3142,7 +2112,7 @@ definitions:
       total_number_of_unsold_ticket:
         type: integer
     type: object
-  cbe-super-app-cps-action_internal_constants_types.TicketStatistics:
+  types.TicketStatistics:
     properties:
       category:
         type: string
@@ -3151,16 +2121,34 @@ definitions:
       revenue:
         type: integer
     type: object
-  cbe-super-app-cps-action_internal_constants_types.Tier:
+  types.Tier:
     properties:
-      feeAmount:
+      fee_amount:
         type: integer
       max:
         type: integer
       min:
+        description: ID        bson.ObjectID `json:"id" bson:"id"`
         type: integer
     type: object
   unlink.PaginatedArchieveUserResponse:
+    type: object
+  vaultgroupcategory.CreateVaultGroupCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  vaultgroupcategory.UpdateVaultGroupCategoryRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
     type: object
   wallet.PaginatedWalletResponse:
     type: object
@@ -3214,7 +2202,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.paginated_branch_resp'
+                  $ref: '#/definitions/accountblock.paginated_account_block_resp'
               type: object
         "500":
           description: internal Server error
@@ -3252,7 +2240,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.BranchResponse'
+                  $ref: '#/definitions/accountblock.AccountBlockResponse'
               type: object
         "400":
           description: Bad request
@@ -3292,7 +2280,7 @@ paths:
       - application/json
       description: Disable multiple branches by codes.
       parameters:
-      - description: Branch codes
+      - description: Branch codes and reason
         in: body
         name: request
         required: true
@@ -3339,7 +2327,7 @@ paths:
       - application/json
       description: Enable multiple branches by codes.
       parameters:
-      - description: Branch codes
+      - description: Branch codes and reason
         in: body
         name: request
         required: true
@@ -3380,7 +2368,7 @@ paths:
       summary: Enable multiple branches
       tags:
       - Account Block - Branches
-  /account_block/city:
+  /account_block/cities:
     get:
       consumes:
       - application/json
@@ -3421,7 +2409,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.paginated_city_resp'
+                  $ref: '#/definitions/accountblock.paginated_account_block_resp'
               type: object
         "500":
           description: Server error
@@ -3437,7 +2425,7 @@ paths:
       summary: Get all cities
       tags:
       - Account Block - Cities
-  /account_block/city/{city_code}:
+  /account_block/cities/{city_code}:
     get:
       consumes:
       - application/json
@@ -3459,7 +2447,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.CityResponse'
+                  $ref: '#/definitions/accountblock.AccountBlockResponse'
               type: object
         "400":
           description: Bad request
@@ -3493,13 +2481,13 @@ paths:
       summary: Get city by code
       tags:
       - Account Block - Cities
-  /account_block/city/disable:
+  /account_block/cities/disable:
     post:
       consumes:
       - application/json
       description: Disable multiple cities by codes.
       parameters:
-      - description: City codes to disable
+      - description: City codes and reason
         in: body
         name: request
         required: true
@@ -3540,13 +2528,13 @@ paths:
       summary: Disable multiple cities
       tags:
       - Account Block - Cities
-  /account_block/city/enable:
+  /account_block/cities/enable:
     post:
       consumes:
       - application/json
       description: Enable multiple cities by codes.
       parameters:
-      - description: City codes
+      - description: City codes and reason
         in: body
         name: request
         required: true
@@ -3628,7 +2616,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.paginated_district_resp'
+                  $ref: '#/definitions/accountblock.paginated_account_block_resp'
               type: object
         "500":
           description: internal Server error
@@ -3666,7 +2654,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.DistrictResponse'
+                  $ref: '#/definitions/accountblock.AccountBlockResponse'
               type: object
         "400":
           description: Bad request
@@ -3706,7 +2694,7 @@ paths:
       - application/json
       description: Disable multiple districts by codes.
       parameters:
-      - description: District codes
+      - description: District codes and reason
         in: body
         name: request
         required: true
@@ -3753,7 +2741,7 @@ paths:
       - application/json
       description: Enable multiple districts by codes.
       parameters:
-      - description: District codes
+      - description: District codes and reason
         in: body
         name: request
         required: true
@@ -3835,7 +2823,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.paginated_region_resp'
+                  $ref: '#/definitions/accountblock.paginated_account_block_resp'
               type: object
         "500":
           description: internal Server error
@@ -3873,7 +2861,7 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/accountblock.RegionResponse'
+                  $ref: '#/definitions/accountblock.AccountBlockResponse'
               type: object
         "400":
           description: Bad request
@@ -3913,7 +2901,7 @@ paths:
       - application/json
       description: Disable multiple regions by codes.
       parameters:
-      - description: Region codes
+      - description: Region codes and reason
         in: body
         name: request
         required: true
@@ -3960,7 +2948,7 @@ paths:
       - application/json
       description: Enable multiple regions by codes.
       parameters:
-      - description: Region codes
+      - description: Region codes and reason
         in: body
         name: request
         required: true
@@ -4306,7 +3294,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/cpsaction.ActionRequest'
+          $ref: '#/definitions/cpsactionhandler.cps_action_dto_Resp'
       produces:
       - application/json
       responses:
@@ -4355,7 +3343,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves a specific CPS action by its action code
+      description: Retrieves a specific CPS action by its action code, including previous
+        and current actions
       parameters:
       - description: Action Code
         in: path
@@ -4366,7 +3355,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: CPS action retrieved successfully
+          description: CPS action with history retrieved successfully
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -4403,7 +3392,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Get CPS action by action code
+      summary: Get CPS action by action code with history
       tags:
       - CPS Actions
   /actions/by-id/{action_id}:
@@ -4609,16 +3598,6 @@ paths:
         name: advert_for
         required: true
         type: string
-      - description: Start time (RFC3339)
-        example: '"2025-10-10T10:00:00Z"'
-        in: formData
-        name: started_at
-        type: string
-      - description: Expiry time (RFC3339)
-        example: '"2025-10-20T10:00:00Z"'
-        in: formData
-        name: expired_at
-        type: string
       - description: Banner image (<=2MB; jpeg/png/gif/webp)
         in: formData
         name: banner_image
@@ -4753,14 +3732,6 @@ paths:
         - ALL
         in: formData
         name: advert_for
-        type: string
-      - description: Start time (RFC3339)
-        in: formData
-        name: started_at
-        type: string
-      - description: Expiry time (RFC3339)
-        in: formData
-        name: expired_at
         type: string
       - description: Banner image (<=2MB; jpeg/png/gif/webp)
         in: formData
@@ -6158,509 +5129,6 @@ paths:
       summary: Enable BPS user
       tags:
       - BPS Users
-  /budgets/actions/approve/{action_code}:
-    post:
-      consumes:
-      - application/json
-      description: Approves a budget action by action code
-      parameters:
-      - description: Action Code
-        in: path
-        name: action_code
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget action approved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Invalid action code
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Action not found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Approve budget action
-      tags:
-      - Budget Actions
-  /budgets/colors:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a paginated list of all budget colors with optional filtering
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Search term
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget colors retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/budget.budget_colors_paginated_resp'
-              type: object
-        "400":
-          description: Bad request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Get all budget colors
-      tags:
-      - Budget Colors
-    post:
-      consumes:
-      - application/json
-      description: Creates a new budget color
-      parameters:
-      - description: Budget color creation request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/budget.BudgetCreateColor'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget color creation request submitted for approval
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Invalid input
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Create budget color
-      tags:
-      - Budget Colors
-  /budgets/colors/{id}:
-    put:
-      consumes:
-      - application/json
-      description: Updates an existing budget color
-      parameters:
-      - description: Color ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Budget color update request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/budget.UpdateColorRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget color update request submitted for approval
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Invalid input
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Color not found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Update budget color
-      tags:
-      - Budget Colors
-  /budgets/icons:
-    get:
-      consumes:
-      - application/json
-      description: Retrieves a paginated list of all budget icons with optional filtering
-      parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Search term
-        in: query
-        name: search
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget icons retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/budget.budget_icons_paginated_resp'
-              type: object
-        "400":
-          description: Bad request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Get all budget icons
-      tags:
-      - Budget Icons
-    post:
-      consumes:
-      - multipart/form-data
-      description: Creates a new budget icon by uploading an image file
-      parameters:
-      - description: Budget icon image file
-        in: formData
-        name: icons_image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget icon creation request submitted for approval
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Invalid file or missing file
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Create budget icon
-      tags:
-      - Budget Icons
-  /budgets/icons/{id}:
-    put:
-      consumes:
-      - multipart/form-data
-      description: Updates an existing budget icon by uploading a new image file
-      parameters:
-      - description: Icon ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Updated budget icon image file
-        in: formData
-        name: icons_image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Budget icon update request submitted for approval
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Invalid file or missing file
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Icon not found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Update budget icon
-      tags:
-      - Budget Icons
   /bulk_services:
     get:
       consumes:
@@ -6833,15 +5301,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: CPS users retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/cps_user.cps_users_paginated_resp'
-              type: object
         "400":
           description: Bad request
           schema:
@@ -6879,15 +5338,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: CPS user retrieved successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/cps_user.cps_user_resp'
-              type: object
         "400":
           description: Bad request - User code required
           schema:
@@ -7301,25 +5751,159 @@ paths:
       summary: Get customer by ID
       tags:
       - Customers
-  /customers/blocked:
-    get:
+  /customers/{id}/disable:
+    post:
       consumes:
       - application/json
-      description: Retrieves a paginated list of blocked customers
+      description: Disables a customer by their ID
       parameters:
-      - default: 1
-        description: Page number
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Search term
-        in: query
-        name: search
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer disabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable customer
+      tags:
+      - Customers
+  /customers/{id}/enable:
+    post:
+      consumes:
+      - application/json
+      description: Enables a customer by their ID using OTP
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Enable customer payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerEnableDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer enabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required or invalid body
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable customer
+      tags:
+      - Customers
+  /customers/{id}/enable-session:
+    post:
+      consumes:
+      - application/json
+      description: Initiates enabling a customer session by generating an OTP for
+        the customer
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP generated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/customer.CustomerEnableSessionResponse'
+              type: object
+        "400":
+          description: Bad request - Customer ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Initiate enable customer session
+      tags:
+      - Customers
+  /customers/blocked:
+    get:
+      description: Retrives a list of customer linked account
+      parameters:
+      - description: Customer number
+        in: path
+        name: customer_number
+        required: true
         type: string
       produces:
       - application/json
@@ -7353,9 +5937,9 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Get blocked customers
+      summary: Get Customer Linked Account
       tags:
-      - Customers
+      - Customers Linked Account
   /departments:
     get:
       consumes:
@@ -8658,6 +7242,54 @@ paths:
       summary: Update a donation company
       tags:
       - Donation Company
+  /encryption/encrypt:
+    post:
+      consumes:
+      - application/json
+      description: Encrypt a user's password using the encryption service. Requires
+        username and password in the request body.
+      parameters:
+      - description: Encryption request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/encryption.EncryptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password encrypted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/encryption.EncryptionResponse'
+              type: object
+        "400":
+          description: Bad request - invalid input
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Encrypt user password
+      tags:
+      - Encryption
   /events:
     get:
       consumes:
@@ -8685,11 +7317,11 @@ paths:
           description: Events retrieved successfully
           schema:
             allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.PaginatedEventResponse'
+                    $ref: '#/definitions/model.PaginatedEventResponse'
                   type: array
               type: object
         "500":
@@ -8933,10 +7565,10 @@ paths:
           description: Event retrieved successfully
           schema:
             allOf:
-            - $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_localization.StandardResponse'
+            - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/cbe-super-app-cps-action_internal_constants_model.Event'
+                  $ref: '#/definitions/model.Event'
               type: object
         "400":
           description: Bad request
@@ -10444,6 +9076,478 @@ paths:
       summary: Enable a mini app
       tags:
       - MiniApps
+  /news/category:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of news categories
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of news categories
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.NewsCategory'
+                  type: array
+              type: object
+        "400":
+          description: Bad request - Invalid pagination params
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List news categories
+      tags:
+      - NewsCategory
+  /news/category/{id}:
+    delete:
+      description: Deletes a news category by its ID
+      parameters:
+      - description: News Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News category deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete news category
+      tags:
+      - NewsCategory
+    get:
+      description: Retrieves a single news category by its ID
+      parameters:
+      - description: News Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News category details
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.NewsCategory'
+              type: object
+        "400":
+          description: Bad request - ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get news category by ID
+      tags:
+      - NewsCategory
+    put:
+      consumes:
+      - application/json
+      description: Updates a news category by its ID
+      parameters:
+      - description: News Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update News Category Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/newscategory_dto.UpdateNewsCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News category updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update news category
+      tags:
+      - NewsCategory
+  /news/category/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new news category
+      parameters:
+      - description: Create News Category Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/newscategory_dto.CreateNewsCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News category created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create news category
+      tags:
+      - NewsCategory
+  /news/tags:
+    post:
+      consumes:
+      - application/json
+      description: Retrieves a paginated list of news tags
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of news tags
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.NewsTag'
+                  type: array
+              type: object
+        "400":
+          description: Bad request - Invalid pagination params
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List news tags
+      tags:
+      - NewsTags
+  /news/tags/{id}:
+    delete:
+      description: Deletes a news tag by its ID
+      parameters:
+      - description: News Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News tag deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete news tag
+      tags:
+      - NewsTags
+    get:
+      description: Retrieves a single news tag by its ID
+      parameters:
+      - description: News Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News tag details
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.NewsTag'
+              type: object
+        "400":
+          description: Bad request - ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get news tag by ID
+      tags:
+      - NewsTags
+    put:
+      consumes:
+      - application/json
+      description: Updates a news tag by its ID
+      parameters:
+      - description: News Tag ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update News Tag Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/newstag_dto.UpdateNewsTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News tag updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update news tag
+      tags:
+      - NewsTags
+  /news/tags/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new news tag
+      parameters:
+      - description: Create News Tag Request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/newstag_dto.CreateNewsTagRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: News tag created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Invalid input
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create news tag
+      tags:
+      - NewsTags
   /notifications:
     get:
       consumes:
@@ -11124,11 +10228,11 @@ paths:
       - Permission
   /permissions/{group_name}:
     get:
-      description: Retrieves a permission group by its name
+      description: Retrieves a permission group by its ID
       parameters:
-      - description: Group Name
+      - description: ID
         in: path
-        name: group_name
+        name: ID
         required: true
         type: string
       produces:
@@ -11172,7 +10276,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Get Permission Group by Name
+      summary: Get Permission Group by ID
       tags:
       - Permission
     put:
@@ -12162,6 +11266,462 @@ paths:
       summary: Update Total Max Transfer Cap
       tags:
       - ServiceDetails
+  /sitotas:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all sitota transactions from the gRPC service.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sitota transactions retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.SitotaTransaction'
+                  type: array
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get all sitota transactions
+      tags:
+      - Sitota
+  /sitotas/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a specific sitota transaction by its transaction ID.
+      parameters:
+      - description: Transaction ID
+        example: '"TXN123456789"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sitota transaction retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.SitotaTransaction'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get sitota transaction by ID
+      tags:
+      - Sitota
+  /topups:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve topups with pagination and optional search
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topups retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/topup.PaginatedTopupResponse'
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: List topups
+      tags:
+      - Topup
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new topup with the provided information
+      parameters:
+      - description: Avatar image file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topup creation request sent successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new topup
+      tags:
+      - Topup
+  /topups/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently delete a topup by ID
+      parameters:
+      - description: Topup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topup deleted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Topup not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a topup
+      tags:
+      - Topup
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a topup's details by ID
+      parameters:
+      - description: Topup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topup retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Topup'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Topup not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get topup by ID
+      tags:
+      - Topup
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update a topup with the provided information
+      parameters:
+      - description: Topup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Avatar image file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topup update request sent successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update a topup
+      tags:
+      - Topup
+  /topups/{id}/disable:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a topup by ID
+      parameters:
+      - description: Topup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topup disable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Topup not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable a topup
+      tags:
+      - Topup
+  /topups/{id}/enable:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a topup by ID
+      parameters:
+      - description: Topup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Topup enable request submitted
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Topup not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable a topup
+      tags:
+      - Topup
   /unlink/archived_user:
     get:
       consumes:
@@ -12325,6 +11885,662 @@ paths:
       summary: Unlink user CIF
       tags:
       - Unlink
+  /vault:
+    get:
+      consumes:
+      - application/json
+      description: Find all bank vaults with the provided filters
+      parameters:
+      - description: Filters
+        in: query
+        name: filters
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vaults retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Find All Bank Vaults
+      tags:
+      - Bank Vault
+  /vault/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a bank vault by the provided ID
+      parameters:
+      - description: Bank vault ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Bank Vault
+      tags:
+      - Bank Vault
+  /vault/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank vault with the provided information
+      parameters:
+      - description: Bank vault request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bankvault.CreateBankVaultProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create Bank Vault
+      tags:
+      - Bank Vault
+  /vault/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a bank vault by the provided ID
+      parameters:
+      - description: Bank vault ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault delete request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Bank Vault
+      tags:
+      - Bank Vault
+  /vault/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a bank vault by the provided ID
+      parameters:
+      - description: Bank vault ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault disable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable Bank Vault
+      tags:
+      - Bank Vault
+  /vault/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a bank vault by the provided ID
+      parameters:
+      - description: Bank vault ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault enable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable Bank Vault
+      tags:
+      - Bank Vault
+  /vault/update/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update a bank vault by the provided ID
+      parameters:
+      - description: Bank vault ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bank vault request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bankvault.UpdateBankVaultProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bank vault update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update Bank Vault
+      tags:
+      - Bank Vault
+  /vaultgroupcategory:
+    get:
+      consumes:
+      - application/json
+      description: Find all vault group categories with the provided filters
+      parameters:
+      - description: Filters
+        in: query
+        name: filters
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group categories retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Find All Vault Group Categories
+      tags:
+      - Vault Group Category
+  /vaultgroupcategory/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a vault group category by the provided ID
+      parameters:
+      - description: Vault group category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group category retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Vault Group Category
+      tags:
+      - Vault Group Category
+  /vaultgroupcategory/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new vault group category with the provided information
+      parameters:
+      - description: Vault group category request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vaultgroupcategory.CreateVaultGroupCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group category creation request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create Vault Group Category
+      tags:
+      - Vault Group Category
+  /vaultgroupcategory/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a vault group category by the provided ID
+      parameters:
+      - description: Vault group category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group category delete request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Vault Group Category
+      tags:
+      - Vault Group Category
+  /vaultgroupcategory/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a vault group category by the provided ID
+      parameters:
+      - description: Vault group category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group category disable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable Vault Group Category
+      tags:
+      - Vault Group Category
+  /vaultgroupcategory/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a vault group category by the provided ID
+      parameters:
+      - description: Vault group category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group category enable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable Vault Group Category
+      tags:
+      - Vault Group Category
+  /vaultgroupcategory/update/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update a vault group category by the provided ID
+      parameters:
+      - description: Vault group category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Vault group category request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/vaultgroupcategory.UpdateVaultGroupCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Vault group category update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update Vault Group Category
+      tags:
+      - Vault Group Category
   /wallets:
     get:
       consumes:
@@ -12376,20 +12592,29 @@ paths:
       - multipart/form-data
       description: Create a new wallet with the provided information
       parameters:
-      - description: Name of the wallet
+      - description: name
         in: formData
         name: name
-        required: true
         type: string
-      - description: Code of the wallet
+      - description: code
         in: formData
         name: code
-        required: true
         type: string
+      - description: self
+        in: formData
+        name: self
+        type: boolean
+      - description: other
+        in: formData
+        name: other
+        type: boolean
+      - description: agent
+        in: formData
+        name: agent
+        type: boolean
       - description: Avatar image file
         in: formData
         name: avatar
-        required: true
         type: file
       produces:
       - application/json
@@ -12540,14 +12765,31 @@ paths:
       - multipart/form-data
       description: Update a wallet with the provided information
       parameters:
-      - description: Name of the wallet
+      - description: Wallet ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: name
         in: formData
         name: name
         type: string
-      - description: Code of the wallet
+      - description: code
         in: formData
         name: code
         type: string
+      - description: self
+        in: formData
+        name: self
+        type: boolean
+      - description: other
+        in: formData
+        name: other
+        type: boolean
+      - description: agent
+        in: formData
+        name: agent
+        type: boolean
       - description: Avatar image file
         in: formData
         name: avatar

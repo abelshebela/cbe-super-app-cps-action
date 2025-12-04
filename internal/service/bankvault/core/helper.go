@@ -8,61 +8,55 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/shopspring/decimal"
 )
 
-// ConvertBankVaultToMongoSafe converts BankVaultProduct to a MongoDB-safe format
-// by converting decimal.Decimal fields to float64 for proper serialization
 func ConvertBankVaultToMongoSafe(product *model.BankVaultProduct) map[string]interface{} {
 	result := map[string]interface{}{
-		"id":                product.ID,
-		"name":              product.Name,
-		"description":       product.Description,
-		"currency":          product.Currency,
-		"ratebps":           func() float64 { f, _ := product.RateBps.Float64(); return f }(),
-		"method":            string(product.Method),
-		"frequency":         string(product.Frequency),
-		"lockperiod":        product.LockPeriod.Nanoseconds(),
-		"minamount":         func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
-		"maxamount":         func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
-		"earlyunlockfeebps": func() float64 { f, _ := product.EarlyUnlockFeeBps.Float64(); return f }(),
-		"isactive":          product.IsActive,
-		"createdat":         product.CreatedAt,
-		"updatedat":         product.UpdatedAt,
-		"deletedat":         product.DeletedAt,
-		"createdby":         product.CreatedBy,
-		"updatedby":         product.UpdatedBy,
-		"isdeleted":         product.IsDeleted,
+		"id":                             product.ID,
+		"name":                           product.Name,
+		"currency":                       product.Currency,
+		"rate_bps":                       func() float64 { f, _ := product.RateBps.Float64(); return f }(),
+		"method":                         string(product.Method),
+		"frequency":                      product.Frequency,
+		"lock_period":                    product.LockPeriod.Nanoseconds(),
+		"min_amount":                     func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
+		"max_amount":                     func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
+		"apply_interest_on_early_unlock": product.ApplyInterestOnEarlyUnlock,
+		"is_active":                      product.IsActive,
+		"created_at":                     product.CreatedAt,
+		"updated_at":                     product.UpdatedAt,
+		"deleted_at":                     product.DeletedAt,
+		"created_by":                     product.CreatedBy,
+		"updated_by":                     product.UpdatedBy,
+		"is_deleted":                     product.IsDeleted,
 	}
 	return result
 }
 
 func MapBankVaultToResponse(bankVault *model.BankVaultProduct) *bankvault.BankVaultProductResponse {
 	return &bankvault.BankVaultProductResponse{
-		ID:                bankVault.ID,
-		Name:              bankVault.Name,
-		Description:       bankVault.Description,
-		Currency:          bankVault.Currency,
-		RateBps:           bankVault.RateBps,
-		Method:            bankVault.Method,
-		Frequency:         bankVault.Frequency,
-		LockPeriod:        bankVault.LockPeriod,
-		MinAmount:         bankVault.MinAmount,
-		MaxAmount:         bankVault.MaxAmount,
-		EarlyUnlockFeeBps: bankVault.EarlyUnlockFeeBps,
-		IsActive:          bankVault.IsActive,
-		IsDeleted:         bankVault.IsDeleted,
-		CreatedAt:         bankVault.CreatedAt,
-		UpdatedAt:         bankVault.UpdatedAt,
-		DeletedAt:         bankVault.DeletedAt,
+		ID:                         bankVault.ID,
+		Name:                       bankVault.Name,
+		Currency:                   bankVault.Currency,
+		Interest:                   bankVault.RateBps.Div(decimal.NewFromInt(100)),
+		Method:                     bankVault.Method,
+		Frequency:                  bankVault.Frequency,
+		LockPeriod:                 fmt.Sprintf("%d months", utils.DurationToMonths(bankVault.LockPeriod)),
+		MinAmount:                  bankVault.MinAmount,
+		MaxAmount:                  bankVault.MaxAmount,
+		ApplyInterestOnEarlyUnlock: bankVault.ApplyInterestOnEarlyUnlock,
+		IsActive:                   bankVault.IsActive,
+		IsDeleted:                  bankVault.IsDeleted,
+		CreatedAt:                  bankVault.CreatedAt,
+		UpdatedAt:                  bankVault.UpdatedAt,
+		DeletedAt:                  bankVault.DeletedAt,
 	}
 }
 
 func BuildUpdateBankVault(prev *model.BankVaultProduct, req *model.UpdateBankVault) model.BankVaultProduct {
-	if req.Description != nil {
-		prev.Description = *req.Description
-	}
 	if req.MinAmount != nil {
 		prev.MinAmount = decimal.NewFromFloat(*req.MinAmount)
 	}
@@ -72,66 +66,51 @@ func BuildUpdateBankVault(prev *model.BankVaultProduct, req *model.UpdateBankVau
 	return *prev
 }
 
-// bind
-func BindBankVaultFromCPSAction(current interface{}) (model.BankVaultProduct, error) {
-	var BV model.BankVaultProduct
+func BindBankVaultFromCPSAction(current interface{}) (*model.BankVaultProduct, error) {
+	var actionMap map[string]interface{}
 
-	if v, ok := current.(model.BankVaultProduct); ok {
-		return v, nil
-	}
-
-	
-	if s, ok := current.(string); ok {
-		if err := json.Unmarshal([]byte(s), &BV); err == nil {
-			return BV, nil
-		}
-	}
-
-	
-	bytes, err := json.Marshal(current)
+	marshaled, err := json.Marshal(current)
 	if err != nil {
-		return BV, err
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
 	}
 
-	// Use custom mapping function to handle camelCase -> snake_case conversion
-	return MapCamelCaseToBankVaultProduct(bytes)
+	err = json.Unmarshal(marshaled, &actionMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal to map: %v", err)
+	}
+
+	BV, err := MapBankVaultProduct(actionMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BV, nil
 }
 
-// MapCamelCaseToBankVaultProduct converts MongoDB camelCase JSON to BankVaultProduct model
-func MapCamelCaseToBankVaultProduct(jsonBytes []byte) (model.BankVaultProduct, error) {
+func MapBankVaultProduct(data map[string]interface{}) (model.BankVaultProduct, error) {
 	var BV model.BankVaultProduct
 
-	// First, unmarshal into a generic map to handle field name conversion
-	var data map[string]interface{}
-	if err := json.Unmarshal(jsonBytes, &data); err != nil {
-		return BV, err
-	}
-
-	// Map camelCase fields to snake_case fields
-	BV.ID = getString(data, "id")
 	BV.Name = getString(data, "name")
-	BV.Description = getString(data, "description")
 	BV.Currency = getString(data, "currency")
 	BV.Method = constants.AccrualMethod(getString(data, "method"))
-	BV.Frequency = constants.AccrualFrequency(getString(data, "frequency"))
-	BV.IsActive = getBool(data, "isactive")
-	BV.CreatedBy = getString(data, "createdby")
-	BV.UpdatedBy = getString(data, "updatedby")
-	BV.IsDeleted = getBool(data, "isdeleted")
+	BV.Frequency = getInteger(data, "frequency")
 
-	// Handle decimal fields
-	BV.RateBps = getDecimal(data, "ratebps")
-	BV.MinAmount = getDecimal(data, "minamount")
-	BV.MaxAmount = getDecimal(data, "maxamount")
-	BV.EarlyUnlockFeeBps = getDecimal(data, "earlyunlockfeebps")
+	BV.RateBps = getDecimal(data, "rate_bps")
+	BV.MinAmount = getDecimal(data, "min_amount")
+	BV.MaxAmount = getDecimal(data, "max_amount")
 
-	// Handle time.Duration field
-	BV.LockPeriod = getDuration(data, "lockperiod")
+	BV.LockPeriod = getDuration(data, "lock_period")
 
-	// Handle time fields
-	BV.CreatedAt = getTime(data, "createdat")
-	BV.UpdatedAt = getTime(data, "updatedat")
-	BV.DeletedAt = getTimePtr(data, "deletedat")
+	BV.ApplyInterestOnEarlyUnlock = getBool(data, "apply_interest_on_early_unlock")
+	BV.IsActive = getBool(data, "is_active")
+	BV.IsDeleted = getBool(data, "is_deleted")
+
+	BV.CreatedAt = getTime(data, "created_at")
+	BV.UpdatedAt = getTime(data, "updated_at")
+	BV.DeletedAt = getTimePtr(data, "deleted_at")
+
+	BV.CreatedBy = getString(data, "created_by")
+	BV.UpdatedBy = getString(data, "updated_by")
 
 	return BV, nil
 }
@@ -142,6 +121,20 @@ func getString(data map[string]interface{}, key string) string {
 		return val
 	}
 	return ""
+}
+
+func getInteger(data map[string]interface{}, key string) int64 {
+	if val, ok := data[key]; ok {
+		switch v := val.(type) {
+		case int:
+			return int64(v)
+		case int64:
+			return v
+		case float64:
+			return int64(v)
+		}
+	}
+	return 0
 }
 
 func getBool(data map[string]interface{}, key string) bool {
@@ -220,112 +213,32 @@ func getTimePtr(data map[string]interface{}, key string) *time.Time {
 	return nil
 }
 
-func BindBankVaultUpdateFromCPSAction(current interface{}) (model.UpdateBankVault, error) {
-	var BV model.UpdateBankVault
-	if v, ok := current.(model.UpdateBankVault); ok {
-		return v, nil
-	}
+func BindBankVaultUpdateFromCPSAction(current interface{}) (*model.BankVaultProduct, error) {
+	var actionMap map[string]interface{}
 
-	// If stored as JSON string
-	if s, ok := current.(string); ok {
-		if err := json.Unmarshal([]byte(s), &BV); err == nil {
-			return BV, nil
-		}
-	}
-
-	// Generic path: marshal then unmarshal
-	bytes, err := json.Marshal(current)
+	marshaled, err := json.Marshal(current)
 	if err != nil {
-		return BV, err
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
 	}
 
-	// Use custom mapping function to handle camelCase -> UpdateBankVault conversion
-	return MapCamelCaseToUpdateBankVault(bytes)
+	err = json.Unmarshal(marshaled, &actionMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal to map: %v", err)
+	}
+
+	BV, err := MapToUpdateBankVault(actionMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BV, nil
 }
 
-// MapCamelCaseToUpdateBankVault converts MongoDB camelCase JSON to UpdateBankVault model
-func MapCamelCaseToUpdateBankVault(jsonBytes []byte) (model.UpdateBankVault, error) {
-	var result model.UpdateBankVault
+func MapToUpdateBankVault(data map[string]interface{}) (model.BankVaultProduct, error) {
+	var BV model.BankVaultProduct
 
-	// First, unmarshal into a generic map to handle field name conversion
-	var data map[string]interface{}
-	if err := json.Unmarshal(jsonBytes, &data); err != nil {
-		return result, err
-	}
+	BV.MinAmount = getDecimal(data, "min_amount")
+	BV.MaxAmount = getDecimal(data, "max_amount")
 
-	// Map camelCase fields to UpdateBankVault fields
-	if desc, ok := data["description"].(string); ok && desc != "" {
-		result.Description = &desc
-	}
-
-	// Handle min_amount
-	if minAmount, ok := data["minamount"]; ok {
-		if floatVal, ok := minAmount.(float64); ok && floatVal > 0 {
-			result.MinAmount = &floatVal
-		}
-	}
-
-	// Handle max_amount
-	if maxAmount, ok := data["maxamount"]; ok {
-		if floatVal, ok := maxAmount.(float64); ok && floatVal > 0 {
-			result.MaxAmount = &floatVal
-		}
-	}
-
-	return result, nil
-}
-
-func BankUpdateVault(req *model.UpdateBankVault) model.BankVaultProduct {
-	result := model.BankVaultProduct{}
-
-	if req.Description != nil {
-		result.Description = *req.Description
-	}
-	if req.MinAmount != nil {
-		result.MinAmount = decimal.NewFromFloat(*req.MinAmount)
-	}
-	if req.MaxAmount != nil {
-		result.MaxAmount = decimal.NewFromFloat(*req.MaxAmount)
-	}
-
-	return result
-}
-
-func MapBankVaultToCreate(bankVault bankvault.CreateBankVaultProductRequest) (*model.BankVaultProduct, error) {
-	// Parse duration string (e.g., "180d") and convert to nanoseconds 
-	var lockPeriod time.Duration
-	var err error
-
-	
-	if len(bankVault.LockPeriodDays) > 1 && bankVault.LockPeriodDays[len(bankVault.LockPeriodDays)-1] == 'd' {
-		// Extract number part and convert to hours
-		daysStr := bankVault.LockPeriodDays[:len(bankVault.LockPeriodDays)-1]
-		lockPeriod, err = time.ParseDuration(daysStr + "h")
-		if err != nil {
-			return nil, fmt.Errorf("invalid lock period format '%s': %w", bankVault.LockPeriodDays, err)
-		}
-		// Convert hours to days * 24
-		lockPeriod = lockPeriod * 24
-	} else {
-		
-		lockPeriod, err = time.ParseDuration(bankVault.LockPeriodDays)
-		if err != nil {
-			return nil, fmt.Errorf("invalid lock period format '%s': %w", bankVault.LockPeriodDays, err)
-		}
-	}
-
-	return &model.BankVaultProduct{
-		Name:              bankVault.Name,
-		Description:       bankVault.Description,
-		Currency:          bankVault.Currency,
-		RateBps:           bankVault.RateBps,
-		Method:            bankvault.ToDomainMethod(bankVault.Method),
-		Frequency:         bankvault.ToDomainFrequency(bankVault.Frequency),
-		LockPeriod:        lockPeriod,
-		MinAmount:         bankVault.MinAmount,
-		MaxAmount:         bankVault.MaxAmount,
-		EarlyUnlockFeeBps: bankVault.EarlyUnlockFeeBps,
-		IsActive:          false,
-		IsDeleted:         false,
-	}, nil
+	return BV, nil
 }

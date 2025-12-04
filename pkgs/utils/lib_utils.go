@@ -5,9 +5,11 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -153,12 +155,16 @@ func parseValue(value string) interface{} {
 		return false
 	}
 
-	if parsed, err := strconv.Atoi(value); err == nil {
+	if isDigitString(value) {
+		if parsed, err := strconv.ParseInt(value, 10, 64); err == nil {
 		return parsed
+		} else if errors.Is(err, strconv.ErrRange) {
+			return value
 	}
-
+	} else if strings.ContainsAny(value, ".eE") {
 	if parsed, err := strconv.ParseFloat(value, 64); err == nil {
 		return parsed
+		}
 	}
 
 	if strings.Contains(value, ",") {
@@ -176,6 +182,18 @@ func parseValue(value string) interface{} {
 	}
 
 	return value
+}
+
+func isDigitString(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, r := range value {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func BuildPaginationMeta(totalDocs int64, page, limit int) types.PaginationMeta {
@@ -314,4 +332,20 @@ func ParseDateString(dateStr string) (time.Time, error) {
 	}
 
 	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
+}
+func ValidateAndNormalizePhoneNumber(phoneNumber string) (string, error) {
+	cleaned := strings.ReplaceAll(phoneNumber, " ", "")
+	cleaned = strings.ReplaceAll(cleaned, "-", "")
+	cleaned = strings.TrimPrefix(cleaned, "+")
+
+	re := regexp.MustCompile(`^(2519\d{8}|09\d{8}|2517\d{8}|07\d{8})$`)
+	if !re.MatchString(cleaned) {
+		return "", localization.ErrorInvalidPhoneNumber
+	}
+
+	if strings.HasPrefix(cleaned, "0") {
+		cleaned = "251" + cleaned[1:]
+	}
+
+	return cleaned, nil
 }

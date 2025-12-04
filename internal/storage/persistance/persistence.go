@@ -2,38 +2,41 @@ package persistance
 
 import (
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/external_call"
+	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 
+	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
-	MongoClient                  *mongo.Client
-	UserPersistence              storage.UserRepository
-	UnlinkAccountPersistence     storage.UnlinkAccount
-	HQPersistence                storage.HQRepository
-	OTPPersistence               storage.OTPRepository
-	DeviceLinkHistoryPersistence storage.DeviceLinkHistoryRepository
-	ResetSessionPersistence      storage.ResetSessionRepository
-	SMSSenderApi                 external_call.SMSPersistence
-	CPSAction                    storage.CPSActionRepository
-	AdvertPersistence            storage.AccountAPIPort
-	AmountBasedAuthPersistence   storage.AmountBasedAuthRepository
-	AccountBlockPersistence      storage.AccountBlockRepository
-	PortalCardPersistence        storage.PortalCardRepository
-	MiniAppPersistence           storage.MiniAppRepository
-	CityPersistence              storage.CityRepository
-	RegionPersistence            storage.RegionRepository
-	DistrictPersistence          storage.DistrictRepository
-	BranchPersistence            storage.BranchRepository
-	EventPersistence             storage.EventRepository
-	CustomerService              storage.CustomerRepository
-	BulkService                  storage.BulkServiceRepository
-
-	BudgetCategoryPersistence    storage.BudgetCategoryRepository
-
-	RedisService                 storage.RedisRepository
-
+	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
+	AccountLookup                   core.CBECoreAPIInterface
+	MerchantLookup                  merchant_lookup.MerchantLookupAdapter
+	MongoClient                     *mongo.Client
+	UserPersistence                 storage.UserRepository
+	UnlinkAccountPersistence        storage.UnlinkAccount
+	HQPersistence                   storage.HQRepository
+	OTPPersistence                  storage.OTPRepository
+	DeviceLinkHistoryPersistence    storage.DeviceLinkHistoryRepository
+	ResetSessionPersistence         storage.ResetSessionRepository
+	SMSSenderApi                    kafka.NotificationProducer
+	CPSAction                       storage.CPSActionRepository
+	AdvertPersistence               storage.AdvertRepository
+	AmountBasedAuthPersistence      storage.AmountBasedAuthRepository
+	AccountBlockPersistence         storage.AccountBlockRepository
+	PortalCardPersistence           storage.PortalCardRepository
+	MiniAppPersistence              storage.MiniAppRepository
+	CityPersistence                 storage.CityRepository
+	RegionPersistence               storage.RegionRepository
+	DistrictPersistence             storage.DistrictRepository
+	BranchPersistence               storage.BranchRepository
+	EventPersistence                storage.EventRepository
+	CustomerService                 storage.CustomerRepository
+	BulkService                     storage.BulkServiceRepository
+	BudgetCategoryPersistence       storage.BudgetCategoryRepository
+	RedisService                    storage.RedisRepository
+	IconPersistence                 storage.IconRepository
 	// Additional repositories
 	AccessListPersistence            storage.AppAccessListRepository
 	AvatarPersistence                storage.AvatarRepository
@@ -48,7 +51,6 @@ type Persistence struct {
 	DonationCategoryPersistence      storage.DonationCategoryRepository
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
-	IconPersistence                  storage.IconRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
 	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
 	NotificationPersistence          storage.NotificationRepository
@@ -65,5 +67,8 @@ type Persistence struct {
 	ArticlePersistence               storage.ArticleRepository
 	ArticleCategoryPersistence       storage.ArticleCategoryRepository
 	ShortVideoPersistence            storage.ShortVideoRepository
-	NewsTagsServiceContainer        storage.NewsTagsRepository
+	NewsTagPersistence               storage.NewsTagRepository
+	KYCVerifierPersistence           storage.KYCVerifierRepository
+	NewsCategoryPersistence          storage.NewsCategoryRepository
+	NewsTagsServiceContainer         storage.NewsTagsRepository
 }

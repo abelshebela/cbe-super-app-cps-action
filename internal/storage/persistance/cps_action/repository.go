@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -50,7 +51,7 @@ func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction)
 	return nil
 }
 
-func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error) {
 	s.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
 	filter := bson.M{
 		"is_deleted": false,
@@ -62,40 +63,46 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex // choose your searchable field(s)
 		searchKeys["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"checker_name": searchRegex},
 			{"checker_phone_number": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+			{"action_status": searchRegex},
 		}
 		s.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
+	Filter := dal.FilterOp{
+		Filter:     filter,
+		Limit:      limit,
+		Projection: Projection,
+	}
 
-	filter["orderBy"] = "created_at"
-	filter["orderBy"] = "created_at"
-	data, err := s.dal.FindAllWithPagination(ctx, filter, Projection, skip, limit)
+	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
 		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("Error counting total CPSActions: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	s.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
-	return &types.PaginatedResponse[[]*model.CPSAction]{
+	return types.PaginatedResponse[[]model.CPSAction]{
 		Data: data,
 		Meta: meta,
 	}, nil
+
 }
 
 func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
@@ -162,7 +169,7 @@ func (r *CPSActionStorage) Delete(ctx context.Context, id string) error {
 func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	r.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
 	// 1. Base filter (only active records)
-	filter := bson.M{
+	baseFilter := bson.M{
 		"is_deleted": false,
 		"department": department,
 	}
@@ -172,21 +179,29 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["field1"] = searchRegex
-		searchKeys["$or"] = []bson.M{
+		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
 			{"checker_name": searchRegex},
 			{"checker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
 		}
-		r.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
 
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+	delete(dynamicFilter, "created_at")
+	filter := dynamicFilter
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 		{{Key: "$project", Value: Projection}},
@@ -231,17 +246,68 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	cur, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("aggregation failed: %w", err)
 	}
-	defer cur.Close(ctx)
+	defer func() {
+		_ = cur.Close(ctx)
+	}()
 
-	if !cur.Next(ctx) {
-		return nil, nil
+	// Handle empty cursor
+	if cur == nil || !cur.Next(ctx) {
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	var result model.CPSAction
 	if err := cur.Decode(&result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode document: %w", err)
 	}
+
+	return &result, nil
+}
+
+func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
+	pipeline := mongo.Pipeline{
+		// match stage
+		{{Key: "$match", Value: bson.M{
+			"is_deleted": false,
+			"department": department,
+		}}},
+		// group stage
+		{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: nil},
+			{Key: "Pending", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "PENDING"}}}, 1, 0}}}},
+			}},
+			{Key: "Approved", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "APPROVED"}}}, 1, 0}}}},
+			}},
+			{Key: "Rejected", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "REJECTED"}}}, 1, 0}}}},
+			}},
+		}}},
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("aggregation failed: %w", err)
+	}
+	defer func() {
+		_ = cur.Close(ctx)
+	}()
+
+	var result actionDto.CPSActionCountResponse
+	if cur.Next(ctx) {
+		if err := cur.Decode(&result); err != nil {
+			return nil, fmt.Errorf("failed to decode document: %w", err)
+		}
+	} else {
+		// If no documents match, return zero counts instead of error
+		return &actionDto.CPSActionCountResponse{
+			Pending:  0,
+			Approved: 0,
+			Rejected: 0,
+		}, nil
+	}
+
 	return &result, nil
 }

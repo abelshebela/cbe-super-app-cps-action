@@ -29,7 +29,6 @@ type CustomerRepository struct {
 func InitCustomerDetail(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CustomerRepository {
 	mongoDal := dal.NewMongoDal[model.User, model.User](client, database, collection[0])
 	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
-
 	return &CustomerRepository{
 		client:           client,
 		mongoDal:         mongoDal,
@@ -52,6 +51,8 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"gender": searchRegex},
 			{"user_name": searchRegex},
 			{"user_code": searchRegex},
+			{"is_blocked": searchRegex},
+			{"kyc_level": searchRegex},
 		}
 	}
 
@@ -106,10 +107,7 @@ func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.Us
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
 			return nil, fmt.Errorf("%s", code)
-		} else if err != nil {
-			return nil, err
 		}
-
 		p.logger.Errorf("Failed to fetch user by ID: %v", err)
 		return nil, err
 	}

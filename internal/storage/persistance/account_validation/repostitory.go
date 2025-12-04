@@ -19,7 +19,9 @@ import (
 type AccountValidationStore struct {
 	dal    dal.MongoDal[model.ValidationRule, model.ValidationRule]
 	client *mongo.Client
+	collection *mongo.Collection
 	logger utils.Logger
+	
 }
 
 // NewAccountValidationStore returns a ValidationRuleRepository
@@ -28,6 +30,7 @@ func NewAccountValidationStore(client *mongo.Client, dbName string, collection s
 		dal:    dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collection),
 		client: client,
 		logger: logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 

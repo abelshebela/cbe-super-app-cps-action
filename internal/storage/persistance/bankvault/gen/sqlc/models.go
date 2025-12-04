@@ -8,57 +8,15 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
-	 "cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/godror/godror"
 	"github.com/shopspring/decimal"
 )
-
-type AccrualFrequency string
-
-const (
-	AccrualFrequencyDAILY     AccrualFrequency = "DAILY"
-	AccrualFrequencyMONTHLY   AccrualFrequency = "MONTHLY"
-	AccrualFrequencyQUARTERLY AccrualFrequency = "QUARTERLY"
-	AccrualFrequencyANNUALLY  AccrualFrequency = "ANNUALLY"
-)
-
-func (e *AccrualFrequency) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = AccrualFrequency(s)
-	case string:
-		*e = AccrualFrequency(s)
-	default:
-		return fmt.Errorf("unsupported scan type for AccrualFrequency: %T", src)
-	}
-	return nil
-}
-
-type NullAccrualFrequency struct {
-	AccrualFrequency AccrualFrequency `json:"accrual_frequency"`
-	Valid            bool             `json:"valid"` // Valid is true if AccrualFrequency is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullAccrualFrequency) Scan(value interface{}) error {
-	if value == nil {
-		ns.AccrualFrequency, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.AccrualFrequency.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullAccrualFrequency) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.AccrualFrequency), nil
-}
 
 type AccrualMethod string
 
@@ -232,41 +190,121 @@ func (ns NullTransactionType) Value() (driver.Value, error) {
 }
 
 type BankVaultProduct struct {
-	ID                string                     `json:"id"`
-	Name              string                     `json:"name"`
-	Description       string                     `json:"description"`
-	Currency          string                     `json:"currency"`
-	RateBps           decimal.Decimal            `json:"rate_bps"`
-	Method            constants.AccrualMethod    `json:"method"`
-	Frequency         constants.AccrualFrequency `json:"frequency"`
-	LockPeriod        time.Duration              `json:"lock_period"`
-	MinAmount         decimal.Decimal            `json:"min_amount"`
-	MaxAmount         decimal.Decimal            `json:"max_amount"`
-	EarlyUnlockFeeBps decimal.Decimal            `json:"early_unlock_fee_bps"`
-	IsActive          bool                       `json:"is_active"`
-	CreatedAt         time.Time                  `json:"created_at"`
-	UpdatedAt         time.Time                  `json:"updated_at"`
-	DeletedAt         pgtype.Timestamptz         `json:"deleted_at"`
+	ID                         string                  `json:"id"`
+	Name                       string                  `json:"name"`
+	Description                string                  `json:"description"`
+	Currency                   string                  `json:"currency"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	LockPeriod                 time.Duration           `json:"lock_period"`
+	MinAmount                  decimal.Decimal         `json:"min_amount"`
+	MaxAmount                  decimal.Decimal         `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool            `json:"is_active"`
+	IsDeleted                  sql.NullBool            `json:"is_deleted"`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	DeletedAt                  sql.NullTime            `json:"deleted_at"`
 }
 
 type LockedVault struct {
-	ID                string                     `json:"id"`
-	CustomerID        string                     `json:"customer_id"`
-	LinkedAccount     string                     `json:"linked_account"`
-	ProductID         string                     `json:"product_id"`
-	Principal         decimal.Decimal            `json:"principal"`
-	StartDate         time.Time                  `json:"start_date"`
-	MaturityDate      time.Time                  `json:"maturity_date"`
-	Status            constants.VaultStatus      `json:"status"`
-	TermsVersion      string                     `json:"terms_version"`
-	TermsAcceptedAt   time.Time                  `json:"terms_accepted_at"`
-	RateBps           decimal.Decimal            `json:"rate_bps"`
-	Method            constants.AccrualMethod    `json:"method"`
-	Frequency         constants.AccrualFrequency `json:"frequency"`
-	EarlyUnlockFeeBps decimal.Decimal            `json:"early_unlock_fee_bps"`
-	LockPeriod        time.Duration              `json:"lock_period"`
-	CreatedAt         time.Time                  `json:"created_at"`
-	UpdatedAt         time.Time                  `json:"updated_at"`
-	ClosedAt          sql.NullTime               `json:"closed_at"`
-	DeletedAt         sql.NullTime               `json:"deleted_at"`
+	ID                         string                  `json:"id"`
+	CustomerID                 string                  `json:"customer_id"`
+	LinkedAccount              string                  `json:"linked_account"`
+	ProductID                  string                  `json:"product_id"`
+	Principal                  decimal.Decimal         `json:"principal"`
+	StartDate                  time.Time               `json:"start_date"`
+	MaturityDate               time.Time               `json:"maturity_date"`
+	Status                     constants.VaultStatus   `json:"status"`
+	TermsVersion               string                  `json:"terms_version"`
+	TermsAcceptedAt            time.Time               `json:"terms_accepted_at"`
+	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Method                     constants.AccrualMethod `json:"method"`
+	Frequency                  int64                   `json:"frequency"`
+	ApplyInterestOnEarlyUnlock decimal.Decimal         `json:"apply_interest_on_early_unlock"`
+	LockPeriod                 time.Duration           `json:"lock_period"`
+	CreatedAt                  time.Time               `json:"created_at"`
+	UpdatedAt                  time.Time               `json:"updated_at"`
+	ClosedAt                   sql.NullTime            `json:"closed_at"`
+	DeletedAt                  sql.NullTime            `json:"deleted_at"`
+}
+
+type NullBoolNumber struct {
+	sql.NullBool
+}
+
+func (n *NullBoolNumber) Scan(src any) error {
+	if src == nil {
+		n.Valid = false
+		return nil
+	}
+
+	switch v := src.(type) {
+	case bool:
+		n.Bool = v
+		n.Valid = true
+		return nil
+	case int64:
+		n.Bool = v != 0
+		n.Valid = true
+		return nil
+	case float64:
+		n.Bool = v != 0
+		n.Valid = true
+		return nil
+	case []byte:
+		s := strings.TrimSpace(string(v))
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.EqualFold(s, "true") || strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	case string:
+		s := strings.TrimSpace(v)
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.EqualFold(s, "true") || strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	case godror.Number:
+		s := strings.TrimSpace(v.String())
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	default:
+		// Fallback: try to use fmt.Sprintf then parse
+		s := strings.TrimSpace(strings.ToLower(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(strings.Trim(strings.Trim(fmt.Sprintf("%v", src), "\n"), "\r")), " "), " ")))
+		if s == "" {
+			n.Valid = false
+			return nil
+		}
+		if i, err := strconv.Atoi(s); err == nil {
+			n.Bool = i != 0
+		} else {
+			n.Bool = strings.EqualFold(s, "true") || strings.HasPrefix(s, "1")
+		}
+		n.Valid = true
+		return nil
+	}
 }

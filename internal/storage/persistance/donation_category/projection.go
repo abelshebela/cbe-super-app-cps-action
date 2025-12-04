@@ -18,7 +18,6 @@ func DonationCategoryMapper(data model.DonationCategory) bson.M {
 	}
 	result["enabled"] = data.Enabled
 	result["last_modified_at"] = data.LastModifiedAt
-	
 
 	return result
 }
@@ -29,7 +28,7 @@ func MapToDonationCategoryListResponse(category *model.DonationCategory) *donati
 		ID:             category.ID.Hex(),
 		CategoryName:   category.CategoryName,
 		Icon:           category.Icon,
-		Enabled: category.Enabled,
+		Enabled:        category.Enabled,
 		IsDeleted:      category.IsDeleted,
 		CreatedAt:      category.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		LastModifiedAt: category.LastModifiedAt.Format("2006-01-02T15:04:05Z07:00"),

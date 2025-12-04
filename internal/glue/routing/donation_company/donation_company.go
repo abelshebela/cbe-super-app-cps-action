@@ -59,7 +59,7 @@ func Init(router chi.Router, handler donation_company.DonationCompanyAdapter, au
 				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
-			{
+		{
 			Method:  http.MethodPatch,
 			Path:    "/donation_company/enable/{id}",
 			Handler: handler.EnableDonationCompany,

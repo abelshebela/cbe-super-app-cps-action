@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"path"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -21,6 +22,7 @@ import (
 
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -34,7 +36,7 @@ type miniAppService struct {
 	userRepo        storage.UserRepository
 	keyGenService   keygen.KeyGeneratorService
 	bucketName      string
-	minio           config.MinioClientInterface
+	minio           *s3.Client
 	minioPubUrl     string
 	cfg             *config.VaultConfig
 	logger          utils.Logger
@@ -46,7 +48,7 @@ func NewMiniAppService(
 	merchantService service.MiniAppMerchantService,
 	userRepo storage.UserRepository,
 	keyGenService keygen.KeyGeneratorService,
-	minio config.MinioClientInterface,
+	minio *s3.Client,
 	minioPubUrl string,
 	bucketName string,
 	cfg *config.VaultConfig,
@@ -87,7 +89,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 
 	var appIconURL, bannerImageURL string
 	if req.AppIcon != nil {
-		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", s.minioPubUrl, s.logger)
+		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", *s.cfg, "", s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for app icon, error: %v", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -96,7 +98,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 	}
 
 	if req.BannerImage != nil {
-		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", s.minioPubUrl, s.logger)
+		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", *s.cfg, "", s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for banner image, error: %v", err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -114,7 +116,7 @@ func (s *miniAppService) CreateMiniApp(ctx context.Context, req *miniappdto.Mini
 	miniApp.AppIcon = appIconURL
 	miniApp.BannerImage = bannerImageURL
 	miniApp.Credential = *cred
-	miniApp.Enabled= true
+	miniApp.Enabled = true
 
 	s.logger.Infof("MiniApp created successfully, app_code: %s", req.AppName)
 	if err := miniappcore.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateMiniApp, miniApp, nil, constants.ActionCreate); err != nil {
@@ -148,23 +150,20 @@ func (s *miniAppService) UpdateMiniApp(ctx context.Context, req *miniappdto.Mini
 		s.logger.Errorf("Parent merchant validation failed, app_id: %s, error: %v", req.ID, err)
 		return err
 	}
-	
-	if req.AppName!= "" && req.AppName!=prevMiniApp.AppName {
 
+	if req.AppName != "" && req.AppName != prevMiniApp.AppName {
 
-isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
-	if err != nil {
-		s.logger.Errorf("IsMiniAppNameUnique check failed, error: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, req.ID, req.AppName)
+		if err != nil {
+			s.logger.Errorf("IsMiniAppNameUnique check failed, error: %v", err)
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+
+		if !isValidMMiniAppName {
+			s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
+			return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
+		}
 	}
-
-	if !isValidMMiniAppName {
-		s.logger.Warnf("MiniApp name already exists: %s", req.AppName)
-		return errors.New(localization.ErrorMiniAppNameAlreadyExists.Code)
-	}
-	}
-
-	
 
 	if strings.TrimSpace(req.MerchantID) != "" {
 		if err := miniappcore.SetMerchantDetails(ctx, s.merchantService, req); err != nil {
@@ -177,7 +176,12 @@ isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, 
 
 	var appIconURL, bannerImageURL string
 	if req.AppIcon != nil {
-		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, "miniapp_app_icon", s.minioPubUrl, s.logger)
+		var objectkey string
+		if prevMiniApp.AppIcon != "" {
+			objectkey = path.Base(prevMiniApp.AppIcon)
+		}
+
+		appIconURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.AppIcon, s.bucketName, *s.cfg, objectkey, s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for app icon, app_id: %s, error: %v", req.ID, err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -188,7 +192,12 @@ isValidMMiniAppName, err := miniappcore.ValidMiniAppChecker(ctx, s.repo, false, 
 	}
 
 	if req.BannerImage != nil {
-		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, "miniapp_banner_image", s.minioPubUrl, s.logger)
+		var objectkey string
+		if prevMiniApp.BannerImage != "" {
+			objectkey = path.Base(prevMiniApp.BannerImage)
+		}
+
+		bannerImageURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.BannerImage, s.bucketName, *s.cfg, objectkey, s.logger)
 		if err != nil {
 			s.logger.Errorf("UploadFileToMinio failed for banner image, app_id: %s, error: %v", req.ID, err)
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -335,7 +344,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
 		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
-		if err != nil{
+		if err != nil {
 			break
 		}
 		err = s.repo.RunInTransaction(ctx, func(ctx context.Context) error {
@@ -344,7 +353,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	case string(constants.RequestUpdateMiniApp):
 		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
-		if err != nil{
+		if err != nil {
 			break
 		}
 		err = s.repo.Update(ctx, cpsAction.UniqueId, miniApp)
@@ -354,7 +363,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	case string(constants.RequestEnableMiniApp):
 		err = miniappcore.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
-		if err != nil{
+		if err != nil {
 			break
 		}
 		err = s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
