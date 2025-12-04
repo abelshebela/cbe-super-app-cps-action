@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, url, merchantId string) (*http.Response, merchant_lookup.MerchantLookUpResponse, error) {
+func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_key, url, merchantId string) (*http.Response, merchant_lookup.MerchantLookUpResponse, error) {
 	var accountInfo merchant_lookup.MerchantLookUpResponse
 	var err error
 
@@ -21,6 +21,9 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, url, mer
 	if err != nil {
 		return nil, merchant_lookup.MerchantLookUpResponse{}, localization.ErrorUnexpectedError
 	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("X-API-KEY", x_api_key)
 
 	res, err := client.Do(req)
 	if err != nil {
