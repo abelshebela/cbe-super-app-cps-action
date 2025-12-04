@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
 	"cbe-super-app-cps-action/internal/constants/model"
+	local_utils "cbe-super-app-cps-action/pkgs/utils"
 )
 
 func GenerateNotification(notification model.Notification) *model.Notification {
@@ -30,6 +31,7 @@ func GenerateNotification(notification model.Notification) *model.Notification {
 func BuildCreateNotification(req notify.NotificationRequest) model.Notification {
 	return model.Notification{
 		Title:            req.Title,
+		IdNum:            local_utils.NewNotificationID(),
 		NotificationType: req.NotificationType,
 		NotificationBody: req.NotificationBody,
 		IsPublic:         req.IsPublic,

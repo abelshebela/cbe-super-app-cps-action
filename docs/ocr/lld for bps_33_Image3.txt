@@ -1,0 +1,26 @@
+Detach Phone Number - Complete Flow
+' POST /detach_phone/validate ' ' ' ' ' '
+1 {user_code} 3 i 4 f f i
+i | ValidateDetachRequest() _| q t t }
+' i | FetchUser(user_code) ' ' ' '
+' H 1 or alternative contact H H H H
+‘ POST /detach_phone/detach ' ' ' ' ' '
+i {user_code} i i ' ' i
+7 | CreateDetachAction() i i i i i
+| apsrctionCreate) —_!
+‘ ‘ ‘ ‘ | - request_action: DETACH_PHONE_NUMBER | ‘
+! ! ! ! \ - previous_action: {phone: current} ! !
+' ' ' ' raumentcton {phone: null} ' '
+' ' ' ' \nsert bps_action ' '
+' ' ' ' Created ' '
+' ' | BPSAction ' ' ' '
+' | Success ' ' ' ' '
+| faction_code, status: "PENDING"} | ' ' ' ' '
+' ' POST /bps_action/approve ' ' ' '
+i |. faction_code} i H i i i
+' ' BpsActionApprove() ' ' ' ‘ '
+‘ ' ' ' | Update status = APPROVED ' '
+' ' ' _ DetachUserPhone(user_code) ! ' '
+' ' ' ' Update members.phone_number = null ' '
+' | Success ' ' ' ' '
+‘ | Phone number detached | \ i i '
