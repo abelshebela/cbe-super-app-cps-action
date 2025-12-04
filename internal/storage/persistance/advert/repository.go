@@ -8,6 +8,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
+	"regexp"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -18,16 +20,18 @@ import (
 )
 
 type AdvertStorage struct {
-	dal    dal.MongoDal[model.Advert, model.Advert]
-	client *mongo.Client
-	logger utils.Logger
+	dal        dal.MongoDal[model.Advert, model.Advert]
+	client     *mongo.Client
+	logger     utils.Logger
+	collection *mongo.Collection
 }
 
 func NewAdvertRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AdvertRepository {
 	return &AdvertStorage{
-		dal:    dal.NewMongoDal[model.Advert, model.Advert](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.Advert, model.Advert](client, dbName, collection),
+		client:     client,
+		logger:     logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 
@@ -111,7 +115,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
 			{"description": searchRegex},
-			{"is_deleted": false},
+			// {"is_deleted": false},
 		}
 	}
 
@@ -135,4 +139,28 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		Data: data,
 		Meta: meta,
 	}, nil
+}
+
+func (a *AdvertStorage) FindByTitle(ctx context.Context, title string) (*model.Advert, error) {
+	a.logger.Infof("[Adver.FindByTitle] Searching for Advert by title: %s", title)
+
+	filter := bson.M{
+		"title": bson.M{
+			"$regex":   "^" + regexp.QuoteMeta(title) + "$", // exact match, case-insensitive
+			"$options": "i",
+		},
+		"is_deleted": false,
+	}
+
+	result, err := a.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Infof(" No for Advert by title: %s", title)
+			return nil, nil
+		}
+		a.logger.Errorf(" Database query failed for advert title  %s: %v", title, err)
+		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
+	}
+
+	return result, nil
 }

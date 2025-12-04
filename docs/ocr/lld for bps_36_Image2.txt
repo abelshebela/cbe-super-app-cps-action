@@ -1,0 +1,34 @@
+Activate Account - Complete Flow
+' POST /activate_accountivalidate | ‘ ‘ ‘ ‘ ' ' ' '
+1 {user_code} 1 f f t i f 1 i
+| ValidateActivation)
+' ' FetchUser(user_code) '
+' ' ' ' ' Query linked account_! ' ' ' '
+' ' ‘ ' Count ' ' ' ‘ '
+' ' ' Check: ' ' ' ' ' ' '
+\ ’ ' “Account status = INACTIVE | ’ : \ ’ 1 ‘
+' ' 1 = KYC level >= 1 ' ' ' ' ' ' '
+: : |< Has linked account : : : : : d d
+' POST /activate_account/send_otp ' ' '
+' {user_code} / : { { : { { ! d
+' | GenerateOTP(userphone!“ACTIVATE_ACCOUNT") _! q : ' ' ' '
+' ' ‘ ' ' ' Save OTP \ \ ‘ '
+' ' ‘ ' ' "Publish SMS ' ' ' '
+‘ ‘ OTP sent ' ' ' ' ' ' ' '
+1, OTP sent ' ' ' ' ' ' ' ' '
+| POST /activate_account/verify_otp | i ' ' ' ' ' ' '
+' {otp_code} ; } : : } ! : d !
+‘ ‘ Verified ' ' ' ' ' ' ' '
+' POST Jactivate_account/activate | ‘ ' ' ‘ ' ' ‘ '
+, {user_code} 1 i f f i t i 1 1
+{ | CreateActivateAction() | ' ' ' ' ' ' '
+' 1 1 1 1 1 | = request_action: ACTIVATE_ACCOUNT! i '
+: \ \ \ \ \ \ - previous_action: {status: INACTIVE} | d !
+' ' ' ' ' ' cama aio, {status: ACTIVE} | ' '
+‘ ' POST /bps action/approve ' ' ' ‘ ' ' '
+' \ {action_code} o ‘ ‘ o i 7 t i
+i | BpsActionApprovel) —_! { { | ;
+' ' ' ' Update members: \ ' ' ' ' '
+i i i | - account_status = ACTIVE i i i i i
+i . f '- enabled = true ' ' ' ' 1 i
+' ‘ Success ' ' ' ' ' ‘ ' '

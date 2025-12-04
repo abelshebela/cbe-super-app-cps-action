@@ -32,7 +32,6 @@ func NewDonationCompanyRepository(client *mongo.Client, dbName string, collectio
 }
 
 func (s *DonationCompanyStorage) Create(ctx context.Context, details *model.DonationCompany) error {
-
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)

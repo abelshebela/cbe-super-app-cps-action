@@ -87,6 +87,15 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		}
 		iconURL = url
 	}
+	isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx,req.Name)
+	if err != nil {
+		b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+	if isDuplicate!=nil {
+		b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
+		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
+	}
 
 	budgetCategory := &model.BudgetCategory{
 		Name:      req.Name,
@@ -161,11 +170,22 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 
 	newBudgetCategory := *existingBudgetCategory
 
-	if req.Name != nil {
-		newBudgetCategory.Name = *req.Name
+	if req.Name != "" {
+		
+		isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx,req.Name)
+	if err != nil {
+		b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
-	if req.Color != nil {
-		newBudgetCategory.Color = *req.Color
+	if isDuplicate!=nil&& isDuplicate.ID.Hex()!=id {
+		b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
+		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
+	}
+	
+		newBudgetCategory.Name = req.Name
+	}
+	if req.Color != "" {
+		newBudgetCategory.Color = req.Color
 	}
 	if req.Icon != nil {
 		var objectkey string

@@ -39,9 +39,7 @@ func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSA
 	}
 }
 
-func (c *customerService) GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
-	filterParams.Filters = make(map[string]interface{})
-	filterParams.Filters["kyc_level"] = kyc_level
+func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
 	customers, err := c.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		return nil, err

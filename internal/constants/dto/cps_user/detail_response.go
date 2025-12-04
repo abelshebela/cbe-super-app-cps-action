@@ -33,8 +33,7 @@ type CpsUserDetail struct {
 	FullName           string                                `json:"full_name"`
 	Username           string                                `json:"username"`
 	UserRole           string                                `json:"role"`
-	UserDepartment     string                                `json:"department"`
-	UserPortalCards    []string                              `json:"portal_cards"`
+	Department         DepartmentResponse                    `json:"department"`
 	UserPhone          string                                `json:"phone"`
 	UserEmail          string                                `json:"email"`
 	JoinedAt           time.Time                             `json:"joined_at"`
@@ -62,8 +61,7 @@ func BuildCpsUserDetail(src *CpsUserResponse) *CpsUserDetail {
 		PermissionCategory: map[string][]PermissionCategoryDetail{},
 	}
 	if src.Department != nil {
-		detail.UserDepartment = src.Department.Name
-		detail.UserPortalCards = src.Department.PortalCards
+		detail.Department = *src.Department
 	}
 
 	// map permission groups
