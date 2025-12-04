@@ -105,9 +105,9 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 func (s *BankStorage) FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error) {
 	filter := bson.M{}
 	filter["$or"] = []bson.M{
-		{"name": bson.M{"$regex": name, "$options": "i"}},
-		{"bic": bson.M{"$regex": bic, "$options": "i"}},
-		{"code": bson.M{"$regex": code, "$options": "i"}},
+		{"name": bson.M{"$regex": name}},
+		{"bic": bson.M{"$regex": bic}},
+		{"code": bson.M{"$regex": code}},
 	}
 
 	return s.dal.FindOne(ctx, filter, nil)
