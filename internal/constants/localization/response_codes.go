@@ -454,6 +454,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
+	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
@@ -4287,6 +4288,12 @@ var (
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCompanyNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCompanyCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_COMPANY_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCompanyCodeAlreadyExists,
 		Type:       "error",
 	}
 
