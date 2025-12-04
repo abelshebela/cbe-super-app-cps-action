@@ -60,8 +60,9 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	existCode, err := s.repo.Find(ctx, "code", req.Code)
+	req.Code = code
 
+	existCode, err := s.repo.Find(ctx, "code", req.Code)
 	if err != nil {
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
@@ -105,6 +106,12 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		}
 	}
 
+	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+	if err != nil {
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
+
+	req.Code = code
 	if req.Code != "" {
 		exist, err := s.repo.Find(ctx, "code", req.Code)
 		if err != nil {
