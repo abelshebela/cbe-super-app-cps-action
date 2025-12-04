@@ -159,11 +159,6 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	if err != nil {
-		w.logger.Errorf("Failed to convert document to Topup: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
 	return doc, nil
 }
 
