@@ -5,7 +5,7 @@ import "time"
 type NotificationResponse struct {
 	ID                string    `json:"id"`
 	Title             string    `json:"title"`
-	IdNum             string    `json:"id_num"`
+	NotificationCode  string    `json:"notification_code"`
 	NotificationType  string    `json:"notification_type"`
 	NotificationBody  string    `json:"notification_body"`
 	IsPublic          bool      `json:"is_public"`

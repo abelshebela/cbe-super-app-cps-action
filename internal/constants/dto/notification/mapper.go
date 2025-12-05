@@ -8,7 +8,7 @@ func MapNotificationToResponse(entity *model.Notification) *NotificationResponse
 	return &NotificationResponse{
 		ID:                entity.ID.Hex(),
 		Title:             entity.Title,
-		IdNum:             entity.IdNum,
+		NotificationCode:  entity.NotificationCode,
 		NotificationType:  entity.NotificationType,
 		NotificationBody:  entity.NotificationBody,
 		IsPublic:          entity.IsPublic,
