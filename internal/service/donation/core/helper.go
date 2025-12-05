@@ -307,6 +307,6 @@ func MapDonationUpdate(id string, existing *model.Donation, update donation_dto.
 		CoverImage:          coverImageURL,
 		StartDate:           GetTimeValueOrDefault(update.StartDate, existing.StartDate).Format(time.RFC3339),
 		EndDate:             GetTimeValueOrDefault(update.EndDate, existing.EndDate).Format(time.RFC3339),
-		Enabled:             update.Enabled,
+		Enabled:             existing.Enabled,
 	}
 }

@@ -96,6 +96,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return err
 	}
 
+	donationCompany.CompanyCode = "DON-COMPANY-" + local_util.UniqueIdGenerator()
 	result := core.MapToDonationCompanyResponse(donationCompany, url)
 	result.AccountHolderName = accountDetail.CustomerName
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCompany), constants.CREATE)
