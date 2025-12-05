@@ -13,6 +13,7 @@ func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.Donat
 	return &dto.DonationCompanyListResponse{
 		ID:                company.ID.Hex(),
 		CompanyName:       company.CompanyName,
+		CompanyCode:       company.CompanyCode,
 		CompanyLogo:       company.CompanyLogo,
 		AccountNumber:     company.AccountNumber,
 		AccountHolderName: company.AccountHolderName,
@@ -38,6 +39,7 @@ func DonationCompanyMapper(company model.DonationCompany) bson.M {
 	return bson.M{
 		"company_name":        company.CompanyName,
 		"company_logo":        company.CompanyLogo,
+		"company_code":        company.CompanyCode,
 		"account_number":      company.AccountNumber,
 		"phone_number":        company.PhoneNumber,
 		"account_holder_name": company.AccountHolderName,

@@ -2,6 +2,7 @@ package donation_company
 
 type DonationCompanyResponse struct {
 	CompanyName       string `json:"company_name" bson:"company_name"`
+	CompanyCode       string `json:"company_code" bson:"company_code"`
 	CompanyLogo       string `json:"company_logo" bson:"company_logo"`
 	AccountNumber     string `json:"account_number" bson:"account_number"`
 	AccountHolderName string `json:"account_holder_name" bson:"account_holder_name"`
@@ -15,6 +16,7 @@ type DonationCompanyResponse struct {
 type DonationCompanyListResponse struct {
 	ID                string `json:"id" bson:"id"`
 	CompanyName       string `json:"company_name" bson:"company_name"`
+	CompanyCode       string `json:"company_code" bson:"company_code"`
 	CompanyLogo       string `json:"company_logo" bson:"company_logo"`
 	AccountNumber     string `json:"account_number" bson:"account_number"`
 	AccountHolderName string `json:"account_holder_name" bson:"account_holder_name"`

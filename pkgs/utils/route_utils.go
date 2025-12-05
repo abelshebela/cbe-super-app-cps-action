@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/go-chi/chi/v5"

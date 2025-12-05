@@ -113,7 +113,6 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
 	if err := req.Validate(); err != nil {
 		d.logger.Errorf("donation company request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())

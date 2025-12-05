@@ -473,6 +473,7 @@ const (
 	MsgDonationCategoryNameAlreadyExists  = "Category name already exists"
 	MsgDonationCompanyNameAlreadyExists   = "Company name already exists"
 	MsgCompanyNameAlreadyExists           = "Company name already exists"
+	MsgCompanyCodeAlreadyExists           = "Company code already exists"
 	MsgDonationTitleAlreadyExists         = "Donation title already exists"
 	MsgDonationAccountNumberAlreadyExists = "Account number already exists"
 	MsgAccountNumberAlreadyExists         = "Account number already exists"

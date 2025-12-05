@@ -15,13 +15,13 @@ func Init(router chi.Router, handler password.PasswordRule, authMiddleware middl
 
 	routes := []glue.Route{
 		{
-			Method:      http.MethodGet,
-			Path:        "/password_rule/",
-			Handler:     handler.GetPasswordRule,
-			Middlewares: []func(next http.Handler) http.Handler{
-				// authMiddleware.AuthenticateToken,
-				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-			},
+			Method:  http.MethodGet,
+			Path:    "/password_rule/",
+			Handler: handler.GetPasswordRule,
+			// Middlewares: []func(next http.Handler) http.Handler{
+			// authMiddleware.AuthenticateToken,
+			// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			// },
 		},
 		{
 			Method:  http.MethodPatch,
