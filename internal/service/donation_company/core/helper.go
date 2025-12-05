@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+	"cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
 	"errors"
@@ -87,7 +88,7 @@ func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enab
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
 	return dto.DonationCompanyResponse{
 		CompanyName:   donationCompany.CompanyName,
-		CompanyCode:   donationCompany.CompanyCode,
+		CompanyCode:   "DON-COMPANY-" + utils.UniqueIdGenerator(),
 		CompanyLogo:   logoURL,
 		AccountNumber: donationCompany.AccountNumber,
 		PhoneNumber:   donationCompany.PhoneNumber,
