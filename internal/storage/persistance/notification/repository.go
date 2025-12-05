@@ -85,12 +85,13 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.N
 
 func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Notification], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"is_public", "notification_type", "for", "seen", "enabled", "title"}
+	allowedKeys := []string{"is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"title": searchRegex},
+			{"notification_code": searchRegex},
 			{"notification_body": searchRegex},
 			{"notification_type": searchRegex},
 		}
