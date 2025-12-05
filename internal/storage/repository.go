@@ -558,3 +558,10 @@ type SitotaRepository interface {
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
 	Get(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }
+
+type MiniAppCategoryRepository interface {
+	Create(ctx context.Context, category *model.MiniAppCategory) error
+	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}

@@ -21,8 +21,8 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 			validation.In(string(constants.BOTH_ADVERT_FOR), string(constants.IFB_ADVERT_FOR), string(constants.CB_ADVERT_FOR)).Error("invalid advert for field"),
 		),
 		validation.Field(&c.BannerImage,
-				validation.When(c.BannerImage != nil, validation.By(func(value interface{}) error { return validateBannerImage(value) })),
-	),)
+			validation.When(c.BannerImage != nil, validation.By(func(value interface{}) error { return validateBannerImage(value) })),
+		))
 
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func validateBannerImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (2 << 20) {
+	if file.Size > (15 << 20) {
 		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 

@@ -33,6 +33,11 @@ func ParseTime(date string) time.Time {
 	return parsedTime
 }
 
+func UniqueIdGenerator() string {
+	// timestamp format: YYYYMMDDHHMMSS
+	timestamp := time.Now().Format("20060102150405")
+	return fmt.Sprintf("%s", timestamp)
+}
 func ParseUserContext(r *http.Request) (types.UserContext, error) {
 	userContext := ExtractUserContext(r)
 	if IsIncomplete(userContext) {
