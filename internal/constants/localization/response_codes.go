@@ -269,6 +269,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorExternalServiceError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
 	ErrorInvalidBooleanFormat,

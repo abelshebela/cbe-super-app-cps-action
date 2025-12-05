@@ -6,7 +6,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"fmt"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_company/core"
@@ -121,7 +120,6 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 	}
 	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	req.PhoneNumber = formattedPhone
-	fmt.Println(req)
 	if err := d.donationCompanyApp.CreateDonationCompany(r.Context(), req); err != nil {
 		d.logger.Errorf("failed to create donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
