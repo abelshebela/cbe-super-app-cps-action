@@ -28,24 +28,18 @@ func CompanyNameExists(ctx context.Context, companyName string, donationCompanyR
 	return len(companies.Data) > 0, nil
 }
 
-func AccountNumberExists(ctx context.Context, accountNumber string, donationCompanyRepo storage.DonationCompanyRepository) (bool, error) {
-	// Use the repository method to find donation companies by account number
-	companies, err := donationCompanyRepo.FindAllWithPagination(ctx, types.Filter{
-		Search:  accountNumber,
-		Page:    1,
-		PerPage: 1,
-	})
+func CheckIfAccountExists(ctx context.Context, accountNumber string, repo storage.DonationCompanyRepository) error {
+	donCompany, err := repo.FindByAccountNumber(ctx, accountNumber)
 	if err != nil {
-		return false, errors.New(localization.ErrorDonationCompanyLookupFailed.Code)
-	}
-
-	// Check if any companies were found with this account number
-	for _, company := range companies.Data {
-		if company.AccountNumber == accountNumber {
-			return true, nil
+		if err.Error() == "mongo: no documents in result" {
+			return nil
 		}
+		return err
 	}
-	return false, nil
+	if donCompany.AccountNumber != "" {
+		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	}
+	return nil
 }
 
 func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
@@ -124,7 +118,7 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	}
 
 	if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
-		result.CompanyCode = donationCompany.CompanyCode
+		result.CompanyCode = "DON-COMPANY-" + donationCompany.CompanyCode
 	} else {
 		result.CompanyCode = existing.CompanyCode
 	}
@@ -158,6 +152,10 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	} else {
 		result.CompanyLogo = existing.CompanyLogo
 	}
+	createdAt, _ := time.Parse(time.RFC3339, existing.CreatedAt)
+	result.CreatedAt = createdAt
+	result.LastModifiedAt = time.Now()
+
 	result.Enabled = existing.Enabled
 
 	return result
@@ -243,14 +241,9 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 
 	// Check if account number is being updated and if it already exists
 	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
-		ok, err := AccountNumberExists(ctx, request.AccountNumber, donationCompanyRepo)
-		if err != nil {
+		if err := CheckIfAccountExists(ctx, request.AccountNumber, donationCompanyRepo); err != nil {
 			return err
 		}
-		if ok {
-			return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-		}
-
 	}
 
 	return nil

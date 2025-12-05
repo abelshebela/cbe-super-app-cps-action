@@ -301,6 +301,7 @@ type DonationCompanyRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
+	FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error)
 }
 
 type MiniAppRepository interface {
