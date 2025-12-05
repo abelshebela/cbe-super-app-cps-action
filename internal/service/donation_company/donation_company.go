@@ -106,23 +106,22 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 	return nil
 }
 
-func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (dto.DonationCompanyRequest, error) {
+func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*model.DonationCompany, error) {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return donationCompany, errors.New(localization.ErrorAccountNumberRequired.Code)
+		return nil, errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	// Check if donation company exists
 	existingCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
 	if err != nil {
-		return donationCompany, err
+		return nil, err
 	}
 	if existingCompany == nil {
-		return donationCompany, errors.New(localization.ErrorFileNotFound.Code)
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
 	if err := core.CheckDataSimilarityAndValidation(ctx, donationCompany, existingCompany, d.DonationCompanyRepo, d.accountLookupService); err != nil {
-		return donationCompany, err
+		return nil, err
 	}
 
 	logoURL := existingCompany.CompanyLogo
@@ -134,7 +133,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 
 		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, objectkey, d.logger)
 		if err != nil {
-			return donationCompany, err
+			return nil, err
 		}
 		logoURL = url
 	}
@@ -148,7 +147,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 	if donationCompany.AccountNumber != "" {
 		accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
 		if err != nil {
-			return donationCompany, err
+			return nil, err
 		}
 		updateData.AccountHolderName = accountDetail.CustomerName
 	} else {
@@ -158,11 +157,11 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingCompany, updateData, string(constants.RequestUpdateDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
-		return donationCompany, err
+		return nil, err
 	}
 
 	// Use core mapper to create return request
-	return core.MapToDonationCompanyRequest(updateData), nil
+	return updateData, nil
 }
 
 func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

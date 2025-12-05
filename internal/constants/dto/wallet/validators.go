@@ -103,7 +103,7 @@ func validateAvatar(value interface{}) error {
 	if !utils.IsValidImage(file) {
 		return errors.New(localization.ErrorWalletAvatarInvalidType.Code)
 	}
-	if file.Size > (2 << 20) {
+	if file.Size > (15 << 20) {
 		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 

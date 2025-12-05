@@ -86,14 +86,17 @@ func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enab
 // MapToDonationCompanyResponse creates a response DTO from request DTO and logo URL
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
 	return dto.DonationCompanyResponse{
-		CompanyName:   donationCompany.CompanyName,
-		CompanyCode:   donationCompany.CompanyCode,
-		CompanyLogo:   logoURL,
-		AccountNumber: donationCompany.AccountNumber,
-		PhoneNumber:   donationCompany.PhoneNumber,
-		Email:         donationCompany.Email,
-		Address:       donationCompany.Address,
-		Enabled:       true,
+		CompanyName:    donationCompany.CompanyName,
+		CompanyCode:    donationCompany.CompanyCode,
+		CompanyLogo:    logoURL,
+		AccountNumber:  donationCompany.AccountNumber,
+		PhoneNumber:    donationCompany.PhoneNumber,
+		Email:          donationCompany.Email,
+		Address:        donationCompany.Address,
+		Enabled:        true,
+		IsDeleted:      false,
+		CreatedAt:      time.Now().Format(time.RFC3339),
+		LastModifiedAt: time.Now().Format(time.RFC3339),
 	}
 }
 
@@ -111,8 +114,8 @@ func MapToDonationCompanyCPSRequest(id string, donationCompany dto.DonationCompa
 	}
 }
 
-func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyCPSRequest {
-	result := dto.DonationCompanyCPSRequest{ID: id}
+func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationCompanyListResponse, donationCompany dto.DonationCompanyRequest, logoURL string) *model.DonationCompany {
+	result := &model.DonationCompany{}
 
 	if donationCompany.CompanyName != "" && donationCompany.CompanyName != existing.CompanyName {
 		result.CompanyName = donationCompany.CompanyName
@@ -155,21 +158,22 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	} else {
 		result.CompanyLogo = existing.CompanyLogo
 	}
+	result.Enabled = existing.Enabled
 
 	return result
 }
 
 // MapToDonationCompanyRequest creates a request DTO from CPS request DTO
-func MapToDonationCompanyRequest(cpsRequest dto.DonationCompanyCPSRequest) dto.DonationCompanyRequest {
-	return dto.DonationCompanyRequest{
-		CompanyName:   cpsRequest.CompanyName,
-		CompanyCode:   cpsRequest.CompanyCode,
-		AccountNumber: cpsRequest.AccountNumber,
-		PhoneNumber:   cpsRequest.PhoneNumber,
-		Email:         cpsRequest.Email,
-		Address:       cpsRequest.Address,
-	}
-}
+// func MapToDonationCompanyRequest(cpsRequest model.DonationCompany) *model.DonationCompany {
+// 	return &model.DonationCompany{
+// 		CompanyName:   cpsRequest.CompanyName,
+// 		CompanyCode:   cpsRequest.CompanyCode,
+// 		AccountNumber: cpsRequest.AccountNumber,
+// 		PhoneNumber:   cpsRequest.PhoneNumber,
+// 		Email:         cpsRequest.Email,
+// 		Address:       cpsRequest.Address,
+// 	}
+// }
 
 func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
 	// Check if company name is the same (if provided in request)

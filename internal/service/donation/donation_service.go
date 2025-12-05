@@ -424,10 +424,12 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 	if existingDonation == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-
-	updateData := dto.EnableDonationRequest{
-		Enabled: true,
+	if existingDonation.Enabled {
+		return errors.New(localization.ErrorDonationAlreadyEnabled.Code)
 	}
+
+	updateData := existingDonation
+	updateData.Enabled = true
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestEnableDonation), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -450,10 +452,12 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 	if existingDonation == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-
-	updateData := dto.EnableDonationRequest{
-		Enabled: false,
+	if !existingDonation.Enabled {
+		return errors.New(localization.ErrorDonationAlreadyDisabled.Code)
 	}
+
+	updateData := existingDonation
+	updateData.Enabled = false
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestDisableDonation), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {

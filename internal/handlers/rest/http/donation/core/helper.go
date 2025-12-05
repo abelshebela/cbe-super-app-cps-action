@@ -2,6 +2,7 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
@@ -18,7 +19,7 @@ import (
 func ParseImageUpdateRequestFromMultipartForm(r *http.Request) (donation.DonationImageUpdateRequest, error) {
 	var req donation.DonationImageUpdateRequest
 
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
+	if err := r.ParseMultipartForm(315 << 20); err != nil {
 		return req, errors.New("failed to parse multipart form")
 	}
 
@@ -42,7 +43,7 @@ func ParseImageUpdateRequestFromMultipartForm(r *http.Request) (donation.Donatio
 func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.DonationRequest, error) {
 	var req donation.DonationRequest
 
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
+	if err := r.ParseMultipartForm(315 << 20); err != nil {
 		return req, errors.New("failed to parse multipart form")
 	}
 
@@ -122,7 +123,7 @@ func ValidateForUpdate(req donation.DonationRequest) error {
 				validation.By(validateDonationAmount)),
 		),
 		validation.Field(&req.DonationImages,
-			validation.When(req.DonationImages != nil, validation.By(validateDonationImages)),
+			validation.When(req.DonationImages != nil, validation.By(validateImages)),
 		),
 		validation.Field(&req.CoverImage,
 			validation.When(req.CoverImage != nil, validation.By(validateImage)),
@@ -154,7 +155,7 @@ func ValidateImageAdd(req donation.DonationRequest) error {
 	if len(req.DonationImages) == 0 {
 		return errors.New("at least one donation image is required")
 	}
-	return validateDonationImages(req.DonationImages)
+	return validateImages(req.DonationImages)
 }
 
 func ExtractIDFromURL(r *http.Request) string {
@@ -210,52 +211,83 @@ func validateStartDate(value interface{}) error {
 	return nil
 }
 
-func validateDonationImages(value interface{}) error {
-	files, ok := value.([]*multipart.FileHeader)
-	if !ok {
-		return validation.NewError("validation_images_invalid", "invalid image files")
+// func validateDonationImages(value interface{}) error {
+// 	files, ok := value.([]*multipart.FileHeader)
+// 	if !ok {
+// 		return validation.NewError("validation_images_invalid", "invalid image files")
+// 	}
+
+// 	for _, file := range files {
+// 		if file.Size > 10*1024*1024 {
+// 			return validation.NewError("validation_image_size",
+// 				"image exceeds the 10MB size limit")
+// 		}
+
+// 		if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
+// 			return validation.NewError("validation_image_format", "image must be JPG, JPEG, PNG, or GIF")
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+// func hasAllowedExtension(filename string, allowed []string) bool {
+// 	if filename == "" {
+// 		return false
+// 	}
+
+// 	filename = strings.ToLower(strings.TrimSpace(filename))
+// 	for _, ext := range allowed {
+// 		if strings.HasSuffix(filename, strings.ToLower(ext)) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+// func validateImage(value interface{}) error {
+// 	file, ok := value.(*multipart.FileHeader)
+// 	if !ok {
+// 		return validation.NewError("validation_image_invalid", "invalid image file")
+// 	}
+
+// 	if file.Size > 10*1024*1024 {
+// 		return validation.NewError("validation_image_size", "image file size must not exceed 10MB")
+// 	}
+
+// 	if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
+// 		return validation.NewError("validation_image_format", "image must be JPG, JPEG, PNG, or GIF")
+// 	}
+
+// 	return nil
+// }
+
+func validateImage(value interface{}) error {
+	file, ok := value.(*multipart.FileHeader)
+	if !ok || file == nil {
+		return localization.ErrorMissingOrInvalidImage
+	}
+	if !utils.IsValidImage(file) {
+		return localization.ErrorMissingOrInvalidImage
 	}
 
-	for _, file := range files {
-		if file.Size > 10*1024*1024 {
-			return validation.NewError("validation_image_size",
-				"image exceeds the 10MB size limit")
-		}
-
-		if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
-			return validation.NewError("validation_image_format", "image must be JPG, JPEG, PNG, or GIF")
-		}
+	if file.Size > (15 << 20) {
+		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 
 	return nil
 }
 
-func hasAllowedExtension(filename string, allowed []string) bool {
-	if filename == "" {
-		return false
+func validateImages(value interface{}) error {
+	files, ok := value.([]*multipart.FileHeader)
+	if !ok || len(files) == 0 {
+		return localization.ErrorMissingOrInvalidImage
 	}
 
-	filename = strings.ToLower(strings.TrimSpace(filename))
-	for _, ext := range allowed {
-		if strings.HasSuffix(filename, strings.ToLower(ext)) {
-			return true
+	for _, f := range files {
+		if err := validateImage(f); err != nil {
+			return err
 		}
-	}
-	return false
-}
-
-func validateImage(value interface{}) error {
-	file, ok := value.(*multipart.FileHeader)
-	if !ok {
-		return validation.NewError("validation_image_invalid", "invalid image file")
-	}
-
-	if file.Size > 10*1024*1024 {
-		return validation.NewError("validation_image_size", "image file size must not exceed 10MB")
-	}
-
-	if !hasAllowedExtension(file.Filename, []string{".jpg", ".jpeg", ".png", ".gif"}) {
-		return validation.NewError("validation_image_format", "image must be JPG, JPEG, PNG, or GIF")
 	}
 
 	return nil

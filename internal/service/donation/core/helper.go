@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"time"
@@ -211,7 +212,7 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Dona
 }
 
 func GenerateDonationCode() string {
-	return "DON" + bson.NewObjectID().Hex()[:8]
+	return "DON-" + utils.UniqueIdGenerator()
 }
 
 func ParseTime(timeStr string) time.Time {

@@ -12,7 +12,7 @@ import (
 func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (budget_category.CreateBudgetRequest, error) {
 	var req budget_category.CreateBudgetRequest
 
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
+	if err := r.ParseMultipartForm(315 << 20); err != nil {
 		return req, errors.New("failed to parse multipart form")
 	}
 
@@ -34,7 +34,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (budget_categ
 func ParseUpdateRequestFromMultipartForm(r *http.Request) (budget_category.UpdateBudgetRequest, error) {
 	var req budget_category.UpdateBudgetRequest
 
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
+	if err := r.ParseMultipartForm(315 << 20); err != nil {
 		return req, errors.New("failed to parse multipart form")
 	}
 
@@ -47,7 +47,7 @@ func ParseUpdateRequestFromMultipartForm(r *http.Request) (budget_category.Updat
 
 	_, iconHeader, err := utils.ParseMultipartFormFile(r, "icon", 10<<20)
 	if err != nil {
-		fmt.Println("///error for icon",err)
+		fmt.Println("///error for icon", err)
 		if !errors.Is(err, http.ErrMissingFile) {
 			return req, err
 		}
