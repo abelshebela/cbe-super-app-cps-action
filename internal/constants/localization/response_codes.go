@@ -463,9 +463,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
-
-	ErrorDonationCompanyLookupFailed,
-
+	ErrorDonationAlreadyEnabled,
+	ErrorDonationAlreadyDisabled,
 	SuccessDonationCompanyUpdated,
 	ErrorDonationTitleDuplicated,
 	ErrorDonationImageUploaded,
@@ -4281,6 +4280,18 @@ var (
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgDonationCompanyLookupFailed,
+		Type:       "error",
+	}
+	ErrorDonationAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDonationAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationAlreadyDisabled,
 		Type:       "error",
 	}
 
