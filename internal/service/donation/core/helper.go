@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 func MapToDonationResponse(donation *model.Donation) *donation_dto.DonationResponse {
@@ -108,14 +109,17 @@ func ConvertToDonationImages(images []types.DonationImage) []donation_dto.Donati
 
 func DonationTitleExists(ctx context.Context, title string, donationRepo storage.DonationRepository) (bool, error) {
 	donations, err := donationRepo.FindAllWithPagination(ctx, types.Filter{
-		Search:  title,
-		Page:    1,
-		PerPage: 1,
+		Search: title,
 	})
-	if err != nil {
+	if err != nil && err != mongo.ErrNoDocuments {
 		return false, errors.New(localization.ErrorDonationLookupFailed.Code)
 	}
-	return len(donations.Data) > 0, nil
+
+	if donations.Data != nil {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func IsDataSimilar(request donation_dto.DonationRequest, existing *model.Donation) bool {
