@@ -10,6 +10,7 @@ import (
 
 type MiniApp struct {
 	ID                  bson.ObjectID               `bson:"_id" json:"id"`
+	CategoryID          bson.ObjectID               `bson:"category_id" json:"category_id"`
 	AppName             string                      `bson:"app_name" json:"app_name"`
 	AppIcon             string                      `bson:"app_icon" json:"app_icon"`
 	AppCode             string                      `bson:"app_code" json:"app_code"`
@@ -29,4 +30,15 @@ type MiniApp struct {
 	CreatedAt           time.Time                   `bson:"created_at" json:"created_at"`
 	LastModifiedAt      time.Time                   `bson:"last_modified_at" json:"last_modified_at"`
 	DeletedAt           time.Time                   `bson:"deleted_at" json:"deleted_at"`
+}
+
+type MiniAppCategory struct {
+	ID        bson.ObjectID `bson:"_id,omitempty" json:"_id"`
+	Name      string        `bson:"name" json:"name"`
+	Icon      string        `bson:"icon" json:"icon"`
+	IsDeleted bool          `bson:"is_deleted" json:"is_deleted"`
+	IsEnabled bool          `bson:"is_enabled" json:"is_enabled"`
+	UpdatedAt time.Time     `bson:"updated_at" json:"updated_at"`
+	DeletedAt *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+	CreatedAt time.Time     `bson:"created_at" json:"created_at"`
 }

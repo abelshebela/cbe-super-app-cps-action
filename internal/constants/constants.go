@@ -464,6 +464,12 @@ const (
 	RequestCreateNewsCategory RequestAction = "CREATE_NEWS_CATEGORY"
 	RequestUpdateNewsCategory RequestAction = "UPDATE_NEWS_CATEGORY"
 	RequestDeleteNewsCategory RequestAction = "DELETE_NEWS_CATEGORY"
+
+	RequestCreateMiniAppCategory  RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
 )
 
 type RegistrationType string

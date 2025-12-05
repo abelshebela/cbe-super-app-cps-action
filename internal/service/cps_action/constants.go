@@ -279,6 +279,12 @@ const (
 	RequestApproveFaydaCustomer RequestAction = "APPROVE_FAYDA_CUSTOMER"
 
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
+
+	RequestCreateMiniAppCategory  RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -466,6 +472,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableDeviceVersion:       {},
 	RequestDeleteDeviceVersion:        {},
 	RequestEnableDisableDeviceVersion: {},
+
+	RequestCreateMiniAppCategory:  {},
+	RequestUpdateMiniAppCategory:  {},
+	RequestDeleteMiniAppCategory:  {},
+	RequestEnableMiniAppCategory:  {},
+	RequestDisableMiniAppCategory: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -801,6 +813,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableDeviceVersion,
 		RequestDeleteDeviceVersion,
 		RequestEnableDisableDeviceVersion,
+	},
+
+	"MiniAppCategory": {
+		RequestCreateMiniAppCategory,
+		RequestUpdateMiniAppCategory,
+		RequestDeleteMiniAppCategory,
+		RequestEnableMiniAppCategory,
+		RequestDisableMiniAppCategory,
 	},
 }
 

@@ -423,6 +423,7 @@ type ServiceLayer struct {
 	NewsTagsService        NewsTagsService
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
+	MiniAppCategory        MiniAppCategoryService
 }
 
 type ServiceContainer struct {
@@ -473,6 +474,7 @@ type ServiceContainer struct {
 	EncryptionContainer        EncryptionService
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
+	MiniAppCategoryContainer   MiniAppCategoryService
 }
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -537,4 +539,8 @@ type SitotaService interface {
 
 type EncryptionService interface {
 	LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error)
+}
+
+type MiniAppCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
