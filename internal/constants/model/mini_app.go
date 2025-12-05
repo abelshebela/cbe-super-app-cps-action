@@ -10,6 +10,7 @@ import (
 
 type MiniApp struct {
 	ID                  bson.ObjectID               `bson:"_id" json:"id"`
+	CategoryID          bson.ObjectID               `bson:"category_id" json:"category_id"`
 	AppName             string                      `bson:"app_name" json:"app_name"`
 	AppIcon             string                      `bson:"app_icon" json:"app_icon"`
 	AppCode             string                      `bson:"app_code" json:"app_code"`
