@@ -806,6 +806,8 @@ const (
 	MsgAccountNumberRequired          = "Account Number is required"
 	MsgDonationCompanyLookupFailed    = "Company lookup failed"
 	MsgDonationLookupFailed           = "Donation lookup failed"
+	MsgDonationAlreadyEnabled         = "Donation already enabled"
+	MsgDonationAlreadyDisabled        = "Donation already disabled"
 	MsgDonationCategoryNameDuplicated = "donation category name already exist"
 	MsgNoChangesToUpdate              = "no changes to update"
 	MsgDonationParseStartDateFailed   = "Failed to parse start date"

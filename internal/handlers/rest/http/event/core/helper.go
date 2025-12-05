@@ -15,7 +15,7 @@ import (
 func ParseEventRequestFromMultipartForm(r *http.Request, isCreate bool) (eventdto.EventRequest, error) {
 	var req eventdto.EventRequest
 
-	_, fileHeader, err := utils.ParseMultipartFormFile(r, "cover_image", 2<<20)
+	_, fileHeader, err := utils.ParseMultipartFormFile(r, "cover_image", 15<<20)
 	if err != nil {
 		if err.Error() != localization.ErrorMissingFile.Code || isCreate {
 			return req, errors.New(localization.ErrorInvalidFileUpload.Code)

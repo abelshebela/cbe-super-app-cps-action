@@ -58,9 +58,9 @@ func ParseTime(timeStr, fieldName string, isOptional bool, logger utils.Logger) 
 
 // parseBannerImage handles banner image parsing with size limit of 2MB
 // func ParseBannerImage(r *http.Request, isUpdate bool, logger utils.Logger) (*multipart.FileHeader, error) {
-// 	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
+// 	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 15<<20)
 // 	fmt.Println("lorlighdigjdfhgdfjb",isUpdate)
-	
+
 // if err != nil && (err.Error() != localization.ErrorMissingFile.Code) && isUpdate {
 //     fmt.Printf("advert update - isUpdate: %v, error: %v\n", isUpdate, err)
 //     logger.Errorf("[ad.parseBannerImage] error parsing file: %v", err)
@@ -73,7 +73,7 @@ func ParseTime(timeStr, fieldName string, isOptional bool, logger utils.Logger) 
 func ParseBannerImage(r *http.Request, isCreate bool) (ad.AdvertRequest, error) {
 	var req ad.AdvertRequest
 
-	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 2<<20)
+	_, fileHeader, err := local_util.ParseMultipartFormFile(r, "banner_image", 15<<20)
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			if isCreate {
@@ -94,4 +94,3 @@ func ParseBannerImage(r *http.Request, isCreate bool) (ad.AdvertRequest, error) 
 
 	return req, nil
 }
-

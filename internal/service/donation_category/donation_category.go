@@ -13,8 +13,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 	"path"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -77,10 +77,13 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 		d.logger.Errorf("failed to upload image to minio: %v", err)
 		return err
 	}
-	result := dto.DonationCategoryResponse{
-		CategoryName: donationCategory.CategoryName,
-		Icon:         url,
-		Enabled:      true,
+	result := model.DonationCategory{
+		CategoryName:   donationCategory.CategoryName,
+		Icon:           url,
+		Enabled:        true,
+		IsDeleted:      false,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
 	}
 
 	cpsAction := lib.CpsModelBuilder("", makerData, "", result, string(constants.RequestCreateDonationCategory), constants.CREATE)
@@ -88,7 +91,6 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 		return err
 	}
 	return nil
-
 }
 
 func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string, donationCategory dto.DonationCategoryRequest) (dto.DonationCategoryRequest, error) {
@@ -159,7 +161,6 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 
 func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	// requestedAction := action.RequestAction
-	fmt.Println("Donation Category Authorize called")
 	if action.ActionStatus != constants.Approved {
 		d.logger.Errorf("Tried to authorize service action without cps action approval")
 		return nil, errors.New(localization.ErrorCPSActionStatusInvalid.Code)
@@ -171,6 +172,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
+	local_util.PrintRecord("res", donationCPS)
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCategory):
 

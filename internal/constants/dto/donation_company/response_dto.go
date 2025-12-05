@@ -10,6 +10,9 @@ type DonationCompanyResponse struct {
 	Email             string `json:"email" bson:"email"`
 	Address           string `json:"address" bson:"address"`
 	Enabled           bool   `json:"enabled" bson:"enabled"`
+	IsDeleted         bool   `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt         string `json:"created_at" bson:"created_at"`
+	LastModifiedAt    string `json:"last_modified_at" bson:"last_modified_at"`
 }
 
 // DonationCompanyListResponse is used for fetching donation companies
