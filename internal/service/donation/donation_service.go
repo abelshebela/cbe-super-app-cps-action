@@ -57,11 +57,26 @@ func NewDonationService(client *mongo.Client, DonationRepo storage.DonationRepos
 }
 
 func (d *Donation) FetchDonation(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]dto.DonationListResponse], error) {
-	return d.DonationRepo.FindAllWithPagination(ctx, *filterParams)
+	data, err := d.DonationRepo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, err
+	}
+	return data, nil
 }
 
 func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.DonationListResponse, error) {
-	return d.DonationRepo.FindByID(ctx, id)
+	res, err := d.DonationRepo.FindByID(ctx, id)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, err
+	}
+
+	return res, err
 }
 
 func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequest) error {
