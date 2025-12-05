@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -82,22 +81,19 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 
 	result, err := d.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		return nil, err
 	}
 
 	companyFilter := bson.M{"_id": result.CompanyID}
 	company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch company: %v", err)
+		return nil, err
 	}
 
 	categoryFilter := bson.M{"_id": result.CategoryID}
 	category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch category: %v", err)
+		return nil, err
 	}
 
 	return MapToDonationListResponse(result, company, category), nil
@@ -139,14 +135,13 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		companyFilter := bson.M{"_id": donation.CompanyID}
 		company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch company: %v", err)
+			return nil, err
 		}
 
 		categoryFilter := bson.M{"_id": donation.CategoryID}
-		fmt.Println("categoryFilter", donation.CategoryID)
 		category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch category: %v", err)
+			return nil, err
 		}
 
 		result = append(result, *MapToDonationListResponse(donation, company, category))
