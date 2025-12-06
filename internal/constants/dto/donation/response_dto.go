@@ -19,6 +19,7 @@ type Company struct {
 	CompanyName   string `json:"company_name" bson:"company_name"`
 	CompanyLogo   string `json:"company_logo" bson:"company_logo"`
 	AccountNumber string `json:"account_number" bson:"account_number"`
+	Enabled       bool   `json:"enabled" bson:"enabled"`
 }
 
 type Category struct {
