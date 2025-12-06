@@ -112,11 +112,13 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			d.logger.Errorf("Failed to upload donation image: %v", err)
 			return err
 		}
+
 		donationImages = append(donationImages, types.DonationImage{
 			ID:        bson.NewObjectID().Hex(),
 			PhotoURL:  url,
 			CreatedAt: time.Now(),
 		})
+
 		d.logger.Infof("Successfully uploaded donation image: %s", url)
 	}
 

@@ -123,6 +123,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	data, err := d.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		d.logger.Errorf("Error while fetching donation infor error: %v", err)
 		return nil, err
 	}
 
