@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"path"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -235,8 +236,13 @@ func (d *DonationCompany) EnableDonationCompany(ctx context.Context, id string) 
 	if existingDonationCompany.Enabled {
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
-	DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestEnableDonationCompany), constants.UPDATE)
+	// DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
+
+	currentData := *existingDonationCompany
+	currentData.Enabled = true
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestEnableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
@@ -260,8 +266,12 @@ func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string)
 	if !existingDonationCompany.Enabled {
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
-	DonationCompany := core.MapToDonationCompany(existingDonationCompany, false)
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestDisableDonationCompany), constants.UPDATE)
+
+	currentData := *existingDonationCompany
+	currentData.Enabled = false
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestDisableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}

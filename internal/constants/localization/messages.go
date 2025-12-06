@@ -989,8 +989,8 @@ const (
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
 
-	MsgAlreadyEnabled  = "Already enabled"
-	MsgAlreadyDisabled = "Already disabled"
+	MsgAlreadyEnabled  = "Donation company already enabled"
+	MsgAlreadyDisabled = "Donation comapany already disabled"
 
 	MsgBucketNotFound = "bucket not found"
 

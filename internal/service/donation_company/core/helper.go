@@ -66,16 +66,16 @@ func BindAction(source any, target any) error {
 	return json.Unmarshal(bytes, target)
 }
 
-func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enabled bool) model.DonationCompany {
-	return model.DonationCompany{
-		CompanyName:    donationCompany.CompanyName,
-		CompanyLogo:    donationCompany.CompanyLogo,
-		AccountNumber:  donationCompany.AccountNumber,
-		IsDeleted:      false,
-		Enabled:        Enabled,
-		LastModifiedAt: time.Now(),
-	}
-}
+// func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enabled bool) model.DonationCompany {
+// 	return model.DonationCompany{
+// 		CompanyName:    donationCompany.CompanyName,
+// 		CompanyLogo:    donationCompany.CompanyLogo,
+// 		AccountNumber:  donationCompany.AccountNumber,
+// 		IsDeleted:      false,
+// 		Enabled:        Enabled,
+// 		LastModifiedAt: time.Now(),
+// 	}
+// }
 
 // MapToDonationCompanyResponse creates a response DTO from request DTO and logo URL
 func MapToDonationCompanyResponse(donationCompany dto.DonationCompanyRequest, logoURL string) dto.DonationCompanyResponse {
