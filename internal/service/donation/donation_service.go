@@ -176,6 +176,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 	// Prepare existing model for validation
 	existingModel := &model.Donation{
+		DonationCode:        existingDonation.DonationCode,
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
 		Target:              existingDonation.Target,
