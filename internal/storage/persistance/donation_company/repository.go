@@ -47,9 +47,9 @@ func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details 
 	filter := bson.M{"_id": objID}
 
 	updateData := DonationCompanyMapper(*details)
+	// _, err = s.dal.UpdateOne(ctx, filter, bson.M{"$set": details})
 	_, err = s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
@@ -58,6 +58,7 @@ func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details 
 
 	return nil
 }
+
 func (s *DonationCompanyStorage) FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error) {
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
@@ -76,6 +77,21 @@ func (s *DonationCompanyStorage) FindByID(ctx context.Context, id string) (*dona
 	s.logger.Infof("Successfully found donation company: %+v", result)
 	return MapToDonationCompanyListResponse(result), nil
 }
+
+func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error) {
+	filter := bson.M{
+		"account_number": accountNumber,
+		"is_deleted":     false,
+	}
+
+	result, err := s.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
