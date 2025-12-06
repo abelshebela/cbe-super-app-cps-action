@@ -77,7 +77,10 @@ func (r *CPSUserStorage) Delete(ctx context.Context, userCode string) error {
 func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, enable bool) error {
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	update := bson.M{"enabled": enable, "last_modified": time.Now()}
-
+	if enable {
+		update["login_attempt_count"] = 0
+		update["is_first_time_login"] = true
+	}
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("failed to enable/disable CPS user: %v", err)
