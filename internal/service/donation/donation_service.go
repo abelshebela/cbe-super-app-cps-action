@@ -443,8 +443,9 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorDonationAlreadyEnabled.Code)
 	}
 
-	updateData := existingDonation
+	updateData := *existingDonation
 	updateData.Enabled = true
+	updateData.LastModifiedAt = time.Now().Format(time.RFC3339)
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestEnableDonation), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -471,8 +472,9 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 		return errors.New(localization.ErrorDonationAlreadyDisabled.Code)
 	}
 
-	updateData := existingDonation
+	updateData := *existingDonation
 	updateData.Enabled = false
+	updateData.LastModifiedAt = time.Now().Format(time.RFC3339)
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestDisableDonation), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
