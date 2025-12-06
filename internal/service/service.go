@@ -180,7 +180,7 @@ type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*fbdto.FeedbackResponse], error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error)
 }
 
 type HQService interface {
