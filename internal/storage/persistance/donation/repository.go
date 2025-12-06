@@ -84,13 +84,21 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 		return nil, err
 	}
 
-	companyFilter := bson.M{"_id": result.CompanyID}
+	camObj, err := bson.ObjectIDFromHex(result.CompanyID.Hex())
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	companyFilter := bson.M{"_id": camObj}
 	company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	categoryFilter := bson.M{"_id": result.CategoryID}
+	catObj, err := bson.ObjectIDFromHex(result.CategoryID.Hex())
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	categoryFilter := bson.M{"_id": catObj}
 	category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 	if err != nil {
 		return nil, err

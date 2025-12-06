@@ -73,12 +73,8 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorCompanyNameAlreadyExists.Code)
 	}
 
-	ok, err = core.AccountNumberExists(ctx, donationCompany.AccountNumber, d.DonationCompanyRepo)
-	if err != nil {
+	if err = core.CheckIfAccountExists(ctx, donationCompany.AccountNumber, d.DonationCompanyRepo); err != nil {
 		return err
-	}
-	if ok {
-		return errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
 	accountDetail, err := core.ValidateAccountNumberWithExternalAPI(ctx, donationCompany.AccountNumber, d.accountLookupService)
