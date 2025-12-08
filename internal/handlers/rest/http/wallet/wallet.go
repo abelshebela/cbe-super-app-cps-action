@@ -93,42 +93,73 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+    id := chi.URLParam(r, "id")
 
-	if id == "" {
-		a.logger.Errorf("wallet ID is required for update")
-		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
-		return
-	}
+    if id == "" {
+        a.logger.Errorf("wallet ID is required for update")
+        localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
+        return
+    }
 
-	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
-	if err != nil {
-		a.logger.Errorf("failed to parse wallet update request: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
-	a.logger.Infof("this is the wallet request%+v\n", req)
+    req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
+    if err != nil {
+        a.logger.Errorf("failed to parse wallet update request: %v", err)
+        localization.SendBadRequestResponse(w, err.Error())
+        return
+    }
+    a.logger.Infof("this is the wallet request%+v\n", req)
 
-	if err := req.AggregatedValidate(false); err != nil {
-		a.logger.Errorf("wallet request validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+    // Track which fields were provided in the form
+    fieldsProvided := make(map[string]bool)
+    
+    // Parse the multipart form to check which fields exist
+    if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+        a.logger.Errorf("failed to parse multipart form: %v", err)
+        localization.SendBadRequestResponse(w, "Failed to parse form data")
+        return
+    }
+    
+    // Check for each field in the form
+    if r.FormValue("name") != "" {
+        fieldsProvided["name"] = true
+    }
+    if r.FormValue("code") != "" {
+        fieldsProvided["code"] = true
+    }
+    if r.FormValue("self") != "" {
+        fieldsProvided["self"] = true
+    }
+    if r.FormValue("other") != "" {
+        fieldsProvided["other"] = true
+    }
+    if r.FormValue("agent") != "" {
+        fieldsProvided["agent"] = true
+    }
+    if _, _, err := r.FormFile("avatar"); err == nil {
+        fieldsProvided["avatar"] = true
+    }
 
-	if req.IsEmpty() {
-		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
-		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
-		return
-	}
+    if err := req.AggregatedValidate(false); err != nil {
+        a.logger.Errorf("wallet request validation failed: %v", err)
+        localization.SendBadRequestResponse(w, err.Error())
+        return
+    }
 
-	if err := a.walletApp.UpdateWallet(r.Context(), id, req); err != nil {
-		a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
+    if req.IsEmpty() {
+        a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
+        localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
+        return
+    }
 
-	a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
+    // Pass fieldsProvided to the service
+    if err := a.walletApp.UpdateWallet(r.Context(), id, req, fieldsProvided); err != nil {
+        a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
+        localization.SendErrorByCodeResponse(w, err.Error())
+        return
+    }
+
+    a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
+    localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 }
 
 // DeleteWallet godoc

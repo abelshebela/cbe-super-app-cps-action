@@ -56,43 +56,37 @@ func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.W
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet, int) {
-	var wallet model.Wallet
-	change_count := 0
-	if req.Agent == existing.Services.Agent {
-		wallet.Services.Agent = existing.Services.Agent
-	} else {
-		change_count++
-		wallet.Services.Agent = req.Agent
-	}
-	if req.Other == existing.Services.Other {
-		wallet.Services.Other = existing.Services.Other
-	} else {
-		change_count++
-		wallet.Services.Other = req.Other
-	}
-	if req.Self == existing.Services.Self {
-		wallet.Services.Self = existing.Services.Self
-	} else {
-		change_count++
-		wallet.Services.Self = req.Self
-	}
-	if req.Name == existing.Name {
-		wallet.Name = existing.Name
-	} else {
-		change_count++
-		wallet.Name = req.Name
-	}
-	if req.Code == existing.Code {
-		wallet.Code = existing.Code
-	} else {
-		change_count++
-		wallet.Code = req.Code
-	}
-	wallet.Avatar = existing.Avatar
-	return &wallet, change_count
+func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, fieldsProvided map[string]bool) (*model.Wallet, int) {
+    wallet := existing
+    changeCount := 0
+    
+    if fieldsProvided["self"] && req.Self != existing.Services.Self {
+        changeCount++
+        wallet.Services.Self = req.Self
+    }
+    
+    if fieldsProvided["other"] && req.Other != existing.Services.Other {
+        changeCount++
+        wallet.Services.Other = req.Other
+    }
+    
+    if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
+        changeCount++
+        wallet.Services.Agent = req.Agent
+    }
+    
+    if req.Name != "" && req.Name != existing.Name {
+        changeCount++
+        wallet.Name = req.Name
+    }
+    
+    if req.Code != "" && req.Code != existing.Code {
+        changeCount++
+        wallet.Code = req.Code
+    }
+    
+    return &wallet, changeCount
 }
-
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(userData); incomplet {
