@@ -279,7 +279,7 @@ type UnlinkService interface {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
-	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest,fieldsProvided map[string]bool) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
@@ -306,9 +306,9 @@ type AccountBlockService interface {
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error
-	EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error
-	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error
+	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

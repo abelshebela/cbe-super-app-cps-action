@@ -972,6 +972,8 @@ const (
 	MsgCityNotFound           = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
+	MsgCannotEnableDistrict   = "Cannot enable district, its region is blocked"
+	MsgCannotEnableBranch     = "Cannot enable branch, its district is already blocked"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
@@ -993,8 +995,8 @@ const (
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
 
-	MsgAlreadyEnabled  = "Donation company already enabled"
-	MsgAlreadyDisabled = "Donation comapany already disabled"
+	MsgAlreadyEnabled  = "Already enabled"
+	MsgAlreadyDisabled = "Already disabled"
 
 	MsgBucketNotFound = "bucket not found"
 

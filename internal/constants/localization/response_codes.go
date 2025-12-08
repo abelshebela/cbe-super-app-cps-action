@@ -341,6 +341,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorBranchNotFound,
 	ErrorDistrictNotFound,
+	ErrorCannotEnableDistrict,
+	ErrorCannotEnableBranch,
 	ErrorRegionNotFound,
 	ErrorCityNotFound,
 
@@ -5030,6 +5032,18 @@ var (
 		Code:       "ERROR_DISTRICT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgDistrictNotFound,
+		Type:       "error",
+	}
+	ErrorCannotEnableDistrict = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_DISTRICT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableDistrict,
+		Type:       "error",
+	}
+	ErrorCannotEnableBranch = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_BRANCH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableBranch,
 		Type:       "error",
 	}
 
