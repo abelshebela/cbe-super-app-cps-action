@@ -38,7 +38,7 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 			Handler: handler.GetCPSActionsByDepartment,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -47,7 +47,7 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 			Handler: handler.GetCPSActionByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -56,7 +56,7 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 			Handler: handler.GetCPSActionByActionCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker}),
+				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
