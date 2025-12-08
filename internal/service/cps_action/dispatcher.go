@@ -3,6 +3,7 @@ package cpsaction
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -25,6 +26,8 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
+
+	fmt.Println("========================================", action)
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
@@ -96,10 +99,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "donationCategory"):
-
 		return d.app.DonationCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "donationCompany"):
-
 		return d.app.DonationCompanyContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Donation"):
 		return d.app.DonationContainer.Authorize(ctx, cpsAction)
@@ -127,6 +128,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.NewsCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "BudgetCategory"):
 		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "MiniAppCategory"):
+		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
