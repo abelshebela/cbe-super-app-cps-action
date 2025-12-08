@@ -472,6 +472,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorDonationImagesUpdated,
 	ErrorImageRequired,
 	ErrorDonationCompanyNotFound,
+	ErrorCompanyIsNotEnabled,
+	ErrorCategoryIsNotEnabled,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
 	ErrorMiniAppMerchantEnableFailed,
@@ -4602,6 +4604,18 @@ var (
 		Code:       "ERROR_DONATION_COMPANY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgDonationCompanyNotFound,
+		Type:       "error",
+	}
+	ErrorCompanyIsNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCompanyNotEnabled,
+		Type:       "error",
+	}
+	ErrorCategoryIsNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCategoryNotEnabled,
 		Type:       "error",
 	}
 

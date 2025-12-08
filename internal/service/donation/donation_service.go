@@ -98,7 +98,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
 	if !category.Enabled {
-		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+		return errors.New(localization.ErrorCategoryIsNotEnabled.Code)
 	}
 
 	company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
@@ -106,7 +106,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
 	if !company.Enabled {
-		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+		return errors.New(localization.ErrorCompanyIsNotEnabled.Code)
 	}
 
 	coverImageURL := ""
