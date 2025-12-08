@@ -14,11 +14,11 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
-	actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/action_role"
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
@@ -137,7 +137,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)
-	actionrole_routing.Init(r, handlerLayer.ActionRoleHandler, authMiddleware)
+	bps_actionrole_routing.Init(r, handlerLayer.BPSActionRoleHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 

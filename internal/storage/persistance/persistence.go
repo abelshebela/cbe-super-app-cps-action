@@ -71,5 +71,5 @@ type Persistence struct {
 	KYCVerifierPersistence           storage.KYCVerifierRepository
 	NewsCategoryPersistence          storage.NewsCategoryRepository
 	NewsTagsServiceContainer         storage.NewsTagsRepository
-	ActionRolePersistence            storage.ActionRoleRepository
+	BPSActionRolePersistence         storage.BPSActionRoleRepository
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -430,7 +431,7 @@ type ServiceLayer struct {
 	NewsTagsService        NewsTagsService
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
-	ActionRole             ActionRoleService
+	BPSActionRole          BPSActionRoleService
 }
 
 type ServiceContainer struct {
@@ -481,24 +482,20 @@ type ServiceContainer struct {
 	EncryptionContainer        EncryptionService
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
-	ActionRoleContainer        ActionRoleService
+	BPSActionRoleContainer     BPSActionRoleService
 }
 
-type ActionRoleService interface {
+type BPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
-	GetByActionCode(ctx context.Context, actionCode string) (*model.ActionRole, error)
+	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req struct {
 		ActionCode       string
 		ActionName       string
 		AssignedMakers   []string
 		AssignedCheckers [][]string
 	}) error
-	Update(ctx context.Context, actionCode string, req struct {
-		ActionName       string
-		AssignedMakers   []string
-		AssignedCheckers [][]string
-	}) error
+	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
 }

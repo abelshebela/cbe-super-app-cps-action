@@ -13,13 +13,13 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type ActionRoleHandler struct {
-	service service.ActionRoleService
+type BPSActionRoleHandler struct {
+	service service.BPSActionRoleService
 	logger  utils.Logger
 }
 
-func NewActionRoleHandler(svc service.ActionRoleService, logger utils.Logger) actionrole_inbound.ActionRoleHandler {
-	return &ActionRoleHandler{service: svc, logger: logger}
+func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logger) actionrole_inbound.BPSActionRoleHandler {
+	return &BPSActionRoleHandler{service: svc, logger: logger}
 }
 
 // GetAll godoc
@@ -33,7 +33,7 @@ func NewActionRoleHandler(svc service.ActionRoleService, logger utils.Logger) ac
 // @Success      200 {object} localization.StandardResponse
 // @Security     BearerAuth
 // @Router       /action-roles [get]
-func (h *ActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllWithPagination(r.Context(), filter)
 	if err != nil {
@@ -52,7 +52,7 @@ func (h *ActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Success      200 {object} localization.StandardResponse
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [get]
-func (h *ActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -76,7 +76,7 @@ func (h *ActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Reque
 // @Success      201 {object} localization.StandardResponse
 // @Security     BearerAuth
 // @Router       /action-roles [post]
-func (h *ActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
@@ -110,7 +110,7 @@ func (h *ActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Success      201 {object} localization.StandardResponse
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [patch]
-func (h *ActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -121,11 +121,7 @@ func (h *ActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	err := h.service.Update(r.Context(), code, struct {
-		ActionName       string
-		AssignedMakers   []string
-		AssignedCheckers [][]string
-	}{ActionName: req.ActionName, AssignedMakers: req.AssignedMakers, AssignedCheckers: req.AssignedCheckers})
+	err := h.service.Update(r.Context(), code, req)
 	if err != nil {
 		h.logger.Errorf("update action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -142,7 +138,7 @@ func (h *ActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Success      201 {object} localization.StandardResponse
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/enable [patch]
-func (h *ActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -164,7 +160,7 @@ func (h *ActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 // @Success      201 {object} localization.StandardResponse
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/disable [patch]
-func (h *ActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)

@@ -1,4 +1,4 @@
-package actionrole_routing
+package bps_actionrole_routing
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
@@ -10,11 +10,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, handler actionrole_inbound.ActionRoleHandler, auth middleware.AuthMiddleware) {
+func Init(router chi.Router, handler actionrole_inbound.BPSActionRoleHandler, auth middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/action-roles",
+			Path:    "/bps-action-roles",
 			Handler: handler.GetAll,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -23,7 +23,7 @@ func Init(router chi.Router, handler actionrole_inbound.ActionRoleHandler, auth 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/action-roles/{code}",
+			Path:    "/bps-action-roles/{code}",
 			Handler: handler.GetByActionCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -32,7 +32,7 @@ func Init(router chi.Router, handler actionrole_inbound.ActionRoleHandler, auth 
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/action-roles",
+			Path:    "/bps-action-roles",
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -41,7 +41,7 @@ func Init(router chi.Router, handler actionrole_inbound.ActionRoleHandler, auth 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/action-roles/{code}",
+			Path:    "/bps-action-roles/{code}",
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -50,7 +50,7 @@ func Init(router chi.Router, handler actionrole_inbound.ActionRoleHandler, auth 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/action-roles/{code}/enable",
+			Path:    "/bps-action-roles/{code}/enable",
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -59,7 +59,7 @@ func Init(router chi.Router, handler actionrole_inbound.ActionRoleHandler, auth 
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/action-roles/{code}/disable",
+			Path:    "/bps-action-roles/{code}/disable",
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,

@@ -2,7 +2,7 @@ package actionrole
 
 import "net/http"
 
-type ActionRoleHandler interface {
+type BPSActionRoleHandler interface {
 	GetAll(w http.ResponseWriter, r *http.Request)
 	GetByActionCode(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)

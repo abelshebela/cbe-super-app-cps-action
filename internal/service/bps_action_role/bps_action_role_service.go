@@ -1,7 +1,8 @@
-package action_role_service
+package bps_action_role_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -17,23 +18,23 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type actionRoleService struct {
-	repo       storage.ActionRoleRepository
+type bpsActionRoleService struct {
+	repo       storage.BPSActionRoleRepository
 	cpsService service.CPSActionService
 	logger     utils.Logger
 }
 
-func NewActionRoleService(repo storage.ActionRoleRepository, cps service.CPSActionService, logger utils.Logger) service.ActionRoleService {
-	return &actionRoleService{repo: repo, cpsService: cps, logger: logger}
+func NewBPSActionRoleService(repo storage.BPSActionRoleRepository, cps service.CPSActionService, logger utils.Logger) service.BPSActionRoleService {
+	return &bpsActionRoleService{repo: repo, cpsService: cps, logger: logger}
 }
 
-// FindAllWithPagination implements service.ActionRoleService.
-func (s *actionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error) {
+// FindAllWithPagination implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
 
-// GetByActionCode implements service.ActionRoleService.
-func (s *actionRoleService) GetByActionCode(ctx context.Context, actionCode string) (*model.ActionRole, error) {
+// GetByActionCode implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
 	if actionCode == "" {
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
@@ -48,8 +49,8 @@ func (s *actionRoleService) GetByActionCode(ctx context.Context, actionCode stri
 	return res, nil
 }
 
-// Create implements service.ActionRoleService.
-func (s *actionRoleService) Create(ctx context.Context, req struct {
+// Create implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) Create(ctx context.Context, req struct {
 	ActionCode       string
 	ActionName       string
 	AssignedMakers   []string
@@ -83,12 +84,8 @@ func (s *actionRoleService) Create(ctx context.Context, req struct {
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
-// Update implements service.ActionRoleService.
-func (s *actionRoleService) Update(ctx context.Context, actionCode string, req struct {
-	ActionName       string
-	AssignedMakers   []string
-	AssignedCheckers [][]string
-}) error {
+// Update implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error {
 	if actionCode == "" {
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
@@ -103,11 +100,16 @@ func (s *actionRoleService) Update(ctx context.Context, actionCode string, req s
 	}
 
 	payload := model.ActionRoleCPSAction{
-		ActionCode:       actionCode,
-		ActionName:       local_util.NonEmptyString(req.ActionName, old.ActionName),
-		AssignedMakers:   req.AssignedMakers,
-		AssignedCheckers: req.AssignedCheckers,
-		Enabled:          old.Enabled,
+		ActionCode: actionCode,
+		ActionName: local_util.NonEmptyString(req.ActionName, old.ActionName),
+		Enabled:    old.Enabled,
+	}
+
+	if req.AssignedCheckers != nil {
+		payload.AssignedMakers = req.AssignedMakers
+	}
+	if req.AssignedCheckers != nil {
+		payload.AssignedCheckers = req.AssignedCheckers
 	}
 
 	cpsAction := lib.CpsModelBuilder(
@@ -121,7 +123,7 @@ func (s *actionRoleService) Update(ctx context.Context, actionCode string, req s
 	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
 }
 
-func (s *actionRoleService) Enable(ctx context.Context, actionCode string) error {
+func (s *bpsActionRoleService) Enable(ctx context.Context, actionCode string) error {
 	if actionCode == "" {
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
@@ -139,7 +141,7 @@ func (s *actionRoleService) Enable(ctx context.Context, actionCode string) error
 	return s.cpsService.CreateCPSAction(ctx, &cps)
 }
 
-func (s *actionRoleService) Disable(ctx context.Context, actionCode string) error {
+func (s *bpsActionRoleService) Disable(ctx context.Context, actionCode string) error {
 	if actionCode == "" {
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
@@ -157,7 +159,7 @@ func (s *actionRoleService) Disable(ctx context.Context, actionCode string) erro
 }
 
 // Authorize applies approved CPS actions
-func (s *actionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	cur, err := local_util.JsonUnmarshal[model.ActionRoleCPSAction](action.CurrentAction)
 	if err != nil {
 		s.logger.Errorf("failed to unmarshal action: %v", err)
@@ -203,7 +205,7 @@ func (s *actionRoleService) Authorize(ctx context.Context, action *model.CPSActi
 	}
 }
 
-func (s *actionRoleService) bindActionRoleModel(in model.ActionRoleCPSAction) (model.ActionRole, error) {
+func (s *bpsActionRoleService) bindActionRoleModel(in model.ActionRoleCPSAction) (model.ActionRole, error) {
 	var makers []bson.ObjectID
 	for _, id := range in.AssignedMakers {
 		obj, err := bson.ObjectIDFromHex(id)

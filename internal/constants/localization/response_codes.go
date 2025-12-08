@@ -536,6 +536,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorBankWithBICAlreadyExists,
 	ErrorBankWithCodeAlreadyExists,
+
+	// BPS Action Role related error codes
+	ErrorBpsActionRoleNotFound,
 }
 
 // Success Response Codes
@@ -5561,6 +5564,12 @@ var (
 		Code:       "ERROR_SITOTA_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgSitotaRequired,
+		Type:       "error",
+	}
+	ErrorBpsActionRoleNotFound = ResponseCode{
+		Code:       "ERROR_BPS_ACTION_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBpsActionRoleNotFound,
 		Type:       "error",
 	}
 )

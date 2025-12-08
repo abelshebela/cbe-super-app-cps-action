@@ -1022,4 +1022,7 @@ const (
 
 	// Encryption
 	MsgEncryptionSuccessfully = "Encryption generated successfully"
+
+	// bps action role related
+	MsgBpsActionRoleNotFound = "BPS action role not found"
 )
