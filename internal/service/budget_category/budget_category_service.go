@@ -62,6 +62,10 @@ func (b *BudgetCategoryService) Authorize(ctx context.Context, action *model.CPS
 		err = b.budgetCategoryRepo.CreateBudgetCategory(ctx, budgetCategory)
 	case string(constants.RequestUpdateBudgetCategory):
 		err = b.budgetCategoryRepo.UpdateBudgetCategory(ctx, action.UniqueId, budgetCategory)
+	case string(constants.RequestDisableBudgetCategory):
+		err = b.budgetCategoryRepo.UpdateBudgetCategory(ctx, action.UniqueId, budgetCategory)
+	case string(constants.RequestEnableBudgetCategory):
+		err = b.budgetCategoryRepo.UpdateBudgetCategory(ctx, action.UniqueId, budgetCategory)
 	case string(constants.RequestDeleteBudgetCategory):
 		err = b.budgetCategoryRepo.DeleteBudgetCategory(ctx, action.UniqueId)
 	default:
@@ -87,12 +91,12 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 		}
 		iconURL = url
 	}
-	isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx,req.Name)
+	isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx, req.Name)
 	if err != nil {
 		b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
-	if isDuplicate!=nil {
+	if isDuplicate != nil {
 		b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
 		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
 	}
@@ -171,17 +175,17 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 	newBudgetCategory := *existingBudgetCategory
 
 	if req.Name != "" {
-		
-		isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx,req.Name)
-	if err != nil {
-		b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-	if isDuplicate!=nil&& isDuplicate.ID.Hex()!=id {
-		b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
-		return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
-	}
-	
+
+		isDuplicate, err := b.budgetCategoryRepo.FindByName(ctx, req.Name)
+		if err != nil {
+			b.logger.Errorf("Failed to check for duplicate budget category name: %s, error: %v", req.Name, err)
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		if isDuplicate != nil && isDuplicate.ID.Hex() != id {
+			b.logger.Errorf("Duplicate budget category found, name: %s", req.Name)
+			return errors.New(localization.ErrorBudgetCategoryNameAlreadyExists.Code)
+		}
+
 		newBudgetCategory.Name = req.Name
 	}
 	if req.Color != "" {
@@ -255,10 +259,25 @@ func (b *BudgetCategoryService) EnableOrDisableBudgetCategory(ctx context.Contex
 		return err
 	}
 
-	existingBudgetCategory.Enabled = enable
-	existingBudgetCategory.UpdatedAt = time.Now()
+	if enable && enable == existingBudgetCategory.Enabled {
+		return errors.New(localization.ErrorBudgetCategoryAlreadyEnabled.Code)
+	}
+	if !enable && enable == existingBudgetCategory.Enabled {
+		return errors.New(localization.ErrorBudgetCategoryAlreadyDisabled.Code)
+	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, existingBudgetCategory, string(constants.RequestDeleteBudgetCategory), constants.UPDATE)
+	update := *existingBudgetCategory
+	update.Enabled = enable
+	update.UpdatedAt = time.Now()
+
+	var requestType string
+	if enable {
+		requestType = string(constants.RequestEnableBudgetCategory)
+	} else {
+		requestType = string(constants.RequestDisableBudgetCategory)
+	}
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existingBudgetCategory, update, requestType, constants.UPDATE)
 
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		return err

@@ -444,6 +444,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorNoChangesDetected,
 	ErrorDonationCategoryLookupFailed,
 	ErrorNoChangesToUpdate,
+	ErrorBudgetCategoryAlreadyEnabled,
+	ErrorBudgetCategoryAlreadyDisabled,
 	ErrorDonationParseStartDateFailed,
 	ErrorDonationParseEndDateFailed,
 	ErrorDonationFetchCompanyFailed,
@@ -2775,10 +2777,16 @@ var (
 		Type:       "success",
 	}
 
-	SuccessBudgetCategoryToggleSubmittedForApproval = ResponseCode{
-		Code:       "BUDGET_CATEGORY_TOGGLE_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetCategoryEnableSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_ENABLE_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetCategoryToggleSubmittedForApprovalSuccess,
+		Message:    MsgBudgetCategoryEnableSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+	SuccessBudgetCategoryDisableSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_DISABLE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryDisableSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 
@@ -4425,6 +4433,19 @@ var (
 		Code:       "ERROR_NO_CHANGES_TO_UPDATE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgNoChangesToUpdate,
+		Type:       "error",
+	}
+
+	ErrorBudgetCategoryAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBudgetCategoryAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBudgetCategoryAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBudgetCategoryAlreadyDisable,
 		Type:       "error",
 	}
 

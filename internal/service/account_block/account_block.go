@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 )
@@ -57,6 +58,8 @@ func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *ty
 }
 
 func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error {
+	var alreadyEnabled []string
+	var alreadyDisabled []string
 
 	for _, code := range branchCodes {
 		branch, err := s.repo.GetBranchByCode(ctx, code)
@@ -69,10 +72,18 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 
 		if branch.IsEnabled == enabled {
 			if enabled {
-				return errors.New(localization.ErrorAlreadyEnabled.Code)
+				alreadyEnabled = append(alreadyEnabled, code)
+				// return errors.New(localization.ErrorAlreadyEnabled.Code)
 			}
-			return errors.New(localization.ErrorAlreadyDisabled.Code)
+			alreadyDisabled = append(alreadyDisabled, code)
+			// return errors.New(localization.ErrorAlreadyDisabled.Code)
 		}
+	}
+
+	if len(alreadyEnabled) > 0 {
+		return fmt.Errorf("these branches are already enabled: %s", alreadyEnabled)
+	} else if len(alreadyDisabled) > 0 {
+		return fmt.Errorf("these branches are already disabled: %s", alreadyDisabled)
 	}
 
 	var actionType constants.ActionType

@@ -155,7 +155,6 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	Enabled := true
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {
 		b.logger.Errorf("Incomplete user information")
@@ -163,16 +162,14 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, Enabled)
+	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, true)
 	if err != nil {
 		b.logger.Errorf("failed to enable budget category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	action := "enabled"
-
-	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryToggleSubmittedForApproval, map[string]string{"action": action})
+	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnableSubmittedForApproval, nil)
 }
 func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *http.Request) {
 	id, ok := common_util.GetParam(r, "id")
@@ -182,7 +179,6 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 		return
 	}
 
-	Enabled := false
 	userContext := common_util.ExtractUserContext(r)
 	if common_util.IsIncomplete(userContext) {
 		b.logger.Errorf("Incomplete user information")
@@ -190,14 +186,12 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 		return
 	}
 
-	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, Enabled)
+	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, false)
 	if err != nil {
 		b.logger.Errorf("failed to disnable budget category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	action := "disabled"
-
-	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryToggleSubmittedForApproval, map[string]string{"action": action})
+	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisableSubmittedForApproval, nil)
 }

@@ -88,9 +88,10 @@ func Init(ctx context.Context) {
 	logger.Infof("kafka initialized")
 
 	logger.Infof("Initializing persistence...")
-	notificationApi := cfg.SMSBaseURL
-	merchantApi := "https://ce-erp.starpayethiopia.com/api/v1/merchant"
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, *kafkaInit, cfg, logger)
+	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	merchantApi := "https://ce-erp.starpayethiopia.com/api/v1/merchant/"
+	merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, merchantXAPIKey, notificationApi, *kafkaInit, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)
