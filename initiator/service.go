@@ -19,6 +19,7 @@ import (
 	bankvault "cbe-super-app-cps-action/internal/service/bankvault"
 	vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
 
+	bps_action_role_service "cbe-super-app-cps-action/internal/service/bps_action_role"
 	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	budgetCategorySvc "cbe-super-app-cps-action/internal/service/budget_category"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
@@ -114,7 +115,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
-	miniAppCategoryService := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
+	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -161,7 +162,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		EncryptionContainer:        encryptionService,
 		BankProductContainer:       bankVaultProductService,
 		VaultCategoryContainer:     vaultGroupCategoryService,
-		MiniAppCategoryContainer:   miniAppCategoryService,
+		BPSActionRoleContainer:     bpsActionRoleService,
 	}
 
 	// CPSActionService Appended
@@ -206,6 +207,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
+	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, cpsActionService, logger)
+	serviceContainer.BPSActionRoleContainer = bpsActionRoleService
 
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
@@ -237,18 +240,17 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	productCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 
 	return service.ServiceLayer{
-		CPSAction:       cpsActionService,
-		Feedback:        feedbackService,
-		EventService:    eventService,
-		Avatar:          avatarService,
-		Advert:          adService,
-		BpsUser:         bpsUserService,
-		Bank:            bank_service,
-		Unlink:          unlinkService,
-		BudgetCategory:  budgetCategoryService,
-		PortalCard:      portalCardService,
-		AmountBasedAuth: amountBased,
-		// ValidationService:      accountValidation,
+		CPSAction:              cpsActionService,
+		Feedback:               feedbackService,
+		EventService:           eventService,
+		Avatar:                 avatarService,
+		Advert:                 adService,
+		BpsUser:                bpsUserService,
+		Bank:                   bank_service,
+		Unlink:                 unlinkService,
+		BudgetCategory:         budgetCategoryService,
+		PortalCard:             portalCardService,
+		AmountBasedAuth:        amountBased,
 		AccountValidation:      accountValidationService,
 		Wallet:                 walletService,
 		Topup:                  topupService,
@@ -281,6 +283,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Encryption:             encryptionService,
 		BankVault:              bankVaultProductService,
 		VaultGroupCategory:     vaultGroupCategoryService,
-		MiniAppCategory:        miniAppCategoryService,
+		BPSActionRole:          bpsActionRoleService,
 	}
 }
