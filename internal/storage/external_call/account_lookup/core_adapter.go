@@ -65,7 +65,7 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 		return nil, err
 	}
 	if !response.Success || response.Detail == nil {
-		return nil, errors.New(localization.ErrorExternalServiceError.Code)
+		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 
 	detail := response.Detail

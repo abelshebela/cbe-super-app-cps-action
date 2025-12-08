@@ -47,7 +47,14 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["app_type"] = miniApp.AppType
 	}
 
-	// Array field
+	if miniApp.AppCode != "" {
+		update["app_code"] = miniApp.AppCode
+	}
+
+	if miniApp.CategoryID != bson.NilObjectID {
+		update["category_id"] = miniApp.CategoryID
+	}
+
 	if len(miniApp.ProductCode) > 0 {
 		productCodes := make([]bson.M, len(miniApp.ProductCode))
 		for i, pc := range miniApp.ProductCode {
@@ -62,7 +69,6 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["product_code"] = productCodes
 	}
 
-	// Credential struct: check if any field is non-empty
 	cred := miniApp.Credential
 	if cred.Environment != "" || cred.MerchantAppID != "" || cred.FabricAppID != "" ||
 		cred.ShortCode != "" || cred.AppSecret != "" || cred.PrivateKey != "" ||

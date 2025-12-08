@@ -10,6 +10,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"math"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -43,98 +44,6 @@ func (f *FeedbackStorage) Create(ctx context.Context, feedback *model.Feedback) 
 	return nil
 }
 
-func (s *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*feedback.FeedbackResponse], error) {
-	filter := bson.M{}
-	searchKeys := bson.M{}
-	allowedKeys := []string{"responses"}
-
-	if filterParam.Search != "" {
-		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["responses"] = searchRegex
-	}
-
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: filter}},
-		{{Key: "$addFields", Value: bson.D{
-			{Key: "user_id_obj", Value: bson.D{
-				{Key: "$toObjectId", Value: "$user_id"},
-			}},
-		}}},
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: "members"},
-			{Key: "localField", Value: "user_id_obj"},
-			{Key: "foreignField", Value: "_id"},
-			{Key: "as", Value: "user"},
-		}}},
-		{{Key: "$unwind", Value: bson.D{
-			{Key: "path", Value: "$user"},
-			{Key: "preserveNullAndEmptyArrays", Value: true},
-		}}},
-		{{Key: "$project", Value: bson.D{
-			{Key: "_id", Value: 1},
-			{Key: "responses", Value: 1},
-			{Key: "created_at", Value: 1},
-			{Key: "updated_at", Value: 1},
-			{Key: "user", Value: bson.D{
-				{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
-				{Key: "user_code", Value: "$user.user_code"},
-				{Key: "full_name", Value: "$user.full_name"},
-			}},
-		}}},
-		{{Key: "$skip", Value: skip}},
-		{{Key: "$limit", Value: limit}},
-	}
-
-	cursor, err := s.collection.Aggregate(ctx, pipeline)
-	if err != nil {
-		s.logger.Errorf("aggregate feedbacks: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
-	defer cursor.Close(ctx)
-
-	var data []*feedback.FeedbackResponse
-	if err := cursor.All(ctx, &data); err != nil {
-		s.logger.Errorf("decode feedbacks: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
-
-	countPipeline := mongo.Pipeline{
-		{{Key: "$match", Value: filter}},
-		{{Key: "$count", Value: "total"}},
-	}
-
-	countCursor, err := s.collection.Aggregate(ctx, countPipeline)
-	if err != nil {
-		s.logger.Errorf("count feedbacks: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
-	defer countCursor.Close(ctx)
-
-	var countResult []bson.M
-	if err := countCursor.All(ctx, &countResult); err != nil {
-		s.logger.Errorf("decode count: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Message)
-	}
-
-	var total int64
-	if len(countResult) > 0 {
-		if val, ok := countResult[0]["total"]; ok {
-			if intVal, ok := val.(int32); ok {
-				total = int64(intVal)
-			}
-		}
-	}
-
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-	return &types.PaginatedResponse[[]*feedback.FeedbackResponse]{
-		Data: data,
-		Meta: meta,
-	}, nil
-}
-
 func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -142,13 +51,9 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 	}
 
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.D{
-			{Key: "_id", Value: objID},
-		}}},
+		{{Key: "$match", Value: bson.D{{Key: "_id", Value: objID}}}},
 		{{Key: "$addFields", Value: bson.D{
-			{Key: "user_id_obj", Value: bson.D{
-				{Key: "$toObjectId", Value: "$user_id"},
-			}},
+			{Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
 		}}},
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "members"},
@@ -191,4 +96,119 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 	}
 
 	return &resp, nil
+}
+
+func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error) {
+	filter := bson.M{}
+	searchKeys := bson.M{}
+	allowedKeys := []string{"created_at", "user_id","responses"}
+if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["responses"] = searchRegex
+	}
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+		{{Key: "$facet", Value: bson.D{
+			{Key: "docs", Value: bson.A{
+				bson.D{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+				bson.D{{Key: "$skip", Value: skip}},
+				bson.D{{Key: "$limit", Value: limit}},
+				bson.D{{Key: "$addFields", Value: bson.D{
+					{Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+				}}},
+				bson.D{{Key: "$lookup", Value: bson.D{
+					{Key: "from", Value: "members"},
+					{Key: "localField", Value: "user_id_obj"},
+					{Key: "foreignField", Value: "_id"},
+					{Key: "as", Value: "user"},
+				}}},
+				bson.D{{Key: "$unwind", Value: bson.D{
+					{Key: "path", Value: "$user"},
+					{Key: "preserveNullAndEmptyArrays", Value: true},
+				}}},
+				bson.D{{Key: "$project", Value: bson.D{
+					{Key: "_id", Value: 1},
+					{Key: "responses", Value: 1},
+					{Key: "created_at", Value: 1},
+					{Key: "updated_at", Value: 1},
+					{Key: "user", Value: bson.D{
+						{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
+						{Key: "user_code", Value: "$user.user_code"},
+						{Key: "full_name", Value: "$user.full_name"},
+					}},
+				}}},
+			}},
+			{Key: "totalCount", Value: bson.A{
+				bson.D{{Key: "$count", Value: "count"}},
+			}},
+			{Key: "averageRatings", Value: bson.A{
+				bson.D{{Key: "$project", Value: bson.D{
+					{Key: "ratings", Value: bson.D{
+						{Key: "$filter", Value: bson.D{
+							{Key: "input", Value: bson.D{{Key: "$objectToArray", Value: "$responses"}}},
+							{Key: "as", Value: "item"},
+							{Key: "cond", Value: bson.D{
+								{Key: "$and", Value: bson.A{
+									bson.D{{Key: "$eq", Value: bson.A{"$$item.v.type", "rating"}}},
+									bson.D{{Key: "$ne", Value: bson.A{"$$item.v.answer", nil}}},
+								}},
+							}},
+						}},
+					}},
+				}}},
+				bson.D{{Key: "$unwind", Value: "$ratings"}},
+				bson.D{{Key: "$group", Value: bson.D{
+					{Key: "_id", Value: "$ratings.k"},
+					{Key: "average", Value: bson.D{{Key: "$avg", Value: bson.D{{Key: "$toDouble", Value: "$ratings.v.answer"}}}}},
+				}}},
+			}},
+		}}},
+	}
+
+	cursor, err := f.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		f.logger.Errorf("aggregate feedbacks: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		return nil, nil
+	}
+
+	var result struct {
+		Docs       []*feedback.FeedbackResponse `bson:"docs"`
+		TotalCount []struct {
+			Count int64 `bson:"count"`
+		} `bson:"totalCount"`
+		AverageRatings []struct {
+			ID      string  `bson:"_id"`
+			Average float64 `bson:"average"`
+		} `bson:"averageRatings"`
+	}
+
+	if err := cursor.Decode(&result); err != nil {
+		f.logger.Errorf("decode aggregated result: %v", err)
+		return nil, err
+	}
+
+	var total int64
+	if len(result.TotalCount) > 0 {
+		total = result.TotalCount[0].Count
+	}
+
+	averages := make(map[string]float64)
+	for _, avg := range result.AverageRatings {
+		averages[avg.ID] = math.Round(avg.Average*100) / 100
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	return &types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse]{
+		Data:           result.Docs,
+		Meta:           meta,
+		AverageRatings: averages,
+	}, nil
 }

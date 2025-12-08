@@ -45,8 +45,8 @@ var (
 	NewsShortVideosCollection        = "news_short_videos"
 	NewsTagsCollection               = "news_tags"
 	NewsCategoryCollection           = "news_category"
-	ActionRolesCollection            = "action_roles"
 	CustomersKYCCollection           = "customer_kyc"
+	MiniAppCategoriesCollection      = "mini_app_categories"
 )
 
 // Minio Bucket Names

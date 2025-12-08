@@ -277,6 +277,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorExternalServiceError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
 	ErrorInvalidBooleanFormat,
@@ -462,6 +463,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
+	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
@@ -470,15 +472,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
-
-	ErrorDonationCompanyLookupFailed,
-
+	ErrorDonationAlreadyEnabled,
+	ErrorDonationAlreadyDisabled,
 	SuccessDonationCompanyUpdated,
 	ErrorDonationTitleDuplicated,
 	ErrorDonationImageUploaded,
 	ErrorDonationImagesUpdated,
 	ErrorImageRequired,
 	ErrorDonationCompanyNotFound,
+	ErrorCompanyIsNotEnabled,
+	ErrorCategoryIsNotEnabled,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
 	ErrorMiniAppMerchantEnableFailed,
@@ -1694,7 +1697,7 @@ var (
 	ErrorWalletRechangeOption = ResponseCode{
 		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
 		StatusCode: 400,
-		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
+		Message:    "At Least one of the three rechange options should be enabled(self,other,agent)",
 		Type:       "error",
 	}
 
@@ -4333,11 +4336,29 @@ var (
 		Message:    MsgDonationCompanyLookupFailed,
 		Type:       "error",
 	}
+	ErrorDonationAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDonationAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationAlreadyDisabled,
+		Type:       "error",
+	}
 
 	ErrorCompanyNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCompanyNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCompanyCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_COMPANY_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCompanyCodeAlreadyExists,
 		Type:       "error",
 	}
 
@@ -4634,6 +4655,18 @@ var (
 		Code:       "ERROR_DONATION_COMPANY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgDonationCompanyNotFound,
+		Type:       "error",
+	}
+	ErrorCompanyIsNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCompanyNotEnabled,
+		Type:       "error",
+	}
+	ErrorCategoryIsNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCategoryNotEnabled,
 		Type:       "error",
 	}
 
@@ -5004,6 +5037,12 @@ var (
 		Code:       "ERROR_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorFailedToUpdateDonation = ResponseCode{
+		Code:       "ERROR_FAILED_TO_UPDATE_DONATION_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Failed to update donations",
 		Type:       "error",
 	}
 

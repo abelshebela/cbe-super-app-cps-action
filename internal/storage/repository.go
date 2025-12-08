@@ -302,6 +302,7 @@ type DonationCompanyRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_company.DonationCompanyListResponse], error)
+	FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error)
 }
 
 type MiniAppRepository interface {
@@ -330,7 +331,7 @@ type EventRepository interface {
 type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*feedback.FeedbackResponse], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error)
 }
 
 type LinkedAccountRepository interface {
@@ -566,4 +567,11 @@ type BPSActionRoleRepository interface {
 type SitotaRepository interface {
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
 	Get(ctx context.Context, id string) (*model.SitotaTransaction, error)
+}
+
+type MiniAppCategoryRepository interface {
+	Create(ctx context.Context, category *model.MiniAppCategory) error
+	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }

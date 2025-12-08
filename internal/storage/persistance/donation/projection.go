@@ -23,6 +23,7 @@ func MapToDonationListResponse(donation *model.Donation, company *model.Donation
 		CompanyName:   company.CompanyName,
 		CompanyLogo:   company.CompanyLogo,
 		AccountNumber: company.AccountNumber,
+		Enabled:       company.Enabled,
 	}
 
 	categoryResponse := donation_dto.Category{

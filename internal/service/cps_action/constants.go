@@ -285,6 +285,12 @@ const (
 	RequestApproveFaydaCustomer RequestAction = "APPROVE_FAYDA_CUSTOMER"
 
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
+
+	RequestCreateMiniAppCategory  RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -478,6 +484,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableDeviceVersion:       {},
 	RequestDeleteDeviceVersion:        {},
 	RequestEnableDisableDeviceVersion: {},
+
+	RequestCreateMiniAppCategory:  {},
+	RequestUpdateMiniAppCategory:  {},
+	RequestDeleteMiniAppCategory:  {},
+	RequestEnableMiniAppCategory:  {},
+	RequestDisableMiniAppCategory: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -794,32 +806,32 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestApproveFaydaCustomer,
 	},
 
-"news_category": {
-	RequestAction("CREATE_NEWS_CATEGORY"),
-	RequestAction("UPDATE_NEWS_CATEGORY"),
-	RequestAction("DELETE_NEWS_CATEGORY"),
-},
-"news_tag": {
-	RequestCreateNewsTag,
-	RequestUpdateNewsTag,
-	RequestEnableNewsTag,
-	RequestDisableNewsTag,
-	RequestDeleteNewsTag,
-},
-"ActionRole": {
-	RequestCreateActionRole,
-	RequestUpdateActionRole,
-	RequestEnableActionRole,
-	RequestDisableActionRole,
-},
-"DeviceVersion": {
-	RequestCreateDeviceVersion,
-	RequestUpdateDeviceVersion,
-	RequestEnableDeviceVersion,
-	RequestDisableDeviceVersion,
-	RequestDeleteDeviceVersion,
-	RequestEnableDisableDeviceVersion,
-},
+	"news_category": {
+		RequestAction("CREATE_NEWS_CATEGORY"),
+		RequestAction("UPDATE_NEWS_CATEGORY"),
+		RequestAction("DELETE_NEWS_CATEGORY"),
+	},
+	"news_tag": {
+		RequestCreateNewsTag,
+		RequestUpdateNewsTag,
+		RequestEnableNewsTag,
+		RequestDisableNewsTag,
+		RequestDeleteNewsTag,
+	},
+	"ActionRole": {
+		RequestCreateActionRole,
+		RequestUpdateActionRole,
+		RequestEnableActionRole,
+		RequestDisableActionRole,
+	},
+	"DeviceVersion": {
+		RequestCreateDeviceVersion,
+		RequestUpdateDeviceVersion,
+		RequestEnableDeviceVersion,
+		RequestDisableDeviceVersion,
+		RequestDeleteDeviceVersion,
+		RequestEnableDisableDeviceVersion,
+	},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {

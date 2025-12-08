@@ -31,7 +31,7 @@ func GenerateNotification(notification model.Notification) *model.Notification {
 func BuildCreateNotification(req notify.NotificationRequest) model.Notification {
 	return model.Notification{
 		Title:            req.Title,
-		IdNum:            local_utils.NewNotificationID(),
+		NotificationCode: local_utils.NewNotificationID(),
 		NotificationType: req.NotificationType,
 		NotificationBody: req.NotificationBody,
 		IsPublic:         req.IsPublic,

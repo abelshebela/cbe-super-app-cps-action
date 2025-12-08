@@ -34,6 +34,11 @@ func ParseTime(date string) time.Time {
 	return parsedTime
 }
 
+func UniqueIdGenerator() string {
+	// timestamp format: YYYYMMDDHHMMSS
+	timestamp := time.Now().Format("20060102150405")
+	return fmt.Sprintf("%s", timestamp)
+}
 func ParseUserContext(r *http.Request) (types.UserContext, error) {
 	userContext := ExtractUserContext(r)
 	if IsIncomplete(userContext) {
@@ -166,10 +171,14 @@ func parseValue(value string) interface{} {
 	if isDigitString(value) {
 		if parsed, err := strconv.ParseInt(value, 10, 64); err == nil {
 			return parsed
+			return parsed
 		} else if errors.Is(err, strconv.ErrRange) {
 			return value
 		}
+		}
 	} else if strings.ContainsAny(value, ".eE") {
+		if parsed, err := strconv.ParseFloat(value, 64); err == nil {
+			return parsed
 		if parsed, err := strconv.ParseFloat(value, 64); err == nil {
 			return parsed
 		}
