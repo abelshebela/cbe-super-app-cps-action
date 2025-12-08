@@ -88,8 +88,8 @@ func Init(ctx context.Context) {
 	logger.Infof("kafka initialized")
 
 	logger.Infof("Initializing persistence...")
-	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
-	merchantApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	notificationApi := cfg.SMSBaseURL
+	merchantApi := "https://ce-erp.starpayethiopia.com/api/v1/merchant"
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, *kafkaInit, cfg, logger)
 	logger.Infof("Persistence initialized")
 

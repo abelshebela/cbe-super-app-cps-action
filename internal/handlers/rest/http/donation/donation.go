@@ -223,11 +223,11 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := core.ValidateImageUpdateRequest(req); err != nil {
-		d.logger.Errorf("image update validation failed: %v", err)
-		localization.SendBadRequestResponse(w, err.Error())
-		return
-	}
+	// if err := core.ValidateImageUpdateRequest(req); err != nil {
+	// 	d.logger.Errorf("image update validation failed: %v", err)
+	// 	localization.SendBadRequestResponse(w, err.Error())
+	// 	return
+	// }
 
 	if err := d.donationApp.UpdateDonationImage(r.Context(), id, req); err != nil {
 		d.logger.Errorf("failed to update donation image: %v", err)

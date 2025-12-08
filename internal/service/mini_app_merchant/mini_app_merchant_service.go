@@ -275,6 +275,7 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
 	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID)
 	if err != nil {
+		m.logger.Errorf("Merchant lookup error : %v", err)
 		return nil, err
 	}
 

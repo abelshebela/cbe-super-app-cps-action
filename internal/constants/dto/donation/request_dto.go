@@ -16,7 +16,9 @@ type DonationCPSRequest struct {
 	ID                  string          `json:"id" bson:"id"`
 	DonationCode        string          `json:"donation_code,omitempty" bson:"donation_code,omitempty"`
 	CompanyID           string          `json:"company_id" bson:"company_id"`
+	CompanyName         string          `json:"company_name,omitempty" bson:"company_name,omitempty"`
 	CategoryID          string          `json:"category_id" bson:"category_id"`
+	CategoryName        string          `json:"category_name,omitempty" bson:"category_name,omitempty"`
 	Title               string          `json:"title" bson:"title"`
 	IsFeatured          bool            `json:"is_featured" bson:"is_featured"`
 	Target              int32           `json:"target" bson:"target"`

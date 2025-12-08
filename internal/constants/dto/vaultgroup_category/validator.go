@@ -115,7 +115,7 @@ func validateCoverImage(value interface{}) error {
 		return errors.New(localization.MsgBankImageRequiredOrMissing)
 	}
 
-	if file.Size > (2 << 20) {
+	if file.Size > (15 << 20) {
 		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 

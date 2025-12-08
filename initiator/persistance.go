@@ -14,6 +14,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/auth_tier"
 	"cbe-super-app-cps-action/internal/storage/persistance/avatar"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
+	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/bps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/branch"
 	"cbe-super-app-cps-action/internal/storage/persistance/city"
@@ -86,7 +87,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, AccountBlockCollection, logger),
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
-		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, logger),
+		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, "0e404061ea76caf9536bc7a38369ca38520aac3c", logger),
 		SMSSenderApi:                    kafkaService,
 		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
 		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
@@ -131,6 +132,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NewsCategoryPersistence:          newscategory_repo.NewNewsCategoryRepository(client, dbName, NewsCategoryCollection, logger),
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
+		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
 	}
 
 	return data

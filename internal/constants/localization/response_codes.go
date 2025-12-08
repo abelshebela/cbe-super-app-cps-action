@@ -146,6 +146,14 @@ var ResponseCodesList = []ResponseCode{
 	// Encryption
 	SuccessEncryptionGenerated,
 
+	// Action Role success response codes
+	SuccessActionRolesFetched,
+	SuccessActionRoleFetched,
+	SuccessActionRoleCreateRequestCreated,
+	SuccessActionRoleUpdateRequestCreated,
+	SuccessActionRoleEnableRequestCreated,
+	SuccessActionRoleDisableRequestCreated,
+
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -269,6 +277,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorExternalServiceError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
 	ErrorInvalidBooleanFormat,
@@ -454,6 +463,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// Donation Company Error Codes
 	ErrorCompanyNameAlreadyExists,
+	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
@@ -462,15 +472,16 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberNotActive,
 	ErrorAccountNumberNotFound,
 	ErrorDonationCompanyIdRequired,
-
-	ErrorDonationCompanyLookupFailed,
-
+	ErrorDonationAlreadyEnabled,
+	ErrorDonationAlreadyDisabled,
 	SuccessDonationCompanyUpdated,
 	ErrorDonationTitleDuplicated,
 	ErrorDonationImageUploaded,
 	ErrorDonationImagesUpdated,
 	ErrorImageRequired,
 	ErrorDonationCompanyNotFound,
+	ErrorCompanyIsNotEnabled,
+	ErrorCategoryIsNotEnabled,
 	ErrorDonationCategoryNotFound,
 	ErrorDonationLookupFailed,
 	ErrorMiniAppMerchantEnableFailed,
@@ -528,6 +539,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorBankWithBICAlreadyExists,
 	ErrorBankWithCodeAlreadyExists,
+
+	// BPS Action Role related error codes
+	ErrorBpsActionRoleNotFound,
 }
 
 // Success Response Codes
@@ -1683,7 +1697,7 @@ var (
 	ErrorWalletRechangeOption = ResponseCode{
 		Code:       "ERROR_WALLET_RECHARGE_OPTION_INVALID_VALUES",
 		StatusCode: 400,
-		Message:    "At Least one of the three rechanrge options should be enabled(self,other,agent)",
+		Message:    "At Least one of the three rechange options should be enabled(self,other,agent)",
 		Type:       "error",
 	}
 
@@ -3007,6 +3021,46 @@ var (
 	}
 )
 
+// Action Role success response codes
+var (
+	SuccessActionRolesFetched = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLES_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgActionRolesFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessActionRoleFetched = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgActionRoleFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessActionRoleCreateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_CREATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleCreateRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleUpdateRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleEnableRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleDisableRequestCreated,
+		Type:       "success",
+	}
+)
+
 // Error Response Codes
 var (
 	ErrorDepartmentIDRequired = ResponseCode{
@@ -4282,11 +4336,29 @@ var (
 		Message:    MsgDonationCompanyLookupFailed,
 		Type:       "error",
 	}
+	ErrorDonationAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorDonationAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationAlreadyDisabled,
+		Type:       "error",
+	}
 
 	ErrorCompanyNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_COMPANY_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCompanyNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCompanyCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_COMPANY_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCompanyCodeAlreadyExists,
 		Type:       "error",
 	}
 
@@ -4583,6 +4655,18 @@ var (
 		Code:       "ERROR_DONATION_COMPANY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgDonationCompanyNotFound,
+		Type:       "error",
+	}
+	ErrorCompanyIsNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_COMPANY_NOT_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCompanyNotEnabled,
+		Type:       "error",
+	}
+	ErrorCategoryIsNotEnabled = ResponseCode{
+		Code:       "ERROR_DONATION_CATEGORY_NOT_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgDonationCategoryNotEnabled,
 		Type:       "error",
 	}
 
@@ -4953,6 +5037,12 @@ var (
 		Code:       "ERROR_ALREADY_ENABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorFailedToUpdateDonation = ResponseCode{
+		Code:       "ERROR_FAILED_TO_UPDATE_DONATION_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Failed to update donations",
 		Type:       "error",
 	}
 
@@ -5513,6 +5603,12 @@ var (
 		Code:       "ERROR_SITOTA_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgSitotaRequired,
+		Type:       "error",
+	}
+	ErrorBpsActionRoleNotFound = ResponseCode{
+		Code:       "ERROR_BPS_ACTION_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBpsActionRoleNotFound,
 		Type:       "error",
 	}
 )

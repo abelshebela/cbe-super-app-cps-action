@@ -14,6 +14,7 @@ import (
 	amountBasedAuth "cbe-super-app-cps-action/internal/glue/routing/amount_based_auth"
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
+	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
@@ -28,7 +29,6 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
 	"cbe-super-app-cps-action/internal/glue/routing/department"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
-	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini_app"
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
@@ -117,7 +117,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	accountblock.Init(r, handlerLayer.AccountBlockHandler, authMiddleware)
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
-	miniapp.Init(r, handlerLayer.MiniAPPHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
@@ -136,6 +135,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)
+	bps_actionrole_routing.Init(r, handlerLayer.BPSActionRoleHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 

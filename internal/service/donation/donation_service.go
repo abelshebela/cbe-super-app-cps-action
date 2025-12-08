@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"path"
 
-	// donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -58,11 +57,26 @@ func NewDonationService(client *mongo.Client, DonationRepo storage.DonationRepos
 }
 
 func (d *Donation) FetchDonation(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]dto.DonationListResponse], error) {
-	return d.DonationRepo.FindAllWithPagination(ctx, *filterParams)
+	data, err := d.DonationRepo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, err
+	}
+	return data, nil
 }
 
 func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.DonationListResponse, error) {
-	return d.DonationRepo.FindByID(ctx, id)
+	res, err := d.DonationRepo.FindByID(ctx, id)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		return nil, err
+	}
+
+	return res, err
 }
 
 func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequest) error {
@@ -84,7 +98,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
 	if !category.Enabled {
-		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
+		return errors.New(localization.ErrorCategoryIsNotEnabled.Code)
 	}
 
 	company, err := d.DonationCompanyRepo.FindByID(ctx, donation.CompanyID)
@@ -92,7 +106,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
 	if !company.Enabled {
-		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
+		return errors.New(localization.ErrorCompanyIsNotEnabled.Code)
 	}
 
 	coverImageURL := ""
@@ -112,11 +126,13 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			d.logger.Errorf("Failed to upload donation image: %v", err)
 			return err
 		}
+
 		donationImages = append(donationImages, types.DonationImage{
 			ID:        bson.NewObjectID().Hex(),
 			PhotoURL:  url,
 			CreatedAt: time.Now(),
 		})
+
 		d.logger.Infof("Successfully uploaded donation image: %s", url)
 	}
 
@@ -124,7 +140,9 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	d.logger.Infof("Creating CPS request with target: %d, donation images count: %d", donation.Target, len(donationImages))
 	result := dto.DonationCPSRequest{
 		DonationCode:        donationCode,
+		CompanyName:         company.CompanyName,
 		CompanyID:           donation.CompanyID,
+		CategoryName:        category.CategoryName,
 		CategoryID:          donation.CategoryID,
 		Title:               donation.Title,
 		IsFeatured:          donation.IsFeatured,
@@ -162,6 +180,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 	// Prepare existing model for validation
 	existingModel := &model.Donation{
+		DonationCode:        existingDonation.DonationCode,
 		Title:               existingDonation.Title,
 		DonationDescription: existingDonation.DonationDescription,
 		Target:              existingDonation.Target,
@@ -425,10 +444,13 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 	if existingDonation == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-
-	updateData := dto.EnableDonationRequest{
-		Enabled: true,
+	if existingDonation.Enabled {
+		return errors.New(localization.ErrorDonationAlreadyEnabled.Code)
 	}
+
+	updateData := *existingDonation
+	updateData.Enabled = true
+	updateData.LastModifiedAt = time.Now().Format(time.RFC3339)
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestEnableDonation), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
@@ -451,10 +473,13 @@ func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 	if existingDonation == nil {
 		return errors.New(localization.ErrorFileNotFound.Code)
 	}
-
-	updateData := dto.EnableDonationRequest{
-		Enabled: false,
+	if !existingDonation.Enabled {
+		return errors.New(localization.ErrorDonationAlreadyDisabled.Code)
 	}
+
+	updateData := *existingDonation
+	updateData.Enabled = false
+	updateData.LastModifiedAt = time.Now().Format(time.RFC3339)
 
 	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonation, updateData, string(constants.RequestDisableDonation), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {

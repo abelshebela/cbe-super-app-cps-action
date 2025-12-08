@@ -270,6 +270,12 @@ const (
 	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
 	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
 
+	// Action Role Mapper
+	RequestCreateActionRole  RequestAction = "CREATE_ACTION_ROLE"
+	RequestUpdateActionRole  RequestAction = "UPDATE_ACTION_ROLE"
+	RequestEnableActionRole  RequestAction = "ENABLE_ACTION_ROLE"
+	RequestDisableActionRole RequestAction = "DISABLE_ACTION_ROLE"
+
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
 	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
@@ -279,6 +285,12 @@ const (
 	RequestApproveFaydaCustomer RequestAction = "APPROVE_FAYDA_CUSTOMER"
 
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
+
+	RequestCreateMiniAppCategory  RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -460,12 +472,24 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableNewsTag: {},
 	RequestDeleteNewsTag:  {},
 
+	// Action Role Mapper
+	RequestCreateActionRole:  {},
+	RequestUpdateActionRole:  {},
+	RequestEnableActionRole:  {},
+	RequestDisableActionRole: {},
+
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
 	RequestEnableDeviceVersion:        {},
 	RequestDisableDeviceVersion:       {},
 	RequestDeleteDeviceVersion:        {},
 	RequestEnableDisableDeviceVersion: {},
+
+	RequestCreateMiniAppCategory:  {},
+	RequestUpdateMiniAppCategory:  {},
+	RequestDeleteMiniAppCategory:  {},
+	RequestEnableMiniAppCategory:  {},
+	RequestDisableMiniAppCategory: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -793,6 +817,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableNewsTag,
 		RequestDisableNewsTag,
 		RequestDeleteNewsTag,
+	},
+	"ActionRole": {
+		RequestCreateActionRole,
+		RequestUpdateActionRole,
+		RequestEnableActionRole,
+		RequestDisableActionRole,
 	},
 	"DeviceVersion": {
 		RequestCreateDeviceVersion,

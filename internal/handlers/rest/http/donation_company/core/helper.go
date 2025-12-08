@@ -11,7 +11,7 @@ import (
 func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (dto.DonationCompanyRequest, error) {
 	var req dto.DonationCompanyRequest
 
-	_, fileHeader, err := utils.ParseMultipartFormFile(r, "company_logo", 2<<20)
+	_, fileHeader, err := utils.ParseMultipartFormFile(r, "company_logo", 15<<20)
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			if isCreate {

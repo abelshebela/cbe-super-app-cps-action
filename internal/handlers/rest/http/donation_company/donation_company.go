@@ -113,16 +113,13 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
 	if err := req.Validate(); err != nil {
 		d.logger.Errorf("donation company request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
-
 	req.PhoneNumber = formattedPhone
-
 	if err := d.donationCompanyApp.CreateDonationCompany(r.Context(), req); err != nil {
 		d.logger.Errorf("failed to create donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

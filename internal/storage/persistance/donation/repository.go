@@ -8,7 +8,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -82,22 +81,27 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 
 	result, err := d.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
-		}
 		return nil, err
 	}
 
-	companyFilter := bson.M{"_id": result.CompanyID}
+	camObj, err := bson.ObjectIDFromHex(result.CompanyID.Hex())
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	companyFilter := bson.M{"_id": camObj}
 	company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch company: %v", err)
+		return nil, err
 	}
 
-	categoryFilter := bson.M{"_id": result.CategoryID}
+	catObj, err := bson.ObjectIDFromHex(result.CategoryID.Hex())
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	categoryFilter := bson.M{"_id": catObj}
 	category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch category: %v", err)
+		return nil, err
 	}
 
 	return MapToDonationListResponse(result, company, category), nil
@@ -118,11 +122,13 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 			{"target": searchRegex},
 			{"end_date": searchRegex},
 			{"start_date": searchRegex},
+			{"enabled": searchRegex},
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	data, err := d.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		d.logger.Errorf("Error while fetching donation infor error: %v", err)
 		return nil, err
 	}
 
@@ -139,14 +145,13 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		companyFilter := bson.M{"_id": donation.CompanyID}
 		company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch company: %v", err)
+			return nil, err
 		}
 
 		categoryFilter := bson.M{"_id": donation.CategoryID}
-		fmt.Println("categoryFilter", donation.CategoryID)
 		category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed to fetch category: %v", err)
+			return nil, err
 		}
 
 		result = append(result, *MapToDonationListResponse(donation, company, category))

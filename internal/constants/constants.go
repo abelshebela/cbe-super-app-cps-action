@@ -231,6 +231,12 @@ type RequestAction string
 
 const (
 	RequestUser                  RequestAction = "USER"
+	RequestActionRole            RequestAction = "ACTION_ROLE"
+	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"
+	RequestUpdateActionRole      RequestAction = "UPDATE_ACTION_ROLE"
+	RequestEnableActionRole      RequestAction = "ENABLE_ACTION_ROLE"
+	RequestDisableActionRole     RequestAction = "DISABLE_ACTION_ROLE"
+	RequestDeleteActionRole      RequestAction = "DELETE_ACTION_ROLE"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
@@ -464,6 +470,12 @@ const (
 	RequestCreateNewsCategory RequestAction = "CREATE_NEWS_CATEGORY"
 	RequestUpdateNewsCategory RequestAction = "UPDATE_NEWS_CATEGORY"
 	RequestDeleteNewsCategory RequestAction = "DELETE_NEWS_CATEGORY"
+
+	RequestCreateMiniAppCategory  RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
 )
 
 type RegistrationType string

@@ -2,6 +2,7 @@ package service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -26,7 +27,6 @@ import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
@@ -148,7 +148,7 @@ type DonationCompanyService interface {
 	CreateDonationCompany(ctx context.Context, donationCompany donationComp_dto.DonationCompanyRequest) error
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
-	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (donationComp_dto.DonationCompanyRequest, error)
+	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*model.DonationCompany, error)
 	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
@@ -181,7 +181,7 @@ type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*fbdto.FeedbackResponse], error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error)
 }
 
 type HQService interface {
@@ -197,12 +197,6 @@ type HQService interface {
 }
 
 type MiniAppService interface {
-	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
-	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
-	DeleteMiniApp(ctx context.Context, id string) error
-	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
-	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -285,7 +279,7 @@ type UnlinkService interface {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
-	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest,fieldsProvided map[string]bool) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
@@ -430,6 +424,7 @@ type ServiceLayer struct {
 	NewsTagsService        NewsTagsService
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
+	BPSActionRole          BPSActionRoleService
 }
 
 type ServiceContainer struct {
@@ -480,7 +475,24 @@ type ServiceContainer struct {
 	EncryptionContainer        EncryptionService
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
+	BPSActionRoleContainer     BPSActionRoleService
 }
+
+type BPSActionRoleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	Create(ctx context.Context, req struct {
+		ActionCode       string
+		ActionName       string
+		AssignedMakers   []string
+		AssignedCheckers [][]string
+	}) error
+	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
+	Enable(ctx context.Context, actionCode string) error
+	Disable(ctx context.Context, actionCode string) error
+}
+
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error)
@@ -544,4 +556,8 @@ type SitotaService interface {
 
 type EncryptionService interface {
 	LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error)
+}
+
+type MiniAppCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

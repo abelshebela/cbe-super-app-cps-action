@@ -1,0 +1,43 @@
+Update Transfer Limit - Complete Flow
+' ' ‘Query transaction limits | ' ' ; ' '
+' ‘ |g Current limits ' ' ' ' ' '
+' | gtimit data ' ' ' ' ' ' '
+1 ' ' ' ' ' ' ' '
+1 “daily limit: {min: 0, max: 50000}, | ! ! ! ! ! ! !
+{sine _Bmit: (max: 10000} ' ' ' ' ' ' ' '
+<< ' ' ' ' ' ' '
+| POST stransfer limitiupdate ' ' '
+' {user_code, néw_daily max: 100000) ,! ' ' ' ' ' ' '
+‘ ' ValidateNewLimits() ' ‘ ' ' ‘ '
+' ' {check within allowed range ' ' ' ' ' '
+' ' phesk against current usage ! ' ' ' ' '
+Seco Ricans | aoe
+' ‘ ' ' Save OTP ' ' ' ' ‘
+' ' ' \ Send SMS ' ' ' ' '
+' | OTP sent t ' ' ' ' ' '
+1 OTP sent ' ' ' ' ' ' ' '
+= Ooo [Phase 3: Verify OTP & Create Retion |
+' POST transfer_limitiverify and create | ' ' ' ‘ ' ' '
+| {user_code, ofp_code, new limits} | ' ' ' ' ' ' '
+' ‘ VerifyOTP() H ' ' ' ' ' '
+' ' ' | Validate ore ! ' ' '
+' ‘ | FetchUser(user_code) ! ' ! ' ' '
+' ‘ | guser data ' ' ' ' ' '
+' ' | Fetch current limits ' i ' ' ' '
+' ' |Current limits t ' i ' ' '
+' ' | BpsActionCreate() H : ' ' ' '
+' ' | Build action:
+' ' ' ' ' - previous_action: {current limits} ! ' ' '
+' ' ' ' jcsurent ation {new limits} | ' ' '
+' ' ' ' | Insert bps_action ' ; ' '
+' ' ' ' 1 Created ' ' ' '
+|__Bpsaction ' '
+| (action code, status: PENDING") _! ' ' ' ' ' ' '
+{POST fops_action/approve ;
+\ | faction code} j 1 1 H 1 1 '
+' ' ' ' | Fetch action ' ; ' '
+' ‘ | cExecuteUpdateLimits() | ' ' ' ' ‘
+' ' ' Update transaction_limits collection \ ' ' ' '
+' ' | Publish limits_updated event! i t (| i '
+' | Success ' i ' ' ' ' '
+' | Limits updated successfully i i 1 i i '
