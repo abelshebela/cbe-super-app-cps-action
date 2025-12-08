@@ -1,6 +1,7 @@
 package core
 
 import (
+	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -11,6 +12,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func CompanyNameExists(ctx context.Context, companyName string, donationCompanyRepo storage.DonationCompanyRepository) (bool, error) {
@@ -64,17 +67,6 @@ func BindAction(source any, target any) error {
 		return err
 	}
 	return json.Unmarshal(bytes, target)
-}
-
-func MapToDonationCompany(donationCompany *dto.DonationCompanyListResponse, Enabled bool) model.DonationCompany {
-	return model.DonationCompany{
-		CompanyName:    donationCompany.CompanyName,
-		CompanyLogo:    donationCompany.CompanyLogo,
-		AccountNumber:  donationCompany.AccountNumber,
-		IsDeleted:      false,
-		Enabled:        Enabled,
-		LastModifiedAt: time.Now(),
-	}
 }
 
 // MapToDonationCompanyResponse creates a response DTO from request DTO and logo URL
@@ -161,18 +153,6 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 	return result
 }
 
-// MapToDonationCompanyRequest creates a request DTO from CPS request DTO
-// func MapToDonationCompanyRequest(cpsRequest model.DonationCompany) *model.DonationCompany {
-// 	return &model.DonationCompany{
-// 		CompanyName:   cpsRequest.CompanyName,
-// 		CompanyCode:   cpsRequest.CompanyCode,
-// 		AccountNumber: cpsRequest.AccountNumber,
-// 		PhoneNumber:   cpsRequest.PhoneNumber,
-// 		Email:         cpsRequest.Email,
-// 		Address:       cpsRequest.Address,
-// 	}
-// }
-
 func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
 	// Check if company name is the same (if provided in request)
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
@@ -247,4 +227,48 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 	}
 
 	return nil
+}
+
+// ConvertDonationListResponseToModel converts a DonationListResponse DTO to a model.Donation
+// This is used when we need to update donations and preserve all existing fields
+func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *model.Donation {
+	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
+	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
+
+	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
+	for i, img := range donationResponse.DonationImages {
+		createdAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
+		donationImages[i] = types.DonationImage{
+			ID:        img.ID,
+			PhotoURL:  img.PhotoURL,
+			CreatedAt: createdAt,
+		}
+	}
+
+	startTime, _ := time.Parse(time.RFC3339, donationResponse.StartDate)
+	endTime, _ := time.Parse(time.RFC3339, donationResponse.EndDate)
+	createdAt, _ := time.Parse(time.RFC3339, donationResponse.CreatedAt)
+	lastModifiedAt, _ := time.Parse(time.RFC3339, donationResponse.LastModifiedAt)
+
+	donationID, _ := bson.ObjectIDFromHex(donationResponse.ID)
+
+	return &model.Donation{
+		ID:                  donationID,
+		DonationCode:        donationResponse.DonationCode,
+		CompanyID:           companyObjID,
+		CategoryID:          categoryObjID,
+		Title:               donationResponse.Title,
+		IsFeatured:          donationResponse.IsFeatured,
+		Target:              donationResponse.Target,
+		CurrentAmount:       donationResponse.CurrentAmount,
+		DonationDescription: donationResponse.DonationDescription,
+		DonationImages:      donationImages,
+		CoverImage:          donationResponse.CoverImage,
+		StartDate:           startTime,
+		EndDate:             endTime,
+		Enabled:             donationResponse.Enabled,
+		IsDeleted:           donationResponse.IsDeleted,
+		CreatedAt:           createdAt,
+		LastModifiedAt:      lastModifiedAt,
+	}
 }

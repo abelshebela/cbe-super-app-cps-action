@@ -15,15 +15,18 @@ import (
 	"context"
 	"errors"
 	"path"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type DonationCompany struct {
 	DonationCompanyRepo  storage.DonationCompanyRepository
+	DonationRepo         storage.DonationRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
 	minio                *s3.Client
@@ -33,7 +36,7 @@ type DonationCompany struct {
 	accountLookupService account_lookup.Account
 }
 
-func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
+func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage.DonationCompanyRepository, DonationRepo storage.DonationRepository, cpsAction service.CPSActionService, logger utils.Logger, minio *s3.Client,
 	bucketName string,
 	cfg *config.VaultConfig,
 	minioEndPoint string,
@@ -42,6 +45,7 @@ func NewDonationCompanyService(client *mongo.Client, DonationCompanyRepo storage
 
 	return &DonationCompany{
 		DonationCompanyRepo:  DonationCompanyRepo,
+		DonationRepo:         DonationRepo,
 		cpsService:           cpsAction,
 		logger:               logger,
 		minio:                minio,
@@ -198,6 +202,34 @@ func (d *DonationCompany) Authorize(ctx context.Context, action *model.CPSAction
 			d.logger.Errorf("Failed to update donation company: %v", err)
 			return nil, err
 		}
+
+		// Disable all donation related with this donating company
+		obj, err := bson.ObjectIDFromHex(action.UniqueId)
+		if err != nil {
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		}
+		donations, err := d.DonationRepo.FindAllWithPagination(ctx, types.Filter{
+			Filters: map[string]interface{}{"company_id": obj}})
+		if err != nil {
+			if err.Error() == "mongo: no documents in result" {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		if donations.Data != nil {
+			for _, donation := range donations.Data {
+				donationModel := core.ConvertDonationListResponseToModel(&donation)
+				donationModel.Enabled = false
+				donationModel.LastModifiedAt = time.Now()
+
+				err := d.DonationRepo.Update(ctx, donation.ID, donationModel)
+				if err != nil {
+					return nil, errors.New(localization.ErrorFailedToUpdateDonation.Code)
+				}
+			}
+		}
+
 	default:
 		d.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
@@ -235,8 +267,13 @@ func (d *DonationCompany) EnableDonationCompany(ctx context.Context, id string) 
 	if existingDonationCompany.Enabled {
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
-	DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestEnableDonationCompany), constants.UPDATE)
+	// DonationCompany := core.MapToDonationCompany(existingDonationCompany, true)
+
+	currentData := *existingDonationCompany
+	currentData.Enabled = true
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestEnableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}
@@ -260,8 +297,12 @@ func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string)
 	if !existingDonationCompany.Enabled {
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
-	DonationCompany := core.MapToDonationCompany(existingDonationCompany, false)
-	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, DonationCompany, string(constants.RequestDisableDonationCompany), constants.UPDATE)
+
+	currentData := *existingDonationCompany
+	currentData.Enabled = false
+	currentData.LastModifiedAt = time.Now().Format(time.RFC3339)
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, existingDonationCompany, currentData, string(constants.RequestDisableDonationCompany), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		return err
 	}

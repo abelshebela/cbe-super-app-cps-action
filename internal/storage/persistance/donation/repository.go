@@ -122,6 +122,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 			{"target": searchRegex},
 			{"end_date": searchRegex},
 			{"start_date": searchRegex},
+			{"enabled": searchRegex},
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)

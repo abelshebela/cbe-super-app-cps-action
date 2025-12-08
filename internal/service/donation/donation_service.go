@@ -138,7 +138,9 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	d.logger.Infof("Creating CPS request with target: %d, donation images count: %d", donation.Target, len(donationImages))
 	result := dto.DonationCPSRequest{
 		DonationCode:        donationCode,
+		CompanyName:         company.CompanyName,
 		CompanyID:           donation.CompanyID,
+		CategoryName:        category.CategoryName,
 		CategoryID:          donation.CategoryID,
 		Title:               donation.Title,
 		IsFeatured:          donation.IsFeatured,
