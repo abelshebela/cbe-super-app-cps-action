@@ -8,6 +8,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -425,6 +426,7 @@ type ServiceLayer struct {
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
 	BPSActionRole          BPSActionRoleService
+	TransactionService     TransactionService
 }
 
 type ServiceContainer struct {
@@ -476,6 +478,7 @@ type ServiceContainer struct {
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
 	BPSActionRoleContainer     BPSActionRoleService
+	TransactionContainer       TransactionService
 }
 
 type BPSActionRoleService interface {
@@ -560,4 +563,9 @@ type EncryptionService interface {
 
 type MiniAppCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type TransactionService interface {
+	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }

@@ -18,6 +18,7 @@ import (
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
+	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
@@ -79,6 +80,7 @@ import (
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
 	sitotaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/sitota"
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
+	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
 	vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
@@ -126,6 +128,7 @@ type Handler struct {
 	EncryptionHandler         encryptionInbound.EncryptionAdapter
 	DeviceVersionHandler      dviface.DeviceVersionHandler
 	BPSActionRoleHandler      actionrole_iface.BPSActionRoleHandler
+	TransactionHandler        transaction.TransactionInterface
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -171,5 +174,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
 		DeviceVersionHandler:      deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
 		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
+		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 	}
 }

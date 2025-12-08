@@ -542,6 +542,10 @@ var ResponseCodesList = []ResponseCode{
 
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
+
+	// transaction related responses
+	SuccessTransactionRetrieved,
+	ErrorTransactionIDRequired,
 }
 
 // Success Response Codes
@@ -5610,5 +5614,19 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgBpsActionRoleNotFound,
 		Type:       "error",
+	}
+
+	// Transaction Service Related Responses
+	ErrorTransactionIDRequired = ResponseCode{
+		Code:       "ERROR_TRANSACTION_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTransactionIDRequired,
+		Type:       "error",
+	}
+	SuccessTransactionRetrieved = ResponseCode{
+		Code:       "SUCCESS_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTransactionRetrievedSuccess,
+		Type:       "success",
 	}
 )

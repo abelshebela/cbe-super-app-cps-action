@@ -19,6 +19,7 @@ import (
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
+	"cbe-super-app-cps-action/internal/glue/routing/transaction"
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
@@ -138,6 +139,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	bps_actionrole_routing.Init(r, handlerLayer.BPSActionRoleHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
+	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// router.Use(customeMiddleware.ChiCORS())
