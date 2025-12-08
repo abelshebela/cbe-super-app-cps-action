@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -102,15 +103,39 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 	return result, nil
 }
 
-func (s *BankStorage) FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error) {
-	filter := bson.M{}
-	filter["$or"] = []bson.M{
-		{"name": bson.M{"$regex": name}},
-		{"bic": bson.M{"$regex": bic}},
-		{"code": bson.M{"$regex": code}},
-	}
-
-	return s.dal.FindOne(ctx, filter, nil)
+func (s *BankStorage) FindByNameOrBICOrCode(
+    ctx context.Context,
+    bic, code, name string,
+) (*model.Bank, error) {
+    
+    // Build conditions dynamically, only for non-empty parameters
+    conditions := []bson.M{}
+    
+    if name != "" {
+        conditions = append(conditions, bson.M{
+            "name": bson.M{"$regex": "^" + regexp.QuoteMeta(name) + "$", "$options": "i"},
+        })
+    }
+    
+    if bic != "" {
+        conditions = append(conditions, bson.M{
+            "bic": bson.M{"$regex": "^" + regexp.QuoteMeta(bic) + "$", "$options": "i"},
+        })
+    }
+    
+    if code != "" {
+        conditions = append(conditions, bson.M{
+            "code": bson.M{"$regex": "^" + regexp.QuoteMeta(code) + "$", "$options": "i"},
+        })
+    }
+    
+    // If no conditions provided, return error or handle appropriately
+    if len(conditions) == 0 {
+        return nil, errors.New("at least one search parameter must be provided")
+    }
+    
+    filter := bson.M{"$or": conditions}
+    return s.dal.FindOne(ctx, filter, nil)
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
