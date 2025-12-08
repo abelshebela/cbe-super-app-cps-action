@@ -292,7 +292,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if bank_request.Name != "" {
 		updatedBank.Name = bank_request.Name
 	}
-
+	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
 		var objectkey string
 		if bank.Logo != "" {
