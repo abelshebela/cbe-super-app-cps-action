@@ -4974,6 +4974,12 @@ var (
 		Message:    MsgAlreadyEnabled,
 		Type:       "error",
 	}
+	ErrorFailedToUpdateDonation = ResponseCode{
+		Code:       "ERROR_FAILED_TO_UPDATE_DONATION_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    "Failed to update donations",
+		Type:       "error",
+	}
 
 	ErrorAlreadyDisabled = ResponseCode{
 		Code:       "ERROR_ALREADY_DISABLED",
