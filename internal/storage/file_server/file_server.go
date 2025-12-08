@@ -24,6 +24,28 @@ type FileServerServices struct {
 	S3 *S3Persistence
 }
 
+func sanitizeKey(s string) (string, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return "", fmt.Errorf("invalid key")
+	}
+	s = strings.ReplaceAll(s, "\\", "/")
+	s = strings.TrimLeft(s, "/")
+	parts := strings.Split(s, "/")
+	cleaned := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if p == "" || p == "." || p == ".." {
+			return "", fmt.Errorf("invalid key segment")
+		}
+		cleaned = append(cleaned, p)
+	}
+	joined := strings.Join(cleaned, "/")
+	if joined == "" {
+		return "", fmt.Errorf("invalid key")
+	}
+	return joined, nil
+}
+
 func InitFileServerServices(s3Client *s3.Client, bucketName string, baseURL string, logger utils.Logger) *FileServerServices {
 	return &FileServerServices{
 		S3: &S3Persistence{
@@ -38,17 +60,32 @@ func InitFileServerServices(s3Client *s3.Client, bucketName string, baseURL stri
 // BuildURL creates the full object URL base/bucket/key
 func (p *S3Persistence) BuildURL(key string, bucketPrefix string) string {
 	k := key
+	if cleaned, err := sanitizeKey(k); err == nil {
+		k = cleaned
+	}
 	if bucketPrefix != "" {
-		k = path.Join(bucketPrefix, key)
+		if pref, err := sanitizeKey(bucketPrefix); err == nil {
+			k = path.Join(pref, k)
+		} else {
+			k = path.Join(bucketPrefix, k)
+		}
 	}
 	return fmt.Sprintf("%s/%s/%s", p.baseURL, p.bucket, strings.TrimLeft(k, "/"))
 }
 
 // Get fetches an object metadata and body stream from S3
 func (p *S3Persistence) Get(ctx context.Context, key string, bucketPrefix string) (*s3.GetObjectOutput, error) {
-	k := key
+	cleanedKey, err := sanitizeKey(key)
+	if err != nil {
+		return nil, fmt.Errorf("invalid key: %w", err)
+	}
+	k := cleanedKey
 	if bucketPrefix != "" {
-		k = path.Join(bucketPrefix, key)
+		pref, err := sanitizeKey(bucketPrefix)
+		if err != nil {
+			return nil, fmt.Errorf("invalid prefix: %w", err)
+		}
+		k = path.Join(pref, k)
 	}
 	return p.s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(p.bucket),
@@ -58,25 +95,37 @@ func (p *S3Persistence) Get(ctx context.Context, key string, bucketPrefix string
 
 // UploadMultipart uploads a multipart file part to S3 and returns the full URL
 func (p *S3Persistence) UploadMultipart(ctx context.Context, key string, file multipart.File, header *multipart.FileHeader, bucketPrefix string) (string, error) {
-	k := key
+	k := strings.TrimSpace(key)
 	if k == "" && header != nil {
-		k = header.Filename
+		name := header.Filename
+		name = strings.ReplaceAll(name, "\\", "/")
+		name = path.Base(name)
+		k = name
 	}
+	cleanedKey, err := sanitizeKey(k)
+	if err != nil {
+		return "", fmt.Errorf("invalid key: %w", err)
+	}
+	finalKey := cleanedKey
 	if bucketPrefix != "" {
-		k = path.Join(bucketPrefix, k)
+		pref, err := sanitizeKey(bucketPrefix)
+		if err != nil {
+			return "", fmt.Errorf("invalid prefix: %w", err)
+		}
+		finalKey = path.Join(pref, finalKey)
 	}
-	_, err := p.s3Client.PutObject(ctx, &s3.PutObjectInput{
+	_, err = p.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(p.bucket),
-		Key:         aws.String(k),
+		Key:         aws.String(finalKey),
 		Body:        file,
 		ContentType: aws.String(header.Header.Get("Content-Type")),
 	})
-	
+
 	if err != nil {
 		p.logger.Errorf("failed to upload multipart to s3: %v", err)
 		return "", err
 	}
-	return p.BuildURL(k, ""), nil
+	return p.BuildURL(finalKey, ""), nil
 }
 
 // UploadRaw uploads a raw byte slice to S3 and returns the full URL
@@ -84,17 +133,25 @@ func (p *S3Persistence) UploadRaw(ctx context.Context, key string, body []byte, 
 	if key == "" {
 		return "", fmt.Errorf("missing key")
 	}
-	k := key
+	cleanedKey, err := sanitizeKey(key)
+	if err != nil {
+		return "", fmt.Errorf("invalid key: %w", err)
+	}
+	finalKey := cleanedKey
 	if bucketPrefix != "" {
-		k = path.Join(bucketPrefix, key)
+		pref, err := sanitizeKey(bucketPrefix)
+		if err != nil {
+			return "", fmt.Errorf("invalid prefix: %w", err)
+		}
+		finalKey = path.Join(pref, finalKey)
 	}
 	ct := contentType
 	if ct == "" {
 		ct = "application/octet-stream"
 	}
-	_, err := p.s3Client.PutObject(ctx, &s3.PutObjectInput{
+	_, err = p.s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(p.bucket),
-		Key:         aws.String(k),
+		Key:         aws.String(finalKey),
 		Body:        bytes.NewReader(body),
 		ContentType: aws.String(ct),
 	})
@@ -102,5 +159,5 @@ func (p *S3Persistence) UploadRaw(ctx context.Context, key string, body []byte, 
 		p.logger.Errorf("failed to upload raw to s3: %v", err)
 		return "", err
 	}
-	return p.BuildURL(k, ""), nil
+	return p.BuildURL(finalKey, ""), nil
 }
