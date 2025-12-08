@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -26,8 +25,6 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	action := cpsAction.RequestAction
-
-	fmt.Println("========================================", action)
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
