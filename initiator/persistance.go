@@ -132,7 +132,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NewsCategoryPersistence:          newscategory_repo.NewNewsCategoryRepository(client, dbName, NewsCategoryCollection, logger),
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
-		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, ActionRolesCollection, logger),
+		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
 	}
 
 	return data

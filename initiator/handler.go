@@ -18,7 +18,6 @@ import (
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
-	actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_role"
 
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
