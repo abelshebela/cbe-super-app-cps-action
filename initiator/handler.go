@@ -18,6 +18,7 @@ import (
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
+
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
@@ -36,6 +37,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 
 	// Handler section
+	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
@@ -48,6 +50,7 @@ import (
 	avatarHandlerImpl "cbe-super-app-cps-action/internal/handlers/rest/http/avatar"
 	bankHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bank"
 	bankvaulthandler "cbe-super-app-cps-action/internal/handlers/rest/http/bankvault"
+	actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_action_role"
 	bpsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bps_user"
 	budgetCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/budget_category"
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
@@ -122,6 +125,7 @@ type Handler struct {
 	KYCVerifierHandler        kycInbound.KYCVerifierAdapter
 	EncryptionHandler         encryptionInbound.EncryptionAdapter
 	DeviceVersionHandler      dviface.DeviceVersionHandler
+	BPSActionRoleHandler      actionrole_iface.BPSActionRoleHandler
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -166,5 +170,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		KYCVerifierHandler:        kyc_handler.InitKYCAdapter(serviceLayer.KYCVerifier, logger),
 		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
 		DeviceVersionHandler:      deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
+		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
 	}
 }
