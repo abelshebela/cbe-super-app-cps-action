@@ -299,9 +299,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-
 	var updateRequest bank_dto.UpdateBankRequest
-
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.Update), b.logger)
 	if err != nil {
 		// var ErrorFileNotFound = errors.New("file not found")
@@ -325,12 +323,12 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
 	updateRequest.Logo = fileHeader
-
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		b.logger.Errorf("invalid input", response_code)
 		localization.SendErrorResponse(w, response_code, nil, nil)
 		return
 	}
+
 
 	if err = b.bankService.UpdateOneBank(r.Context(), id, updateRequest); err != nil {
 		b.logger.Errorf("bank update request failed", err)
