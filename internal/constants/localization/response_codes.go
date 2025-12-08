@@ -146,6 +146,14 @@ var ResponseCodesList = []ResponseCode{
 	// Encryption
 	SuccessEncryptionGenerated,
 
+	// Action Role success response codes
+	SuccessActionRolesFetched,
+	SuccessActionRoleFetched,
+	SuccessActionRoleCreateRequestCreated,
+	SuccessActionRoleUpdateRequestCreated,
+	SuccessActionRoleEnableRequestCreated,
+	SuccessActionRoleDisableRequestCreated,
+
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -531,6 +539,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankWithNameAlreadyExists,
 	ErrorBankWithBICAlreadyExists,
 	ErrorBankWithCodeAlreadyExists,
+
+	// BPS Action Role related error codes
+	ErrorBpsActionRoleNotFound,
 }
 
 // Success Response Codes
@@ -3006,6 +3017,46 @@ var (
 		Code:       "SUCCESS_FAYDA_DISABLE_ACTION_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgFaydaAccountDisableCreatedSuccessfully,
+		Type:       "success",
+	}
+)
+
+// Action Role success response codes
+var (
+	SuccessActionRolesFetched = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLES_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgActionRolesFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessActionRoleFetched = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgActionRoleFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessActionRoleCreateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_CREATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleCreateRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleUpdateRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleEnableRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleDisableRequestCreated,
 		Type:       "success",
 	}
 )
@@ -5552,6 +5603,12 @@ var (
 		Code:       "ERROR_SITOTA_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgSitotaRequired,
+		Type:       "error",
+	}
+	ErrorBpsActionRoleNotFound = ResponseCode{
+		Code:       "ERROR_BPS_ACTION_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBpsActionRoleNotFound,
 		Type:       "error",
 	}
 )

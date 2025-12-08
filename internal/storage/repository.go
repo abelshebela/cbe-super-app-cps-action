@@ -5,6 +5,7 @@ import (
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
@@ -553,6 +554,14 @@ type IconRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Icon, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error)
+}
+
+type BPSActionRoleRepository interface {
+	Create(ctx context.Context, actionRole *model.ActionRole) error
+	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
+	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
 }
 
 type SitotaRepository interface {
