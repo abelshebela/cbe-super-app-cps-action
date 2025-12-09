@@ -220,8 +220,9 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 		s.logger.Errorf("vault group category already enabled with id: %s", id)
 		return errors.New(localization.ErrorVaultGroupAlreadyEnabled.Code)
 	}
-	updated := exist
+	updated := *exist
 	updated.IsActive = true
+	updated.UpdatedAt = time.Now()
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		if s.logger != nil {
@@ -254,8 +255,9 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 		s.logger.Errorf("vault group category already disabled with id: %s", id)
 		return errors.New(localization.ErrorVaultGroupAlreadyDisabled.Code)
 	}
-	updated := exist
+	updated := *exist
 	updated.IsActive = false
+	updated.UpdatedAt = time.Now()
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		if s.logger != nil {

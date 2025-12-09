@@ -399,9 +399,11 @@ const (
 	RequestUpdateHQBlockTime       RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 
-	RequestCreateBudgetCategory RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
+	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"

@@ -26,7 +26,7 @@ func NewMerchantLookupAdapter(url string, cfg config.VaultConfig, x_api_key stri
 		logger:    logger,
 		x_api_key: x_api_key,
 		client: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout: 2 * time.Second,
 		},
 	}
 }
@@ -35,6 +35,7 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID s
 
 	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, m.x_api_key, m.Url, merchantID, m.logger)
 	if err != nil {
+		m.logger.Errorf("failed to lookup merchant data from third party API: %v", err)
 		return merchant_lookup.MerchantLookUpResponse{}, err
 	}
 	defer res.Body.Close()
