@@ -271,8 +271,10 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorActionNameAlreadyExists,
 	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
+	ErrorActionNameIsRequired,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
@@ -3639,6 +3641,12 @@ var (
 		Message:    MsgInvalidInputParameter,
 		Type:       "error",
 	}
+	ErrorActionNameIsRequired = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionNameIsRequired,
+		Type:       "error",
+	}
 
 	ErrorInvalidEmail = ResponseCode{
 		Code:       "ERROR_INVALID_EMAIL",
@@ -3836,6 +3844,12 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+	ErrorActionNameAlreadyExists =  ResponseCode{
+		Code:       "ERROR_ACTION_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionNameAlreadyExists,
 		Type:       "error",
 	}
 	ErrorOnDisablingExistingDeviceControl = ResponseCode{

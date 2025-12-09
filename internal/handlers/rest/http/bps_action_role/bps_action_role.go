@@ -82,16 +82,11 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	if req.ActionCode == "" || req.ActionName == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+	if  req.ActionName == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
 		return
 	}
-	err := h.service.Create(r.Context(), struct {
-		ActionCode       string
-		ActionName       string
-		AssignedMakers   []string
-		AssignedCheckers [][]string
-	}{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakers: req.AssignedMakers, AssignedCheckers: req.AssignedCheckers})
+	err := h.service.Create(r.Context(), req)
 	if err != nil {
 		h.logger.Errorf("create action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

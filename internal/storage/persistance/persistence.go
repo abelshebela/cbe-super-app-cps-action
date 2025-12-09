@@ -72,4 +72,6 @@ type Persistence struct {
 	NewsCategoryPersistence          storage.NewsCategoryRepository
 	NewsTagsServiceContainer         storage.NewsTagsRepository
 	BPSActionRolePersistence         storage.BPSActionRoleRepository
+	BPSActionApproveIndexPersistence storage.BPSActionApproveIndexRepository
+	RolePersistence                  storage.RoleRepository
 }

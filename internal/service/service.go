@@ -279,7 +279,7 @@ type UnlinkService interface {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
-	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest,fieldsProvided map[string]bool) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
@@ -482,12 +482,7 @@ type BPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-	Create(ctx context.Context, req struct {
-		ActionCode       string
-		ActionName       string
-		AssignedMakers   []string
-		AssignedCheckers [][]string
-	}) error
+	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error

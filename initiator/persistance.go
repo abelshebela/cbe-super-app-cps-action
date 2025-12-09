@@ -29,6 +29,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
 	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
+	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"time"
 
 	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -55,8 +56,8 @@ import (
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
 	productcode "cbe-super-app-cps-action/internal/storage/persistance/product_code"
-	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
+	role_repo "cbe-super-app-cps-action/internal/storage/persistance/role"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
 	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
@@ -133,6 +134,8 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
 		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
+		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName,BPSActionApproveIndexCollection, logger),
+		RolePersistence:                  role_repo.NewRoleRepository(client, dbName, "roles", logger),
 	}
 
 	return data

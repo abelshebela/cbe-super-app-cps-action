@@ -561,7 +561,13 @@ type BPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	FindByActionName(ctx context.Context, actionName string) (*model.ActionRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+}
+
+type BPSActionApproveIndexRepository interface {
+	SaveIndices(ctx context.Context, indices []model.BPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.BPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {
