@@ -23,8 +23,7 @@ type MiniApp struct {
 	URL                 string                      `bson:"url" json:"url,omitempty"`
 	AppViewType         constants.AppViewType       `bson:"app_view_type" json:"app_view_type"`
 	Stage               constants.Stage             `bson:"stage" json:"stage"`
-	IsEventMiniApp      bool                        `bson:"is_event_mini_app" json:"is_event_mini_app"`
-	IsThreeClick        bool                        `bson:"is_three_click" json:"is_three_click"`
+	AppMode             string                      `bson:"app_mode" json:"app_mode"`
 	Enabled             bool                        `bson:"enabled" json:"enabled"`
 	IsDeleted           bool                        `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt           time.Time                   `bson:"created_at" json:"created_at"`

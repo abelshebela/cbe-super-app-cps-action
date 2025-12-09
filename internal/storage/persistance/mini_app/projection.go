@@ -121,11 +121,9 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 	if miniApp.Stage != "" {
 		update["stage"] = miniApp.Stage
 	}
-	if miniApp.IsEventMiniApp {
-		update["is_event_mini_app"] = miniApp.IsEventMiniApp
-	}
-	if miniApp.IsThreeClick {
-		update["is_three_click"] = miniApp.IsThreeClick
+
+	if miniApp.AppMode != "" {
+		update["app_mode"] = miniApp.AppMode
 	}
 
 	return update
