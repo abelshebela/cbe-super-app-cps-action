@@ -163,7 +163,7 @@ type AccountBlockRepository interface {
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
-	EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error
+	EnableOrDisableBranch(ctx context.Context, id string, reason string, enabled bool) error
 	FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 

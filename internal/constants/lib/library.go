@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -197,35 +198,30 @@ func UploadFileToMinio(
 
 }
 
-func RemoveFileFromMino(ctx context.Context, client aws.Config, bucketName string, objectkey string,
+func RemoveFileFromMinio(
+	ctx context.Context,
+	client *s3.Client,
+	bucketName string,
+	objectKey string,
 	logger interface {
 		Errorf(format string, args ...any)
-	},
-) error {
-	// exist, err := client.BucketExist(ctx, bucketName)
-	// if err != nil {
-	// 	logger.Errorf("failed to check bucket '%s': '%v'", bucketName, err)
-	// 	return errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	}) error {
+	_, err := client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: &bucketName,
+	})
+	if err != nil {
+		logger.Errorf("bucket '%s' does not exist", bucketName)
+		return errors.New(localization.ErrorBucketNotFound.Code)
+	}
 
-	// if !exist {
-	// 	logger.Errorf("bucket '%s' does not exist", bucketName)
-	// 	return errors.New(localization.ErrorBucketNotFound.Code)
-	// }
-
-	// isDeleted, err := client.DeleteObject(ctx, config.DeleteObjectBody{
-	// 	BucketName: bucketName,
-	// 	ObjectName: objectkey,
-	// })
-	// if err != nil {
-	// 	logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectkey, bucketName, err)
-	// 	return errors.New(localization.ErrorUnexpectedError.Code)
-	// }
-
-	// if !isDeleted {
-	// 	logger.Errorf("object '%s' could not be deleted from bucket '%s'", objectkey, bucketName)
-	// 	return errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	_, err = client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: &bucketName,
+		Key:    &objectKey,
+	})
+	if err != nil {
+		logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectKey, bucketName, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
 	return nil
 }
