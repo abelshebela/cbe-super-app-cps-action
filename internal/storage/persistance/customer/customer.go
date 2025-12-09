@@ -60,16 +60,18 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	data, err := p.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		p.logger.Infof("error while fetching customer data: %v", err.Error())
+		p.logger.Errorf("[FindAllWithPagination] failed to fetch customers: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := p.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
+		p.logger.Errorf("[FindAllWithPagination] failed to count customers: %v", err)
 		return nil, errors.New(localization.ErrorNoDataProvided.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	p.logger.Infof("[FindAllWithPagination] retrieved %d customers", len(data))
 
 	return &types.PaginatedResponse[[]*model.User]{
 		Data: data,
@@ -78,75 +80,81 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 }
 
 func (p *CustomerRepository) Update(ctx context.Context, id string, data model.User) error {
-
+	p.logger.Infof("[Update] updating customer for id: %s", id)
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		p.logger.Errorf("Error while parsing id from string to object")
+		p.logger.Errorf("[Update] invalid object id: %v", err)
 		return localization.ErrorUnexpectedError
 	}
 
 	filter, update := FaydaEnable(objId, data)
 	_, err = p.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		p.logger.Errorf("Error while updating the customer data")
+		p.logger.Errorf("[Update] failed to update customer: %v", err)
 		return err
 	}
-
+	p.logger.Infof("[Update] customer updated successfully")
 	return nil
 }
 func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
+	p.logger.Infof("[FindByID] fetching customer by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		p.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
-	p.logger.Infof("Fetching user with filter: %v", filter)
 	// user, err := p.mongoDal.FindOne(ctx, filter, UserProjection())
 	user, err := p.mongoDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[FindByID] customer not found")
 			return nil, fmt.Errorf("%s", code)
 		}
-		p.logger.Errorf("Failed to fetch user by ID: %v", err)
+		p.logger.Errorf("[FindByID] failed to fetch customer: %v", err)
 		return nil, err
 	}
 
 	if user == nil {
-		p.logger.Infof("no user found for given id: %v", id)
+		p.logger.Errorf("[FindByID] customer not found for id: %s", id)
 		return nil, fmt.Errorf("no user found for given id")
 	}
+	p.logger.Infof("[FindByID] customer retrieved successfully")
 	return user, nil
 }
 
 // EnableOrDisable implements storage.CustomerRepository.
 func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, enable bool) error {
-	b.logger.Infof("Enabling/Disabling customer with ID: %s to %v", id, enable)
+	b.logger.Infof("[EnableOrDisable] processing customer enable/disable for id: %s, enabled: %v", id, enable)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		b.logger.Errorf("invalid object id: %v", err)
+		b.logger.Errorf("[EnableOrDisable] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
 	_, err = b.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		b.logger.Errorf("error while enabling/disabling customer: %v", err)
+		b.logger.Errorf("[EnableOrDisable] failed to enable/disable customer: %v", err)
 		return err
 	}
+	b.logger.Infof("[EnableOrDisable] customer enable/disable completed successfully")
 	return nil
 }
 
 func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
-
+	c.logger.Infof("[FetchLinkedAccount] fetching linked accounts for customer number")
 	filter := bson.M{
 		"customer_number": customerNumber,
 	}
 
 	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
+		c.logger.Errorf("[FetchLinkedAccount] failed to fetch linked accounts: %v", err)
 		return []*model.LinkedAccount{}, err
 	}
+	c.logger.Infof("[FetchLinkedAccount] retrieved %d linked accounts", len(linkedAccount))
 
 	return linkedAccount, nil
 }

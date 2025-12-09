@@ -37,6 +37,7 @@ func NewAccountBlockRepository(client *mongo.Client, dbName string, collection s
 // Standard CRUD operations for Branch
 
 func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error) {
+	a.logger.Infof("[GetBranchByCode] fetching branch by code: %s", branchCode)
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	// result, err := FindAccountBlockByCodeWithParentPopulated(ctx, collection, branchCode, "B", a.logger)
 	filter := bson.M{"code": branchCode}
@@ -44,30 +45,36 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode st
 	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			a.logger.Errorf("[GetBranchByCode] branch not found")
 			return nil, errors.New(localization.ErrorBranchNotFound.Code)
 		}
+		a.logger.Errorf("[GetBranchByCode] failed to fetch branch: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[GetBranchByCode] branch retrieved successfully")
 	return result[0], nil
 }
 
 func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*model.AccountBlock, error) {
+	a.logger.Infof("[GetBranchByIds] fetching branch by id: %s", id)
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	filter := bson.M{"_id": id}
 	filter["type"] = "B"
 	branch, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			a.logger.Errorf("[GetBranchByIds] branch not found")
 			return nil, errors.New(localization.ErrorBranchNotFound.Code)
 		}
+		a.logger.Errorf("[GetBranchByIds] failed to fetch branch: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[GetBranchByIds] branch retrieved successfully")
 	return branch[0], nil
 }
 
 func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.AccountBlock) error {
+	a.logger.Infof("[CreateBranch] creating branch")
 	if branch.ID.IsZero() {
 		branch.ID = bson.NewObjectID()
 	}
@@ -78,16 +85,18 @@ func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.Ac
 
 	_, err := a.accountBlock.InsertOne(ctx, *branch)
 	if err != nil {
-		a.logger.Errorf("Error creating branch: %v", err)
+		a.logger.Errorf("[CreateBranch] failed to create branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[CreateBranch] branch created successfully")
 	return nil
 }
 
 func (a *AccountBlockStorage) UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error {
+	a.logger.Infof("[UpdateBranch] updating branch for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("[UpdateBranch] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -96,16 +105,18 @@ func (a *AccountBlockStorage) UpdateBranch(ctx context.Context, id string, branc
 
 	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error updating branch: %v", err)
+		a.logger.Errorf("[UpdateBranch] failed to update branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[UpdateBranch] branch updated successfully")
 	return nil
 }
 
 func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error {
+	a.logger.Infof("[DeleteBranch] deleting branch for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("[DeleteBranch] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -113,29 +124,32 @@ func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error
 
 	err = a.accountBlock.DeleteOne(ctx, filter)
 	if err != nil {
-		a.logger.Errorf("Error deleting branch: %v", err)
+		a.logger.Errorf("[DeleteBranch] failed to delete branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[DeleteBranch] branch deleted successfully")
 	return nil
 }
 
 func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error {
+	a.logger.Infof("[EnableOrDisableBranch] processing branch enable/disable for code: %s, enabled: %v", code, enabled)
 	filter := bson.M{"code": code}
 	update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
 
 	_, err := a.accountBlock.UpdateOne(ctx, filter, update)
 	if err != nil {
-		a.logger.Errorf("Error enabling/disabling branch: %v", err)
+		a.logger.Errorf("[EnableOrDisableBranch] failed to enable/disable branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[EnableOrDisableBranch] branch enable/disable completed successfully")
 	return nil
 }
 
 func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error) {
+	a.logger.Infof("[FindBranchByID] fetching branch by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		a.logger.Errorf("[FindBranchByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
@@ -144,12 +158,13 @@ func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*m
 	branch, err := a.accountBlock.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			a.logger.Errorf("[FindBranchByID] branch not found")
 			return nil, errors.New(localization.ErrorBranchNotFound.Code)
 		}
-		a.logger.Errorf("Error finding branch by ID: %v", err)
+		a.logger.Errorf("[FindBranchByID] failed to find branch: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	a.logger.Infof("[FindBranchByID] branch retrieved successfully")
 	return branch, nil
 }
 
@@ -190,16 +205,18 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)
 	if err != nil {
-		a.logger.Errorf("Error finding cities with pagination: %v", err)
+		a.logger.Errorf("[FindAllBranchesWithPagination] failed to find branches: %v", err)
 		return nil, err
 	}
 
 	total, err := a.accountBlock.TotalCount(ctx, filter)
 	if err != nil {
+		a.logger.Errorf("[FindAllBranchesWithPagination] failed to count branches: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	a.logger.Infof("[FindAllBranchesWithPagination] retrieved %d branches", len(results))
 
 	return &types.PaginatedResponse[[]*model.AccountBlock]{
 		Data: results,

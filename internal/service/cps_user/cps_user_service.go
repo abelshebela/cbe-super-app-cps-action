@@ -82,6 +82,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	if len(req.PermissionCategory) > 0 {
 		populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
 		if err != nil {
+			s.logger.Errorf("[CreateUserRequest] failed to populate permission categories: %v", err)
 			return err
 		}
 		populatedCategories = populated
@@ -90,6 +91,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	if len(req.PermissionGroups) > 0 {
 		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
 		if err != nil {
+			s.logger.Errorf("[CreateUserRequest] failed to populate permission groups: %v", err)
 			return err
 		}
 		populatedGroups = populated
@@ -105,8 +107,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, payload, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+		s.logger.Errorf("[CreateUserRequest] failed to create CPS action: %v", err)
 		return err
 	}
+	s.logger.Infof("[CreateUserRequest] CPS user creation request created successfully")
 	return nil
 }
 

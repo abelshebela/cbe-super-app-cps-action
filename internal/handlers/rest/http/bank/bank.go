@@ -70,10 +70,11 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 
 	err = b.bankService.CreateOneBank(r.Context(), bankRequest)
 	if err != nil {
-		b.logger.Errorf("bank create request failed", err)
+		b.logger.Errorf("[CreateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	b.logger.Infof("[CreateOneBank] request sent successfully for bank code: %s", bankRequest.Code)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
@@ -102,11 +103,12 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 	err := b.bankService.DeleteOneBank(r.Context(), id)
 
 	if err != nil {
-		b.logger.Errorf("bank delete request failed", err)
+		b.logger.Errorf("[DeleteOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorBankDeleteRequestFailed.Code)
 		return
 	}
 
+	b.logger.Infof("[DeleteOneBank] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
@@ -134,10 +136,11 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.EnableOrDisableBank(r.Context(), id, false)
 	if err != nil {
-		b.logger.Errorf("disable request failed", err)
+		b.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	b.logger.Infof("[Disable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
 }
 
@@ -165,10 +168,11 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 	err := b.bankService.EnableOrDisableBank(r.Context(), id, true)
 	if err != nil {
-		b.logger.Errorf("enable request failed", err)
+		b.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	b.logger.Infof("[Enable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
@@ -191,11 +195,12 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 
 	banks, err := b.bankService.GetAllBank(r.Context(), filterParams)
 	if err != nil {
-		b.logger.Errorf("get all banks failed", err)
+		b.logger.Errorf("[GetAllBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[GetAllBank] retrieved %d banks", len(banks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, banks)
 }
 
@@ -224,11 +229,12 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 	bank, err := b.bankService.GetOneBank(r.Context(), id)
 
 	if err != nil {
-		b.logger.Errorf("get bank by id failed", err)
+		b.logger.Errorf("[GetOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[GetOneBank] bank retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, bank)
 }
 
@@ -269,11 +275,12 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	err = b.bankService.UpdateLogo(r.Context(), id, uploadLogo)
 
 	if err != nil {
-		b.logger.Errorf("Error uploading bank logo", err)
+		b.logger.Errorf("[UpdateLogo] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[UpdateLogo] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFileUploadedToMinIO, nil)
 }
 
@@ -329,12 +336,12 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	if err = b.bankService.UpdateOneBank(r.Context(), id, updateRequest); err != nil {
-		b.logger.Errorf("bank update request failed", err)
+		b.logger.Errorf("[UpdateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[UpdateOneBank] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
 }

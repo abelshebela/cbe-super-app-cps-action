@@ -37,10 +37,11 @@ func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 	params := local_util.ExtractFilterParams(r)
 	sitotas, err := h.svc.GetAllSitotas(r.Context(), params)
 	if err != nil {
-		h.logger.Errorf("[GetAllSitotas] service: %v", err)
+		h.logger.Errorf("[GetAllSitotas] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetAllSitotas] retrieved %d sitota transactions", len(sitotas.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAllSitotasRetrieved, sitotas)
 }
 
@@ -67,9 +68,10 @@ func (h *handler) GetSitota(w http.ResponseWriter, r *http.Request) {
 
 	sitota, err := h.svc.GetSitotaByID(r.Context(), id)
 	if err != nil {
-		h.logger.Errorf("[GetSitota] service: %v", err)
+		h.logger.Errorf("[GetSitota] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetSitota] sitota transaction retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessSitotaRetrieved, sitota)
 }

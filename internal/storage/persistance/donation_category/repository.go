@@ -32,35 +32,42 @@ func NewDonationCategoryRepository(client *mongo.Client, dbName string, collecti
 }
 
 func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.DonationCategory) error {
-
+	s.logger.Infof("[Create] creating donation category")
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
+		s.logger.Errorf("[Create] failed to create donation category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	s.logger.Infof("[Create] donation category created successfully")
 	return nil
 }
 
 func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details *model.DonationCategory) error {
+	s.logger.Infof("[Update] updating donation category for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := DonationCategoryMapper(*details)
 	_, err = s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-
 		if err == mongo.ErrNoDocuments {
+			s.logger.Errorf("[Update] donation category not found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		s.logger.Errorf("[Update] failed to update donation category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	s.logger.Infof("[Update] donation category updated successfully")
 	return nil
 }
 func (s *DonationCategoryStorage) FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error) {
+	s.logger.Infof("[FindByID] fetching donation category by id: %s", id)
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
-		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
+		s.logger.Errorf("[FindByID] invalid object id")
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": idObj, "is_deleted": false}
@@ -68,11 +75,11 @@ func (s *DonationCategoryStorage) FindByID(ctx context.Context, id string) (*don
 
 	result, err := s.dal.FindOne(ctx, filter, projection)
 	if err != nil {
-		s.logger.Errorf("Error finding donation category: %v", err)
+		s.logger.Errorf("[FindByID] failed to find donation category: %v", err)
 		code, _ := local_util.HandleMongoError(err)
 		return nil, errors.New(code)
 	}
-	s.logger.Infof("Successfully found donation category: %+v", result)
+	s.logger.Infof("[FindByID] donation category retrieved successfully")
 	return MapToDonationCategoryListResponse(result), nil
 }
 func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_category.DonationCategoryListResponse], error) {
@@ -94,12 +101,14 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch donation categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to count donation categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
@@ -108,6 +117,7 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 
 	// 8. Map to DTOs
 	dtoData := MapToDonationCategoryListResponses(data)
+	s.logger.Infof("[FindAllWithPagination] retrieved %d donation categories", len(dtoData))
 
 	// 9. Return standard paginated response
 	return &types.PaginatedResponse[[]donation_category.DonationCategoryListResponse]{
@@ -116,10 +126,18 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 	}, nil
 }
 func (s *DonationCategoryStorage) Delete(ctx context.Context, id string) error {
+	s.logger.Infof("[Delete] deleting donation category for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return s.dal.DeleteOne(ctx, filter)
+	err = s.dal.DeleteOne(ctx, filter)
+	if err != nil {
+		s.logger.Errorf("[Delete] failed to delete donation category: %v", err)
+		return err
+	}
+	s.logger.Infof("[Delete] donation category deleted successfully")
+	return nil
 }

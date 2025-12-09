@@ -57,11 +57,12 @@ func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.CreateNewsTags(r.Context(), req.TagName); err != nil {
-		n.logger.Errorf("create news tag failed: %v", err)
+		n.logger.Errorf("[CreateNewsTags] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[CreateNewsTags] request sent successfully for tag_name: %s", req.TagName)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagCreated, nil)
 }
 
@@ -88,11 +89,12 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.DeleteNewsTag(r.Context(), id); err != nil {
-		n.logger.Errorf("delete news tag failed: %v", err)
+		n.logger.Errorf("[DeleteNewsTag] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[DeleteNewsTag] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagDeleted, nil)
 }
 
@@ -123,11 +125,12 @@ func (n NewsTagHandler) FetchNewsTags(w http.ResponseWriter, r *http.Request) {
 
 	list, err := n.service.FindAllWithPagination(r.Context(), filter)
 	if err != nil {
-		n.logger.Errorf("failed to fetch news tags: %v", err)
+		n.logger.Errorf("[FetchNewsTags] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[FetchNewsTags] retrieved %d news tags", len(list.Data))
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagFetched, list)
 }
 
@@ -155,11 +158,12 @@ func (n NewsTagHandler) GetNewsTagByID(w http.ResponseWriter, r *http.Request) {
 
 	data, err := n.service.GetNewsTagByID(r.Context(), id)
 	if err != nil {
-		n.logger.Errorf("get news tag by id failed: %v", err)
+		n.logger.Errorf("[GetNewsTagByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[GetNewsTagByID] news tag retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagFetched, data)
 }
 
@@ -201,10 +205,11 @@ func (n NewsTagHandler) UpdateNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.UpdateNewsTag(r.Context(), id, req.TagName); err != nil {
-		n.logger.Errorf("update news tag failed: %v", err)
+		n.logger.Errorf("[UpdateNewsTag] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[UpdateNewsTag] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagUpdated, nil)
 }

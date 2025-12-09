@@ -52,11 +52,13 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 
 	resp, err := h.accountValidationService.FindById(r.Context(), id)
 	if err != nil {
+		h.logger.Errorf("[FindById] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	//note:we need to  convert model to dto
 
+	h.logger.Infof("[FindById] validation rule retrieved successfully for id: %s", id)
 	// Send the struct directly instead of converting to map
 	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, resp)
 }
@@ -82,6 +84,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 	// ─── Parse Request Body ───────────────────────────────────────────────
 	var req account_validation_dto.ValidationRuleDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("[Update] failed to decode request: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorValidationRuleConvertIDFailed, nil, nil)
 		return
 	}
@@ -101,10 +104,12 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := account_validation_dto.ToModel(req)
 	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
+		h.logger.Errorf("[Update] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[Update] validation rule update request sent successfully for id: %s", id)
 	// ─── Success Response ────────────────────────────────────────────────
 	localization.SendSuccessResponse(w, localization.SuccessValidationRuleApproved, nil)
 }
@@ -134,8 +139,10 @@ func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, 
 
 	accountValidation, err := s.accountValidationService.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	s.logger.Infof("[FindAllWithPagination] retrieved %d validation rules", len(accountValidation.Data))
 	localization.SendSuccessResponse(w, localization.SuccessValidationRuleFetched, accountValidation)
 }

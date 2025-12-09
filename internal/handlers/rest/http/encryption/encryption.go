@@ -39,6 +39,7 @@ func InitEncryption(svc service.EncryptionService, logger utils.Logger) *encrypt
 func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
 	var req encryptionDto.EncryptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		enc.logger.Errorf("[Encryption] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -51,10 +52,11 @@ func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
 
 	result, _, err := enc.svc.LocalEncryptPassword(req, "enc", "enc", "enc")
 	if err != nil {
-		enc.logger.Errorf("[Encryption] service: %v", err)
+		enc.logger.Errorf("[Encryption] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	enc.logger.Infof("[Encryption] password encrypted successfully for username: %s", req.Username)
 	localization.SendSuccessResponse(w, localization.SuccessEncryptionGenerated, result)
 }
