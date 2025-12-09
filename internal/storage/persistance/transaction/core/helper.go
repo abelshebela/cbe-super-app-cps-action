@@ -3,6 +3,7 @@ package transaction_core
 import (
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"encoding/json"
 	"time"
 
 	"github.com/godror/godror"
@@ -23,9 +24,13 @@ func MapFullTransactionToNative(ft model.TransactionModel) transaction_dto.FullT
 		lastModifiedAt = &ft.LastModifiedAt.Time
 	}
 
-	var metadata []byte
-	if ft.Metadata.Valid {
-		metadata = []byte{ft.Metadata.Byte}
+	var metadataBytes json.RawMessage
+	if ft.Metadata != nil {
+		if v, err := ft.Metadata.GetValue(godror.JSONOption(godror.JSONOptDefault)); err == nil && v != nil {
+			if mapVal, ok := v.(json.RawMessage); !ok || mapVal == nil {
+				metadataBytes = mapVal
+			}
+		}
 	}
 
 	fee := godror.Number(ft.ServiceFee)
@@ -63,7 +68,7 @@ func MapFullTransactionToNative(ft model.TransactionModel) transaction_dto.FullT
 		IsIFB:                   ft.IsIFB == "Y" || ft.IsIFB == "true" || ft.IsIFB == "1",
 		PaidAt:                  paidAt,
 		ReversedAt:              reversedAt,
-		Metadata:                metadata,
+		Metadata:                metadataBytes,
 		CreatedAt:               createdAt,
 		LastModifiedAt:          lastModifiedAt,
 	}

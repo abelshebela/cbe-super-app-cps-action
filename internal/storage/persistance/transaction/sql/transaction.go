@@ -126,25 +126,30 @@ func (q *Queries) FindTransactionWithParam(ctx context.Context, filterParams *ty
 	baseQuery := " FROM transaction WHERE 1=1"
 	filters := ""
 	args := []interface{}{}
+	argIdx := 1
 
 	if vFrom, okFrom := filterParams.Filters["date_from"]; okFrom && vFrom != "" {
 		if vTo, okTo := filterParams.Filters["date_to"]; okTo && vTo != "" {
-			filters += " AND created_at BETWEEN ? AND ?"
+			filters += fmt.Sprintf(" AND created_at BETWEEN :%d AND :%d", argIdx, argIdx+1)
 			args = append(args, vFrom, vTo)
+			argIdx += 2
 		}
 	}
 	if vType, okType := filterParams.Filters["type"]; okType && vType != "" {
-		filters += " AND transaction_type = ?"
+		filters += fmt.Sprintf(" AND transaction_type = :%d", argIdx)
 		args = append(args, vType)
+		argIdx++
 	}
 	if vStatus, okStatus := filterParams.Filters["status"]; okStatus && vStatus != "" {
-		filters += " AND transaction_status = ?"
+		filters += fmt.Sprintf(" AND transaction_status = :%d", argIdx)
 		args = append(args, vStatus)
+		argIdx++
 	}
 	if filterParams.Search != "" {
-		filters += " AND (debit_account_holder_name LIKE ? OR debit_account_number LIKE ? OR transaction_id LIKE ?)"
+		filters += fmt.Sprintf(" AND (debit_account_holder_name LIKE :%d OR debit_account_number LIKE :%d OR transaction_id LIKE :%d)", argIdx, argIdx+1, argIdx+2)
 		like := "%" + filterParams.Search + "%"
 		args = append(args, like, like, like)
+		argIdx += 3
 	}
 
 	// Count query for total docs

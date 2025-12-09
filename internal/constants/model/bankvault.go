@@ -181,7 +181,7 @@ type TransactionModel struct {
 	IsReversed              sql.NullBool      `json:"is_reversed"`
 	PaidAt                  sql.NullTime      `json:"paid_at,omitzero"`
 	ReversedAt              sql.NullTime      `json:"reversed_at,omitzero"`
-	Metadata                sql.NullByte      `json:"metadata,omitempty"`
+	Metadata                *godror.JSON      `json:"metadata,omitempty"`
 	CreatedAt               sql.NullTime      `json:"created_at"`
 	LastModifiedAt          sql.NullTime      `json:"last_modified_at,omitzero"`
 }
