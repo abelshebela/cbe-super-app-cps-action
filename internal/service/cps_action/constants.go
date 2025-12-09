@@ -836,6 +836,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteDeviceVersion,
 		RequestEnableDisableDeviceVersion,
 	},
+	"MiniAppCategory": {
+		RequestCreateMiniAppCategory,
+		RequestUpdateMiniAppCategory,
+		RequestDeleteMiniAppCategory,
+		RequestEnableMiniAppCategory,
+		RequestDisableMiniAppCategory,
+	},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {

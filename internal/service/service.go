@@ -427,6 +427,7 @@ type ServiceLayer struct {
 	Encryption             EncryptionService
 	BPSActionRole          BPSActionRoleService
 	TransactionService     TransactionService
+	MiniAppCategory        MiniAppCategoryService
 }
 
 type ServiceContainer struct {
@@ -479,6 +480,7 @@ type ServiceContainer struct {
 	VaultCategoryContainer     VaultGroupCategoryService
 	BPSActionRoleContainer     BPSActionRoleService
 	TransactionContainer       TransactionService
+	MiniAppCategoryContainer   MiniAppCategoryService
 }
 
 type BPSActionRoleService interface {

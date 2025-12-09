@@ -133,6 +133,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
 		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
+		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
 	}
 
 	return data
