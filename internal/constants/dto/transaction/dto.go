@@ -6,35 +6,35 @@ import (
 )
 
 type FullTransaction struct {
-	ID                      string
-	TransactionID           string
-	FTNumber                string
-	DebitBranchCode         string
-	DebitDistrictCode       string
-	DebitUserID             string
-	DebitAccountNumber      string
-	DebitAccountHolderName  string
-	CreditUserID            string
-	CreditAccountNumber     string
-	CreditAccountHolderName string
-	InstitutionCode         string
-	InstitutionName         string
-	Currency                string
-	ServiceFee              string
-	TipAmount               string
-	PaidAmount              string
-	VAT                     string
-	Amount                  string
-	TotalAmount             string
-	ExternalReference       string
-	TransactionReason       string
-	TransactionType         string
-	TransactionStatus       string
-	IsIFB                   bool
-	IsReversed              bool
-	PaidAt                  *time.Time
-	ReversedAt              *time.Time
-	Metadata                json.RawMessage
-	CreatedAt               *time.Time
-	LastModifiedAt          *time.Time
+	ID                      string          `json:"id"`
+	TransactionID           string          `json:"transaction_id"`
+	FTNumber                string          `json:"ft_number"`
+	DebitBranchCode         string          `json:"debit_branch_code"`
+	DebitDistrictCode       string          `json:"debit_district_code"`
+	DebitUserID             string          `json:"debit_user_id"`
+	DebitAccountNumber      string          `json:"debit_account_number"`
+	DebitAccountHolderName  string          `json:"debit_account_holder_name"`
+	CreditUserID            string          `json:"credit_user_id"`
+	CreditAccountNumber     string          `json:"credit_account_number"`
+	CreditAccountHolderName string          `json:"credit_account_holder_name"`
+	InstitutionCode         string          `json:"institution_code"`
+	InstitutionName         string          `json:"institution_name"`
+	Currency                string          `json:"currency"`
+	ServiceFee              string          `json:"service_fee"`
+	TipAmount               string          `json:"tip_amount"`
+	PaidAmount              string          `json:"paid_amount"`
+	VAT                     string          `json:"vat"`
+	Amount                  string          `json:"amount"`
+	TotalAmount             string          `json:"total_amount"`
+	ExternalReference       string          `json:"external_reference"`
+	TransactionReason       string          `json:"transaction_reason"`
+	TransactionType         string          `json:"transaction_type"`
+	TransactionStatus       string          `json:"transaction_status"`
+	IsIFB                   bool            `json:"is_ifb"`
+	IsReversed              bool            `json:"is_reversed"`
+	PaidAt                  *time.Time      `json:"paid_at"`
+	ReversedAt              *time.Time      `json:"reversed_at"`
+	Metadata                json.RawMessage `json:"metadata"`
+	CreatedAt               *time.Time      `json:"created_at"`
+	LastModifiedAt          *time.Time      `json:"last_modified_at"`
 }
