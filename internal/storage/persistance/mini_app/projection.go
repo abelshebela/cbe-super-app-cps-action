@@ -40,15 +40,9 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 	if miniApp.BannerImage != "" {
 		update["banner_image"] = miniApp.BannerImage
 	}
-	if miniApp.CommissionGLAccount != "" {
-		update["commission_gl_account"] = miniApp.CommissionGLAccount
-	}
+
 	if miniApp.AppType != "" {
 		update["app_type"] = miniApp.AppType
-	}
-
-	if miniApp.AppCode != "" {
-		update["app_code"] = miniApp.AppCode
 	}
 
 	if miniApp.CategoryID != bson.NilObjectID {

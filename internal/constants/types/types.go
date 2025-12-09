@@ -344,7 +344,6 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	ID            bson.ObjectID             `bson:"_id" json:"_id"`
 	Environment   constants.EnvironmentType `bson:"environment" json:"environment"`
 	MerchantAppID string                    `bson:"merchant_app_id" json:"merchant_app_id"`
 	FabricAppID   string                    `bson:"fabric_app_id" json:"fabric_app_id"`
