@@ -459,6 +459,8 @@ const (
 	MsgBankNameRequired          = "Bank name is required"
 	MsgBankCodeRequired          = "Bank code is required"
 	MsgBankBICRequired           = "Bank BIC is required"
+	MsgBankAccountLengthRequired = "Bank account length is required"
+	MsgBankAccountLengthInvalid  = "Bank account length is invalid"
 	MsgInvalidBankName           = "Invalid bank name"
 	MsgBankNameTooShort          = "Bank name too short"
 	MsgBankNameTooLong           = "Bank name too long"
