@@ -12,7 +12,7 @@ import (
 
 func (d DonationCompanyRequest) ValidateForUpdate() error {
 	// First check if at least one field is provided
-	if d.CompanyName == "" && d.CompanyLogo == nil && d.AccountNumber == "" {
+	if d.CompanyName == "" && d.CompanyLogo == nil && d.AccountNumber == "" && d.PhoneNumber == "" && d.Email == "" && d.Address == "" {
 		return validation.NewError("validation_at_least_one_field", "at least one field must be provided for update")
 	}
 

@@ -7,20 +7,20 @@ import (
 )
 
 func (e *EnableOrDisableBranches) Clean() {
-	for i, code := range e.BranchCodes {
-		e.BranchCodes[i] = strings.TrimSpace(code)
+	for i, code := range e.BranchIds {
+		e.BranchIds[i] = strings.TrimSpace(code)
 	}
 }
 
 func (e *EnableOrDisableRegions) Clean() {
-	for i, code := range e.RegionCodes {
-		e.RegionCodes[i] = strings.TrimSpace(code)
+	for i, code := range e.RegionIds {
+		e.RegionIds[i] = strings.TrimSpace(code)
 	}
 }
 
 func (e *EnableOrDisableDistricts) Clean() {
-	for i, code := range e.DistrictCodes {
-		e.DistrictCodes[i] = strings.TrimSpace(code)
+	for i, code := range e.DistrictIds {
+		e.DistrictIds[i] = strings.TrimSpace(code)
 	}
 }
 

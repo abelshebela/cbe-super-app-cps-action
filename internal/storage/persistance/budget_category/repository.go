@@ -160,7 +160,6 @@ func (b *BudgetCategoryStorage) FindByName(ctx context.Context, name string) (*m
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
-	
 	b.logger.Infof("[budgetname.FindByName]  Successfully found budget category with name: %s", name)
 	return result, nil
 }

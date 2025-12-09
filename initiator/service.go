@@ -13,6 +13,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/media"
 	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
 	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
+	"cbe-super-app-cps-action/internal/service/transaction"
 	"cbe-super-app-cps-action/internal/storage"
 	"time"
 
@@ -111,11 +112,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
 	deviceVersionService := deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, nil, logger)
 	sitotaService := sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
+	transactionService := transaction.NewTransactionService(oracle.Transaction, logger)
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
+  	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -156,6 +159,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagContainer:           newsTagService,
 		NewsCategoryContainer:      newsCategoryService,
 		SitotaContainer:            sitotaService,
+		TransactionContainer:       transactionService,
 		KYCVerifierContainer:       kycService,
 		DeviceVersionContainer:     deviceVersionService,
 		NewsTagsServiceContainer:   newsTagsService,
@@ -163,6 +167,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BankProductContainer:       bankVaultProductService,
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,
+		MiniAppCategoryContainer:   miniAppCategory,
 	}
 
 	// CPSActionService Appended
@@ -228,6 +233,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
+	transactionService = transaction.NewTransactionService(oracle.Transaction, logger)
 	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
@@ -277,6 +283,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		NewsTagService:         newsTagService,
 		NewsCategoryService:    newsCategoryService,
 		Sitota:                 sitotaService,
+		TransactionService:     transactionService,
 		KYCVerifier:            kycService,
 		NewsTagsService:        newsTagsService,
 		DeviceVersion:          deviceVersionService,
@@ -284,5 +291,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BankVault:              bankVaultProductService,
 		VaultGroupCategory:     vaultGroupCategoryService,
 		BPSActionRole:          bpsActionRoleService,
+		MiniAppCategory:        miniAppCategory,
 	}
 }

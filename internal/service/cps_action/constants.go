@@ -177,9 +177,11 @@ const (
 	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
 	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
 
-	RequestCreateBudgetCategory RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
+	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
 	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
 	RequestUnlinkUser             RequestAction = "UNLINK_USER"
@@ -696,6 +698,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateBudgetCategory,
 		RequestUpdateBudgetCategory,
 		RequestDeleteBudgetCategory,
+		RequestDisableBudgetCategory,
+		RequestEnableBudgetCategory,
 	},
 	"UnlinkDevice": {
 		RequestUnlinkDevice,
@@ -831,6 +835,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableDeviceVersion,
 		RequestDeleteDeviceVersion,
 		RequestEnableDisableDeviceVersion,
+	},
+	"MiniAppCategory": {
+		RequestCreateMiniAppCategory,
+		RequestUpdateMiniAppCategory,
+		RequestDeleteMiniAppCategory,
+		RequestEnableMiniAppCategory,
+		RequestDisableMiniAppCategory,
 	},
 }
 

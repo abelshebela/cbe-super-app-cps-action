@@ -15,13 +15,16 @@ import (
 
 func ConvertBankVaultToMongoSafe(product *model.BankVaultProduct) map[string]interface{} {
 	result := map[string]interface{}{
-		"id":                             product.ID,
-		"name":                           product.Name,
-		"currency":                       product.Currency,
-		"rate_bps":                       func() float64 { f, _ := product.RateBps.Float64(); return f }(),
+		"id":       product.ID,
+		"name":     product.Name,
+		"currency": product.Currency,
+		"interest": func() float64 {
+			f, _ := product.RateBps.Float64()
+			return f / 100
+		}(),
 		"method":                         string(product.Method),
 		"frequency":                      product.Frequency,
-		"lock_period":                    product.LockPeriod.Nanoseconds(),
+		"lock_period":                    fmt.Sprintf("%d months", utils.DurationToMonths(product.LockPeriod)),
 		"min_amount":                     func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
 		"max_amount":                     func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
 		"apply_interest_on_early_unlock": product.ApplyInterestOnEarlyUnlock,

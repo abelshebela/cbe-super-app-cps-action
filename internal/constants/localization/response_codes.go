@@ -343,6 +343,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorBranchNotFound,
 	ErrorDistrictNotFound,
+	ErrorCannotEnableDistrict,
+	ErrorCannotEnableBranch,
 	ErrorRegionNotFound,
 	ErrorCityNotFound,
 
@@ -446,6 +448,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorNoChangesDetected,
 	ErrorDonationCategoryLookupFailed,
 	ErrorNoChangesToUpdate,
+	ErrorBudgetCategoryAlreadyEnabled,
+	ErrorBudgetCategoryAlreadyDisabled,
 	ErrorDonationParseStartDateFailed,
 	ErrorDonationParseEndDateFailed,
 	ErrorDonationFetchCompanyFailed,
@@ -544,6 +548,10 @@ var ResponseCodesList = []ResponseCode{
 
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
+
+	// transaction related responses
+	SuccessTransactionRetrieved,
+	ErrorTransactionIDRequired,
 }
 
 // Success Response Codes
@@ -2777,10 +2785,16 @@ var (
 		Type:       "success",
 	}
 
-	SuccessBudgetCategoryToggleSubmittedForApproval = ResponseCode{
-		Code:       "BUDGET_CATEGORY_TOGGLE_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetCategoryEnableSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_ENABLE_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetCategoryToggleSubmittedForApprovalSuccess,
+		Message:    MsgBudgetCategoryEnableSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+	SuccessBudgetCategoryDisableSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_DISABLE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryDisableSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 
@@ -4442,6 +4456,19 @@ var (
 		Type:       "error",
 	}
 
+	ErrorBudgetCategoryAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBudgetCategoryAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBudgetCategoryAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBudgetCategoryAlreadyDisable,
+		Type:       "error",
+	}
+
 	ErrorDonationParseStartDateFailed = ResponseCode{
 		Code:       "ERROR_DONATION_PARSE_START_DATE_FAILED",
 		StatusCode: StatusBadRequest,
@@ -5023,6 +5050,18 @@ var (
 		Code:       "ERROR_DISTRICT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgDistrictNotFound,
+		Type:       "error",
+	}
+	ErrorCannotEnableDistrict = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_DISTRICT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableDistrict,
+		Type:       "error",
+	}
+	ErrorCannotEnableBranch = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_BRANCH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableBranch,
 		Type:       "error",
 	}
 
@@ -5624,5 +5663,19 @@ var (
 		StatusCode: StatusBadRequest,
 		Message:    MsgBpsActionRoleNotFound,
 		Type:       "error",
+	}
+
+	// Transaction Service Related Responses
+	ErrorTransactionIDRequired = ResponseCode{
+		Code:       "ERROR_TRANSACTION_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTransactionIDRequired,
+		Type:       "error",
+	}
+	SuccessTransactionRetrieved = ResponseCode{
+		Code:       "SUCCESS_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTransactionRetrievedSuccess,
+		Type:       "success",
 	}
 )

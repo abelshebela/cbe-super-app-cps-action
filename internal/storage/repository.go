@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	"cbe-super-app-cps-action/internal/constants"
 
@@ -159,6 +160,7 @@ type AmountBasedAuthRepository interface {
 // AccountBlock persistence
 type AccountBlockRepository interface {
 	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
@@ -175,6 +177,7 @@ type AccountBlockRepository interface {
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
 	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
+	GetRegionByIds(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateRegion(ctx context.Context, region *model.AccountBlock) error
 	UpdateRegion(ctx context.Context, id string, region *model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
@@ -182,11 +185,11 @@ type AccountBlockRepository interface {
 	FindRegionByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
-	GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error)
+	GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateDistrict(ctx context.Context, district *model.AccountBlock) error
 	UpdateDistrict(ctx context.Context, id string, district *model.AccountBlock) error
 	DeleteDistrict(ctx context.Context, id string) error
-	EnableOrDisableDistrict(ctx context.Context, code string, reason string, enabled bool) error
+	EnableOrDisableDistrict(ctx context.Context, id string, reason string, enabled bool) error
 	FindDistrictByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 }
@@ -580,4 +583,9 @@ type MiniAppCategoryRepository interface {
 	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type TransactionRepository interface {
+	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }

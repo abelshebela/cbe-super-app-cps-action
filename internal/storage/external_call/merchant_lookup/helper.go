@@ -20,7 +20,7 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_ke
 		return nil, merchant_lookup.MerchantLookUpResponse{}, localization.ErrorMerchantIDRequired
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url+merchantId, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url+merchantId, nil)
 	if err != nil {
 		logger.Errorf("error with context error: %v ", err)
 		return nil, merchant_lookup.MerchantLookUpResponse{}, localization.ErrorUnexpectedError

@@ -812,6 +812,8 @@ const (
 	MsgDonationAlreadyDisabled        = "Donation already disabled"
 	MsgDonationCategoryNameDuplicated = "donation category name already exist"
 	MsgNoChangesToUpdate              = "no changes to update"
+	MsgBudgetCategoryAlreadyEnabled   = "Budget category already enabled"
+	MsgBudgetCategoryAlreadyDisable   = "Budget category already disabled"
 	MsgDonationParseStartDateFailed   = "Failed to parse start date"
 	MsgDonationParseEndDateFailed     = "Failed to parse end date"
 	MsgDonationFetchCompanyFailed     = "Failed to fetch company"
@@ -866,7 +868,8 @@ const (
 	MsgBudgetCategoryRequestSubmittedForApprovalSuccess = "Budget category creation request submitted for approval"
 	MsgBudgetCategoryUpdateSubmittedForApprovalSuccess  = "Budget category update request submitted for approval"
 	MsgBudgetCategoryDeleteSubmittedForApprovalSuccess  = "Budget category deletion request submitted for approval"
-	MsgBudgetCategoryToggleSubmittedForApprovalSuccess  = "Budget category enable/disable request submitted for approval"
+	MsgBudgetCategoryEnableSubmittedForApprovalSuccess  = "Budget category enable request submitted for approval"
+	MsgBudgetCategoryDisableSubmittedForApprovalSuccess = "Budget category disable request submitted for approval"
 	MsgDonationCompanyLogoUpdateSuccess                 = "Successfully uploaded updated donation company logo"
 	MsgDonationImageUploadSuccess                       = "Successfully uploaded donation image"
 	MsgDonationImagesUpdateSuccess                      = "Successfully uploaded updated donation images"
@@ -971,6 +974,8 @@ const (
 	MsgCityNotFound           = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
+	MsgCannotEnableDistrict   = "Cannot enable district, its region is blocked"
+	MsgCannotEnableBranch     = "Cannot enable branch, its district is already blocked"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
@@ -992,8 +997,8 @@ const (
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
 
-	MsgAlreadyEnabled  = "Donation company already enabled"
-	MsgAlreadyDisabled = "Donation comapany already disabled"
+	MsgAlreadyEnabled  = "Already enabled"
+	MsgAlreadyDisabled = "Already disabled"
 
 	MsgBucketNotFound = "bucket not found"
 
@@ -1030,4 +1035,9 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
+
+	// transaction related messages
+	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
+	MsgTransactionIDRequired        = "Transaction ID is required"
 )
