@@ -54,7 +54,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-
+	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
 	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
 	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
@@ -119,6 +119,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
   	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
+	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -168,6 +169,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,
 		MiniAppCategoryContainer:   miniAppCategory,
+		CPSActionRoleContainer:     cpsActionRoleService,
 	}
 
 	// CPSActionService Appended
@@ -292,5 +294,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultGroupCategory:     vaultGroupCategoryService,
 		BPSActionRole:          bpsActionRoleService,
 		MiniAppCategory:        miniAppCategory,
+		CPSActionRole:          cpsActionRoleService,
 	}
 }

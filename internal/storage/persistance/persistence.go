@@ -75,4 +75,5 @@ type Persistence struct {
 	BPSActionApproveIndexPersistence storage.BPSActionApproveIndexRepository
 	RolePersistence                  storage.RoleRepository
   MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
+  	CPSActionRolePersistence         storage.CPSActionRoleRepository
 }

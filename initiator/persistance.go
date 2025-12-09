@@ -15,6 +15,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/avatar"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
 	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/bps_action_role"
+	cps_actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/cps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/branch"
 	"cbe-super-app-cps-action/internal/storage/persistance/city"
@@ -138,6 +139,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName,BPSActionApproveIndexCollection, logger),
 		RolePersistence:                  role_repo.NewRoleRepository(client, dbName, RolesCollection, logger),
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
+		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
 
 	}
 

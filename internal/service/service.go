@@ -428,6 +428,7 @@ type ServiceLayer struct {
 	BPSActionRole          BPSActionRoleService
 	TransactionService     TransactionService
 	MiniAppCategory        MiniAppCategoryService
+	CPSActionRole          CPSActionRoleService
 }
 
 type ServiceContainer struct {
@@ -481,6 +482,7 @@ type ServiceContainer struct {
 	BPSActionRoleContainer     BPSActionRoleService
 	TransactionContainer       TransactionService
 	MiniAppCategoryContainer   MiniAppCategoryService
+	CPSActionRoleContainer     CPSActionRoleService
 }
 
 type BPSActionRoleService interface {
@@ -565,4 +567,13 @@ type MiniAppCategoryService interface {
 type TransactionService interface {
 	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+}
+type CPSActionRoleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
+	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
+	Enable(ctx context.Context, actionCode string) error
+	Disable(ctx context.Context, actionCode string) error
 }
