@@ -304,13 +304,13 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if len(req.BranchCodes) == 0 {
+	if len(req.BranchIds) == 0 {
 		a.logger.Errorf("Branch codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchCodes, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchIds, req.Reason, true)
 	if err != nil {
 		a.logger.Errorf("EnableOrDisableBranches failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -350,13 +350,13 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if len(req.BranchCodes) == 0 {
+	if len(req.BranchIds) == 0 {
 		a.logger.Errorf("Branch codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchCodes, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchIds, req.Reason, false)
 	if err != nil {
 		a.logger.Errorf("EnableOrDisableBranches failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -396,13 +396,13 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if len(req.RegionCodes) == 0 {
+	if len(req.RegionIds) == 0 {
 		a.logger.Errorf("Region codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionCodes, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionIds, req.Reason, true)
 	if err != nil {
 		a.logger.Errorf("EnableOrDisableRegions failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -443,13 +443,13 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if len(req.RegionCodes) == 0 {
+	if len(req.RegionIds) == 0 {
 		a.logger.Errorf("Region codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionCodes, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionIds, req.Reason, false)
 	if err != nil {
 		a.logger.Errorf("EnableOrDisableRegions failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -489,13 +489,13 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if len(req.DistrictCodes) == 0 {
+	if len(req.DistrictIds) == 0 {
 		a.logger.Errorf("District codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictCodes, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictIds, req.Reason, true)
 	if err != nil {
 		a.logger.Errorf("EnableOrDisableDistricts failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -533,12 +533,12 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if len(req.DistrictCodes) == 0 {
+	if len(req.DistrictIds) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictCodes, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableDistricts(r.Context(), req.DistrictIds, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
