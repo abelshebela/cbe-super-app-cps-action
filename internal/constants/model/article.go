@@ -24,6 +24,7 @@ type NewsArticle struct {
 	UpdatedAt        time.Time       `bson:"updated_at" json:"updated_at"`
 	IsDeleted        bool            `bson:"is_deleted" json:"is_deleted"`
 	DeletedAt        *time.Time      `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+	IsFeatured       *bool            `bson:"is_featured" json:"is_featured"`
 }
 type NewsArticleDetail struct {
 	ID               bson.ObjectID     `bson:"_id,omitempty" json:"_id,omitempty"`
@@ -44,6 +45,7 @@ type NewsArticleDetail struct {
 	UpdatedAt        time.Time         `bson:"updated_at" json:"updated_at"`
 	IsDeleted        bool              `bson:"is_deleted" json:"is_deleted"`
 	DeletedAt        *time.Time        `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+	IsFeatured       *bool              `bson:"is_featured" json:"is_featured"`
 }
 
 type NewsCategoryModel struct {
@@ -76,6 +78,7 @@ type ShortVideo struct {
 	UpdatedAt        time.Time       `bson:"updated_at" json:"updated_at"`
 	DeletedAt        *time.Time      `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 	PublishedAt      *time.Time      `bson:"published_at,omitempty" json:"published_at,omitempty"`
+	IsFeatured       *bool            `bson:"is_featured" json:"is_featured"`
 }
 
 type ShortVideoDetail struct {
@@ -99,6 +102,7 @@ type ShortVideoDetail struct {
 	UpdatedAt        time.Time         `bson:"updated_at" json:"updated_at"`
 	DeletedAt        *time.Time        `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 	PublishedAt      *time.Time        `bson:"published_at,omitempty" json:"published_at,omitempty"`
+	IsFeatured       *bool              `bson:"is_featured" json:"is_featured"`
 }
 
 type NewsTags struct {
@@ -131,6 +135,7 @@ func (m *NewsArticleDetail) ToNewsArticle() *NewsArticle {
 		Views:            m.Views,
 		CopyLinkCounter:  m.CopyLinkCounter,
 		DeletedAt:        m.DeletedAt,
+		IsFeatured:       m.IsFeatured,
 	}
 }
 
@@ -155,6 +160,7 @@ func (m *ShortVideoDetail) ToShortVideo() *ShortVideo {
 		ViewsCount:       m.ViewsCount,
 		SharesCount:      m.SharesCount,
 		DeletedAt:        m.DeletedAt,
+		IsFeatured:       m.IsFeatured,
 	}
 }
 

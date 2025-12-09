@@ -140,6 +140,9 @@ func buildShortVideoUpdate(updateFields model.ShortVideo) bson.M {
 		update["author"] = updateFields.Author
 	}
 
+	if updateFields.IsFeatured != nil {
+		update["is_featured"] = updateFields.IsFeatured
+	}
 	if updateFields.Slug != "" {
 		update["slug"] = updateFields.Slug
 	}

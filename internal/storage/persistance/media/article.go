@@ -132,6 +132,10 @@ func buildUpdate(updateFields model.NewsArticle) bson.M {
 		update["thumbnail_alt_text"] = updateFields.ThumbnailAltText
 	}
 
+	if updateFields.IsFeatured != nil {
+		update["is_featured"] = updateFields.IsFeatured
+	}
+
 	update["updated_at"] = time.Now()
 
 	return update
