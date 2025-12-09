@@ -162,13 +162,14 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 		s.logger.Infof("Bank vault already enabled: %s", id)
 		return errors.New(localization.ErrorBankVaultAlreadyEnabled.Code)
 	}
-	updated := prev
-	updated.IsActive = true
 	maker := local_util.ExtractUserFromContext(ctx)
 
-	// Convert to MongoDB-safe format
 	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
-	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(updated)
+	updated := *prev
+	updated.IsActive = true
+	updated.UpdatedAt = time.Now()
+	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(&updated)
+
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestEnableBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }
@@ -188,12 +189,14 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	if !prev.IsActive {
 		return errors.New(localization.ErrorBankVaultAlreadyDisabled.Code)
 	}
-	updated := prev
-	updated.IsActive = false
 	maker := local_util.ExtractUserFromContext(ctx)
 
 	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
-	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(updated)
+	updated := *prev
+	updated.IsActive = false
+	updated.UpdatedAt = time.Now()
+	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(&updated)
+
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestDisAbleBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
 }

@@ -8,6 +8,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -306,9 +307,9 @@ type AccountBlockService interface {
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error
-	EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error
-	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error
+	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -425,6 +426,7 @@ type ServiceLayer struct {
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
 	BPSActionRole          BPSActionRoleService
+	TransactionService     TransactionService
 	MiniAppCategory        MiniAppCategoryService
 }
 
@@ -477,6 +479,7 @@ type ServiceContainer struct {
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
 	BPSActionRoleContainer     BPSActionRoleService
+	TransactionContainer       TransactionService
 	MiniAppCategoryContainer   MiniAppCategoryService
 }
 
@@ -562,4 +565,9 @@ type EncryptionService interface {
 
 type MiniAppCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type TransactionService interface {
+	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }

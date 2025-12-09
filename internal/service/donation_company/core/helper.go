@@ -133,7 +133,7 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 		result.Email = existing.Email
 	}
 
-	if donationCompany.PhoneNumber != "" && donationCompany.Address != existing.Address {
+	if donationCompany.Address != "" && donationCompany.Address != existing.Address {
 		result.Address = donationCompany.Address
 	} else {
 		result.Address = existing.Address
@@ -154,29 +154,32 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 }
 
 func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
-	// Check if company name is the same (if provided in request)
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
 
-	// Check if the company code is the same
 	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
 
-	// Check if account number is the same (if provided in request)
-	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
-		return false
-	}
-
-	// Check if logo is being updated
 	if request.CompanyLogo != nil {
 		return false
 	}
 
-	// If no fields are provided, consider it similar
-	if request.CompanyName == "" && request.AccountNumber == "" {
-		return true
+	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
+		return false
+	}
+
+	if request.Address != "" && request.Address != existing.Address {
+		return false
+	}
+
+	if request.PhoneNumber != "" && request.PhoneNumber != existing.PhoneNumber {
+		return false
+	}
+
+	if request.Email != "" && request.Email != existing.Email {
+		return false
 	}
 
 	return true
