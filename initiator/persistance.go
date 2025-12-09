@@ -136,7 +136,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
 
 		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName,BPSActionApproveIndexCollection, logger),
-
+		RolePersistence:                  role_repo.NewRoleRepository(client, dbName, "roles", logger),
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
 
 	}
