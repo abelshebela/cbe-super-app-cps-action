@@ -1,6 +1,9 @@
 package transaction_dto
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type FullTransaction struct {
 	ID                      string
@@ -31,7 +34,7 @@ type FullTransaction struct {
 	IsReversed              bool
 	PaidAt                  *time.Time
 	ReversedAt              *time.Time
-	Metadata                []byte
+	Metadata                json.RawMessage
 	CreatedAt               *time.Time
 	LastModifiedAt          *time.Time
 }
