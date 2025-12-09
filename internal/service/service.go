@@ -279,7 +279,7 @@ type UnlinkService interface {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
-	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest,fieldsProvided map[string]bool) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
@@ -425,6 +425,7 @@ type ServiceLayer struct {
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
 	BPSActionRole          BPSActionRoleService
+	MiniAppCategory        MiniAppCategoryService
 }
 
 type ServiceContainer struct {
@@ -476,6 +477,7 @@ type ServiceContainer struct {
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
 	BPSActionRoleContainer     BPSActionRoleService
+	MiniAppCategoryContainer   MiniAppCategoryService
 }
 
 type BPSActionRoleService interface {

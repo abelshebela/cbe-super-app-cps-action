@@ -72,4 +72,5 @@ type Persistence struct {
 	NewsCategoryPersistence          storage.NewsCategoryRepository
 	NewsTagsServiceContainer         storage.NewsTagsRepository
 	BPSActionRolePersistence         storage.BPSActionRoleRepository
+	MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
 }

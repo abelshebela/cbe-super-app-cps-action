@@ -116,6 +116,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, nil, logger)
+	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -163,6 +164,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BankProductContainer:       bankVaultProductService,
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,
+		MiniAppCategoryContainer:   miniAppCategory,
 	}
 
 	// CPSActionService Appended
@@ -284,5 +286,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		BankVault:              bankVaultProductService,
 		VaultGroupCategory:     vaultGroupCategoryService,
 		BPSActionRole:          bpsActionRoleService,
+		MiniAppCategory:        miniAppCategory,
 	}
 }
