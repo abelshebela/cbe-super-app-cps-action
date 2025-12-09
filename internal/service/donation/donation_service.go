@@ -2,6 +2,7 @@ package donation
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"fmt"
 	"path"
 
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
@@ -201,6 +202,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		if err != nil || category == nil || !category.Enabled {
 			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 		}
+		existingDonation.Category.CategoryName = category.CategoryName
 	} else {
 		donation.CategoryID = existingDonation.Category.ID
 	}
@@ -211,12 +213,14 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		if err != nil || company == nil || !company.Enabled {
 			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 		}
+		existingDonation.Company.CompanyName = company.CompanyName
 	} else {
 		donation.CompanyID = existingDonation.Company.ID
 	}
 
 	// --- Cover Image Handling ---
-	coverImageURL := existingDonation.CoverImage
+	// coverImageURL := existingDonation.CoverImage
+	var coverImageURL string
 	if donation.CoverImage != nil {
 		var objectkey string
 		if existingDonation.CoverImage != "" {
@@ -239,19 +243,33 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		coverImageURL = url
 	}
 
-	NewdonationImages := existingDonation.DonationImages
+	// Remove the existing images from storage
+	for i, _ := range existingDonation.DonationImages {
+		var objectKey string
+		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
+			objectKey = path.Base(existingDonation.DonationImages[i].PhotoURL)
+		}
+
+		err := lib.RemoveFileFromMinio(ctx, d.minio, d.bucketName, objectKey, d.logger)
+		if err != nil {
+			return fmt.Errorf("failed to remove image from storage: %v", err)
+		}
+	}
+
+	// NewdonationImages := existingDonation.DonationImages
+	var newDonationImages []dto.DonationImage
 	if len(donation.RemovedImages) > 0 {
 		toRemove := make(map[string]struct{}, len(donation.RemovedImages))
 		for _, id := range donation.RemovedImages {
 			toRemove[id] = struct{}{}
 		}
-		filtered := NewdonationImages[:0]
-		for _, img := range NewdonationImages {
+		filtered := newDonationImages[:0]
+		for _, img := range newDonationImages {
 			if _, ok := toRemove[img.ID]; !ok {
 				filtered = append(filtered, img)
 			}
 		}
-		NewdonationImages = filtered
+		newDonationImages = filtered
 	}
 
 	// --- Add New Images ---
@@ -277,7 +295,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			return err
 		}
 
-		NewdonationImages = append(NewdonationImages, dto.DonationImage{
+		newDonationImages = append(newDonationImages, dto.DonationImage{
 			ID:       bson.NewObjectID().Hex(),
 			PhotoURL: url,
 		})
@@ -286,7 +304,15 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	// --- Map Update Data ---
-	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, NewdonationImages)
+	updateData := core.MapDonationUpdate(
+		id,
+		existingModel,
+		donation,
+		coverImageURL,
+		newDonationImages,
+		existingDonation.Company,
+		existingDonation.Category,
+	)
 
 	// --- CPS Action ---
 	cpsAction := lib.CpsModelBuilder(
@@ -544,7 +570,15 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, donationCPS.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			donationCPS.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
@@ -609,7 +643,15 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
@@ -651,7 +693,15 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
@@ -699,7 +749,15 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
@@ -721,7 +779,15 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		updateRequest := dto.DonationRequest{
 			Enabled: true,
 		}
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, existingDonation.DonationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			existingDonation.DonationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
@@ -743,7 +809,15 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		updateRequest := dto.DonationRequest{
 			Enabled: false,
 		}
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, existingDonation.DonationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			existingDonation.DonationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {

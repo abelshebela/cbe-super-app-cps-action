@@ -279,7 +279,6 @@ func (d *DonationCompany) EnableDonationCompany(ctx context.Context, id string) 
 	}
 
 	return nil
-
 }
 
 func (d *DonationCompany) DisableDonationCompany(ctx context.Context, id string) error {
