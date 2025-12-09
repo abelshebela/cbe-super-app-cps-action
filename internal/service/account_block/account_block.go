@@ -230,8 +230,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			return nil, err
 		}
 
-		for _, branchCode := range action.Codes {
-			err = s.repo.EnableOrDisableBranch(ctx, branchCode, action.Reason, true)
+		for _, id := range action.Codes {
+			err = s.repo.EnableOrDisableBranch(ctx, id, action.Reason, true)
 
 			if err != nil {
 				return nil, err
@@ -244,8 +244,8 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 			return nil, err
 		}
 
-		for _, branchCode := range action.Codes {
-			err = s.repo.EnableOrDisableBranch(ctx, branchCode, action.Reason, false)
+		for _, id := range action.Codes {
+			err = s.repo.EnableOrDisableBranch(ctx, id, action.Reason, false)
 			if err != nil {
 				return nil, err
 			}

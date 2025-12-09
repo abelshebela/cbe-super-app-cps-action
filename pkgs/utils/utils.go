@@ -354,7 +354,6 @@ func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 }
 
 func NonEmptyBool(newVal, oldVal bool) bool {
-	// Handles updates correctly (req can explicitly override old value)
 	if newVal != oldVal {
 		return newVal
 	}
