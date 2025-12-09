@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	"cbe-super-app-cps-action/internal/constants"
 
@@ -574,4 +575,9 @@ type MiniAppCategoryRepository interface {
 	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type TransactionRepository interface {
+	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }

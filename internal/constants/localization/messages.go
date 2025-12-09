@@ -1028,4 +1028,9 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
+
+	// transaction related messages
+	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
+	MsgTransactionIDRequired        = "Transaction ID is required"
 )
