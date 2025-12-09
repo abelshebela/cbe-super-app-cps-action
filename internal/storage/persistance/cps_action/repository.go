@@ -120,7 +120,7 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 }
 
 func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
-	r.logger.Infof("Updating CPSAction with ActionCode: %s, Update: %+v", actionCode, update)
+
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 
@@ -136,7 +136,6 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 }
 
 func (r *CPSActionStorage) UpdateCustome(ctx context.Context, filter, update bson.M) error {
-	r.logger.Infof("Updating CPSAction with ActionCode: %s, Update: %+v", filter, update)
 
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
