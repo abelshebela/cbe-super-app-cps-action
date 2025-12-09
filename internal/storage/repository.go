@@ -98,7 +98,13 @@ type SessionGRPCPort interface {
 	HealthCheck(ctx context.Context, opts ...grpc.CallOption) (*session.HealthCheckResponse, error)
 	Close() error
 }
-
+type CPSActionRoleRepository interface {
+	Create(ctx context.Context, actionRole *model.CPSActionRole) error
+	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
+	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+}
 type DeviceVersionControlRepository interface {
 	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
 	FindOne(ctx context.Context, filter bson.M) (model.DeviceVersionControl, error)

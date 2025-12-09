@@ -68,9 +68,8 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 // Create implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	if req.ActionName == "" {
-		return errors.New(localization.ErrorInvalidInputParameter.Code)
+		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
-
 	// Format Action Name: Uppercase and replace spaces with underscores
 	req.ActionName = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(req.ActionName), " ", "_"))
 

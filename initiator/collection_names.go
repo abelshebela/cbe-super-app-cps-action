@@ -53,6 +53,8 @@ var (
 
 	MiniAppCategoryCollection        = "mini_app_categories"
 
+	CPSActionRolesCollection 	   = "cps_action_roles"
+
 )
 
 // Minio Bucket Names
