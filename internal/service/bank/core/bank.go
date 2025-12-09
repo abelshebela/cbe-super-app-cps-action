@@ -29,6 +29,11 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 			bank.BIC = bic
 		}
 	}
+	if v, ok := action["account_length"]; ok {
+		if accountLength, ok := v.(float64); ok {
+			bank.AccountLength = int(accountLength)
+		}
+	}
 	if v, ok := action["enabled"]; ok {
 		if enabled, ok := v.(bool); ok {
 			bank.Enabled = enabled

@@ -552,6 +552,12 @@ var ResponseCodesList = []ResponseCode{
 	// transaction related responses
 	SuccessTransactionRetrieved,
 	ErrorTransactionIDRequired,
+
+	// bank related errors
+	ErrorInvalidAccountNumberFormat,
+	ErrorInvalidFormatForBIC,
+	ErrorInvalidFormatForCode,
+	ErrorInvalidFormatForName,
 }
 
 // Success Response Codes
@@ -3391,7 +3397,12 @@ var (
 		Message:    MsgInvalidRequestBankBIC,
 		Type:       "error",
 	}
-
+	ErrorInvalidAccountNumberFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ACCOUNT_NUMBER_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthInvalid,
+		Type:       "error",
+	}
 	ErrorNoDataProvidedForCreate = ResponseCode{
 		Code:       "ERROR_NO_DATA_PROVIDED_FOR_CREATE",
 		StatusCode: StatusBadRequest,

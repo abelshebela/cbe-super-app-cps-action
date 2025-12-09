@@ -21,6 +21,9 @@ func BankMapper(data model.Bank) bson.M {
 	if data.Logo != "" {
 		result["logo"] = data.Logo
 	}
+	if data.AccountLength != 0 {
+		result["account_length"] = data.AccountLength
+	}
 
 	result["enabled"] = data.Enabled
 	return result

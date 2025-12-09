@@ -16,6 +16,7 @@ func (c CreateBankRequest) Validate() error {
 		validation.Field(&c.Name, validation.Required.Error(localization.MsgBankNameRequired), validation.Length(3, 25), validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)).Error("Name must not be contain special char")),
 		validation.Field(&c.Code, validation.Required.Error(localization.MsgBankCodeRequired)),
 		validation.Field(&c.BIC, validation.Required.Error(localization.MsgBankBICRequired)),
+		validation.Field(&c.AccountLength, validation.Required.Error(localization.MsgBankAccountLengthRequired)),
 		validation.Field(&c.Logo, validation.By(func(value interface{}) error { return validateLogo(value) })),
 	)
 }

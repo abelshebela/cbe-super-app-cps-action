@@ -460,6 +460,8 @@ const (
 	MsgBankNameRequired          = "Bank name is required"
 	MsgBankCodeRequired          = "Bank code is required"
 	MsgBankBICRequired           = "Bank BIC is required"
+	MsgBankAccountLengthRequired = "Bank account length is required"
+	MsgBankAccountLengthInvalid  = "Bank account length is invalid"
 	MsgInvalidBankName           = "Invalid bank name"
 	MsgBankNameTooShort          = "Bank name too short"
 	MsgBankNameTooLong           = "Bank name too long"
@@ -684,7 +686,7 @@ const (
 	// General business error messages
 	MsgDuplicateKey                     = "Duplicate key error"
 	MsgDuplicateAction                  = "Duplicate action error"
-	MsgOneOrMoreInvalidCodes            = "One or more invalid codes"
+	MsgOneOrMoreInvalidCodes            = "One or more invalid ids"
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"

@@ -125,14 +125,15 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	bank := model.Bank{
-		Name:    bank_request.Name,
-		BIC:     bank_request.BIC,
-		Code:    bank_request.Code,
-		Logo:    URL,
-		Enabled: true,
+		Name:          bank_request.Name,
+		BIC:           bank_request.BIC,
+		Code:          bank_request.Code,
+		AccountLength: *bank_request.AccountLength,
+		Logo:          URL,
+		Enabled:       true,
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name, bank_request.AccountLength)
 
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
@@ -142,18 +143,18 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	if result != nil {
-    if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
-        return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
-    }
+		if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
+			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
+		}
 
-    if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
-        return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
-    }
+		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
+			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
+		}
 
-    if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
-        return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
-    }
-}
+		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
+		}
+	}
 
 	action := lib.CpsModelBuilder("", makerData, nil, bank, string(constants.RequestCreateBank), constants.CREATE)
 
@@ -292,6 +293,9 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if bank_request.Name != "" {
 		updatedBank.Name = bank_request.Name
 	}
+	if bank_request.AccountLength != nil {
+		updatedBank.AccountLength = *bank_request.AccountLength
+	}
 	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
 		var objectkey string
@@ -317,26 +321,26 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		logoUrl = URL
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name, bank_request.AccountLength)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
 			return err
 		}
 	}
-if result != nil && result.ID.Hex() != id {
-    if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
-        return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
-    }
+	if result != nil && result.ID.Hex() != id {
+		if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
+			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
+		}
 
-    if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
-        return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
-    }
+		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
+			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
+		}
 
-    if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
-        return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
-    }
-}
+		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
+		}
+	}
 
 	updatedBank.Logo = logoUrl
 	action := lib.CpsModelBuilder(id, makerData, bank, updatedBank, string(constants.RequestUpdateBank), constants.UPDATE)

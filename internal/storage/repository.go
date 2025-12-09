@@ -164,7 +164,7 @@ type AccountBlockRepository interface {
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
-	EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error
+	EnableOrDisableBranch(ctx context.Context, id string, reason string, enabled bool) error
 	FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
@@ -229,7 +229,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
-	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
+	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string, account_length *int) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {
