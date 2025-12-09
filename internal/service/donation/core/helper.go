@@ -304,39 +304,27 @@ func MapDonationUpdate(
 	update donation_dto.DonationRequest,
 	coverImageURL string,
 	donationImages []donation_dto.DonationImage,
-	company donation_dto.Company,
-	category donation_dto.Category,
+	companyName string,
+	categoryName string,
 ) donation_dto.DonationCPSRequest {
-	var featured bool
-	if update.IsFeatured != existing.IsFeatured {
-		featured = update.IsFeatured
-	}
+	isFeatured := utils.NonEmptyBool(update.IsFeatured, existing.IsFeatured)
+	enabled := utils.NonEmptyBool(update.Enabled, existing.Enabled)
 
 	return donation_dto.DonationCPSRequest{
-		ID:           id,
-		DonationCode: existing.DonationCode,
-		Company: donation_dto.Company{
-			ID:            GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
-			CompanyName:   company.CompanyName,
-			CompanyLogo:   company.CompanyLogo,
-			AccountNumber: company.AccountNumber,
-			Enabled:       company.Enabled,
-		},
-		Category: donation_dto.Category{
-			ID:           GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
-			CategoryName: category.CategoryName,
-			Icon:         category.Icon,
-		},
+		ID:                  id,
+		DonationCode:        existing.DonationCode,
 		CompanyID:           GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+		CompanyName:         companyName,
 		CategoryID:          GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+		CategoryName:        categoryName,
 		Title:               GetValueOrDefault(update.Title, existing.Title),
-		IsFeatured:          featured,
+		IsFeatured:          isFeatured,
 		Target:              GetIntValueOrDefault(update.Target, existing.Target),
 		DonationDescription: GetValueOrDefault(update.DonationDescription, existing.DonationDescription),
 		DonationImages:      donationImages,
 		CoverImage:          coverImageURL,
 		StartDate:           GetTimeValueOrDefault(update.StartDate, existing.StartDate).Format(time.RFC3339),
 		EndDate:             GetTimeValueOrDefault(update.EndDate, existing.EndDate).Format(time.RFC3339),
-		Enabled:             existing.Enabled,
+		Enabled:             enabled,
 	}
 }

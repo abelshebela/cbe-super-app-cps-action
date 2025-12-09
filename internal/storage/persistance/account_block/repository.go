@@ -53,8 +53,10 @@ func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, branchCode st
 }
 
 func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*model.AccountBlock, error) {
+	collection := a.client.Database(a.dbName).Collection("account_block")
 	filter := bson.M{"_id": id}
-	branch, err := a.accountBlock.FindOne(ctx, filter, bson.M{})
+	filter["type"] = "B"
+	branch, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New(localization.ErrorBranchNotFound.Code)
@@ -62,7 +64,7 @@ func (a *AccountBlockStorage) GetBranchByIds(ctx context.Context, id string) (*m
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return branch, nil
+	return branch[0], nil
 }
 
 func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.AccountBlock) error {
@@ -118,8 +120,8 @@ func (a *AccountBlockStorage) DeleteBranch(ctx context.Context, id string) error
 	return nil
 }
 
-func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, id string, reason string, enabled bool) error {
-	filter := bson.M{"_id": id}
+func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, code string, reason string, enabled bool) error {
+	filter := bson.M{"code": code}
 	update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
 
 	_, err := a.accountBlock.UpdateOne(ctx, filter, update)
@@ -132,12 +134,12 @@ func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, id stri
 }
 
 func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	// objID, err := bson.ObjectIDFromHex(id)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": objID}
 
 	branch, err := a.accountBlock.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -153,12 +155,13 @@ func (a *AccountBlockStorage) FindBranchByID(ctx context.Context, id string) (*m
 
 func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"search", "name", "address", "is_enabled", "is_deleted", "city_id", "district_id", "region_id"}
+	allowedKeys := []string{"name", "code", "address", "is_enabled", "is_deleted", "city_id", "district_id", "region_id"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"name": searchRegex},
+			{"code": searchRegex},
 			{"address": searchRegex},
 			{"city_id": searchRegex},
 			{"district_id": searchRegex},
@@ -275,14 +278,14 @@ func (a *AccountBlockStorage) UpdateRegion(ctx context.Context, id string, regio
 }
 
 func (a *AccountBlockStorage) DeleteRegion(ctx context.Context, id string) error {
-	// objID, err := bson.ObjectIDFromHex(id)
-	// if err != nil {
-	// 	return errors.New(localization.ErrorInvalidID.Code)
-	// }
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": objID}
 
-	err := a.accountBlock.DeleteOne(ctx, filter)
+	err = a.accountBlock.DeleteOne(ctx, filter)
 	if err != nil {
 		a.logger.Errorf("Error deleting region: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -347,12 +350,12 @@ func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, id stri
 }
 
 func (a *AccountBlockStorage) FindRegionByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	// objID, err := bson.ObjectIDFromHex(id)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": objID}
 
 	region, err := a.accountBlock.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -367,7 +370,7 @@ func (a *AccountBlockStorage) FindRegionByID(ctx context.Context, id string) (*m
 }
 
 func (a *AccountBlockStorage) FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
-	allowedKeys := []string{"search", "name", "code", "address", "is_enabled", "is_deleted"}
+	allowedKeys := []string{"name", "code", "address", "is_enabled", "is_deleted"}
 
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
@@ -414,7 +417,7 @@ func (a *AccountBlockStorage) GetDistrictById(ctx context.Context, id string) (*
 	// 	return nil, fmt.Errorf("failed to get object id: %v", err)
 	// }
 	filter := bson.M{"_id": id}
-	// filter["type"] = "D"
+	filter["type"] = "D"
 	// districts, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	district, err := a.accountBlock.FindOne(ctx, filter, bson.M{})
 	if err != nil {
@@ -512,12 +515,12 @@ func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, id st
 }
 
 func (a *AccountBlockStorage) FindDistrictByID(ctx context.Context, id string) (*model.AccountBlock, error) {
-	// objID, err := bson.ObjectIDFromHex(id)
-	// if err != nil {
-	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"_id": objID}
 
 	district, err := a.accountBlock.FindOne(ctx, filter, nil)
 	if err != nil {
@@ -532,7 +535,7 @@ func (a *AccountBlockStorage) FindDistrictByID(ctx context.Context, id string) (
 }
 
 func (a *AccountBlockStorage) FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
-	allowedKeys := []string{"search", "region_id", "name", "code", "address", "is_enabled", "is_deleted"}
+	allowedKeys := []string{"region_id", "name", "code", "address", "is_enabled", "is_deleted"}
 
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
