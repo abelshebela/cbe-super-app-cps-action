@@ -132,6 +132,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			if err := core.AccountCreateAndLink(bgCtx, *action, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
 				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
 			}
+
 		})
 
 	case string(constants.RequestApproveKYC):
@@ -144,6 +145,10 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			return nil, err
 		}
 
+		// update user
+		if err := core.MapandUpdateuserFromKYC(ctx, s.userRepo, *updated, s.logger); err != nil {
+			s.logger.Errorf("[KYCVerifier] Error updating user in job proccess: %v", err)
+		}
 	default:
 		s.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
