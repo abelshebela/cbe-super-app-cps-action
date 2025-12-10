@@ -82,6 +82,22 @@ func (s *DonationCategoryStorage) FindByID(ctx context.Context, id string) (*don
 	s.logger.Infof("[FindByID] donation category retrieved successfully")
 	return MapToDonationCategoryListResponse(result), nil
 }
+
+func (s *DonationCategoryStorage) FindByName(ctx context.Context, name string) (*donation_category.DonationCategoryListResponse, error) {
+	s.logger.Infof("[FindByName] fetching donation category by name: %s", name)
+	filter := bson.M{"category_name": name, "is_deleted": false}
+	projection := bson.M{}
+
+	result, err := s.dal.FindOne(ctx, filter, projection)
+	if err != nil {
+		s.logger.Errorf("[FindByName] failed to find donation category: %v", err)
+		code, _ := local_util.HandleMongoError(err)
+		return nil, errors.New(code)
+	}
+	s.logger.Infof("[FindByName] donation category retrieved successfully")
+	return MapToDonationCategoryListResponse(result), nil
+}
+
 func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_category.DonationCategoryListResponse], error) {
 
 	filter := bson.M{"is_deleted": false}

@@ -165,19 +165,22 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	var result []donation_dto.DonationListResponse
 	for _, donation := range data {
-
 		companyFilter := bson.M{"_id": donation.CompanyID}
 		company, err := d.donationCompanyDal.FindOne(ctx, companyFilter, nil)
 		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				continue
+			}
 			d.logger.Errorf("[FindAllWithPagination] failed to find donation company: %v", err)
-			return nil, err
 		}
 
 		categoryFilter := bson.M{"_id": donation.CategoryID}
 		category, err := d.donationCategoryDal.FindOne(ctx, categoryFilter, nil)
 		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				continue
+			}
 			d.logger.Errorf("[FindAllWithPagination] failed to find donation category: %v", err)
-			return nil, err
 		}
 
 		result = append(result, *MapToDonationListResponse(donation, company, category))

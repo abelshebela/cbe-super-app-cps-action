@@ -17,6 +17,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+func nonEmptyBool(newVal *bool, oldVal bool) bool {
+	if newVal != nil {
+		return *newVal
+	}
+	return oldVal
+}
+
 func MapToDonationResponse(donation *model.Donation) *donation_dto.DonationResponse {
 	return &donation_dto.DonationResponse{
 		DonationCode:        donation.DonationCode,
@@ -59,7 +66,7 @@ func MapToDonationCPSRequest(donation *model.Donation) *donation_dto.DonationCPS
 		CompanyID:           donation.CompanyID.Hex(),
 		CategoryID:          donation.CategoryID.Hex(),
 		Title:               donation.Title,
-		IsFeatured:          donation.IsFeatured,
+		IsFeatured:          &donation.IsFeatured,
 		Target:              donation.Target,
 		DonationDescription: donation.DonationDescription,
 		DonationImages:      ConvertToDonationImages(donation.DonationImages),
@@ -132,7 +139,7 @@ func IsDataSimilar(request donation_dto.DonationRequest, existing *model.Donatio
 	if request.Target != 0 && request.Target != existing.Target {
 		return false
 	}
-	if request.IsFeatured != existing.IsFeatured {
+	if request.IsFeatured != &existing.IsFeatured {
 		return false
 	}
 	if request.Enabled != existing.Enabled {
@@ -180,8 +187,8 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.
 }
 
 func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Donation {
-	companyObjID, _ := bson.ObjectIDFromHex(cpsRequest.CompanyID)
-	categoryObjID, _ := bson.ObjectIDFromHex(cpsRequest.CategoryID)
+	companyObjID, _ := bson.ObjectIDFromHex(cpsRequest.Company.ID)
+	categoryObjID, _ := bson.ObjectIDFromHex(cpsRequest.Category.ID)
 
 	endTime, _ := time.Parse(time.RFC3339, cpsRequest.EndDate)
 	startTime, _ := time.Parse(time.RFC3339, cpsRequest.StartDate)
@@ -197,12 +204,13 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Dona
 	}
 
 	return &model.Donation{
-		DonationCode:        cpsRequest.DonationCode,
-		CompanyID:           companyObjID,
-		CategoryID:          categoryObjID,
-		Title:               cpsRequest.Title,
-		IsFeatured:          cpsRequest.IsFeatured,
-		Target:              cpsRequest.Target,
+		DonationCode: cpsRequest.DonationCode,
+		CompanyID:    companyObjID,
+		CategoryID:   categoryObjID,
+		Title:        cpsRequest.Title,
+		IsFeatured:   *cpsRequest.IsFeatured,
+		Target:       cpsRequest.Target,
+		// CurrentAmount:       ,
 		DonationDescription: cpsRequest.DonationDescription,
 		DonationImages:      donationImages,
 		CoverImage:          cpsRequest.CoverImage,
@@ -290,7 +298,7 @@ func ConvertDonationListResponseToRequest(donationResponse *donation_dto.Donatio
 		CompanyID:           donationResponse.Company.ID,
 		CategoryID:          donationResponse.Category.ID,
 		Title:               donationResponse.Title,
-		IsFeatured:          donationResponse.IsFeatured,
+		IsFeatured:          &donationResponse.IsFeatured,
 		Target:              donationResponse.Target,
 		DonationDescription: donationResponse.DonationDescription,
 		StartDate:           ParseTime(donationResponse.StartDate),
@@ -304,27 +312,33 @@ func MapDonationUpdate(
 	update donation_dto.DonationRequest,
 	coverImageURL string,
 	donationImages []donation_dto.DonationImage,
-	companyName string,
-	categoryName string,
+	company donation_dto.Company,
+	category donation_dto.Category,
 ) donation_dto.DonationCPSRequest {
-	isFeatured := utils.NonEmptyBool(update.IsFeatured, existing.IsFeatured)
-	enabled := utils.NonEmptyBool(update.Enabled, existing.Enabled)
+	isFeatured := nonEmptyBool(update.IsFeatured, existing.IsFeatured)
+	isEnabled := nonEmptyBool(&update.Enabled, existing.Enabled)
 
 	return donation_dto.DonationCPSRequest{
-		ID:                  id,
-		DonationCode:        existing.DonationCode,
-		CompanyID:           GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
-		CompanyName:         companyName,
-		CategoryID:          GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
-		CategoryName:        categoryName,
+		ID:           id,
+		DonationCode: existing.DonationCode,
+		Company: donation_dto.Company{
+			ID: GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+		},
+		Category: donation_dto.Category{
+			ID: GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+		},
+		// CompanyID:           GetValueOrDefault(update.CompanyID, existing.CompanyID.Hex()),
+		// CompanyName:         companyName,
+		// CategoryID:          GetValueOrDefault(update.CategoryID, existing.CategoryID.Hex()),
+		// CategoryName:        categoryName,
 		Title:               GetValueOrDefault(update.Title, existing.Title),
-		IsFeatured:          isFeatured,
+		IsFeatured:          &isFeatured,
 		Target:              GetIntValueOrDefault(update.Target, existing.Target),
 		DonationDescription: GetValueOrDefault(update.DonationDescription, existing.DonationDescription),
 		DonationImages:      donationImages,
 		CoverImage:          coverImageURL,
 		StartDate:           GetTimeValueOrDefault(update.StartDate, existing.StartDate).Format(time.RFC3339),
 		EndDate:             GetTimeValueOrDefault(update.EndDate, existing.EndDate).Format(time.RFC3339),
-		Enabled:             enabled,
+		Enabled:             isEnabled,
 	}
 }

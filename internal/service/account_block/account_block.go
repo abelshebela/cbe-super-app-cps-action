@@ -218,7 +218,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error {
 	s.logger.Infof("[EnableOrDisableCities] processing %d cities, enabled: %v", len(citiesCode), enabled)
 	for _, code := range citiesCode {
-		city, err := s.repo.GetCityByCode(ctx, code)
+		city, err := s.repo.FindCityByID(ctx, code)
 		if err != nil {
 			if err.Error() == localization.ErrorCityNotFound.Code {
 				s.logger.Errorf("[EnableOrDisableCities] city not found: %s", code)
