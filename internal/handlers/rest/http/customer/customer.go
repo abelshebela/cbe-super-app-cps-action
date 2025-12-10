@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -54,10 +55,11 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 	ctx := r.Context()
 	otp, err := c.customerService.CreateEnableCustomerSession(ctx, id)
 	if err != nil {
-		c.logger.Errorf("error while fetching get customer detail:", err)
+		c.logger.Errorf("[SetEnableCustomerSession] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	c.logger.Infof("[SetEnableCustomerSession] OTP generated successfully for customer id: %s", id)
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestSessionCreatedSuccessfully, dto.CustomerEnableSessionResponse{
 		Otp: otp,
 	})
@@ -104,10 +106,11 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 	err := c.customerService.DisableCustomerByID(ctx, id, payload)
 	if err != nil {
-		c.logger.Errorf("error while fetching get customer detail:", err)
+		c.logger.Errorf("[DisableCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	c.logger.Infof("[DisableCustomer] request sent successfully for customer id: %s", id)
 	localization.SendSuccessResponse(w, localization.CustomerDisableRequestCreatedSuccessfully, nil)
 }
 
@@ -142,10 +145,11 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	err := c.customerService.EnableCustomerByID(ctx, id, payload.UserOTP)
 	if err != nil {
-		c.logger.Errorf("error while fetching get customer detail:", err)
+		c.logger.Errorf("[EnableCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	c.logger.Infof("[EnableCustomer] request sent successfully for customer id: %s", id)
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
 }
 
@@ -169,10 +173,12 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 	filterParams := util.ExtractFilterParams(r)
 	customers, err := c.customerService.GetCustomersDetail(r.Context(), filterParams)
 	if err != nil {
+		c.logger.Errorf("[GetCustomerDetail] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetCustomerDetail.Code)
 		return
 	}
 
+	c.logger.Infof("[GetCustomerDetail] retrieved %d customers", len(customers.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customers)
 }
 
@@ -200,10 +206,11 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	userDetail, err := c.customerService.GetCustomerByID(ctx, id)
 	if err != nil {
-		c.logger.Errorf("error while fetching get customer detail:", err)
+		c.logger.Errorf("[GetCustomerByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
 		return
 	}
+	c.logger.Infof("[GetCustomerByID] customer retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)
 
 }
@@ -228,11 +235,12 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 
 	BlockedCustomer, err := c.customerService.GetBlockedCustomer(r.Context(), filterParams)
 	if err != nil {
-		c.logger.Errorf("error while fetching get blocked customer detail: %v", err)
+		c.logger.Errorf("[GetBlockedCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetBlockedCustomer.Code)
 		return
 	}
 
+	c.logger.Infof("[GetBlockedCustomer] retrieved %d blocked customers", len(BlockedCustomer.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFullyFetchBlockCustomer, BlockedCustomer)
 }
 
@@ -258,10 +266,11 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 	userDetail, err := c.customerService.GetLinkedAccount(ctx, id)
 	if err != nil {
-		c.logger.Errorf("error while fetching get customer detail:", err)
+		c.logger.Errorf("[GetLinkedAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
 		return
 	}
+	c.logger.Infof("[GetLinkedAccount] linked accounts retrieved successfully for customer_number: %s", id)
 	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)
 }
 
@@ -288,10 +297,11 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 		c.logger.Errorf("")
 	}
 	if err := c.customerService.ApproveFaydaCustomer(r.Context(), id, req); err != nil {
-		c.logger.Errorf("Failed to send approval request for fayda customer error: %v", err)
+		c.logger.Errorf("[ApproveFaydaCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	c.logger.Infof("[ApproveFaydaCustomer] request sent successfully for customer id: %s", id)
 	localization.SendSuccessResponse(w, localization.FaydaCustomerApprovalRequestSent, nil)
 }

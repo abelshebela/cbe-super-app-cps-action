@@ -23,17 +23,19 @@ func NewportalCardService(storage storage.PortalCardRepository, logger utils.Log
 }
 
 func (s *portalCardService) GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error) {
-
 	cards, err := s.appService.FindAllWithPagination(ctx, *filterParam)
 	if err != nil {
+		s.logger.Errorf("[GetAll] failed to fetch portal cards: %v", err)
 		return nil, err
 	}
+	s.logger.Infof("[GetAll] retrieved %d portal cards", len(cards.Data))
 	return cards, nil
 }
 
 func (s *portalCardService) ValidatePortalCard(ctx context.Context, names []string) (bool, error) {
 	card, err := s.appService.ValidatePortalCard(ctx, names)
 	if err != nil {
+		s.logger.Errorf("[ValidatePortalCard] failed to validate portal cards: %v", err)
 		return false, err
 	}
 	return card, nil

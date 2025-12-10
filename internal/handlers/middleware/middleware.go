@@ -34,7 +34,7 @@ func CORS() func(http.Handler) http.Handler {
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders: []string{
 			"Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Allow-Origin",
-			"Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid",
+			"Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid", "x-source-secret",
 		},
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,

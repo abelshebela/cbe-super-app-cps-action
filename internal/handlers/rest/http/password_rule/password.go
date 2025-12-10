@@ -42,10 +42,12 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 
 	passwordRules, err := p.service.GetAllPasswordRules(r.Context(), *filterParams)
 	if err != nil {
+		p.logger.Errorf("[GetPasswordRule] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	p.logger.Infof("[GetPasswordRule] retrieved %d password rules", len(passwordRules.Data))
 	data, _ := core.StructToMap(passwordRules)
 	localization.SendSuccessResponse(w, localization.SuccessFetchAllPasswordRules, data)
 }
@@ -72,6 +74,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		p.logger.Errorf("[RequestPasswordRuleUpdate] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -86,10 +89,12 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 
 	err := p.service.RequestPasswordRuleUpdate(r.Context(), id, body)
 	if err != nil {
+		p.logger.Errorf("[RequestPasswordRuleUpdate] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	p.logger.Infof("[RequestPasswordRuleUpdate] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessUpdatePasswordRule, nil)
 }
 
@@ -109,11 +114,13 @@ func (p *passwordRuleHandler) CheckPasswordRule(w http.ResponseWriter, r *http.R
 	var body dto.CheckPasswordDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || strings.TrimSpace(body.Password) == "" {
+		p.logger.Errorf("[CheckPasswordRule] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	valid, msg := p.service.CheckPasswordRule(r.Context(), body.Password)
+	// Note: Password is not logged for security reasons
 
 	statusCode := http.StatusOK
 	status := 200
@@ -127,6 +134,7 @@ func (p *passwordRuleHandler) CheckPasswordRule(w http.ResponseWriter, r *http.R
 		"message": msg,
 		"data":    map[string]interface{}{"valid": valid},
 	}
+	p.logger.Infof("[CheckPasswordRule] password validation completed, valid: %v", valid)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	_ = json.NewEncoder(w).Encode(response)

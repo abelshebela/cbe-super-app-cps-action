@@ -53,6 +53,7 @@ func SignWithHS256(data string, saltHex string) (string, error) {
 
 func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error) {
 	if e.cfg == nil {
+		e.logger.Errorf("[LocalEncryptPassword] config is empty")
 		return dtoEncryption.EncryptionResponse{}, "", errors.New(localization.ErrConfigIsEmpty.Code)
 	}
 
@@ -65,6 +66,7 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	}
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
+		e.logger.Errorf("[LocalEncryptPassword] failed to marshal data: %v", err)
 		return dtoEncryption.EncryptionResponse{}, "", errors.New(localization.ErrMarshalingData.Code)
 	}
 	dataStr := string(dataBytes)
@@ -83,11 +85,13 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	}
 
 	if len(key) != 32 || len(iv) != aes.BlockSize {
+		e.logger.Errorf("[LocalEncryptPassword] invalid key or IV length")
 		return dtoEncryption.EncryptionResponse{}, salt, errors.New(localization.ErrInvalidKeyOrIv.Code)
 	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
+		e.logger.Errorf("[LocalEncryptPassword] failed to create cipher: %v", err)
 		return dtoEncryption.EncryptionResponse{}, salt, err
 	}
 
@@ -98,5 +102,6 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	encrypted := make([]byte, len(padded))
 	mode.CryptBlocks(encrypted, padded)
 
+	e.logger.Infof("[LocalEncryptPassword] password encrypted successfully for username (hashed)")
 	return dtoEncryption.EncryptionResponse{Encryption: hex.EncodeToString(encrypted)}, salt, nil
 }

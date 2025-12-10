@@ -30,10 +30,11 @@ func (s *SitotaTransactionService) GetAllSitotas(ctx context.Context, filterPara
 	}
 	sitotas, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		s.logger.Errorf("failed to fetch sitotas: %v", err)
+		s.logger.Errorf("[GetAllSitotas] failed to fetch sitotas: %v", err)
 		return nil, err
 	}
 
+	s.logger.Infof("[GetAllSitotas] retrieved %d sitota transactions", len(sitotas.Data))
 	return &types.PaginatedResponse[[]*model.SitotaTransaction]{
 		Data: sitotas.Data,
 		Meta: sitotas.Meta,
@@ -42,14 +43,17 @@ func (s *SitotaTransactionService) GetAllSitotas(ctx context.Context, filterPara
 
 func (s *SitotaTransactionService) GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error) {
 	if id == "" {
+		s.logger.Errorf("[GetSitotaByID] invalid id provided")
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
 	sitota, err := s.repo.Get(ctx, id)
 	if err != nil {
+		s.logger.Errorf("[GetSitotaByID] failed to get sitota transaction: %v", err)
 		return nil, err
 	}
 
+	s.logger.Infof("[GetSitotaByID] sitota transaction retrieved successfully for id: %s", id)
 	return sitota, nil
 }
 

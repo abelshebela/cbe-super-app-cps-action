@@ -65,10 +65,12 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage)
 	if err != nil {
+		a.logger.Errorf("[CreateAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[CreateAdvert] request sent successfully for title: %s", req.Title)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)
 
 }
@@ -92,6 +94,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	list, err := a.advertApplication.FetchAdverts(r.Context(), *filterParams)
 	if err != nil {
+		a.logger.Errorf("[FetchAdverts] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -101,6 +104,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 		Data: docs,
 		Meta: list.Meta,
 	}
+	a.logger.Infof("[FetchAdverts] retrieved %d adverts", len(docs))
 	localization.SendSuccessResponse(w, localization.SuccessAdvertsFetched, res)
 }
 
@@ -127,11 +131,13 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 
 	data, err := a.advertApplication.FetchAdvertByID(r.Context(), id)
 	if err != nil {
+		a.logger.Errorf("[FetchAdvertByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	res := core.ToAdvertResponse(*data)
+	a.logger.Infof("[FetchAdvertByID] advert retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertFetched, res)
 }
 
@@ -181,10 +187,12 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.UpdateAdvert(r.Context(), id, &domainReq, req.BannerImage)
 	if err != nil {
+		a.logger.Errorf("[UpdateAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[UpdateAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 }
 
@@ -211,9 +219,11 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.DeleteAdvert(r.Context(), id)
 	if err != nil {
+		a.logger.Errorf("[DeleteAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	a.logger.Infof("[DeleteAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
 }
 
@@ -240,10 +250,12 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
 	if err != nil {
+		a.logger.Errorf("[EnableAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[EnableAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
 }
 
@@ -270,9 +282,11 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 
 	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, false)
 	if err != nil {
+		a.logger.Errorf("[DisableAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[DisableAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)
 }

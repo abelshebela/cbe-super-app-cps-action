@@ -40,10 +40,11 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 
 	req.Platform = strings.ToUpper(req.Platform)
 	if err := h.svc.CreateDeviceVersion(r.Context(), req); err != nil {
-		h.logger.Errorf("[CreateDeviceVersion] service: %v", err)
+		h.logger.Errorf("[CreateDeviceVersion] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[CreateDeviceVersion] request sent successfully for platform: %s", req.Platform)
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_CREATE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version create request submitted", Type: "success"}, nil)
 }
 
@@ -68,10 +69,11 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 		return
 	}
 	if err := h.svc.UpdateDeviceVersion(r.Context(), id, req); err != nil {
-		h.logger.Errorf("[UpdateDeviceVersion] service: %v", err)
+		h.logger.Errorf("[UpdateDeviceVersion] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[UpdateDeviceVersion] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_UPDATE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version update request submitted", Type: "success"}, nil)
 }
 
@@ -80,10 +82,11 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 	filter := common_utils.ExtractFilterParams(r)
 	res, err := h.svc.GetAllDeviceVersions(r.Context(), filter)
 	if err != nil {
-		h.logger.Errorf("[GetAllDeviceVersions] service: %v", err)
+		h.logger.Errorf("[GetAllDeviceVersions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetAllDeviceVersions] retrieved %d device versions", len(res.Data))
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSIONS_FETCHED", StatusCode: localization.StatusOK, Message: "Device versions fetched", Type: "success"}, res)
 }
 
@@ -96,10 +99,11 @@ func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *ht
 	}
 	res, err := h.svc.GetDeviceVersionByID(r.Context(), id)
 	if err != nil {
-		h.logger.Errorf("[GetDeviceVersionByID] service: %v", err)
+		h.logger.Errorf("[GetDeviceVersionByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetDeviceVersionByID] device version retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_FETCHED", StatusCode: localization.StatusOK, Message: "Device version fetched", Type: "success"}, res)
 }
 
@@ -111,10 +115,11 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.svc.EnableDisableDeviceVersion(r.Context(), id, true); err != nil {
-		h.logger.Errorf("[Enable] service: %v", err)
+		h.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[Enable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_ENABLE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version enable request submitted", Type: "success"}, nil)
 }
 
@@ -126,9 +131,10 @@ func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.svc.EnableDisableDeviceVersion(r.Context(), id, false); err != nil {
-		h.logger.Errorf("[Disable] service: %v", err)
+		h.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[Disable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_DISABLE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version disable request submitted", Type: "success"}, nil)
 }

@@ -686,7 +686,7 @@ const (
 	// General business error messages
 	MsgDuplicateKey                     = "Duplicate key error"
 	MsgDuplicateAction                  = "Duplicate action error"
-	MsgOneOrMoreInvalidCodes            = "One or more invalid codes"
+	MsgOneOrMoreInvalidCodes            = "One or more invalid ids"
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
