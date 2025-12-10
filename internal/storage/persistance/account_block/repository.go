@@ -139,6 +139,9 @@ func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, code st
 	_, err := a.accountBlock.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("[EnableOrDisableBranch] failed to enable/disable branch: %v", err)
+		if err == mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorBranchNotFound.Code)
+		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[EnableOrDisableBranch] branch enable/disable completed successfully")

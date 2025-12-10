@@ -91,6 +91,10 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccess
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Infof("[FindAll] no bulk services found")
+			return []*model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}

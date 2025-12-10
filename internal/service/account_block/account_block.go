@@ -264,7 +264,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal enable branches action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, id := range action.Codes {
@@ -281,7 +281,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal disable branches action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, id := range action.Codes {
@@ -297,7 +297,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal enable regions action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, id := range action.Codes {
@@ -313,7 +313,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal disable regions action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, id := range action.Codes {
@@ -329,7 +329,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal enable districts action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, id := range action.Codes {
@@ -345,7 +345,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal disable districts action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, id := range action.Codes {
@@ -361,7 +361,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal enable cities action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, cityCode := range action.Codes {
@@ -377,7 +377,7 @@ func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAc
 		action, err := local_util.JsonUnmarshal[model.EnableDisableAction](action.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal disable cities action: %v", err)
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 
 		for _, cityCode := range action.Codes {

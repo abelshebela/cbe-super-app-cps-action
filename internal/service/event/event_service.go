@@ -58,7 +58,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 	exist, err := e.repo.Find(ctx, event.EventName)
 	if err != nil {
 		e.logger.Errorf("FindByName failed: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return err
 	}
 
 	if exist != nil {
@@ -98,7 +98,7 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 	prevEvent, err := e.repo.FindByID(ctx, id)
 	if err != nil {
 		e.logger.Errorf("FindByID failed", "event_id", id, "error", err)
-		return errors.New(localization.ErrorEventNotFound.Code)
+		return err
 	}
 
 	var URL string
