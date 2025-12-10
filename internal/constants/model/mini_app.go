@@ -15,7 +15,7 @@ type MiniApp struct {
 	AppIcon        string                      `bson:"app_icon" json:"app_icon"`
 	BannerImage    string                      `bson:"banner_image" json:"banner_image"`
 	AppType        constants.AppType           `bson:"app_type" json:"app_type"`
-	MerchantID     string                      `bson:"merchant_id" json:"merchant_id"`
+	MerchantID     bson.ObjectID               `bson:"merchant_id" json:"merchant_id"`
 	ProductCode    []types.ProductCode         `bson:"product_code" json:"product_code"`
 	Credential     types.CredentialInformation `bson:"credential" json:"credential,omitempty"`
 	URL            string                      `bson:"url" json:"url,omitempty"`
