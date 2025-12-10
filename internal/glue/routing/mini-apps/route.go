@@ -14,7 +14,6 @@ import (
 // CreateMiniAppProxyHandler initializes and returns the ReverseProxy handler
 func CreateMiniAppProxyHandler(logger utils.Logger, cfg *config.VaultConfig) http.Handler {
 	miniAppTargetServiceURL := cfg.CBEBaseURL + "/mini-apps/cps_action"
-
 	targetURL, err := url.Parse(miniAppTargetServiceURL)
 	if err != nil {
 		logger.Errorf("Failed to parse target URL | error: %v", err)
@@ -28,8 +27,15 @@ func CreateMiniAppProxyHandler(logger utils.Logger, cfg *config.VaultConfig) htt
 		Host:   targetURL.Host,
 	})
 
-	originalDirector := proxy.Director
+	proxy.ModifyResponse = func(r *http.Response) error {
+		r.Header.Del("Access-Control-Allow-Origin")
+		r.Header.Del("Access-Control-Allow-Methods")
+		r.Header.Del("Access-Control-Allow-Headers")
+		r.Header.Del("Access-Control-Allow-Credentials")
+		return nil
+	}
 
+	originalDirector := proxy.Director
 	proxy.Director = func(r *http.Request) {
 		originalDirector(r)
 		r.Host = targetURL.Host
@@ -39,17 +45,14 @@ func CreateMiniAppProxyHandler(logger utils.Logger, cfg *config.VaultConfig) htt
 		if rctx != nil {
 			wildcardPath = chi.URLParam(r, "*")
 		}
-
 		r.Header.Set("x-source-secret", cfg.JwtSecretKey)
 		finalPath := targetURL.Path
 
 		if wildcardPath != "" {
-			finalPath = strings.TrimSuffix(finalPath, "/")
-			finalPath = finalPath + "/" + strings.TrimPrefix(wildcardPath, "/")
+			finalPath = strings.TrimSuffix(finalPath, "/") + "/" + strings.TrimPrefix(wildcardPath, "/")
 		}
 
 		r.URL.Path = finalPath
-
 		logger.Infof("Proxying request to: %s%s", targetURL.Host, r.URL.String())
 	}
 
@@ -58,7 +61,6 @@ func CreateMiniAppProxyHandler(logger utils.Logger, cfg *config.VaultConfig) htt
 
 func CreateMiniAppCategoryProxyHandler(logger utils.Logger, cfg *config.VaultConfig) http.Handler {
 	miniAppTargetServiceURL := cfg.CBEBaseURL + "/mini-apps/cps_action/categories"
-
 	targetURL, err := url.Parse(miniAppTargetServiceURL)
 	if err != nil {
 		logger.Errorf("Failed to parse target URL | error: %v", err)
@@ -72,8 +74,15 @@ func CreateMiniAppCategoryProxyHandler(logger utils.Logger, cfg *config.VaultCon
 		Host:   targetURL.Host,
 	})
 
-	originalDirector := proxy.Director
+	proxy.ModifyResponse = func(r *http.Response) error {
+		r.Header.Del("Access-Control-Allow-Origin")
+		r.Header.Del("Access-Control-Allow-Methods")
+		r.Header.Del("Access-Control-Allow-Headers")
+		r.Header.Del("Access-Control-Allow-Credentials")
+		return nil
+	}
 
+	originalDirector := proxy.Director
 	proxy.Director = func(r *http.Request) {
 		originalDirector(r)
 		r.Host = targetURL.Host
@@ -88,12 +97,10 @@ func CreateMiniAppCategoryProxyHandler(logger utils.Logger, cfg *config.VaultCon
 		finalPath := targetURL.Path
 
 		if wildcardPath != "" {
-			finalPath = strings.TrimSuffix(finalPath, "/")
-			finalPath = finalPath + "/" + strings.TrimPrefix(wildcardPath, "/")
+			finalPath = strings.TrimSuffix(finalPath, "/") + "/" + strings.TrimPrefix(wildcardPath, "/")
 		}
 
 		r.URL.Path = finalPath
-
 		logger.Infof("Proxying request to: %s%s", targetURL.Host, r.URL.String())
 	}
 
