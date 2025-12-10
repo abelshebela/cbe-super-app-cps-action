@@ -52,9 +52,11 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 
 	archivedUser, err := a.unlinkApp.GetAllArchivedUser(r.Context(), filterParams)
 	if err != nil {
+		a.logger.Errorf("[GetArchivedUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	a.logger.Infof("[GetArchivedUser] retrieved %d archived users", len(archivedUser.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, archivedUser)
 }
 
@@ -80,10 +82,12 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 	}
 	user, err := a.unlinkApp.GetUserByAccount(r.Context(), accNumber)
 	if err != nil {
+		a.logger.Errorf("[GetUserByAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetUserByAccount] user retrieved successfully")
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
@@ -110,8 +114,10 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 	}
 	err := a.unlinkApp.UnlinkUserCif(r.Context(), userCode)
 	if err != nil {
+		a.logger.Errorf("[UnlinkUserCif] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)
 }

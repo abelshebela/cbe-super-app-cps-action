@@ -65,7 +65,7 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Bank vault created with ID: %s", id)
+	h.logger.Infof("[CreateBankVault] request sent successfully with id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultCreationRequestSubmitted, nil)
 
 }
@@ -87,10 +87,11 @@ func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllBankVaults(r.Context(), params)
 	if err != nil {
-		h.logger.Errorf("[FindAllBankVaults] service: %v", err)
+		h.logger.Errorf("[FindAllBankVaults] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[FindAllBankVaults] retrieved %d bank vaults", len(result.Data))
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultsRetrieved, result)
 }
 
@@ -128,7 +129,7 @@ func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("Bank vault retrieved with ID: %s", id)
+	h.logger.Infof("[GetBankVault] bank vault retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultRetrieved, result)
 }
 
@@ -190,7 +191,7 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("Bank vault updated with ID: %s", id)
+	h.logger.Infof("[UpdateBankVault] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultUpdateRequestSubmitted, nil)
 }
 
@@ -231,7 +232,7 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	h.logger.Infof("Bank vault deleted with ID: %s", id)
+	h.logger.Infof("[DeleteBankVault] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultDeleteRequestSubmitted, nil)
 }
 
@@ -271,7 +272,7 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("Bank vault disabled with ID: %s", id)
+	h.logger.Infof("[DisableBankVault] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultDisableRequestSubmitted, nil)
 }
 
@@ -311,7 +312,7 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("Bank vault enabled with ID: %s", id)
+	h.logger.Infof("[EnableBankVault] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultEnableRequestSubmitted, nil)
 }
 
@@ -319,10 +320,11 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllBankLockedVaultsWithPagination(r.Context(), params)
 	if err != nil {
-		h.logger.Errorf("[FindAllBankLockedVaults] service: %v", err)
+		h.logger.Errorf("[GetAllLockedBankVaults] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetAllLockedBankVaults] retrieved %d locked bank vaults", len(result.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAllBankLockedVaultsRetrievedSuccessfully, result)
 }
 
@@ -354,10 +356,11 @@ func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
 	params := common_utils.ExtractFilterParams(r)
 	results, err := h.service.FindAllGroupVaultsWithPagination(r.Context(), params)
 	if err != nil {
-		h.logger.Errorf("[FindAllGroupVaults] service: %v", err)
+		h.logger.Errorf("[GetAllGroupVaults] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetAllGroupVaults] retrieved %d group vaults", len(results.Data))
 	localization.SendSuccessResponse(w, localization.SuccessGroupVaultsRetrievedSuccessfully, results)
 }
 

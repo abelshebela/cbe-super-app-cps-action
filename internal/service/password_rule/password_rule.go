@@ -32,29 +32,36 @@ func NewPasswordRuleService(repo storage.PasswordRuleRepository, cpsService serv
 }
 
 func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error) {
-	return p.repo.FindAllWithPagination(ctx, filterParams)
+	result, err := p.repo.FindAllWithPagination(ctx, filterParams)
+	if err != nil {
+		p.logger.Errorf("[GetAllPasswordRules] failed to fetch password rules: %v", err)
+		return nil, err
+	}
+	p.logger.Infof("[GetAllPasswordRules] retrieved %d password rules", len(result.Data))
+	return result, nil
 }
 
 func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error {
 	existingRule, err := p.repo.FindCurrentRule(ctx)
 	if err != nil {
-		p.logger.Errorf("Failed to fetch current password rule", err)
+		p.logger.Errorf("[RequestPasswordRuleUpdate] failed to fetch current password rule: %v", err)
 		return errors.New(localization.ErrorNoPasswordRule.Code)
 	}
 
 	err = core.HandleCPSAction(ctx, p.cpsService, existingRule.ID.Hex(), constants.RequestUpdatePasswordRule, body, existingRule, constants.ActionUpdate)
 	if err != nil {
+		p.logger.Errorf("[RequestPasswordRuleUpdate] failed to create CPS action: %v", err)
 		return err
 	}
 
-	p.logger.Infof("Password rule sumitted successfully | id: %s", id)
+	p.logger.Infof("[RequestPasswordRuleUpdate] password rule update request created successfully")
 	return nil
 }
 
 func (p *passwordService) CheckPasswordRule(ctx context.Context, password string) (bool, string) {
 	rule, err := p.repo.FindCurrentRule(ctx)
-	p.logger.Infof("Retrieved password rule: %+v", rule)
 	if err != nil || rule == nil {
+		p.logger.Errorf("[CheckPasswordRule] failed to retrieve password rule: %v", err)
 		return false, "could not retrieve password rule"
 	}
 
@@ -121,21 +128,21 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 }
 
 func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	p.logger.Infof("Authorizing password rule action: %s", cpsAction.ActionCode)
+	p.logger.Infof("[Authorize] authorizing password rule action: %s", cpsAction.RequestAction)
 
 	passwordRule, err := local_util.JsonUnmarshal[model.PasswordRule](cpsAction.CurrentAction)
 	if err != nil {
-		p.logger.Errorf("Failed to unmarshal password rule from action: %v", err)
+		p.logger.Errorf("[Authorize] failed to unmarshal password rule from action: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	err = p.repo.Update(ctx, cpsAction.UniqueId, passwordRule)
 	if err != nil {
-		p.logger.Errorf("Failed to process password rule authorization with request action: %s and error: %v", cpsAction.RequestAction, err)
+		p.logger.Errorf("[Authorize] failed to update password rule: %v", err)
 		return nil, err
 	}
 
 	cpsAction.CurrentAction = passwordRule
-	p.logger.Infof("Password Rule authorization completed for request action: %s and user: %v", cpsAction.RequestAction, passwordRule.ID)
+	p.logger.Infof("[Authorize] password rule authorized successfully for id: %s", cpsAction.UniqueId)
 	return cpsAction, nil
 }

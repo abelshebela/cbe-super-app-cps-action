@@ -85,18 +85,21 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 }
 
 func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccessList, error) {
+	b.logger.Infof("[FindAll] fetching all bulk services")
 	filter := bson.M{}
 
 	projection := bson.M{}
 	bulkServices, err := b.mongoDalbulkService.FindAll(ctx, filter, projection)
 	if err != nil {
+		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
-
+	b.logger.Infof("[FindAll] retrieved %d bulk services", len(bulkServices))
 	return bulkServices, nil
 }
 
 func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state bool) error {
+	b.logger.Infof("[Update] updating bulk services, enabled: %v", state)
 	parentKeys := []string{}
 
 	for _, key := range keys {
@@ -112,7 +115,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 				childUpdate := bson.M{"sub_access_list.$.enabled": state}
 				child, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 				if err != nil {
-					b.logger.Errorf("failed to update child: %v", err)
+					b.logger.Errorf("[Update] failed to update child: %v", err)
 					return errors.New(localization.ErrorFailToUpdateChild.Code)
 				}
 				parentKeys = append(parentKeys, child.Key)
@@ -120,7 +123,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 				continue
 			}
 			// Other parent update errors
-			b.logger.Errorf("failed to update parent: %v", err)
+			b.logger.Errorf("[Update] failed to update parent: %v", err)
 			return errors.New(localization.ErrorFailToUpdateParent.Code)
 		}
 
@@ -131,7 +134,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, childFilter, childUpdate)
 			if err != nil {
-				b.logger.Errorf("failed to update child %s: %v", sub.Key, err)
+				b.logger.Errorf("[Update] failed to update child: %v", err)
 				return errors.New(localization.ErrorFailToUpdateChild.Code)
 			}
 		}
@@ -145,7 +148,7 @@ func (b BulkServicePersistence) Update(ctx context.Context, keys []string, state
 
 			_, err := b.mongoDalbulkService.UpdateOne(ctx, parentFilter, parentUpdate)
 			if err != nil {
-				b.logger.Errorf("failed to update parent %s: %v", key, err)
+				b.logger.Errorf("[Update] failed to update parent: %v", err)
 				return errors.New(localization.ErrorFailToUpdateParent.Code)
 			}
 		}

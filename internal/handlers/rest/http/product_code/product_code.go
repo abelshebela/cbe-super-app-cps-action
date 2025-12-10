@@ -68,9 +68,11 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 
 	old, new, err := h.productCodeApplication.UpdateProductCode(r.Context(), domainReq)
 	if err != nil {
+		h.logger.Errorf("[UpdateProductCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[UpdateProductCode] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessProductCodeUpdated, map[string]*model.ProductCode{
 		"old": old,
 		"new": new,
@@ -96,9 +98,11 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 
 	data, err := h.productCodeApplication.FetchProductCodeByID(r.Context(), id)
 	if err != nil {
+		h.logger.Errorf("[FetchProductCodeByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[FetchProductCodeByID] product code retrieved successfully for id: %s", id)
 	res := product_code_dto.ToProductCodeResponse(*data)
 	localization.SendSuccessResponse(w, localization.SuccessProductCodeFetched, res)
 }
@@ -123,9 +127,11 @@ func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Re
 	filterParams := utils.ExtractFilterParams(r)
 	list, err := h.productCodeApplication.FetchAllProductCodes(r.Context(), filterParams)
 	if err != nil {
+		h.logger.Errorf("[FetchProductCodes] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[FetchProductCodes] retrieved %d product codes", len(list.Data))
 	docs := product_code_dto.ToProductCodeResponses(list.Data)
 	res := types.PaginatedResponse[[]*product_code_dto.ProductCodeResponse]{
 		Data: docs,
