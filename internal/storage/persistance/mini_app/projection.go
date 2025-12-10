@@ -103,7 +103,7 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["credential"] = credMap
 	}
 
-	if miniApp.MerchantID != "" {
+	if miniApp.MerchantID != bson.NilObjectID {
 		update["merchant_id"] = miniApp.MerchantID
 	}
 	if miniApp.AppViewType != "" {

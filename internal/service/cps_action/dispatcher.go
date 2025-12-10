@@ -127,6 +127,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MiniAppCategory"):
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
+			case IsActionInGroup(RequestAction(action), "CpsActionRole"):
+		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
 
 	default:
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
