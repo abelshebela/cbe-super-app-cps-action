@@ -8,6 +8,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -425,6 +426,8 @@ type ServiceLayer struct {
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
 	BPSActionRole          BPSActionRoleService
+	TransactionService     TransactionService
+	MiniAppCategory        MiniAppCategoryService
 }
 
 type ServiceContainer struct {
@@ -476,18 +479,15 @@ type ServiceContainer struct {
 	BankProductContainer       BankVaultService
 	VaultCategoryContainer     VaultGroupCategoryService
 	BPSActionRoleContainer     BPSActionRoleService
+	TransactionContainer       TransactionService
+	MiniAppCategoryContainer   MiniAppCategoryService
 }
 
 type BPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-	Create(ctx context.Context, req struct {
-		ActionCode       string
-		ActionName       string
-		AssignedMakers   []string
-		AssignedCheckers [][]string
-	}) error
+	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
@@ -560,4 +560,9 @@ type EncryptionService interface {
 
 type MiniAppCategoryService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type TransactionService interface {
+	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }

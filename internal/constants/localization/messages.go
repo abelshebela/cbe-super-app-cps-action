@@ -409,6 +409,7 @@ const (
 	MsgRequiredFieldMissing                  = "Required field is missing"
 	MsgInvalidFormat                         = "Invalid format"
 	MsgInvalidInputParameter                 = "Invalid input parameter"
+	MsgActionNameIsRequired  			  = "Action name is required"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgExistEmail                            = "cps user with this email already exist"
@@ -459,6 +460,8 @@ const (
 	MsgBankNameRequired          = "Bank name is required"
 	MsgBankCodeRequired          = "Bank code is required"
 	MsgBankBICRequired           = "Bank BIC is required"
+	MsgBankAccountLengthRequired = "Bank account length is required"
+	MsgBankAccountLengthInvalid  = "Bank account length is invalid"
 	MsgInvalidBankName           = "Invalid bank name"
 	MsgBankNameTooShort          = "Bank name too short"
 	MsgBankNameTooLong           = "Bank name too long"
@@ -687,6 +690,7 @@ const (
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
+	MsgActionNameAlreadyExists 	   = "Action name already exists"
 	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
 	MsgResourceAlreadyExists            = "Resource already exists"
 	MsgResourceUpdateFailed             = "Failed to update resource"
@@ -1033,4 +1037,9 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
+
+	// transaction related messages
+	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
+	MsgTransactionIDRequired        = "Transaction ID is required"
 )

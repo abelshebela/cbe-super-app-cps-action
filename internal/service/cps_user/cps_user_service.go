@@ -15,7 +15,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/cps_user/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-
+	"fmt"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -115,6 +115,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
+		currentUser, err := s.repo.FindByID(ctx, req.UserCode)
+		if err != nil {
+			return err
+		}
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
@@ -128,12 +132,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		}
 	}
 	if req.UserName != "" {
-
-		currentUser, err := s.repo.FindByID(ctx, req.UserCode)
-		if err != nil {
-			return err
-		}
-
 		if currentUser.UserName != req.UserName {
 			exists, err := core.UsernameExists(ctx, s.repo, req.UserName)
 			if err != nil {
@@ -202,7 +200,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 	cpsActionModel := lib.CpsModelBuilder(
 		req.UserCode,
 		makerData,
-		nil,
+		currentUser,
 		payload,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
@@ -373,6 +371,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 
 	case string(constants.RequestCpsUserUpdate):
 		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
+		fmt.Println("////////core cps user update",cur)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}

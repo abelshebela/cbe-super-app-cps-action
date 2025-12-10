@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"cbe-super-app-cps-action/internal/storage"
 
@@ -44,10 +45,18 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
 	if filterParam.Search != "" {
+		// Build regex for Ethiopian phone numbers: match any prefix (+2519, +2517, +25109, +25107, 09, 07, 9, 7) and main number
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		mainNumber := filterParam.Search
+		mainNumber = strings.TrimPrefix(mainNumber, " ")
+		mainNumber = strings.TrimPrefix(mainNumber, "+")
+		mainNumber = strings.TrimPrefix(mainNumber, "251")
+		mainNumber = strings.TrimPrefix(mainNumber, "0")
+		phonePattern := fmt.Sprintf("(?:\\+?2510?|0)?%s$", mainNumber)
+		phoneRegex := bson.M{"$regex": phonePattern, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"full_name": searchRegex},
-			{"phone_number": searchRegex},
+			{"phone_number": phoneRegex},
 			{"gender": searchRegex},
 			{"user_name": searchRegex},
 			{"user_code": searchRegex},

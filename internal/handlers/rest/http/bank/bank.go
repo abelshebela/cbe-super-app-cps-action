@@ -10,6 +10,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -60,6 +61,9 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
+	accountLengthStr := r.FormValue("account_length")
+	accountLength, _ := strconv.Atoi(accountLengthStr)
+	bankRequest.AccountLength = &accountLength
 	bankRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
@@ -329,6 +333,9 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
+	accountLengthStr := r.FormValue("account_length")
+	accountLength, _ := strconv.Atoi(accountLengthStr)
+	updateRequest.AccountLength = &accountLength
 	updateRequest.Logo = fileHeader
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		b.logger.Errorf("invalid input", response_code)

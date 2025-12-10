@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	"cbe-super-app-cps-action/internal/constants"
 
@@ -228,7 +229,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
-	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
+	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string, account_length *int) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {
@@ -563,7 +564,13 @@ type BPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	FindByActionName(ctx context.Context, actionName string) (*model.ActionRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+}
+
+type BPSActionApproveIndexRepository interface {
+	SaveIndices(ctx context.Context, indices []model.BPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.BPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {
@@ -576,4 +583,9 @@ type MiniAppCategoryRepository interface {
 	Update(ctx context.Context, category *model.MiniAppCategory, id string) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type TransactionRepository interface {
+	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }
