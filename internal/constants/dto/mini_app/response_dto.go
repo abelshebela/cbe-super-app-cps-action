@@ -21,8 +21,7 @@ type MiniAppResponse struct {
 	Stage             constants.Stage             `json:"stage" bson:"stage"`
 	ProductCode       []types.ProductCode         `json:"product_code" bson:"product_code"`
 	Credential        types.CredentialInformation `json:"credential" bson:"credential"`
-	IsEventMiniApp    bool                        `json:"is_event_mini_app" bson:"is_event_mini_app"`
-	IsThreeClick      bool                        `json:"is_three_click" bson:"is_three_click"`
+	AppMode           string                      `json:"app_mode" bson:"app_mode"`
 	Enabled           bool                        `json:"enabled" bson:"enabled"`
 	CreatedAt         time.Time                   `json:"created_at" bson:"created_at"`
 	LastModifiedAt    time.Time                   `json:"last_modified_at" bson:"last_modified_at"`
