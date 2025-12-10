@@ -104,6 +104,8 @@ type CPSActionRoleRepository interface {
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
+	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
 }
 type DeviceVersionControlRepository interface {
 	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
@@ -577,6 +579,10 @@ type BPSActionRoleRepository interface {
 type BPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.BPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.BPSActionApproveIndex) error
+}
+type CPSActionApproveIndexRepository interface {
+	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.	CPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {

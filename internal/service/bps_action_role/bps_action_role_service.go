@@ -157,7 +157,7 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 // Update implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error {
 	if actionCode == "" {
-		return errors.New(localization.ErrorInvalidInputParameter.Code)
+		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {

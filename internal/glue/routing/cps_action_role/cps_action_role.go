@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
 )
 
 func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, auth middleware.AuthMiddleware) {
@@ -67,5 +68,6 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 			},
 		},
 	}
+	
 	glue.RegisterRoutes(router, routes)
 }

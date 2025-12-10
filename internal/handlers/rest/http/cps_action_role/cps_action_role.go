@@ -82,8 +82,8 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	if req.ActionCode == "" || req.ActionName == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+	if req.ActionName == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
 		return
 	}
 	err := h.service.Create(r.Context(), actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles})

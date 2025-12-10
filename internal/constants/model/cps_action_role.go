@@ -11,7 +11,7 @@ type CPSActionRole struct {
 	ActionCode           string            `json:"action_code" bson:"action_code"`
 	ActionName           string            `json:"action_name" bson:"action_name"`
 	AssignedMakersRoles  []bson.ObjectID   `json:"assigned_makers_roles" bson:"assigned_makers_roles"`
-	AssignedCheckerRoles [][]bson.ObjectID `json:"assigned_checkers_roles" bson:"assigned_checkers_roles"`
+	AssignedCheckersRoles [][]bson.ObjectID `json:"assigned_checkers_roles" bson:"assigned_checkers_roles"`
 	AssignedAuditorRoles []bson.ObjectID   `json:"assigned_auditor_roles" bson:"assigned_auditor_roles"`
 	ApproverCount        int64             `json:"approver_count" bson:"approver_count"`
 	IsMakerOnly          bool              `json:"is_maker_only" bson:"is_maker_only"`
