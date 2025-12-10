@@ -302,7 +302,7 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 		switch v := value.(type) {
 		case string:
 			if v != "" {
-				filter[key] = bson.M{"$regex": v, "$options": "i"}
+				filter[key] = v
 			}
 		case []interface{}:
 			if len(v) > 0 {
