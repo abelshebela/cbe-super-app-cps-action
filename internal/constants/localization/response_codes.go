@@ -4382,7 +4382,7 @@ var (
 		Type:       "error",
 	}
 	ErrorDonationAlreadyDisabled = ResponseCode{
-		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		Code:       "ERROR_DONATION_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDonationAlreadyDisabled,
 		Type:       "error",

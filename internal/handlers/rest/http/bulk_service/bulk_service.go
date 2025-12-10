@@ -51,10 +51,11 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 	filter_params := util.ExtractFilterParams(r)
 	bulk_services, err := h.bulkService.GetAllBulkServices(r.Context(), filter_params)
 	if err != nil {
-		h.logger.Errorf("Error while fetch all bulk services: %v\n", err)
+		h.logger.Errorf("[GetAllBulkServices] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UnableToFetchBulkService.Code)
 		return
 	}
+	h.logger.Infof("[GetAllBulkServices] retrieved %d bulk services", len(bulk_services.Data))
 	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, bulk_services)
 
 }
@@ -76,16 +77,19 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to decode payload")
+		h.logger.Errorf("[EnableBulkService] failed to decode request: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	err := h.bulkService.EnableBulkService(r.Context(), req.Keys)
 	if err != nil {
-		h.logger.Errorf("Enable bulk service request failed: %v\n", err)
+		h.logger.Errorf("[EnableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[EnableBulkService] request sent successfully for %d service keys", len(req.Keys))
 	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, nil)
 }
 
@@ -106,14 +110,17 @@ func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to decode payload")
+		h.logger.Errorf("[DisableBulkService] failed to decode request: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
 	err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
 	if err != nil {
-		h.logger.Errorf("Disable bulk service request failed: %v\n", err)
+		h.logger.Errorf("[DisableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DisableBulkService] request sent successfully for %d service keys", len(req.Keys))
 	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, nil)
 }

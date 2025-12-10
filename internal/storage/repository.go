@@ -296,6 +296,7 @@ type DonationCategoryRepository interface {
 	Update(ctx context.Context, id string, donationCategory *model.DonationCategory) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error)
+	FindByName(ctx context.Context, name string) (*donation_category.DonationCategoryListResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_category.DonationCategoryListResponse], error)
 }
 

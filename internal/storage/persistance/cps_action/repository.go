@@ -39,20 +39,19 @@ func NewCPSActionRepository(client *mongo.Client, dbName string, collection stri
 // Ensure CPSActionRepository implements the storage.CPSActionRepository interface
 
 func (r *CPSActionStorage) Save(ctx context.Context, cpsAction *model.CPSAction) error {
-	r.logger.Infof("Attempting to save CPSAction: %+v", cpsAction)
+	r.logger.Infof("[Save] saving CPS action")
 
 	cps, err := r.dal.InsertOne(ctx, *cpsAction)
 	if err != nil {
-		r.logger.Errorf("Failed to save CPSAction: %v", err)
+		r.logger.Errorf("[Save] failed to save CPS action: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Message)
 	}
-	fmt.Printf("Cps file of id is:%s", cps.ID)
-	r.logger.Infof("Successfully saved CPSAction with ActionCode: %s", cpsAction.ActionCode)
+	r.logger.Infof("[Save] CPS action saved successfully with id: %s", cps.ID.Hex())
 	return nil
 }
 
 func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error) {
-	s.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", department, filterParam)
+	s.logger.Infof("[FindAllWithPagination] fetching CPS actions with pagination for department: %s", department)
 	filter := bson.M{
 		"is_deleted": false,
 		"department": department,
@@ -72,11 +71,9 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 			{"request_action": searchRegex},
 			{"action_status": searchRegex},
 		}
-		s.logger.Infof("Search applied with regex: %v", searchRegex)
 	}
 
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	s.logger.Debugf("Mongo filter: %+v, skip: %d, limit: %d", filter, skip, limit)
+	filter, _, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	Filter := dal.FilterOp{
 		Filter:     filter,
 		Limit:      limit,
@@ -85,19 +82,19 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 
 	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
 	if err != nil {
-		s.logger.Errorf("Error fetching paginated CPSActions: %v", err)
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch CPS actions: %v", err)
 		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
-		s.logger.Errorf("Error counting total CPSActions: %v", err)
+		s.logger.Errorf("[FindAllWithPagination] failed to count CPS actions: %v", err)
 		return types.PaginatedResponse[[]model.CPSAction]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	s.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
+	s.logger.Infof("[FindAllWithPagination] retrieved %d CPS actions", len(data))
 	return types.PaginatedResponse[[]model.CPSAction]{
 		Data: data,
 		Meta: meta,
@@ -106,44 +103,44 @@ func (s *CPSActionStorage) FindAllWithPagination(ctx context.Context, filterPara
 }
 
 func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
-	r.logger.Infof("Finding one CPSAction with filter: %+v", filter)
+	r.logger.Infof("[FindOne] fetching CPS action")
 	filterMap := filter
 
 	data, err := r.dal.FindOne(ctx, filterMap, Projection)
 	if err != nil {
-		r.logger.Errorf("Error finding CPSAction: %v", err)
+		r.logger.Errorf("[FindOne] failed to find CPS action: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
 		return nil, errors.New(code)
 	}
-	r.logger.Infof("Successfully found CPSAction: %+v", data)
+	r.logger.Infof("[FindOne] CPS action retrieved successfully")
 	return data, nil
 }
 
 func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
-
+	r.logger.Infof("[Update] updating CPS action for action code: %s", actionCode)
 	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
 
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
-
-		r.logger.Errorf("Error updating CPSAction: %v", err)
+		r.logger.Errorf("[Update] failed to update CPS action: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
 		return nil, errors.New(code)
 	}
-	r.logger.Infof("Successfully updated CPSAction with ActionCode: %s", actionCode)
+	r.logger.Infof("[Update] CPS action updated successfully")
 	return &data, nil
 }
 
 func (r *CPSActionStorage) UpdateCustome(ctx context.Context, filter, update bson.M) error {
+	r.logger.Infof("[UpdateCustome] updating CPS action")
 
 	_, err := r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
-		r.logger.Errorf("Error updating CPSAction: %v", err)
+		r.logger.Errorf("[UpdateCustome] failed to update CPS action: %v", err)
 		code, _ := local_utils.HandleMongoError(err)
 		return errors.New(code)
 	}
-	r.logger.Infof("Successfully updated CPSAction with ")
+	r.logger.Infof("[UpdateCustome] CPS action updated successfully")
 	return nil
 }
 
