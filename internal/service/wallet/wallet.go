@@ -11,7 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/wallet/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	
+
 	"path"
 
 	"context"
@@ -49,7 +49,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 
 	exist, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return err
 	}
 
 	if exist != nil {
@@ -78,11 +78,11 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	return nil
 }
 
-func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest,fieldsProvided map[string]bool) error {
+func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error {
 	s.logger.Infof("UpdateWallet called", "wallet_id", id)
 	prevWallet, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		return errors.New(localization.ErrorWalletNotFound.Code)
+		return err
 	}
 
 	if req.Name != "" || req.Code != "" {
@@ -109,7 +109,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
-	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req,fieldsProvided)
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req, fieldsProvided)
 	if avatarURL != prevWallet.Avatar {
 		change_count++
 	}
@@ -190,7 +190,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 
 	wallet, err := local_util.JsonUnmarshal[model.Wallet](action.CurrentAction)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch action.RequestAction {

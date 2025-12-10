@@ -90,7 +90,7 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		s.logger.Errorf("[Create] incomplete user data")
-		return errors.New(localization.ErrorUserUnauthorized.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
@@ -376,7 +376,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			s.logger.Errorf("[Authorize] failed to create action role: %v", err)
 			return nil, err
 		}
-	s.logger.Infof("[Authorize] action role created successfully")		// Sync indices
+		s.logger.Infof("[Authorize] action role created successfully") // Sync indices
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, "", &ar); err != nil {
 			return nil, err
@@ -384,7 +384,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		// Update action.CurrentAction with the new ID and timestamps
 		updatedPayload, err := json.Marshal(ar)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		action.CurrentAction = updatedPayload
 		return action, nil
@@ -414,7 +414,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			s.logger.Errorf("[Authorize] failed to update action role: %v", err)
 			return nil, err
 		}
-s.logger.Infof("[Authorize] action role updated successfully")		// Sync indices
+		s.logger.Infof("[Authorize] action role updated successfully") // Sync indices
 		if err := s.syncIndices(ctx, existing.ActionName, &upd); err != nil {
 			return nil, err
 		}
@@ -425,7 +425,7 @@ s.logger.Infof("[Authorize] action role updated successfully")		// Sync indices
 
 		updatedPayload, err := json.Marshal(upd)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(localization.ErrorUnexpectedError.Code)
 		}
 		action.CurrentAction = updatedPayload
 		return action, nil
