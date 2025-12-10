@@ -148,21 +148,19 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 
 // GetAllCPSUsers retrieves all CPS users with pagination
 //
-//	@Summary		Get all CPS users
-//	@Description	Retrieves a paginated list of all CPS users with optional filtering
-//	@Tags			CPS Users
-//	@Accept			json
-//	@Produce		json
-//	@Param			page		query		int										false	"Page number"		default(1)
-//	@Param			per_page	query		int										false	"Items per page"	default(10)
-//	@Param			search		query		string									false	"Search term"
-//
-// // @Success 200 {object} localization.StandardResponse{data=cps_users_paginated_resp} "CPS users retrieved successfully"
-//
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/cps_users [get]
+//		@Summary		Get all CPS users
+//		@Description	Retrieves a paginated list of all CPS users with optional filtering
+//		@Tags			CPS Users
+//		@Accept			json
+//		@Produce		json
+//		@Param			page		query		int										false	"Page number"		default(1)
+//		@Param			per_page	query		int										false	"Items per page"	default(10)
+//		@Param			search		query		string									false	"Search terms(full_name,username,user_code,phone_number)"
+//	//  @Success 200 {object} localization.StandardResponse{data=cps_users_paginated_resp} "CPS users retrieved successfully"
+//		@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//		@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//		@Security		BearerAuth
+//		@Router			/cps_users [get]
 func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 	filterParasm := local_util.ExtractFilterParams(r)
 

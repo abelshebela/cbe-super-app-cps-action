@@ -5743,26 +5743,47 @@ paths:
       - Banks
   /bps_users/:
     get:
-      consumes:
-      - application/json
-      description: Retrieves a paginated list of all BPS users with optional filtering
       parameters:
-      - default: 1
-        description: Page number
+      - description: Branch code filter
         in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Items per page
+        name: branch_code
+        type: string
+      - description: Branch name filter
         in: query
-        name: per_page
-        type: integer
-      - description: Search term
+        name: branch_name
+        type: string
+      - description: Enabled status filter
+        in: query
+        name: enabled
+        type: boolean
+      - description: Role filter
+        in: query
+        name: role
+        type: string
+      - description: First password set filter
+        in: query
+        name: first_password_set
+        type: boolean
+      - description: Full name filter
+        in: query
+        name: full_name
+        type: string
+      - description: User code filter
+        in: query
+        name: user_code
+        type: string
+      - description: Phone number filter
+        in: query
+        name: phone_number
+        type: string
+      - description: Username filter
+        in: query
+        name: username
+        type: string
+      - description: searchable fieldes (full_name,username,user_code,phone_number)
         in: query
         name: search
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: BPS users retrieved successfully
@@ -5793,9 +5814,6 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Get all BPS users
-      tags:
-      - BPS Users
   /bps_users/{user_code}:
     get:
       consumes:
@@ -6130,7 +6148,7 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Search terms(full_name,username,user_code,phone_number)
         in: query
         name: search
         type: string

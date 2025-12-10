@@ -5205,35 +5205,64 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves a paginated list of all BPS users with optional filtering",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "BPS Users"
-                ],
-                "summary": "Get all BPS users",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Items per page",
-                        "name": "per_page",
+                        "type": "string",
+                        "description": "Branch code filter",
+                        "name": "branch_code",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Search term",
+                        "description": "Branch name filter",
+                        "name": "branch_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Enabled status filter",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Role filter",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "First password set filter",
+                        "name": "first_password_set",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full name filter",
+                        "name": "full_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User code filter",
+                        "name": "user_code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Phone number filter",
+                        "name": "phone_number",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username filter",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "searchable fieldes (full_name,username,user_code,phone_number)",
                         "name": "search",
                         "in": "query"
                     }
@@ -5918,7 +5947,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Search term",
+                        "description": "Search terms(full_name,username,user_code,phone_number)",
                         "name": "search",
                         "in": "query"
                     }
