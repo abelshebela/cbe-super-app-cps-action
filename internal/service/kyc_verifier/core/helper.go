@@ -101,3 +101,65 @@ func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, u
 		})
 	return nil
 }
+
+func MapandUpdateuserFromKYC(ctx context.Context, userRepo storage.UserRepository, updated model.CustomerKYC, logger utils.Logger) error {
+	user, err := userRepo.FindById(ctx, updated.UserID)
+	if err != nil {
+		logger.Errorf("failed to find user by id: %v", err)
+		return err
+	}
+	// Map fields from updated CustomerKYC to user
+	if user.FullName == "" && updated.KYCData.FullName != "" {
+		user.FullName = updated.KYCData.FullName
+	}
+	if user.PhoneNumber == "" && updated.KYCData.PhoneNumber != "" {
+		user.PhoneNumber = updated.KYCData.PhoneNumber
+	}
+	if string(user.Gender) == "" && updated.KYCData.Gender != "" {
+		user.Gender = constants.Gender(updated.KYCData.Gender)
+	}
+	if user.Avatar == "" && updated.KYCData.Picture != "" {
+		user.Avatar = updated.KYCData.Picture
+	}
+	if user.Nationality == "" && updated.KYCData.Nationality != "" {
+		user.Nationality = updated.KYCData.Nationality
+	}
+	if user.BirthDate.IsZero() && !updated.KYCData.BirthDate.IsZero() {
+		user.BirthDate = updated.KYCData.BirthDate
+	}
+	if user.DocumentFront == "" && updated.KYCData.DocumentFront != "" {
+		user.DocumentFront = updated.KYCData.DocumentFront
+	}
+	if user.DocumentBack == "" && updated.KYCData.DocumentBack != "" {
+		user.DocumentBack = updated.KYCData.DocumentBack
+	}
+	if string(user.AccountType) == "" && updated.KYCData.AccountType != "" {
+		user.AccountType = constants.AccountType(updated.KYCData.AccountType)
+	}
+	// Assign Address fields individually if not set
+	if user.Address.Zone == "" && updated.KYCData.Address.Zone != "" {
+		user.Address.Zone = updated.KYCData.Address.Zone
+	}
+	if user.Address.Kebele == "" && updated.KYCData.Address.Kebele != "" {
+		user.Address.Kebele = updated.KYCData.Address.Kebele
+	}
+	if user.Address.Woreda == "" && updated.KYCData.Address.Woreda != "" {
+		user.Address.Woreda = updated.KYCData.Address.Woreda
+	}
+	if user.Address.Region == "" && updated.KYCData.Address.Region != "" {
+		user.Address.Region = updated.KYCData.Address.Region
+	}
+	if user.MotherName == "" && updated.KYCData.MothersName != "" {
+		user.MotherName = updated.KYCData.MothersName
+	}
+	// Optionally map other fields if needed
+	if user.KYCLevel == 0 && updated.KYCLevel != 0 {
+		user.KYCLevel = updated.KYCLevel
+	}
+
+	if err := userRepo.Update(ctx, user.ID.Hex(), user); err != nil {
+		logger.Errorf("failed to update user from KYC: %v", err)
+		return err
+	}
+	return nil
+}
