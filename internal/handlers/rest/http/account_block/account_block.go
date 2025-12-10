@@ -54,13 +54,13 @@ func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Req
 
 	branch, err := a.accountBlockApplication.GetBranchByCode(r.Context(), branchCode)
 	if err != nil {
-		a.logger.Errorf("FetchUserRequest failed: %v", err)
+		a.logger.Errorf("[GetBranchByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	data := core.ToAccountBlockResponse(branch)
-
+	a.logger.Infof("[GetBranchByCode] branch retrieved successfully for code: %s", branchCode)
 	localization.SendSuccessResponse(w, localization.SuccessBranchRetrieved, data)
 }
 
@@ -84,11 +84,12 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 
 	branches, err := a.accountBlockApplication.GetAllBranches(r.Context(), filterParams)
 	if err != nil {
-		a.logger.Errorf("GetAllBranches failed: %v", err)
+		a.logger.Errorf("[GetAllBranches] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetAllBranches] retrieved %d branches", len(branches.Data))
 	localization.SendSuccessResponse(w, localization.SuccessBranchesRetrieved, branches)
 }
 
@@ -116,13 +117,13 @@ func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Req
 
 	region, err := a.accountBlockApplication.GetRegionByCode(r.Context(), regionCode)
 	if err != nil {
-		a.logger.Errorf("GetRegionByCode failed: %v", err)
+		a.logger.Errorf("[GetRegionByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	data := core.ToAccountBlockResponse(region)
-
+	a.logger.Infof("[GetRegionByCode] region retrieved successfully for code: %s", regionCode)
 	localization.SendSuccessResponse(w, localization.SuccessRegionRetrieved, data)
 }
 
@@ -146,11 +147,12 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 
 	regions, err := a.accountBlockApplication.GetAllRegions(r.Context(), filterParams)
 	if err != nil {
-		a.logger.Errorf("GetAllRegions failed: %v", err)
+		a.logger.Errorf("[GetAllRegions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetAllRegions] retrieved %d regions", len(regions.Data))
 	localization.SendSuccessResponse(w, localization.SuccessRegionsRetrieved, regions)
 }
 
@@ -178,11 +180,12 @@ func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.R
 
 	district, err := a.accountBlockApplication.GetDistrictByCode(r.Context(), districtCode)
 	if err != nil {
-		a.logger.Errorf("GetDistrictByCode failed: %v", err)
+		a.logger.Errorf("[GetDistrictByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetDistrictByCode] district retrieved successfully for code: %s", districtCode)
 	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, district)
 }
 
@@ -206,11 +209,12 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 
 	districts, err := a.accountBlockApplication.GetAllDistricts(r.Context(), filterParams)
 	if err != nil {
-		a.logger.Errorf("GetAllDistrict failed: %v", err)
+		a.logger.Errorf("[GetAllDistricts] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetAllDistricts] retrieved %d districts", len(districts.Data))
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsRetrieved, districts)
 }
 
@@ -238,11 +242,12 @@ func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Reque
 
 	city, err := a.accountBlockApplication.GetCityByCode(r.Context(), cityCode)
 	if err != nil {
-		a.logger.Errorf("GetCityByCode failed: %v", err)
+		a.logger.Errorf("[GetCityByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetCityByCode] city retrieved successfully for code: %s", cityCode)
 	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, city)
 }
 
@@ -266,11 +271,12 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 
 	cities, err := a.accountBlockApplication.GetAllCities(r.Context(), filterParams)
 	if err != nil {
-		a.logger.Errorf("GetAllCities failed: %v", err)
+		a.logger.Errorf("[GetAllCities] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetAllCities] retrieved %d cities", len(cities.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCitiesRetrieved, cities)
 }
 
@@ -312,11 +318,12 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 
 	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchIds, req.Reason, true)
 	if err != nil {
-		a.logger.Errorf("EnableOrDisableBranches failed: %v", err)
+		a.logger.Errorf("[EnableBranches] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[EnableBranches] request sent successfully for %d branches", len(req.BranchIds))
 	localization.SendSuccessResponse(w, localization.SuccessEnableBranchesRequestSent, nil)
 }
 
@@ -358,11 +365,12 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 
 	err := a.accountBlockApplication.EnableOrDisableBranches(r.Context(), req.BranchIds, req.Reason, false)
 	if err != nil {
-		a.logger.Errorf("EnableOrDisableBranches failed: %v", err)
+		a.logger.Errorf("[DisableBranches] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[DisableBranches] request sent successfully for %d branches", len(req.BranchIds))
 	localization.SendSuccessResponse(w, localization.SuccessDisableBranchesRequestSent, nil)
 }
 
@@ -404,11 +412,12 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 
 	err := a.accountBlockApplication.EnableOrDisableRegions(r.Context(), req.RegionIds, req.Reason, true)
 	if err != nil {
-		a.logger.Errorf("EnableOrDisableRegions failed: %v", err)
+		a.logger.Errorf("[EnableRegions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[EnableRegions] request sent successfully for %d regions", len(req.RegionIds))
 	localization.SendSuccessResponse(w, localization.SuccessEnableRegionsRequestSent, nil)
 }
 

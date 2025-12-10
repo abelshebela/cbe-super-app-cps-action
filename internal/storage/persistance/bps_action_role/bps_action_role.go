@@ -34,11 +34,18 @@ func NewBPSActionRoleRepository(client *mongo.Client, database, collection strin
 }
 
 func (r *BPSActionRoleRepository) Create(ctx context.Context, actionRole *model.ActionRole) error {
+	r.logger.Infof("[Create] creating BPS action role")
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
-	return err
+	if err != nil {
+		r.logger.Errorf("[Create] failed to create BPS action role: %v", err)
+		return err
+	}
+	r.logger.Infof("[Create] BPS action role created successfully")
+	return nil
 }
 
 func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error {
+	r.logger.Infof("[UpdateByActionCode] updating BPS action role for action code: %s", actionCode)
 	update := bson.M{
 		"action_name":       actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
@@ -50,12 +57,23 @@ func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 		"updated_at":        actionRole.UpdatedAt,
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)
-	return err
+	if err != nil {
+		r.logger.Errorf("[UpdateByActionCode] failed to update BPS action role: %v", err)
+		return err
+	}
+	r.logger.Infof("[UpdateByActionCode] BPS action role updated successfully")
+	return nil
 }
 
 func (r *BPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error {
+	r.logger.Infof("[EnableOrDisableByActionCode] processing BPS action role enable/disable for action code: %s, enabled: %v", actionCode, enable)
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"enabled": enable})
-	return err
+	if err != nil {
+		r.logger.Errorf("[EnableOrDisableByActionCode] failed to enable/disable BPS action role: %v", err)
+		return err
+	}
+	r.logger.Infof("[EnableOrDisableByActionCode] BPS action role enable/disable completed successfully")
+	return nil
 }
 
 func (r *BPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
@@ -156,18 +174,23 @@ func (r *BPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		}}},
 	}
 
+	r.logger.Infof("[FindByActionCode] fetching BPS action role by action code: %s", actionCode)
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
+		r.logger.Errorf("[FindByActionCode] failed to aggregate BPS action role: %v", err)
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
 	if err := cursor.All(ctx, &results); err != nil {
+		r.logger.Errorf("[FindByActionCode] failed to decode aggregation results: %v", err)
 		return nil, err
 	}
 	if len(results) == 0 {
-		return nil, errors.New(localization.ErrorBpsActionRoleNotFound.Code)
+		r.logger.Errorf("[FindByActionCode] BPS action role not found")
+		return nil, fmt.Errorf(localization.ErrorBpsActionRoleNotFound.Code)
 	}
-
+	r.logger.Infof("[FindByActionCode] BPS action role retrieved successfully")
 	return results[0], nil
 }
 
@@ -176,6 +199,7 @@ func (r *BPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 }
 
 func (r *BPSActionRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error) {
+	r.logger.Infof("[FindAllWithPagination] fetching BPS action roles with pagination")
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_code", "action_name", "enabled"}
 
@@ -190,15 +214,18 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(ctx context.Context, fil
 
 	data, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		r.logger.Errorf("[FindAllWithPagination] failed to fetch BPS action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
+		r.logger.Errorf("[FindAllWithPagination] failed to count BPS action roles: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	r.logger.Infof("[FindAllWithPagination] retrieved %d BPS action roles", len(data))
 
 	return &types.PaginatedResponse[[]*model.ActionRole]{
 		Data: data,

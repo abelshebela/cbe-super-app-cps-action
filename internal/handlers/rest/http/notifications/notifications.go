@@ -53,9 +53,11 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	domainReq := core.ToDomainNotificationRequest(req)
 	_, err = h.service.CreateNotification(r.Context(), domainReq)
 	if err != nil {
+		h.logger.Errorf("[CreateNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 }
 
@@ -93,9 +95,11 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	domainReq := core.ToDomainNotificationRequest(req)
 	_, err = h.service.UpdateNotification(r.Context(), id, domainReq)
 	if err != nil {
+		h.logger.Errorf("[UpdateNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[UpdateNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
 }
 
@@ -125,9 +129,11 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.DeleteNotification(r.Context(), id); err != nil {
+		h.logger.Errorf("[DeleteNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DeleteNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
 }
 
@@ -157,9 +163,11 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.EnableNotification(r.Context(), id); err != nil {
+		h.logger.Errorf("[EnableNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[EnableNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
 }
 
@@ -189,9 +197,11 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.DisableNotification(r.Context(), id); err != nil {
+		h.logger.Errorf("[DisableNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DisableNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
 }
 
@@ -217,10 +227,12 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 
 	data, err := h.service.FetchNotificationByID(r.Context(), id)
 	if err != nil {
+		h.logger.Errorf("[FetchNotificationByID] service error: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorNotificationFetchFailed, nil, nil)
 		return
 	}
 
+	h.logger.Infof("[FetchNotificationByID] notification retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationRetrieved, data)
 }
 
@@ -243,8 +255,10 @@ func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	filterParams := common_utils.ExtractFilterParams(r)
 	data, err := h.service.FetchNotifications(r.Context(), filterParams)
 	if err != nil {
+		h.logger.Errorf("[FetchNotifications] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[FetchNotifications] retrieved %d notifications", len(data.Data))
 	localization.SendSuccessResponse(w, localization.SuccessNotificationsRetrieved, data)
 }

@@ -44,21 +44,24 @@ func InitAvatarAdapter(avatarApplication service.AvatarService, logger utils.Log
 func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	req, err := ReqFileParse(r)
 	if err != nil {
-		localization.SendErrorByCodeResponse(w, err.Error())
+		a.logger.Errorf("[CreateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		a.logger.Errorf("[CreateAvatar] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	// avatarUrl, err := lib.UploadFileToMinio(r.Context(),a)
 	if err := a.avatarApplication.CreateAvatar(r.Context(), &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
+		a.logger.Errorf("[CreateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 }
 
@@ -84,11 +87,12 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.avatarApplication.DeleteAvatar(r.Context(), id); err != nil {
+		a.logger.Errorf("[DeleteAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	a.logger.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarDeleted, nil)
-	a.logger.Infof("Successfuly Delete request sent")
 
 }
 
@@ -114,10 +118,12 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.avatarApplication.EnableDisable(r.Context(), id, true); err != nil {
+		a.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[Enable] avatar enabled successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, nil)
 }
 
@@ -143,10 +149,12 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.avatarApplication.EnableDisable(r.Context(), id, false); err != nil {
+		a.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[Disable] avatar disabled successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
 }
 
@@ -173,10 +181,12 @@ func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 
 	res, err := a.avatarApplication.FetchAvatarById(r.Context(), id)
 	if err != nil {
+		a.logger.Errorf("[FetchAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[FetchAvatar] avatar retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, res)
 }
 
@@ -199,10 +209,12 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 
 	avatars, err := a.avatarApplication.FetchAllAvatar(r.Context(), *filterParam)
 	if err != nil {
+		a.logger.Errorf("[FetchAvatars] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[FetchAvatars] retrieved %d avatars", len(avatars.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAvatarRetrieved, avatars)
 }
 
@@ -233,6 +245,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	req, err := ReqFileParse(r)
 	if err != nil {
+		a.logger.Errorf("[UpdateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -242,9 +255,11 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		label = req.Label
 	}
 	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Label: label}, inputData, false); err != nil {
+		a.logger.Errorf("[UpdateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[UpdateAvatar] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
 }

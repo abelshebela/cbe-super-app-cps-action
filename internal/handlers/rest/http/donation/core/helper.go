@@ -56,7 +56,8 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	startDateStr := r.FormValue("start_date")
 	endDateStr := r.FormValue("end_date")
 	if isFeatured := r.FormValue("is_featured"); isFeatured != "" {
-		req.IsFeatured = isFeatured == "true"
+		val := isFeatured == "true"
+		req.IsFeatured = &val
 	}
 
 	if targetStr := r.FormValue("target"); targetStr != "" {

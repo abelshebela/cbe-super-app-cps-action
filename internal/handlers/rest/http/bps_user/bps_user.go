@@ -52,11 +52,12 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 
 	user, err := h.Service.FetchUserByUserCode(r.Context(), userCode)
 	if err != nil {
-		h.logger.Errorf("FetchUserRequest failed: %v", err)
+		h.logger.Errorf("[FetchUserByUserCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[FetchUserByUserCode] BPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
@@ -80,11 +81,12 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.Service.GetAllBPSUsers(r.Context(), filterParams)
 	if err != nil {
-		h.logger.Errorf("GetAllBPSUser request failed: %v", err)
+		h.logger.Errorf("[GetAllBPSUsers] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[GetAllBPSUsers] retrieved %d BPS users", len(users.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, users)
 }
 
@@ -111,10 +113,11 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.UpdateBpsUser(r.Context(), userCode, false)
 	if err != nil {
-		h.logger.Errorf("Disable user request failed: %v", err)
+		h.logger.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
 }
 
@@ -141,10 +144,11 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 
 	err := h.Service.UpdateBpsUser(r.Context(), userCode, true)
 	if err != nil {
-		h.logger.Errorf("Enable user request failed: %v", err)
+		h.logger.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }
