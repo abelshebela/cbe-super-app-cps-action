@@ -36,7 +36,7 @@ func NewDepartmentHandler(departmentService service.DepartmentService, logger ut
 //	@Param			page		query		int																		false	"Page number"		default(1)
 //	@Param			per_page	query		int																		false	"Items per page"	default(10)
 //	@Param			search		query		string																	false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=[]model.PaginatedDepartmentResponse}	"Departments retrieved successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=[]model.Department}	"Departments retrieved successfully"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}									"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/departments [get]

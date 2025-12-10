@@ -1821,6 +1821,231 @@ const docTemplate = `{
                 }
             }
         },
+        "/action-roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ActionRole"
+                ],
+                "summary": "List action roles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Per Page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ActionRole"
+                ],
+                "summary": "Create action role (maker)",
+                "parameters": [
+                    {
+                        "description": "Create",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/actionrole_dto.CreateActionRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/action-roles/{code}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ActionRole"
+                ],
+                "summary": "Get action role by code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ActionRole"
+                ],
+                "summary": "Update action role (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/actionrole_dto.UpdateActionRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/action-roles/{code}/disable": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ActionRole"
+                ],
+                "summary": "Disable action role (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/action-roles/{code}/enable": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ActionRole"
+                ],
+                "summary": "Enable action role (maker)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Action Code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/actions/": {
             "get": {
                 "security": [
@@ -2450,7 +2675,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch adverts with pagination and optional text search.",
+                "description": "Fetch adverts with pagination, optional text search, and field filtering.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2484,8 +2709,29 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"promo\"",
-                        "description": "Search by title/description",
+                        "description": "Text search on title \u0026 description (case-insensitive partial match)",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Summer Promo\"",
+                        "description": "Filter by exact title match",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Discount event\"",
+                        "description": "Filter by exact description match",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "example": true,
+                        "description": "Filter by enabled flag",
+                        "name": "enabled",
                         "in": "query"
                     }
                 ],
@@ -3164,7 +3410,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"PIN\"",
+                        "example": "\"PIN or OPEN\"",
                         "description": "Search by method or range",
                         "name": "search",
                         "in": "query"
@@ -6404,6 +6650,104 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Retrieves a paginated list of blocked customers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Customers"
+                ],
+                "summary": "Get blocked customers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blocked customers retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/customer.customers_paginated_resp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/customers/linked_account/{customer_number}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrives a list of customer linked account",
                 "produces": [
                     "application/json"
@@ -6900,7 +7244,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/model.PaginatedDepartmentResponse"
+                                                "$ref": "#/definitions/model.Department"
                                             }
                                         }
                                     }
@@ -9323,7 +9667,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/model.PaginatedEventResponse"
+                                                "$ref": "#/definitions/model.Event"
                                             }
                                         }
                                     }
@@ -10941,7 +11285,10 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/miniappmerchant.PaginatedMiniAppResponseResponse"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.MiniAppMerchant"
+                                            }
                                         }
                                     }
                                 }
@@ -11044,7 +11391,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantDTO"
+                                            "$ref": "#/definitions/model.MiniAppMerchant"
                                         }
                                     }
                                 }
@@ -11338,6 +11685,124 @@ const docTemplate = `{
                 }
             }
         },
+        "/mini-app-merchants/merchant-lookup/{merchant_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a merchant by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniAppMerchant"
+                ],
+                "summary": "Merchant Lookup",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Merchant ID",
+                        "name": "merchant_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/merchant_lookup.MerchantLookUpResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/mini-app-merchants/{id}": {
             "get": {
                 "security": [
@@ -11374,7 +11839,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantResponseDTO"
+                                            "$ref": "#/definitions/model.MiniAppMerchant"
                                         }
                                     }
                                 }
@@ -11689,592 +12154,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-apps": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a list of mini apps with optional filters",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "List mini apps",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Filter params (e.g., status, type)",
-                        "name": "filter",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of mini apps",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/miniappdto.MiniAppResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new mini app with form-data (supports file upload)",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "Create a new mini app",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "App name",
-                        "name": "app_name",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "file",
-                        "description": "App icon file",
-                        "name": "app_icon",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Banner image file",
-                        "name": "banner_image",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Commission GL account",
-                        "name": "commission_gl_account",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "merchant_id",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is event mini app",
-                        "name": "is_event_mini_app",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is three click app",
-                        "name": "is_three_click",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "App view type",
-                        "name": "app_view_type",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Mini app URL",
-                        "name": "url",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "IFB product code",
-                        "name": "ifb_product_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "IFB VAT code",
-                        "name": "ifb_vat_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "IFB service fee code",
-                        "name": "ifb_service_fee_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "CB product code",
-                        "name": "cb_product_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "CB VAT code",
-                        "name": "cb_vat_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "CB service fee code",
-                        "name": "cb_service_fee_code",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Mini app created successfully",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-apps/disable/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Disables a mini app by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "Disable a mini app",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Mini app ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Mini app disabled successfully",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-apps/enable/{id}": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Enables a mini app by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "Enable a mini app",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Mini app ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Mini app enabled successfully",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/mini-apps/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves the details of a mini app by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "Get mini app by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Mini app ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Mini app details",
-                        "schema": {
-                            "$ref": "#/definitions/miniappdto.MiniAppResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a mini app by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "Delete a mini app",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Mini app ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Mini app deleted successfully",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing mini app with form-data (supports file upload)",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniApps"
-                ],
-                "summary": "Update a mini app",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Mini app ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "App name",
-                        "name": "app_name",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "App icon file",
-                        "name": "app_icon",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "file",
-                        "description": "Banner image file",
-                        "name": "banner_image",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Commission GL account",
-                        "name": "commission_gl_account",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "merchant_id",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is event mini app",
-                        "name": "is_event_mini_app",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Is three click app",
-                        "name": "is_three_click",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "App view type",
-                        "name": "app_view_type",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Mini app URL",
-                        "name": "url",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "IFB product code",
-                        "name": "ifb_product_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "IFB VAT code",
-                        "name": "ifb_vat_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "IFB service fee code",
-                        "name": "ifb_service_fee_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "CB product code",
-                        "name": "cb_product_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "CB VAT code",
-                        "name": "cb_vat_code",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "CB service fee code",
-                        "name": "cb_service_fee_code",
-                        "in": "formData"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Mini app updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
                         }
                     }
                 }
@@ -17189,6 +17068,123 @@ const docTemplate = `{
                 }
             }
         },
+        "/transactions": {
+            "get": {
+                "description": "Returns a paginated list of transactions. Supports filtering by status and type.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transactions"
+                ],
+                "summary": "Get all transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction status (failed, pending, paid)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Transaction type (cbe, topup, money_request)",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transaction_handler.paginated_transaction_resp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/{id}": {
+            "get": {
+                "description": "Returns a single transaction by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transactions"
+                ],
+                "summary": "Get transaction by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transaction_handler.transaction_by_id"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/localization.ResponseCode"
+                        }
+                    }
+                }
+            }
+        },
         "/unlink/archived_user": {
             "get": {
                 "security": [
@@ -17491,14 +17487,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault": {
+        "/vault/bank-vaults": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Find all bank vaults with the provided filters",
+                "description": "Retrieve all locked bank vaults with pagination and filters",
                 "consumes": [
                     "application/json"
                 ],
@@ -17508,18 +17504,36 @@ const docTemplate = `{
                 "tags": [
                     "Bank Vault"
                 ],
-                "summary": "Find All Bank Vaults",
+                "summary": "Get All Locked Bank Vaults",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
-                        "description": "Filters",
+                        "description": "Search keyword",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Additional filters as JSON string",
                         "name": "filters",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Bank vaults retrieved successfully",
+                        "description": "Locked bank vaults retrieved successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -17662,7 +17676,211 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault/delete/{id}": {
+        "/vault/group-vaults": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all group vaults with pagination and filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bank Vault"
+                ],
+                "summary": "Get All Group Vaults",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search keyword",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Additional filters as JSON string",
+                        "name": "filters",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Group vaults retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/vault/products": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Find all bank vaults with the provided filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bank Vault"
+                ],
+                "summary": "Find All Bank Vaults",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "saving",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true or false",
+                        "name": "is_deleted",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "true or false",
+                        "name": "is_active",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "ETB ,USD",
+                        "name": "currency",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bank vaults retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/vault/products/delete/{id}": {
             "delete": {
                 "security": [
                     {
@@ -17747,7 +17965,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault/disable/{id}": {
+        "/vault/products/disable/{id}": {
             "patch": {
                 "security": [
                     {
@@ -17832,7 +18050,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault/enable/{id}": {
+        "/vault/products/enable/{id}": {
             "patch": {
                 "security": [
                     {
@@ -17917,7 +18135,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault/update/{id}": {
+        "/vault/products/update/{id}": {
             "patch": {
                 "security": [
                     {
@@ -18011,7 +18229,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/vault/{id}": {
+        "/vault/products/{id}": {
             "get": {
                 "security": [
                     {
@@ -18360,9 +18578,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Disable a vault group category by the provided ID",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -18529,9 +18744,9 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Update a vault group category by the provided ID",
+                "description": "Update a vault group category by the provided ID. Expects multipart/form-data (optional file \"cover_image\" and form field \"name\").",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -18549,13 +18764,16 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Vault group category request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/vaultgroupcategory.UpdateVaultGroupCategoryRequest"
-                        }
+                        "type": "file",
+                        "description": "Cover image file",
+                        "name": "cover_image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name",
+                        "name": "name",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -19430,10 +19648,16 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "city_id": {
+                    "type": "string"
+                },
                 "code": {
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "district_id": {
                     "type": "string"
                 },
                 "id": {
@@ -19451,6 +19675,9 @@ const docTemplate = `{
                 "parent_id": {
                     "type": "string"
                 },
+                "region_id": {
+                    "type": "string"
+                },
                 "slug": {
                     "type": "string"
                 },
@@ -19466,19 +19693,18 @@ const docTemplate = `{
         "accountblock.EnableOrDisableBranches": {
             "type": "object",
             "required": [
-                "branch_codes",
+                "branch_Ids",
                 "reason"
             ],
             "properties": {
-                "branch_codes": {
+                "branch_Ids": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "type": "string"
                     },
                     "example": [
-                        "BR001",
-                        "BR002"
+                        "674003000000000000000001"
                     ]
                 },
                 "reason": {
@@ -19514,19 +19740,18 @@ const docTemplate = `{
         "accountblock.EnableOrDisableDistricts": {
             "type": "object",
             "required": [
-                "district_codes",
+                "district_ids",
                 "reason"
             ],
             "properties": {
-                "district_codes": {
+                "district_ids": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "type": "string"
                     },
                     "example": [
-                        "DS001",
-                        "DS002"
+                        "674003000000000000010001"
                     ]
                 },
                 "reason": {
@@ -19539,28 +19764,38 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "reason",
-                "region_codes"
+                "region_ids"
             ],
             "properties": {
                 "reason": {
                     "type": "string",
                     "example": "Policy Update"
                 },
-                "region_codes": {
+                "region_ids": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
                         "type": "string"
                     },
                     "example": [
-                        "RG001",
-                        "RG002"
+                        "674003000000000000000001"
                     ]
                 }
             }
         },
         "accountblock.paginated_account_block_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/accountblock.AccountBlockResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "accountvalidation.ValidationRuleDTO": {
             "type": "object",
@@ -19595,7 +19830,85 @@ const docTemplate = `{
             }
         },
         "accountvalidation.paginated_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ValidationRule"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "actionrole_dto.CreateActionRoleRequest": {
+            "type": "object",
+            "properties": {
+                "action_code": {
+                    "type": "string"
+                },
+                "action_name": {
+                    "type": "string"
+                },
+                "assigned_auditor_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "assigned_checkers_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "assigned_makers_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "is_maker_only": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "actionrole_dto.UpdateActionRoleRequest": {
+            "type": "object",
+            "properties": {
+                "action_name": {
+                    "type": "string"
+                },
+                "assigned_auditor_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "assigned_checkers_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "assigned_makers_roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "is_maker_only": {
+                    "type": "boolean"
+                }
+            }
         },
         "ad.AdvertResponse": {
             "type": "object",
@@ -19627,7 +19940,18 @@ const docTemplate = `{
             }
         },
         "ad.paginated_advert_response": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ad.AdvertResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "amount_based_auth.UpdateAmountBasedAuthRequest": {
             "type": "object",
@@ -19641,13 +19965,46 @@ const docTemplate = `{
             }
         },
         "amount_based_auth.paginated_auth_tier_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AuthTier"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "avatar.paginatedAvatarResp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Avatar"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "bankHandler.paginatedBankResp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/bank_dto.BankResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "bank_dto.BankResponse": {
             "type": "object",
@@ -19684,21 +20041,16 @@ const docTemplate = `{
         "bankvault.CreateBankVaultProductRequest": {
             "type": "object",
             "properties": {
-                "currency": {
-                    "type": "string",
-                    "example": "ETB"
-                },
-                "description": {
-                    "type": "string",
-                    "example": "12-month fixed deposit for diaspora customers"
-                },
                 "apply_interest_on_early_unlock": {
-                    "type": "string",
-                    "example": "100"
+                    "type": "string"
                 },
                 "frequency": {
+                    "type": "integer",
+                    "example": 365
+                },
+                "interest": {
                     "type": "string",
-                    "example": "MONTHLY"
+                    "example": "6"
                 },
                 "lock_period_days": {
                     "type": "string",
@@ -19708,10 +20060,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "500000"
                 },
-                "method": {
-                    "type": "string",
-                    "example": "SIMPLE"
-                },
                 "min_amount": {
                     "type": "string",
                     "example": "1000"
@@ -19719,20 +20067,12 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Diaspora Fixed Deposit"
-                },
-                "rate_bps": {
-                    "type": "string",
-                    "example": "450"
                 }
             }
         },
         "bankvault.UpdateBankVaultProductRequest": {
             "type": "object",
             "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Updated marketing description"
-                },
                 "max_amount": {
                     "type": "string",
                     "example": "750000"
@@ -19785,7 +20125,18 @@ const docTemplate = `{
             }
         },
         "bpsmakerhandler.paginated_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.BPSUser"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "bulk_service.BulkServiceDTO": {
             "type": "object",
@@ -19799,7 +20150,18 @@ const docTemplate = `{
             }
         },
         "bulk_service.bulk_services_paginated_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.APPAccessList"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "constants.AccountStatus": {
             "type": "string",
@@ -19836,36 +20198,6 @@ const docTemplate = `{
                 "BOTH_ADVERT_FOR"
             ]
         },
-        "constants.AppType": {
-            "type": "string",
-            "enum": [
-                "URL",
-                "UAT",
-                "PRODUCATION",
-                "TEST",
-                "DEV"
-            ],
-            "x-enum-varnames": [
-                "URL",
-                "UATApp",
-                "Production",
-                "Test",
-                "Dev"
-            ]
-        },
-        "constants.AppViewType": {
-            "type": "string",
-            "enum": [
-                "BOTH",
-                "CB",
-                "IFB"
-            ],
-            "x-enum-varnames": [
-                "AppViewTypeBoth",
-                "AppViewTypeCB",
-                "AppViewTypeIFB"
-            ]
-        },
         "constants.BPSStatus": {
             "type": "string",
             "enum": [
@@ -19894,17 +20226,6 @@ const docTemplate = `{
                 "CPS"
             ]
         },
-        "constants.BranchType": {
-            "type": "string",
-            "enum": [
-                "IFB",
-                "CB"
-            ],
-            "x-enum-varnames": [
-                "IFB",
-                "CB"
-            ]
-        },
         "constants.DeviceStatus": {
             "type": "string",
             "enum": [
@@ -19914,21 +20235,6 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "Linked",
                 "UnLinked"
-            ]
-        },
-        "constants.EnvironmentType": {
-            "type": "string",
-            "enum": [
-                "UAT",
-                "DEV",
-                "TEST",
-                "PRODUCTION"
-            ],
-            "x-enum-varnames": [
-                "UatEnvironment",
-                "DevEnvironment",
-                "TestEnvironment",
-                "ProductionEnvironment"
             ]
         },
         "constants.EventStatus": {
@@ -19955,19 +20261,6 @@ const docTemplate = `{
                 "Female"
             ]
         },
-        "constants.KYCStatus": {
-            "type": "string",
-            "enum": [
-                "PENDING",
-                "APPROVED",
-                "REJECTED"
-            ],
-            "x-enum-varnames": [
-                "KYCStatusPending",
-                "KYCStatusApproved",
-                "KYCStatusRejected"
-            ]
-        },
         "constants.MemberType": {
             "type": "string",
             "enum": [
@@ -19977,6 +20270,19 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "CBT",
                 "IFBT"
+            ]
+        },
+        "constants.Method": {
+            "type": "string",
+            "enum": [
+                "OPEN",
+                "PIN",
+                "OTP_PIN"
+            ],
+            "x-enum-varnames": [
+                "OPEN",
+                "PIN",
+                "OTPANDPIN"
             ]
         },
         "constants.Platform": {
@@ -20035,17 +20341,14 @@ const docTemplate = `{
                 "Low"
             ]
         },
-        "constants.Stage": {
-            "type": "string",
-            "enum": [
-                "UAT"
-            ],
-            "x-enum-varnames": [
-                "StageUat"
-            ]
-        },
         "cpsactionhandler.cps_action_dto_Resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "rejection_reason": {
+                    "type": "string",
+                    "example": "Insufficient documentation provided"
+                }
+            }
         },
         "cpsactionhandler.cps_action_resp": {
             "type": "object",
@@ -20112,7 +20415,18 @@ const docTemplate = `{
             }
         },
         "cpsactionhandler.cps_actions_paginated_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CPSAction"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "cpsuser.CreateUserRequest": {
             "type": "object",
@@ -20328,29 +20642,6 @@ const docTemplate = `{
                 "enabled": {
                     "type": "boolean"
                 },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
                 "fayda_risk_level": {
                     "$ref": "#/definitions/constants.RiskLevel"
                 },
@@ -20375,6 +20666,9 @@ const docTemplate = `{
                 "is_account_blocked": {
                     "type": "boolean"
                 },
+                "is_activated": {
+                    "type": "boolean"
+                },
                 "is_blocked": {
                     "type": "boolean"
                 },
@@ -20389,27 +20683,6 @@ const docTemplate = `{
                 },
                 "issued_date": {
                     "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {},
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/constants.KYCStatus"
-                        }
-                    }
                 },
                 "kyc_level": {
                     "type": "integer"
@@ -20495,7 +20768,18 @@ const docTemplate = `{
             }
         },
         "customer.customers_paginated_resp": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.User"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "department_dto.CreateDepartmentRequest": {
             "type": "object",
@@ -20535,6 +20819,40 @@ const docTemplate = `{
                 }
             }
         },
+        "donation.Category": {
+            "type": "object",
+            "properties": {
+                "category_name": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "donation.Company": {
+            "type": "object",
+            "properties": {
+                "account_number": {
+                    "type": "string"
+                },
+                "company_logo": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "donation.DonationImage": {
             "type": "object",
             "properties": {
@@ -20553,6 +20871,66 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "image_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "donation.DonationListResponse": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/donation.Category"
+                },
+                "company": {
+                    "$ref": "#/definitions/donation.Company"
+                },
+                "cover_image": {
+                    "description": "URL for cover image",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "current_amount": {
+                    "type": "integer"
+                },
+                "donation_code": {
+                    "type": "string"
+                },
+                "donation_description": {
+                    "type": "string"
+                },
+                "donation_images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation.DonationImage"
+                    }
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_featured": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "target": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 }
             }
@@ -20603,7 +20981,18 @@ const docTemplate = `{
             }
         },
         "donation.paginatedDonationResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation.DonationListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "donation_category.DonationCategoryListResponse": {
             "type": "object",
@@ -20632,7 +21021,18 @@ const docTemplate = `{
             }
         },
         "donation_category.paginatedDonationCategoryListResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation_category.DonationCategoryListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "donation_company.DonationCompanyListResponse": {
             "type": "object",
@@ -20644,6 +21044,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "address": {
+                    "type": "string"
+                },
+                "company_code": {
                     "type": "string"
                 },
                 "company_logo": {
@@ -20676,7 +21079,18 @@ const docTemplate = `{
             }
         },
         "donation_company.paginatedDonationCompanyListResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/donation_company.DonationCompanyListResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "dto.CBglEntryDTO": {
             "type": "object",
@@ -20720,6 +21134,64 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ifbgl_vat_branch_code": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MaximumTransferCapResponse": {
+            "type": "object",
+            "properties": {
+                "cap": {
+                    "$ref": "#/definitions/types.Cap"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "gl_entry": {
+                    "$ref": "#/definitions/types.GLEntry"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ifb_product_codes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "product_codes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "service_code": {
+                    "type": "string"
+                },
+                "service_key": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "service_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MinimumTransferCapResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "min_amount": {
+                    "type": "integer"
+                },
+                "service_code": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "service_type": {
                     "type": "string"
                 }
             }
@@ -20852,6 +21324,59 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/types.Tier"
                     }
+                }
+            }
+        },
+        "dto.ServiceFeeResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "daily_cap_level_one": {
+                    "type": "integer"
+                },
+                "gl_entry": {
+                    "$ref": "#/definitions/types.GLEntry"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ifb_product_codes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "min_amount": {
+                    "type": "integer"
+                },
+                "min_amount_virtual": {
+                    "type": "integer"
+                },
+                "payment_type": {
+                    "type": "string"
+                },
+                "product_codes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "service_key": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "service_type": {
+                    "type": "string"
+                },
+                "single_cap_level_one": {
+                    "type": "integer"
+                },
+                "tiers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Tier"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -21004,84 +21529,26 @@ const docTemplate = `{
                 }
             }
         },
-        "miniappdto.Merchant": {
+        "merchant_lookup.MerchantLookUpResponse": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "merchant_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "miniappdto.MiniAppResponse": {
-            "type": "object",
-            "properties": {
-                "app_icon": {
-                    "type": "string"
-                },
-                "app_name": {
-                    "type": "string"
-                },
-                "app_type": {
-                    "$ref": "#/definitions/constants.AppType"
-                },
-                "app_view_type": {
-                    "$ref": "#/definitions/constants.AppViewType"
-                },
-                "banner_image": {
-                    "type": "string"
-                },
-                "commison_gl_account": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "credential": {
-                    "$ref": "#/definitions/types.CredentialInformation"
-                },
-                "enabled": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_event_mini_app": {
-                    "type": "boolean"
-                },
-                "is_three_click": {
-                    "type": "boolean"
-                },
-                "last_modified_at": {
-                    "type": "string"
-                },
-                "merchant": {
-                    "$ref": "#/definitions/miniappdto.Merchant"
-                },
-                "product_code": {
+                "branches": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/types.ProductCode"
+                        "$ref": "#/definitions/types.Branch"
                     }
                 },
-                "stage": {
-                    "$ref": "#/definitions/constants.Stage"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "miniappmerchant.KYCDTO": {
-            "type": "object",
-            "properties": {
-                "representative": {
-                    "$ref": "#/definitions/miniappmerchant.RepresentativeDTO"
+                "company": {
+                    "$ref": "#/definitions/types.Company"
                 },
                 "status": {
                     "type": "string"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.UserAccount"
+                    }
                 }
             }
         },
@@ -21091,7 +21558,16 @@ const docTemplate = `{
                 "account_number": {
                     "type": "string"
                 },
+                "branches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BranchInformation"
+                    }
+                },
                 "email": {
+                    "type": "string"
+                },
+                "merchant_code": {
                     "type": "string"
                 },
                 "merchant_name": {
@@ -21104,70 +21580,35 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "3-click",
+                        "merchant"
+                    ],
+                    "example": "3-click"
                 }
             }
         },
-        "miniappmerchant.MiniAppMerchantResponseDTO": {
+        "model.APPAccessList": {
             "type": "object",
             "properties": {
-                "account_number": {
-                    "type": "string"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "created_at": {
+                "access_list_name": {
                     "type": "string"
                 },
                 "enabled": {
                     "type": "boolean"
                 },
-                "id": {
+                "key": {
                     "type": "string"
                 },
-                "is_deleted": {
-                    "type": "boolean"
-                },
-                "kyc": {
-                    "$ref": "#/definitions/miniappmerchant.KYCDTO"
-                },
-                "last_modified": {
-                    "type": "string"
-                },
-                "merchant_name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "miniappmerchant.PaginatedMiniAppResponseResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
+                "sub_access_list": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/miniappmerchant.MiniAppMerchantResponseDTO"
+                        "$ref": "#/definitions/types.SubAccessList"
                     }
                 },
-                "meta": {
-                    "$ref": "#/definitions/types.PaginationMeta"
-                }
-            }
-        },
-        "miniappmerchant.RepresentativeDTO": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
+                "ussd_enabled": {
+                    "type": "boolean"
                 }
             }
         },
@@ -21177,10 +21618,16 @@ const docTemplate = `{
                 "address": {
                     "type": "string"
                 },
+                "city_id": {
+                    "type": "string"
+                },
                 "code": {
                     "type": "string"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "district_id": {
                     "type": "string"
                 },
                 "id": {
@@ -21196,6 +21643,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/model.AccountBlock"
                 },
                 "parent_id": {
+                    "type": "string"
+                },
+                "region_id": {
                     "type": "string"
                 },
                 "slug": {
@@ -21224,6 +21674,252 @@ const docTemplate = `{
                 "TypeBranch"
             ]
         },
+        "model.ArchivedUser": {
+            "type": "object",
+            "properties": {
+                "account_branch_type": {
+                    "$ref": "#/definitions/constants.MemberType"
+                },
+                "account_linked": {
+                    "type": "boolean"
+                },
+                "account_status": {
+                    "$ref": "#/definitions/constants.AccountStatus"
+                },
+                "account_type": {
+                    "$ref": "#/definitions/constants.AccountType"
+                },
+                "address": {
+                    "$ref": "#/definitions/types.Address"
+                },
+                "app_version": {
+                    "type": "string"
+                },
+                "application_installation_date": {
+                    "type": "string"
+                },
+                "avater": {
+                    "type": "string"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "blocked_on": {
+                    "$ref": "#/definitions/constants.BlockedOn"
+                },
+                "blocked_on_cps": {
+                    "description": "will remove",
+                    "type": "boolean"
+                },
+                "blocked_reason": {
+                    "type": "string"
+                },
+                "bps_reject_failed": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bps_reject_reason": {
+                    "type": "string"
+                },
+                "bps_reject_status": {
+                    "$ref": "#/definitions/constants.BPSStatus"
+                },
+                "branch_approved": {
+                    "type": "boolean"
+                },
+                "branch_code": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_number": {
+                    "type": "string"
+                },
+                "device_status": {
+                    "$ref": "#/definitions/constants.DeviceStatus"
+                },
+                "device_uuid": {
+                    "type": "string"
+                },
+                "district_code": {
+                    "type": "string"
+                },
+                "district_name": {
+                    "type": "string"
+                },
+                "document_back": {
+                    "type": "string"
+                },
+                "document_front": {
+                    "description": "AccountBranchType constants.AccountType   ` + "`" + `json:\"account_branch_type\" bson:\"account_branch_type,omitempty\"` + "`" + `",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fayda_risk_level": {
+                    "$ref": "#/definitions/constants.RiskLevel"
+                },
+                "first_pin_set": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "$ref": "#/definitions/constants.Gender"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "initial_linked_at": {
+                    "type": "string"
+                },
+                "initial_linked_date": {
+                    "type": "string"
+                },
+                "is_account_blocked": {
+                    "type": "boolean"
+                },
+                "is_activated": {
+                    "type": "boolean"
+                },
+                "is_blocked": {
+                    "type": "boolean"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "is_self_register": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "issued_date": {
+                    "type": "string"
+                },
+                "kyc_level": {
+                    "type": "integer"
+                },
+                "last_account_linked": {
+                    "type": "boolean"
+                },
+                "last_login": {
+                    "type": "string"
+                },
+                "last_login_attempt": {
+                    "type": "string"
+                },
+                "last_main_account": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "last_online_date": {
+                    "type": "string"
+                },
+                "loan_score": {
+                    "type": "integer"
+                },
+                "login_attempt_count": {
+                    "type": "integer"
+                },
+                "login_pin": {
+                    "$ref": "#/definitions/types.LoginPIN"
+                },
+                "main_account": {
+                    "type": "string"
+                },
+                "mother_name": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "next_attempt_count": {
+                    "type": "string"
+                },
+                "otp_verify_count": {
+                    "type": "integer"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "pin_changed_at": {
+                    "type": "string"
+                },
+                "platform": {
+                    "$ref": "#/definitions/constants.Platform"
+                },
+                "profile_theme_type": {
+                    "type": "string"
+                },
+                "push_token": {
+                    "type": "string"
+                },
+                "realm": {
+                    "$ref": "#/definitions/constants.Realm"
+                },
+                "register_by": {
+                    "type": "object"
+                },
+                "residential_status": {
+                    "type": "string"
+                },
+                "signature": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AuthTier": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified": {
+                    "type": "string"
+                },
+                "max_amount": {
+                    "type": "integer"
+                },
+                "method": {
+                    "$ref": "#/definitions/constants.Method"
+                },
+                "min_amount": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Avatar": {
             "type": "object",
             "properties": {
@@ -21249,6 +21945,47 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "last_modified_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.BPSUser": {
+            "type": "object",
+            "properties": {
+                "branch_code": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "home_branch": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -21314,6 +22051,23 @@ const docTemplate = `{
                 },
                 "unique_id": {
                     "type": "string"
+                }
+            }
+        },
+        "model.Card": {
+            "type": "object",
+            "properties": {
+                "card_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "sub_cards": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -21426,6 +22180,56 @@ const docTemplate = `{
                 }
             }
         },
+        "model.MiniAppMerchant": {
+            "type": "object",
+            "properties": {
+                "bank_account_number": {
+                    "type": "string"
+                },
+                "branches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.BranchInformation"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "kyc": {
+                    "$ref": "#/definitions/types.KYC"
+                },
+                "last_modified": {
+                    "type": "string"
+                },
+                "merchant_code": {
+                    "type": "string"
+                },
+                "merchant_name": {
+                    "type": "string"
+                },
+                "merchant_type": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                }
+            }
+        },
         "model.NewsCategory": {
             "type": "object",
             "properties": {
@@ -21469,34 +22273,6 @@ const docTemplate = `{
                 },
                 "tag_name": {
                     "type": "string"
-                }
-            }
-        },
-        "model.PaginatedDepartmentResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Department"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/types.PaginationMeta"
-                }
-            }
-        },
-        "model.PaginatedEventResponse": {
-            "type": "object",
-            "properties": {
-                "docs": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Event"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/types.PaginationMeta"
                 }
             }
         },
@@ -21572,6 +22348,86 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ServiceDetails": {
+            "type": "object",
+            "properties": {
+                "above_amount": {
+                    "type": "integer"
+                },
+                "above_service_fee": {
+                    "type": "integer"
+                },
+                "cap": {
+                    "$ref": "#/definitions/types.Cap"
+                },
+                "cbe_gl_entry": {
+                    "$ref": "#/definitions/types.GLEntry"
+                },
+                "cbe_ifb_gl_entry": {
+                    "$ref": "#/definitions/types.IFBglEntry"
+                },
+                "cbe_ifb_product_codes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "cbe_product_codes": {
+                    "$ref": "#/definitions/types.ProductCodes"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "daily_cap_level_one": {
+                    "type": "integer"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "max_amount": {
+                    "type": "integer"
+                },
+                "min_amount": {
+                    "type": "integer"
+                },
+                "min_amount_virtual": {
+                    "type": "integer"
+                },
+                "payment_type": {
+                    "type": "string"
+                },
+                "service_code": {
+                    "type": "string"
+                },
+                "service_name": {
+                    "type": "string"
+                },
+                "service_type": {
+                    "type": "string"
+                },
+                "single_cap_level_one": {
+                    "type": "integer"
+                },
+                "tiers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.Tier"
+                    }
+                }
+            }
+        },
         "model.SitotaTransaction": {
             "type": "object",
             "properties": {
@@ -21579,9 +22435,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "created_at": {
-                    "type": "string"
-                },
-                "deleted_at": {
                     "type": "string"
                 },
                 "gl_account_number": {
@@ -21746,29 +22599,6 @@ const docTemplate = `{
                 "enabled": {
                     "type": "boolean"
                 },
-                "fayda": {
-                    "type": "object",
-                    "properties": {
-                        "employer_name": {
-                            "type": "string"
-                        },
-                        "employment_status": {
-                            "type": "string"
-                        },
-                        "fayda_access_token": {
-                            "type": "string"
-                        },
-                        "id_number": {
-                            "type": "string"
-                        },
-                        "issued_by": {
-                            "type": "string"
-                        },
-                        "monthly_incode": {
-                            "type": "integer"
-                        }
-                    }
-                },
                 "fayda_risk_level": {
                     "$ref": "#/definitions/constants.RiskLevel"
                 },
@@ -21793,6 +22623,9 @@ const docTemplate = `{
                 "is_account_blocked": {
                     "type": "boolean"
                 },
+                "is_activated": {
+                    "type": "boolean"
+                },
                 "is_blocked": {
                     "type": "boolean"
                 },
@@ -21807,27 +22640,6 @@ const docTemplate = `{
                 },
                 "issued_date": {
                     "type": "string"
-                },
-                "kyc": {
-                    "type": "object",
-                    "properties": {
-                        "kyc_activity_by": {},
-                        "kyc_approved": {
-                            "type": "boolean"
-                        },
-                        "kyc_reject_reason": {
-                            "type": "string"
-                        },
-                        "kyc_reject_reason_failed": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "object"
-                            }
-                        },
-                        "kyc_status": {
-                            "$ref": "#/definitions/constants.KYCStatus"
-                        }
-                    }
                 },
                 "kyc_level": {
                     "type": "integer"
@@ -21908,6 +22720,44 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ValidationRule": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "entity_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "identifier": {
+                    "type": "string"
+                },
+                "is_deleted": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "max_length": {
+                    "type": "integer"
+                },
+                "min_length": {
+                    "type": "integer"
+                },
+                "service_id": {
+                    "type": "string"
+                },
+                "validation_for": {
                     "type": "string"
                 }
             }
@@ -22018,6 +22868,9 @@ const docTemplate = `{
                 "notification_body": {
                     "type": "string"
                 },
+                "notification_code": {
+                    "type": "string"
+                },
                 "notification_parts": {},
                 "notification_type": {
                     "type": "string"
@@ -22057,7 +22910,18 @@ const docTemplate = `{
             }
         },
         "notifications.paginatedNotificationResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/notification.NotificationResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "passwordrule.CheckPasswordDTO": {
             "type": "object",
@@ -22115,6 +22979,9 @@ const docTemplate = `{
         "permission.CreatePermissionGroupRequest": {
             "type": "object",
             "properties": {
+                "department_id": {
+                    "type": "string"
+                },
                 "group_name": {
                     "type": "string"
                 },
@@ -22173,10 +23040,13 @@ const docTemplate = `{
         "permission.UpdatePermissionGroupRequest": {
             "type": "object",
             "properties": {
-                "new_group_name": {
+                "department_id": {
                     "type": "string"
                 },
-                "old_group_name": {
+                "id": {
+                    "type": "string"
+                },
+                "new_group_name": {
                     "type": "string"
                 },
                 "permission_category_list": {
@@ -22191,10 +23061,32 @@ const docTemplate = `{
             }
         },
         "portalcard.PortalCardPaginatedResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Card"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "productcode.ProductCodePaginatedResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/productcode.ProductCodeResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "productcode.ProductCodeResponse": {
             "type": "object",
@@ -22237,19 +23129,286 @@ const docTemplate = `{
             }
         },
         "service_details.paginatedMaximumTransferCapResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MaximumTransferCapResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "service_details.paginatedMinimumTransferCapResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MinimumTransferCapResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "service_details.paginatedServiceDetails": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceDetails"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "service_details.paginatedServiceFeeResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ServiceFeeResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "topup.PaginatedTopupResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Topup"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "transaction_dto.FullTransaction": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "credit_account_holder_name": {
+                    "type": "string"
+                },
+                "credit_account_number": {
+                    "type": "string"
+                },
+                "credit_user_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "debit_account_holder_name": {
+                    "type": "string"
+                },
+                "debit_account_number": {
+                    "type": "string"
+                },
+                "debit_branch_code": {
+                    "type": "string"
+                },
+                "debit_district_code": {
+                    "type": "string"
+                },
+                "debit_user_id": {
+                    "type": "string"
+                },
+                "external_reference": {
+                    "type": "string"
+                },
+                "ft_number": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "institution_code": {
+                    "type": "string"
+                },
+                "institution_name": {
+                    "type": "string"
+                },
+                "is_ifb": {
+                    "type": "boolean"
+                },
+                "is_reversed": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "format": "byte"
+                },
+                "paid_amount": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "reversed_at": {
+                    "type": "string"
+                },
+                "service_fee": {
+                    "type": "string"
+                },
+                "tip_amount": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                },
+                "transaction_reason": {
+                    "type": "string"
+                },
+                "transaction_status": {
+                    "type": "string"
+                },
+                "transaction_type": {
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "string"
+                }
+            }
+        },
+        "transaction_handler.paginated_transaction_resp": {
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/transaction_dto.FullTransaction"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
+        },
+        "transaction_handler.transaction_by_id": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "credit_account_holder_name": {
+                    "type": "string"
+                },
+                "credit_account_number": {
+                    "type": "string"
+                },
+                "credit_user_id": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "debit_account_holder_name": {
+                    "type": "string"
+                },
+                "debit_account_number": {
+                    "type": "string"
+                },
+                "debit_branch_code": {
+                    "type": "string"
+                },
+                "debit_district_code": {
+                    "type": "string"
+                },
+                "debit_user_id": {
+                    "type": "string"
+                },
+                "external_reference": {
+                    "type": "string"
+                },
+                "ft_number": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "institution_code": {
+                    "type": "string"
+                },
+                "institution_name": {
+                    "type": "string"
+                },
+                "is_ifb": {
+                    "type": "boolean"
+                },
+                "is_reversed": {
+                    "type": "boolean"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "type": "object",
+                    "format": "byte"
+                },
+                "paid_amount": {
+                    "type": "string"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "reversed_at": {
+                    "type": "string"
+                },
+                "service_fee": {
+                    "type": "string"
+                },
+                "tip_amount": {
+                    "type": "string"
+                },
+                "total_amount": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                },
+                "transaction_reason": {
+                    "type": "string"
+                },
+                "transaction_status": {
+                    "type": "string"
+                },
+                "transaction_type": {
+                    "type": "string"
+                },
+                "vat": {
+                    "type": "string"
+                }
+            }
         },
         "types.Address": {
             "type": "object",
@@ -22264,6 +23423,61 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "zone": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.Branch": {
+            "type": "object",
+            "properties": {
+                "account_holder_name": {
+                    "type": "string"
+                },
+                "account_number": {
+                    "type": "string"
+                },
+                "api_key": {
+                    "type": "string"
+                },
+                "branch_id": {
+                    "type": "string"
+                },
+                "business_type": {
+                    "description": "null → pointer",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "null",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "null",
+                    "type": "string"
+                }
+            }
+        },
+        "types.BranchInformation": {
+            "type": "object",
+            "properties": {
+                "branch_account_number": {
+                    "type": "string"
+                },
+                "branch_address": {
+                    "type": "string"
+                },
+                "branch_code": {
+                    "type": "string"
+                },
+                "branch_name": {
+                    "type": "string"
+                },
+                "branch_owner": {
                     "type": "string"
                 }
             }
@@ -22291,37 +23505,37 @@ const docTemplate = `{
                 }
             }
         },
-        "types.CredentialInformation": {
+        "types.Company": {
             "type": "object",
             "properties": {
-                "app_secret": {
+                "api_key": {
                     "type": "string"
                 },
-                "environment": {
-                    "$ref": "#/definitions/constants.EnvironmentType"
+                "business_type": {
+                    "description": "null → pointer",
+                    "type": "string"
                 },
-                "fabric_app_id": {
+                "email": {
+                    "description": "null → pointer",
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer"
+                },
+                "merchant_id": {
                     "type": "string"
                 },
-                "merchant_app_id": {
+                "name": {
                     "type": "string"
                 },
-                "mini_app_code": {
+                "parent_id": {
+                    "type": "integer"
+                },
+                "parent_merchant": {
                     "type": "string"
                 },
-                "private_key": {
-                    "type": "string"
-                },
-                "public_key": {
-                    "type": "string"
-                },
-                "short_code": {
-                    "type": "string"
-                },
-                "timestamp": {
+                "phone": {
+                    "description": "null → pointer",
                     "type": "string"
                 }
             }
@@ -22392,6 +23606,31 @@ const docTemplate = `{
                 }
             }
         },
+        "types.KYC": {
+            "type": "object",
+            "properties": {
+                "representative": {
+                    "$ref": "#/definitions/types.KYCInformation"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.KYCInformation": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "types.LoginPIN": {
             "type": "object",
             "properties": {
@@ -22458,26 +23697,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ProductCode": {
-            "type": "object",
-            "properties": {
-                "branch_type": {
-                    "$ref": "#/definitions/constants.BranchType"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "product_code": {
-                    "type": "string"
-                },
-                "service_fee_code": {
-                    "type": "string"
-                },
-                "vat_code": {
-                    "type": "string"
-                }
-            }
-        },
         "types.ProductCodes": {
             "type": "object",
             "properties": {
@@ -22530,6 +23749,20 @@ const docTemplate = `{
                 },
                 "self": {
                     "type": "boolean"
+                }
+            }
+        },
+        "types.SubAccessList": {
+            "type": "object",
+            "properties": {
+                "access_list_ame": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "key": {
+                    "type": "string"
                 }
             }
         },
@@ -22596,37 +23829,68 @@ const docTemplate = `{
                 }
             }
         },
+        "types.UserAccount": {
+            "type": "object",
+            "properties": {
+                "allowed_merchant_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "company_id": {
+                    "type": "integer"
+                },
+                "company_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "default_merchant_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "unlink.PaginatedArchieveUserResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ArchivedUser"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         },
         "vaultgroupcategory.CreateVaultGroupCategoryRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "vaultgroupcategory.UpdateVaultGroupCategoryRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
+            "type": "object"
         },
         "wallet.PaginatedWalletResponse": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "docs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Wallet"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/types.PaginationMeta"
+                }
+            }
         }
     },
     "securityDefinitions": {

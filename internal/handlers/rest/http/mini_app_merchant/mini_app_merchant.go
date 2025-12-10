@@ -32,7 +32,7 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 //	@Accept			json
 //	@Produce		json
 //	@Param			body			body		miniappmerchant.MiniAppMerchantDTO	true	"Mini App Merchant DTO"
-//	@Success		201				{object}	localization.StandardResponse{data=miniappmerchant.MiniAppMerchantDTO}
+//	@Success		201				{object}	localization.StandardResponse{data=model.MiniAppMerchant}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [post]
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
@@ -250,7 +250,7 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Produce		json
 //	@Param			id				path		string	true	"Merchant ID"
-//	@Success		200				{object}	localization.StandardResponse{data=miniappmerchant.MiniAppMerchantResponseDTO}
+//	@Success		200				{object}	localization.StandardResponse{data=model.MiniAppMerchant}
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [get]
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
@@ -279,7 +279,7 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 //	@Produce		json
 //	@Param			page		query		int	false	"Page number"
 //	@Param			per_page	query		int	false	"Items per page"
-//	@Success		200			{object}	localization.StandardResponse{data=miniappmerchant.PaginatedMiniAppResponseResponse}
+//	@Success		200			{object}	localization.StandardResponse{data=[]model.MiniAppMerchant}
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [get]
 func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
@@ -314,7 +314,7 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 // @Security BearerAuth
 // @Produce json
 // @Param merchant_id path string true "Merchant ID"
-// @Success 200 {object} localization.StandardResponse{data=merchantlookup.MerchantLookUpResponse}
+// @Success 200 {object} localization.StandardResponse{data=merchant_lookup.MerchantLookUpResponse}
 // @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
 func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {

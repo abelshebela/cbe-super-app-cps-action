@@ -32,7 +32,7 @@ type TransactionHandler struct {
 // @Param        page       query   int     false  "Page number"
 // @Param        per_page   query   int     false  "Items per page"
 // @Success      200        {object}  paginated_transaction_resp
-// @Failure      400,404,500  {object}  localization.ErrorResponse
+// @Failure      400,404,500  {object}  localization.ResponseCode
 // @Router       /transactions [get]
 // FetchAllTransactions implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +55,7 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 // @Produce      json
 // @Param        id   path   string  true  "Transaction ID"
 // @Success      200  {object}  transaction_by_id
-// @Failure      400,404,500  {object}  localization.ErrorResponse
+// @Failure      400,404,500  {object}  localization.ResponseCode
 // @Router       /transactions/{id} [get]
 // FetchTransactionByID implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http.Request) {

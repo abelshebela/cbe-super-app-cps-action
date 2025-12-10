@@ -124,20 +124,22 @@ func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) 
 	}
 	h.logger.Infof("Vault group category retrieved with ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryRetrieved, result)
+
 }
 
 // UpdateVaultGroupCategory
 //
 //	@Summary		Update Vault Group Category
-//	@Description	Update a vault group category by the provided ID
+//	@Description	Update a vault group category by the provided ID. Expects multipart/form-data (optional file "cover_image" and form field "name").
 //	@Tags			Vault Group Category
-//	@Accept			json
+//	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			id		path		string												true	"Vault group category ID"
-//	@Param			request	body		vaultgroupcategory.UpdateVaultGroupCategoryRequest	true	"Vault group category request"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault group category update request submitted successfully"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
+//	@Param			id			path		string	true	"Vault group category ID"
+//	@Param			cover_image	formData	 file	false	"Cover image file"
+//	@Param			name		formData	 string	false	"Name"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Vault group category update request submitted successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/update/{id} [patch]
 func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
@@ -227,7 +229,6 @@ func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Summary		Disable Vault Group Category
 //	@Description	Disable a vault group category by the provided ID
 //	@Tags			Vault Group Category
-//	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Vault group category ID"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category disable request submitted successfully"

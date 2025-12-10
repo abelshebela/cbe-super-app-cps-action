@@ -11,9 +11,9 @@ import (
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
-	"net/http"
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"net/http"
 )
 
 type customer_resp *model.User
@@ -247,7 +247,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}							"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}							"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/customers/blocked [get]
+//	@Router			/customers/linked_account/{customer_number} [get]
 func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "customer_number")
 	if id == "" {

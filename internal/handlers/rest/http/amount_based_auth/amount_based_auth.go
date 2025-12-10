@@ -39,7 +39,7 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 //	@Produce		json
 //	@Param			page		query		int																false	"Page number"				default(1)	minimum(1)	example(1)
 //	@Param			per_page	query		int																false	"Items per page"			default(10)	minimum(1)	maximum(100)	example(10)
-//	@Param			search		query		string															false	"Search by method or range"	example("PIN")
+//	@Param			search		query		string															false	"Search by method or range"	example("PIN or OPEN")
 //	@Success		200			{object}	localization.StandardResponse{data=paginated_auth_tier_resp}	"Fetched successfully"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Server error"
 //	@Security		BearerAuth
