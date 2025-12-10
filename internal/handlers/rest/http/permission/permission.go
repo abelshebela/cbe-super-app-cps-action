@@ -88,6 +88,7 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetPermissionGroups] retrieved %d permission groups", len(permissionGroups.Data))
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupsFetched, permissionGroups)
 }
 
@@ -103,22 +104,26 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/permissions/{group_name} [get]
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
-	permissionGroup, err := h.PermissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
+	groupName := chi.URLParam(r, "group_name")
+	permissionGroup, err := h.PermissionService.GetPermissionGroup(groupName)
 	if err != nil {
 		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetPermissionGroup] permission group retrieved successfully for group_name: %s", groupName)
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupFetched, permissionGroup)
 }
 
 func (h *PermissionHandler) GetPermissionGroupById(w http.ResponseWriter, r *http.Request) {
-	permissionGroup, err := h.PermissionService.GetPermissionGroupById(r.Context(), chi.URLParam(r, "id"))
+	id := chi.URLParam(r, "id")
+	permissionGroup, err := h.PermissionService.GetPermissionGroupById(r.Context(), id)
 	if err != nil {
-		h.logger.Errorf("[GetPermissionGroup] service error: %v", err)
+		h.logger.Errorf("[GetPermissionGroupById] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetPermissionGroupById] permission group retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupFetched, permissionGroup)
 }
 
@@ -211,6 +216,7 @@ func (h *PermissionHandler) GetAllPermissionCategoriesWithPermissions(w http.Res
 		grouped[key] = append(grouped[key], item)
 	}
 
+	h.logger.Infof("[GetAllPermissionCategoriesWithPermissions] retrieved %d permission categories", len(grouped))
 	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, grouped)
 }
 
@@ -227,6 +233,7 @@ func (h *PermissionHandler) GetPermissionCategoriesByDepartment(w http.ResponseW
 		return
 	}
 
+	h.logger.Infof("[GetPermissionCategoriesByDepartment] retrieved permission categories for department_id: %s", departmentID)
 	localization.SendSuccessResponse(w, localization.SuccessPermissionCategoriesFetched, permissionCategory)
 }
 
@@ -245,5 +252,6 @@ func (h *PermissionHandler) GetPermissionGroupsByDepartment(w http.ResponseWrite
 		return
 	}
 
+	h.logger.Infof("[GetPermissionGroupsByDepartment] retrieved %d permission groups for department_id: %s", len(permissionGroups.Data), departmentID)
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupsFetched, permissionGroups)
 }

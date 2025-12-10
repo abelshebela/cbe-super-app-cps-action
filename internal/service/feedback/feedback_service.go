@@ -25,10 +25,11 @@ func NewFeedbackService(repo storage.FeedbackRepository, logger utils.Logger) se
 }
 
 func (f *feedbackService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	f.logger.Infof("Feedback service authorizing action: %s", cpsAction.ActionCode)
+	f.logger.Infof("[Authorize] authorizing feedback action: %s", cpsAction.RequestAction)
 
 	// For now, return the action as approved
 	cpsAction.ActionStatus = "APPROVED"
+	f.logger.Infof("[Authorize] feedback action authorized successfully")
 	return cpsAction, nil
 }
 
@@ -36,7 +37,7 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 
 	// Validate the request
 	if err := req.Validate(); err != nil {
-		f.logger.Errorf("Invalid feedback request: %v", err)
+		f.logger.Errorf("[CreateFeedback] invalid feedback request: %v", err)
 		return nil, err
 	}
 
@@ -45,30 +46,31 @@ func (f *feedbackService) CreateFeedback(ctx context.Context, req fbdto.Feedback
 	// Call the Create method with the Feedback object
 	err := f.repo.Create(ctx, feedback)
 	if err != nil {
-		f.logger.Errorf("Failed to create feedback: %v", err)
+		f.logger.Errorf("[CreateFeedback] failed to create feedback: %v", err)
 		return nil, err
 	}
 
-	f.logger.Infof("Feedback created successfully for user: %s", userID)
+	f.logger.Infof("[CreateFeedback] feedback created successfully")
 	return feedback, nil
 }
 
 func (f *feedbackService) GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error) {
 	feedback, err := f.repo.FindByID(ctx, id)
 	if err != nil {
-		f.logger.Errorf("Failed to get feedback by ID: %v", err)
+		f.logger.Errorf("[GetFeedbackByID] failed to get feedback: %v", err)
 		return nil, err
 	}
+	f.logger.Infof("[GetFeedbackByID] feedback retrieved successfully for id: %s", id)
 	return feedback, nil
 }
 
 func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error) {
 	feedbacks, err := f.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		f.logger.Errorf("Failed to get feedbacks: %v", err)
+		f.logger.Errorf("[GetFeedbacks] failed to fetch feedbacks: %v", err)
 		return nil, err
 	}
 
-	f.logger.Infof("Retrieved %d feedbacks", len(feedbacks.Data))
+	f.logger.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
 	return feedbacks, nil
 }

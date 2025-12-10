@@ -38,41 +38,50 @@ func NewDeviceVersionService(deviceVersionRepo storage.DeviceVersionControlRepos
 
 // Authorize applies the approved CPS action for Device Version operations.
 func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	d.logger.Infof("[Authorize] authorizing device version action: %s", cpsAction.RequestAction)
 	actionData, err := local_util.JsonUnmarshal[model.DeviceVersionControl](cpsAction.CurrentAction)
 	if err != nil {
+		d.logger.Errorf("[Authorize] failed to unmarshal CurrentAction: %v", err)
 		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
 	}
 
 	switch string(cpsAction.RequestAction) {
 	case string(constants.RequestCreateDeviceVersion):
 		actionData.CreatedAt = time.Now()
-		err = d.DisableExistingDeviceVersion(ctx,actionData.Platform)
-		if err!=nil{
+		err = d.DisableExistingDeviceVersion(ctx, actionData.Platform)
+		if err != nil {
+			d.logger.Errorf("[Authorize] failed to disable existing device version: %v", err)
 			return nil, err
 		}
 		if err = d.deviceVersionRepo.Save(ctx, *actionData); err != nil {
-			d.logger.Errorf("DeviceVersion create action failed: %v", err)
+			d.logger.Errorf("[Authorize] device version create action failed: %v", err)
 			return nil, err
 		}
+		d.logger.Infof("[Authorize] device version created successfully for platform: %s", actionData.Platform)
 	case string(constants.RequestUpdateDeviceVersion), string(constants.RequestEnableDisableDeviceVersion):
 		updateData, err := core.UpdateDeviceVersionBsonForDb(*actionData, cpsAction.MakerName)
 		if err != nil {
+			d.logger.Errorf("[Authorize] failed to prepare update data: %v", err)
 			return nil, err
 		}
 		if err := d.deviceVersionRepo.Update(ctx, cpsAction.UniqueId, updateData); err != nil {
-			d.logger.Errorf("DeviceVersion update/enable-disable action failed: %v", err)
+			d.logger.Errorf("[Authorize] device version update/enable-disable action failed: %v", err)
 			return nil, err
 		}
+		d.logger.Infof("[Authorize] device version updated successfully for id: %s", cpsAction.UniqueId)
 
 	case string(constants.RequestDeleteDeviceVersion):
 		if err := d.deviceVersionRepo.Delete(ctx, cpsAction.UniqueId); err != nil {
-			d.logger.Errorf("DeviceVersion delete action failed: %v", err)
+			d.logger.Errorf("[Authorize] device version delete action failed: %v", err)
 			return nil, err
 		}
+		d.logger.Infof("[Authorize] device version deleted successfully for id: %s", cpsAction.UniqueId)
 	default:
+		d.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
+	d.logger.Infof("[Authorize] device version action authorized successfully: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
@@ -103,8 +112,10 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 
 	action := lib.CpsModelBuilder("", makerData, nil, new_device_version, string(constants.RequestCreateDeviceVersion), constants.CREATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
+		d.logger.Errorf("[CreateDeviceVersion] failed to create CPS action: %v", err)
 		return err
 	}
+	d.logger.Infof("[CreateDeviceVersion] device version creation request created successfully for platform: %s", deviceVersion.Platform)
 	return nil
 }
 
@@ -112,15 +123,18 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, id string, enableDisable bool) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
+		d.logger.Errorf("[EnableDisableDeviceVersion] incomplete user data")
 		return errors.New(constants.IncompleteUserInfo)
 	}
 	objID, err := core.IdProvider(ctx, id)
 	if err != nil {
+		d.logger.Errorf("[EnableDisableDeviceVersion] failed to parse id: %v", err)
 		return err
 	}
 	filter := bson.M{"_id": objID}
 	deviceVersion, err := d.deviceVersionRepo.FindOne(ctx, filter)
 	if err != nil {
+		d.logger.Errorf("[EnableDisableDeviceVersion] failed to find device version: %v", err)
 		return err
 	}
 
@@ -139,8 +153,10 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 	// create CPS action for enable/disable
 	action := lib.CpsModelBuilder(id, makerData, &deviceVersion, updated, string(constants.RequestEnableDisableDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
+		d.logger.Errorf("[EnableDisableDeviceVersion] failed to create CPS action: %v", err)
 		return err
 	}
+	d.logger.Infof("[EnableDisableDeviceVersion] enable/disable request created successfully for id: %s, enabled: %v", id, enableDisable)
 	return nil
 }
 
@@ -149,9 +165,10 @@ func (d *DeviceVersionService) GetAllDeviceVersions(ctx context.Context, filterP
 	// repository returns value slice; map to pointer slice to match signature
 	res, err := d.deviceVersionRepo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
+		d.logger.Errorf("[GetAllDeviceVersions] failed to fetch device versions: %v", err)
 		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, err
 	}
-
+	d.logger.Infof("[GetAllDeviceVersions] retrieved %d device versions", len(res.Data))
 	return res, nil
 }
 
@@ -159,13 +176,16 @@ func (d *DeviceVersionService) GetAllDeviceVersions(ctx context.Context, filterP
 func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id string) (model.DeviceVersionControl, error) {
 	objID, err := core.IdProvider(ctx, id)
 	if err != nil {
+		d.logger.Errorf("[GetDeviceVersionByID] failed to parse id: %v", err)
 		return model.DeviceVersionControl{}, err
 	}
 	filter := bson.M{"_id": objID}
 	dv, err := d.deviceVersionRepo.FindOne(ctx, filter)
 	if err != nil {
+		d.logger.Errorf("[GetDeviceVersionByID] failed to find device version: %v", err)
 		return model.DeviceVersionControl{}, err
 	}
+	d.logger.Infof("[GetDeviceVersionByID] device version retrieved successfully for id: %s", id)
 	return dv, nil
 
 }
@@ -174,49 +194,63 @@ func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id stri
 func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
+		d.logger.Errorf("[UpdateDeviceVersion] incomplete user data")
 		return errors.New(constants.IncompleteUserInfo)
 	}
 	// fetch existing
 	objID, err := core.IdProvider(ctx, id)
 	if err != nil {
+		d.logger.Errorf("[UpdateDeviceVersion] failed to parse id: %v", err)
 		return err
 	}
 	filter := bson.M{"_id": objID}
 	existing, err := d.deviceVersionRepo.FindOne(ctx, filter)
 	if err != nil {
+		d.logger.Errorf("[UpdateDeviceVersion] failed to find device version: %v", err)
 		return err
 	}
 
 	if existing == (model.DeviceVersionControl{}) {
+		d.logger.Errorf("[UpdateDeviceVersion] device version not found: %s", id)
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	// apply updates
 	update, err := core.UpdateDeviceVersionBson(req, makerData.FullName)
 	if err != nil {
+		d.logger.Errorf("[UpdateDeviceVersion] failed to prepare update data: %v", err)
 		return err
 	}
 
 	action := lib.CpsModelBuilder(existing.ID.Hex(), makerData, &existing, update, string(constants.RequestUpdateDeviceVersion), constants.UPDATE)
 	if err := d.cpsService.CreateCPSAction(ctx, &action); err != nil {
+		d.logger.Errorf("[UpdateDeviceVersion] failed to create CPS action: %v", err)
 		return err
 	}
-
+	d.logger.Infof("[UpdateDeviceVersion] device version update request created successfully for id: %s", id)
 	return nil
 }
 
-func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,platform string) error {
-	filter := bson.M{"enabled": true,"platform":platform}
+func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context, platform string) error {
+	d.logger.Infof("[DisableExistingDeviceVersion] disabling existing device version for platform: %s", platform)
+	filter := bson.M{"enabled": true, "platform": platform}
 	existing, err := d.deviceVersionRepo.FindOne(ctx, filter)
 	if err != nil {
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			d.logger.Infof("[DisableExistingDeviceVersion] no existing enabled device version found for platform: %s", platform)
+			return nil
+		}
+		d.logger.Errorf("[DisableExistingDeviceVersion] failed to find existing device version: %v", err)
 		return err
 	}
 	if existing == (model.DeviceVersionControl{}) {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		d.logger.Infof("[DisableExistingDeviceVersion] no existing enabled device version found for platform: %s", platform)
+		return nil
 	}
-	err = d.deviceVersionRepo.EnableOrDisable(ctx,existing.ID.Hex(),false)
+	err = d.deviceVersionRepo.EnableOrDisable(ctx, existing.ID.Hex(), false)
 	if err != nil {
+		d.logger.Errorf("[DisableExistingDeviceVersion] failed to disable existing device version: %v", err)
 		return errors.New(localization.ErrorOnDisablingExistingDeviceControl.Code)
 	}
-
+	d.logger.Infof("[DisableExistingDeviceVersion] existing device version disabled successfully for platform: %s", platform)
 	return nil
 }
