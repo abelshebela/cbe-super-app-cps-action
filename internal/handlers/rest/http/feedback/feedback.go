@@ -63,11 +63,12 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 
 	_, err := f.feedbackApplication.CreateFeedback(r.Context(), req, userID)
 	if err != nil {
-		f.logger.Errorf("failed to create feedback: %v", err)
+		f.logger.Errorf("[CreateFeedback] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 }
 
@@ -103,10 +104,11 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	feedbacks, err := f.feedbackApplication.GetFeedbacks(r.Context(), filterParams)
 	if err != nil {
-		f.logger.Errorf("failed to get feedbacks: %v", err)
+		f.logger.Errorf("[GetFeedbacks] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	f.logger.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 
@@ -143,10 +145,11 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 	feedback, err := f.feedbackApplication.GetFeedbackByID(ctx, id)
 	if err != nil {
-		f.logger.Errorf("failed to get feedback by ID %s: %v", id, err)
+		f.logger.Errorf("[GetFeedbackByID] service error for id %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[GetFeedbackByID] feedback retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedback)
 }

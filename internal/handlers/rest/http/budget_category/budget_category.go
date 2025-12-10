@@ -46,10 +46,12 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 
 	err = b.budgetCategoryApplication.CreateBudgetCategory(r.Context(), req)
 	if err != nil {
+		b.logger.Errorf("[CreateBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[CreateBudgetCategory] request sent successfully")
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryRequestSubmittedForApproval, nil)
 }
 
@@ -83,11 +85,12 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 
 	err = b.budgetCategoryApplication.UpdateBudgetCategory(r.Context(), id, req)
 	if err != nil {
-		b.logger.Errorf("failed to update budget category: %v", err)
+		b.logger.Errorf("[UpdateBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[UpdateBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdateSubmittedForApproval, nil)
 }
 
@@ -101,11 +104,12 @@ func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *
 
 	budgetCategory, err := b.budgetCategoryApplication.FetchBudgetCategoryByID(r.Context(), id)
 	if err != nil {
-		b.logger.Errorf("failed to fetch budget category: %v", err)
+		b.logger.Errorf("[GetBudgetCategoryByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[GetBudgetCategoryByID] budget category retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryFetched, budgetCategory)
 }
 
@@ -114,11 +118,12 @@ func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r 
 
 	budgetCategories, err := b.budgetCategoryApplication.FetchBudgetCategory(r.Context(), filterParams)
 	if err != nil {
-		b.logger.Errorf("failed to fetch budget categories: %v", err)
+		b.logger.Errorf("[GetAllBudgetCategories] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[GetAllBudgetCategories] retrieved %d budget categories", len(budgetCategories.Data))
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoriesFetched, budgetCategories)
 }
 
@@ -139,11 +144,12 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 
 	err := b.budgetCategoryApplication.DeleteBudgetCategory(r.Context(), id)
 	if err != nil {
-		b.logger.Errorf("failed to delete budget category: %v", err)
+		b.logger.Errorf("[DeleteBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[DeleteBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeleteSubmittedForApproval, nil)
 }
 
@@ -164,11 +170,12 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 
 	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, true)
 	if err != nil {
-		b.logger.Errorf("failed to enable budget category: %v", err)
+		b.logger.Errorf("[EnableBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[EnableBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnableSubmittedForApproval, nil)
 }
 func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *http.Request) {
@@ -188,10 +195,11 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 
 	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, false)
 	if err != nil {
-		b.logger.Errorf("failed to disnable budget category: %v", err)
+		b.logger.Errorf("[DisableBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[DisableBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisableSubmittedForApproval, nil)
 }

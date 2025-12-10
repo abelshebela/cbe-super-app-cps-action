@@ -62,13 +62,14 @@ func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *
 	}
 	entities, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
-		s.logger.Errorf("failed to fetch bank vault products: %v", err)
+		s.logger.Errorf("[FindAllBankVaults] failed to fetch bank vault products: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	resp := make([]*bankvault.BankVaultProductResponse, 0, len(entities.Data))
 	for _, e := range entities.Data {
 		resp = append(resp, helperr.MapBankVaultToResponse(e))
 	}
+	s.logger.Infof("[FindAllBankVaults] retrieved %d bank vault products", len(resp))
 	return &types.PaginatedResponse[[]*bankvault.BankVaultProductResponse]{
 		Data: resp,
 		Meta: entities.Meta,
@@ -78,15 +79,19 @@ func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *
 func (s *bankVaultService) GetBankVault(ctx context.Context, id string) (*bankvault.BankVaultProductResponse, error) {
 	enitity, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		s.logger.Errorf("[GetBankVault] failed to fetch bank vault: %v", err)
 		return nil, err
 	}
+	s.logger.Infof("[GetBankVault] bank vault retrieved successfully for id: %s", id)
 	return helperr.MapBankVaultToResponse(enitity), nil
 }
 
 func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error) {
+	s.logger.Infof("[UpdateBankVault] updating bank vault for id: %s", id)
 	req.UpdatedAt = time.Now().UTC()
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		s.logger.Errorf("[UpdateBankVault] failed to find bank vault: %v", err)
 		return "", err
 	}
 	current := helperr.BuildUpdateBankVault(prev, req)
@@ -99,50 +104,46 @@ func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *
 	cpsActionModel := lib.CpsModelBuilder(id, makerData, mongoSafePrev, mongoSafeCurrent, string(constants.RequestUpdateBankVault), string(constants.UPDATE))
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for bank vault | action=%s | err=%v", constants.RequestUpdateBankVault, err)
-		}
+		s.logger.Errorf("[UpdateBankVault] failed to create CPS action: %v", err)
 		return "", err
 	}
+	s.logger.Infof("[UpdateBankVault] bank vault update request created successfully for id: %s", id)
 	return id, nil
 }
 func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (string, error) {
-	s.logger.Infof("Deleting bank vault request: %s", id)
+	s.logger.Infof("[DeleteBankVault] deleting bank vault for id: %s", id)
 	if id == "" {
-		s.logger.Errorf("Empty id")
+		s.logger.Errorf("[DeleteBankVault] empty id provided")
 		return "", errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
-		s.logger.Errorf("Error fetching bank vault product: %v", err)
-		return "", nil
+		s.logger.Errorf("[DeleteBankVault] failed to find bank vault: %v", err)
+		return "", err
 	}
 
 	if exist.IsActive {
-		s.logger.Errorf("Cannot delete active bank vault product: %s", id)
+		s.logger.Errorf("[DeleteBankVault] cannot delete active bank vault product")
 		return "", errors.New(localization.ErrorCannotDeletedBankProduct.Code)
 	}
 
 	if exist.IsDeleted {
-		s.logger.Errorf("Bank vault product already deleted: %s", id)
+		s.logger.Errorf("[DeleteBankVault] bank vault product already deleted")
 		return "", errors.New(localization.ErrorBankVaultProductAlreadyDeleted.Code)
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
-		if s.logger != nil {
-			s.logger.Errorf("incomplete user context for bank vault action | context = %v", maker)
-		}
+		s.logger.Errorf("[DeleteBankVault] incomplete user context")
 		return "", fmt.Errorf("INCOMPLETE_USER_INFO")
 	}
 	// Convert to MongoDB-safe format
 	mongoSafeExist := helperr.ConvertBankVaultToMongoSafe(exist)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafeExist, nil, string(constants.RequestDeleteBankVault), string(constants.DELETE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
-		if s.logger != nil {
-			s.logger.Errorf("failed to create CPS action for bank vault | action=%s | err=%v", constants.RequestDeleteBankVault, err)
-		}
+		s.logger.Errorf("[DeleteBankVault] failed to create CPS action: %v", err)
 		return "", err
 	}
+	s.logger.Infof("[DeleteBankVault] bank vault deletion request created successfully for id: %s", id)
 	return id, nil
 }
 
@@ -175,18 +176,22 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 }
 
 func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) error {
-	s.logger.Infof("Disabling bank vault: %s", id)
+	s.logger.Infof("[DisableBankVault] disabling bank vault for id: %s", id)
 	if id == "" {
+		s.logger.Errorf("[DisableBankVault] empty id provided")
 		return errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
+			s.logger.Errorf("[DisableBankVault] bank vault not found: %s", id)
 			return errors.New(localization.ErrorResourceNotFound.Code)
 		}
+		s.logger.Errorf("[DisableBankVault] failed to find bank vault: %v", err)
 		return err
 	}
 	if !prev.IsActive {
+		s.logger.Errorf("[DisableBankVault] bank vault already disabled")
 		return errors.New(localization.ErrorBankVaultAlreadyDisabled.Code)
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
@@ -198,7 +203,12 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(&updated)
 
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestDisAbleBankVault), string(constants.UPDATE))
-	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
+		s.logger.Errorf("[DisableBankVault] failed to create CPS action: %v", err)
+		return err
+	}
+	s.logger.Infof("[DisableBankVault] bank vault disable request created successfully for id: %s", id)
+	return nil
 }
 
 func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.LockedVault], error) {
@@ -209,9 +219,10 @@ func (s *bankVaultService) FindAllBankLockedVaultsWithPagination(ctx context.Con
 	}
 	results, err := s.repo.FindAllBankLockedVaultsWithPagination(ctx, *filterParams)
 	if err != nil {
-		s.logger.Errorf("failed to fetch bank locked vaults: %v", err)
+		s.logger.Errorf("[FindAllBankLockedVaultsWithPagination] failed to fetch bank locked vaults: %v", err)
 		return nil, err
 	}
+	s.logger.Infof("[FindAllBankLockedVaultsWithPagination] retrieved %d bank locked vaults", len(results.Data))
 	return &types.PaginatedResponse[[]*model.LockedVault]{
 		Data: results.Data,
 		Meta: results.Meta,
@@ -230,9 +241,10 @@ func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context,
 
 	results, err := s.repo.FindAllGroupVaultWithPagination(ctx, *filterParams)
 	if err != nil {
-		s.logger.Errorf("failed to fetch group vaults: %v", err)
+		s.logger.Errorf("[FindAllGroupVaultsWithPagination] failed to fetch group vaults: %v", err)
 		return nil, err
 	}
+	s.logger.Infof("[FindAllGroupVaultsWithPagination] retrieved %d group vaults", len(results.Data))
 	return &types.PaginatedResponse[[]*model.GroupVault]{
 		Data: results.Data,
 		Meta: results.Meta,
@@ -245,45 +257,59 @@ func (s *bankVaultService) FindAllGroupVaultsWithPagination(ctx context.Context,
 // }
 
 func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	s.logger.Infof("[Authorize] authorizing bank vault action: %s", cpsAction.RequestAction)
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateBankVault):
 		bankvault, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
+			s.logger.Errorf("[Authorize] failed to bind bank vault from action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
 		if _, err := s.repo.Create(ctx, bankvault); err != nil {
+			s.logger.Errorf("[Authorize] failed to create bank vault: %v", err)
 			return nil, err
 		}
+		s.logger.Infof("[Authorize] bank vault created successfully")
 		return cpsAction, nil
 
 	case string(constants.RequestUpdateBankVault):
 		bankvault, err := helperr.BindBankVaultUpdateFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
+			s.logger.Errorf("[Authorize] failed to bind bank vault update from action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
 		if err := s.repo.Update(ctx, cpsAction.UniqueId, bankvault); err != nil {
+			s.logger.Errorf("[Authorize] failed to update bank vault: %v", err)
 			return nil, err
 		}
+		s.logger.Infof("[Authorize] bank vault updated successfully for id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 
 	case string(constants.RequestDeleteBankVault):
 		if _, err := s.repo.Delete(ctx, cpsAction.UniqueId); err != nil {
+			s.logger.Errorf("[Authorize] failed to delete bank vault: %v", err)
 			return nil, err
 		}
+		s.logger.Infof("[Authorize] bank vault deleted successfully for id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 	case string(constants.RequestEnableBankVault):
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true); err != nil {
+			s.logger.Errorf("[Authorize] failed to enable bank vault: %v", err)
 			return nil, err
 		}
+		s.logger.Infof("[Authorize] bank vault enabled successfully for id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 	case string(constants.RequestDisAbleBankVault):
 		if err := s.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false); err != nil {
+			s.logger.Errorf("[Authorize] failed to disable bank vault: %v", err)
 			return nil, err
 		}
+		s.logger.Infof("[Authorize] bank vault disabled successfully for id: %s", cpsAction.UniqueId)
 		return cpsAction, nil
 	}
 
+	s.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
 	return nil, errors.New(localization.ErrorInvalidRequest.Code)
 }

@@ -37,10 +37,11 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllWithPagination(r.Context(), filter)
 	if err != nil {
-		h.logger.Errorf("list action roles error: %v", err)
+		h.logger.Errorf("[GetAll] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetAll] retrieved %d action roles", len(res.Data))
 	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
 }
 
@@ -60,10 +61,11 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 	}
 	res, err := h.service.GetByActionCode(r.Context(), code)
 	if err != nil {
-		h.logger.Errorf("get action role error: %v", err)
+		h.logger.Errorf("[GetByActionCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[GetByActionCode] action role retrieved successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
 }
 
@@ -79,6 +81,7 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("[Create] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
@@ -88,10 +91,11 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.service.Create(r.Context(), req)
 	if err != nil {
-		h.logger.Errorf("create action role failed: %v", err)
+		h.logger.Errorf("[Create] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[Create] request sent successfully for action_code: %s", req.ActionCode)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
 }
 
@@ -113,15 +117,17 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	var req actionrole_dto.UpdateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Errorf("[Update] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
 	err := h.service.Update(r.Context(), code, req)
 	if err != nil {
-		h.logger.Errorf("update action role failed: %v", err)
+		h.logger.Errorf("[Update] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[Update] request sent successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 }
 
@@ -140,10 +146,11 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.service.Enable(r.Context(), code); err != nil {
-		h.logger.Errorf("enable action role failed: %v", err)
+		h.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[Enable] request sent successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
 }
 
@@ -162,9 +169,10 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := h.service.Disable(r.Context(), code); err != nil {
-		h.logger.Errorf("disable action role failed: %v", err)
+		h.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[Disable] request sent successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
 }

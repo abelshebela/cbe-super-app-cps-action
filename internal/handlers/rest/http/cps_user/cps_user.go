@@ -56,11 +56,12 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	req.PhoneNumber = formattedPhone
 	if err := h.svc.CreateUserRequest(r.Context(), req); err != nil {
-		h.logger.Errorf("[CreateUserRequest] service: %v", err)
+		h.logger.Errorf("[CreateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[CreateUserRequest] request sent successfully for user_code")
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserCreationRequestSubmitted, nil)
 }
 
@@ -104,11 +105,12 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.UpdateUserRequest(r.Context(), req); err != nil {
-		h.logger.Errorf("[UpdateUserRequest] service: %v", err)
+		h.logger.Errorf("[UpdateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[UpdateUserRequest] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdateRequestSubmitted, nil)
 }
 
@@ -138,11 +140,12 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	// Build detailed response in the service layer
 	user, err := h.svc.GetCpsUserDetail(r.Context(), userCode)
 	if err != nil {
-		h.logger.Errorf("[FetchUserByUserCode] service: %v", err)
+		h.logger.Errorf("[FetchUserByUserCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[FetchUserByUserCode] CPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserRetrieved, user)
 }
 
@@ -168,11 +171,12 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.svc.GetAllCPSUsers(r.Context(), filterParasm)
 	if err != nil {
-		h.logger.Errorf("[GetAllCPSUsers] service: %v", err)
+		h.logger.Errorf("[GetAllCPSUsers] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[GetAllCPSUsers] retrieved %d CPS users", len(users.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCpsUsersRetrieved, users)
 }
 
@@ -198,11 +202,12 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.DeleteUserRequest(r.Context(), userCode); err != nil {
-		h.logger.Errorf("[DeleteUserRequest] service: %v", err)
+		h.logger.Errorf("[DeleteUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[DeleteUserRequest] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDeleted, nil)
 }
 
@@ -228,11 +233,12 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.DisableUser(r.Context(), userCode); err != nil {
-		h.logger.Errorf("[DisableUser] service: %v", err)
+		h.logger.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDisabled, nil)
 }
 
@@ -258,10 +264,11 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.EnableUser(r.Context(), userCode); err != nil {
-		h.logger.Errorf("[EnableUser] service: %v", err)
+		h.logger.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SucessCpsUserEnabled, nil)
 }

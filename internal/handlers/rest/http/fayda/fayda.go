@@ -44,10 +44,12 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 
 	err := f.faydaService.EnableOrDisableFayda(r.Context(), user_code, true)
 	if err != nil {
+		f.logger.Errorf("[InitiateEnableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[InitiateEnableFaydaAccount] request sent successfully for user_code: %s", user_code)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaEnableActionCreated, nil)
 }
 
@@ -72,9 +74,11 @@ func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter,
 
 	err := f.faydaService.EnableOrDisableFayda(r.Context(), user_code, false)
 	if err != nil {
+		f.logger.Errorf("[InitiateDisableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[InitiateDisableFaydaAccount] request sent successfully for user_code: %s", user_code)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaDisableActionCreated, nil)
 }

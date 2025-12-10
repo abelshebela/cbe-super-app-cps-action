@@ -47,9 +47,11 @@ func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Requ
 
 	cards, err := s.appService.GetAll(ctx, filterParams)
 	if err != nil {
+		s.logger.Errorf("[GetAllPortalCard] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	s.logger.Infof("[GetAllPortalCard] retrieved %d portal cards", len(cards.Data))
 	localization.SendSuccessResponse(w, localization.SuccessPortalCardsFetched, cards)
 }

@@ -49,10 +49,12 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 
 	customers, err := a.Service.FindAllWithPagination(r.Context(), *filterParams)
 	if err != nil {
+		a.logger.Errorf("[GetAllAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[GetAllAmountBasedAuth] retrieved %d amount-based auth tiers", len(customers.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customers)
 }
 
@@ -87,6 +89,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 	var request amount_based_auth_dto.UpdateAmountBasedAuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		a.logger.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
@@ -105,10 +108,12 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 
 	if err := a.Service.UpdateAmountBasedAuth(r.Context(), id, methodEnum, request); err != nil {
+		a.logger.Errorf("[UpdateAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
 	localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
 }
 
@@ -134,10 +139,13 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 
 	var cpsReq model.CPSAction
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
+		a.logger.Errorf("[RejectAmountBasedAuth] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
+	idParam, _ := common_util.GetParam(r, "id")
+	a.logger.Infof("[RejectAmountBasedAuth] rejection request processed for id: %s", idParam)
 	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system
 	localization.SendSuccessResponse(w, localization.SuccessUserUpdated, cpsReq)
