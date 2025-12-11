@@ -22,7 +22,7 @@ CREATE TABLE bank_vault_products (
     id                    VARCHAR2(36) NOT NULL,
     name                  VARCHAR2(500) NOT NULL,
     currency              VARCHAR2(3) NOT NULL CHECK (LENGTH(currency)=3 AND currency=UPPER(currency)),
-    rate_bps              NUMBER(19,4) NOT NULL CHECK (rate_bps >= 0),
+    interest              NUMBER(19,4) NOT NULL CHECK (interest >= 0),
     method                VARCHAR2(20) NOT NULL CHECK (method IN ('COMPOUND', 'SIMPLE')),
     frequency             NUMBER(3) NOT NULL CHECK (frequency > 0 AND frequency <= 365),
     lock_period           NUMBER(19,0) NOT NULL CHECK (lock_period > 0),

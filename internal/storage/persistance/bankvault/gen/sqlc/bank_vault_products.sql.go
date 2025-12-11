@@ -103,7 +103,7 @@ SELECT
   id,
   name,
   currency,
-  TO_CHAR(rate_bps) as rate_bps,
+  TO_CHAR(interest) as interest,
   method,
   frequency,
   lock_period,
@@ -142,10 +142,10 @@ type FindBankVaultRow struct {
 	ID                         string                  `json:"id"`
 	Name                       string                  `json:"name"`
 	Currency                   string                  `json:"currency"`
-	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Interest                   decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
 	Frequency                  int64                   `json:"frequency"`
-	LockPeriod                 time.Duration           `json:"lock_period"`
+	LockPeriod                 float64                 `json:"lock_period"`
 	MinAmount                  decimal.Decimal         `json:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
 	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
@@ -195,7 +195,7 @@ func (q *Queries) FindBankVault(ctx context.Context, arg FindBankVaultParams) ([
 			&i.ID,
 			&i.Name,
 			&i.Currency,
-			&i.RateBps,
+			&i.Interest,
 			&i.Method,
 			&i.Frequency,
 			&i.LockPeriod,
@@ -230,7 +230,7 @@ SELECT
   id,
   name,
   currency,
-  rate_bps,
+  interest,
   method,
   frequency,
   lock_period,
@@ -248,7 +248,7 @@ WHERE id = :id AND deleted_at IS NULL
 
 func (q *Queries) FindBankVaultById(ctx context.Context, id string) (BankVaultProduct, error) {
 	var (
-		rateBps_num   godror.Number
+		Interest_num  godror.Number
 		minAmount_num godror.Number
 		maxAmount_num godror.Number
 	)
@@ -259,7 +259,7 @@ func (q *Queries) FindBankVaultById(ctx context.Context, id string) (BankVaultPr
 		&i.ID,
 		&i.Name,
 		&i.Currency,
-		&rateBps_num,
+		&Interest_num,
 		&i.Method,
 		&i.Frequency,
 		&i.LockPeriod,
@@ -272,7 +272,7 @@ func (q *Queries) FindBankVaultById(ctx context.Context, id string) (BankVaultPr
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
-	i.RateBps, _ = decimal.NewFromString(rateBps_num.String())
+	i.Interest, _ = decimal.NewFromString(Interest_num.String())
 	i.MinAmount, _ = decimal.NewFromString(minAmount_num.String())
 	i.MaxAmount, _ = decimal.NewFromString(maxAmount_num.String())
 
@@ -284,7 +284,7 @@ SELECT
   id,
   name,
   currency,
-  rate_bps,
+  interest,
   method,
   frequency,
   lock_period,
@@ -301,7 +301,7 @@ WHERE UPPER(name) = UPPER(:name) AND deleted_at IS NULL
 
 func (q *Queries) FindBankVaultByName(ctx context.Context, name string) (BankVaultProduct, error) {
 	var (
-		rateBps_num           godror.Number
+		Interest_num          godror.Number
 		minAmount_num         godror.Number
 		maxAmount_num         godror.Number
 		earlyUnlockFeeBps_num godror.Number
@@ -316,7 +316,7 @@ func (q *Queries) FindBankVaultByName(ctx context.Context, name string) (BankVau
 		&i.ID,
 		&i.Name,
 		&i.Currency,
-		&rateBps_num,
+		&Interest_num,
 		&i.Method,
 		&i.Frequency,
 		&i.LockPeriod,
@@ -328,7 +328,7 @@ func (q *Queries) FindBankVaultByName(ctx context.Context, name string) (BankVau
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
-	i.RateBps, _ = decimal.NewFromString(rateBps_num.String())
+	i.Interest, _ = decimal.NewFromString(Interest_num.String())
 	i.MinAmount, _ = decimal.NewFromString(minAmount_num.String())
 	i.MaxAmount, _ = decimal.NewFromString(maxAmount_num.String())
 
@@ -340,7 +340,7 @@ INSERT INTO bank_vault_products (
   id,
   name,
   currency,
-  rate_bps,
+  interest,
   method,
   frequency,
   lock_period,
@@ -358,10 +358,10 @@ type SaveBankVaultParams struct {
 	ID                         string                  `json:"id"`
 	Name                       string                  `json:"name"`
 	Currency                   string                  `json:"currency"`
-	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Interest                   decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
 	Frequency                  int64                   `json:"frequency"`
-	LockPeriod                 time.Duration           `json:"lock_period"`
+	LockPeriod                 float64                 `json:"lock_period"`
 	MinAmount                  decimal.Decimal         `json:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
 	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
@@ -375,7 +375,7 @@ func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (s
 		generateUUID(),
 		arg.Name,
 		strings.ToUpper(arg.Currency),
-		arg.RateBps,
+		arg.Interest,
 		string(arg.Method),
 		arg.Frequency,
 		int64(arg.LockPeriod),
@@ -445,7 +445,7 @@ SELECT
   terms_version,
   terms_accepted_at,
   closed_at,
-  rate_bps,
+  interest,
   method,
   frequency,
   lock_period,
@@ -477,7 +477,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 
 	var (
 		principal_num godror.Number
-		rateBps_num   godror.Number
+		Interest_num  godror.Number
 	)
 
 	locks := []LockedVault{}
@@ -495,7 +495,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 			&l.TermsVersion,
 			&l.TermsAcceptedAt,
 			&l.ClosedAt,
-			&rateBps_num,
+			&Interest_num,
 			&l.Method,
 			&l.Frequency,
 			// &l.ApplyInterestOnEarlyUnlock,
@@ -508,7 +508,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 		}
 
 		l.Principal, _ = decimal.NewFromString(principal_num.String())
-		l.RateBps, _ = decimal.NewFromString(rateBps_num.String())
+		l.Interest, _ = decimal.NewFromString(Interest_num.String())
 
 		locks = append(locks, l)
 	}
@@ -540,7 +540,7 @@ SELECT
   closed_at,
   min_amount,
   max_amount,
-  rate_bps,
+  interest,
   method,
   frequency,
   apply_interest_on_early_unlock,
@@ -582,7 +582,7 @@ type ListLocksRow struct {
 	ClosedAt                   sql.NullTime            `json:"closed_at"`
 	MinAmount                  decimal.Decimal         `json:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	RateBps                    decimal.Decimal         `json:"rate_bps"`
+	Interest                   decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
 	Frequency                  int64                   `json:"frequency"`
 	ApplyInterestOnEarlyUnlock NullBoolNumber          `json:"apply_interest_on_early_unlock"`
@@ -607,7 +607,7 @@ func (q *Queries) GetAllLockedVaults(ctx context.Context, arg ListLockedVaultPar
 
 	var (
 		principal_num godror.Number
-		rateBps_num   godror.Number
+		Interest_num  godror.Number
 		minAmount_num godror.Number
 		maxAmount_num godror.Number
 	)
@@ -631,7 +631,7 @@ func (q *Queries) GetAllLockedVaults(ctx context.Context, arg ListLockedVaultPar
 			&i.ClosedAt,
 			&minAmount_num,
 			&maxAmount_num,
-			&rateBps_num,
+			&Interest_num,
 			&i.Method,
 			&i.Frequency,
 			&i.ApplyInterestOnEarlyUnlock,
@@ -647,7 +647,7 @@ func (q *Queries) GetAllLockedVaults(ctx context.Context, arg ListLockedVaultPar
 		i.Principal, _ = decimal.NewFromString(principal_num.String())
 		i.MinAmount, _ = decimal.NewFromString(minAmount_num.String())
 		i.MaxAmount, _ = decimal.NewFromString(maxAmount_num.String())
-		i.RateBps, _ = decimal.NewFromString(rateBps_num.String())
+		i.Interest, _ = decimal.NewFromString(Interest_num.String())
 
 		items = append(items, i)
 	}

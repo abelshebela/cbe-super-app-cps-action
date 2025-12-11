@@ -14,10 +14,10 @@ type BankVaultProduct struct {
 	ID                         string                  `json:"id" bson:"id"`
 	Name                       string                  `json:"name" bson:"name"`
 	Currency                   string                  `json:"currency" bson:"currency"`
-	RateBps                    decimal.Decimal         `json:"rate_bps" bson:"rate_bps"`
+	Interest                   decimal.Decimal         `json:"interest" bson:"interest"`
 	Method                     constants.AccrualMethod `json:"method" bson:"method"`
 	Frequency                  int64                   `json:"frequency" bson:"frequency"`
-	LockPeriod                 time.Duration           `json:"lock_period" bson:"lock_period"`
+	LockPeriod                 float64                 `json:"lock_period" bson:"lock_period"`
 	MinAmount                  decimal.Decimal         `json:"min_amount" bson:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount" bson:"max_amount"`
 	ApplyInterestOnEarlyUnlock bool                    `json:"apply_interest_on_early_unlock" bson:"apply_interest_on_early_unlock"`
@@ -60,7 +60,7 @@ type LockedVault struct {
 	TermsAcceptedAt            time.Time               `json:"terms_accepted_at"`
 	MinAmount                  decimal.Decimal         `json:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	RateBps                    decimal.Decimal         `json:"interest"`
+	Interest                   decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
 	Frequency                  int64                   `json:"frequency"`
 	ApplyInterestOnEarlyUnlock *bool                   `json:"apply_interest_on_early_unlock,omitempty"`
