@@ -40,13 +40,13 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		fmt.Printf("failed to marshal CurrentAction: %v\n", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
 	}
 	fmt.Printf("JSON bytes: %s\n", string(marshaled))
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
 		fmt.Printf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
 	}
 
 	actionData := bps_user_core.BPSUser_mapper(actionMap.(map[string]interface{}))

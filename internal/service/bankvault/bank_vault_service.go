@@ -8,7 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	helper "cbe-super-app-cps-action/internal/service/bankvault/core"
+	helperr "cbe-super-app-cps-action/internal/service/bankvault/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -40,7 +40,7 @@ func (s *bankVaultService) CreateBankVault(ctx context.Context, req *model.BankV
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			makerData := local_util.ExtractUserFromContext(ctx)
-			current := helper.ConvertBankVaultToMongoSafe(req)
+			current := helperr.ConvertBankVaultToMongoSafe(req)
 			cpsActionModel := lib.CpsModelBuilder("", makerData, nil, current, string(constants.RequestCreateBankVault), string(constants.CREATE))
 			if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 				if s.logger != nil {
@@ -63,11 +63,11 @@ func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *
 	entities, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		s.logger.Errorf("[FindAllBankVaults] failed to fetch bank vault products: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	resp := make([]*bankvault.BankVaultProductResponse, 0, len(entities.Data))
 	for _, e := range entities.Data {
-		resp = append(resp, helper.MapBankVaultToResponse(e))
+		resp = append(resp, helperr.MapBankVaultToResponse(e))
 	}
 	s.logger.Infof("[FindAllBankVaults] retrieved %d bank vault products", len(resp))
 	return &types.PaginatedResponse[[]*bankvault.BankVaultProductResponse]{
@@ -77,13 +77,13 @@ func (s *bankVaultService) FindAllBankVaults(ctx context.Context, filterParams *
 
 }
 func (s *bankVaultService) GetBankVault(ctx context.Context, id string) (*bankvault.BankVaultProductResponse, error) {
-	entity, err := s.repo.FindByID(ctx, id)
+	enitity, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("[GetBankVault] failed to fetch bank vault: %v", err)
 		return nil, err
 	}
 	s.logger.Infof("[GetBankVault] bank vault retrieved successfully for id: %s", id)
-	return helper.MapBankVaultToResponse(entity), nil
+	return helperr.MapBankVaultToResponse(enitity), nil
 }
 
 func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *model.UpdateBankVault) (string, error) {
@@ -94,12 +94,12 @@ func (s *bankVaultService) UpdateBankVault(ctx context.Context, id string, req *
 		s.logger.Errorf("[UpdateBankVault] failed to find bank vault: %v", err)
 		return "", err
 	}
-	current := helper.BuildUpdateBankVault(prev, req)
+	current := helperr.BuildUpdateBankVault(prev, req)
 	makerData := local_util.ExtractUserFromContext(ctx)
 
 	// Convert to MongoDB-safe format
-	mongoSafePrev := helper.ConvertBankVaultToMongoSafe(prev)
-	mongoSafeCurrent := helper.ConvertBankVaultToMongoSafe(&current)
+	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
+	mongoSafeCurrent := helperr.ConvertBankVaultToMongoSafe(&current)
 
 	cpsActionModel := lib.CpsModelBuilder(id, makerData, mongoSafePrev, mongoSafeCurrent, string(constants.RequestUpdateBankVault), string(constants.UPDATE))
 
@@ -114,7 +114,7 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 	s.logger.Infof("[DeleteBankVault] deleting bank vault for id: %s", id)
 	if id == "" {
 		s.logger.Errorf("[DeleteBankVault] empty id provided")
-		return "", errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
+		return "", errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -134,10 +134,10 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		s.logger.Errorf("[DeleteBankVault] incomplete user context")
-		return "", fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
+		return "", fmt.Errorf("INCOMPLETE_USER_INFO")
 	}
 	// Convert to MongoDB-safe format
-	mongoSafeExist := helper.ConvertBankVaultToMongoSafe(exist)
+	mongoSafeExist := helperr.ConvertBankVaultToMongoSafe(exist)
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafeExist, nil, string(constants.RequestDeleteBankVault), string(constants.DELETE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		s.logger.Errorf("[DeleteBankVault] failed to create CPS action: %v", err)
@@ -150,7 +150,7 @@ func (s *bankVaultService) DeleteBankVault(ctx context.Context, id string) (stri
 func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error {
 	s.logger.Infof("Enabling bank vault: %s", id)
 	if id == "" {
-		return errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
+		return errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -165,11 +165,11 @@ func (s *bankVaultService) EnableBankVault(ctx context.Context, id string) error
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 
-	mongoSafePrev := helper.ConvertBankVaultToMongoSafe(prev)
+	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
 	updated := *prev
 	updated.IsActive = true
 	updated.UpdatedAt = time.Now()
-	mongoSafeUpdated := helper.ConvertBankVaultToMongoSafe(&updated)
+	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(&updated)
 
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestEnableBankVault), string(constants.UPDATE))
 	return s.cpsService.CreateCPSAction(ctx, &cpsActionModel)
@@ -179,7 +179,7 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	s.logger.Infof("[DisableBankVault] disabling bank vault for id: %s", id)
 	if id == "" {
 		s.logger.Errorf("[DisableBankVault] empty id provided")
-		return errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
+		return errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -196,11 +196,11 @@ func (s *bankVaultService) DisableBankVault(ctx context.Context, id string) erro
 	}
 	maker := local_util.ExtractUserFromContext(ctx)
 
-	mongoSafePrev := helper.ConvertBankVaultToMongoSafe(prev)
+	mongoSafePrev := helperr.ConvertBankVaultToMongoSafe(prev)
 	updated := *prev
 	updated.IsActive = false
 	updated.UpdatedAt = time.Now()
-	mongoSafeUpdated := helper.ConvertBankVaultToMongoSafe(&updated)
+	mongoSafeUpdated := helperr.ConvertBankVaultToMongoSafe(&updated)
 
 	cpsActionModel := lib.CpsModelBuilder(id, maker, mongoSafePrev, mongoSafeUpdated, string(constants.RequestDisAbleBankVault), string(constants.UPDATE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
@@ -260,7 +260,7 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 	s.logger.Infof("[Authorize] authorizing bank vault action: %s", cpsAction.RequestAction)
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateBankVault):
-		bankvault, err := helper.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
+		bankvault, err := helperr.BindBankVaultFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to bind bank vault from action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
@@ -274,7 +274,7 @@ func (s *bankVaultService) Authorize(ctx context.Context, cpsAction *model.CPSAc
 		return cpsAction, nil
 
 	case string(constants.RequestUpdateBankVault):
-		bankvault, err := helper.BindBankVaultUpdateFromCPSAction(cpsAction.CurrentAction)
+		bankvault, err := helperr.BindBankVaultUpdateFromCPSAction(cpsAction.CurrentAction)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to bind bank vault update from action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)

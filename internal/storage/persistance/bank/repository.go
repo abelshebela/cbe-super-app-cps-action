@@ -116,12 +116,8 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 
 	result, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			b.logger.Errorf("[FindByID] bank not found")
-			return nil, errors.New(localization.ErrorResourceNotFound.Code)
-		}
 		b.logger.Errorf("[FindByID] failed to find bank: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, err
 	}
 	if result.IsDeleted {
 		b.logger.Errorf("[FindByID] bank is deleted")
@@ -132,7 +128,8 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 }
 
 func (s *BankStorage) FindByNameOrBICOrCode(
-	ctx context.Context, bic, code, name string, account_length *int) (*model.Bank, error) {
+	ctx context.Context,bic, code, name string, account_length *int) (*model.Bank, error) {
+
 
 	// Build conditions dynamically, only for non-empty parameters
 	conditions := []bson.M{}
@@ -164,16 +161,7 @@ func (s *BankStorage) FindByNameOrBICOrCode(
 	}
 
 	filter := bson.M{"$or": conditions}
-	bank, err := s.dal.FindOne(ctx, filter, nil)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Infof("[FindByNameOrBICOrCode] no bank found matching the criteria")
-			return nil, nil
-		}
-		s.logger.Errorf("[FindByNameOrBICOrCode] failed to find bank: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return bank, nil
+	return s.dal.FindOne(ctx, filter, nil)
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
@@ -196,18 +184,14 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			s.logger.Infof("[FindAllWithPagination] no banks found")
-			return nil, localization.ErrorResourceNotFound
-		}
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch banks: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count banks: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)

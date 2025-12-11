@@ -75,12 +75,13 @@ func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.Donat
 		}
 		return nil, err
 	}
-	return res, nil
+
+	return res, err
 }
 
 func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(makerData) {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -96,7 +97,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
-	if category == nil || !category.Enabled {
+	if !category.Enabled {
 		return errors.New(localization.ErrorCategoryIsNotEnabled.Code)
 	}
 
@@ -104,7 +105,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-	if company == nil || !company.Enabled {
+	if !company.Enabled {
 		return errors.New(localization.ErrorCompanyIsNotEnabled.Code)
 	}
 
@@ -176,6 +177,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
+	// Fetch existing donation
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -322,7 +324,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto.DonationImageUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(makerData) {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -375,7 +377,7 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 
 func (d *Donation) DeleteDonationImage(ctx context.Context, id string, imageID string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(makerData) {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -401,7 +403,7 @@ func (d *Donation) DeleteDonationImage(ctx context.Context, id string, imageID s
 
 func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.DonationRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(makerData) {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -449,7 +451,7 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 
 func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(makerData) {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -478,7 +480,7 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 
 func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if local_util.IsIncomplete(makerData) {
+	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 

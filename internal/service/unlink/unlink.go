@@ -69,7 +69,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
 		u.logger.Errorf("[UnlinkUserCif] incomplete user data")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
 	user, err := u.userRepo.FindByUserCode(ctx, userCode)

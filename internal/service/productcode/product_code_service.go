@@ -2,7 +2,6 @@ package productcode
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -43,7 +42,7 @@ func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPS
 	err := core.BindAction(cpsAction.CurrentAction, &new)
 	if err != nil {
 		s.logger.Errorf("[Authorize] failed to bind current action to product code: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionData.Code)
+		return nil, fmt.Errorf("%v", localization.ErrorInvalidRequest.Code)
 	}
 	new.ID = cpsAction.UniqueId
 	err = s.repo.Update(ctx, &new)
@@ -60,7 +59,7 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 	if err != nil {
 		s.logger.Errorf("[ProductCode.FetchByID] failed to fetch product code, id: %s, error: %v", id, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, errors.New(localization.ErrorProductCodeNotFound.Code)
+			return nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
 		}
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterPar
 	response, err := s.repo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
 		s.logger.Errorf("[FetchAllProductCodes] failed to fetch product codes: %v", err)
-		return nil, errors.New(localization.ErrorProductCodeNotFound.Code)
+		return nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
 	}
 	s.logger.Infof("[FetchAllProductCodes] retrieved %d product codes", len(response.Data))
 	return response, nil
@@ -83,7 +82,7 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	if err != nil {
 		s.logger.Errorf("[ProductCode.Update] failed to fetch existing product code, id: %s, error: %v", request.ID, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, nil, errors.New(localization.ErrorProductCodeNotFound.Code)
+			return nil, nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
 		}
 		return nil, nil, err
 	}

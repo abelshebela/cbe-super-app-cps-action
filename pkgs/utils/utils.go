@@ -801,5 +801,4 @@ func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName st
 	span.SetAttributes(attribute.String(serviceType, serviceName))
 
 	return ctx, span
-
 }

@@ -155,9 +155,6 @@ func (a *AccountBlockStorage) EnableOrDisableBranch(ctx context.Context, id stri
 	_, err = a.accountBlock.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("[EnableOrDisableBranch] failed to enable/disable branch: %v", err)
-		if err == mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorBranchNotFound.Code)
-		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[EnableOrDisableBranch] branch enable/disable completed successfully")
@@ -207,25 +204,9 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	filter["type"] = "B"
 	filter["is_deleted"] = false
 
-	if cityID, ok := filterParam.Filters["city_id"].(string); ok && cityID != "" {
-		objID, err := bson.ObjectIDFromHex(cityID)
-		if err == nil {
-			filter["city_id"] = objID
-		}
-	}
-	if districtID, ok := filterParam.Filters["district_id"].(string); ok && districtID != "" {
-		objID, err := bson.ObjectIDFromHex(districtID)
-		if err == nil {
-			filter["district_id"] = objID
-		}
-	}
-
-	if regionId, ok := filterParam.Filters["region_id"].(string); ok && regionId != "" {
-		objID, err := bson.ObjectIDFromHex(regionId)
-		if err == nil {
-			filter["region_id"] = objID
-		}
-	}
+	ApplyIDFilter(filter, filterParam.Filters, "city_id")
+	ApplyIDFilter(filter, filterParam.Filters, "district_id")
+	ApplyIDFilter(filter, filterParam.Filters, "region_id")
 
 	collection := a.client.Database(a.dbName).Collection("account_block")
 	results, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, skip, limit, a.logger)

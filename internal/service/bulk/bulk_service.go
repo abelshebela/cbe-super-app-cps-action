@@ -59,7 +59,7 @@ func (s *bulkService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	}
 	if !ok {
 		s.logger.Errorf("[Authorize] keys array is not a bson.A")
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New("not a bson.A")
 	}
 
 	var keys []string

@@ -73,8 +73,9 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 
 func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	if req.ActionName == "" {
-		return errors.New(localization.ErrorActionNameIsRequired.Code)
+		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
+
 	// Format Action Name: Uppercase and replace spaces with underscores
 	req.ActionName = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(req.ActionName), " ", "_"))
 
@@ -90,7 +91,7 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		s.logger.Errorf("[Create] incomplete user data")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
 	if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
@@ -376,7 +377,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			s.logger.Errorf("[Authorize] failed to create action role: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] action role created successfully") // Sync indices
+	s.logger.Infof("[Authorize] action role created successfully")		// Sync indices
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, "", &ar); err != nil {
 			return nil, err
@@ -384,7 +385,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		// Update action.CurrentAction with the new ID and timestamps
 		updatedPayload, err := json.Marshal(ar)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return nil, err
 		}
 		action.CurrentAction = updatedPayload
 		return action, nil
@@ -414,7 +415,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			s.logger.Errorf("[Authorize] failed to update action role: %v", err)
 			return nil, err
 		}
-		s.logger.Infof("[Authorize] action role updated successfully") // Sync indices
+s.logger.Infof("[Authorize] action role updated successfully")		// Sync indices
 		if err := s.syncIndices(ctx, existing.ActionName, &upd); err != nil {
 			return nil, err
 		}
@@ -425,7 +426,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 		updatedPayload, err := json.Marshal(upd)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return nil, err
 		}
 		action.CurrentAction = updatedPayload
 		return action, nil

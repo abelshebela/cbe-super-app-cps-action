@@ -71,7 +71,7 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		a.logger.Errorf("[UpdateAvatar] incomplete user data")
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
 	existing, err := a.avatar.Find(ctx, bson.M{"label": avatar.Label}, nil)
@@ -207,7 +207,7 @@ func (a *avatarService) Authorize(ctx context.Context, cpsAction *model.CPSActio
 	avatar, err := local_util.JsonUnmarshal[model.Avatar](cpsAction.CurrentAction)
 	if err != nil {
 		a.logger.Errorf("[Authorize] failed to unmarshal current action: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, err
 	}
 
 	switch cpsAction.RequestAction {

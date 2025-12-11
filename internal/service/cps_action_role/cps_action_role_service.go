@@ -16,6 +16,9 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -46,16 +49,27 @@ func NewCPSActionRoleService(
 
 // FindAllWithPagination implements service.bpsActionRoleService.
 func (s *cpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error) {
-	return s.repo.FindAllWithPagination(ctx, filter)
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CPSActionRole", "FindAllWithPagination")
+	defer span.End()
+	result, err := s.repo.FindAllWithPagination(ctx, filter)
+	if err != nil {
+		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
 }
 
 // GetByActionCode implements service.bpsActionRoleService.
 func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetByActionCode", "CPSActionRole", "GetByActionCode")
+	defer span.End()
 	if actionCode == "" {
+		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	res, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
+		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
@@ -67,34 +81,43 @@ func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 
 // Create implements service.CPSActionRoleService.
 func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "CPSActionRole", "Create")
+	defer span.End()
 	if req.ActionName == "" {
+		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
 	req.ActionName = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(req.ActionName), " ", "_"))
 	req.ActionCode = req.ActionName
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
+		span.AddEvent("incomplete maker information", trace.WithAttributes(attribute.String("error", "incomplete maker information")))
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
 	if err == nil && existing != nil {
+		span.AddEvent("action name already exists", trace.WithAttributes(attribute.String("error", "action name already exists")))
 		return errors.New(localization.ErrorActionNameAlreadyExists.Code)
 	}
 
 
 	if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
+		span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
 	if err := s.validateUniqueIDsInGroups(req.AssignedCheckerRoles); err != nil {
+		span.AddEvent("failed to validate unique checker IDs in groups", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
 	if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
 	var makers []bson.ObjectID
 	for _, id := range req.AssignedMakersRoles {
 		obj, err := bson.ObjectIDFromHex(id)
 		if err != nil {
+			span.AddEvent("invalid maker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorInvalidID.Code)
 		}
 		makers = append(makers, obj)
@@ -107,6 +130,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 			for _, id := range group {
 				oid, err := bson.ObjectIDFromHex(id)
 				if err != nil {
+					span.AddEvent("invalid checker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
 					return errors.New(localization.ErrorInvalidID.Code)
 				}
 				g = append(g, oid)
@@ -118,6 +142,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	for _, id := range req.AssignedAuditorRoles {
 		oid, err := bson.ObjectIDFromHex(id)
 		if err != nil {
+			span.AddEvent("invalid auditor ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorInvalidID.Code)
 		}
 		auditors = append(auditors, oid)
@@ -142,7 +167,12 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		string(constants.RequestCreateCpsActionRole),
 		constants.CREATE,
 	)
-	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err != nil {
+		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	return nil
 }
 
 // Update implements service.CPSActionRoleService.

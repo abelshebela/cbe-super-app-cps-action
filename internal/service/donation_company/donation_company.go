@@ -67,7 +67,7 @@ func (d *DonationCompany) FetchDonationCompanyByID(ctx context.Context, id strin
 func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCompany dto.DonationCompanyRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	ok, err := core.CompanyNameExists(ctx, donationCompany.CompanyName, d.DonationCompanyRepo)
 	if err != nil {
@@ -109,7 +109,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, donationCompany dto.DonationCompanyRequest) (*model.DonationCompany, error) {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
 	existingCompany, err := d.DonationCompanyRepo.FindByID(ctx, id)
