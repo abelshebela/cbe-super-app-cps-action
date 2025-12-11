@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type CPSActionRoleHandler struct {
@@ -34,13 +35,17 @@ func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logg
 // @Security     BearerAuth
 // @Router       /action-roles [get]
 func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllCpsActionRoles", "handler", "cpsActionRole")
+	defer span.End()
 	filter := *local_util.ExtractFilterParams(r)
-	res, err := h.service.FindAllWithPagination(r.Context(), filter)
+	res, err := h.service.FindAllWithPagination(ctx, filter)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("list action roles error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("cps_action_role.count", len(res.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
 }
 
@@ -53,13 +58,17 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [get]
 func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionRoleByCode", "handler", "cpsActionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	res, err := h.service.GetByActionCode(r.Context(), code)
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	res, err := h.service.GetByActionCode(ctx, code)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("get action role error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -77,8 +86,11 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 // @Security     BearerAuth
 // @Router       /action-roles [post]
 func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
@@ -86,8 +98,10 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
 		return
 	}
-	err := h.service.Create(r.Context(), actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles})
+	span.SetAttributes(attribute.String("cps_action_role.code", req.ActionCode))
+	err := h.service.Create(ctx, actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles})
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("create action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -106,6 +120,8 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [patch]
 func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -113,11 +129,14 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	var req actionrole_dto.UpdateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	err := h.service.Update(r.Context(), code, req)
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	err := h.service.Update(ctx, code, req)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("update action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -134,12 +153,16 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/enable [patch]
 func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	if err := h.service.Enable(r.Context(), code); err != nil {
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	if err := h.service.Enable(ctx, code); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("enable action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -156,12 +179,16 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/disable [patch]
 func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	if err := h.service.Disable(r.Context(), code); err != nil {
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	if err := h.service.Disable(ctx, code); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("disable action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

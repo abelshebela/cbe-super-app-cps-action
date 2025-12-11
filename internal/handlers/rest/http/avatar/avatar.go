@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type paginatedAvatarResp types.PaginatedResponse[[]*model.Avatar]
@@ -42,20 +43,26 @@ func InitAvatarAdapter(avatarApplication service.AvatarService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/avatar [post]
 func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createAvatar", "handler", "avatar")
+	defer span.End()
 	req, err := ReqFileParse(r)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[CreateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[CreateAvatar] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	// avatarUrl, err := lib.UploadFileToMinio(r.Context(),a)
-	if err := a.avatarApplication.CreateAvatar(r.Context(), &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
+	span.SetAttributes(attribute.String("avatar.label", req.Label))
+	if err := a.avatarApplication.CreateAvatar(ctx, &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[CreateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -80,13 +87,18 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/{id} [delete]
 func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteAvatar", "handler", "avatar")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
 		return
 	}
 
-	if err := a.avatarApplication.DeleteAvatar(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("avatar.id", id))
+
+	if err := a.avatarApplication.DeleteAvatar(ctx, id); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[DeleteAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -111,13 +123,18 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/enable/{id} [patch]
 func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableAvatar", "handler", "avatar")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
 		return
 	}
 
-	if err := a.avatarApplication.EnableDisable(r.Context(), id, true); err != nil {
+	span.SetAttributes(attribute.String("avatar.id", id))
+
+	if err := a.avatarApplication.EnableDisable(ctx, id, true); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -142,13 +159,18 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/disable/{id} [patch]
 func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableAvatar", "handler", "avatar")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
 		return
 	}
 
-	if err := a.avatarApplication.EnableDisable(r.Context(), id, false); err != nil {
+	span.SetAttributes(attribute.String("avatar.id", id))
+
+	if err := a.avatarApplication.EnableDisable(ctx, id, false); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -173,14 +195,19 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/{id} [get]
 func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAvatar", "handler", "avatar")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
 		return
 	}
 
-	res, err := a.avatarApplication.FetchAvatarById(r.Context(), id)
+	span.SetAttributes(attribute.String("avatar.id", id))
+
+	res, err := a.avatarApplication.FetchAvatarById(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[FetchAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -205,15 +232,19 @@ func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar [get]
 func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAvatars", "handler", "avatar")
+	defer span.End()
 	filterParam := local_util.ExtractFilterParams(r)
 
-	avatars, err := a.avatarApplication.FetchAllAvatar(r.Context(), *filterParam)
+	avatars, err := a.avatarApplication.FetchAllAvatar(ctx, *filterParam)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[FetchAvatars] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("avatar.count", len(avatars.Data)))
 	a.logger.Infof("[FetchAvatars] retrieved %d avatars", len(avatars.Data))
 	localization.SendSuccessResponse(w, localization.SuccessAvatarRetrieved, avatars)
 }
@@ -235,6 +266,8 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/{id} [patch]
 func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAvatar", "handler", "avatar")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	var inputData *multipart.FileHeader
 	var label string
@@ -245,6 +278,7 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 
 	req, err := ReqFileParse(r)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[UpdateAvatar] failed to parse file: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -254,7 +288,12 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		inputData = req.Avatar
 		label = req.Label
 	}
-	if err := a.avatarApplication.UpdateAvatar(r.Context(), id, &model.Avatar{Label: label}, inputData, false); err != nil {
+	span.SetAttributes(
+		attribute.String("avatar.id", id),
+		attribute.String("avatar.label", label),
+	)
+	if err := a.avatarApplication.UpdateAvatar(ctx, id, &model.Avatar{Label: label}, inputData, false); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[UpdateAvatar] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
