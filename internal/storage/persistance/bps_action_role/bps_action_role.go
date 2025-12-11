@@ -9,7 +9,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"errors"	
+	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -47,14 +48,14 @@ func (r *BPSActionRoleRepository) Create(ctx context.Context, actionRole *model.
 func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error {
 	r.logger.Infof("[UpdateByActionCode] updating BPS action role for action code: %s", actionCode)
 	update := bson.M{
-		"action_name":       actionRole.ActionName,
+		"action_name":             actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
 		"assigned_checkers_roles": actionRole.AssignedCheckerRoles,
 		"assigned_auditors_roles": actionRole.AssignedAuditorRoles,
-		"enabled":           actionRole.Enabled,
-		"is_maker_only":     actionRole.IsMakerOnly,
-		"approver_count":    actionRole.ApproverCount,
-		"updated_at":        actionRole.UpdatedAt,
+		"enabled":                 actionRole.Enabled,
+		"is_maker_only":           actionRole.IsMakerOnly,
+		"approver_count":          actionRole.ApproverCount,
+		"updated_at":              actionRole.UpdatedAt,
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)
 	if err != nil {

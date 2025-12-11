@@ -25,8 +25,8 @@ func (e *EnableOrDisableDistricts) Clean() {
 }
 
 func (e *EnableOrDisableCities) Clean() {
-	for i, code := range e.CityCodes {
-		e.CityCodes[i] = strings.TrimSpace(code)
+	for i, code := range e.CityIds {
+		e.CityIds[i] = strings.TrimSpace(code)
 	}
 }
 

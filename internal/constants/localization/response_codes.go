@@ -3871,7 +3871,7 @@ var (
 		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
-	ErrorActionNameAlreadyExists =  ResponseCode{
+	ErrorActionNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_ACTION_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgActionNameAlreadyExists,
@@ -5069,6 +5069,13 @@ var (
 		Message:    MsgCannotEnableDistrict,
 		Type:       "error",
 	}
+	ErrorCannotEnablCity = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_CITY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableCity,
+		Type:       "error",
+	}
+
 	ErrorCannotEnableBranch = ResponseCode{
 		Code:       "ERROR_CANNOT_ENABLE_BRANCH",
 		StatusCode: StatusBadRequest,
