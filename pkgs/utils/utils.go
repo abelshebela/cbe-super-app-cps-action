@@ -177,7 +177,6 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 		case string:
 			if v != "" {
 				filter[key] = v
-				filter[key] = v
 			}
 		case []interface{}:
 			if len(v) > 0 {
