@@ -36,26 +36,3 @@ func ExtractUserContext(r *http.Request) UserContext {
 		//BranchCode:  branchCode,
 	}
 }
-
-// func ExtractContext(c context.Context) UserContext {
-// 	// This method extracts users data from the middleware context
-// 	get := func(key string) string {
-// 		val, _ := c.Value(constants.ContextKey(key)).(string)
-// 		return val
-// 	}
-
-// 	//branchCode, _ := r.Context().Value(constant.ContextKey("branch_code")).([]string)
-
-//		return UserContext{
-//			UserCode:    get("user_code"),
-//			UserID:      get("user_id"),
-//			FullName:    get("full_name"),
-//			PhoneNumber: get("phone_number"),
-//			Department:  get("department"),
-//			UserRole:    get("user_role"),
-//			//BranchCode:  branchCode,
-//		}
-//	}
-// func (u UserContext) IsIncomplete() bool {
-// 	return strings.TrimSpace(u.UserID) == "" || strings.TrimSpace(u.FullName) == "" || strings.TrimSpace(u.PhoneNumber) == "" || strings.TrimSpace(u.Department) == ""
-// }
