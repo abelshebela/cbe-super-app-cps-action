@@ -278,6 +278,11 @@ const (
 	RequestEnableActionRole  RequestAction = "ENABLE_ACTION_ROLE"
 	RequestDisableActionRole RequestAction = "DISABLE_ACTION_ROLE"
 
+	RequestCreateCpsActionRole      RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole      RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole      RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole     RequestAction = "DISABLE_CPS_ACTION_ROLE"
+
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
 	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
@@ -479,6 +484,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateActionRole:  {},
 	RequestEnableActionRole:  {},
 	RequestDisableActionRole: {},
+	RequestCreateCpsActionRole:  {},
+	RequestUpdateCpsActionRole:  {},
+	RequestEnableCpsActionRole:  {},
+	RequestDisableCpsActionRole: {},
 
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
@@ -827,6 +836,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateActionRole,
 		RequestEnableActionRole,
 		RequestDisableActionRole,
+	},
+	"CpsActionRole": {
+		RequestCreateCpsActionRole,
+		RequestUpdateCpsActionRole,
+		RequestEnableCpsActionRole,
+		RequestDisableCpsActionRole,
 	},
 	"DeviceVersion": {
 		RequestCreateDeviceVersion,
