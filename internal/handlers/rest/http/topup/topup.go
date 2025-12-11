@@ -14,6 +14,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type PaginatedTopupResponse types.PaginatedResponse[[]*model.Topup]
@@ -45,27 +47,33 @@ func InitTopupAdapter(topupApp service.TopupService, logger utils.Logger) topupI
 //	@Security		BearerAuth
 //	@Router			/topups [post]
 func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "CreateTopup")
+	defer span.End()
 	a.logger.Infof("called the create topup handler: %s", "create_method")
 
 	var req topupDto.TopupRequest
 	req, err := topupcore.ParseTopupRequestFromMultipartForm(r, true)
 	if err != nil {
+		span.AddEvent("Failed to parse multipart form", trace.WithAttributes(attribute.String("error", err.Error())))
 		a.logger.Errorf("error fetching topup create request data")
 	}
 	a.logger.Infof("this is the topup request%+v\n", req)
 
 	if err := req.AggregatedValidate(true); err != nil {
+		span.AddEvent("Validation error", trace.WithAttributes(attribute.String("error", err.Error())))
 		a.logger.Errorf("topup request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	if err := a.topupApp.CreateTopup(r.Context(), req); err != nil {
+	if err := a.topupApp.CreateTopup(ctx, req); err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
 		a.logger.Errorf("failed to create topup: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topup creation request submitted")
 	a.logger.Infof("topup creation request submitted successfully")
 	localization.SendSuccessResponse(w, localization.SuccessTopupCreationRequestSent, nil)
 }
@@ -86,11 +94,14 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/topups/{id} [patch]
 func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "UpdateTopup")
+	defer span.End()
 
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler update for topup with id: %s", id)
 
 	if id == "" {
+		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
 		a.logger.Errorf("topup ID is required for update")
 		localization.SendErrorResponse(w, localization.ErrorTopupIDRequired, nil, nil)
 		return
@@ -98,6 +109,7 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 
 	req, err := topupcore.ParseTopupRequestFromMultipartForm(r, false)
 	if err != nil {
+		span.AddEvent("Failed to parse multipart form", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		a.logger.Errorf("failed to parse topup update request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -105,23 +117,27 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 	a.logger.Infof("this is the topup request%+v\n", req)
 
 	if err := req.AggregatedValidate(false); err != nil {
+		span.AddEvent("Validation error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		a.logger.Errorf("topup request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
+		span.AddEvent("Empty payload", trace.WithAttributes(attribute.String("id", id)))
 		a.logger.Warnf("no data provided for topup update, topup ID: %s", id)
 		localization.SendErrorResponse(w, localization.ErrorTopupUpdateEmptyPayload, nil, nil)
 		return
 	}
 
-	if err := a.topupApp.UpdateTopup(r.Context(), id, req); err != nil {
+	if err := a.topupApp.UpdateTopup(ctx, id, req); err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		a.logger.Errorf("failed to update topup (ID: %s): %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topup update request submitted", trace.WithAttributes(attribute.String("id", id)))
 	a.logger.Infof("topup update request submitted successfully, topup ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessTopupUpdateRequestSent, nil)
 }
@@ -141,19 +157,24 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/topups/{id} [delete]
 func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "DeleteTopup")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler delete for topup with id: %s", id)
 
 	if id == "" {
+		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
 		localization.SendErrorResponse(w, localization.ErrorTopupIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.topupApp.DeleteTopup(r.Context(), id); err != nil {
+	if err := a.topupApp.DeleteTopup(ctx, id); err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topup deleted", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTopupDeleted, nil)
 }
 
@@ -172,19 +193,24 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/topups/{id}/enable [patch]
 func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "Enable")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler enable for topup with id: %s", id)
 
 	if id == "" {
+		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
 		localization.SendErrorResponse(w, localization.ErrorTopupIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.topupApp.EnableOrDisableTopup(r.Context(), id, true); err != nil {
+	if err := a.topupApp.EnableOrDisableTopup(ctx, id, true); err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topup enable request submitted", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTopupEnableRequestSubmitted, nil)
 }
 
@@ -203,19 +229,24 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/topups/{id}/disable [patch]
 func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "Disable")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the topup handler disable for topup with id: %s", id)
 
 	if id == "" {
+		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
 		localization.SendErrorResponse(w, localization.ErrorTopupIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.topupApp.EnableOrDisableTopup(r.Context(), id, false); err != nil {
+	if err := a.topupApp.EnableOrDisableTopup(ctx, id, false); err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topup disable request submitted", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTopupDisableRequestSubmitted, nil)
 }
 
@@ -234,21 +265,26 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/topups/{id} [get]
 func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "GetTopup")
+	defer span.End()
 
 	id := chi.URLParam(r, "id")
 	a.logger.Infof("called the fetch topup handler  for topup with id: %s", id)
 
 	if id == "" {
+		span.AddEvent("Missing topup ID", trace.WithAttributes(attribute.String("error", "topup ID required")))
 		localization.SendErrorResponse(w, localization.ErrorTopupIDRequired, nil, nil)
 		return
 	}
 
-	topup, err := a.topupApp.GetTopup(r.Context(), id)
+	topup, err := a.topupApp.GetTopup(ctx, id)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topup retrieved", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTopupRetrieved, topup)
 }
 
@@ -267,16 +303,20 @@ func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/topups [get]
 func (a *topupAdapter) GetAllTopup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "GetAllTopup")
+	defer span.End()
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching topups with filter: %+v", filter)
 
-	list, err := a.topupApp.GetAllTopup(r.Context(), *filter)
+	list, err := a.topupApp.GetAllTopup(ctx, *filter)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
 		a.logger.Errorf("failed to fetch topups: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Topups retrieved", trace.WithAttributes(attribute.Int("count", len(list.Data))))
 	a.logger.Infof("topups fetched successfully")
 	localization.SendSuccessResponse(w, localization.SuccessTopupsRetrieved, list)
 }

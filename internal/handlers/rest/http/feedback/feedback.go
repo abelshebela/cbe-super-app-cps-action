@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type feedbackAdapter struct {
@@ -39,15 +40,19 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 //	@Security		BearerAuth
 //	@Router			/feedback/create [post]
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createFeedback", "handler", "feedback")
+	defer span.End()
 	var req feedback.FeedbackRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("failed to bind feedback data: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -61,8 +66,12 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	_, err := f.feedbackApplication.CreateFeedback(r.Context(), req, userID)
+	span.SetAttributes(
+		attribute.String("feedback.user_id", userID),
+	)
+	_, err := f.feedbackApplication.CreateFeedback(ctx, req, userID)
 	if err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("[CreateFeedback] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -89,6 +98,8 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/feedback [get]
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getFeedbacks", "handler", "feedback")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
 	// Enhanced pagination validation
@@ -102,12 +113,14 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 		filterParams.PerPage = 100
 	}
 
-	feedbacks, err := f.feedbackApplication.GetFeedbacks(r.Context(), filterParams)
+	feedbacks, err := f.feedbackApplication.GetFeedbacks(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("[GetFeedbacks] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
 	f.logger.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
@@ -127,6 +140,8 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/feedback/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getFeedbackById", "handler", "feedback")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 
 	// Enhanced ID validation
@@ -142,9 +157,10 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ctx := r.Context()
+	span.SetAttributes(attribute.String("feedback.id", id))
 	feedback, err := f.feedbackApplication.GetFeedbackByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("[GetFeedbackByID] service error for id %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

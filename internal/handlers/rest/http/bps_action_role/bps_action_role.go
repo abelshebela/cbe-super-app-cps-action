@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type BPSActionRoleHandler struct {
@@ -34,13 +35,17 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 // @Security     BearerAuth
 // @Router       /action-roles [get]
 func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllActionRoles", "handler", "actionRole")
+	defer span.End()
 	filter := *local_util.ExtractFilterParams(r)
-	res, err := h.service.FindAllWithPagination(r.Context(), filter)
+	res, err := h.service.FindAllWithPagination(ctx, filter)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[GetAll] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("action_role.count", len(res.Data)))
 	h.logger.Infof("[GetAll] retrieved %d action roles", len(res.Data))
 	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
 }
@@ -54,13 +59,17 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [get]
 func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getActionRoleByCode", "handler", "actionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	res, err := h.service.GetByActionCode(r.Context(), code)
+	span.SetAttributes(attribute.String("action_role.code", code))
+	res, err := h.service.GetByActionCode(ctx, code)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[GetByActionCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -79,18 +88,26 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 // @Security     BearerAuth
 // @Router       /action-roles [post]
 func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createActionRole", "handler", "actionRole")
+	defer span.End()
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Create] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	if  req.ActionName == "" {
+	if req.ActionName == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
 		return
 	}
-	err := h.service.Create(r.Context(), req)
+	span.SetAttributes(
+		attribute.String("action_role.code", req.ActionCode),
+		attribute.String("action_role.name", req.ActionName),
+	)
+	err := h.service.Create(ctx, req)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Create] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -110,6 +127,8 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [patch]
 func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateActionRole", "handler", "actionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -117,12 +136,15 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	var req actionrole_dto.UpdateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Update] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	err := h.service.Update(r.Context(), code, req)
+	span.SetAttributes(attribute.String("action_role.code", code))
+	err := h.service.Update(ctx, code, req)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Update] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -140,12 +162,16 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/enable [patch]
 func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableActionRole", "handler", "actionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	if err := h.service.Enable(r.Context(), code); err != nil {
+	span.SetAttributes(attribute.String("action_role.code", code))
+	if err := h.service.Enable(ctx, code); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -163,12 +189,16 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/disable [patch]
 func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableActionRole", "handler", "actionRole")
+	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	if err := h.service.Disable(r.Context(), code); err != nil {
+	span.SetAttributes(attribute.String("action_role.code", code))
+	if err := h.service.Disable(ctx, code); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

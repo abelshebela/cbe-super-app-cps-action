@@ -13,6 +13,8 @@ import (
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -46,15 +48,19 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 //	@Security		BearerAuth
 //	@Router			/customers/{id}/enable-session [post]
 func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "setEnableCustomerSession", "handler", "customer")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		c.logger.Errorf("id not set on param")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
-	ctx := r.Context()
+
+	span.SetAttributes(attribute.String("customer.id", id))
 	otp, err := c.customerService.CreateEnableCustomerSession(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[SetEnableCustomerSession] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -79,6 +85,8 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 //	@Security		BearerAuth
 //	@Router			/customers/{id}/disable [post]
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "disableCustomer", "handler", "customer")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		c.logger.Errorf("id not set on param")
@@ -88,6 +96,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 
 	var payload dto.CustomerDisableDTO
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
@@ -103,9 +112,10 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ctx := r.Context()
+	span.SetAttributes(attribute.String("customer.id", id))
 	err := c.customerService.DisableCustomerByID(ctx, id, payload)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[DisableCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -129,6 +139,8 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/customers/{id}/enable [post]
 func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "enableCustomer", "handler", "customer")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		c.logger.Errorf("id not set on param")
@@ -138,13 +150,15 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 
 	var payload dto.CustomerEnableDTO
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
-	ctx := r.Context()
+	span.SetAttributes(attribute.String("customer.id", id))
 	err := c.customerService.EnableCustomerByID(ctx, id, payload.UserOTP)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[EnableCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -170,14 +184,18 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "getCustomerDetail", "handler", "customer")
+	defer span.End()
 	filterParams := util.ExtractFilterParams(r)
-	customers, err := c.customerService.GetCustomersDetail(r.Context(), filterParams)
+	customers, err := c.customerService.GetCustomersDetail(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[GetCustomerDetail] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetCustomerDetail.Code)
 		return
 	}
 
+	span.SetAttributes(attribute.Int("customer.count", len(customers.Data)))
 	c.logger.Infof("[GetCustomerDetail] retrieved %d customers", len(customers.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customers)
 }
@@ -197,15 +215,19 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/customers/{id} [get]
 func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "getCustomerById", "handler", "customer")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		c.logger.Errorf("id not set on param")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
-	ctx := r.Context()
+
+	span.SetAttributes(attribute.String("customer.id", id))
 	userDetail, err := c.customerService.GetCustomerByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[GetCustomerByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
 		return
@@ -231,15 +253,19 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers/blocked [get]
 func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "getBlockedCustomer", "handler", "customer")
+	defer span.End()
 	filterParams := util.ExtractFilterParams(r)
 
-	BlockedCustomer, err := c.customerService.GetBlockedCustomer(r.Context(), filterParams)
+	BlockedCustomer, err := c.customerService.GetBlockedCustomer(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[GetBlockedCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorFailedToGetBlockedCustomer.Code)
 		return
 	}
 
+	span.SetAttributes(attribute.Int("customer.blocked.count", len(BlockedCustomer.Data)))
 	c.logger.Infof("[GetBlockedCustomer] retrieved %d blocked customers", len(BlockedCustomer.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFullyFetchBlockCustomer, BlockedCustomer)
 }
@@ -257,15 +283,19 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/customers/blocked [get]
 func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "getLinkedAccount", "handler", "customer")
+	defer span.End()
 	id := chi.URLParam(r, "customer_number")
 	if id == "" {
 		c.logger.Errorf("customer_number not set on param")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
-	ctx := r.Context()
+
+	span.SetAttributes(attribute.String("customer.number", id))
 	userDetail, err := c.customerService.GetLinkedAccount(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[GetLinkedAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
 		return
@@ -279,6 +309,8 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 //	@Description	Approves a customer's Fayda application by updating their Fayda risk level
 
 func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "", "approveFaydaCustomer", "handler", "customer")
+	defer span.End()
 	var req dto.FaydaApproveRequest
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -288,6 +320,7 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf(localization.ErrorInvalidJSONPayload.Message)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
@@ -296,7 +329,9 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 	if req.Validate() != nil {
 		c.logger.Errorf("")
 	}
-	if err := c.customerService.ApproveFaydaCustomer(r.Context(), id, req); err != nil {
+	span.SetAttributes(attribute.String("customer.id", id))
+	if err := c.customerService.ApproveFaydaCustomer(ctx, id, req); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[ApproveFaydaCustomer] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

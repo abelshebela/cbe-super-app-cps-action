@@ -5,6 +5,7 @@ import (
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"errors"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type PaginatedWalletResponse types.PaginatedResponse[[]*model.Wallet]
@@ -49,21 +51,31 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 //	@Security		BearerAuth
 //	@Router			/wallets [post]
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createWallet", "handler", "wallet")
+	defer span.End()
 
 	var req walletDto.WalletRequest
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, true)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("error fetching wallet create request data")
 	}
 	a.logger.Infof("this is the wallet request%+v\n", req)
 
 	if err := req.AggregatedValidate(true); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	if err := a.walletApp.CreateWallet(r.Context(), req); err != nil {
+	span.SetAttributes(
+		attribute.String("wallet.code", req.Code),
+		attribute.String("wallet.name", req.Name),
+	)
+
+	if err := a.walletApp.CreateWallet(ctx, req); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("failed to create wallet: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -93,73 +105,81 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-    id := chi.URLParam(r, "id")
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateWallet", "handler", "wallet")
+	defer span.End()
+	id := chi.URLParam(r, "id")
 
-    if id == "" {
-        a.logger.Errorf("wallet ID is required for update")
-        localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
-        return
-    }
+	if id == "" {
+		span.RecordError(errors.New("wallet ID is required for update"))
+		a.logger.Errorf("wallet ID is required for update")
+		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
+		return
+	}
 
-    req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
-    if err != nil {
-        a.logger.Errorf("failed to parse wallet update request: %v", err)
-        localization.SendBadRequestResponse(w, err.Error())
-        return
-    }
-    a.logger.Infof("this is the wallet request%+v\n", req)
+	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
+	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("failed to parse wallet update request: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	a.logger.Infof("this is the wallet request%+v\n", req)
 
-    // Track which fields were provided in the form
-    fieldsProvided := make(map[string]bool)
-    
-    // Parse the multipart form to check which fields exist
-    if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
-        a.logger.Errorf("failed to parse multipart form: %v", err)
-        localization.SendBadRequestResponse(w, "Failed to parse form data")
-        return
-    }
-    
-    // Check for each field in the form
-    if r.FormValue("name") != "" {
-        fieldsProvided["name"] = true
-    }
-    if r.FormValue("code") != "" {
-        fieldsProvided["code"] = true
-    }
-    if r.FormValue("self") != "" {
-        fieldsProvided["self"] = true
-    }
-    if r.FormValue("other") != "" {
-        fieldsProvided["other"] = true
-    }
-    if r.FormValue("agent") != "" {
-        fieldsProvided["agent"] = true
-    }
-    if _, _, err := r.FormFile("avatar"); err == nil {
-        fieldsProvided["avatar"] = true
-    }
+	// Track which fields were provided in the form
+	fieldsProvided := make(map[string]bool)
 
-    if err := req.AggregatedValidate(false); err != nil {
-        a.logger.Errorf("wallet request validation failed: %v", err)
-        localization.SendBadRequestResponse(w, err.Error())
-        return
-    }
+	// Parse the multipart form to check which fields exist
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		a.logger.Errorf("failed to parse multipart form: %v", err)
+		localization.SendBadRequestResponse(w, "Failed to parse form data")
+		return
+	}
 
-    if req.IsEmpty() {
-        a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
-        localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
-        return
-    }
+	// Check for each field in the form
+	if r.FormValue("name") != "" {
+		fieldsProvided["name"] = true
+	}
+	if r.FormValue("code") != "" {
+		fieldsProvided["code"] = true
+	}
+	if r.FormValue("self") != "" {
+		fieldsProvided["self"] = true
+	}
+	if r.FormValue("other") != "" {
+		fieldsProvided["other"] = true
+	}
+	if r.FormValue("agent") != "" {
+		fieldsProvided["agent"] = true
+	}
+	if _, _, err := r.FormFile("avatar"); err == nil {
+		fieldsProvided["avatar"] = true
+	}
 
-    // Pass fieldsProvided to the service
-    if err := a.walletApp.UpdateWallet(r.Context(), id, req, fieldsProvided); err != nil {
-        a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
-        localization.SendErrorByCodeResponse(w, err.Error())
-        return
-    }
+	if err := req.AggregatedValidate(false); err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("wallet request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 
-    a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
-    localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
+	if req.IsEmpty() {
+		span.RecordError(errors.New("no data provided for wallet update"))
+		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
+		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
+		return
+	}
+
+	// Pass fieldsProvided to the service
+	span.SetAttributes(attribute.String("wallet.id", id))
+	if err := a.walletApp.UpdateWallet(ctx, id, req, fieldsProvided); err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 }
 
 // DeleteWallet godoc
@@ -177,13 +197,19 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [delete]
 func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteWallet", "handler", "wallet")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("wallet ID is required for delete"))
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.walletApp.DeleteWallet(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("wallet.id", id))
+
+	if err := a.walletApp.DeleteWallet(ctx, id); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -206,13 +232,18 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id}/enable [patch]
 func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableWallet", "handler", "wallet")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("wallet ID is required for enable"))
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.walletApp.EnableOrDisableWallet(r.Context(), id, true); err != nil {
+	span.SetAttributes(attribute.String("wallet.id", id))
+	if err := a.walletApp.EnableOrDisableWallet(ctx, id, true); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -235,13 +266,18 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id}/disable [patch]
 func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableWallet", "handler", "wallet")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("wallet ID is required for disable"))
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
 		return
 	}
 
-	if err := a.walletApp.EnableOrDisableWallet(r.Context(), id, false); err != nil {
+	span.SetAttributes(attribute.String("wallet.id", id))
+	if err := a.walletApp.EnableOrDisableWallet(ctx, id, false); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -264,14 +300,20 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [get]
 func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getWallet", "handler", "wallet")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("wallet ID is required for get"))
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
 		return
 	}
 
-	wallet, err := a.walletApp.GetWallet(r.Context(), id)
+	span.SetAttributes(attribute.String("wallet.id", id))
+
+	wallet, err := a.walletApp.GetWallet(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -294,16 +336,20 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllWallets", "handler", "wallet")
+	defer span.End()
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching wallets with filter: %+v", filter)
 
-	list, err := a.walletApp.GetAllWallet(r.Context(), *filter)
+	list, err := a.walletApp.GetAllWallet(ctx, *filter)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("failed to fetch wallets: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("wallet.count", len(list.Data)))
 	a.logger.Infof("wallets fetched successfully")
 	localization.SendSuccessResponse(w, localization.SuccessWalletsRetrieved, list)
 }

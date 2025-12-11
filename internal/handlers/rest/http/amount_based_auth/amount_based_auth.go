@@ -12,6 +12,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -45,10 +47,13 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth [get]
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
+	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
 
-	customers, err := a.Service.FindAllWithPagination(r.Context(), *filterParams)
+	customers, err := a.Service.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetAllAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -75,6 +80,8 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/update/{method}/{id} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "updateAmountBasedAuth", "handler", "amountBasedAuth")
+	defer span.End()
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
@@ -89,6 +96,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 
 	var request amount_based_auth_dto.UpdateAmountBasedAuthRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
 		return
@@ -103,11 +111,18 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 
 	if !request.Validate(methodEnum) {
+		span.SetAttributes(attribute.String("amount_based_auth.method", string(methodEnum)))
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	if err := a.Service.UpdateAmountBasedAuth(r.Context(), id, methodEnum, request); err != nil {
+	span.SetAttributes(
+		attribute.String("amount_based_auth.method", string(methodEnum)),
+		attribute.String("amount_based_auth.id", id),
+	)
+
+	if err := a.Service.UpdateAmountBasedAuth(ctx, id, methodEnum, request); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[UpdateAmountBasedAuth] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -131,7 +146,10 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	_, ok := common_util.GetParam(r, "id")
+	_, span := common_util.TraceLogger(r.Context(), "", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
+	defer span.End()
+
+	idParam, ok := common_util.GetParam(r, "id")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
@@ -139,12 +157,14 @@ func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r 
 
 	var cpsReq model.CPSAction
 	if err := json.NewDecoder(r.Body).Decode(&cpsReq); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[RejectAmountBasedAuth] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
-	idParam, _ := common_util.GetParam(r, "id")
+	span.SetAttributes(attribute.String("amount_based_auth.id", idParam))
+
 	a.logger.Infof("[RejectAmountBasedAuth] rejection request processed for id: %s", idParam)
 	// For rejection, just return success since the actual rejection
 	// would be handled by the CPS action system

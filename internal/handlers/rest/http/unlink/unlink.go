@@ -12,6 +12,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type PaginatedArchieveUserResponse types.PaginatedResponse[[]*model.ArchivedUser]
@@ -44,18 +46,23 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 //	@Router			/unlink/archived_user [get]
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {
 	// filter parameter
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetArchivedUser")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
+		span.AddEvent("Invalid pagination params", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage)))
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
 
-	archivedUser, err := a.unlinkApp.GetAllArchivedUser(r.Context(), filterParams)
+	archivedUser, err := a.unlinkApp.GetAllArchivedUser(ctx, filterParams)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
 		a.logger.Errorf("[GetArchivedUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.AddEvent("Archived users retrieved", trace.WithAttributes(attribute.Int("count", len(archivedUser.Data))))
 	a.logger.Infof("[GetArchivedUser] retrieved %d archived users", len(archivedUser.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, archivedUser)
 }
@@ -75,18 +82,23 @@ func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/unlink/user-by-account/{account_number} [get]
 func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "GetUserByAccount")
+	defer span.End()
 	accNumber := chi.URLParam(r, "account_number")
 	if accNumber == "" {
+		span.AddEvent("Missing account_number param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	user, err := a.unlinkApp.GetUserByAccount(r.Context(), accNumber)
+	user, err := a.unlinkApp.GetUserByAccount(ctx, accNumber)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("account_number", accNumber)))
 		a.logger.Errorf("[GetUserByAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("User retrieved", trace.WithAttributes(attribute.String("account_number", accNumber)))
 	a.logger.Infof("[GetUserByAccount] user retrieved successfully")
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
@@ -107,17 +119,22 @@ func (a *unlinkAdapter) GetUserByAccount(w http.ResponseWriter, r *http.Request)
 //	@Router			/unlink/user_cif/{user_code} [patch]
 func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "UnlinkUserCif")
+	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
+		span.AddEvent("Missing user_code param")
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	err := a.unlinkApp.UnlinkUserCif(r.Context(), userCode)
+	err := a.unlinkApp.UnlinkUserCif(ctx, userCode)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("user_code", userCode)))
 		a.logger.Errorf("[UnlinkUserCif] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.AddEvent("UnlinkUserCif request sent", trace.WithAttributes(attribute.String("user_code", userCode)))
 	a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)
 }

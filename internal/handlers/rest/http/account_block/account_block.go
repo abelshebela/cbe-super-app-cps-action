@@ -11,6 +11,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -45,16 +47,22 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 //	@Security		BearerAuth
 //	@Router			/account_block/branches/{branch_code} [get]
 func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getBranchById", "handler", "accountBlock")
+	defer span.End()
 	branchId, ok := local_util.GetParam(r, "branch_id")
 	if !ok {
+		span.AddEvent("missing branch_id param")
 		a.logger.Errorf("Failed to get branch_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
-	branch, err := a.accountBlockApplication.GetBranchById(r.Context(), branchId)
+	span.SetAttributes(attribute.String("account_block.branch_id", branchId))
+
+	branch, err := a.accountBlockApplication.GetBranchById(ctx, branchId)
 	if err != nil {
 
+		span.RecordError(err)
 		a.logger.Errorf("[GetBranchByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -87,11 +95,13 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 
 	branches, err := a.accountBlockApplication.GetAllBranches(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetAllBranches] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("account_block.branches.count", len(branches.Data)))
 	a.logger.Infof("[GetAllBranches] retrieved %d branches", len(branches.Data))
 	localization.SendSuccessResponse(w, localization.SuccessBranchesRetrieved, branches)
 }
@@ -111,6 +121,9 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/account_block/regions/{region_code} [get]
 func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getRegionById", "handler", "accountBlock")
+	defer span.End()
+
 	regionId, ok := local_util.GetParam(r, "region_id")
 	if !ok {
 		a.logger.Errorf("Failed to get region_id from the param")
@@ -118,8 +131,11 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	region, err := a.accountBlockApplication.GetRegionById(r.Context(), regionId)
+	span.SetAttributes(attribute.String("account_block.region_id", regionId))
+
+	region, err := a.accountBlockApplication.GetRegionById(ctx, regionId)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetRegionByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -152,11 +168,13 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 
 	regions, err := a.accountBlockApplication.GetAllRegions(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetAllRegions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("account_block.regions.count", len(regions.Data)))
 	a.logger.Infof("[GetAllRegions] retrieved %d regions", len(regions.Data))
 	localization.SendSuccessResponse(w, localization.SuccessRegionsRetrieved, regions)
 }
@@ -176,6 +194,9 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_block/districts/{district_code} [get]
 func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getDistrictById", "handler", "accountBlock")
+	defer span.End()
+
 	districtId, ok := local_util.GetParam(r, "district_id")
 	if !ok {
 		a.logger.Errorf("Failed to get district_code from the param")
@@ -183,8 +204,11 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	district, err := a.accountBlockApplication.GetDistrictById(r.Context(), districtId)
+	span.SetAttributes(attribute.String("account_block.district_id", districtId))
+
+	district, err := a.accountBlockApplication.GetDistrictById(ctx, districtId)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetDistrictByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -216,11 +240,13 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 
 	districts, err := a.accountBlockApplication.GetAllDistricts(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetAllDistricts] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("account_block.districts.count", len(districts.Data)))
 	a.logger.Infof("[GetAllDistricts] retrieved %d districts", len(districts.Data))
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsRetrieved, districts)
 }
@@ -240,6 +266,9 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/account_block/cities/{city_code} [get]
 func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getCityById", "handler", "accountBlock")
+	defer span.End()
+
 	cityId, ok := local_util.GetParam(r, "city_id")
 	if !ok {
 		a.logger.Errorf("Failed to get city_code from the param")
@@ -247,8 +276,11 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	city, err := a.accountBlockApplication.GetCityById(r.Context(), cityId)
+	span.SetAttributes(attribute.String("account_block.city_id", cityId))
+
+	city, err := a.accountBlockApplication.GetCityById(ctx, cityId)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetCityByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -280,11 +312,13 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 
 	cities, err := a.accountBlockApplication.GetAllCities(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[GetAllCities] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("account_block.cities.count", len(cities.Data)))
 	a.logger.Infof("[GetAllCities] retrieved %d cities", len(cities.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCitiesRetrieved, cities)
 }
@@ -307,6 +341,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 	defer span.End()
 	var req accountblock.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
@@ -316,19 +351,27 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to validate request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.BranchIds) == 0 {
+		span.AddEvent("missing branch ids")
 		a.logger.Errorf("Branch codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.branches.count", len(req.BranchIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableBranches(ctx, req.BranchIds, req.Reason, true)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[EnableBranches] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -356,6 +399,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 	defer span.End()
 	var req accountblock.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
@@ -365,19 +409,27 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to validate request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.BranchIds) == 0 {
+		span.AddEvent("missing branch ids")
 		a.logger.Errorf("Branch codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.branches.count", len(req.BranchIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableBranches(ctx, req.BranchIds, req.Reason, false)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[DisableBranches] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -405,6 +457,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 	defer span.End()
 	var req accountblock.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
@@ -414,19 +467,27 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to validate request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.RegionIds) == 0 {
+		span.AddEvent("missing region ids")
 		a.logger.Errorf("Region codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.regions.count", len(req.RegionIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.RegionIds, req.Reason, true)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[EnableRegions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -454,6 +515,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 	defer span.End()
 	var req accountblock.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
@@ -464,19 +526,27 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to validate request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.RegionIds) == 0 {
+		span.AddEvent("missing region ids")
 		a.logger.Errorf("Region codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.regions.count", len(req.RegionIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableRegions(ctx, req.RegionIds, req.Reason, false)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("EnableOrDisableRegions failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -503,6 +573,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 	defer span.End()
 	var req accountblock.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
@@ -512,19 +583,27 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("Failed to validate request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.DistrictIds) == 0 {
+		span.AddEvent("missing district ids")
 		a.logger.Errorf("District codes are required")
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.districts.count", len(req.DistrictIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictIds, req.Reason, true)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("EnableOrDisableDistricts failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -551,6 +630,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 	defer span.End()
 	var req accountblock.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
@@ -559,17 +639,25 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.DistrictIds) == 0 {
+		span.AddEvent("missing district ids")
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.districts.count", len(req.DistrictIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableDistricts(ctx, req.DistrictIds, req.Reason, false)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -595,6 +683,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 	defer span.End()
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
@@ -603,17 +692,25 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.CityIds) == 0 {
+		span.AddEvent("missing city ids")
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.cities.count", len(req.CityIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, true)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -639,6 +736,7 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 	defer span.End()
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
@@ -647,17 +745,25 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 	req.Clean()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if len(req.CityIds) == 0 {
+		span.AddEvent("missing city ids")
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
+	span.SetAttributes(
+		attribute.Int("account_block.cities.count", len(req.CityIds)),
+		attribute.String("account_block.reason", req.Reason),
+	)
+
 	err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, false)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
