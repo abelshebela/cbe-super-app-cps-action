@@ -172,7 +172,6 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		return nil, errors.New(localization.ErrorCPSActionFailed.Code)
 	}
 
-	local_util.PrintRecord("res", donationCPS)
 	switch action.RequestAction {
 	case string(constants.RequestCreateDonationCategory):
 

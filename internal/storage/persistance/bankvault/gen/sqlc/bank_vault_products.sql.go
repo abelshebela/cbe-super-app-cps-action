@@ -745,8 +745,6 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 		return nil, err
 	}
 
-	utils.PrintRecord("Items", items)
-
 	return items, nil
 }
 
@@ -877,8 +875,6 @@ func (q *Queries) GetAllTransactions(ctx context.Context, arg GetAllTransactions
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	utils.PrintRecord("Transactions", items)
 
 	return items, nil
 }

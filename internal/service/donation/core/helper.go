@@ -245,6 +245,7 @@ func GetIntValueOrDefault(value, defaultValue int32) int32 {
 	}
 	return value
 }
+
 func GetTimeValueOrDefault(value, defaultValue time.Time) time.Time {
 	if value.IsZero() {
 		return defaultValue
