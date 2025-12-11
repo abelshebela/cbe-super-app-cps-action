@@ -35,19 +35,19 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
 		if err != nil {
 			break
 		}
 		err = s.repo.Create(ctx, miniApp)
 
 	case string(constants.RequestUpdateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
 		if err != nil {
 			break
 		}
@@ -57,7 +57,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		err = s.repo.Delete(ctx, cpsAction.UniqueId)
 
 	case string(constants.RequestEnableMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
 		if err != nil {
 			break
 		}

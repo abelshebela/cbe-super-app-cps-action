@@ -19720,7 +19720,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Diaspora Fixed Deposit"
                 },
-                "rate_bps": {
+                "interest": {
                     "type": "string",
                     "example": "450"
                 }

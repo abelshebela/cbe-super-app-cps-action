@@ -302,7 +302,7 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 		switch v := value.(type) {
 		case string:
 			if v != "" {
-				filter[key] = bson.M{"$regex": v, "$options": "i"}
+				filter[key] = v
 			}
 		case []interface{}:
 			if len(v) > 0 {
@@ -596,6 +596,34 @@ func DurationToMonths(d any) int {
 	months := int(math.Round(years * 12.0))
 
 	return months
+}
+
+func ParseToYears(s string) (float64, error) {
+	if len(strings.TrimSpace(s)) < 2 {
+		return 0, fmt.Errorf("invalid lock period format")
+	}
+
+	s = strings.TrimSpace(s)
+	unit := strings.ToLower(s[len(s)-1:])       // last character
+	valueStr := strings.TrimSpace(s[:len(s)-1]) // everything except unit
+
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in lock period: %v", err)
+	}
+
+	const daysPerYear = 365.0
+
+	switch unit {
+	case "d":
+		return value / daysPerYear, nil
+	case "m":
+		return value / 12.0, nil
+	case "y":
+		return value, nil
+	default:
+		return 0, fmt.Errorf("invalid unit in lock period: %s", unit)
+	}
 }
 
 func NullStringToPtrLike(ns sql.NullString) *string {

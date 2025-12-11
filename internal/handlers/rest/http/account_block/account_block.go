@@ -44,15 +44,15 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}									"Server error"
 //	@Security		BearerAuth
 //	@Router			/account_block/branches/{branch_code} [get]
-func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Request) {
-	branchCode, ok := local_util.GetParam(r, "branch_code")
+func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Request) {
+	branchId, ok := local_util.GetParam(r, "branch_id")
 	if !ok {
 		a.logger.Errorf("Failed to get branch_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
 
-	branch, err := a.accountBlockApplication.GetBranchByCode(r.Context(), branchCode)
+	branch, err := a.accountBlockApplication.GetBranchById(r.Context(), branchId)
 	if err != nil {
 		a.logger.Errorf("[GetBranchByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -60,7 +60,7 @@ func (a *accountBlockAdapter) GetBranchByCode(w http.ResponseWriter, r *http.Req
 	}
 
 	data := core.ToAccountBlockResponse(branch)
-	a.logger.Infof("[GetBranchByCode] branch retrieved successfully for code: %s", branchCode)
+	a.logger.Infof("[GetBranchByCode] branch retrieved successfully for code: %s", branchId)
 	localization.SendSuccessResponse(w, localization.SuccessBranchRetrieved, data)
 }
 
@@ -93,7 +93,7 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 	localization.SendSuccessResponse(w, localization.SuccessBranchesRetrieved, branches)
 }
 
-// GetRegionByCode godoc
+// GetRegionById godoc
 //
 //	@Summary		Get region by code
 //	@Description	Retrieve a specific region by its region code.
@@ -107,15 +107,15 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}									"Server error"
 //	@Security		BearerAuth
 //	@Router			/account_block/regions/{region_code} [get]
-func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Request) {
-	regionCode, ok := local_util.GetParam(r, "region_code")
+func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Request) {
+	regionId, ok := local_util.GetParam(r, "region_id")
 	if !ok {
-		a.logger.Errorf("Failed to get region_code from the param")
+		a.logger.Errorf("Failed to get region_id from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
 
-	region, err := a.accountBlockApplication.GetRegionByCode(r.Context(), regionCode)
+	region, err := a.accountBlockApplication.GetRegionById(r.Context(), regionId)
 	if err != nil {
 		a.logger.Errorf("[GetRegionByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -123,7 +123,7 @@ func (a *accountBlockAdapter) GetRegionByCode(w http.ResponseWriter, r *http.Req
 	}
 
 	data := core.ToAccountBlockResponse(region)
-	a.logger.Infof("[GetRegionByCode] region retrieved successfully for code: %s", regionCode)
+	a.logger.Infof("[GetRegionByCode] region retrieved successfully for code: %s", regionId)
 	localization.SendSuccessResponse(w, localization.SuccessRegionRetrieved, data)
 }
 
@@ -156,7 +156,7 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 	localization.SendSuccessResponse(w, localization.SuccessRegionsRetrieved, regions)
 }
 
-// GetDistrictByCode godoc
+// GetDistrictById godoc
 //
 //	@Summary		Get district by code
 //	@Description	Retrieve a specific district by its district code.
@@ -170,22 +170,22 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 //	@Failure		500				{object}	localization.StandardResponse{data=nil}									"internal Server error"
 //	@Security		BearerAuth
 //	@Router			/account_block/districts/{district_code} [get]
-func (a *accountBlockAdapter) GetDistrictByCode(w http.ResponseWriter, r *http.Request) {
-	districtCode, ok := local_util.GetParam(r, "district_code")
+func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Request) {
+	districtId, ok := local_util.GetParam(r, "district_id")
 	if !ok {
 		a.logger.Errorf("Failed to get district_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
 
-	district, err := a.accountBlockApplication.GetDistrictByCode(r.Context(), districtCode)
+	district, err := a.accountBlockApplication.GetDistrictById(r.Context(), districtId)
 	if err != nil {
 		a.logger.Errorf("[GetDistrictByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("[GetDistrictByCode] district retrieved successfully for code: %s", districtCode)
+	a.logger.Infof("[GetDistrictByCode] district retrieved successfully for code: %s", districtId)
 	localization.SendSuccessResponse(w, localization.SuccessDistrictRetrieved, district)
 }
 
@@ -218,7 +218,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 	localization.SendSuccessResponse(w, localization.SuccessDistrictsRetrieved, districts)
 }
 
-// GetCityByCode godoc
+// GetCityById godoc
 //
 //	@Summary		Get city by code
 //	@Description	Retrieve a specific city by its city code.
@@ -232,22 +232,22 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}									"internal Server error"
 //	@Security		BearerAuth
 //	@Router			/account_block/cities/{city_code} [get]
-func (a *accountBlockAdapter) GetCityByCode(w http.ResponseWriter, r *http.Request) {
-	cityCode, ok := local_util.GetParam(r, "city_code")
+func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request) {
+	cityId, ok := local_util.GetParam(r, "city_id")
 	if !ok {
 		a.logger.Errorf("Failed to get city_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
 
-	city, err := a.accountBlockApplication.GetCityByCode(r.Context(), cityCode)
+	city, err := a.accountBlockApplication.GetCityById(r.Context(), cityId)
 	if err != nil {
 		a.logger.Errorf("[GetCityByCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	a.logger.Infof("[GetCityByCode] city retrieved successfully for code: %s", cityCode)
+	a.logger.Infof("[GetCityByCode] city retrieved successfully for code: %s", cityId)
 	localization.SendSuccessResponse(w, localization.SuccessCityRetrieved, city)
 }
 
@@ -584,12 +584,12 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if len(req.CityCodes) == 0 {
+	if len(req.CityIds) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityCodes, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityIds, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -626,12 +626,12 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if len(req.CityCodes) == 0 {
+	if len(req.CityIds) == 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Type)
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityCodes, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityIds, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

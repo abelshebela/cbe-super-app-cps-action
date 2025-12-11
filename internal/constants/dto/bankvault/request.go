@@ -10,9 +10,6 @@ type CreateBankVaultProductRequest struct {
 	MinAmount                  decimal.Decimal `json:"min_amount"         swaggertype:"string" example:"1000"`
 	MaxAmount                  decimal.Decimal `json:"max_amount"         swaggertype:"string" example:"500000"`
 	ApplyInterestOnEarlyUnlock bool            `json:"apply_interest_on_early_unlock" swaggertype:"string"`
-	// Description        string          `json:"description"        example:"12-month fixed deposit for diaspora customers"`
-	// Currency           string          `json:"currency"           example:"ETB"`
-	// Method             string          `json:"method"             example:"SIMPLE"`
 }
 
 type UpdateBankVaultProductRequest struct {

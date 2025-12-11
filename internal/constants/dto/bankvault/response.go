@@ -14,7 +14,7 @@ type BankVaultProductResponse struct {
 	Interest                   decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
 	Frequency                  int64                   `json:"frequency"`
-	LockPeriod                 string                  `json:"lock_period"`
+	LockPeriod                 float64                 `json:"lock_period"`
 	MinAmount                  decimal.Decimal         `json:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
 	ApplyInterestOnEarlyUnlock bool                    `json:"apply_interest_on_early_unlock"`

@@ -98,7 +98,15 @@ type SessionGRPCPort interface {
 	HealthCheck(ctx context.Context, opts ...grpc.CallOption) (*session.HealthCheckResponse, error)
 	Close() error
 }
-
+type CPSActionRoleRepository interface {
+	Create(ctx context.Context, actionRole *model.CPSActionRole) error
+	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
+	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
+	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
+}
 type DeviceVersionControlRepository interface {
 	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
 	FindOne(ctx context.Context, filter bson.M) (model.DeviceVersionControl, error)
@@ -159,7 +167,7 @@ type AmountBasedAuthRepository interface {
 
 // AccountBlock persistence
 type AccountBlockRepository interface {
-	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	GetBranchById(ctx context.Context, branchCode string) (*model.AccountBlock, error)
 	GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
@@ -168,20 +176,20 @@ type AccountBlockRepository interface {
 	FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
-	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
+	GetCityById(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateCity(ctx context.Context, city *model.AccountBlock) error
 	UpdateCity(ctx context.Context, id string, city *model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
-	EnableOrDisableCity(ctx context.Context, code string, reason string, enabled bool) error
+	EnableOrDisableCity(ctx context.Context, ids string, reason string, enabled bool) error
 	FindCityByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
-	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
-	GetRegionByIds(ctx context.Context, id string) (*model.AccountBlock, error)
+	// GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
+	GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateRegion(ctx context.Context, region *model.AccountBlock) error
 	UpdateRegion(ctx context.Context, id string, region *model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
-	EnableOrDisableRegion(ctx context.Context, code string, reason string, enabled bool) error
+	EnableOrDisableRegion(ctx context.Context, id string, reason string, enabled bool) error
 	FindRegionByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 
@@ -572,6 +580,10 @@ type BPSActionRoleRepository interface {
 type BPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.BPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.BPSActionApproveIndex) error
+}
+type CPSActionApproveIndexRepository interface {
+	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.	CPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {

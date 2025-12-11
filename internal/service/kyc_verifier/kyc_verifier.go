@@ -113,7 +113,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 	case string(constants.RequestUpdateKYC):
 		updated, err := local_util.JsonUnmarshal[model.CustomerKYC](action.CurrentAction)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		lib.GoRoutinBaker(types.BakerOptions{}, func() {
@@ -139,7 +139,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 		// CurrentAction contains the fully-updated CustomerKYC
 		updated, err := local_util.JsonUnmarshal[model.CustomerKYC](action.CurrentAction)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 		if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
 			return nil, err
