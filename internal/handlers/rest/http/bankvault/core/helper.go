@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lockPeriodDays time.Duration) *model.BankVaultProduct {
+func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lockPeriodDays float64) *model.BankVaultProduct {
 	return &model.BankVaultProduct{
 		Name:                       req.Name,
 		Currency:                   "ETB",
-		RateBps:                    req.Interest,
+		Interest:                   req.Interest,
 		Method:                     helper.ToDomainMethod("COMPOUND"),
 		Frequency:                  req.Frequency,
 		LockPeriod:                 lockPeriodDays,

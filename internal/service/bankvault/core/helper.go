@@ -3,28 +3,25 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/shopspring/decimal"
 )
 
 func ConvertBankVaultToMongoSafe(product *model.BankVaultProduct) map[string]interface{} {
 	result := map[string]interface{}{
-		"id":       product.ID,
-		"name":     product.Name,
-		"currency": product.Currency,
-		"interest": func() float64 {
-			f, _ := product.RateBps.Float64()
-			return f / 100
-		}(),
+		"id":                             product.ID,
+		"name":                           product.Name,
+		"currency":                       product.Currency,
+		"interest":                       func() float64 { f, _ := product.Interest.Float64(); return f }(),
 		"method":                         string(product.Method),
 		"frequency":                      product.Frequency,
-		"lock_period":                    fmt.Sprintf("%d months", utils.DurationToMonths(product.LockPeriod)),
+		"lock_period":                    product.LockPeriod,
 		"min_amount":                     func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
 		"max_amount":                     func() float64 { f, _ := product.MaxAmount.Float64(); return f }(),
 		"apply_interest_on_early_unlock": product.ApplyInterestOnEarlyUnlock,
@@ -44,10 +41,10 @@ func MapBankVaultToResponse(bankVault *model.BankVaultProduct) *bankvault.BankVa
 		ID:                         bankVault.ID,
 		Name:                       bankVault.Name,
 		Currency:                   bankVault.Currency,
-		Interest:                   bankVault.RateBps.Div(decimal.NewFromInt(100)),
+		Interest:                   bankVault.Interest,
 		Method:                     bankVault.Method,
 		Frequency:                  bankVault.Frequency,
-		LockPeriod:                 fmt.Sprintf("%d months", utils.DurationToMonths(bankVault.LockPeriod)),
+		LockPeriod:                 bankVault.LockPeriod,
 		MinAmount:                  bankVault.MinAmount,
 		MaxAmount:                  bankVault.MaxAmount,
 		ApplyInterestOnEarlyUnlock: bankVault.ApplyInterestOnEarlyUnlock,
@@ -98,11 +95,11 @@ func MapBankVaultProduct(data map[string]interface{}) (model.BankVaultProduct, e
 	BV.Method = constants.AccrualMethod(getString(data, "method"))
 	BV.Frequency = getInteger(data, "frequency")
 
-	BV.RateBps = getDecimal(data, "rate_bps")
+	BV.Interest = getDecimal(data, "interest")
 	BV.MinAmount = getDecimal(data, "min_amount")
 	BV.MaxAmount = getDecimal(data, "max_amount")
 
-	BV.LockPeriod = getDuration(data, "lock_period")
+	BV.LockPeriod = getFloat(data, "lock_period")
 
 	BV.ApplyInterestOnEarlyUnlock = getBool(data, "apply_interest_on_early_unlock")
 	BV.IsActive = getBool(data, "is_active")
@@ -145,6 +142,46 @@ func getBool(data map[string]interface{}, key string) bool {
 		return val
 	}
 	return false
+}
+
+func getFloat(data map[string]interface{}, key string) float64 {
+	val, exists := data[key]
+	if !exists || val == nil {
+		return 0
+	}
+
+	// Handle old decimal object { "value": "123.45" }
+	if valMap, ok := val.(map[string]interface{}); ok {
+		if len(valMap) == 0 {
+			return 0
+		}
+		if strVal, ok := valMap["value"].(string); ok {
+			if f, err := strconv.ParseFloat(strVal, 64); err == nil {
+				return f
+			}
+			return 0
+		}
+	}
+
+	// Handle string directly
+	if strVal, ok := val.(string); ok {
+		if f, err := strconv.ParseFloat(strVal, 64); err == nil {
+			return f
+		}
+		return 0
+	}
+
+	// Handle numeric formats directly
+	switch v := val.(type) {
+	case float64:
+		return v
+	case int64:
+		return float64(v)
+	case int:
+		return float64(v)
+	}
+
+	return 0
 }
 
 func getDecimal(data map[string]interface{}, key string) decimal.Decimal {

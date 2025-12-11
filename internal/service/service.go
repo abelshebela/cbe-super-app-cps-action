@@ -299,18 +299,18 @@ type TopupService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error)
 	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
+	GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
 	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error)
+	GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error)
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
+	GetCityById(ctx context.Context, Id string) (*model.AccountBlock, error)
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
 	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
 	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
 	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
-	EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

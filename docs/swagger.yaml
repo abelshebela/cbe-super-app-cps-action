@@ -203,7 +203,7 @@ definitions:
       name:
         example: Diaspora Fixed Deposit
         type: string
-      rate_bps:
+      interest:
         example: "450"
         type: string
     type: object
