@@ -48,3 +48,7 @@ func (s *accountBlockService) GetRegionById(ctx context.Context, id string) (*mo
 - Tracing implemented for `branch_service.go` function: `Authorize`.
 - Tracing implemented for `budget_category_service.go` functions: `Authorize`, `CreateBudgetCategory`, `FetchBudgetCategory`, `FetchBudgetCategoryByID`, `UpdateBudgetCategory`, `DeleteBudgetCategory`, and `EnableOrDisableBudgetCategory`.
 - Tracing implemented for `bulk_service.go` functions: `Authorize`, `GetAllBulkServices`, `CheckServiceIsEnabledOrDisabled`, `EnableBulkService`, and `DisableBulkService`.
+- Tracing implemented for `cps_action` module:
+    - `action_service.go` functions: `CreateCPSAction`, `ApproveCPSAction`, `RejectCPSAction`, `GetCPSActionsByDepartment`, `GetCPSActionByID`, `GetCPSActionByUniqueID`, `GetCPSActionByActionCode`, `RollBack`, `GetActionCountsByDepartemnt`.
+    - `dispatcher.go` function: `Authorize`.
+- Tracing implemented for `cps_action_role_service.go` functions: `FindAllWithPagination`, `GetByActionCode`, `Create`, `Update`, `Enable`, `Disable`, `Authorize`, `validateUniqueIDs`, `validateUniqueIDsInGroups`, `syncIndices`, and `generateIndices`.
