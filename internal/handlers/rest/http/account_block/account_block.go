@@ -589,7 +589,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityIds, req.Reason, true)
+	err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, true)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -631,7 +631,7 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := a.accountBlockApplication.EnableOrDisableCities(r.Context(), req.CityIds, req.Reason, false)
+	err := a.accountBlockApplication.EnableOrDisableCities(ctx, req.CityIds, req.Reason, false)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
