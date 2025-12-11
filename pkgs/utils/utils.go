@@ -35,6 +35,9 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -790,4 +793,13 @@ func NumbersOnly(value any) error {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
+}
+
+func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName string) (context.Context, trace.Span) {
+	tracer := otel.Tracer(key)
+	ctx, span := tracer.Start(ctx, spanName)
+	span.SetAttributes(attribute.String(serviceType, serviceName))
+
+	return ctx, span
+
 }
