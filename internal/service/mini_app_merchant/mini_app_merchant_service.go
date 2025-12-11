@@ -21,6 +21,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type miniAppMerchantService struct {
@@ -44,6 +46,9 @@ func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsServic
 }
 
 func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "MiniAppMerchant", "Create")
+	defer span.End()
+
 	m.logger.Infof("Creating mini app merchant, name: %s", data.MerchantName)
 
 	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMiniAppMerchant{
@@ -53,11 +58,18 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
+		span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return nil, err
 	}
 
 	if exist {
 		m.logger.Warnf("Merchant already exists with bank account: %s", data.BankAccountNumber)
+		span.AddEvent("Merchant already exists", trace.WithAttributes(
+			attribute.String("error", localization.ErrorAccountNumberAlreadyExists.Code),
+			attribute.String("bank_account_number", data.BankAccountNumber),
+		))
 		return nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
 
@@ -69,6 +81,10 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
 		if err != nil {
 			m.logger.Errorf("Account number validation failed: %v", err)
+			span.AddEvent("Account number validation failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("bank_account_number", data.BankAccountNumber),
+			))
 			return nil, err
 		}
 	}
@@ -92,6 +108,9 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	)
 	if err != nil {
 		m.logger.Errorf("CPS action failed: %v", err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return nil, err
 	}
 
@@ -100,11 +119,18 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 }
 
 func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "MiniAppMerchant", "Update")
+	defer span.End()
+
 	m.logger.Infof("Updating mini app merchant, id: %s", id)
 
 	old, err := m.repo.FindByID(ctx, id)
 	if err != nil {
 		m.logger.Errorf("Failed to find merchant by ID: %s, error: %v", id, err)
+		span.AddEvent("Failed to find merchant", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return nil, nil, err
 	}
 
@@ -126,10 +152,18 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 		exist, err := core.CheckMerchantExists(ctx, m.repo, &check, &types.MiniAppMerchantExistOptions{ExcludeID: id})
 		if err != nil {
 			m.logger.Errorf("Failed to check merchant existence for update: %v", err)
+			span.AddEvent("Failed to check merchant existence", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
 			return nil, nil, errors.New(localization.ErrorMiniAppMerchantExistsCheckFailed.Code)
 		}
 		if exist {
 			m.logger.Warnf("Merchant with updated data already exists, id: %s", id)
+			span.AddEvent("Merchant already exists", trace.WithAttributes(
+				attribute.String("error", localization.ErrorAccountNumberAlreadyExists.Code),
+				attribute.String("id", id),
+			))
 			return nil, nil, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 		}
 	}
@@ -137,6 +171,10 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
 		if err != nil {
 			m.logger.Errorf("Account number validation failed: %v", err)
+			span.AddEvent("Account number validation failed", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
 			return nil, nil, err
 		}
 	}
@@ -144,6 +182,10 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate)
 	if err != nil {
 		m.logger.Errorf("CPS action failed for merchant update, id: %s, error: %v", id, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return nil, nil, err
 	}
 
@@ -152,21 +194,49 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 }
 
 func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "MiniAppMerchant", "FindAllWithPagination")
+	defer span.End()
+
 	m.logger.Infof("Finding all mini app merchants with filter: %+v", filterParam)
-	return m.repo.FindAllWithPagination(ctx, *filterParam)
+	result, err := m.repo.FindAllWithPagination(ctx, *filterParam)
+	if err != nil {
+		span.AddEvent("Failed to find mini app merchants", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		return nil, err
+	}
+	return result, nil
 }
 
 func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
+	defer span.End()
+
 	m.logger.Infof("Finding mini app merchant by ID: %s", id)
-	return m.repo.FindByID(ctx, id)
+	result, err := m.repo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to find mini app merchant", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
+	}
+	return result, nil
 }
 
 func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Delete", "MiniAppMerchant", "Delete")
+	defer span.End()
+
 	m.logger.Infof("Deleting mini app merchant, id: %s", id)
 
 	prev, err := m.repo.FindByID(ctx, id)
 	if err != nil {
 		m.logger.Errorf("Failed to find merchant for deletion, id: %s, error: %v", id, err)
+		span.AddEvent("Failed to find merchant", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
@@ -178,6 +248,10 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMerchant, *prev, constants.ActionDelete)
 	if err != nil {
 		m.logger.Errorf("CPS action failed for merchant deletion, id: %s, error: %v", id, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
@@ -186,20 +260,35 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 }
 
 func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "MiniAppMerchant", "EnableOrDisable")
+	defer span.End()
+
 	m.logger.Infof("EnableOrDisable mini app merchant, id: %s, enable: %v", id, enable)
 
 	prevMerchant, err := m.repo.FindByID(ctx, id)
 	if err != nil {
 		m.logger.Errorf("Failed to find merchant for enable/disable, id: %s, error: %v", id, err)
+		span.AddEvent("Merchant not found", trace.WithAttributes(
+			attribute.String("error", localization.ErrorMiniAppMerchantNotFound.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorMiniAppMerchantNotFound.Code)
 	}
 
 	if enable && prevMerchant.Enabled {
 		m.logger.Warnf("Merchant already enabled, id: %s", id)
+		span.AddEvent("Merchant already enabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorMiniAppMerchantEnableFailed.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorMiniAppMerchantEnableFailed.Code)
 	}
 	if !enable && !prevMerchant.Enabled {
 		m.logger.Warnf("Merchant already disabled, id: %s", id)
+		span.AddEvent("Merchant already disabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorMiniAppMerchantDisableFailed.Code),
+			attribute.String("id", id),
+		))
 		return errors.New(localization.ErrorMiniAppMerchantDisableFailed.Code)
 	}
 
@@ -217,6 +306,10 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, action, updatedMerchant, *prevMerchant, constants.ActionUpdate)
 	if err != nil {
 		m.logger.Errorf("CPS action failed for merchant enable/disable, id: %s, error: %v", id, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		return err
 	}
 
@@ -225,9 +318,16 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 }
 
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
+	defer span.End()
+
 	merchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		m.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
+		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
@@ -237,29 +337,63 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniAppMerchant):
 		_, err = m.repo.Create(ctx, merchant)
+		if err != nil {
+			span.AddEvent("Failed to create mini app merchant", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 	case string(constants.RequestUpdateMiniAppMerchant):
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
+		if err != nil {
+			span.AddEvent("Failed to update mini app merchant", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 	case string(constants.RequestDeleteMiniAppMerchant):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
+		if err != nil {
+			span.AddEvent("Failed to delete mini app merchant", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 		if err == nil {
 			_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
 		}
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
+		if err != nil {
+			span.AddEvent("Failed to enable mini app merchant", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 	case string(constants.RequestDisableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
+		if err != nil {
+			span.AddEvent("Failed to disable mini app merchant", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 		if err == nil {
 			_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
 		}
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
+		span.AddEvent("Unsupported action", trace.WithAttributes(
+			attribute.String("error", localization.ErrorUnsupportedAction.Code),
+			attribute.String("request_action", string(cpsAction.RequestAction)),
+		))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 
-	}
-
-	if err != nil {
-		m.logger.Errorf("Failed to process merchant action, action: %s, error: %v", cpsAction.RequestAction, err)
-		return nil, err
 	}
 
 	cpsAction.CurrentAction = merchant
@@ -268,14 +402,32 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 }
 
 func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DetailMiniAppByID", "MiniAppMerchant", "DetailMiniAppByID")
+	defer span.End()
+
 	m.logger.Infof("Getting mini app merchant details, id: %s", id)
-	return m.repo.FindByID(ctx, id)
+	result, err := m.repo.FindByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to get mini app merchant details", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
+	}
+	return result, nil
 }
 
 func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
+	defer span.End()
+
 	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID)
 	if err != nil {
 		m.logger.Errorf("Merchant lookup error : %v", err)
+		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("merchant_id", merchantID),
+		))
 		return nil, err
 	}
 

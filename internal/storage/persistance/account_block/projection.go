@@ -62,6 +62,7 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 ) ([]*model.AccountBlock, error) {
 	pipeline := mongo.Pipeline{
 		// 1. Match documents based on the initial filter
+
 		{{Key: "$match", Value: filter}},
 
 		// Sorting main documents
@@ -234,4 +235,28 @@ func buildParentHierarchy(ancestors []model.AccountBlock) *model.AccountBlock {
 	}
 
 	return nil
+}
+
+// Helper to handle single or multiple IDs
+func ApplyIDFilter(filter bson.M, param map[string]interface{}, key string) {
+	if idStr, ok := param[key].(string); ok && idStr != "" {
+		if objID, err := bson.ObjectIDFromHex(idStr); err == nil {
+			filter[key] = objID
+		}
+		return
+	}
+
+	if idList, ok := param[key].([]interface{}); ok {
+		var ids []bson.ObjectID
+		for _, v := range idList {
+			if idStr, ok := v.(string); ok {
+				if objID, err := bson.ObjectIDFromHex(idStr); err == nil {
+					ids = append(ids, objID)
+				}
+			}
+		}
+		if len(ids) > 0 {
+			filter[key] = bson.M{"$in": ids}
+		}
+	}
 }
