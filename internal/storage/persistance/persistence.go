@@ -27,10 +27,6 @@ type Persistence struct {
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
 	MiniAppPersistence              storage.MiniAppRepository
-	CityPersistence                 storage.CityRepository
-	RegionPersistence               storage.RegionRepository
-	DistrictPersistence             storage.DistrictRepository
-	BranchPersistence               storage.BranchRepository
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
@@ -74,7 +70,7 @@ type Persistence struct {
 	BPSActionRolePersistence         storage.BPSActionRoleRepository
 	BPSActionApproveIndexPersistence storage.BPSActionApproveIndexRepository
 	RolePersistence                  storage.RoleRepository
-  MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
-  	CPSActionRolePersistence         storage.CPSActionRoleRepository
+	MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
+	CPSActionRolePersistence         storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence storage.CPSActionApproveIndexRepository
 }

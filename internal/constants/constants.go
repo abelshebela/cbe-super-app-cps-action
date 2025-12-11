@@ -237,11 +237,11 @@ const (
 	RequestEnableActionRole      RequestAction = "ENABLE_ACTION_ROLE"
 	RequestDisableActionRole     RequestAction = "DISABLE_ACTION_ROLE"
 	RequestDeleteActionRole      RequestAction = "DELETE_ACTION_ROLE"
-	RequestCreateCpsActionRole      RequestAction = "CREATE_CPS_ACTION_ROLE"
-	RequestUpdateCpsActionRole      RequestAction = "UPDATE_CPS_ACTION_ROLE"
-	RequestEnableCpsActionRole      RequestAction = "ENABLE_CPS_ACTION_ROLE"
-	RequestDisableCpsActionRole     RequestAction = "DISABLE_CPS_ACTION_ROLE"
-	RequestDeleteCpsActionRole      RequestAction = "DELETE_CPS_ACTION_ROLE"
+	RequestCreateCpsActionRole   RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole   RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole   RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole  RequestAction = "DISABLE_CPS_ACTION_ROLE"
+	RequestDeleteCpsActionRole   RequestAction = "DELETE_CPS_ACTION_ROLE"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
@@ -609,17 +609,14 @@ const (
 	VaultStatusMatured       VaultStatus = "MATURED"
 	VaultStatusUnlockedEarly VaultStatus = "UNLOCKED_EARLY"
 	VaultStatusPaidOut       VaultStatus = "PAID_OUT"
-)
-
-const (
-	StatusOpen       VaultStatus = "OPEN"
-	StatusClosed     VaultStatus = "CLOSED"
-	StatusLocked     VaultStatus = "LOCKED"
-	StatusActive     VaultStatus = "ACTIVE"
-	StatusMatured    VaultStatus = "MATURED"
-	StatusWithdrawn  VaultStatus = "WITHDRAWN"
-	StatusEndedEarly VaultStatus = "ENDED_EARLY"
-	StatusDeleted    VaultStatus = "DELETED"
+	StatusOpen               VaultStatus = "OPEN"
+	StatusClosed             VaultStatus = "CLOSED"
+	StatusLocked             VaultStatus = "LOCKED"
+	StatusActive             VaultStatus = "ACTIVE"
+	StatusMatured            VaultStatus = "MATURED"
+	StatusWithdrawn          VaultStatus = "WITHDRAWN"
+	StatusEndedEarly         VaultStatus = "ENDED_EARLY"
+	StatusDeleted            VaultStatus = "DELETED"
 )
 
 func ParseVaultStatus(input string) (VaultStatus, error) {

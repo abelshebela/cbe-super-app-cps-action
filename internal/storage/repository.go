@@ -356,42 +356,6 @@ type LinkedAccountRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error)
 }
 
-type CityRepository interface {
-	Create(ctx context.Context, city *model.City) error
-	Update(ctx context.Context, id string, city *model.City) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.City, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
-}
-
-type RegionRepository interface {
-	Create(ctx context.Context, region *model.Region) error
-	Update(ctx context.Context, id string, region *model.Region) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Region, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
-}
-
-type DistrictRepository interface {
-	Create(ctx context.Context, district *model.District) error
-	Update(ctx context.Context, id string, district *model.District) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.District, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-}
-
-type BranchRepository interface {
-	Create(ctx context.Context, branch *model.Branch) error
-	Update(ctx context.Context, id string, branch *model.Branch) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Branch, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
-}
-
 type MiniAppMerchantRepository interface {
 	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
 	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
@@ -583,7 +547,7 @@ type BPSActionApproveIndexRepository interface {
 }
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.	CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {
