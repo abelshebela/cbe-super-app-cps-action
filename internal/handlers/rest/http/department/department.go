@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type DepartmentHandler struct {
@@ -41,15 +42,19 @@ func NewDepartmentHandler(departmentService service.DepartmentService, logger ut
 //	@Security		BearerAuth
 //	@Router			/departments [get]
 func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllDepartments", "handler", "department")
+	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
-	departments, err := d.departmentService.GetAllDepartments(r.Context(), filterParams)
+	departments, err := d.departmentService.GetAllDepartments(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[GetAllDepartments] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("department.count", len(departments.Data)))
 	d.logger.Infof("[GetAllDepartments] retrieved %d departments", len(departments.Data))
 	localization.SendSuccessResponse(w, localization.SuccessGetAllDepartments, departments)
 }
@@ -68,22 +73,29 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/departments [post]
 func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "createDepartment", "handler", "department")
+	defer span.End()
 	var departmentRequest department_dto.CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[CreateDepartment] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
 	if err := departmentRequest.Validate(); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[CreateDepartment] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	err := d.departmentService.CreateDepartment(r.Context(), departmentRequest)
+	span.SetAttributes(attribute.String("department.name", departmentRequest.Department))
+
+	err := d.departmentService.CreateDepartment(ctx, departmentRequest)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[CreateDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -107,6 +119,8 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/departments/{id} [patch]
 func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateDepartment", "handler", "department")
+	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		d.logger.Errorf("[UpdateDepartmentRequest] missing department ID")
@@ -117,19 +131,24 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 	var departmentRequest department_dto.UpdateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&departmentRequest); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[UpdateDepartmentRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 
 	if err := departmentRequest.Validate(); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[UpdateDepartmentRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	err := d.departmentService.UpdateDepartment(r.Context(), id, departmentRequest)
+	span.SetAttributes(attribute.String("department.id", id))
+
+	err := d.departmentService.UpdateDepartment(ctx, id, departmentRequest)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[UpdateDepartmentRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -153,6 +172,8 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/departments/{id} [get]
 func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "getDepartmentById", "handler", "department")
+	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		d.logger.Errorf("[GetDepartmentByID] missing department ID")
@@ -160,8 +181,11 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	department, err := d.departmentService.GetDepartmentByID(r.Context(), id)
+	span.SetAttributes(attribute.String("department.id", id))
+
+	department, err := d.departmentService.GetDepartmentByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[GetDepartmentByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -185,6 +209,8 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/departments/enable/{id} [patch]
 func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableDepartment", "handler", "department")
+	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		d.logger.Errorf("[EnableDepartment] missing department ID")
@@ -192,8 +218,11 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err := d.departmentService.EnableDisableDepartment(r.Context(), id, true)
+	span.SetAttributes(attribute.String("department.id", id))
+
+	err := d.departmentService.EnableDisableDepartment(ctx, id, true)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[EnableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -217,6 +246,8 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/departments/disable/{id} [patch]
 func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableDepartment", "handler", "department")
+	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
 		d.logger.Errorf("[DisableDepartment] missing department ID")
@@ -224,8 +255,11 @@ func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := d.departmentService.EnableDisableDepartment(r.Context(), id, false)
+	span.SetAttributes(attribute.String("department.id", id))
+
+	err := d.departmentService.EnableDisableDepartment(ctx, id, false)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("[DisableDepartment] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

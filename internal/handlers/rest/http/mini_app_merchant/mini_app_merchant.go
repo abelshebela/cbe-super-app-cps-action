@@ -2,6 +2,7 @@ package miniappmerchant
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type miniAppMerchantAdapter struct {
@@ -36,10 +38,13 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [post]
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createMiniAppMerchant", "handler", "miniAppMerchant")
+	defer span.End()
 	var reqDTO miniappmerchant.MiniAppMerchantDTO
 
 	// Decode request body
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
 		return
@@ -47,6 +52,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 
 	// Validate DTO
 	if err := reqDTO.Validate(true); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("Validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -58,6 +64,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	// Extract User Context
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
+		span.RecordError(errors.New("incomplete user context"))
 		h.logger.Warnf("Incomplete user context: %+v", userContext)
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
@@ -67,8 +74,11 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 
 	h.logger.Debugf("Converted to domain model: %+v", merchantDomain)
 	// Call service to create merchant
-	createdMerchant, err := h.miniappMerchantService.Create(r.Context(), merchantDomain)
+	span.SetAttributes(attribute.String("mini_app_merchant.phone", formattedPhone))
+
+	createdMerchant, err := h.miniappMerchantService.Create(ctx, merchantDomain)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("Failed to create merchant: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -93,6 +103,8 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [put]
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateMiniAppMerchant", "handler", "miniAppMerchant")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
@@ -101,18 +113,21 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 
 	var reqDTO miniappmerchant.MiniAppMerchantDTO
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
+		span.RecordError(err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
 		return
 	}
 
 	// Check if request body is empty
 	if reqDTO.IsEmpty() {
+		span.RecordError(errors.New("no data provided for update"))
 		localization.SendErrorResponse(w, localization.ErrorNoDataProvidedForUpdate, nil, nil)
 		return
 	}
 
 	// Validate input fields
 	if err := reqDTO.Validate(false); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
@@ -120,6 +135,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	// Extract user context
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
+		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
@@ -128,8 +144,10 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 	merchantReq := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
 
 	// Call service update
-	_, _, err := h.miniappMerchantService.Update(r.Context(), id, merchantReq)
+	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
+	_, _, err := h.miniappMerchantService.Update(ctx, id, merchantReq)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -149,8 +167,11 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [delete]
 func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'id'"))
 		h.logger.Errorf("missing or invalid parameter 'id'")
 		localization.SendErrorResponse(w, localization.ErrorInvalidInputParameters, nil, nil)
 		return
@@ -158,12 +179,15 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
+		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
 
-	err := h.miniappMerchantService.Delete(r.Context(), id)
+	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
+	err := h.miniappMerchantService.Delete(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("failed to delete merchant %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -184,18 +208,24 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/enable/{id} [patch]
 func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableMiniAppMerchant", "handler", "miniAppMerchant")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'id'"))
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
+		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, true); err != nil {
+	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
+	if err := h.miniappMerchantService.EnableOrDisable(ctx, id, true); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -215,19 +245,25 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/disable/{id} [patch]
 func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableMiniAppMerchant", "handler", "miniAppMerchant")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'id'"))
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
+		span.RecordError(errors.New("incomplete user context"))
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
 
-	if err := h.miniappMerchantService.EnableOrDisable(r.Context(), id, false); err != nil {
+	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
+	if err := h.miniappMerchantService.EnableOrDisable(ctx, id, false); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -254,14 +290,18 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [get]
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findMiniAppMerchantById", "handler", "miniAppMerchant")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	result, err := h.miniappMerchantService.FindByID(r.Context(), id)
+	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
+	result, err := h.miniappMerchantService.FindByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -283,12 +323,13 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [get]
 func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllMiniAppMerchants", "handler", "miniAppMerchant")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
 	phoneNumber, ok := filterParams.Filters["phone_number"].(string)
 	if !ok {
@@ -300,6 +341,7 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 
 	miniAppMerchant, err := h.miniappMerchantService.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -318,14 +360,19 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 // @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
 func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "miniAppMerchantLookup", "handler", "miniAppMerchant")
+	defer span.End()
 	merchantID := chi.URLParam(r, "merchant_id")
 	if merchantID == "" {
+		span.RecordError(errors.New("missing or invalid parameter 'merchant_id'"))
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
 
-	result, err := h.miniappMerchantService.MerchantLookup(r.Context(), merchantID)
+	span.SetAttributes(attribute.String("mini_app_merchant.id", merchantID))
+	result, err := h.miniappMerchantService.MerchantLookup(ctx, merchantID)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

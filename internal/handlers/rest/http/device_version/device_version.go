@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type deviceVersionAdapter struct {
@@ -25,21 +26,30 @@ func InitDeviceVersionAdapter(s service.DeviceVersionServiceSrv, logger utils.Lo
 
 // CreateDeviceVersion
 func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "createDeviceVersion", "handler", "deviceVersion")
+	defer span.End()
 	var req dvdto.CreateDeviceVersionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[CreateDeviceVersion] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
 	}
 	req.Clean()
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[CreateDeviceVersion] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	req.Platform = strings.ToUpper(req.Platform)
-	if err := h.svc.CreateDeviceVersion(r.Context(), req); err != nil {
+	span.SetAttributes(
+		attribute.String("device_version.platform", req.Platform),
+		attribute.String("device_version.version", req.LatestVersion),
+	)
+	if err := h.svc.CreateDeviceVersion(ctx, req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[CreateDeviceVersion] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -50,6 +60,8 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 
 // UpdateDeviceVersion
 func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateDeviceVersion", "handler", "deviceVersion")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -57,6 +69,7 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 	}
 	var req dvdto.UpdateDeviceVersionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[UpdateDeviceVersion] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
 		return
@@ -64,11 +77,18 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 	req.ID = id
 	req.Clean()
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[UpdateDeviceVersion] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	if err := h.svc.UpdateDeviceVersion(r.Context(), id, req); err != nil {
+	span.SetAttributes(
+		attribute.String("device_version.id", id),
+		attribute.String("device_version.platform", req.Platform),
+		attribute.String("device_version.version", req.LatestVersion),
+	)
+	if err := h.svc.UpdateDeviceVersion(ctx, id, req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[UpdateDeviceVersion] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -79,26 +99,34 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 
 // GetAllDeviceVersions
 func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllDeviceVersions", "handler", "deviceVersion")
+	defer span.End()
 	filter := common_utils.ExtractFilterParams(r)
-	res, err := h.svc.GetAllDeviceVersions(r.Context(), filter)
+	res, err := h.svc.GetAllDeviceVersions(ctx, filter)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[GetAllDeviceVersions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("device_version.count", len(res.Data)))
 	h.logger.Infof("[GetAllDeviceVersions] retrieved %d device versions", len(res.Data))
 	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSIONS_FETCHED", StatusCode: localization.StatusOK, Message: "Device versions fetched", Type: "success"}, res)
 }
 
 // GetDeviceVersionByID
 func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "getDeviceVersionById", "handler", "deviceVersion")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-	res, err := h.svc.GetDeviceVersionByID(r.Context(), id)
+	span.SetAttributes(attribute.String("device_version.id", id))
+	res, err := h.svc.GetDeviceVersionByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[GetDeviceVersionByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -109,12 +137,16 @@ func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *ht
 
 // Enable
 func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableDeviceVersion", "handler", "deviceVersion")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-	if err := h.svc.EnableDisableDeviceVersion(r.Context(), id, true); err != nil {
+	span.SetAttributes(attribute.String("device_version.id", id))
+	if err := h.svc.EnableDisableDeviceVersion(ctx, id, true); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -125,12 +157,16 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 // Disable
 func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableDeviceVersion", "handler", "deviceVersion")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
-	if err := h.svc.EnableDisableDeviceVersion(r.Context(), id, false); err != nil {
+	span.SetAttributes(attribute.String("device_version.id", id))
+	if err := h.svc.EnableDisableDeviceVersion(ctx, id, false); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
