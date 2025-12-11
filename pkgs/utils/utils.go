@@ -598,6 +598,34 @@ func DurationToMonths(d any) int {
 	return months
 }
 
+func ParseToYears(s string) (float64, error) {
+	if len(strings.TrimSpace(s)) < 2 {
+		return 0, fmt.Errorf("invalid lock period format")
+	}
+
+	s = strings.TrimSpace(s)
+	unit := strings.ToLower(s[len(s)-1:])       // last character
+	valueStr := strings.TrimSpace(s[:len(s)-1]) // everything except unit
+
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in lock period: %v", err)
+	}
+
+	const daysPerYear = 365.0
+
+	switch unit {
+	case "d":
+		return value / daysPerYear, nil
+	case "m":
+		return value / 12.0, nil
+	case "y":
+		return value, nil
+	default:
+		return 0, fmt.Errorf("invalid unit in lock period: %s", unit)
+	}
+}
+
 func NullStringToPtrLike(ns sql.NullString) *string {
 	if !ns.Valid {
 		return (*string)(nil)

@@ -28,8 +28,8 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/branches/{branch_code}",
-				Handler: handler.GetBranchByCode,
+				Path:    "/branches/{branch_id}",
+				Handler: handler.GetBranchById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
@@ -46,8 +46,8 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/regions/{region_code}",
-				Handler: handler.GetRegionByCode,
+				Path:    "/regions/{region_id}",
+				Handler: handler.GetRegionById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
@@ -64,8 +64,8 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/districts/{district_code}",
-				Handler: handler.GetDistrictByCode,
+				Path:    "/districts/{district_id}",
+				Handler: handler.GetDistrictById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
@@ -82,8 +82,8 @@ func Init(
 			},
 			{
 				Method:  http.MethodGet,
-				Path:    "/cities/{city_code}",
-				Handler: handler.GetCityByCode,
+				Path:    "/cities/{city_id}",
+				Handler: handler.GetCityById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
 					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),

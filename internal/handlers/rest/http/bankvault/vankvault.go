@@ -12,7 +12,6 @@ import (
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
-	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -50,13 +49,12 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	lockPeriod, err := common_utils.ParseLockPeriod(req.LockPeriodDays)
+	lockPeriod, err := common_utils.ParseToYears(req.LockPeriodDays)
 	if err != nil {
 		h.logger.Errorf("[CreateBankVault] lock period parse: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	req.Interest = req.Interest.Mul(decimal.NewFromInt(100))
 
 	product := core.ToDomainCreateBankVaultRequest(req, lockPeriod)
 	id, err := h.service.CreateBankVault(r.Context(), product)
