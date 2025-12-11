@@ -25,20 +25,25 @@ func InitHQAdapter(hqApp service.HQService, logger utils.Logger) *hqAdapter {
 	}
 }
 
-// GetHQ godoc
+// // GetHQ godoc
+
+// //	@Summary		Get HQ by ID
+// //	@Description	Fetch HQ details by ID
+// //	@Tags			HQ
+// //	@Accept			json
 //
-//	@Summary		Get HQ by ID
-//	@Description	Fetch HQ details by ID
-//	@Tags			HQ
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string						true	"HQ ID"
-//	@Success		200	{object}	localization.ResponseCode	"HQ fetched successfully"
-//	@Failure		400	{object}	localization.ResponseCode	"HQ ID required"
-//	@Failure		404	{object}	localization.ResponseCode	"HQ not found"
-//	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/hq/{id} [get]
+//	//@Produce		json
+//	//@Param			id	path		string						true	"HQ ID"
+//
+// //	@Success		200	{object}	localization.ResponseCode	"HQ fetched successfully"
+//
+//	//@Failure		400	{object}	localization.ResponseCode	"HQ ID required"
+//
+// //	@Failure		404	{object}	localization.ResponseCode	"HQ not found"
+// //	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
+// //	@Security		BearerAuth
+//
+//	//@Router			/hq/{id} [get]
 func (a *hqAdapter) GetHQ(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -55,21 +60,21 @@ func (a *hqAdapter) GetHQ(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessHQFetched, hqResp)
 }
 
-// GetAllHQ godoc
+// //GetAllHQ godoc
 //
-//	@Summary		Get all HQs
-//	@Description	Fetch a list of HQs with pagination and filters
-//	@Tags			HQ
-//	@Accept			json
-//	@Produce		json
-//	@Param			page		query		int							false	"Page number (default 1)"
-//	@Param			per_page	query		int							false	"Items per page (default 10, max 100)"
-//	@Param			sort		query		string						false	"Sort field"
-//	@Param			order		query		string						false	"Sort order (asc/desc)"
-//	@Success		200			{object}	localization.ResponseCode	"HQs fetched successfully"
-//	@Failure		500			{object}	localization.ResponseCode	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/hq [get]
+//	//@Summary		Get all HQs
+//	//@Description	Fetch a list of HQs with pagination and filters
+//	//@Tags			HQ
+//	//@Accept			json
+//	//@Produce		json
+//	//@Param			page		query		int							false	"Page number (default 1)"
+//	//@Param			per_page	query		int							false	"Items per page (default 10, max 100)"
+//	//@Param			sort		query		string						false	"Sort field"
+//	//@Param			order		query		string						false	"Sort order (asc/desc)"
+//	//@Success		200			{object}	localization.ResponseCode	"HQs fetched successfully"
+//	//@Failure		500			{object}	localization.ResponseCode	"Internal server error"
+//	//@Security		BearerAuth
+//	//@Router			/hq [get]
 func (a *hqAdapter) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 	filter := local_util.ExtractFilterParams(r)
 	list, err := a.hqApp.GetHQDetail(r.Context(), *filter)

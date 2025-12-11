@@ -30,7 +30,7 @@ func InitDeviceVersionAdapter(s service.DeviceVersionServiceSrv, logger utils.Lo
 //	@Tags			Device Version
 //	@Accept			json
 //	@Produce		json
-//	@Param			device_version	body	device_dto.CreateDeviceVersionRequest	true	"Device version information"
+//	@Param			device_version	body	dvdto.CreateDeviceVersionRequest	true	"Device version information"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Device version created successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -67,7 +67,7 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 //	@Accept			json
 //	@Produce		json
 //	@Param			id				path	string								true	"Device version ID"
-//	@Param			device_version	body	device_dto.UpdateDeviceVersionRequest	true	"Device version update information"
+//	@Param			device_version	body	dvdto.UpdateDeviceVersionRequest	true	"Device version update information"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Device version update request submitted"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -103,16 +103,23 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 // GetAllDeviceVersions
 //
 //	@Summary		Get All Device Versions
-//	@Description	Retrieve all device versions with pagination and optional filters
+//	@Description	Retrieve all device versions with pagination, filtering, and search. Searchable fields: latest_version, platform, enabled, force_update, created_at, last_modified, updated_at, updated_by, created_by.
 //	@Tags			Device Version
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number"
-//	@Param			per_page	query	int		false	"Items per page"
-//	@Param			search		query	string	false	"Search keyword"
-//	@Param			platform	query	string	false	"Filter by platform (e.g., ANDROID, IOS)"
-//	@Param			enabled		query	bool	false	"Filter by enabled status"
-//	@Success		200	{object}	localization.StandardResponse{data=[]device_dto.DeviceVersionResponse}	"Device versions retrieved successfully"
+//	@Param			page			query	int		false	"Page number"
+//	@Param			per_page		query	int		false	"Items per page"
+//	@Param			search			query	string	false	"Search term (searches latest_version,platform,enabled,updated_at,created_by,created_at,lastmodified_at)"
+//	@Param			latest_version	query	string	false	"Filter by latest version"
+//	@Param			platform		query	string	false	"Filter by platform (e.g., ANDROID, IOS)"
+//	@Param			enabled			query	bool	false	"Filter by enabled status"
+//	@Param			force_update	query	bool	false	"Filter by force update status"
+//	@Param			created_at		query	string	false	"Filter by created at"
+//	@Param			last_modified	query	string	false	"Filter by last modified"
+//	@Param			updated_at		query	string	false	"Filter by updated at"
+//	@Param			updated_by		query	string	false	"Filter by updated by"
+//	@Param			created_by		query	string	false	"Filter by created by"
+//	@Success		200	{object}	localization.StandardResponse{data=[]model.DeviceVersionControl}	"Device versions retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
@@ -136,7 +143,7 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path	string	true	"Device version ID"
-//	@Success		200	{object}	localization.StandardResponse{data=device_dto.DeviceVersionResponse}	"Device version retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=model.DeviceVersionControl}	"Device version retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Device version not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
@@ -198,7 +205,7 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Device version not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/device-version/disable/{id} [patch]
+//	@Router			/device_version/disable/{id} [patch]
 func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {

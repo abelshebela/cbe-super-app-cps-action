@@ -8709,6 +8709,645 @@ const docTemplate = `{
                 }
             }
         },
+        "/device_version/disable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Disable a device version by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Version"
+                ],
+                "summary": "Disable Device Version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device version ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device version disable request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Device version not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/device_versions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all device versions with pagination, filtering, and search. Searchable fields: latest_version, platform, enabled, force_update, created_at, last_modified, updated_at, updated_by, created_by.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Version"
+                ],
+                "summary": "Get All Device Versions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term (searches latest_version,platform,enabled,updated_at,created_by,created_at,lastmodified_at)",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by latest version",
+                        "name": "latest_version",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by platform (e.g., ANDROID, IOS)",
+                        "name": "platform",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by force update status",
+                        "name": "force_update",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by created at",
+                        "name": "created_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by last modified",
+                        "name": "last_modified",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by updated at",
+                        "name": "updated_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by updated by",
+                        "name": "updated_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by created by",
+                        "name": "created_by",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device versions retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/model.DeviceVersionControl"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new device version with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Version"
+                ],
+                "summary": "Create Device Version",
+                "parameters": [
+                    {
+                        "description": "Device version information",
+                        "name": "device_version",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deviceversion.CreateDeviceVersionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device version created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/device_versions/enable/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enable a device version by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Version"
+                ],
+                "summary": "Enable Device Version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device version ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device version enable request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Device version not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/device_versions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a device version by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Version"
+                ],
+                "summary": "Get Device Version by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device version ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device version retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.DeviceVersionControl"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Device version not found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update an existing device version by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Device Version"
+                ],
+                "summary": "Update Device Version",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device version ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Device version update information",
+                        "name": "device_version",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deviceversion.UpdateDeviceVersionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Device version update request submitted",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/donation": {
             "get": {
                 "security": [
@@ -11665,7 +12304,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch feedbacks with pagination and optional filters",
+                "description": "Fetch feedbacks with pagination, filtering, and search. Filterable fields: created_at, user_id, responses. Searchable field: responses.",
                 "consumes": [
                     "application/json"
                 ],
@@ -11700,6 +12339,30 @@ const docTemplate = `{
                         "description": "Sort order (asc/desc)",
                         "name": "order",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by created_at",
+                        "name": "created_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by user_id",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by responses",
+                        "name": "responses",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term (searches responses)",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -11711,57 +12374,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid query params",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/feedback/create": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Allows a user (or anonymous) to submit feedback",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Feedback"
-                ],
-                "summary": "Submit feedback",
-                "parameters": [
-                    {
-                        "description": "Feedback creation payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/feedback.FeedbackRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Feedback created successfully",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
                         "schema": {
                             "$ref": "#/definitions/localization.ResponseCode"
                         }
@@ -11817,66 +12429,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Feedback not found",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
-                        }
-                    }
-                }
-            }
-        },
-        "/hq": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Fetch a list of HQs with pagination and filters",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "HQ"
-                ],
-                "summary": "Get all HQs",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Page number (default 1)",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page (default 10, max 100)",
-                        "name": "per_page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort field",
-                        "name": "sort",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort order (asc/desc)",
-                        "name": "order",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "HQs fetched successfully",
                         "schema": {
                             "$ref": "#/definitions/localization.ResponseCode"
                         }
@@ -12139,14 +12691,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/hq/{id}": {
+        "/kyc_verifier": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Fetch HQ details by ID",
+                "description": "Fetch KYC records with pagination, filtering, and search. Filterable fields: kyc_status, kyc_level, kyc_approved, enabled. Searchable field: kyc_status.",
                 "consumes": [
                     "application/json"
                 ],
@@ -12154,13 +12706,324 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "HQ"
+                    "KYC Verifier"
                 ],
-                "summary": "Get HQ by ID",
+                "summary": "Get KYC List",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page (default 10, max 100)",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by KYC status",
+                        "name": "kyc_status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by KYC level",
+                        "name": "kyc_level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by KYC approved",
+                        "name": "kyc_approved",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term (searches kyc_status)",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "KYC records fetched successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/kyc_verifier.KYCVerifierResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query params",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/kyc_verifier/approve/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Approve a KYC record by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "KYC Verifier"
+                ],
+                "summary": "Approve KYC",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "HQ ID",
+                        "description": "KYC record ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Approve KYC request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/kyc_verifier.ApproveKYCRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "KYC record approved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or request body",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/kyc_verifier/update/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a KYC record by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "KYC Verifier"
+                ],
+                "summary": "Update KYC",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "KYC record ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update KYC request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/kyc_verifier.UpdateKYCRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "KYC record updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or request body",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/kyc_verifier/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve a KYC record by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "KYC Verifier"
+                ],
+                "summary": "Get KYC by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "KYC record ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -12168,27 +13031,75 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "HQ fetched successfully",
+                        "description": "KYC record retrieved successfully",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/kyc_verifier.KYCVerifierResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "HQ ID required",
+                        "description": "Invalid ID",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "404": {
-                        "description": "HQ not found",
+                        "description": "KYC record not found",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/localization.ResponseCode"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 }
@@ -12201,7 +13112,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves a paginated list of mini app merchants",
+                "description": "Retrieves a paginated list of mini app merchants. Searchable fields: merchant_id, bank_account_number, merchant_name, merchant_code, phone_number, email.",
                 "produces": [
                     "application/json"
                 ],
@@ -12220,6 +13131,54 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Items per page",
                         "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by merchant type",
+                        "name": "merchant_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by merchant code",
+                        "name": "merchant_code",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by merchant name",
+                        "name": "merchant_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by email",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by phone number",
+                        "name": "phone_number",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by enabled status",
+                        "name": "enabled",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by bank account number",
+                        "name": "bank_account_number",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search term (searches merchant_id, bank_account_number, merchant_name, merchant_code, phone_number, email)",
+                        "name": "search",
                         "in": "query"
                     }
                 ],
@@ -12635,124 +13594,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/mini-app-merchants/merchant-lookup/{merchant_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves a merchant by ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Merchant Lookup",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "merchant_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/merchant_lookup.MerchantLookUpResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/mini-app-merchants/{id}": {
             "get": {
                 "security": [
@@ -12834,140 +13675,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing mini app merchant",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "MiniAppMerchant"
-                ],
-                "summary": "Update Mini App Merchant",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Merchant ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Mini App Merchant DTO",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/localization.StandardResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
                         "schema": {
                             "allOf": [
                                 {
@@ -13107,10 +13814,144 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing mini app merchant",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "MiniAppMerchant"
+                ],
+                "summary": "Update Mini App Merchant",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Merchant ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Mini App Merchant DTO",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/miniappmerchant.MiniAppMerchantDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/localization.StandardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
             }
         },
         "/news/category": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -13370,7 +14211,87 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a news category by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NewsCategory"
+                ],
+                "summary": "Delete news category",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "News Category ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "News category deleted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - ID required",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -13461,90 +14382,10 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a news category by its ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewsCategory"
-                ],
-                "summary": "Delete news category",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "News Category ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "News category deleted successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request - ID required",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
             }
         },
         "/news/tags": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -13572,6 +14413,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Items per page",
                         "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "search field tag_name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "filter key list tag_name",
+                        "name": "tag_name",
                         "in": "query"
                     }
                 ],
@@ -13804,7 +14657,87 @@ const docTemplate = `{
                     }
                 }
             },
-            "put": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes a news tag by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NewsTags"
+                ],
+                "summary": "Delete news tag",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "News Tag ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "News tag deleted successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request - ID required",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/localization.StandardResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -13860,86 +14793,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad request - Invalid input",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a news tag by its ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NewsTags"
-                ],
-                "summary": "Delete news tag",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "News Tag ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "News tag deleted successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/localization.StandardResponse"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request - ID required",
                         "schema": {
                             "allOf": [
                                 {
@@ -21324,6 +22177,17 @@ const docTemplate = `{
                 "Low"
             ]
         },
+        "constants.Vendor": {
+            "type": "string",
+            "enum": [
+                "FAYDA",
+                "Verigram"
+            ],
+            "x-enum-varnames": [
+                "Fayda",
+                "Verigram"
+            ]
+        },
         "cpsactionhandler.cps_action_dto_Resp": {
             "type": "object",
             "properties": {
@@ -21818,6 +22682,43 @@ const docTemplate = `{
                         "[\"card1\"",
                         " \"card2\"]"
                     ]
+                }
+            }
+        },
+        "deviceversion.CreateDeviceVersionRequest": {
+            "type": "object",
+            "properties": {
+                "force_update": {
+                    "type": "boolean"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "release_notes": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "deviceversion.UpdateDeviceVersionRequest": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "force_update": {
+                    "type": "boolean"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "release_notes": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
                 }
             }
         },
@@ -22457,17 +23358,6 @@ const docTemplate = `{
                 }
             }
         },
-        "feedback.FeedbackRequest": {
-            "type": "object",
-            "properties": {
-                "responses": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/types.Response"
-                    }
-                }
-            }
-        },
         "hqDto.UpdateArchiveTimeRequest": {
             "type": "object",
             "properties": {
@@ -22491,6 +23381,65 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "kyc_verifier.ApproveKYCRequest": {
+            "type": "object",
+            "properties": {
+                "approve": {
+                    "type": "boolean"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "kyc_verifier.KYCVerifierResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "customer_number": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kyc_activity_by": {},
+                "kyc_approved": {
+                    "type": "boolean"
+                },
+                "kyc_data": {
+                    "$ref": "#/definitions/types.KYCData"
+                },
+                "kyc_level": {
+                    "type": "integer"
+                },
+                "kyc_reject_reason": {
+                    "type": "string"
+                },
+                "kyc_reject_reason_failed": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object"
+                    }
+                },
+                "kyc_status": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "user_code": {
+                    "type": "string"
+                },
+                "user_full_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "kyc_verifier.UpdateKYCRequest": {
+            "type": "object"
         },
         "localization.ResponseCode": {
             "type": "object",
@@ -22528,29 +23477,6 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "type": "string"
-                }
-            }
-        },
-        "merchant_lookup.MerchantLookUpResponse": {
-            "type": "object",
-            "properties": {
-                "branches": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Branch"
-                    }
-                },
-                "company": {
-                    "$ref": "#/definitions/types.Company"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.UserAccount"
-                    }
                 }
             }
         },
@@ -23102,6 +24028,44 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "model.DeviceVersionControl": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "force_update": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_modified_at": {
+                    "type": "string"
+                },
+                "latest_version": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "release_notes": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "updated_by": {
+                    "type": "string"
                 }
             }
         },
@@ -24429,41 +25393,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.Branch": {
-            "type": "object",
-            "properties": {
-                "account_holder_name": {
-                    "type": "string"
-                },
-                "account_number": {
-                    "type": "string"
-                },
-                "api_key": {
-                    "type": "string"
-                },
-                "branch_id": {
-                    "type": "string"
-                },
-                "business_type": {
-                    "description": "null → pointer",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "null",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "description": "null",
-                    "type": "string"
-                }
-            }
-        },
         "types.BranchInformation": {
             "type": "object",
             "properties": {
@@ -24504,41 +25433,6 @@ const docTemplate = `{
                 },
                 "min_amount": {
                     "type": "integer"
-                }
-            }
-        },
-        "types.Company": {
-            "type": "object",
-            "properties": {
-                "api_key": {
-                    "type": "string"
-                },
-                "business_type": {
-                    "description": "null → pointer",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "null → pointer",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "merchant_id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "parent_id": {
-                    "type": "integer"
-                },
-                "parent_merchant": {
-                    "type": "string"
-                },
-                "phone": {
-                    "description": "null → pointer",
-                    "type": "string"
                 }
             }
         },
@@ -24616,6 +25510,59 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "types.KYCData": {
+            "type": "object",
+            "properties": {
+                "account_type": {
+                    "type": "string"
+                },
+                "address": {
+                    "$ref": "#/definitions/types.Address"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "document_back": {
+                    "type": "string"
+                },
+                "document_front": {
+                    "type": "string"
+                },
+                "full_name": {
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "monthly_income": {
+                    "type": "string"
+                },
+                "mothers_name": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                },
+                "selfie_photo": {
+                    "type": "string"
+                },
+                "sub": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "$ref": "#/definitions/constants.Vendor"
                 }
             }
         },
@@ -24712,19 +25659,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "vatprd": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.Response": {
-            "type": "object",
-            "properties": {
-                "answer": {},
-                "options": {},
-                "question": {
-                    "type": "string"
-                },
-                "type": {
                     "type": "string"
                 }
             }
@@ -24828,38 +25762,6 @@ const docTemplate = `{
                 "min": {
                     "description": "ID        bson.ObjectID ` + "`" + `json:\"id\" bson:\"id\"` + "`" + `",
                     "type": "integer"
-                }
-            }
-        },
-        "types.UserAccount": {
-            "type": "object",
-            "properties": {
-                "allowed_merchant_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "company_id": {
-                    "type": "integer"
-                },
-                "company_ids": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "default_merchant_id": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },

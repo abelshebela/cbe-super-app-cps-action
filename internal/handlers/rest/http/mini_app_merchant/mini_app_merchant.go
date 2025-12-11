@@ -91,7 +91,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 //	@Param			body				body		miniappmerchant.MiniAppMerchantDTO	true	"Mini App Merchant DTO"
 //	@Success		200					{object}	localization.StandardResponse
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/mini-app-merchants/{id} [put]
+//	@Router			/mini-app-merchants/{id} [patch]
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -273,13 +273,21 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 // List Mini App Merchants with Pagination
 //
 //	@Summary		List Mini App Merchants
-//	@Description	Retrieves a paginated list of mini app merchants
+//	@Description	Retrieves a paginated list of mini app merchants. Searchable fields: merchant_id, bank_account_number, merchant_name, merchant_code, phone_number, email.
 //	@Tags			MiniAppMerchant
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			page		query		int	false	"Page number"
-//	@Param			per_page	query		int	false	"Items per page"
-//	@Success		200			{object}	localization.StandardResponse{data=[]model.MiniAppMerchant}
+//	@Param			page				query	int		false	"Page number"
+//	@Param			per_page			query	int		false	"Items per page"
+//	@Param			merchant_type		query	string	false	"Filter by merchant type"
+//	@Param			merchant_code		query	string	false	"Filter by merchant code"
+//	@Param			merchant_name		query	string	false	"Filter by merchant name"
+//	@Param			email				query	string	false	"Filter by email"
+//	@Param			phone_number		query	string	false	"Filter by phone number"
+//	@Param			enabled				query	bool	false	"Filter by enabled status"
+//	@Param			bank_account_number	query	string	false	"Filter by bank account number"
+//	@Param			search				query	string	false	"Search term (searches merchant_id, bank_account_number, merchant_name, merchant_code, phone_number, email)"
+//	@Success		200	{object}	localization.StandardResponse{data=[]model.MiniAppMerchant}
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [get]
 func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
@@ -307,16 +315,16 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, miniAppMerchant)
 }
 
-// Merchant Lookup
-// @Summary Merchant Lookup
-// @Description Retrieves a merchant by ID
-// @Tags MiniAppMerchant
-// @Security BearerAuth
-// @Produce json
-// @Param merchant_id path string true "Merchant ID"
-// @Success 200 {object} localization.StandardResponse{data=merchant_lookup.MerchantLookUpResponse}
-// @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
-// @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
+// // Merchant Lookup
+// //@Summary Merchant Lookup
+// //@Description Retrieves a merchant by ID
+// //@Tags MiniAppMerchant
+// //@Security BearerAuth
+// // @Produce json
+// // @Param merchant_id path string true "Merchant ID"
+// // @Success 200 {object} localization.StandardResponse{data=merchant_lookup.MerchantLookUpResponse}
+// // @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
+// // @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
 func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
 	merchantID := chi.URLParam(r, "merchant_id")
 	if merchantID == "" {
