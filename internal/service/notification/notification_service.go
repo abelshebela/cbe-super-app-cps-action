@@ -3,7 +3,6 @@ package notification
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants"
@@ -42,7 +41,7 @@ func (s *notificationService) CreateNotification(ctx context.Context, req notify
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		s.logger.Errorf("[CreateNotification] incomplete user context")
-		return nil, errors.New(localization.ErrorIncompleteUserInfo.Code)
+		return nil, errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
 	entity := helper.BuildCreateNotification(req)
@@ -62,6 +61,9 @@ func (s *notificationService) UpdateNotification(ctx context.Context, id string,
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("[UpdateNotification] failed to find notification: %v", err)
+		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		return nil, err
 	}
 	cur := helper.BuildUpdateNotification(prev, req)
@@ -82,7 +84,7 @@ func (s *notificationService) DeleteNotification(ctx context.Context, id string)
 	s.logger.Infof("[DeleteNotification] deleting notification for id: %s", id)
 	if id == "" {
 		s.logger.Errorf("[DeleteNotification] invalid id provided")
-		return fmt.Errorf("INVALID_ID")
+		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -92,7 +94,7 @@ func (s *notificationService) DeleteNotification(ctx context.Context, id string)
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		s.logger.Errorf("[DeleteNotification] incomplete user context")
-		return fmt.Errorf("INCOMPLETE_USER_INFO")
+		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 	cpsActionModel := lib.CpsModelBuilder(id, maker, exist, nil, string(constants.RequestDeleteNotification), string(constants.DELETE))
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
@@ -108,7 +110,7 @@ func (s *notificationService) EnableNotification(ctx context.Context, id string)
 	s.logger.Infof("[EnableNotification] enabling notification for id: %s", id)
 	if id == "" {
 		s.logger.Errorf("[EnableNotification] invalid id provided")
-		return fmt.Errorf("INVALID_ID")
+		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -121,7 +123,7 @@ func (s *notificationService) EnableNotification(ctx context.Context, id string)
 	}
 	if prev.Enabled {
 		s.logger.Errorf("[EnableNotification] notification already enabled: %s", id)
-		return errors.New(localization.ErrorUserAlreadyEnabled.Code)
+		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
 	updated := prev
 	updated.Enabled = true
@@ -140,7 +142,7 @@ func (s *notificationService) DisableNotification(ctx context.Context, id string
 	s.logger.Infof("[DisableNotification] disabling notification for id: %s", id)
 	if id == "" {
 		s.logger.Errorf("[DisableNotification] invalid id provided")
-		return fmt.Errorf("INVALID_ID")
+		return errors.New(localization.ErrorInvalidRequest.Code)
 	}
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -153,7 +155,7 @@ func (s *notificationService) DisableNotification(ctx context.Context, id string
 	}
 	if !prev.Enabled {
 		s.logger.Errorf("[DisableNotification] notification already disabled: %s", id)
-		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
+		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
 	updated := prev
 	updated.Enabled = false

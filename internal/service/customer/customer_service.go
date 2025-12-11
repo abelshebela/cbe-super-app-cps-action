@@ -123,7 +123,7 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		c.logger.Errorf("[ApproveFaydaCustomer] incomplete user data")
-		return errors.New(constants.Incomplete)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	customer, err := c.repo.FindByID(ctx, id)
@@ -158,7 +158,7 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 func (c *customerService) EnableCustomerByID(ctx context.Context, id string, user_otp string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	otp, err := c.redis.Get(ctx, fmt.Sprintf("cps:action:otp:%s", id))
@@ -173,7 +173,7 @@ func (c *customerService) EnableCustomerByID(ctx context.Context, id string, use
 
 	if encryptedOTP != otp {
 		c.logger.Infof("OTP mismatch: %s != %s", encryptedOTP, otp)
-		return fmt.Errorf("%s", localization.ErrorOTPInvalid.Code)
+		return errors.New(localization.ErrorOTPInvalid.Code)
 	}
 
 	customer, err := c.repo.FindByID(ctx, id)
@@ -205,14 +205,14 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		c.logger.Errorf("[DisableCustomerByID] incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	customer, err := c.repo.FindByID(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
 		c.logger.Errorf("[DisableCustomerByID] customer not found")
-		return fmt.Errorf("%s", code)
+		return errors.New(localization.ErrorResourceNotFound.Code)
 	} else if err != nil {
 		c.logger.Errorf("[DisableCustomerByID] failed to find customer: %v", err)
 		return err
@@ -220,7 +220,7 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 
 	if !customer.Enabled {
 		c.logger.Errorf("[DisableCustomerByID] customer already disabled")
-		return fmt.Errorf("%s", localization.ErrorCustomerAlreadyDisabled.Code)
+		return errors.New(localization.ErrorCustomerAlreadyDisabled.Code)
 	}
 
 	new_customer := *customer
@@ -250,7 +250,7 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	actionData, err := local_util.JsonUnmarshal[model.User](cpsAction.CurrentAction)
 	if err != nil {
 		d.logger.Errorf("[Authorize] failed to unmarshal CurrentAction to User: %v", err)
-		return nil, fmt.Errorf("failed to unmarshal CurrentAction to User: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	switch string(cpsAction.RequestAction) {

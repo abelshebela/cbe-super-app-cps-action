@@ -280,7 +280,7 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 		return action, nil
 
 	default:
-		return nil, errors.New("UNHANDLED_ACTION_TYPE")
+		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
 

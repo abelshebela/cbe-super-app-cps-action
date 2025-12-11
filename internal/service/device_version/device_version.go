@@ -12,7 +12,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -42,7 +41,7 @@ func (d *DeviceVersionService) Authorize(ctx context.Context, cpsAction *model.C
 	actionData, err := local_util.JsonUnmarshal[model.DeviceVersionControl](cpsAction.CurrentAction)
 	if err != nil {
 		d.logger.Errorf("[Authorize] failed to unmarshal CurrentAction: %v", err)
-		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	switch string(cpsAction.RequestAction) {
@@ -90,7 +89,7 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		d.logger.Errorf("Create Device Version failed incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	_, err := d.deviceVersionRepo.FindOne(ctx, bson.M{"platform": deviceVersion.Platform, "latest_version": deviceVersion.LatestVersion})
@@ -124,7 +123,7 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		d.logger.Errorf("[EnableDisableDeviceVersion] incomplete user data")
-		return errors.New(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	objID, err := core.IdProvider(ctx, id)
 	if err != nil {
@@ -195,7 +194,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		d.logger.Errorf("[UpdateDeviceVersion] incomplete user data")
-		return errors.New(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	// fetch existing
 	objID, err := core.IdProvider(ctx, id)

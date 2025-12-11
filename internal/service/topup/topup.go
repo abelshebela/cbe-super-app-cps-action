@@ -231,7 +231,7 @@ func (s *topupService) Authorize(ctx context.Context, action *model.CPSAction) (
 
 	topup, err := local_util.JsonUnmarshal[model.Topup](action.CurrentAction)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch action.RequestAction {

@@ -151,7 +151,7 @@ func (s *hqService) Authorize(ctx context.Context, action *model.CPSAction) (*mo
 
 	hq, err := local_util.JsonUnmarshal[model.HQ](action.CurrentAction)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch requestedAction {

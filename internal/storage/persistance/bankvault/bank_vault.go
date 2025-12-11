@@ -99,7 +99,7 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 
 	rows, err := r.queries.FindBankVault(ctx, params)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	products := make([]*model.BankVaultProduct, 0, len(rows))
@@ -147,7 +147,7 @@ func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.
 	rows, err := r.queries.GetAllLockedVaults(ctx, params)
 	if err != nil {
 		r.logger.Errorf("failed to get locked vaults: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	lockedVaults := make([]*model.LockedVault, 0, len(rows))
