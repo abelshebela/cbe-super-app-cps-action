@@ -11,9 +11,10 @@ import (
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"net/http"
 )
 
 type customer_resp *model.User
@@ -68,14 +69,17 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 //	@Summary		Disable customer
 //	@Description	Disables a customer by their ID
 //	@Tags			Customers
-//	@Accept			json
+//
+// @Accept			json
+//
 //	@Produce		json
 //	@Param			id	path		string									true	"Customer ID"
+//	@Param			body	body	dto.CustomerDisableDTO	true	" body (fields: is_temporary, disable_reason)"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Customer disabled successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/customers/{id}/disable [post]
+//	@Router			/customers/disable/{id} [patch]
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -119,12 +123,13 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string									true	"Customer ID"
+//	@Param			body	body	dto.CustomerDisableDTO	true	" body (fields: is_temporary, disable_reason)"
 //	@Param			body	body		customer.CustomerEnableDTO				true	"Enable customer payload"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer enabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required or invalid body"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/customers/{id}/enable [post]
+//	@Router			/customers/enable/{id} [patch]
 func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -149,20 +154,25 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 	localization.SendSuccessResponse(w, localization.CustomerEnableRequestCreatedSuccessfully, nil)
 }
 
-// GetCustomerDetail retrieves customer details with optional KYC level filtering
+// GetCustomerDetail
 //
-//	@Summary		Get customer details
-//	@Description	Retrieves a paginated list of customer details with optional KYC level filtering
+//	@Summary		Get Customer Detail
+//	@Description	Retrieve customer details with pagination, filtering, and search. Searchable fields: full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level.
 //	@Tags			Customers
 //	@Accept			json
 //	@Produce		json
-//	@Param			kyc_level	query		int																false	"KYC Level filter"	default(0)
-//	@Param			page		query		int																false	"Page number"		default(1)
-//	@Param			per_page	query		int																false	"Items per page"	default(10)
-//	@Param			search		query		string															false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=customers_paginated_resp}	"Customer details retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request - Invalid KYC level parameter"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Param			page			query	int		false	"Page number"
+//	@Param			per_page		query	int		false	"Items per page"
+//	@Param			search			query	string	false	"Search term (searches full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level)"
+//	@Param			gender			query	string	false	"Filter by gender"
+//	@Param			branch_code		query	string	false	"Filter by branch code"
+//	@Param			kyc_level		query	int	false	"Filter by KYC level"
+//	@Param			is_blocked		query	bool	false	"Filter by blocked status"
+//	@Param			enabled			query	bool	false	"Filter by enabled status"
+//	@Param			bps_reject_status	query	string	false	"Filter by BPS reject status"
+//	@Success		200	{object}	localization.StandardResponse{data=[]model.User}	"Customer details retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
@@ -217,7 +227,12 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 //	@Produce		json
 //	@Param			page		query		int																false	"Page number"		default(1)
 //	@Param			per_page	query		int																false	"Items per page"	default(10)
-//	@Param			search		query		string															false	"Search term"
+//	@Param			search			query	string	false	"Search term (searches full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level)"
+//	@Param			gender			query	string	false	"Filter by gender"
+//	@Param			branch_code		query	string	false	"Filter by branch code"
+//	@Param			kyc_level		query	int	false	"Filter by KYC level"
+//	@Param			enabled			query	bool	false	"Filter by enabled status"
+//	@Param			bps_reject_status	query	string	false	"Filter by BPS reject status"
 //	@Success		200			{object}	localization.StandardResponse{data=customers_paginated_resp}	"Blocked customers retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
@@ -240,7 +255,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 //
 //	@Summary		Get Customer Linked Account
 //	@Description	Retrives a list of customer linked account
-//	@Tags			Customers Linked Account
+//	@Tags			Customers
 //	@Param			customer_number	path	string	true	"Customer number"
 //	@Produce		json
 //	@Success		200	{object}	localization.StandardResponse{data=customers_paginated_resp}	"Blocked customers retrieved successfully"
@@ -265,10 +280,20 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)
 }
 
-// ApproveFaydaCustomer approves a customer's Fayda application
+// ApproveFaydaCustomer
+//
 //	@Summary		Approve Fayda Customer
 //	@Description	Approves a customer's Fayda application by updating their Fayda risk level
-
+//	@Tags			Customers
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string									true	"Customer ID"
+//	@Param			body	body		customer.FaydaApproveRequest			true	"Fayda approval payload"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Fayda customer approval request sent successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required or invalid body"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/customers/fayda/enable/{id} [post]
 func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request) {
 	var req dto.FaydaApproveRequest
 	id := chi.URLParam(r, "id")

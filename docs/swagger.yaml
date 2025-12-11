@@ -331,6 +331,30 @@ definitions:
       meta:
         $ref: '#/definitions/types.PaginationMeta'
     type: object
+  budget_category.BudgetCategoryResponse:
+    properties:
+      color:
+        example: '#FF5733'
+        type: string
+      created_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+      enabled:
+        example: true
+        type: boolean
+      icon:
+        example: shopping-cart
+        type: string
+      id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      name:
+        example: Monthly Groceries
+        type: string
+      updated_at:
+        example: "2023-01-01T00:00:00Z"
+        type: string
+    type: object
   bulk_service.BulkServiceDTO:
     properties:
       keys:
@@ -616,6 +640,13 @@ definitions:
         example: john.doe.updated
         type: string
     type: object
+  customer.CustomerDisableDTO:
+    properties:
+      disable_reason:
+        type: string
+      is_temporary:
+        type: boolean
+    type: object
   customer.CustomerEnableDTO:
     properties:
       user_otp:
@@ -625,6 +656,11 @@ definitions:
     properties:
       otp:
         type: string
+    type: object
+  customer.FaydaApproveRequest:
+    properties:
+      risk_level:
+        $ref: '#/definitions/constants.RiskLevel'
     type: object
   customer.customer_resp:
     properties:
@@ -5983,6 +6019,375 @@ paths:
       summary: Enable BPS user
       tags:
       - BPS Users
+  /budget-category:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all budget categories with optional filters
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Searchable fields name
+        in: query
+        name: search
+        type: string
+      - description: Status filter (e.g.,true or false)
+        in: query
+        name: enabled
+        type: boolean
+      - description: Status filter by  name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget categories retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/budget_category.BudgetCategoryResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get All Budget Categories
+      tags:
+      - Budget Category
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new budget category with the provided information (multipart/form-data)
+      parameters:
+      - description: Budget category name
+        example: Monthly Groceries
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Hex color code
+        example: '#FF5733'
+        in: formData
+        name: color
+        type: string
+      - description: Icon image file (png, jpg, etc)
+        in: formData
+        name: icon
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget category created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Create Budget Category
+      tags:
+      - Budget Category
+  /budget-category/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a budget category by the provided ID
+      parameters:
+      - description: Budget category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget category delete request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Delete Budget Category
+      tags:
+      - Budget Category
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a budget category by its ID
+      parameters:
+      - description: Budget category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget category retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/budget_category.BudgetCategoryResponse'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Budget category not found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Budget Category by ID
+      tags:
+      - Budget Category
+    patch:
+      consumes:
+      - multipart/form-data
+      description: Update a budget category by the provided ID (multipart/form-data)
+      parameters:
+      - description: Budget category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Budget category name
+        example: Monthly Groceries
+        in: formData
+        name: name
+        type: string
+      - description: Hex color code
+        example: '#FF5733'
+        in: formData
+        name: color
+        type: string
+      - description: Icon image file (png, jpg, etc)
+        in: formData
+        name: icon
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget category update request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Update Budget Category
+      tags:
+      - Budget Category
+  /budget-category/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disable a budget category by the provided ID
+      parameters:
+      - description: Budget category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget category disable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable Budget Category
+      tags:
+      - Budget Category
+  /budget-category/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enable a budget category by the provided ID
+      parameters:
+      - description: Budget category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget category enable request submitted successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable Budget Category
+      tags:
+      - Budget Category
   /bulk_services:
     get:
       consumes:
@@ -5999,9 +6404,17 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Search term access_list_name and key
         in: query
         name: search
+        type: string
+      - description: Search term
+        in: query
+        name: ussd_enabled
+        type: string
+      - description: Search term
+        in: query
+        name: enabled
         type: string
       produces:
       - application/json
@@ -6148,9 +6561,21 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search terms(full_name,username,user_code,phone_number)
+      - description: Search terms(full_name,email,username,user_code,phone_number)
         in: query
         name: search
+        type: string
+      - description: true or false
+        in: query
+        name: enabled
+        type: boolean
+      - description: CPS user department
+        in: query
+        name: department
+        type: string
+      - description: CPS user department
+        in: query
+        name: role
         type: string
       produces:
       - application/json
@@ -6492,27 +6917,46 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieves a paginated list of customer details with optional KYC
-        level filtering
+      description: 'Retrieve customer details with pagination, filtering, and search.
+        Searchable fields: full_name, phone_number, gender, user_name, user_code,
+        is_blocked, kyc_level.'
       parameters:
-      - default: 0
-        description: KYC Level filter
-        in: query
-        name: kyc_level
-        type: integer
-      - default: 1
-        description: Page number
+      - description: Page number
         in: query
         name: page
         type: integer
-      - default: 10
-        description: Items per page
+      - description: Items per page
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Search term (searches full_name, phone_number, gender, user_name,
+          user_code, is_blocked, kyc_level)
         in: query
         name: search
+        type: string
+      - description: Filter by gender
+        in: query
+        name: gender
+        type: string
+      - description: Filter by branch code
+        in: query
+        name: branch_code
+        type: string
+      - description: Filter by KYC level
+        in: query
+        name: kyc_level
+        type: integer
+      - description: Filter by blocked status
+        in: query
+        name: is_blocked
+        type: boolean
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Filter by BPS reject status
+        in: query
+        name: bps_reject_status
         type: string
       produces:
       - application/json
@@ -6524,10 +6968,12 @@ paths:
             - $ref: '#/definitions/localization.StandardResponse'
             - properties:
                 data:
-                  $ref: '#/definitions/customer.customers_paginated_resp'
+                  items:
+                    $ref: '#/definitions/model.User'
+                  type: array
               type: object
         "400":
-          description: Bad request - Invalid KYC level parameter
+          description: Bad request
           schema:
             allOf:
             - $ref: '#/definitions/localization.StandardResponse'
@@ -6546,7 +6992,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: Get customer details
+      summary: Get Customer Detail
       tags:
       - Customers
   /customers/{id}:
@@ -6603,104 +7049,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get customer by ID
-      tags:
-      - Customers
-  /customers/{id}/disable:
-    post:
-      consumes:
-      - application/json
-      description: Disables a customer by their ID
-      parameters:
-      - description: Customer ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Customer disabled successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Customer ID required
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Disable customer
-      tags:
-      - Customers
-  /customers/{id}/enable:
-    post:
-      consumes:
-      - application/json
-      description: Enables a customer by their ID using OTP
-      parameters:
-      - description: Customer ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Enable customer payload
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/customer.CustomerEnableDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Customer enabled successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad request - Customer ID required or invalid body
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal server error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Enable customer
       tags:
       - Customers
   /customers/{id}/enable-session:
@@ -6766,9 +7114,30 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Search term (searches full_name, phone_number, gender, user_name,
+          user_code, is_blocked, kyc_level)
         in: query
         name: search
+        type: string
+      - description: Filter by gender
+        in: query
+        name: gender
+        type: string
+      - description: Filter by branch code
+        in: query
+        name: branch_code
+        type: string
+      - description: Filter by KYC level
+        in: query
+        name: kyc_level
+        type: integer
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Filter by BPS reject status
+        in: query
+        name: bps_reject_status
         type: string
       produces:
       - application/json
@@ -6803,6 +7172,169 @@ paths:
       security:
       - BearerAuth: []
       summary: Get blocked customers
+      tags:
+      - Customers
+  /customers/disable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Disables a customer by their ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ' body (fields: is_temporary, disable_reason)'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerDisableDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer disabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Disable customer
+      tags:
+      - Customers
+  /customers/enable/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Enables a customer by their ID using OTP
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ' body (fields: is_temporary, disable_reason)'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerDisableDTO'
+      - description: Enable customer payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerEnableDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Customer enabled successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required or invalid body
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Enable customer
+      tags:
+      - Customers
+  /customers/fayda/enable/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Approves a customer's Fayda application by updating their Fayda
+        risk level
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fayda approval payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/customer.FaydaApproveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fayda customer approval request sent successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad request - Customer ID required or invalid body
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Approve Fayda Customer
       tags:
       - Customers
   /customers/linked_account/{customer_number}:
@@ -6848,26 +7380,50 @@ paths:
       - BearerAuth: []
       summary: Get Customer Linked Account
       tags:
-      - Customers Linked Account
+      - Customers
   /departments:
     get:
       consumes:
       - application/json
-      description: Retrieve departments with pagination and optional search
+      description: 'Retrieve all departments with pagination, filtering, and search.
+        Searchable fields: department_code, department, created_at, last_modified_at.'
       parameters:
-      - default: 1
-        description: Page number
+      - description: Page number
         in: query
         name: page
         type: integer
-      - default: 10
-        description: Items per page
+      - description: Items per page
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Search term (searches department_code, department, created_at,
+          last_modified_at)
         in: query
         name: search
+        type: string
+      - description: Filter by department code
+        in: query
+        name: department_code
+        type: string
+      - description: Filter by department name
+        in: query
+        name: department
+        type: string
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Filter by deleted status
+        in: query
+        name: is_deleted
+        type: boolean
+      - description: Filter by created at
+        in: query
+        name: created_at
+        type: string
+      - description: Filter by last modified
+        in: query
+        name: last_modified
         type: string
       produces:
       - application/json
@@ -6883,6 +7439,15 @@ paths:
                     $ref: '#/definitions/model.Department'
                   type: array
               type: object
+        "400":
+          description: Bad request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
         "500":
           description: Internal server error
           schema:
@@ -6894,7 +7459,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: List departments
+      summary: Get All Departments
       tags:
       - Department
     post:

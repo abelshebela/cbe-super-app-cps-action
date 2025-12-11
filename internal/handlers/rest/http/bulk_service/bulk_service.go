@@ -41,7 +41,9 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 //	@Produce		json
 //	@Param			page		query		int																	false	"Page number"		default(1)
 //	@Param			per_page	query		int																	false	"Items per page"	default(10)
-//	@Param			search		query		string																false	"Search term"
+//	@Param			search		query		string																false	"Search term access_list_name and key"
+//	@Param			ussd_enabled		query		string														false	"Search term"
+//	@Param			enabled		query		string																false	"Search term"
 //	@Success		200			{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
