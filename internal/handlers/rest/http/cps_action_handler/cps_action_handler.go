@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type cps_action_resp *model.CPSAction
@@ -49,6 +50,8 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 //	@Security		BearerAuth
 //	@Router			/actions/{action_code}/approve [patch]
 func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "approveCpsAction", "handler", "cpsAction")
+	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 
 	userData, err := local_util.ParseUserContext(r)
@@ -57,16 +60,19 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	// First, retrieve the existing CPS action to get ALL the data
-	action, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
+	span.SetAttributes(attribute.String("cps_action.code", actionCode))
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, userData.Department)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	approvalAction := core.MapCPSActionToApproval(action, &userData)
 	// Then, approve the action
-	if err := a.cpsActionApplication.ApproveCPSAction(r.Context(), approvalAction); err != nil {
+	if err := a.cpsActionApplication.ApproveCPSAction(ctx, approvalAction); err != nil {
 		fmt.Printf("Errors : %v\n", err)
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -90,6 +96,8 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/actions/{action_code}/reject [patch]
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "rejectCpsAction", "handler", "cpsAction")
+	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	var req cpsactionDto.ActionRequest
 	userData, err := local_util.ParseUserContext(r)
@@ -99,6 +107,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.ErrorCPSActionRejectionPayloadDecodeFailed.Message)
 		return
 	}
@@ -108,7 +117,12 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := a.cpsActionApplication.RejectCPSAction(r.Context(), actionCode, &model.CPSAction{
+	span.SetAttributes(
+		attribute.String("cps_action.code", actionCode),
+		attribute.String("cps_action.rejection_reason", req.RejectionReason),
+	)
+
+	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, &model.CPSAction{
 		ActionCode:         actionCode,
 		ActionStatus:       constants.Rejected,
 		RejectionReason:    req.RejectionReason,
@@ -148,12 +162,17 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 		return
 	}
 
-	actions, err := a.cpsActionApplication.GetCPSActionsByDepartment(r.Context(), userData.Department, filterParams)
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionsByDepartment", "handler", "cpsAction")
+	defer span.End()
+
+	actions, err := a.cpsActionApplication.GetCPSActionsByDepartment(ctx, userData.Department, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.String("cps_action.department", userData.Department))
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
 }
 
@@ -172,6 +191,8 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/actions/by-id/{action_id} [get]
 func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionById", "handler", "cpsAction")
+	defer span.End()
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
@@ -180,8 +201,14 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 
 	actionID := chi.URLParam(r, string(constants.ActionID))
 
-	action, err := a.cpsActionApplication.GetCPSActionByID(r.Context(), actionID, userData.Department)
+	span.SetAttributes(
+		attribute.String("cps_action.id", actionID),
+		attribute.String("cps_action.department", userData.Department),
+	)
+
+	action, err := a.cpsActionApplication.GetCPSActionByID(ctx, actionID, userData.Department)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorResponse(w, localization.ErrorInternalServerError, nil, nil)
 		return
 	}
@@ -204,6 +231,8 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/actions/by-action-code/{action_code} [get]
 func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionByCode", "handler", "cpsAction")
+	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -211,8 +240,14 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 		return
 	}
 
-	action, err := a.cpsActionApplication.GetCPSActionByActionCode(r.Context(), actionCode, userData.Department)
+	span.SetAttributes(
+		attribute.String("cps_action.code", actionCode),
+		attribute.String("cps_action.department", userData.Department),
+	)
+
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, userData.Department)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -221,14 +256,19 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 }
 
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionCounts", "handler", "cpsAction")
+	defer span.End()
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
 
-	actions, err := a.cpsActionApplication.GetActionCountsByDepartemnt(r.Context(), userData.Department)
+	span.SetAttributes(attribute.String("cps_action.department", userData.Department))
+
+	actions, err := a.cpsActionApplication.GetActionCountsByDepartemnt(ctx, userData.Department)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

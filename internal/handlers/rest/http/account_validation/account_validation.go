@@ -12,6 +12,8 @@ import (
 
 	"net/http"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -44,14 +46,19 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 //	@Security		BearerAuth
 //	@Router			/account_validation/{id} [get]
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findAccountValidationById", "handler", "accountValidation")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequest.Code)
 		return
 	}
 
-	resp, err := h.accountValidationService.FindById(r.Context(), id)
+	span.SetAttributes(attribute.String("account_validation.id", id))
+
+	resp, err := h.accountValidationService.FindById(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[FindById] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -79,11 +86,14 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_validation/update/{id} [patch]
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAccountValidation", "handler", "accountValidation")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 
 	// ─── Parse Request Body ───────────────────────────────────────────────
 	var req account_validation_dto.ValidationRuleDTO
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Update] failed to decode request: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorValidationRuleConvertIDFailed, nil, nil)
 		return
@@ -96,6 +106,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		// assuming Validate returns a custom error with code
 		localization.SendErrorResponse(w, localization.ErrorValidationFailed, nil, nil)
 		return
@@ -103,7 +114,12 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
 	rule := account_validation_dto.ToModel(req)
-	if err := h.accountValidationService.Update(r.Context(), id, rule); err != nil {
+	span.SetAttributes(
+		attribute.String("account_validation.id", id),
+		attribute.String("account_validation.identifier", req.Identifier),
+	)
+	if err := h.accountValidationService.Update(ctx, id, rule); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[Update] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -130,15 +146,17 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/account_validation [get]
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllAccountValidation", "handler", "accountValidation")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
 	accountValidation, err := s.accountValidationService.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
+		span.RecordError(err)
 		s.logger.Errorf("[FindAllWithPagination] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
