@@ -53,13 +53,13 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		b.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
 		b.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	actionData := bank_core.Bank_mapper(actionMap.(map[string]interface{}))
@@ -123,7 +123,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		b.logger.Errorf("[CreateOneBank] incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, "banks", *b.cfg, "", b.logger)
@@ -184,7 +184,7 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		b.logger.Errorf("[DeleteOneBank] incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 	bank, err := b.repo.FindByID(ctx, id)
 
@@ -212,7 +212,7 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		b.logger.Errorf("[EnableOrDisableBank] incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -273,7 +273,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		b.logger.Errorf("[UpdateLogo] incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -316,7 +316,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		b.logger.Errorf("[UpdateOneBank] incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
@@ -358,7 +358,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		)
 		if err != nil {
 			b.logger.Errorf("UploadFileToMinio failed", "error", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
+			return errors.New(localization.ErrorFileUploadFailed.Code)
 		}
 
 		logoUrl = URL

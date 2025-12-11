@@ -47,12 +47,12 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 	b, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		d.logger.Errorf("[Authorize] failed to marshal CurrentAction: %v", err)
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	err = json.Unmarshal(b, &actionMap)
 	if err != nil {
 		d.logger.Errorf("[Authorize] failed to unmarshal CurrentAction: %v", err)
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	actionData := department_core.Department_mapper(actionMap)
@@ -96,7 +96,7 @@ func (d *DepartmentService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		d.logger.Infof("[Authorize] department updated successfully with id: %s", actionData.ID.Hex())
 	default:
 		d.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
-		return nil, fmt.Errorf("%s", localization.MsgDepartmentInvalidRequestAction)
+		return nil, errors.New(localization.ErrorInvalidRequiredAction.Code)
 	}
 	d.logger.Infof("[Authorize] department action authorized successfully: %s", cpsAction.RequestAction)
 	return cpsAction, nil
@@ -107,7 +107,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
 		d.logger.Errorf("Create Department failed incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	new_department := model.Department{
@@ -120,7 +120,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 	existing_department, err := d.repo.FindByName(ctx, department.Department)
 	code, _ := local_util.HandleMongoError(err)
 	if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
-		return fmt.Errorf("%s", localization.ErrorDepartmentWithNameAlreadyExists.Code)
+		return errors.New(localization.ErrorDepartmentWithNameAlreadyExists.Code)
 	}
 
 	action := lib.CpsModelBuilder("", makerData, nil, new_department, string(constants.RequestCreateDepartment), constants.CREATE)
@@ -136,7 +136,7 @@ func (d *DepartmentService) CreateDepartment(ctx context.Context, department dep
 func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	department, err := d.repo.FindByID(ctx, id)
 	code, _ := local_util.HandleMongoError(err)
@@ -149,10 +149,10 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 	}
 
 	if department.Enabled && enableDisable {
-		return fmt.Errorf("%s", localization.ErrorDepartmentAlreadyEnabled.Code)
+		return errors.New(localization.ErrorDepartmentAlreadyEnabled.Code)
 	}
 	if !department.Enabled && !enableDisable {
-		return fmt.Errorf("%s", localization.ErrorDepartmentAlreadyDisabled.Code)
+		return errors.New(localization.ErrorDepartmentAlreadyDisabled.Code)
 	}
 
 	new_department := *department
@@ -186,7 +186,7 @@ func (d *DepartmentService) GetDepartmentByID(ctx context.Context, id string) (*
 	code, _ := local_util.HandleMongoError(err)
 	if code == localization.ErrorResourceNotFound.Code {
 		d.logger.Errorf("[GetDepartmentByID] department not found: %s", id)
-		return nil, fmt.Errorf("%s", code)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	if err != nil {
 		d.logger.Errorf("[GetDepartmentByID] failed to fetch department: %v", err)
@@ -201,7 +201,7 @@ func (d *DepartmentService) GetDepartmentByID(ctx context.Context, id string) (*
 func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, department_request department_dto.UpdateDepartmentRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	department, err := d.repo.FindByID(ctx, id)
@@ -214,7 +214,7 @@ func (d *DepartmentService) UpdateDepartment(ctx context.Context, id string, dep
 		existing_department, err := d.repo.FindByName(ctx, department_request.Department)
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code && existing_department != nil {
-			return fmt.Errorf("%s", localization.ErrorDepartmentWithNameAlreadyExists.Code)
+			return errors.New(localization.ErrorDepartmentWithNameAlreadyExists.Code)
 		}
 	}
 

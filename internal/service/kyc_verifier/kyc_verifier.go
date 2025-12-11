@@ -113,7 +113,7 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 	case string(constants.RequestUpdateKYC):
 		updated, err := local_util.JsonUnmarshal[model.CustomerKYC](action.CurrentAction)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
 		lib.GoRoutinBaker(types.BakerOptions{}, func() {
@@ -132,18 +132,23 @@ func (s *KYCVerifier) Authorize(ctx context.Context, action *model.CPSAction) (*
 			if err := core.AccountCreateAndLink(bgCtx, *action, action.UniqueId, *user, s.accountService, s.userRepo, s.linkedAccountRepo, s.logger); err != nil {
 				s.logger.Errorf("[KYCVerifier] Error creating account in job proccess: %v", err)
 			}
+
 		})
 
 	case string(constants.RequestApproveKYC):
 		// CurrentAction contains the fully-updated CustomerKYC
 		updated, err := local_util.JsonUnmarshal[model.CustomerKYC](action.CurrentAction)
 		if err != nil {
-			return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 		if err := s.repo.Update(ctx, action.UniqueId, updated); err != nil {
 			return nil, err
 		}
 
+		// update user
+		if err := core.MapandUpdateuserFromKYC(ctx, s.userRepo, *updated, s.logger); err != nil {
+			s.logger.Errorf("[KYCVerifier] Error updating user in job proccess: %v", err)
+		}
 	default:
 		s.logger.Errorf("Unsupported action requested: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)

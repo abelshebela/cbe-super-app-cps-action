@@ -68,7 +68,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 	isDuplicate, err := s.Repository.FindByTitle(ctx, ad.Title)
 	if err != nil {
 		s.logger.Errorf("[CreateAdvert] failed to check for duplicate advert: %v", err)
-		return errors.New(localization.ErrorUnhandledServer.Code)
+		return err
 	}
 	if isDuplicate != nil {
 		s.logger.Errorf("[CreateAdvert] duplicate advert title found")
@@ -78,7 +78,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
 	if err != nil {
 		s.logger.Errorf("[CreateAdvert] failed to upload banner image: %v", err)
-		return errors.New(localization.MsgFileUploadFailed)
+		return errors.New(localization.ErrorFileUploadFailed.Code)
 	}
 
 	// update banner image url after uploading
@@ -129,7 +129,7 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		isDuplicate, err := s.Repository.FindByTitle(ctx, ad.Title)
 		if err != nil {
 			s.logger.Errorf("[UpdateAdvert] failed to check for duplicate advert: %v", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
+			return err
 		}
 		if isDuplicate != nil && isDuplicate.ID.Hex() != id {
 			s.logger.Errorf("[UpdateAdvert] duplicate advert title found")

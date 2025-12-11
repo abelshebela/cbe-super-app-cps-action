@@ -77,12 +77,12 @@ func UserBuilder(update model.User) bson.M {
 	if update.PhoneNumber != "" {
 		data["phone_number"] = update.PhoneNumber
 	}
-
 	if update.Gender != "" {
 		data["gender"] = update.Gender
 	}
 	if update.Avatar != "" {
 		data["photo"] = update.Avatar
+		data["avatar"] = update.Avatar
 	}
 	if update.Email != "" {
 		data["email"] = update.Email
@@ -105,11 +105,38 @@ func UserBuilder(update model.User) bson.M {
 	if update.ProfileThemeType != "" {
 		data["profile_theme_type"] = update.ProfileThemeType
 	}
-	if update.Avatar != "" {
-		data["avatar"] = update.Avatar
-	}
 	if update.IsBlocked {
 		data["is_blocked"] = update.IsBlocked
+	}
+	if update.Address.Zone != "" {
+		data["address.zone"] = update.Address.Zone
+	}
+	if update.Address.Kebele != "" {
+		data["address.kebele"] = update.Address.Kebele
+	}
+	if update.Address.Woreda != "" {
+		data["address.woreda"] = update.Address.Woreda
+	}
+	if update.Address.Region != "" {
+		data["address.region"] = update.Address.Region
+	}
+	if update.BranchName != "" {
+		data["branch_name"] = update.BranchName
+	}
+	if update.DistrictName != "" {
+		data["district_name"] = update.DistrictName
+	}
+	if update.BranchCode != "" {
+		data["branch_code"] = update.BranchCode
+	}
+	if update.DistrictCode != "" {
+		data["district_code"] = update.DistrictCode
+	}
+	if update.ResidentialStatus != "" {
+		data["residential_status"] = update.ResidentialStatus
+	}
+	if !update.IssuedDate.IsZero() {
+		data["issued_date"] = update.IssuedDate
 	}
 
 	return data

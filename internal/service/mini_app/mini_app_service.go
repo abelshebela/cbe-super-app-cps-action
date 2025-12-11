@@ -35,7 +35,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	switch cpsAction.RequestAction {

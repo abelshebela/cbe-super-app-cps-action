@@ -111,7 +111,7 @@ func (s *ServiceDetails) GetServiceFeeDetail(ctx context.Context, id string) (*d
 func (s *ServiceDetails) UpdateServiceFee(ctx context.Context, id string, req dto.ServiceFeeDetailDTO) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	projection := bson.M{
 		"tiers": 1,
@@ -167,7 +167,7 @@ func (s *ServiceDetails) UpdateSingleMaxTransfer(ctx context.Context, id string,
 func (s *ServiceDetails) UpdateTotalMaxTransferCap(ctx context.Context, req dto.TotalMaxTransferUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	err := core.ValidateTotalCapAgainstServices(ctx, s.serviceRepo, s.logger, req.TotalTransferLimit)
 	if err != nil {
@@ -193,7 +193,7 @@ func (s *ServiceDetails) UpdateTotalMaxTransferCap(ctx context.Context, req dto.
 func (s *ServiceDetails) UpdateMinimumTransferCap(ctx context.Context, id string, req dto.MinimumTransferUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	projection := bson.M{
 		"cap": 1,
@@ -243,7 +243,7 @@ func (s *ServiceDetails) DeleteServiceFeeTire(ctx context.Context, id string) er
 	s.logger.Infof("Deleting service fee tire for id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	projection := bson.M{
 		"tiers": 1,
