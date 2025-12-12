@@ -470,6 +470,7 @@ type ServiceContainer struct {
 	AccountLookup              AccountSearchService
 	BulkServiceContainer       BulkService
 	ServiceCheckContainer      ServiceService
+	ServicesContainer          ServicesService
 	DeviceVersionContainer     DeviceVersionServiceSrv
 	KeyGenService              KeyGeneratorService
 	NotificationService        NotificationService

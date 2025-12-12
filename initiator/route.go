@@ -123,7 +123,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
-	service.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
+	service.Init(r, handlerLayer.ServicesHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)

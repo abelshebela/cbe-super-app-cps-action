@@ -57,17 +57,4 @@ type Services struct {
 	CreatedAt            time.Time    `bson:"created_at" json:"created_at"`
 	LastModifiedAt       time.Time    `bson:"last_modified_at" json:"last_modified_at"`
 	DeletedAt            *time.Time   `bson:"deleted_at" json:"deleted_at"`
-	AboveAmountDup       int64        `bson:"above_amount" json:"above_amount"`
-	AboveServiceFeeDup   int64        `bson:"above_service_fee" json:"above_service_fee"`
-	// CbeGLEntryDup         GLEntry      `bson:"cbeGLEntry" json:"cbeGLEntry"`
-	// CbeIfbGLEntryDup      GLEntry      `bson:"cbeIfbGLEntry" json:"cbeIfbGLEntry"`
-	CbeIfbProductCodesDup ProductCodes `bson:"cbeIfbProductCodes" json:"cbeIfbProductCodes"`
-	CbeProductCodesDup    ProductCodes `bson:"cbeProductCodes" json:"cbeProductCodes"`
-	DeletedAtDup          *time.Time   `bson:"deletedAt" json:"deletedAt"`
-	IsDeletedDup          bool         `bson:"isDeleted" json:"isDeleted"`
-	LastModifiedAtDup     time.Time    `bson:"lastModifiedAt" json:"lastModifiedAt"`
-	PaymentTypeDup        string       `bson:"paymentType" json:"paymentType"`
-	ServiceCodeDup        string       `bson:"serviceCode" json:"serviceCode"`
-	ServiceNameDup        string       `bson:"serviceName" json:"serviceName"`
-	ServiceTypeDup        string       `bson:"serviceType" json:"serviceType"`
 }
