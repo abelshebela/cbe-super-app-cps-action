@@ -1,0 +1,38 @@
+@startuml
+title Bank Entity Model
+
+class Bank {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Bank Details**
+  --
+  + Name : string
+  + Code : string
+  + BIC : string
+  + Logo : string
+  --
+  **Status**
+  --
+  + Enabled : bool
+  + IsDeleted : bool
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastModifiedAt : time.Time
+}
+
+note right of Bank::Code
+  Unique identifier for the bank
+end note
+
+note bottom of Bank
+  **Field Descriptions:**
+  **Name**: Full name of the bank
+  **BIC**: Bank Identifier Code
+  **Logo**: URL or path to bank logo
+  **Enabled**: Active status
+end note
+@enduml

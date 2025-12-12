@@ -1,0 +1,56 @@
+@startuml
+!define RECTANGLE class
+
+skinparam rectangle {
+    BackgroundColor<<External>> LightBlue
+    BackgroundColor<<Internal>> LightGreen
+    BackgroundColor<<Core>> Gold
+    BorderColor Black
+    FontSize 12
+}
+
+rectangle "External Systems" <<External>> {
+    rectangle "Mobile App\n(iOS/Android)" as mobile
+    rectangle "Web Portal\n(Admin Dashboard)" as web
+    rectangle "Core Banking\nSystem" as cbs
+}
+
+rectangle "CPS Action Service" <<Core>> {
+    rectangle "API Gateway\n(Chi Router)" as api
+    rectangle "Action Manager\n(Maker-Checker)" as manager
+    rectangle "Dispatcher\n(Action Router)" as dispatcher
+    rectangle "Service Container\n(41 Modules)" as container
+}
+
+rectangle "Supporting Services" <<Internal>> {
+    rectangle "User Service\n(Authentication)" as user
+    rectangle "Notification Service\n(SMS/Email)" as notif
+    rectangle "Audit Service\n(Logging)" as audit
+    rectangle "Session Service\n(gRPC)" as session
+}
+
+rectangle "Data Layer" {
+    database "MongoDB\n(Actions DB)" as mongo
+    database "Redis\n(Cache)" as redis
+    database "Oracle\n(Core Banking)" as oracle
+    queue "Kafka\n(Events)" as kafka
+    storage "MinIO\n(File Storage)" as minio
+}
+
+mobile --> api
+web --> api
+api --> manager
+manager --> dispatcher
+dispatcher --> container
+container --> user
+container --> notif
+container --> audit
+container --> session
+manager --> mongo
+manager --> redis
+container --> oracle
+container --> kafka
+container --> minio
+cbs <--> oracle
+
+@enduml

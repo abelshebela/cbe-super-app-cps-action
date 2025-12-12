@@ -1,0 +1,40 @@
+@startuml
+title Permission Group Entity Model
+
+class PermissionGroup {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Group Details**
+  --
+  + GroupName : string
+  + Permissions : interface{}
+  + PermissionCategory : interface{}
+  + DepartmentID : string
+  + Role : string
+  + Realm : string
+  --
+  **Status**
+  --
+  + Enabled : bool
+  + IsDeleted : bool
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastModified : time.Time
+}
+
+note right of PermissionGroup::Permissions
+  Specific permissions granted 
+  to this group
+end note
+
+note bottom of PermissionGroup
+  **Field Descriptions:**
+  **GroupName**: Name of the permission group
+  **DepartmentID**: Associated department
+  **Role**: Role associated with this group
+end note
+@enduml

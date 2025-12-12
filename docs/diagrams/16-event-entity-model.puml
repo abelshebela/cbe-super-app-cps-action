@@ -1,0 +1,49 @@
+@startuml
+title Event Entity Model
+
+class EventDocument {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Event Details**
+  --
+  + EventCode : string
+  + EventName : string
+  + EventCity : string
+  + EventVenue : string
+  + AccountNumber : string
+  --
+  **Configuration**
+  --
+  + RefundPolicy : []string
+  + MICSInfo : []string
+  + Restriction : types.Restriction
+  + Ticket : []types.Ticket
+  + EventInformation : types.EventInformation
+  --
+  **Status**
+  --
+  + Status : constants.EventStatus
+  + Enabled : bool
+  + IsDeleted : bool
+  + HasRestriction : bool
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastModifiedAt : time.Time
+  + DeletedAt : time.Time
+}
+
+note right of EventDocument::Ticket
+  Ticket types and pricing
+end note
+
+note bottom of EventDocument
+  **Field Descriptions:**
+  **EventCode**: Unique event identifier
+  **AccountNumber**: Bank account for revenue
+  **Restriction**: Age or other restrictions
+end note
+@enduml

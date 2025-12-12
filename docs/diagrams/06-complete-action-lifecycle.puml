@@ -1,0 +1,72 @@
+@startuml
+title Complete CPS Action Lifecycle
+
+|Maker|
+start
+:Submit Action Request;
+:Provide Action Details;
+
+|CPS Action Service|
+:Validate Request;
+:Check Maker Permissions;
+
+if (Permissions Valid?) then (yes)
+  :Generate Action Code;
+  :Save to MongoDB\n(status: PENDING);
+  :Publish Kafka Event\n(ActionCreated);
+  :Notify Checker;
+  |Maker|
+  :Receive Confirmation;
+else (no)
+  |Maker|
+  :Receive Error\n(Unauthorized);
+  stop
+endif
+
+|Checker|
+:Review Pending Action;
+:Examine Details;
+
+if (Approve or Reject?) then (Approve)
+  :Submit Approval;
+  |CPS Action Service|
+  :Validate Checker Role;
+  :Update Status(APPROVED);
+  :Dispatch to Target Service;
+  
+  |Target Service|
+  :Execute Action;
+  
+  if (Execution Success?) then (yes)
+    :Return Success;
+    |CPS Action Service|
+    :Update Action\n(completed_at);
+    :Publish Kafka Event\n(ActionCompleted);
+    :Notify Maker;
+    |Maker|
+    :Receive Success Notification;
+    stop
+  else (no)
+    :Return Error;
+    |CPS Action Service|
+    :Update Status(FAILED);
+    :Log Error Details;
+    :Notify Maker;
+    |Maker|
+    :Receive Failure Notification;
+    stop
+  endif
+  
+else (Reject)
+  :Submit Rejection\n+ Reason;
+  |CPS Action Service|
+  :Update Status(REJECTED);
+  :Save Rejection Reason;
+  :Publish Kafka Event\n(ActionRejected);
+  :Notify Maker;
+  |Maker|
+  :Receive Rejection\nNotification;
+  stop
+endif
+
+@enduml

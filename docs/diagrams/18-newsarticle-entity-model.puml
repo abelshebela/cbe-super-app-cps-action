@@ -1,0 +1,51 @@
+@startuml
+title News Article Entity Model
+
+class NewsArticle {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Content**
+  --
+  + Title : string
+  + Content : string
+  + Slug : string
+  + Author : string
+  + CategoryID : ObjectID
+  + Tags : []ObjectID
+  --
+  **Media**
+  --
+  + Thumbnail : string
+  + ThumbnailAltText : string
+  --
+  **Engagement**
+  --
+  + Views : int
+  + CopyLinkCounter : int
+  --
+  **Status**
+  --
+  + IsPublished : bool
+  + IsDeleted : bool
+  + PublishedAt : *time.Time
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + UpdatedAt : time.Time
+  + DeletedAt : *time.Time
+}
+
+note right of NewsArticle::Slug
+  URL-friendly title
+end note
+
+note bottom of NewsArticle
+  **Field Descriptions:**
+  **CategoryID**: News category
+  **IsPublished**: Visibility status
+  **Views**: Read count
+end note
+@enduml

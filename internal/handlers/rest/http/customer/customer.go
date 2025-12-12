@@ -13,13 +13,9 @@ import (
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
 
-<<<<<<< HEAD
-=======
-	"go.opentelemetry.io/otel/attribute"
-
->>>>>>> dev
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type customer_resp *model.User

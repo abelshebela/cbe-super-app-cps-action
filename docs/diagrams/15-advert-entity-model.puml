@@ -1,0 +1,41 @@
+@startuml
+title Advert Entity Model
+
+class Advert {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Content**
+  --
+  + Title : string
+  + Description : string
+  + BannerImage : string
+  --
+  **Targeting**
+  --
+  + AdvertFor : constants.AdvertFor
+  --
+  **Status**
+  --
+  + Enabled : bool
+  + IsDeleted : bool
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastUpdatedAt : time.Time
+  + DeletedAt : time.Time
+}
+
+note right of Advert::AdvertFor
+  Target audience/location 
+  for the advertisement
+end note
+
+note bottom of Advert
+  **Field Descriptions:**
+  **BannerImage**: URL to ad banner
+  **AdvertFor**: Where the ad is displayed
+end note
+@enduml

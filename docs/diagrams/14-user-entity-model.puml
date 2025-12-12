@@ -1,0 +1,76 @@
+@startuml
+title User Entity Model
+
+class User {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Identity**
+  --
+  + UserCode : string
+  + FullName : string
+  + MotherName : string
+  + Nationality : string
+  + BirthDate : time.Time
+  + Gender : constants.Gender
+  + PhoneNumber : string
+  + Email : string
+  + Username : string
+  --
+  **Location**
+  --
+  + BranchName : string
+  + DistrictName : string
+  + BranchCode : string
+  + DistrictCode : string
+  + Address : types.Address
+  --
+  **Fayda Integration**
+  --
+  + FaydaID : string
+  + FaydaRiskLevel : constants.RiskLevel
+  + EmploymentStatus : string
+  + MonthlyIncome : uint64
+  --
+  **Account Details**
+  --
+  + AccountType : constants.AccountType
+  + MainAccount : string
+  + AccountStatus : constants.AccountStatus
+  + MemberType : constants.MemberType
+  + IsAccountBlocked : bool
+  + BlockedReason : string
+  --
+  **KYC**
+  --
+  + KYCLevel : uint8
+  + KYCStatus : constants.KYCStatus
+  + IsVerified : bool
+  + IsActivated : bool
+  --
+  **Device & App**
+  --
+  + DeviceUUID : string
+  + AppVersion : string
+  + Platform : constants.Platform
+  + PushToken : string
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastModifiedAt : time.Time
+  + LastLogin : time.Time
+}
+
+note right of User::FaydaID
+  National ID integration
+end note
+
+note bottom of User
+  **Field Descriptions:**
+  **UserCode**: Unique user identifier
+  **KYCLevel**: Customer verification level
+  **MainAccount**: Primary bank account number
+end note
+@enduml

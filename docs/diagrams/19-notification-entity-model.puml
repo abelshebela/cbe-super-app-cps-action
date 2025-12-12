@@ -1,0 +1,45 @@
+@startuml
+title Notification Entity Model
+
+class Notification {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Content**
+  --
+  + Title : string
+  + NotificationBody : string
+  + NotificationType : string
+  + NotificationParts : any
+  --
+  **Targeting**
+  --
+  + IsPublic : bool
+  + For : constants.NotificationFor
+  --
+  **Status**
+  --
+  + Status : constants.NotificationStatus
+  + Seen : bool
+  + Enabled : bool
+  + IsDeleted : bool
+  --
+  **Metadata**
+  --
+  + CreatedBy : string
+  + CreatedAt : time.Time
+  + LastModified : time.Time
+  + DeletedAt : time.Time
+}
+
+note right of Notification::For
+  Target audience (e.g., All, Specific User)
+end note
+
+note bottom of Notification
+  **Field Descriptions:**
+  **NotificationType**: Type (e.g., Info, Alert)
+  **IsPublic**: Visible to all users?
+end note
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title Department Entity Model
+
+class Department {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **Department Info**
+  --
+  + DepartmentCode : string
+  + Department : string
+  + PortalCards : []string
+  --
+  **Status**
+  --
+  + Enabled : bool
+  + IsDeleted : bool
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastModified : time.Time
+}
+
+note right of Department::DepartmentCode
+  Unique code for the department
+end note
+
+note bottom of Department
+  **Field Descriptions:**
+  **Department**: Name of the department
+  **PortalCards**: List of accessible portal cards/features
+end note
+@enduml

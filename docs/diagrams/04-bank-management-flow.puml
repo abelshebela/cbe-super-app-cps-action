@@ -1,0 +1,29 @@
+@startuml
+actor Maker
+participant "API Gateway" as API
+participant "CPS Action\nService" as CPS
+participant "Bank\nService" as Bank
+participant "MinIO\nStorage" as MinIO
+database MongoDB
+actor Checker
+
+== Create Bank ==
+Maker -> CPS: CreateAction(CREATE_BANK)\n{bank_code, name, logo}
+CPS -> Bank: ValidateBankCode(bank_code)
+Bank --> CPS: Code Available
+CPS -> MinIO: UploadLogo(logo_file)
+MinIO --> CPS: Logo URL
+CPS -> MongoDB: Save CPSAction\n(status: PENDING,\ncurrent_action: bank_data)
+CPS --> Maker: Action Created
+
+== Checker Approval ==
+Checker -> CPS: ApproveAction(action_id)
+CPS -> MongoDB: Get CPSAction
+MongoDB --> CPS: Action Data
+CPS -> Bank: CreateBank(bank_data)
+Bank -> MongoDB: Insert Bank Document
+Bank --> CPS: Bank Created
+CPS -> MongoDB: Update Action(APPROVED)
+CPS --> Checker: Bank Created Successfully
+
+@enduml

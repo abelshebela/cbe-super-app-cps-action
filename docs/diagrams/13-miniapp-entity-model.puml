@@ -1,0 +1,51 @@
+@startuml
+title Mini App Entity Model
+
+class MiniApp {
+  **Primary Key**
+  --
+  + ID : ObjectID
+  --
+  **App Details**
+  --
+  + AppName : string
+  + AppIcon : string
+  + BannerImage : string
+  + URL : string
+  + AppType : constants.AppType
+  + AppViewType : constants.AppViewType
+  + Stage : constants.Stage
+  --
+  **Configuration**
+  --
+  + MerchantID : string
+  + ProductCode : []types.ProductCode
+  + Credential : types.CredentialInformation
+  + CommissionGLAccount : string
+  + IsEventMiniApp : bool
+  + IsThreeClick : bool
+  --
+  **Status**
+  --
+  + Enabled : bool
+  + IsDeleted : bool
+  --
+  **Timestamps**
+  --
+  + CreatedAt : time.Time
+  + LastModifiedAt : time.Time
+  + DeletedAt : time.Time
+}
+
+note right of MiniApp::Stage
+  Development stage 
+  (e.g., Dev, Prod)
+end note
+
+note bottom of MiniApp
+  **Field Descriptions:**
+  **AppName**: Name of the mini-application
+  **MerchantID**: Associated merchant
+  **ProductCode**: Related product codes
+end note
+@enduml

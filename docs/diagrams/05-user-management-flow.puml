@@ -1,0 +1,28 @@
+@startuml
+actor Maker
+participant "CPS Action\nService" as CPS
+participant "User\nService" as User
+participant "Security\nService" as Security
+participant "Notification\nService" as Notif
+database MongoDB
+actor Checker
+
+== Disable User Account ==
+Maker -> CPS: CreateAction(DISABLE_USER)\n{user_id, reason}
+CPS -> User: GetUserDetails(user_id)
+User --> CPS: User Details
+CPS -> MongoDB: Save CPSAction\n(status: PENDING)
+CPS -> Notif: NotifyChecker(action_id)
+CPS --> Maker: Action Created
+
+== Checker Approval ==
+Checker -> CPS: ApproveAction(action_id)
+CPS -> MongoDB: Update Status(APPROVED)
+CPS -> Security: BlockUser(user_id, reason)
+Security -> User: UpdateUserStatus(BLOCKED)
+User --> Security: Status Updated
+Security --> CPS: User Blocked
+CPS -> Notif: NotifyUser(user_id, "Account Blocked")
+CPS --> Checker: Action Approved
+
+@enduml
