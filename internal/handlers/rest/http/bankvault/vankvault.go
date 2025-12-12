@@ -83,12 +83,15 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Bank Vault
 //	@Accept			json
 //	@Produce		json
-//	@Param			filters	query		string									false	"Filters"
+//	@Param			name	query		string									false	"saving"
+//	@Param			is_deleted	query	bool									false	"true or false"
+//	@Param			is_active	query		bool									false	"true or false"
+//	@Param			currency	query		string									false	"ETB ,USD"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank vaults retrieved successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault [get]
+//	@Router			/vault/products [get]
 func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "findAllBankVaults", "handler", "bankVault")
 	defer span.End()
@@ -117,7 +120,7 @@ func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault/{id} [get]
+//	@Router			/vault/products/{id} [get]
 func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "getBankVault", "handler", "bankVault")
 	defer span.End()
@@ -162,7 +165,7 @@ func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault/update/{id} [patch]
+//	@Router			/vault/products/update/{id} [patch]
 func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateBankVault", "handler", "bankVault")
 	defer span.End()
@@ -231,7 +234,7 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault/delete/{id} [delete]
+//	@Router			/vault/products/delete/{id} [delete]
 func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteBankVault", "handler", "bankVault")
 	defer span.End()
@@ -278,7 +281,7 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault/disable/{id} [patch]
+//	@Router			/vault/products/disable/{id} [patch]
 func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableBankVault", "handler", "bankVault")
 	defer span.End()
@@ -324,7 +327,7 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/vault/enable/{id} [patch]
+//	@Router			/vault/products/enable/{id} [patch]
 func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableBankVault", "handler", "bankVault")
 	defer span.End()
@@ -358,6 +361,22 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessBankVaultEnableRequestSubmitted, nil)
 }
 
+// GetAllLockedBankVaults
+//
+//	@Summary		Get All Locked Bank Vaults
+//	@Description	Retrieve all locked bank vaults with pagination and filters
+//	@Tags			Bank Vault
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query	int		false	"Page number"
+//	@Param			per_page	query	int		false	"Items per page"
+//	@Param			search		query	string	false	"Search keyword"
+//	@Param			filters		query	string	false	"Additional filters as JSON string"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Locked bank vaults retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/vault/bank-vaults [get]
 func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllLockedBankVaults", "handler", "bankVault")
 	defer span.End()
@@ -398,6 +417,22 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 // 	localization.SendSuccessResponse(w, localization.SuccessBankLockedVaultsRetrievedSuccessfully, result)
 // }
 
+// GetAllGroupVaults
+//
+//	@Summary		Get All Group Vaults
+//	@Description	Retrieve all group vaults with pagination and filters
+//	@Tags			Bank Vault
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query	int		false	"Page number"
+//	@Param			per_page	query	int		false	"Items per page"
+//	@Param			search		query	string	false	"Search keyword"
+//	@Param			filters		query	string	false	"Additional filters as JSON string"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Group vaults retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/vault/group-vaults [get]
 func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllGroupVaults", "handler", "bankVault")
 	defer span.End()
