@@ -3,7 +3,6 @@ package productcode
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
-	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -13,7 +12,7 @@ import (
 // Validate ensures UpdateProductCodeRequest has at least one valid update.
 func (u *UpdateProductCodeRequest) Validate() error {
 	// Normalize spaces
-	u.ProductName = local_util.ExtraSpaceRemover(u.ProductName)
+	u.ProductName = utils.ExtraSpaceRemover(u.ProductName)
 	hasProductName := u.ProductName != ""
 	hasCBE := u.CBEProductCodes != (model.ProductCodes{})
 	hasIFB := u.CBEIFBProductCodes != (model.ProductCodes{})

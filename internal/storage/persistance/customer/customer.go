@@ -62,6 +62,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{"user_name": searchRegex},
 			{"user_code": searchRegex},
 			{"is_blocked": searchRegex},
+			{"member_type": searchRegex},
 			{"kyc_level": searchRegex},
 		}
 	}
