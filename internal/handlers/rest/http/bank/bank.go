@@ -40,6 +40,7 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Produce		json
 //	@Param			name	formData	string									true	"Bank name"	example("Commercial Bank")
 //	@Param			code	formData	string									true	"Bank code"	example("CBE")
+//	@Param			type	formData	string									true	"Bank type"	example("Commercial")
 //	@Param			bic		formData	string									true	"Bank BIC"	example("CBETETAA")
 //	@Param			logo	formData	file									true	"Bank logo (<=2MB; jpeg/png/gif/webp)"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank create request sent"

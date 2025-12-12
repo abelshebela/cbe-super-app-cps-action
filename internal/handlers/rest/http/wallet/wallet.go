@@ -41,6 +41,7 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 //	@Produce		json
 //	@Param			name	formData	string									false	"name"
 //	@Param			code	formData	string									false	"code"
+//	@Param			type	formData	string									false	"type"
 //	@Param			self	formData	bool									false	"self"
 //	@Param			other	formData	bool									false	"other"
 //	@Param			agent	formData	bool									false	"agent"
@@ -95,6 +96,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Param			id		path		string									true	"Wallet ID"
 //	@Param			name	formData	string									false	"name"
 //	@Param			code	formData	string									false	"code"
+//	@Param			type	formData	string									false	"type"
 //	@Param			self	formData	bool									false	"self"
 //	@Param			other	formData	bool									false	"other"
 //	@Param			agent	formData	bool									false	"agent"
