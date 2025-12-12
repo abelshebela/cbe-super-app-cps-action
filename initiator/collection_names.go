@@ -55,6 +55,7 @@ var (
 
 	CPSActionRolesCollection        = "cps_action_roles"
 	CPSActionApproveIndexCollection = "cps_action_approver_index"
+	MiniAppProductCodeCollection    = "mini_app_product_codes"
 )
 
 // Minio Bucket Names

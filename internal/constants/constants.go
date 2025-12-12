@@ -230,6 +230,12 @@ const (
 type RequestAction string
 
 const (
+RequestCreateMiniappProductCode  string = "CREATE_MINI_APP_PRODUCT_CODE" 
+RequestUpdateMiniappProductCode  string = "UPDATE_MINI_APP_PRODUCT_CODE" 
+RequestDeleteMiniappProductCode  string = "DELETE_MINI_APP_PRODUCT_CODE" 
+RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE" 
+RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
+
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"

@@ -119,6 +119,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
   	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
+	miniAppProductCode := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, nil, logger)
 
 	// Attach Service to Container
@@ -169,6 +170,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,
 		MiniAppCategoryContainer:   miniAppCategory,
+		MiniappProductCodeServiceContainer: miniAppProductCode,
 		CPSActionRoleContainer:     cpsActionRoleService,
 	}
 
@@ -295,6 +297,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultGroupCategory:     vaultGroupCategoryService,
 		BPSActionRole:          bpsActionRoleService,
 		MiniAppCategory:        miniAppCategory,
+		MiniappProductCode: miniAppProductCode,
 		CPSActionRole:          cpsActionRoleService,
 	}
 }
