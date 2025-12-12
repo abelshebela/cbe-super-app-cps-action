@@ -223,7 +223,7 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 //	@Tags			CPS Actions
 //	@Accept			json
 //	@Produce		json
-//	@Param			action_code	path		string												true	"Action Code"
+//	@Param			action_code	path		string								whitespace				true	"Action Code"
 //	@Success		200			{object}	localization.StandardResponse{data=cps_action_resp}	"CPS action with history retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request - Invalid action code"
 //	@Failure		404			{object}	localization.StandardResponse{data=nil}				"Action not found"
