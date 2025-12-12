@@ -88,6 +88,12 @@ const (
 	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
 
+	// Services catalog (model.Services)
+	RequestCreateService  RequestAction = "CREATE_SERVICE"
+	RequestUpdateService  RequestAction = "UPDATE_SERVICE"
+	RequestEnableService  RequestAction = "ENABLE_SERVICE"
+	RequestDisableService RequestAction = "DISABLE_SERVICE"
+
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
 	RequestDeleteTopup  RequestAction = "DELETE_TOPUP"
@@ -278,10 +284,10 @@ const (
 	RequestEnableActionRole  RequestAction = "ENABLE_ACTION_ROLE"
 	RequestDisableActionRole RequestAction = "DISABLE_ACTION_ROLE"
 
-	RequestCreateCpsActionRole      RequestAction = "CREATE_CPS_ACTION_ROLE"
-	RequestUpdateCpsActionRole      RequestAction = "UPDATE_CPS_ACTION_ROLE"
-	RequestEnableCpsActionRole      RequestAction = "ENABLE_CPS_ACTION_ROLE"
-	RequestDisableCpsActionRole     RequestAction = "DISABLE_CPS_ACTION_ROLE"
+	RequestCreateCpsActionRole  RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole  RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole  RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole RequestAction = "DISABLE_CPS_ACTION_ROLE"
 
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
@@ -345,31 +351,37 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateBudgetIcon:        {},
 	RequestDeleteBudgetIcon:        {},
 
-	RequestCpsUserCreate:            {},
-	RequestCpsUserUpdate:            {},
-	RequestCpsUserDelete:            {},
-	RequestPermissionGroup:          {},
-	RequestCreateDepartment:         {},
-	RequestUpdateDepartment:         {},
-	RequestEnableUser:               {},
-	RequestDisableUser:              {},
-	RequestBPSUser:                  {},
-	RequestDisableBPSUser:           {},
-	RequestEnableBPSUser:            {},
-	RequestUpdateUser:               {},
-	RequestTotalDailyLimit:          {},
-	RequestUpdateVAT:                {},
-	RequestAuthTier:                 {},
-	RequestCreateAdvert:             {},
-	RequestUpdateAdvert:             {},
-	RequestEnableAdvert:             {},
-	RequestDisableAdvert:            {},
-	RequestDeleteAdvert:             {},
-	RequestCreateBank:               {},
-	RequestUpdateBank:               {},
-	RequestUpdateBankLogo:           {},
-	RequestEnableWallet:             {},
-	RequestDisableWallet:            {},
+	RequestCpsUserCreate:    {},
+	RequestCpsUserUpdate:    {},
+	RequestCpsUserDelete:    {},
+	RequestPermissionGroup:  {},
+	RequestCreateDepartment: {},
+	RequestUpdateDepartment: {},
+	RequestEnableUser:       {},
+	RequestDisableUser:      {},
+	RequestBPSUser:          {},
+	RequestDisableBPSUser:   {},
+	RequestEnableBPSUser:    {},
+	RequestUpdateUser:       {},
+	RequestTotalDailyLimit:  {},
+	RequestUpdateVAT:        {},
+	RequestAuthTier:         {},
+	RequestCreateAdvert:     {},
+	RequestUpdateAdvert:     {},
+	RequestEnableAdvert:     {},
+	RequestDisableAdvert:    {},
+	RequestDeleteAdvert:     {},
+	RequestCreateBank:       {},
+	RequestUpdateBank:       {},
+	RequestUpdateBankLogo:   {},
+	RequestEnableWallet:     {},
+	RequestDisableWallet:    {},
+
+	// Services catalog
+	RequestCreateService:            {},
+	RequestUpdateService:            {},
+	RequestEnableService:            {},
+	RequestDisableService:           {},
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -480,10 +492,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteNewsTag:  {},
 
 	// Action Role Mapper
-	RequestCreateActionRole:  {},
-	RequestUpdateActionRole:  {},
-	RequestEnableActionRole:  {},
-	RequestDisableActionRole: {},
+	RequestCreateActionRole:     {},
+	RequestUpdateActionRole:     {},
+	RequestEnableActionRole:     {},
+	RequestDisableActionRole:    {},
 	RequestCreateCpsActionRole:  {},
 	RequestUpdateCpsActionRole:  {},
 	RequestEnableCpsActionRole:  {},
@@ -519,6 +531,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateDailyLimit,
 		RequestUpdateDailyLimit,
 		RequestDeleteDailyLimit,
+	},
+	"ServicesCatalog": {
+		RequestCreateService,
+		RequestUpdateService,
+		RequestEnableService,
+		RequestDisableService,
 	},
 	"Account": {
 		RequestUser,
