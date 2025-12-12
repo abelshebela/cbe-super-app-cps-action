@@ -8,8 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
@@ -20,8 +19,8 @@ import (
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-type customer_resp *model.User
-type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
+type customer_resp *member.User
+type customers_paginated_resp *types.PaginatedResponse[[]*member.User]
 
 type customerAdapter struct {
 	customerService service.CustomerService

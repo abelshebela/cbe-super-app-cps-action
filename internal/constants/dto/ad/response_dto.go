@@ -1,7 +1,7 @@
 package ad
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"time"
 )
 
@@ -11,7 +11,7 @@ type AdvertResponse struct {
 	Title         string              `json:"title"`
 	Description   string              `json:"description"`
 	BannerImage   string              `json:"banner_image"`
-	AdvertFor     constants.AdvertFor `json:"advert_for"`
+	AdvertFor     shared_constant.AdvertFor `json:"advert_for"`
 	Enabled       bool                `json:"enabled"`
 	CreatedAt     time.Time           `json:"created_at"`
 	LastUpdatedAt time.Time           `json:"last_updated_at"`

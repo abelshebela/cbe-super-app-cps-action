@@ -5,17 +5,17 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func MapToDonationListResponse(donation *model.Donation, company *model.DonationCompany, category *model.DonationCategory) *donation_dto.DonationListResponse {
-	donationImages := make([]donation_dto.DonationImage, len(donation.DonationImages))
+	donationImages := make([]shared_types.DonationImage, len(donation.DonationImages))
 	for i, img := range donation.DonationImages {
-		donationImages[i] = donation_dto.DonationImage{
+		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: img.CreatedAt.Format(time.RFC3339),
+			CreatedAt: img.CreatedAt,
 		}
 	}
 

@@ -1,19 +1,18 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/ad"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
 	"time"
-
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	// local_util "cbe-super-app-cps-action/pkgs/utils"
 )
 
 // ToDomainAdvertRequest converts an HTTP AdvertRequest to a domain-level dto.AdvertRequest
 func ToAdvert(httpRequest ad.AdvertRequest) (model.Advert, error) {
-	advertFor := constants.AdvertFor(httpRequest.AdvertFor)
+	advertFor := shared_constant.AdvertFor(httpRequest.AdvertFor)
 
 	return model.Advert{
 		Title:       httpRequest.Title,

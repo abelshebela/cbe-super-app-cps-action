@@ -15,6 +15,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -41,7 +42,7 @@ func NewUnlinkService(client *mongo.Client, userData storage.UserRepository, arc
 	}
 }
 
-func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	account, err := u.linkedAccountRepo.FindByAccountNumber(ctx, accNumber)
 	if err != nil {
 		u.logger.Errorf("[GetUserByAccount] failed to find account: %v", err)
