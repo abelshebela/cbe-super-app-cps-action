@@ -46,6 +46,7 @@ import (
 	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+	service "cbe-super-app-cps-action/internal/glue/routing/services"
 
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
@@ -122,6 +123,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
+	service.Init(r, handlerLayer.ServicesHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)

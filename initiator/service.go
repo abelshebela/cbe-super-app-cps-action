@@ -47,17 +47,18 @@ import (
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/service/donation_company"
 	service_details "cbe-super-app-cps-action/internal/service/service_details"
+	services_svc "cbe-super-app-cps-action/internal/service/services"
 
+	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
+	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
+	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	"cbe-super-app-cps-action/internal/service/notification"
 	"cbe-super-app-cps-action/internal/service/productcode"
+	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
-	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
-	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
-	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -121,6 +122,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
   	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	miniAppProductCode := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, nil, logger)
+  	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -166,6 +168,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		DeviceVersionContainer:     deviceVersionService,
 		NewsTagsServiceContainer:   newsTagsService,
 		EncryptionContainer:        encryptionService,
+		ServicesContainer:          servicesService,
 		BankProductContainer:       bankVaultProductService,
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,
@@ -218,11 +221,15 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AmountBasedAuthContainer = amountBased
 	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.BPSActionRoleContainer = bpsActionRoleService
-	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, cpsActionService, logger)
+	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.CPSActionRoleContainer = cpsActionRoleService
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	serviceContainer.CPSActionContainer = cpsActionService
+
+	// Services catalog service (uses CPSAction for maker-checker)
+	servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
+	serviceContainer.ServicesContainer = servicesService
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
@@ -277,6 +284,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		Permission:             permissionService,
 		CPSUser:                cpsUserService,
 		ServiceDetails:         serviceDetails,
+		Services:               servicesService,
 		Donation:               donationService,
 		DonationCategory:       donationCategoryService,
 		DonationCompany:        donationCompanyService,
