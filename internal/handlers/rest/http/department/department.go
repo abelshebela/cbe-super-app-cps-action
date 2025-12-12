@@ -42,7 +42,7 @@ func NewDepartmentHandler(departmentService service.DepartmentService, logger ut
 //	@Security		BearerAuth
 //	@Router			/departments [get]
 func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllDepartments", "handler", "department")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllDepartments", "handler", "department")
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -73,7 +73,7 @@ func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/departments [post]
 func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createDepartment", "handler", "department")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDepartment", "handler", "department")
 	defer span.End()
 	var departmentRequest department_dto.CreateDepartmentRequest
 
@@ -119,7 +119,7 @@ func (d *DepartmentHandler) CreateDepartment(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/departments/{id} [patch]
 func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateDepartment", "handler", "department")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDepartment", "handler", "department")
 	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
@@ -172,7 +172,7 @@ func (d *DepartmentHandler) UpdateDepartmentRequest(w http.ResponseWriter, r *ht
 //	@Security		BearerAuth
 //	@Router			/departments/{id} [get]
 func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getDepartmentById", "handler", "department")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getDepartmentById", "handler", "department")
 	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
@@ -209,7 +209,7 @@ func (d *DepartmentHandler) GetDepartmentByID(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/departments/enable/{id} [patch]
 func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableDepartment", "handler", "department")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDepartment", "handler", "department")
 	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {
@@ -246,7 +246,7 @@ func (d *DepartmentHandler) EnableDepartment(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/departments/disable/{id} [patch]
 func (d *DepartmentHandler) DisableDepartment(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableDepartment", "handler", "department")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDepartment", "handler", "department")
 	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {

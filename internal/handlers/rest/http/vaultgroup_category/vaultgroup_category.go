@@ -38,7 +38,7 @@ func InitVaultGroupCategoryHandler(svc service.VaultGroupCategoryService, logger
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/create [post]
 func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	var req vaultgroup_category.CreateVaultGroupCategoryRequest
 
@@ -87,7 +87,7 @@ func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory [get]
 func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllVaultGroupCategories(ctx, params)
@@ -115,7 +115,7 @@ func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/{id} [get]
 func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -157,7 +157,7 @@ func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/update/{id} [patch]
 func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -223,7 +223,7 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/delete/{id} [delete]
 func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -265,7 +265,7 @@ func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/disable/{id} [patch]
 func (h *handler) DisableVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -308,7 +308,7 @@ func (h *handler) DisableVaultGroupCategory(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/enable/{id} [patch]
 func (h *handler) EnableVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {

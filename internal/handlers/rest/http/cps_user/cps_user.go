@@ -40,7 +40,7 @@ func InitCPSUserHandler(svc service.CPSUserService, logger utils.Logger) *handle
 //	@Security		BearerAuth
 //	@Router			/cps_users/create [post]
 func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createCpsUserRequest", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsUserRequest", "handler", "cpsUser")
 	defer span.End()
 	var req cpsuser.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -88,7 +88,7 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/update/{user_code} [patch]
 func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateCpsUserRequest", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsUserRequest", "handler", "cpsUser")
 	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -146,7 +146,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/{user_code} [get]
 func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchCpsUserByCode", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchCpsUserByCode", "handler", "cpsUser")
 	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -186,7 +186,7 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users [get]
 func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllCpsUsers", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsUsers", "handler", "cpsUser")
 	defer span.End()
 	filterParasm := local_util.ExtractFilterParams(r)
 
@@ -218,7 +218,7 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/delete/{user_code} [delete]
 func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteCpsUserRequest", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteCpsUserRequest", "handler", "cpsUser")
 	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -254,7 +254,7 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/disable/{user_code} [post]
 func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableCpsUser", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsUser", "handler", "cpsUser")
 	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
@@ -290,7 +290,7 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/enable/{user_code} [post]
 func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableCpsUser", "handler", "cpsUser")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsUser", "handler", "cpsUser")
 	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {

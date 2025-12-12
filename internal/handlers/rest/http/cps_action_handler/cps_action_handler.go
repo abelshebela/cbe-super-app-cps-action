@@ -50,7 +50,7 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 //	@Security		BearerAuth
 //	@Router			/actions/{action_code}/approve [patch]
 func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "approveCpsAction", "handler", "cpsAction")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approveCpsAction", "handler", "cpsAction")
 	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 
@@ -96,7 +96,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/actions/{action_code}/reject [patch]
 func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "rejectCpsAction", "handler", "cpsAction")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "rejectCpsAction", "handler", "cpsAction")
 	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	var req cpsactionDto.ActionRequest
@@ -162,7 +162,7 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 		return
 	}
 
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionsByDepartment", "handler", "cpsAction")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionsByDepartment", "handler", "cpsAction")
 	defer span.End()
 
 	actions, err := a.cpsActionApplication.GetCPSActionsByDepartment(ctx, userData.Department, filterParams)
@@ -191,7 +191,7 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/actions/by-id/{action_id} [get]
 func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionById", "handler", "cpsAction")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionById", "handler", "cpsAction")
 	defer span.End()
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -231,7 +231,7 @@ func (a *cpsActionAdapter) GetCPSActionByID(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/actions/by-action-code/{action_code} [get]
 func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionByCode", "handler", "cpsAction")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionByCode", "handler", "cpsAction")
 	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	userData, err := local_util.ParseUserContext(r)
@@ -256,7 +256,7 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 }
 
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getCpsActionCounts", "handler", "cpsAction")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {

@@ -26,7 +26,7 @@ func InitDeviceVersionAdapter(s service.DeviceVersionServiceSrv, logger utils.Lo
 
 // CreateDeviceVersion
 func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createDeviceVersion", "handler", "deviceVersion")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
 	var req dvdto.CreateDeviceVersionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,7 +60,7 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 
 // UpdateDeviceVersion
 func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateDeviceVersion", "handler", "deviceVersion")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -99,7 +99,7 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 
 // GetAllDeviceVersions
 func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllDeviceVersions", "handler", "deviceVersion")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllDeviceVersions", "handler", "deviceVersion")
 	defer span.End()
 	filter := common_utils.ExtractFilterParams(r)
 	res, err := h.svc.GetAllDeviceVersions(ctx, filter)
@@ -116,7 +116,7 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 
 // GetDeviceVersionByID
 func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getDeviceVersionById", "handler", "deviceVersion")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getDeviceVersionById", "handler", "deviceVersion")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -137,7 +137,7 @@ func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *ht
 
 // Enable
 func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableDeviceVersion", "handler", "deviceVersion")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -157,7 +157,7 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 
 // Disable
 func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableDeviceVersion", "handler", "deviceVersion")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {

@@ -38,7 +38,7 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [post]
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
 	var reqDTO miniappmerchant.MiniAppMerchantDTO
 
@@ -103,7 +103,7 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [put]
 func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -167,7 +167,7 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [delete]
 func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -208,7 +208,7 @@ func (h *miniAppMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/enable/{id} [patch]
 func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -245,7 +245,7 @@ func (h *miniAppMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) 
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/disable/{id} [patch]
 func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableMiniAppMerchant", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -290,7 +290,7 @@ func (h *miniAppMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request)
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants/{id} [get]
 func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findMiniAppMerchantById", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findMiniAppMerchantById", "handler", "miniAppMerchant")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -323,7 +323,7 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 //	@Failure		400,401,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/mini-app-merchants [get]
 func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllMiniAppMerchants", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllMiniAppMerchants", "handler", "miniAppMerchant")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -360,7 +360,7 @@ func (h *miniAppMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, r 
 // @Failure 400,401,404,500 {object} localization.StandardResponse{data=nil}
 // @Router /mini-app-merchants/merchant-lookup/{merchant_id} [get]
 func (h *miniAppMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "miniAppMerchantLookup", "handler", "miniAppMerchant")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "miniAppMerchantLookup", "handler", "miniAppMerchant")
 	defer span.End()
 	merchantID := chi.URLParam(r, "merchant_id")
 	if merchantID == "" {

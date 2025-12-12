@@ -46,7 +46,7 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 //	@Security		BearerAuth
 //	@Router			/account_validation/{id} [get]
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findAccountValidationById", "handler", "accountValidation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAccountValidationById", "handler", "accountValidation")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -86,7 +86,7 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_validation/update/{id} [patch]
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAccountValidation", "handler", "accountValidation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAccountValidation", "handler", "accountValidation")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 
@@ -146,7 +146,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/account_validation [get]
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllAccountValidation", "handler", "accountValidation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllAccountValidation", "handler", "accountValidation")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
