@@ -111,21 +111,21 @@ func (r *CreateServiceRequest) Validate() error {
 
 func (r *UpdateServiceRequest) Validate() error {
 	// All fields optional; validate if provided
-	if r.ServiceCode != "" {
-		if err := validation.Validate(&r.ServiceCode, validation.By(local_utils.NoSpecialChars)); err != nil {
-			return err
-		}
-	}
-	if r.ServiceType != "" {
-		if err := validation.Validate(&r.ServiceType, validation.By(local_utils.NoSpecialChars)); err != nil {
-			return err
-		}
-	}
-	if r.ChargeCode != "" {
-		if err := validation.Validate(&r.ChargeCode, validation.By(local_utils.NoSpecialChars)); err != nil {
-			return err
-		}
-	}
+	// if r.ServiceCode != "" {
+	// 	if err := validation.Validate(&r.ServiceCode, validation.By(local_utils.NoSpecialChars)); err != nil {
+	// 		return err
+	// 	}
+	// }
+	// if r.ServiceType != "" {
+	// 	if err := validation.Validate(&r.ServiceType, validation.By(local_utils.NoSpecialChars)); err != nil {
+	// 		return err
+	// 	}
+	// }
+	// if r.ChargeCode != "" {
+	// 	if err := validation.Validate(&r.ChargeCode, validation.By(local_utils.NoSpecialChars)); err != nil {
+	// 		return err
+	// 	}
+	// }
 	if r.CbeGLProductAccount != "" {
 		if err := validation.Validate(&r.CbeGLProductAccount, validation.By(local_utils.NoSpecialChars)); err != nil {
 			return err

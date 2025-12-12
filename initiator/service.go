@@ -167,6 +167,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		DeviceVersionContainer:     deviceVersionService,
 		NewsTagsServiceContainer:   newsTagsService,
 		EncryptionContainer:        encryptionService,
+		ServicesContainer:          servicesService,
 		BankProductContainer:       bankVaultProductService,
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,

@@ -36,9 +36,6 @@ func (s *servicesService) Create(ctx context.Context, req model.Services) error 
 }
 
 func (s *servicesService) Update(ctx context.Context, id string, req model.Services) error {
-	if id == "" {
-		return localization.ErrorInvalidID
-	}
 	// fetch existing and validate uniqueness if code or name changes
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
