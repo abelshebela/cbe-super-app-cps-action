@@ -2,9 +2,8 @@ package miniappmerchant
 
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
-
+shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -43,8 +42,8 @@ func ToMiniAppMerchantDomainFromUpdateDTO(d *dto.MiniAppMerchantDTO) *model.Mini
 		BankAccountNumber: d.AccountNumber,
 		Email:             d.Email,
 		PhoneNumber:       d.PhoneNumber,
-		KYC: types.KYC{
-			Representative: types.KYCInformation{
+		KYC: shared_types.KYC{
+			Representative: shared_types.KYCInformation{
 				Name:  d.MerchantRepresentativeName,
 				Phone: d.PhoneNumber,
 				Email: d.Email,
