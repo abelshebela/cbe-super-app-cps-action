@@ -33,6 +33,7 @@ import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
@@ -104,9 +105,9 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error)
-	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error)
-	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
+	GetCustomerByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error

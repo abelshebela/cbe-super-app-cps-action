@@ -3,18 +3,20 @@ package customer
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
-shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	members "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-members "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
-	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -40,7 +42,7 @@ func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSA
 	}
 }
 
-func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*members.User], error) {
+func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	customers, err := c.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		return nil, err
@@ -49,8 +51,8 @@ func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *
 	return customers, nil
 }
 
-func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*members.User, error) {
-	customer, err := s.repo.FindByID(ctx, id)
+func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
+	customer, err := s.repo.FindCustomerDetailByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +63,7 @@ func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*memb
 func (s *customerService) GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
 	return s.repo.FetchLinkedAccount(ctx, customerNumber)
 }
-func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*members.User], error) {
+func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	if filterParams.Filters == nil {
 		filterParams.Filters = make(map[string]interface{})
 	}
@@ -136,8 +138,6 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 		c.logger.Errorf("[ApproveFaydaCustomer] customer already enabled")
 		return errors.New(localization.ErrorCustomerAlreadyEnabled.Code)
 	}
-
-
 
 	updateData := *customer
 
