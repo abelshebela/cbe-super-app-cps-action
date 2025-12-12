@@ -33,7 +33,7 @@ func InitPermissionHandler(svc service.PermissionService, logger utils.Logger) p
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			body			body		permission.CreatePermissionGroupRequest	true	"Create Permission Group DTO"
+//	@Param			body			body		permission.CreatePermissionGroupRequest	true	"Create Permission Group"
 //	@Success		201				{object}	localization.StandardResponse{data=nil}
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/permissions [post]
@@ -71,14 +71,21 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 // Get Permission Groups
 //
 //	@Summary		Get Permission Groups
-//	@Description	Retrieves a paginated list of permission groups
+//	@Description	Retrieves a paginated list of permission groups. Searchable field: group_name.
 //	@Tags			Permission
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			page		query		int	false	"Page number"
-//	@Param			per_page	query		int	false	"Items per page"
-//	@Success		200			{object}	localization.StandardResponse{data=permission.PaginatedPermissionGroupResponse}
-//	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
+//	@Param			page			query	int		false	"Page number"
+//	@Param			per_page		query	int		false	"Items per page"
+//	@Param			enabled			query	bool	false	"Filter by enabled status"
+//	@Param			is_deleted		query	bool	false	"Filter by deleted status"
+//	@Param			department_id	query	string	false	"Filter by department ID"
+//	@Param			role			query	string	false	"Filter by role"
+//	@Param			realm			query	string	false	"Filter by realm"
+//	@Param			group_name		query	string	false	"Filter by group name"
+//	@Param			search			query	string	false	"Search term (searches group_name)"
+//	@Success		200	{object}	localization.StandardResponse{data=permission.PaginatedPermissionGroupResponse}
+//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/permissions [get]
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
 	filterparams := common_utils.ExtractFilterParams(r)
@@ -91,17 +98,17 @@ func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.R
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupsFetched, permissionGroups)
 }
 
-// Get Permission Group by Name
+// //Get Permission Group by Name
 //
-//	@Summary		Get Permission Group by ID
-//	@Description	Retrieves a permission group by its ID
-//	@Tags			Permission
-//	@Security		BearerAuth
-//	@Produce		json
-//	@Param			ID			path		string	true	"ID"
-//	@Success		200			{object}	localization.StandardResponse{data=permission.PermissionCategoryResponse}
-//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/permissions/{group_name} [get]
+//	//@Summary		Get Permission Group by Group_name
+//	//@Description	Retrieves a permission  by group_name
+//	//@Tags			Permission
+//	//@Security		BearerAuth
+//	//@Produce		json
+//	//@Param			group_name			path		string	true	"group_name"
+//	//@Success		200			{object}	localization.StandardResponse{data=permission.PermissionCategoryResponse}
+//	//@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	//@Router			/permissions/{group_name} [get]
 func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Request) {
 	permissionGroup, err := h.PermissionService.GetPermissionGroup(chi.URLParam(r, "group_name"))
 	if err != nil {
@@ -112,6 +119,17 @@ func (h *PermissionHandler) GetPermissionGroup(w http.ResponseWriter, r *http.Re
 	localization.SendSuccessResponse(w, localization.SuccessPermissionGroupFetched, permissionGroup)
 }
 
+// Get Permission Group by ID
+//
+//	@Summary		Get Permission Group by ID
+//	@Description	Retrieves a permission  by ID
+//	@Tags			Permission
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			ID			path		string	true	"ID"
+//	@Success		200			{object}	localization.StandardResponse{data=permission.PermissionCategoryResponse}
+//	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/permissions/by_id/{id} [get]
 func (h *PermissionHandler) GetPermissionGroupById(w http.ResponseWriter, r *http.Request) {
 	permissionGroup, err := h.PermissionService.GetPermissionGroupById(r.Context(), chi.URLParam(r, "id"))
 	if err != nil {

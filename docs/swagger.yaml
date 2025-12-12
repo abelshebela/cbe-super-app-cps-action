@@ -2406,15 +2406,6 @@ definitions:
       meta:
         $ref: '#/definitions/types.PaginationMeta'
     type: object
-  productcode.ProductCodePaginatedResponse:
-    properties:
-      docs:
-        items:
-          $ref: '#/definitions/productcode.ProductCodeResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/types.PaginationMeta'
-    type: object
   productcode.ProductCodeResponse:
     properties:
       cbe_ifb_product_codes:
@@ -11220,7 +11211,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve notifications with pagination and optional search
+      description: 'Retrieve notifications with pagination, filtering, and search.
+        Searchable fields: title, notification_code, notification_body, notification_type.'
       parameters:
       - default: 1
         description: Page number
@@ -11232,9 +11224,38 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Search term (searches title, notification_code, notification_body,
+          notification_type)
         in: query
         name: search
+        type: string
+      - description: Filter by public status
+        in: query
+        name: is_public
+        type: boolean
+      - description: Filter by notification type
+        in: query
+        name: notification_type
+        type: string
+      - description: Filter by notification code
+        in: query
+        name: notification_code
+        type: string
+      - description: Filter by notification for
+        in: query
+        name: for
+        type: string
+      - description: Filter by seen status
+        in: query
+        name: seen
+        type: boolean
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Filter by title
+        in: query
+        name: title
         type: string
       produces:
       - application/json
@@ -11785,7 +11806,8 @@ paths:
       - PasswordRule
   /permissions:
     get:
-      description: Retrieves a paginated list of permission groups
+      description: 'Retrieves a paginated list of permission groups. Searchable field:
+        group_name.'
       parameters:
       - description: Page number
         in: query
@@ -11795,6 +11817,34 @@ paths:
         in: query
         name: per_page
         type: integer
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Filter by deleted status
+        in: query
+        name: is_deleted
+        type: boolean
+      - description: Filter by department ID
+        in: query
+        name: department_id
+        type: string
+      - description: Filter by role
+        in: query
+        name: role
+        type: string
+      - description: Filter by realm
+        in: query
+        name: realm
+        type: string
+      - description: Filter by group name
+        in: query
+        name: group_name
+        type: string
+      - description: Search term (searches group_name)
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -11835,7 +11885,7 @@ paths:
       - application/json
       description: Creates a new permission group
       parameters:
-      - description: Create Permission Group DTO
+      - description: Create Permission Group
         in: body
         name: body
         required: true
@@ -11895,58 +11945,6 @@ paths:
       tags:
       - Permission
   /permissions/{group_name}:
-    get:
-      description: Retrieves a permission group by its ID
-      parameters:
-      - description: ID
-        in: path
-        name: ID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/permission.PermissionCategoryResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "404":
-          description: Not Found
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Get Permission Group by ID
-      tags:
-      - Permission
     put:
       consumes:
       - application/json
@@ -12014,6 +12012,59 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Permission Group
+      tags:
+      - Permission
+  /permissions/by_id/{id}:
+    get:
+      description: Retrieves a permission  by ID
+      parameters:
+      - description: ID
+        in: path
+        name: ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/permission.PermissionCategoryResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get Permission Group by ID
       tags:
       - Permission
   /permissions/categories:
@@ -12101,7 +12152,61 @@ paths:
       summary: Get All Portal Cards
       tags:
       - PortalCard
-  /product-codes/{id}:
+  /productcodes:
+    get:
+      description: 'Retrieves a paginated list of product codes. Searchable fields:
+        service_name, cbe_product_codes.prd, cbe_ifb_product_codes.prd.'
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Search term (searches service_name, cbe_product_codes.prd, cbe_ifb_product_codes.prd)
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product codes retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.ProductCode'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/localization.StandardResponse'
+            - properties:
+                data:
+                  type: object
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Get product code list
+      tags:
+      - ProductCode
+  /productcodes/{id}:
     get:
       description: Retrieves a single product code by its unique ID.
       parameters:
@@ -12251,80 +12356,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Update a product code
-      tags:
-      - ProductCode
-  /productcodes:
-    get:
-      description: Retrieves a paginated list of product codes. Search using service_name.Filter
-        using {_id,service_name,created_at,...}
-      parameters:
-      - description: Page number
-        in: query
-        name: page
-        type: integer
-      - description: Items per page
-        in: query
-        name: per_page
-        type: integer
-      - description: Search term
-        in: query
-        name: search
-        type: string
-      - description: filter term
-        in: query
-        name: filter
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  $ref: '#/definitions/productcode.ProductCodePaginatedResponse'
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "403":
-          description: Forbidden
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            allOf:
-            - $ref: '#/definitions/localization.StandardResponse'
-            - properties:
-                data:
-                  type: object
-              type: object
-      security:
-      - BearerAuth: []
-      summary: Fetch all product codes
       tags:
       - ProductCode
   /service:
@@ -13472,7 +13503,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get archived user
+      description: 'Get archived users with pagination, filtering, and search. Filterable
+        fields: enabled, kyc_level, is_blocked, is_verified. Searchable fields: full_name,
+        username, user_code, phone_number.'
       parameters:
       - description: Page number
         in: query
@@ -13482,7 +13515,23 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Filter by KYC level
+        in: query
+        name: kyc_level
+        type: string
+      - description: Filter by blocked status
+        in: query
+        name: is_blocked
+        type: boolean
+      - description: Filter by verified status
+        in: query
+        name: is_verified
+        type: boolean
+      - description: Search term (searches full_name, username, user_code, phone_number)
         in: query
         name: search
         type: string
@@ -14418,7 +14467,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Retrieve wallets with pagination and optional search
+      description: 'Retrieve wallets with pagination, filtering, and search. Filterable
+        fields: name, code, enabled. Searchable fields: name, code.'
       parameters:
       - default: 1
         description: Page number
@@ -14430,7 +14480,19 @@ paths:
         in: query
         name: per_page
         type: integer
-      - description: Search term
+      - description: Filter by wallet name
+        in: query
+        name: name
+        type: string
+      - description: Filter by wallet code
+        in: query
+        name: code
+        type: string
+      - description: Filter by enabled status
+        in: query
+        name: enabled
+        type: boolean
+      - description: Search term (searches name, code)
         in: query
         name: search
         type: string

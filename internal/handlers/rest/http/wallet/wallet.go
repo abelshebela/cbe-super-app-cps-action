@@ -93,73 +93,73 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-    id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "id")
 
-    if id == "" {
-        a.logger.Errorf("wallet ID is required for update")
-        localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
-        return
-    }
+	if id == "" {
+		a.logger.Errorf("wallet ID is required for update")
+		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
+		return
+	}
 
-    req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
-    if err != nil {
-        a.logger.Errorf("failed to parse wallet update request: %v", err)
-        localization.SendBadRequestResponse(w, err.Error())
-        return
-    }
-    a.logger.Infof("this is the wallet request%+v\n", req)
+	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
+	if err != nil {
+		a.logger.Errorf("failed to parse wallet update request: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	a.logger.Infof("this is the wallet request%+v\n", req)
 
-    // Track which fields were provided in the form
-    fieldsProvided := make(map[string]bool)
-    
-    // Parse the multipart form to check which fields exist
-    if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
-        a.logger.Errorf("failed to parse multipart form: %v", err)
-        localization.SendBadRequestResponse(w, "Failed to parse form data")
-        return
-    }
-    
-    // Check for each field in the form
-    if r.FormValue("name") != "" {
-        fieldsProvided["name"] = true
-    }
-    if r.FormValue("code") != "" {
-        fieldsProvided["code"] = true
-    }
-    if r.FormValue("self") != "" {
-        fieldsProvided["self"] = true
-    }
-    if r.FormValue("other") != "" {
-        fieldsProvided["other"] = true
-    }
-    if r.FormValue("agent") != "" {
-        fieldsProvided["agent"] = true
-    }
-    if _, _, err := r.FormFile("avatar"); err == nil {
-        fieldsProvided["avatar"] = true
-    }
+	// Track which fields were provided in the form
+	fieldsProvided := make(map[string]bool)
 
-    if err := req.AggregatedValidate(false); err != nil {
-        a.logger.Errorf("wallet request validation failed: %v", err)
-        localization.SendBadRequestResponse(w, err.Error())
-        return
-    }
+	// Parse the multipart form to check which fields exist
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		a.logger.Errorf("failed to parse multipart form: %v", err)
+		localization.SendBadRequestResponse(w, "Failed to parse form data")
+		return
+	}
 
-    if req.IsEmpty() {
-        a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
-        localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
-        return
-    }
+	// Check for each field in the form
+	if r.FormValue("name") != "" {
+		fieldsProvided["name"] = true
+	}
+	if r.FormValue("code") != "" {
+		fieldsProvided["code"] = true
+	}
+	if r.FormValue("self") != "" {
+		fieldsProvided["self"] = true
+	}
+	if r.FormValue("other") != "" {
+		fieldsProvided["other"] = true
+	}
+	if r.FormValue("agent") != "" {
+		fieldsProvided["agent"] = true
+	}
+	if _, _, err := r.FormFile("avatar"); err == nil {
+		fieldsProvided["avatar"] = true
+	}
 
-    // Pass fieldsProvided to the service
-    if err := a.walletApp.UpdateWallet(r.Context(), id, req, fieldsProvided); err != nil {
-        a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
-        localization.SendErrorByCodeResponse(w, err.Error())
-        return
-    }
+	if err := req.AggregatedValidate(false); err != nil {
+		a.logger.Errorf("wallet request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 
-    a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
-    localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
+	if req.IsEmpty() {
+		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
+		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
+		return
+	}
+
+	// Pass fieldsProvided to the service
+	if err := a.walletApp.UpdateWallet(r.Context(), id, req, fieldsProvided); err != nil {
+		a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	a.logger.Infof("wallet update request submitted successfully, wallet ID: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessWalletUpdateRequestSent, nil)
 }
 
 // DeleteWallet godoc
@@ -282,15 +282,18 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 // GetWallets godoc
 //
 //	@Summary		List wallets
-//	@Description	Retrieve wallets with pagination and optional search
+//	@Description	Retrieve wallets with pagination, filtering, and search. Filterable fields: name, code, enabled. Searchable fields: name, code.
 //	@Tags			Wallet
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int															false	"Page number"		default(1)
-//	@Param			per_page	query		int															false	"Items per page"	default(10)
-//	@Param			search		query		string														false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
+//	@Param			page		query	int		false	"Page number"		default(1)
+//	@Param			per_page	query	int		false	"Items per page"	default(10)
+//	@Param			name		query	string	false	"Filter by wallet name"
+//	@Param			code		query	string	false	"Filter by wallet code"
+//	@Param			enabled		query	bool	false	"Filter by enabled status"
+//	@Param			search		query	string	false	"Search term (searches name, code)"
+//	@Success		200	{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
