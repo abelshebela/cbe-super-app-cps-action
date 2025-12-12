@@ -31,6 +31,7 @@ import (
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
+	services "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
@@ -41,7 +42,7 @@ import (
 	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
-	
+
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
@@ -81,6 +82,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
+	serviceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/services"
 	sitotaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/sitota"
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
@@ -109,6 +111,7 @@ type Handler struct {
 	MiniAppMerchantHandler    miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler       accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler     service_details.ServiceAdapter
+	ServicesHandler           services.ServicesHandler
 	AmountBasedAuthHandler    amountBasedInbound.AmountBasedAuthAdapter
 	DepartmentHandler         department.DepartmentHandler
 	AvatarHandler             avatarHandlerInterface.AvatarInbound
@@ -131,7 +134,7 @@ type Handler struct {
 	EncryptionHandler         encryptionInbound.EncryptionAdapter
 	DeviceVersionHandler      dviface.DeviceVersionHandler
 	BPSActionRoleHandler      actionrole_iface.BPSActionRoleHandler
-	CPSActionRoleHandler	  cps_actionrole_iface.CPSActionRoleHandler
+	CPSActionRoleHandler      cps_actionrole_iface.CPSActionRoleHandler
 	TransactionHandler        transaction.TransactionInterface
 }
 
@@ -167,6 +170,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		AmountBasedAuthHandler:    amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 		MiniAppMerchantHandler:    miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 		ServiceDetailsHandler:     serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
+		ServicesHandler:           serviceHandler.InitServicesAdapter(serviceLayer.Services, logger),
 		ProductCodeHandler:        productCodeHandler.InitProductcodeAdapter(pcs, logger),
 		DonationHandler:           donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
 		DonationCategoryHandler:   donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),
@@ -178,7 +182,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
 		DeviceVersionHandler:      deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
 		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
-		CPSActionRoleHandler:  cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
+		CPSActionRoleHandler:      cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 	}
 }

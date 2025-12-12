@@ -416,6 +416,7 @@ type ServiceLayer struct {
 	Permission             PermissionService
 	CPSUser                CPSUserService
 	ServiceDetails         ServiceService
+	Services               ServicesService
 	AccountValidation      AccountValidationService
 	ProductCode            ProductCodeService
 	BankVault              BankVaultService
