@@ -47,7 +47,7 @@ func InitServiceAdapter(serviceApp service.ServiceService, logger utils.Logger) 
 //	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
 //	@Router			/service [get]
 func (s *serviceAdapter) GetAllService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllService", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllService", "handler", "serviceDetails")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -81,7 +81,7 @@ func (s *serviceAdapter) GetAllService(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/minimum [get]
 func (s *serviceAdapter) GetAllMinimumTransferCap(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllMinimumTransferCap", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllMinimumTransferCap", "handler", "serviceDetails")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -114,7 +114,7 @@ func (s *serviceAdapter) GetAllMinimumTransferCap(w http.ResponseWriter, r *http
 //	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/maximum [get]
 func (s *serviceAdapter) GetAllMaximumTransferCap(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllMaximumTransferCap", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllMaximumTransferCap", "handler", "serviceDetails")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -147,7 +147,7 @@ func (s *serviceAdapter) GetAllMaximumTransferCap(w http.ResponseWriter, r *http
 //	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/service_fee [get]
 func (s *serviceAdapter) GetAllServiceFee(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServiceFee", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllServiceFee", "handler", "serviceDetails")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -177,7 +177,7 @@ func (s *serviceAdapter) GetAllServiceFee(w http.ResponseWriter, r *http.Request
 //	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/total/transfer_cap [get]
 func (s *serviceAdapter) GetAllTotalTransferCap(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllTotalTransferCap", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllTotalTransferCap", "handler", "serviceDetails")
 	defer span.End()
 
 	totalTransferCaps, err := s.serviceApp.GetAllTotalTransferCap(ctx)
@@ -202,7 +202,7 @@ func (s *serviceAdapter) GetAllTotalTransferCap(w http.ResponseWriter, r *http.R
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/service_fee/detail/{id} [get]
 func (s *serviceAdapter) GetServiceFeeDetail(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getServiceFeeDetail", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getServiceFeeDetail", "handler", "serviceDetails")
 	defer span.End()
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -237,7 +237,7 @@ func (s *serviceAdapter) GetServiceFeeDetail(w http.ResponseWriter, r *http.Requ
 //	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/service_fee/update/{id} [put]
 func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateServiceFee", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateServiceFee", "handler", "serviceDetails")
 	defer span.End()
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -284,7 +284,7 @@ func (s *serviceAdapter) UpdateServiceFee(w http.ResponseWriter, r *http.Request
 //	@Failure		400,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/single_transfer_max/update/id} [put]
 func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateSingleMaxTransfer", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateSingleMaxTransfer", "handler", "serviceDetails")
 	defer span.End()
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -333,7 +333,7 @@ func (s *serviceAdapter) UpdateSingleMaxTransfer(w http.ResponseWriter, r *http.
 //	@Router			/service/total_transfer_max/update [put]
 func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *http.Request) {
 
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateTotalMaxTransferCap", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateTotalMaxTransferCap", "handler", "serviceDetails")
 	defer span.End()
 	var req dto.TotalMaxTransferUpdateRequest
 	if !core.DecodeJSONBody(w, r, &req, s.logger) {
@@ -372,7 +372,7 @@ func (s *serviceAdapter) UpdateTotalMaxTransferCap(w http.ResponseWriter, r *htt
 //	@Router			/service/minimum_transfer/update/{id} [put]
 func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http.Request) {
 
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateMinimumTransferCap", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateMinimumTransferCap", "handler", "serviceDetails")
 	defer span.End()
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {
@@ -418,7 +418,7 @@ func (s *serviceAdapter) UpdateMinimumTransferCap(w http.ResponseWriter, r *http
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/service/service_fee/delete/{id} [delete]
 func (s *serviceAdapter) DeleteServiceFeeTire(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteServiceFeeTire", "handler", "serviceDetails")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteServiceFeeTire", "handler", "serviceDetails")
 	defer span.End()
 	service_id := chi.URLParam(r, "id")
 	if service_id == "" {

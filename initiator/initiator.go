@@ -157,7 +157,7 @@ func Init(ctx context.Context) {
 	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
-	otlr := telemetry.WrapHandler(r, "http-server")
+	otlr := telemetry.WrapHandler(r, "cps-action")
 
 	go func() {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())

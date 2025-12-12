@@ -68,6 +68,7 @@ type UserPayload struct {
 	PhoneNumber string   `json:"phone_number,omitempty"`
 	UserRole    string   `json:"user_role,omitempty"`
 	UserID      string   `json:"user_id,omitempty"`
+	RoleID      string   `json:"role_id,omitempty"`
 	UserCode    string   `json:"user_code,omitempty"`
 	FullName    string   `json:"full_name,omitempty"`
 	Department  string   `json:"department,omitempty"`

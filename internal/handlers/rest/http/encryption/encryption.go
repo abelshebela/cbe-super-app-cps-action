@@ -40,7 +40,7 @@ func InitEncryption(svc service.EncryptionService, logger utils.Logger) *encrypt
 //	@Security		BearerAuth
 //	@Router			/encryption/encrypt [post]
 func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
-	_, span := local_util.TraceLogger(r.Context(), "", "encryptPassword", "handler", "encryption")
+	_, span := local_util.TraceLogger(r.Context(), "handler", "encryptPassword", "handler", "encryption")
 	defer span.End()
 	var req encryptionDto.EncryptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

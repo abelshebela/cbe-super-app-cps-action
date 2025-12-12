@@ -39,7 +39,7 @@ func InitBankVaultHandler(svc service.BankVaultService, logger utils.Logger) *ha
 //	@Security		BearerAuth
 //	@Router			/vault/create [post]
 func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createBankVault", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createBankVault", "handler", "bankVault")
 	defer span.End()
 	var req bankvault.CreateBankVaultProductRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -90,7 +90,7 @@ func (h *handler) CreateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault [get]
 func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "findAllBankVaults", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllBankVaults", "handler", "bankVault")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllBankVaults(ctx, params)
@@ -119,7 +119,7 @@ func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/{id} [get]
 func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getBankVault", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getBankVault", "handler", "bankVault")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -164,7 +164,7 @@ func (h *handler) GetBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/update/{id} [patch]
 func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateBankVault", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateBankVault", "handler", "bankVault")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -233,7 +233,7 @@ func (h *handler) UpdateBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/delete/{id} [delete]
 func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteBankVault", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteBankVault", "handler", "bankVault")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -280,7 +280,7 @@ func (h *handler) DeleteBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/disable/{id} [patch]
 func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableBankVault", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBankVault", "handler", "bankVault")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -326,7 +326,7 @@ func (h *handler) DisableBankVault(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/vault/enable/{id} [patch]
 func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableBankVault", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBankVault", "handler", "bankVault")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -359,7 +359,7 @@ func (h *handler) EnableBankVault(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllLockedBankVaults", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllLockedBankVaults", "handler", "bankVault")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllBankLockedVaultsWithPagination(ctx, params)
@@ -399,7 +399,7 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 // }
 
 func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllGroupVaults", "handler", "bankVault")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllGroupVaults", "handler", "bankVault")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
 	results, err := h.service.FindAllGroupVaultsWithPagination(ctx, params)

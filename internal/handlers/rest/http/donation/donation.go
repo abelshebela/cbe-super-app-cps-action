@@ -53,7 +53,7 @@ func NewDonationAdapter(donationApp service.DonationService, logger utils.Logger
 //	@Security		BearerAuth
 //	@Router			/donation [post]
 func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createDonation", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonation", "handler", "donation")
 	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -112,7 +112,7 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/donation/{id} [patch]
 func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateDonation", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonation", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -164,7 +164,7 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/donation [get]
 func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonations", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonations", "handler", "donation")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -199,7 +199,7 @@ func (d *donationAdapter) FetchDonation(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/donation/{id} [get]
 func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationById", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationById", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -237,7 +237,7 @@ func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/donation/image/{id} [patch]
 func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateDonationImage", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationImage", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -286,7 +286,7 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/donation/image/{id} [delete]
 func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteDonationImage", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteDonationImage", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -338,7 +338,7 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/donation/image/{id} [post]
 func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "addDonationImage", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "addDonationImage", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -388,7 +388,7 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/donation/enable/{id} [patch]
 func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableDonation", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonation", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -423,7 +423,7 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/donation/disable/{id} [patch]
 func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableDonation", "handler", "donation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonation", "handler", "donation")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {

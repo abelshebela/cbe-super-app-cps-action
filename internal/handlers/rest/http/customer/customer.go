@@ -48,7 +48,7 @@ func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) 
 //	@Security		BearerAuth
 //	@Router			/customers/{id}/enable-session [post]
 func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "setEnableCustomerSession", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "setEnableCustomerSession", "handler", "customer")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -85,7 +85,7 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 //	@Security		BearerAuth
 //	@Router			/customers/{id}/disable [post]
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "disableCustomer", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "disableCustomer", "handler", "customer")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -139,7 +139,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/customers/{id}/enable [post]
 func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "enableCustomer", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "enableCustomer", "handler", "customer")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -184,7 +184,7 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "getCustomerDetail", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getCustomerDetail", "handler", "customer")
 	defer span.End()
 	filterParams := util.ExtractFilterParams(r)
 	customers, err := c.customerService.GetCustomersDetail(ctx, filterParams)
@@ -215,7 +215,7 @@ func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/customers/{id} [get]
 func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "getCustomerById", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getCustomerById", "handler", "customer")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -253,7 +253,7 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/customers/blocked [get]
 func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "getBlockedCustomer", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getBlockedCustomer", "handler", "customer")
 	defer span.End()
 	filterParams := util.ExtractFilterParams(r)
 
@@ -283,7 +283,7 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/customers/blocked [get]
 func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "getLinkedAccount", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getLinkedAccount", "handler", "customer")
 	defer span.End()
 	id := chi.URLParam(r, "customer_number")
 	if id == "" {
@@ -309,7 +309,7 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 //	@Description	Approves a customer's Fayda application by updating their Fayda risk level
 
 func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "approveFaydaCustomer", "handler", "customer")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "approveFaydaCustomer", "handler", "customer")
 	defer span.End()
 	var req dto.FaydaApproveRequest
 	id := chi.URLParam(r, "id")
