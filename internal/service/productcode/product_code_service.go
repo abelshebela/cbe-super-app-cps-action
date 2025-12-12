@@ -92,8 +92,8 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	updated := &model.ProductCode{
 		ID:                 existing.ID,
 		ProductName:        utils.NonEmptyString(request.ProductName, existing.ProductName),
-		CBEProductCodes:    model.NonEmptyProductCodes(request.CBEProductCodes, existing.CBEProductCodes),
-		CBEIFBProductCodes: model.NonEmptyProductCodes(request.CBEIFBProductCodes, existing.CBEIFBProductCodes),
+		CBEProductCodes:    core.NonEmptyProductCodes(request.CBEProductCodes, existing.CBEProductCodes),
+		CBEIFBProductCodes: core.NonEmptyProductCodes(request.CBEIFBProductCodes, existing.CBEIFBProductCodes),
 		CreatedAt:          existing.CreatedAt,
 		LastUpdatedAt:      time.Now(),
 	}

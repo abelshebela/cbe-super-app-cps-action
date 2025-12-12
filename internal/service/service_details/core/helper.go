@@ -3,6 +3,8 @@ package service_details
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/localization"
+
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -11,7 +13,7 @@ import (
 	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -105,9 +107,9 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 
 		// Map tiers from DTO
 		if len(dto.Tiers) > 0 {
-			tiers := make([]types.Tier, len(dto.Tiers))
+			tiers := make([]shared_type.Tier, len(dto.Tiers))
 			for i, tier := range dto.Tiers {
-				tiers[i] = types.Tier{
+				tiers[i] = shared_type.Tier{
 					// ID:        bson.NewObjectID(),
 					Min:       tier.Min,
 					Max:       tier.Max,
@@ -334,10 +336,10 @@ func MapServiceDetailsForUpdate(existingService *model.ServiceDetails, newData i
 
 	// Map tiers with ID generation
 	if v, ok := incoming["tiers"].([]interface{}); ok {
-		incomingTiers := make([]types.Tier, 0, len(v))
+		incomingTiers := make([]shared_type.Tier, 0, len(v))
 		for _, it := range v {
 			if tierMap, ok := it.(map[string]interface{}); ok {
-				var t types.Tier
+				var t shared_type.Tier
 				// t.ID = bson.NewObjectID() // Generate new ObjectID for each tier
 				if min, ok := tierMap["min"].(float64); ok {
 					t.Min = uint64(min)
