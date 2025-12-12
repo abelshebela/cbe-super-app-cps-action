@@ -21,6 +21,7 @@ import (
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
 	"cbe-super-app-cps-action/internal/glue/routing/transaction"
+	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	bankvaultroutes "cbe-super-app-cps-action/internal/glue/routing/bankvault"
@@ -67,7 +68,7 @@ import (
 	_ "cbe-super-app-cps-action/docs" // Import generated docs
 )
 
-func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, logger utils.Logger, cfg *config.VaultConfig) {
+func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, logger utils.Logger, cfg *config.VaultConfig) {
 
 	r := chi.NewRouter()
 
@@ -94,7 +95,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 			logger.Errorf("Failed to write health check response", zap.Error(err))
 		}
 	})
-	authMiddleware := customeMiddleware.InitAuthMiddleware(client, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
+	authMiddleware := customeMiddleware.InitAuthMiddleware(client, redisRepository, cfg.JwtSecretKey, cfg.Key, cfg.IV, *cfg, logger)
 
 	cpsaction.Init(r, handlerLayer.CpsActionHandler, authMiddleware)
 	budgetCategory.Init(r, handlerLayer.BudgetCategoryHandler, authMiddleware)

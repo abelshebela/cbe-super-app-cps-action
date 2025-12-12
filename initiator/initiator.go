@@ -154,7 +154,7 @@ func Init(ctx context.Context) {
 
 	r := chi.NewRouter()
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
-	InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
+	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "http-server")
