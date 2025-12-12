@@ -81,8 +81,8 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	s.logger.Infof("[EnableOrDisableBranches] processing %d branches, enabled: %v", len(branchIds), enabled)
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 
 	for _, id := range branchIds {
 		branch, err := s.repo.GetBranchByIds(ctx, id)
@@ -115,12 +115,12 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 			}
 		}
 
-		previousAction = append(previousAction, model.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      branch.ID.Hex(),
 			Name:    branch.Name,
 			Enabled: branch.IsEnabled,
 		})
-		currentAction = append(currentAction, model.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      branch.ID.Hex(),
 			Name:    branch.Name,
 			Enabled: enabled,
@@ -158,8 +158,8 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 	for _, id := range regionIds {
 		region, err := s.repo.GetRegionById(ctx, id)
 		if err != nil {
@@ -181,12 +181,12 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 			}
 		}
 
-		previousAction = append(previousAction, shared_type.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      region.ID.Hex(),
 			Name:    region.Name,
 			Enabled: region.IsEnabled,
 		})
-		currentAction = append(currentAction, shared_type.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      region.ID.Hex(),
 			Name:    region.Name,
 			Enabled: enabled,
@@ -224,8 +224,8 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 
 	for _, id := range districtIds {
 		district, err := s.repo.GetDistrictById(ctx, id)
@@ -258,12 +258,12 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 			}
 		}
 
-		previousAction = append(previousAction, shared_type.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      district.ID.Hex(),
 			Name:    district.Name,
 			Enabled: district.IsEnabled,
 		})
-		currentAction = append(currentAction, shared_type.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      district.ID.Hex(),
 			Name:    district.Name,
 			Enabled: enabled,
@@ -301,8 +301,8 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 	for _, id := range ids {
 		city, err := s.repo.FindCityByID(ctx, id)
 		if err != nil {
@@ -334,12 +334,12 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 			}
 		}
 
-		previousAction = append(previousAction, shared_type.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      city.ID.Hex(),
 			Name:    city.Name,
 			Enabled: city.IsEnabled,
 		})
-		currentAction = append(currentAction, shared_type.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      city.ID.Hex(),
 			Name:    city.Name,
 			Enabled: enabled,
