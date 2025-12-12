@@ -59,7 +59,7 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 		Name:       product.Name,
 		Currency:   product.Currency,
 		Interest:   product.Interest,
-		Method:     constants.Method,
+		Method:     shared_constants.Method,
 		Frequency:  product.Frequency,
 		LockPeriod: product.LockPeriod,
 		MinAmount:  product.MinAmount,
