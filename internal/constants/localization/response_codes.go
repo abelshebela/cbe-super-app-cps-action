@@ -297,6 +297,7 @@ var ResponseCodesList = []ResponseCode{
 	//wallet related error codes
 	ErrorWalletNameRequired,
 	ErrorWalletCodeRequired,
+	ErrorWalletTypeRequired,
 	ErrorWalletAvatarRequired,
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
@@ -556,6 +557,7 @@ var ResponseCodesList = []ResponseCode{
 	// bank related errors
 	ErrorInvalidAccountNumberFormat,
 	ErrorInvalidFormatForBIC,
+	ErrorInvalidFormatForType,
 	ErrorInvalidFormatForCode,
 	ErrorInvalidFormatForName,
 }
@@ -1680,6 +1682,12 @@ var (
 		Code:       "ERROR_WALLET_CODE_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet code is required",
+		Type:       "error",
+	}
+	ErrorWalletTypeRequired = ResponseCode{
+		Code:       "ERROR_WALLET_TYPE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet type is required",
 		Type:       "error",
 	}
 
@@ -3395,6 +3403,12 @@ var (
 		Code:       "ERROR_INVALID_FORMAT_FOR_BIC",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidRequestBankBIC,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForType = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankType,
 		Type:       "error",
 	}
 	ErrorInvalidAccountNumberFormat = ResponseCode{

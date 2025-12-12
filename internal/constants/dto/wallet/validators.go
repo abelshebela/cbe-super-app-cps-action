@@ -14,7 +14,8 @@ import (
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
 		strings.TrimSpace(w.Code) == "" &&
-		w.Avatar == nil
+		w.Avatar == nil &&
+		strings.TrimSpace(w.Type) == ""
 }
 
 func (w WalletRequest) Validate(isCreate bool) error {
@@ -56,6 +57,12 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		))
 	}
 
+	if isCreate {
+		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", w.Type, true, localization.ErrorWalletTypeRequired.Code))))
+	} else if w.Type != "" {
+		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", w.Type, false, localization.ErrorWalletTypeRequired.Code))))
+	}
+
 	if len(rules) > 0 {
 		if err := validation.ValidateStruct(&w, rules...); err != nil {
 			return err
@@ -69,43 +76,48 @@ func (w WalletRequest) Validate(isCreate bool) error {
 }
 
 func (w WalletRequest) AggregatedValidate(isCreate bool) error {
-    errs := validation.Errors{}
-    
-    if isCreate {
-        if strings.TrimSpace(w.Name) == "" {
-            errs["name"] = errors.New(localization.ErrorWalletNameRequired.Code)
-        }
-        if strings.TrimSpace(w.Code) == "" {
-            errs["code"] = errors.New(localization.ErrorWalletCodeRequired.Code)
-        }
-        if !(w.Self || w.Other || w.Agent) {
-            errs["recharge_option"] = errors.New(localization.ErrorWalletRechangeOption.Code)
-        }
-        if w.Avatar == nil {
-            errs["avatar"] = errors.New(localization.ErrorWalletAvatarRequired.Code)
-        } else if err := validateAvatar(w.Avatar); err != nil {
-            errs["avatar"] = err
-        }
-    } else {
-        if w.Name != "" && strings.TrimSpace(w.Name) == "" {
-            errs["name"] = errors.New(localization.ErrorWalletNameRequired.Code)
-        }
-        if w.Code != "" && strings.TrimSpace(w.Code) == "" {
-            errs["code"] = errors.New(localization.ErrorWalletCodeRequired.Code)
-        }
-        if w.Avatar != nil {
-            if err := validateAvatar(w.Avatar); err != nil {
-                errs["avatar"] = err
-            }
-        }
-    }
-    
-    if len(errs) > 0 {
-        return errs
-    }
-    return nil
-}
+	errs := validation.Errors{}
 
+	if isCreate {
+		if strings.TrimSpace(w.Name) == "" {
+			errs["name"] = errors.New(localization.ErrorWalletNameRequired.Code)
+		}
+		if strings.TrimSpace(w.Code) == "" {
+			errs["code"] = errors.New(localization.ErrorWalletCodeRequired.Code)
+		}
+		if !(w.Self || w.Other || w.Agent) {
+			errs["recharge_option"] = errors.New(localization.ErrorWalletRechangeOption.Code)
+		}
+		if w.Avatar == nil {
+			errs["avatar"] = errors.New(localization.ErrorWalletAvatarRequired.Code)
+		} else if err := validateAvatar(w.Avatar); err != nil {
+			errs["avatar"] = err
+		}
+		if strings.TrimSpace(w.Type) == "" {
+			errs["type"] = errors.New(localization.ErrorWalletTypeRequired.Code)
+		}
+	} else {
+		if w.Name != "" && strings.TrimSpace(w.Name) == "" {
+			errs["name"] = errors.New(localization.ErrorWalletNameRequired.Code)
+		}
+		if w.Code != "" && strings.TrimSpace(w.Code) == "" {
+			errs["code"] = errors.New(localization.ErrorWalletCodeRequired.Code)
+		}
+		if w.Avatar != nil {
+			if err := validateAvatar(w.Avatar); err != nil {
+				errs["avatar"] = err
+			}
+		}
+		if w.Type != "" && strings.TrimSpace(w.Type) == "" {
+			errs["type"] = errors.New(localization.ErrorWalletTypeRequired.Code)
+		}
+	}
+
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
 
 func validateAvatar(value interface{}) error {
 	file, ok := value.(*multipart.FileHeader)

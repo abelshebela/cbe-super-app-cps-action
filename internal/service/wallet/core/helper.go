@@ -42,7 +42,7 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.Wallet {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent bool, walletType string) *model.Wallet {
 	return &model.Wallet{
 		Name:   name,
 		Code:   code,
@@ -52,40 +52,45 @@ func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.W
 			Other: other,
 			Agent: agent,
 		},
+		Type: walletType,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
 func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, fieldsProvided map[string]bool) (*model.Wallet, int) {
-    wallet := existing
-    changeCount := 0
-    
-    if fieldsProvided["self"] && req.Self != existing.Services.Self {
-        changeCount++
-        wallet.Services.Self = req.Self
-    }
-    
-    if fieldsProvided["other"] && req.Other != existing.Services.Other {
-        changeCount++
-        wallet.Services.Other = req.Other
-    }
-    
-    if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
-        changeCount++
-        wallet.Services.Agent = req.Agent
-    }
-    
-    if req.Name != "" && req.Name != existing.Name {
-        changeCount++
-        wallet.Name = req.Name
-    }
-    
-    if req.Code != "" && req.Code != existing.Code {
-        changeCount++
-        wallet.Code = req.Code
-    }
-    
-    return &wallet, changeCount
+	wallet := existing
+	changeCount := 0
+
+	if fieldsProvided["self"] && req.Self != existing.Services.Self {
+		changeCount++
+		wallet.Services.Self = req.Self
+	}
+
+	if fieldsProvided["other"] && req.Other != existing.Services.Other {
+		changeCount++
+		wallet.Services.Other = req.Other
+	}
+
+	if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
+		changeCount++
+		wallet.Services.Agent = req.Agent
+	}
+
+	if req.Name != "" && req.Name != existing.Name {
+		changeCount++
+		wallet.Name = req.Name
+	}
+
+	if req.Code != "" && req.Code != existing.Code {
+		changeCount++
+		wallet.Code = req.Code
+	}
+	if req.Type != "" && req.Type != existing.Type {
+		changeCount++
+		wallet.Type = req.Type
+	}
+
+	return &wallet, changeCount
 }
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
