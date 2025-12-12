@@ -2,6 +2,7 @@ package productcode
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -36,17 +37,22 @@ func NewProductCodeService(repo storage.ProductCodeRepository, cpsService servic
 }
 
 func (s *productCodeService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Authorization requested for action: %s", cpsAction.RequestAction)
+	s.logger.Infof("[Authorize] authorizing product code action: %s", cpsAction.RequestAction)
 	cpsAction.ActionStatus = "APPROVED"
 	var new model.ProductCode
 	err := core.BindAction(cpsAction.CurrentAction, &new)
 	if err != nil {
-		s.logger.Errorf("failed to bind current action to product code: %v", err)
-		return nil, fmt.Errorf("%v", localization.ErrorInvalidRequest.Code)
+		s.logger.Errorf("[Authorize] failed to bind current action to product code: %v", err)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 	new.ID = cpsAction.UniqueId
 	err = s.repo.Update(ctx, &new)
-	return cpsAction, err
+	if err != nil {
+		s.logger.Errorf("[Authorize] failed to update product code: %v", err)
+		return nil, err
+	}
+	s.logger.Infof("[Authorize] product code authorized successfully for id: %s", cpsAction.UniqueId)
+	return cpsAction, nil
 }
 
 func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error) {
@@ -54,7 +60,7 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 	if err != nil {
 		s.logger.Errorf("[ProductCode.FetchByID] failed to fetch product code, id: %s, error: %v", id, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
+			return nil, errors.New(localization.ErrorProductCodeNotFound.Code)
 		}
 		return nil, err
 	}
@@ -64,10 +70,10 @@ func (s *productCodeService) FetchProductCodeByID(ctx context.Context, id string
 func (s *productCodeService) FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
 	response, err := s.repo.FindAllWithPagination(ctx, filterParams)
 	if err != nil {
-		s.logger.Errorf("[ProductCode.FetchAll] failed to fetch product codes, error: %v", err)
-		return nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
+		s.logger.Errorf("[FetchAllProductCodes] failed to fetch product codes: %v", err)
+		return nil, errors.New(localization.ErrorProductCodeNotFound.Code)
 	}
-
+	s.logger.Infof("[FetchAllProductCodes] retrieved %d product codes", len(response.Data))
 	return response, nil
 }
 
@@ -77,7 +83,7 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	if err != nil {
 		s.logger.Errorf("[ProductCode.Update] failed to fetch existing product code, id: %s, error: %v", request.ID, err)
 		if err == mongo.ErrNoDocuments {
-			return nil, nil, fmt.Errorf("%v", localization.ErrorProductCodeNotFound.Code)
+			return nil, nil, errors.New(localization.ErrorProductCodeNotFound.Code)
 		}
 		return nil, nil, err
 	}
@@ -149,7 +155,13 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 		s.logger.Infof("ProductCode update detected, creating CPS action for approval. ProductCode ID: %s", updated.ID)
 		cpsActionData := lib.CpsModelBuilder(updated.ID, makerData, *existing, *updated, string(constants.RequestUpdateProductCode), constants.UPDATE)
 		err = s.cpsService.CreateCPSAction(ctx, &cpsActionData)
+		if err != nil {
+			s.logger.Errorf("[UpdateProductCode] failed to create CPS action: %v", err)
+			return nil, nil, err
+		}
+		s.logger.Infof("[UpdateProductCode] product code update request created successfully for id: %s", updated.ID)
 	} else {
+		s.logger.Warnf("[UpdateProductCode] no changes detected for product code id: %s", updated.ID)
 		return nil, nil, fmt.Errorf("%s", localization.ErrorNoChangesDetected.Code)
 	}
 	return existing, updated, err

@@ -39,6 +39,9 @@ import (
 
 	// Handler section
 	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
+	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
+	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
+	
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
@@ -128,6 +131,7 @@ type Handler struct {
 	EncryptionHandler         encryptionInbound.EncryptionAdapter
 	DeviceVersionHandler      dviface.DeviceVersionHandler
 	BPSActionRoleHandler      actionrole_iface.BPSActionRoleHandler
+	CPSActionRoleHandler	  cps_actionrole_iface.CPSActionRoleHandler
 	TransactionHandler        transaction.TransactionInterface
 }
 
@@ -174,6 +178,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
 		DeviceVersionHandler:      deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
 		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
+		CPSActionRoleHandler:  cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 	}
 }

@@ -21959,6 +21959,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Diaspora Fixed Deposit"
+                },
+                "rate_bps": {
+                    "type": "string",
+                    "example": "450"
                 }
             }
         },

@@ -109,11 +109,12 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 		result.CompanyName = existing.CompanyName
 	}
 
-	if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
-		result.CompanyCode = "DON-COMPANY-" + donationCompany.CompanyCode
-	} else {
-		result.CompanyCode = existing.CompanyCode
-	}
+	// if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
+	// 	result.CompanyCode = "DON-COMPANY-" + donationCompany.CompanyCode
+	// } else {
+	// 	result.CompanyCode = existing.CompanyCode
+	// }
+	result.CompanyCode = existing.CompanyCode
 
 	if donationCompany.AccountNumber != existing.AccountNumber {
 		result.AccountNumber = donationCompany.AccountNumber

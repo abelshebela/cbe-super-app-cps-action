@@ -10,6 +10,8 @@ import (
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type PortalCardPaginatedResponse types.PaginatedResponse[[]*model.Card]
@@ -38,18 +40,24 @@ func InitPortalCardAdapter(appService service.PortalCardService, logger utils.Lo
 //	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
 //	@Router			/portal_cards [get]
 func (s *portalCardAdapter) GetAllPortalCard(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "portalCard", "portalCardAdapter", "GetAllPortalCard")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
+		span.AddEvent("Invalid pagination params", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage)))
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
 	cards, err := s.appService.GetAll(ctx, filterParams)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
+		s.logger.Errorf("[GetAllPortalCard] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.AddEvent("Portal cards retrieved", trace.WithAttributes(attribute.Int("count", len(cards.Data))))
+	s.logger.Infof("[GetAllPortalCard] retrieved %d portal cards", len(cards.Data))
 	localization.SendSuccessResponse(w, localization.SuccessPortalCardsFetched, cards)
 }

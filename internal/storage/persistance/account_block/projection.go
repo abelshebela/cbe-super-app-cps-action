@@ -32,13 +32,13 @@ func AccountBlockMapperForUpdate(block model.AccountBlock) bson.M {
 	if block.Type != "" {
 		update["type"] = block.Type
 	}
-	if block.CityID != "" {
+	if block.CityID != nil {
 		update["city_id"] = block.CityID
 	}
-	if block.DistrictID != "" {
+	if block.DistrictID != nil {
 		update["district_id"] = block.DistrictID
 	}
-	if block.RegionID != "" {
+	if block.RegionID != nil {
 		update["region_id"] = block.RegionID
 	}
 	if block.ParentID != nil {
@@ -130,9 +130,9 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 		Slug            string                 `bson:"slug"`
 		Type            model.AccountBlockType `bson:"type"`
 		IsEnabled       bool                   `bson:"is_enabled"`
-		CityID          string                 `bson:"city_id,omitempty"`
-		DistrictID      string                 `bson:"district_id,omitempty"`
-		RegionID        string                 `bson:"region_id,omitempty"`
+		CityID          *bson.ObjectID         `bson:"city_id,omitempty"`
+		DistrictID      *bson.ObjectID         `bson:"district_id,omitempty"`
+		RegionID        *bson.ObjectID         `bson:"region_id,omitempty"`
 		IsDeleted       bool                   `bson:"is_deleted,omitempty"`
 		CreatedAt       time.Time              `bson:"created_at"`
 		UpdatedAt       time.Time              `bson:"updated_at"`

@@ -43,8 +43,10 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 }
 
 func (n *NotificationStorage) Update(ctx context.Context, id string, notification *model.Notification) error {
+	n.logger.Infof("[Update] updating notification for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		n.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
@@ -53,33 +55,48 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 	_, err = n.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			n.logger.Errorf("[Update] notification not found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		n.logger.Errorf("[Update] failed to update notification: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	n.logger.Infof("[Update] notification updated successfully")
 	return nil
 }
 
 func (n *NotificationStorage) Delete(ctx context.Context, id string) error {
+	n.logger.Infof("[Delete] deleting notification for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		n.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return n.dal.DeleteOne(ctx, filter)
+	err = n.dal.DeleteOne(ctx, filter)
+	if err != nil {
+		n.logger.Errorf("[Delete] failed to delete notification: %v", err)
+		return err
+	}
+	n.logger.Infof("[Delete] notification deleted successfully")
+	return nil
 }
 
 func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.Notification, error) {
+	n.logger.Infof("[FindByID] fetching notification by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		n.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	result, err := n.dal.FindOne(ctx, filter, nil)
 	if err != nil {
+		n.logger.Errorf("[FindByID] failed to find notification: %v", err)
 		return nil, err
 	}
+	n.logger.Infof("[FindByID] notification retrieved successfully")
 	return result, nil
 }
 
@@ -102,16 +119,18 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 
 	data, err := n.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		n.logger.Errorf("[FindAllWithPagination] failed to fetch notifications: %v", err)
 		return nil, err
 	}
 
 	total, err := n.dal.TotalCount(ctx, filter)
 	if err != nil {
-		n.logger.Errorf("Failed to count total notifications: %v", err)
+		n.logger.Errorf("[FindAllWithPagination] failed to count notifications: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	n.logger.Infof("[FindAllWithPagination] retrieved %d notifications", len(data))
 
 	return &types.PaginatedResponse[[]*model.Notification]{
 		Data: data,
@@ -120,8 +139,9 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 }
 
 func (n *NotificationStorage) NotificationExists(ctx context.Context, notificationType string, forValue constants.NotificationFor, id *string) (bool, error) {
+	n.logger.Infof("[NotificationExists] checking notification existence")
 	if notificationType == "" || forValue == "" {
-		n.logger.Warnf("Invalid input for notification existence check: type=%s, for=%s", notificationType, forValue)
+		n.logger.Errorf("[NotificationExists] invalid input parameters")
 		return false, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
@@ -134,7 +154,7 @@ func (n *NotificationStorage) NotificationExists(ctx context.Context, notificati
 	if id != nil {
 		objID, err := bson.ObjectIDFromHex(*id)
 		if err != nil {
-			n.logger.Errorf("Invalid ID format: %s, error: %v", *id, err)
+			n.logger.Errorf("[NotificationExists] invalid object id: %v", err)
 			return false, errors.New(localization.ErrorInvalidID.Code)
 		}
 		filter["_id"] = bson.M{"$ne": objID}
@@ -142,10 +162,10 @@ func (n *NotificationStorage) NotificationExists(ctx context.Context, notificati
 
 	count, err := n.dal.TotalCount(ctx, filter)
 	if err != nil {
-		n.logger.Errorf("Failed to check notification existence for type %s, for %s: %v", notificationType, forValue, err)
+		n.logger.Errorf("[NotificationExists] failed to check notification existence: %v", err)
 		return false, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	n.logger.Infof("[NotificationExists] notification existence check completed, count: %d", count)
 	return count > 0, nil
 }
 

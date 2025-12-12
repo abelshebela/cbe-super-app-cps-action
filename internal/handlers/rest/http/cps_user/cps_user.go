@@ -8,6 +8,8 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -38,8 +40,11 @@ func InitCPSUserHandler(svc service.CPSUserService, logger utils.Logger) *handle
 //	@Security		BearerAuth
 //	@Router			/cps_users/create [post]
 func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createCpsUserRequest", "handler", "cpsUser")
+	defer span.End()
 	var req cpsuser.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[CreateUserRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
@@ -47,6 +52,7 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 	// Normalize and validate request
 	req.Normalize()
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[CreateUserRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -55,12 +61,15 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 
 	req.PhoneNumber = formattedPhone
-	if err := h.svc.CreateUserRequest(r.Context(), req); err != nil {
-		h.logger.Errorf("[CreateUserRequest] service: %v", err)
+	span.SetAttributes(attribute.String("cps_user.phone", formattedPhone))
+	if err := h.svc.CreateUserRequest(ctx, req); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[CreateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[CreateUserRequest] request sent successfully for user_code")
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserCreationRequestSubmitted, nil)
 }
 
@@ -79,6 +88,8 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/update/{user_code} [patch]
 func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateCpsUserRequest", "handler", "cpsUser")
+	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
@@ -87,6 +98,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	var req cpsuser.UpdateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[UpdateUserRequest] decode: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
@@ -98,17 +110,22 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 	req.Normalize()
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		h.logger.Errorf("[UpdateUserRequest] validation: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	if err := h.svc.UpdateUserRequest(r.Context(), req); err != nil {
-		h.logger.Errorf("[UpdateUserRequest] service: %v", err)
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+
+	if err := h.svc.UpdateUserRequest(ctx, req); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[UpdateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[UpdateUserRequest] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdateRequestSubmitted, nil)
 }
 
@@ -129,6 +146,8 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/{user_code} [get]
 func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchCpsUserByCode", "handler", "cpsUser")
+	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
@@ -136,13 +155,16 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build detailed response in the service layer
-	user, err := h.svc.GetCpsUserDetail(r.Context(), userCode)
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+	user, err := h.svc.GetCpsUserDetail(ctx, userCode)
 	if err != nil {
-		h.logger.Errorf("[FetchUserByUserCode] service: %v", err)
+		span.RecordError(err)
+		h.logger.Errorf("[FetchUserByUserCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[FetchUserByUserCode] CPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserRetrieved, user)
 }
 
@@ -165,15 +187,20 @@ func (h *handler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
 //		@Security		BearerAuth
 //		@Router			/cps_users [get]
 func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllCpsUsers", "handler", "cpsUser")
+	defer span.End()
 	filterParasm := local_util.ExtractFilterParams(r)
 
-	users, err := h.svc.GetAllCPSUsers(r.Context(), filterParasm)
+	users, err := h.svc.GetAllCPSUsers(ctx, filterParasm)
 	if err != nil {
-		h.logger.Errorf("[GetAllCPSUsers] service: %v", err)
+		span.RecordError(err)
+		h.logger.Errorf("[GetAllCPSUsers] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("cps_user.count", len(users.Data)))
+	h.logger.Infof("[GetAllCPSUsers] retrieved %d CPS users", len(users.Data))
 	localization.SendSuccessResponse(w, localization.SuccessCpsUsersRetrieved, users)
 }
 
@@ -192,18 +219,24 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/delete/{user_code} [delete]
 func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteCpsUserRequest", "handler", "cpsUser")
+	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
 		return
 	}
 
-	if err := h.svc.DeleteUserRequest(r.Context(), userCode); err != nil {
-		h.logger.Errorf("[DeleteUserRequest] service: %v", err)
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+
+	if err := h.svc.DeleteUserRequest(ctx, userCode); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[DeleteUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[DeleteUserRequest] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDeleted, nil)
 }
 
@@ -222,18 +255,24 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/disable/{user_code} [post]
 func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableCpsUser", "handler", "cpsUser")
+	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
 		return
 	}
 
-	if err := h.svc.DisableUser(r.Context(), userCode); err != nil {
-		h.logger.Errorf("[DisableUser] service: %v", err)
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+
+	if err := h.svc.DisableUser(ctx, userCode); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDisabled, nil)
 }
 
@@ -252,17 +291,23 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/cps_users/enable/{user_code} [post]
 func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableCpsUser", "handler", "cpsUser")
+	defer span.End()
 	userCode := strings.TrimSpace(chi.URLParam(r, "user_code"))
 	if userCode == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUserCodeRequired.Code)
 		return
 	}
 
-	if err := h.svc.EnableUser(r.Context(), userCode); err != nil {
-		h.logger.Errorf("[EnableUser] service: %v", err)
+	span.SetAttributes(attribute.String("cps_user.code", userCode))
+
+	if err := h.svc.EnableUser(ctx, userCode); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SucessCpsUserEnabled, nil)
 }

@@ -8,7 +8,10 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type encryptionHandler struct {
@@ -37,24 +40,33 @@ func InitEncryption(svc service.EncryptionService, logger utils.Logger) *encrypt
 //	@Security		BearerAuth
 //	@Router			/encryption/encrypt [post]
 func (enc *encryptionHandler) Encrypt(w http.ResponseWriter, r *http.Request) {
+	_, span := local_util.TraceLogger(r.Context(), "", "encryptPassword", "handler", "encryption")
+	defer span.End()
 	var req encryptionDto.EncryptionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		enc.logger.Errorf("[Encryption] failed to decode request: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		enc.logger.Errorf("[Encryption] validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.String("encryption.username", req.Username))
+
 	result, _, err := enc.svc.LocalEncryptPassword(req, "enc", "enc", "enc")
 	if err != nil {
-		enc.logger.Errorf("[Encryption] service: %v", err)
+		span.RecordError(err)
+		enc.logger.Errorf("[Encryption] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	enc.logger.Infof("[Encryption] password encrypted successfully for username: %s", req.Username)
 	localization.SendSuccessResponse(w, localization.SuccessEncryptionGenerated, result)
 }

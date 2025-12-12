@@ -12,7 +12,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"context"
@@ -114,7 +113,7 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return "", localization.ErrorVaultGroupCategoryNotFound
+			return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
 		}
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
@@ -162,19 +161,19 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 	s.logger.Infof("Deleting vault group category with ID: %s", id)
 	if id == "" {
 		s.logger.Errorf("vault group category id is required")
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
+		return "", errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return "", localization.ErrorVaultGroupCategoryNotFound
+			return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
 		}
 		return "", errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	if exist.IsDeleted {
 		s.logger.Errorf("vault group category already deleted with id: %s", id)
-		return "", localization.ErrorVaultGroupCategoryNotFound
+		return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
 	}
 	if exist.IsActive {
 		s.logger.Errorf("cannot delete active vault group category with id: %s", id)
@@ -202,7 +201,7 @@ func (s *vaultgroupCategoryService) EnableVaultGroupCategory(ctx context.Context
 	s.logger.Infof("Enabling vault group category with ID: %s", id)
 	if id == "" {
 		s.logger.Errorf("vault group category id is required")
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
@@ -241,13 +240,13 @@ func (s *vaultgroupCategoryService) DisableVaultGroupCategory(ctx context.Contex
 	s.logger.Infof("Disabling vault group category with ID: %s", id)
 	if id == "" {
 		s.logger.Errorf("vault group category id is required")
-		return errors.New(localization.ErrorUnexpectedError.Code)
+		return errors.New(localization.ErrorIdNotSetOnQueryParam.Code)
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return localization.ErrorVaultGroupCategoryNotFound
+			return errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -277,13 +276,13 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		s.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
 		s.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
 	actionData := helperr.CategoryMapper(actionMap.(map[string]interface{}))

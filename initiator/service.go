@@ -54,7 +54,7 @@ import (
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-
+	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
 	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
 	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
@@ -83,7 +83,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
-	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil)
+	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil, logger)
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)
@@ -119,6 +119,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
   	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
+	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -168,6 +169,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultCategoryContainer:     vaultGroupCategoryService,
 		BPSActionRoleContainer:     bpsActionRoleService,
 		MiniAppCategoryContainer:   miniAppCategory,
+		CPSActionRoleContainer:     cpsActionRoleService,
 	}
 
 	// CPSActionService Appended
@@ -179,7 +181,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
-	accountBlockService = accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService)
+	accountBlockService = accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService, logger)
 	departmentService = department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule = password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService = hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
@@ -214,7 +216,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AmountBasedAuthContainer = amountBased
 	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.BPSActionRoleContainer = bpsActionRoleService
-
+	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, cpsActionService, logger)
+	serviceContainer.CPSActionRoleContainer = cpsActionRoleService
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	serviceContainer.CPSActionContainer = cpsActionService
@@ -292,5 +295,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultGroupCategory:     vaultGroupCategoryService,
 		BPSActionRole:          bpsActionRoleService,
 		MiniAppCategory:        miniAppCategory,
+		CPSActionRole:          cpsActionRoleService,
 	}
 }

@@ -40,15 +40,9 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 	if miniApp.BannerImage != "" {
 		update["banner_image"] = miniApp.BannerImage
 	}
-	if miniApp.CommissionGLAccount != "" {
-		update["commission_gl_account"] = miniApp.CommissionGLAccount
-	}
+
 	if miniApp.AppType != "" {
 		update["app_type"] = miniApp.AppType
-	}
-
-	if miniApp.AppCode != "" {
-		update["app_code"] = miniApp.AppCode
 	}
 
 	if miniApp.CategoryID != bson.NilObjectID {
@@ -109,7 +103,7 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 		update["credential"] = credMap
 	}
 
-	if miniApp.MerchantID != "" {
+	if miniApp.MerchantID != bson.NilObjectID {
 		update["merchant_id"] = miniApp.MerchantID
 	}
 	if miniApp.AppViewType != "" {
@@ -121,11 +115,9 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 	if miniApp.Stage != "" {
 		update["stage"] = miniApp.Stage
 	}
-	if miniApp.IsEventMiniApp {
-		update["is_event_mini_app"] = miniApp.IsEventMiniApp
-	}
-	if miniApp.IsThreeClick {
-		update["is_three_click"] = miniApp.IsThreeClick
+
+	if miniApp.AppMode != "" {
+		update["app_mode"] = miniApp.AppMode
 	}
 
 	return update

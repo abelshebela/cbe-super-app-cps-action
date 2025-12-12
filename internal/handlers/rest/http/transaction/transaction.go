@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type paginated_transaction_resp types.PaginatedResponse[[]transaction_dto.FullTransaction]
@@ -36,14 +38,18 @@ type TransactionHandler struct {
 // @Router       /transactions [get]
 // FetchAllTransactions implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchAllTransactions")
+	defer span.End()
 	filterParams := local_utils.ExtractFilterParams(r)
 
-	transactions, err := t.service.FetchAllTransactions(r.Context(), filterParams)
+	transactions, err := t.service.FetchAllTransactions(ctx, filterParams)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
 		t.logger.Errorf("FetchAllTransactions failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.AddEvent("Transactions retrieved", trace.WithAttributes(attribute.Int("count", len(transactions.Data))))
 	localization.SendSuccessResponse(w, localization.SuccessTransactionRetrieved, transactions)
 }
 
@@ -59,17 +65,22 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 // @Router       /transactions/{id} [get]
 // FetchTransactionByID implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchTransactionByID")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.AddEvent("Missing transaction ID", trace.WithAttributes(attribute.String("error", "transaction ID required")))
 		localization.SendErrorByCodeResponse(w, localization.ErrorTransactionIDRequired.Code)
 		return
 	}
-	transaction, err := t.service.FetchTransactionByID(r.Context(), id)
+	transaction, err := t.service.FetchTransactionByID(ctx, id)
 	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		t.logger.Errorf("FetchTransactionByID failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.AddEvent("Transaction retrieved", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTransactionRetrieved, transaction)
 
 }

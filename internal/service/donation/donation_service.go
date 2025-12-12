@@ -75,13 +75,12 @@ func (d *Donation) FetchDonationByID(ctx context.Context, id string) (*dto.Donat
 		}
 		return nil, err
 	}
-
-	return res, err
+	return res, nil
 }
 
 func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -97,7 +96,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 	}
-	if !category.Enabled {
+	if category == nil || !category.Enabled {
 		return errors.New(localization.ErrorCategoryIsNotEnabled.Code)
 	}
 
@@ -105,7 +104,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	if err != nil {
 		return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 	}
-	if !company.Enabled {
+	if company == nil || !company.Enabled {
 		return errors.New(localization.ErrorCompanyIsNotEnabled.Code)
 	}
 
@@ -139,11 +138,19 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 	donationCode := core.GenerateDonationCode()
 	d.logger.Infof("Creating CPS request with target: %d, donation images count: %d", donation.Target, len(donationImages))
 	result := dto.DonationCPSRequest{
-		DonationCode:        donationCode,
-		CompanyName:         company.CompanyName,
-		CompanyID:           donation.CompanyID,
-		CategoryName:        category.CategoryName,
-		CategoryID:          donation.CategoryID,
+		DonationCode: donationCode,
+		Company: dto.Company{
+			ID:            donation.CompanyID,
+			CompanyName:   company.CompanyName,
+			CompanyLogo:   company.CompanyLogo,
+			AccountNumber: company.AccountNumber,
+			Enabled:       company.Enabled,
+		},
+		Category: dto.Category{
+			ID:           donation.CategoryID,
+			CategoryName: category.CategoryName,
+			Icon:         category.Icon,
+		},
 		Title:               donation.Title,
 		IsFeatured:          donation.IsFeatured,
 		Target:              donation.Target,
@@ -169,7 +176,6 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	// Fetch existing donation
 	existingDonation, err := d.DonationRepo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -201,6 +207,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		if err != nil || category == nil || !category.Enabled {
 			return errors.New(localization.ErrorDonationCategoryNotFound.Code)
 		}
+		existingDonation.Category.CategoryName = category.CategoryName
 	} else {
 		donation.CategoryID = existingDonation.Category.ID
 	}
@@ -211,6 +218,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 		if err != nil || company == nil || !company.Enabled {
 			return errors.New(localization.ErrorDonationCompanyNotFound.Code)
 		}
+		existingDonation.Company.CompanyName = company.CompanyName
 	} else {
 		donation.CompanyID = existingDonation.Company.ID
 	}
@@ -286,7 +294,15 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 	}
 
 	// --- Map Update Data ---
-	updateData := core.MapDonationUpdate(id, existingModel, donation, coverImageURL, NewdonationImages)
+	updateData := core.MapDonationUpdate(
+		id,
+		existingModel,
+		donation,
+		coverImageURL,
+		NewdonationImages,
+		existingDonation.Company,
+		existingDonation.Category,
+	)
 
 	// --- CPS Action ---
 	cpsAction := lib.CpsModelBuilder(
@@ -306,7 +322,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 
 func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto.DonationImageUpdateRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -359,7 +375,7 @@ func (d *Donation) UpdateDonationImage(ctx context.Context, id string, image dto
 
 func (d *Donation) DeleteDonationImage(ctx context.Context, id string, imageID string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -385,7 +401,7 @@ func (d *Donation) DeleteDonationImage(ctx context.Context, id string, imageID s
 
 func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.DonationRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -433,7 +449,7 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 
 func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
@@ -462,7 +478,7 @@ func (d *Donation) EnableDonation(ctx context.Context, id string) error {
 
 func (d *Donation) DisableDonation(ctx context.Context, id string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(makerData); incomplet {
+	if local_util.IsIncomplete(makerData) {
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
@@ -544,8 +560,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, donationCPS.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			donationCPS.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
+		donationModel.CurrentAmount = existingDonation.CurrentAmount
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
@@ -609,8 +634,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
+		donationModel.CurrentAmount = existingDonation.CurrentAmount
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
@@ -651,8 +685,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
+		donationModel.CurrentAmount = existingDonation.CurrentAmount
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
@@ -699,8 +742,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			}
 		}
 
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, donationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			donationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
+		donationModel.CurrentAmount = existingDonation.CurrentAmount
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
@@ -721,8 +773,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		updateRequest := dto.DonationRequest{
 			Enabled: true,
 		}
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, existingDonation.DonationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			existingDonation.DonationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
+		donationModel.CurrentAmount = existingDonation.CurrentAmount
 
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
@@ -743,8 +804,18 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		updateRequest := dto.DonationRequest{
 			Enabled: false,
 		}
-		updateData := core.MapDonationUpdate(action.UniqueId, existingModel, updateRequest, existingDonation.CoverImage, existingDonation.DonationImages)
+		updateData := core.MapDonationUpdate(
+			action.UniqueId,
+			existingModel,
+			updateRequest,
+			existingDonation.CoverImage,
+			existingDonation.DonationImages,
+			existingDonation.Company,
+			existingDonation.Category,
+		)
 		donationModel := core.MapToDonationModel(&updateData)
+		donationModel.CurrentAmount = existingDonation.CurrentAmount
+
 		err = d.DonationRepo.Update(ctx, action.UniqueId, donationModel)
 		if err != nil {
 			d.logger.Errorf("Failed to disable donation: %v", err)

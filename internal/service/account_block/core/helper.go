@@ -10,16 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func GenerateCPSAction(ctx context.Context, codeType string, enabled bool, codes []string, reason string, actionType constants.ActionType, requestActionType constants.RequestAction) model.CPSAction {
+func GenerateCPSAction(ctx context.Context, codeType string, enabled bool, prev []model.EnableDisableAction, curr []model.EnableDisableAction, reason string, actionType constants.ActionType, requestActionType constants.RequestAction) model.CPSAction {
 	maker := local_util.ExtractUserFromContext(ctx)
 
-	var action model.EnableDisableAction
-	action.Codes = codes
-	action.Reason = reason
-
 	uniqueID := bson.NewObjectID().Hex()
-
-	cpsAction := lib.CpsModelBuilder(uniqueID, maker, nil, action, string(requestActionType), string(actionType))
+	cpsAction := lib.CpsModelBuilder(uniqueID, maker, prev, curr, string(requestActionType), string(actionType))
 
 	return cpsAction
 }

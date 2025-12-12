@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type budgetCategoryAdapter struct {
@@ -39,14 +40,18 @@ func InitBudgetCategoryAdapter(budgetCategoryApplication service.BudgetCategoryS
 //	@Security		BearerAuth
 //	@Router			/budget-category [post]
 func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "createBudgetCategory", "handler", "budgetCategory")
+	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
+		span.RecordError(err)
 		b.logger.Errorf("failed to parse request from multipart form: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		b.logger.Errorf("request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -59,12 +64,15 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = b.budgetCategoryApplication.CreateBudgetCategory(r.Context(), req)
+	err = b.budgetCategoryApplication.CreateBudgetCategory(ctx, req)
 	if err != nil {
+		span.RecordError(err)
+		b.logger.Errorf("[CreateBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[CreateBudgetCategory] request sent successfully")
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryRequestSubmittedForApproval, nil)
 }
 
@@ -85,6 +93,8 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [patch]
 func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "updateBudgetCategory", "handler", "budgetCategory")
+	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		b.logger.Errorf("budget category ID is required")
@@ -94,12 +104,14 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 
 	req, err := core.ParseUpdateRequestFromMultipartForm(r)
 	if err != nil {
+		span.RecordError(err)
 		b.logger.Errorf("failed to parse request from multipart form: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		b.logger.Errorf("request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -112,13 +124,17 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	err = b.budgetCategoryApplication.UpdateBudgetCategory(r.Context(), id, req)
+	span.SetAttributes(attribute.String("budget_category.id", id))
+
+	err = b.budgetCategoryApplication.UpdateBudgetCategory(ctx, id, req)
 	if err != nil {
-		b.logger.Errorf("failed to update budget category: %v", err)
+		span.RecordError(err)
+		b.logger.Errorf("[UpdateBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[UpdateBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryUpdateSubmittedForApproval, nil)
 }
 
@@ -137,6 +153,8 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [get]
 func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "getBudgetCategoryById", "handler", "budgetCategory")
+	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		b.logger.Errorf("missing or invalid parameter 'id'")
@@ -144,13 +162,17 @@ func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *
 		return
 	}
 
-	budgetCategory, err := b.budgetCategoryApplication.FetchBudgetCategoryByID(r.Context(), id)
+	span.SetAttributes(attribute.String("budget_category.id", id))
+
+	budgetCategory, err := b.budgetCategoryApplication.FetchBudgetCategoryByID(ctx, id)
 	if err != nil {
-		b.logger.Errorf("failed to fetch budget category: %v", err)
+		span.RecordError(err)
+		b.logger.Errorf("[GetBudgetCategoryByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[GetBudgetCategoryByID] budget category retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryFetched, budgetCategory)
 }
 
@@ -172,15 +194,20 @@ func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *
 //	@Security		BearerAuth
 //	@Router			/budget-category [get]
 func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "getAllBudgetCategories", "handler", "budgetCategory")
+	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
 
-	budgetCategories, err := b.budgetCategoryApplication.FetchBudgetCategory(r.Context(), filterParams)
+	budgetCategories, err := b.budgetCategoryApplication.FetchBudgetCategory(ctx, filterParams)
 	if err != nil {
-		b.logger.Errorf("failed to fetch budget categories: %v", err)
+		span.RecordError(err)
+		b.logger.Errorf("[GetAllBudgetCategories] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("budget_category.count", len(budgetCategories.Data)))
+	b.logger.Infof("[GetAllBudgetCategories] retrieved %d budget categories", len(budgetCategories.Data))
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoriesFetched, budgetCategories)
 }
 
@@ -198,6 +225,8 @@ func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [delete]
 func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "deleteBudgetCategory", "handler", "budgetCategory")
+	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		b.logger.Errorf("missing or invalid parameter 'id'")
@@ -212,13 +241,17 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	err := b.budgetCategoryApplication.DeleteBudgetCategory(r.Context(), id)
+	span.SetAttributes(attribute.String("budget_category.id", id))
+
+	err := b.budgetCategoryApplication.DeleteBudgetCategory(ctx, id)
 	if err != nil {
-		b.logger.Errorf("failed to delete budget category: %v", err)
+		span.RecordError(err)
+		b.logger.Errorf("[DeleteBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[DeleteBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDeleteSubmittedForApproval, nil)
 }
 
@@ -236,6 +269,8 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/enable/{id} [patch]
 func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "enableBudgetCategory", "handler", "budgetCategory")
+	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		b.logger.Errorf("missing or invalid parameter 'id'")
@@ -250,13 +285,17 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 		return
 	}
 
-	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, true)
+	span.SetAttributes(attribute.String("budget_category.id", id))
+
+	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(ctx, id, true)
 	if err != nil {
-		b.logger.Errorf("failed to enable budget category: %v", err)
+		span.RecordError(err)
+		b.logger.Errorf("[EnableBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[EnableBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryEnableSubmittedForApproval, nil)
 }
 
@@ -274,6 +313,8 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/disable/{id} [patch]
 func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_util.TraceLogger(r.Context(), "", "disableBudgetCategory", "handler", "budgetCategory")
+	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
 		b.logger.Errorf("missing or invalid parameter 'id'")
@@ -288,12 +329,16 @@ func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *
 		return
 	}
 
-	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(r.Context(), id, false)
+	span.SetAttributes(attribute.String("budget_category.id", id))
+
+	err := b.budgetCategoryApplication.EnableOrDisableBudgetCategory(ctx, id, false)
 	if err != nil {
-		b.logger.Errorf("failed to disnable budget category: %v", err)
+		span.RecordError(err)
+		b.logger.Errorf("[DisableBudgetCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[DisableBudgetCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBudgetCategoryDisableSubmittedForApproval, nil)
 }

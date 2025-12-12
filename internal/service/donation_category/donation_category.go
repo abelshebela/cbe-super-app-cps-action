@@ -60,7 +60,7 @@ func (d *DonationCategory) FetchDonationCategoryByID(ctx context.Context, id str
 func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationCategory dto.DonationCategoryRequest) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return errors.New(localization.ErrorAccountNumberRequired.Code)
+		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 	ok, err := core.DonationNameExists(ctx, donationCategory.CategoryName, d.DonationCategoryRepo)
 	if err != nil {
@@ -96,7 +96,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string, donationCategory dto.DonationCategoryRequest) (dto.DonationCategoryRequest, error) {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {
-		return donationCategory, errors.New(localization.ErrorAccountNumberRequired.Code)
+		return donationCategory, errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	// Check if donation category exists

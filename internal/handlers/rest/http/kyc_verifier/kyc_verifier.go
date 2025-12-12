@@ -10,6 +10,8 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -43,17 +45,20 @@ func InitKYCAdapter(app service.KYCVerifierService, logger utils.Logger) inbound
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier [get]
 func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getKycList", "handler", "kyc")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
 	res, err := h.app.FetchKYCList(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("kyc.count", len(res.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessKYCFetched, res)
 }
 
@@ -72,14 +77,17 @@ func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/{id} [get]
 func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getKycById", "handler", "kyc")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
+	span.SetAttributes(attribute.String("kyc.id", id))
 	res, err := h.app.FetchKYCByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -101,6 +109,8 @@ func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/update/{id} [patch]
 func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateKyc", "handler", "kyc")
+	defer span.End()
 	var req kyc_verifier.UpdateKYCRequest
 	id := chi.URLParam(r, "id")
 
@@ -110,10 +120,13 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	if err := h.app.UpdateKYC(r.Context(), id, req); err != nil {
+	span.SetAttributes(attribute.String("kyc.id", id))
+	if err := h.app.UpdateKYC(ctx, id, req); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -135,6 +148,8 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/approve/{id} [patch]
 func (h *kycAdapter) ApproveKYC(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "approveKyc", "handler", "kyc")
+	defer span.End()
 	var req kyc_verifier.ApproveKYCRequest
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -143,11 +158,14 @@ func (h *kycAdapter) ApproveKYC(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	if err := h.app.ApproveKYC(r.Context(), id, req); err != nil {
+	span.SetAttributes(attribute.String("kyc.id", id))
+	if err := h.app.ApproveKYC(ctx, id, req); err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}

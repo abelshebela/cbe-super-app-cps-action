@@ -43,7 +43,7 @@ func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cps
 
 // Authorize handles persistence for amount-based auth actions
 func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Authorizing amount-based auth action, action:************* %s", action.RequestAction)
+	s.logger.Infof("[Authorize] authorizing amount-based auth action: %s", action.RequestAction)
 
 	// Unmarshal the current action data
 	// Try direct type assertion first
@@ -54,13 +54,13 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	s.logger.Infof("Authorizing amount-based auth action, pass action:************* %s", action.RequestAction)
+	s.logger.Infof("[Authorize] processing action: %s", action.RequestAction)
 
 	result := (*currentAction)
 
 	switch result["method"] {
 	case "OPEN":
-		s.logger.Infof("Processing OPEN tier update===================")
+		s.logger.Infof("[Authorize] processing OPEN tier update")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occurred when extracting data tier: %v", err)
@@ -99,9 +99,9 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		s.logger.Infof("OPEN tier update request completed successfully")
+		s.logger.Infof("[Authorize] OPEN tier update completed successfully")
 	case "PIN":
-		s.logger.Infof("Processing PIN tier update================")
+		s.logger.Infof("[Authorize] processing PIN tier update")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
@@ -156,8 +156,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 	case "OTP_PIN":
-		s.logger.Infof("Processing OTP_PIN tier update================")
-		s.logger.Infof("Authorizing amount-based auth action, pass OTP_PIN action:************* %s", action.RequestAction)
+		s.logger.Infof("[Authorize] processing OTP_PIN tier update")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
@@ -206,13 +205,18 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	s.logger.Infof("Authorization completed for action, action: %s", action.RequestAction)
+	s.logger.Infof("[Authorize] authorization completed successfully for action: %s", action.RequestAction)
 	return action, nil
 }
 
 // FindAllWithPagination retrieves all amount-based auth tiers with pagination
 func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error) {
-	return s.Repository.FindAllWithPagination(ctx, filterParam)
+	result, err := s.Repository.FindAllWithPagination(ctx, filterParam)
+	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch amount-based auth tiers: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 // UpdateAmountBasedAuth updates any tier type and applies appropriate cascading logic
@@ -366,7 +370,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 			s.logger.Errorf("Failed to create CPS action: %v", err)
 			return err
 		}
-		s.logger.Infof("PIN tier update request completed successfully")
+		s.logger.Infof("[UpdateAmountBasedAuth] PIN tier update request created successfully")
 		return nil
 
 	case constants.OTPANDPIN:

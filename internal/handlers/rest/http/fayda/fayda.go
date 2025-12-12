@@ -8,7 +8,10 @@ import (
 
 	"cbe-super-app-cps-action/internal/service"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type faydaAccountHandler struct {
@@ -37,17 +40,25 @@ func InitFaydaHandler(faydaService service.FaydaAccountService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/fayda_account/enable/{user_code} [post]
 func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "initiateEnableFaydaAccount", "handler", "fayda")
+	defer span.End()
+
 	user_code, ok := core.ExtractID(w, r, f.logger)
 	if !ok {
 		return
 	}
 
-	err := f.faydaService.EnableOrDisableFayda(r.Context(), user_code, true)
+	span.SetAttributes(attribute.String("fayda.user_code", user_code))
+
+	err := f.faydaService.EnableOrDisableFayda(ctx, user_code, true)
 	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[InitiateEnableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[InitiateEnableFaydaAccount] request sent successfully for user_code: %s", user_code)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaEnableActionCreated, nil)
 }
 
@@ -65,16 +76,24 @@ func (f *faydaAccountHandler) InitiateEnableFaydaAccount(w http.ResponseWriter, 
 //	@Security		BearerAuth
 //	@Router			/fayda_account/disable/{user_code} [post]
 func (f *faydaAccountHandler) InitiateDisableFaydaAccount(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "initiateDisableFaydaAccount", "handler", "fayda")
+	defer span.End()
+
 	user_code, ok := core.ExtractID(w, r, f.logger)
 	if !ok {
 		return
 	}
 
-	err := f.faydaService.EnableOrDisableFayda(r.Context(), user_code, false)
+	span.SetAttributes(attribute.String("fayda.user_code", user_code))
+
+	err := f.faydaService.EnableOrDisableFayda(ctx, user_code, false)
 	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[InitiateDisableFaydaAccount] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[InitiateDisableFaydaAccount] request sent successfully for user_code: %s", user_code)
 	localization.SendSuccessResponse(w, localization.SuccessFaydaDisableActionCreated, nil)
 }

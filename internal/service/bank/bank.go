@@ -53,13 +53,13 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 	marshaled, err := json.Marshal(cpsAction.CurrentAction)
 	if err != nil {
 		b.logger.Errorf("failed to marshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to marshal CurrentAction: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	err = json.Unmarshal(marshaled, &actionMap)
 	if err != nil {
 		b.logger.Errorf("failed to unmarshal CurrentAction: %v\n", err)
-		return nil, fmt.Errorf("failed to unmarshal to interface{}: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	actionData := bank_core.Bank_mapper(actionMap.(map[string]interface{}))
@@ -76,51 +76,59 @@ func (b *BankService) Authorize(ctx context.Context, cpsAction *model.CPSAction)
 		actionData.CreatedAt = time.Now()
 		err := b.repo.Create(ctx, &actionData)
 		if err != nil {
-			b.logger.Errorf("Bank Create action  failed", "error", err)
+			b.logger.Errorf("[Authorize] bank create action failed: %v", err)
 			return nil, err
 		}
+		b.logger.Infof("[Authorize] bank created successfully")
 	case string(constants.RequestDeleteBank):
 		err := b.repo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
-			b.logger.Errorf("Bank Delete action  failed", "error", err)
+			b.logger.Errorf("[Authorize] bank delete action failed: %v", err)
 			return nil, err
 		}
+		b.logger.Infof("[Authorize] bank deleted successfully for id: %s", cpsAction.UniqueId)
 
 	case string(constants.RequestEnableDisableBank):
 		err := b.repo.EnableOrDisable(ctx, cpsAction.UniqueId, actionData.Enabled)
 
 		if err != nil {
-			b.logger.Errorf("Bank Enable Disable action  failed", "error", err)
+			b.logger.Errorf("[Authorize] bank enable/disable action failed: %v", err)
 			return nil, err
 		}
+		b.logger.Infof("[Authorize] bank enable/disable action completed successfully for id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBankLogo):
 		err := b.repo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
-			b.logger.Errorf("Bank update Logo action  failed", "error", err)
+			b.logger.Errorf("[Authorize] bank update logo action failed: %v", err)
 			return nil, err
 		}
+		b.logger.Infof("[Authorize] bank logo updated successfully for id: %s", cpsAction.UniqueId)
 	case string(constants.RequestUpdateBank):
 		err := b.repo.Update(ctx, cpsAction.UniqueId, &actionData)
 		if err != nil {
-			b.logger.Errorf("Bank update action failed", "error", err)
+			b.logger.Errorf("[Authorize] bank update action failed: %v", err)
 			return nil, err
 		}
+		b.logger.Infof("[Authorize] bank updated successfully for id: %s", cpsAction.UniqueId)
 	default:
+		b.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
 		return nil, fmt.Errorf("%s", localization.MsgBankInvalidRequestAction)
 	}
+	b.logger.Infof("[Authorize] bank action authorized successfully: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }
 
 func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.CreateBankRequest) error {
+	b.logger.Infof("[CreateOneBank] creating bank")
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		b.logger.Errorf("Create Bank failed incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		b.logger.Errorf("[CreateOneBank] incomplete user data")
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, "banks", *b.cfg, "", b.logger)
 	if err != nil {
-		b.logger.Errorf("UploadFileToMinio failed", "error", err)
+		b.logger.Errorf("[CreateOneBank] failed to upload logo: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
@@ -138,20 +146,24 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[CreateOneBank] failed to check for duplicate bank: %v", err)
 			return err
 		}
 	}
 
 	if result != nil {
 		if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
+			b.logger.Errorf("[CreateOneBank] bank with BIC already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
 		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
+			b.logger.Errorf("[CreateOneBank] bank with code already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
 
 		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+			b.logger.Errorf("[CreateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
@@ -160,20 +172,24 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
+		b.logger.Errorf("[CreateOneBank] failed to create CPS action: %v", err)
 		return err
 	}
+	b.logger.Infof("[CreateOneBank] bank creation request created successfully")
 	return nil
 }
 
 func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
+	b.logger.Infof("[DeleteOneBank] deleting bank for id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		b.logger.Errorf("Delete Bank failed incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		b.logger.Errorf("[DeleteOneBank] incomplete user data")
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 	bank, err := b.repo.FindByID(ctx, id)
 
 	if err != nil {
+		b.logger.Errorf("[DeleteOneBank] failed to find bank: %v", err)
 		return err
 	}
 
@@ -184,26 +200,32 @@ func (b *BankService) DeleteOneBank(ctx context.Context, id string) error {
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
+		b.logger.Errorf("[DeleteOneBank] failed to create CPS action: %v", err)
 		return err
 	}
+	b.logger.Infof("[DeleteOneBank] bank deletion request created successfully for id: %s", id)
 	return nil
 }
 
 func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enableDisable bool) error {
+	b.logger.Infof("[EnableOrDisableBank] processing bank enable/disable for id: %s, enabled: %v", id, enableDisable)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		b.logger.Errorf("Create Bank failed incomplete user data")
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		b.logger.Errorf("[EnableOrDisableBank] incomplete user data")
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
 	if err != nil {
+		b.logger.Errorf("[EnableOrDisableBank] failed to find bank: %v", err)
 		return err
 	}
 
 	if bank.Enabled && enableDisable {
+		b.logger.Errorf("[EnableOrDisableBank] bank already enabled")
 		return fmt.Errorf("%s", localization.ErrorBankAlreadyEnabled.Code)
 	} else if !bank.Enabled && !enableDisable {
+		b.logger.Errorf("[EnableOrDisableBank] bank already disabled")
 		return fmt.Errorf("%s", localization.ErrorBankAlreadyDisabled.Code)
 	}
 
@@ -219,29 +241,45 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
+		b.logger.Errorf("[EnableOrDisableBank] failed to create CPS action: %v", err)
 		return err
 	}
+	b.logger.Infof("[EnableOrDisableBank] bank enable/disable request created successfully for id: %s", id)
 	return nil
 }
 
 func (b *BankService) GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
-
-	return b.repo.FindAllWithPagination(ctx, *filterParams)
+	result, err := b.repo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		b.logger.Errorf("[GetAllBank] failed to fetch banks: %v", err)
+		return nil, err
+	}
+	b.logger.Infof("[GetAllBank] retrieved %d banks", len(result.Data))
+	return result, nil
 }
 
 func (b *BankService) GetOneBank(ctx context.Context, id string) (*model.Bank, error) {
-	return b.repo.FindByID(ctx, id)
+	result, err := b.repo.FindByID(ctx, id)
+	if err != nil {
+		b.logger.Errorf("[GetOneBank] failed to fetch bank: %v", err)
+		return nil, err
+	}
+	b.logger.Infof("[GetOneBank] bank retrieved successfully for id: %s", id)
+	return result, nil
 }
 
 func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.UpdateLogo) error {
+	b.logger.Infof("[UpdateLogo] updating bank logo for id: %s", id)
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		b.logger.Errorf("[UpdateLogo] incomplete user data")
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
 
 	if err != nil {
+		b.logger.Errorf("[UpdateLogo] failed to find bank: %v", err)
 		return err
 	}
 
@@ -253,7 +291,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, objectkey, b.logger)
 
 	if err != nil {
-		b.logger.Errorf("UploadFileToMinio failed", "error", err)
+		b.logger.Errorf("[UpdateLogo] failed to upload logo: %v", err)
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
@@ -265,20 +303,25 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
+		b.logger.Errorf("[UpdateLogo] failed to create CPS action: %v", err)
 		return err
 	}
+	b.logger.Infof("[UpdateLogo] bank logo update request created successfully for id: %s", id)
 	return nil
 }
 
 func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request bank_dto.UpdateBankRequest) error {
+	b.logger.Infof("[UpdateOneBank] updating bank for id: %s", id)
 	var logoUrl string
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
-		return fmt.Errorf(constants.IncompleteUserInfo)
+		b.logger.Errorf("[UpdateOneBank] incomplete user data")
+		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
 	bank, err := b.repo.FindByID(ctx, id)
 	if err != nil {
+		b.logger.Errorf("[UpdateOneBank] failed to find bank: %v", err)
 		return err
 	}
 
@@ -315,7 +358,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		)
 		if err != nil {
 			b.logger.Errorf("UploadFileToMinio failed", "error", err)
-			return errors.New(localization.ErrorUnhandledServer.Code)
+			return errors.New(localization.ErrorFileUploadFailed.Code)
 		}
 
 		logoUrl = URL
@@ -325,19 +368,23 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateOneBank] failed to check for duplicate bank: %v", err)
 			return err
 		}
 	}
 	if result != nil && result.ID.Hex() != id {
 		if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
+			b.logger.Errorf("[UpdateOneBank] bank with BIC already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
 		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
+			b.logger.Errorf("[UpdateOneBank] bank with code already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
 
 		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+			b.logger.Errorf("[UpdateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
 	}
@@ -347,7 +394,9 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 
 	err = b.cpsService.CreateCPSAction(ctx, &action)
 	if err != nil {
+		b.logger.Errorf("[UpdateOneBank] failed to create CPS action: %v", err)
 		return err
 	}
+	b.logger.Infof("[UpdateOneBank] bank update request created successfully for id: %s", id)
 	return nil
 }

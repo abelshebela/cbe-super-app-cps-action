@@ -80,13 +80,16 @@ func (s *permissionService) CreatePermissionGroup(ctx context.Context, req permi
 }
 
 func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permission.UpdatePermissionGroupRequest) error {
+	s.logger.Infof("[UpdatePermissionGroup] updating permission group for id: %s", req.Id)
 	existingGroup, err := s.repo.GetPermissionGroupById(ctx, req.Id)
 	if err != nil {
+		s.logger.Errorf("[UpdatePermissionGroup] failed to find permission group: %v", err)
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	if req.NewGroupName != "" && req.NewGroupName != existingGroup.GroupName {
 		if s.repo.CheckPermissionGroupExists(req.NewGroupName) {
+			s.logger.Errorf("[UpdatePermissionGroup] permission group with new name already exists")
 			return errors.New(localization.ErrorPermissionGroupAlreadyExists.Code)
 		}
 	}
@@ -94,10 +97,12 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 	if len(req.PermissionCategoryLists) > 0 {
 		validCategories, err := s.repo.ValidatePermissionCategories(ctx, req.PermissionCategoryLists)
 		if err != nil {
+			s.logger.Errorf("[UpdatePermissionGroup] failed to validate permission categories: %v", err)
 			return err
 		}
 
 		if len(validCategories) != len(req.PermissionCategoryLists) {
+			s.logger.Errorf("[UpdatePermissionGroup] invalid permission categories provided")
 			return errors.New(localization.ErrorPermissionCatagoryNotFound.Code)
 		}
 	}
@@ -114,11 +119,17 @@ func (s *permissionService) UpdatePermissionGroup(ctx context.Context, req permi
 		constants.UPDATE,
 	)
 
-	return s.cpsService.CreateCPSAction(ctx, &cpsAction)
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		s.logger.Errorf("[UpdatePermissionGroup] failed to create CPS action: %v", err)
+		return err
+	}
+	s.logger.Infof("[UpdatePermissionGroup] permission group update request created successfully for id: %s", req.Id)
+	return nil
 }
 
 func (s *permissionService) GetPermissionGroup(groupName string) (*model.PermissionGroup, error) {
 	if groupName == "" {
+		s.logger.Errorf("[GetPermissionGroup] group name is empty")
 		return nil, errors.New(localization.ErrorPermissionGroupRequired.Code)
 	}
 	groupName = strings.ToUpper(groupName)
@@ -126,19 +137,29 @@ func (s *permissionService) GetPermissionGroup(groupName string) (*model.Permiss
 	permissionGroup, err := s.repo.GetPermissionGroup(groupName)
 	if err != nil {
 		if err == mongo.ErrNoDocuments || err.Error() == "mongo: no documents in result" {
+			s.logger.Errorf("[GetPermissionGroup] permission group not found: %s", groupName)
 			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 		}
+		s.logger.Errorf("[GetPermissionGroup] failed to fetch permission group: %v", err)
 		return nil, err
 	}
+	s.logger.Infof("[GetPermissionGroup] permission group retrieved successfully for name: %s", groupName)
 	return permissionGroup, nil
 }
 
 func (s *permissionService) GetPermissionGroupById(ctx context.Context, id string) (*model.PermissionGroup, error) {
 	if id == "" {
+		s.logger.Errorf("[GetPermissionGroupById] id is empty")
 		return nil, errors.New(localization.ErrorPermissionGroupRequired.Code)
 	}
 
-	return s.repo.GetPermissionGroupById(ctx, id)
+	group, err := s.repo.GetPermissionGroupById(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[GetPermissionGroupById] failed to fetch permission group: %v", err)
+		return nil, err
+	}
+	s.logger.Infof("[GetPermissionGroupById] permission group retrieved successfully for id: %s", id)
+	return group, nil
 }
 
 func (s *permissionService) GetPermissionGroups(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.PermissionGroup], error) {
@@ -147,7 +168,13 @@ func (s *permissionService) GetPermissionGroups(ctx context.Context, filterParam
 		filterParams = &filter
 	}
 
-	return s.repo.FindAllWithPagination(ctx, *filterParams)
+	result, err := s.repo.FindAllWithPagination(ctx, *filterParams)
+	if err != nil {
+		s.logger.Errorf("[GetPermissionGroups] failed to fetch permission groups: %v", err)
+		return nil, err
+	}
+	s.logger.Infof("[GetPermissionGroups] retrieved %d permission groups", len(result.Data))
+	return result, nil
 }
 
 func (s *permissionService) GetAllPermissionCategoriesWithPermissions(ctx context.Context) ([]*model.PermissionCategory, error) {
@@ -253,7 +280,7 @@ func (s *permissionService) Authorize(ctx context.Context, action *model.CPSActi
 		return action, nil
 
 	default:
-		return nil, errors.New("UNHANDLED_ACTION_TYPE")
+		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
 

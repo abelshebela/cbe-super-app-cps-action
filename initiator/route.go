@@ -15,6 +15,7 @@ import (
 	avatar "cbe-super-app-cps-action/internal/glue/routing/avatar"
 	"cbe-super-app-cps-action/internal/glue/routing/bank"
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
+	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
@@ -30,6 +31,7 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
 	"cbe-super-app-cps-action/internal/glue/routing/department"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
+	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini-apps"
 	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
@@ -137,9 +139,32 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	newscategory_routing.Init(r, handlerLayer.NewsCategoryHandler, authMiddleware)
 	newstag_routing.Init(r, handlerLayer.NewsTagHandler, authMiddleware)
 	bps_actionrole_routing.Init(r, handlerLayer.BPSActionRoleHandler, authMiddleware)
+	cps_actionrole_routing.Init(r, handlerLayer.CPSActionRoleHandler, authMiddleware)
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
+
+	// Mini App Proxy Routes
+	miniAppProxyHandler := miniapp.CreateMiniAppProxyHandler(logger, cfg)
+	if miniAppProxyHandler == nil {
+		logger.Fatalf("Failed to create mini-app proxy handler")
+	}
+
+	r.Route("/mini-apps", func(r chi.Router) {
+		r.Use(authMiddleware.AuthenticateToken)
+		r.Handle("/*", miniAppProxyHandler)
+	})
+
+	// Mini App Category Proxy Routes
+	miniAppCategoryProxyHandler := miniapp.CreateMiniAppCategoryProxyHandler(logger, cfg)
+	if miniAppProxyHandler == nil {
+		logger.Fatalf("Failed to create mini-app proxy handler")
+	}
+
+	r.Route("/mini-apps/categories", func(r chi.Router) {
+		r.Use(authMiddleware.AuthenticateToken)
+		r.Handle("/*", miniAppCategoryProxyHandler)
+	})
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// router.Use(customeMiddleware.ChiCORS())

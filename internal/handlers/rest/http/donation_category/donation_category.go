@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"errors"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_category/core"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type paginatedDonationCategoryListResponse types.PaginatedResponse[[]donation_category.DonationCategoryListResponse]
@@ -43,19 +45,22 @@ func InitDonationCategoryAdapter(donationCategoryApp service.DonationCategorySer
 //	@Security		BearerAuth
 //	@Router			/donation_category [get]
 func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationCategory", "handler", "donationCategory")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
 	donationCategories, err := d.donationCategoryApp.FetchDonationCategory(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("donation_category.count", len(donationCategories.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoriesFetched, donationCategories)
 }
 
@@ -74,6 +79,8 @@ func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r
 //	@Security		BearerAuth
 //	@Router			/donation_category/{id} [get]
 func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationCategoryById", "handler", "donationCategory")
+	defer span.End()
 
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -81,10 +88,11 @@ func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWrite
 		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
+	span.SetAttributes(attribute.String("donation_category.id", id))
 	serviceFeeDetails, err := d.donationCategoryApp.FetchDonationCategoryByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -108,20 +116,27 @@ func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWrite
 //	@Security		BearerAuth
 //	@Router			/donation_category [post]
 func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "createDonationCategory", "handler", "donationCategory")
+	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to parse event request from multipart form: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("event request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	if err := d.donationCategoryApp.CreateDonationCategory(r.Context(), req); err != nil {
+	span.SetAttributes(attribute.String("donation_category.name", req.CategoryName))
+
+	if err := d.donationCategoryApp.CreateDonationCategory(ctx, req); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to create event: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -148,6 +163,8 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 //	@Security		BearerAuth
 //	@Router			/donation_category/{id} [patch]
 func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "updateDonationCategory", "handler", "donationCategory")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation category ID is required for update")
@@ -157,19 +174,27 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 
 	req, err := core.ParseRequestFromMultipartForm(r, false)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to parse donation category update request from multipart form: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.ValidateForUpdate(); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("donation category update request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	updatedDonationCategory, err := d.donationCategoryApp.UpdateDonationCategory(r.Context(), id, req)
+	span.SetAttributes(
+		attribute.String("donation_category.id", id),
+		attribute.String("donation_category.name", req.CategoryName),
+	)
+
+	updatedDonationCategory, err := d.donationCategoryApp.UpdateDonationCategory(ctx, id, req)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to update donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -194,14 +219,18 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 //	@Router			/donation_category/enable/{id} [patch]
 
 func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "enableDonationCategory", "handler", "donationCategory")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("donation category ID is required for diable"))
 		d.logger.Errorf("donation category ID is required for diable")
 		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
 		return
 	}
 
-	if err := d.donationCategoryApp.EnableDonationCategory(r.Context(), id); err != nil {
+	if err := d.donationCategoryApp.EnableDonationCategory(ctx, id); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to enable donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -225,14 +254,18 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 //	@Router			/donation_category/enable/{id} [patch]
 
 func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "disableDonationCategory", "handler", "donationCategory")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
+		span.RecordError(errors.New("donation category ID is required for disable"))
 		d.logger.Errorf("donation category ID is required for disable")
 		localization.SendErrorResponse(w, localization.ErrorDonationCategoryIDRequired, nil, nil)
 		return
 	}
 
-	if err := d.donationCategoryApp.DisableDonationCategory(r.Context(), id); err != nil {
+	if err := d.donationCategoryApp.DisableDonationCategory(ctx, id); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to disable donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

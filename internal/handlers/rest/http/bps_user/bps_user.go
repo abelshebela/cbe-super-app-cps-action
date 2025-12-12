@@ -10,6 +10,8 @@ import (
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -44,19 +46,25 @@ func InitBPSUserMakerHandler(service service.BPSUserService, logger utils.Logger
 //	@Security		BearerAuth
 //	@Router			/bps_users/{user_code} [get]
 func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "fetchBpsUserByCode", "handler", "bpsUser")
+	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
 		return
 	}
 
-	user, err := h.Service.FetchUserByUserCode(r.Context(), userCode)
+	span.SetAttributes(attribute.String("bps_user.code", userCode))
+
+	user, err := h.Service.FetchUserByUserCode(ctx, userCode)
 	if err != nil {
-		h.logger.Errorf("FetchUserRequest failed: %v", err)
+		span.RecordError(err)
+		h.logger.Errorf("[FetchUserByUserCode] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[FetchUserByUserCode] BPS user retrieved successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, user)
 }
 
@@ -86,15 +94,20 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 // @Security	BearerAuth
 // @Router		/bps_users/ [get]
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllBpsUsers", "handler", "bpsUser")
+	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
-	users, err := h.Service.GetAllBPSUsers(r.Context(), filterParams)
+	users, err := h.Service.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
-		h.logger.Errorf("GetAllBPSUser request failed: %v", err)
+		span.RecordError(err)
+		h.logger.Errorf("[GetAllBPSUsers] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("bps_user.count", len(users.Data)))
+	h.logger.Infof("[GetAllBPSUsers] retrieved %d BPS users", len(users.Data))
 	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, users)
 }
 
@@ -113,18 +126,24 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/disable/{user_code} [post]
 func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableBpsUser", "handler", "bpsUser")
+	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
 		return
 	}
 
-	err := h.Service.UpdateBpsUser(r.Context(), userCode, false)
+	span.SetAttributes(attribute.String("bps_user.code", userCode))
+
+	err := h.Service.UpdateBpsUser(ctx, userCode, false)
 	if err != nil {
-		h.logger.Errorf("Disable user request failed: %v", err)
+		span.RecordError(err)
+		h.logger.Errorf("[DisableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
 }
 
@@ -143,18 +162,24 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/enable/{user_code} [post]
 func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableBpsUser", "handler", "bpsUser")
+	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
 		return
 	}
 
-	err := h.Service.UpdateBpsUser(r.Context(), userCode, true)
+	span.SetAttributes(attribute.String("bps_user.code", userCode))
+
+	err := h.Service.UpdateBpsUser(ctx, userCode, true)
 	if err != nil {
-		h.logger.Errorf("Enable user request failed: %v", err)
+		span.RecordError(err)
+		h.logger.Errorf("[EnableUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }

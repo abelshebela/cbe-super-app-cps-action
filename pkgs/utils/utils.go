@@ -35,6 +35,9 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -302,7 +305,7 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 		switch v := value.(type) {
 		case string:
 			if v != "" {
-				filter[key] = bson.M{"$regex": v, "$options": "i"}
+				filter[key] = v
 			}
 		case []interface{}:
 			if len(v) > 0 {
@@ -354,7 +357,6 @@ func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 }
 
 func NonEmptyBool(newVal, oldVal bool) bool {
-	// Handles updates correctly (req can explicitly override old value)
 	if newVal != oldVal {
 		return newVal
 	}
@@ -599,6 +601,34 @@ func DurationToMonths(d any) int {
 	return months
 }
 
+func ParseToYears(s string) (float64, error) {
+	if len(strings.TrimSpace(s)) < 2 {
+		return 0, fmt.Errorf("invalid lock period format")
+	}
+
+	s = strings.TrimSpace(s)
+	unit := strings.ToLower(s[len(s)-1:])       // last character
+	valueStr := strings.TrimSpace(s[:len(s)-1]) // everything except unit
+
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in lock period: %v", err)
+	}
+
+	const daysPerYear = 365.0
+
+	switch unit {
+	case "d":
+		return value / daysPerYear, nil
+	case "m":
+		return value / 12.0, nil
+	case "y":
+		return value, nil
+	default:
+		return 0, fmt.Errorf("invalid unit in lock period: %s", unit)
+	}
+}
+
 func NullStringToPtrLike(ns sql.NullString) *string {
 	if !ns.Valid {
 		return (*string)(nil)
@@ -763,4 +793,13 @@ func NumbersOnly(value any) error {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
+}
+
+func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName string) (context.Context, trace.Span) {
+	tracer := otel.Tracer(key)
+	ctx, span := tracer.Start(ctx, spanName)
+	span.SetAttributes(attribute.String(serviceType, serviceName))
+
+	return ctx, span
+
 }
