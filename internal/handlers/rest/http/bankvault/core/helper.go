@@ -13,7 +13,7 @@ func ToDomainCreateBankVaultRequest(req helper.CreateBankVaultProductRequest, lo
 		Name:                       req.Name,
 		Currency:                   "ETB",
 		Interest:                   req.Interest,
-		Method:                     helper.ToDomainMethod("COMPOUND"),
+		Method:                     "COMPOUND",
 		Frequency:                  req.Frequency,
 		LockPeriod:                 lockPeriodDays,
 		MinAmount:                  req.MinAmount,
