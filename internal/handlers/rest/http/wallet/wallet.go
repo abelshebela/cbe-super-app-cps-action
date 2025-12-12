@@ -105,12 +105,18 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
+	id := chi.URLParam(r, "id")
+
+	if id == "" {
+=======
 	ctx, span := local_util.TraceLogger(r.Context(), "", "updateWallet", "handler", "wallet")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 
 	if id == "" {
 		span.RecordError(errors.New("wallet ID is required for update"))
+>>>>>>> dev
 		a.logger.Errorf("wallet ID is required for update")
 		localization.SendErrorResponse(w, localization.ErrorWalletIDRequired, nil, nil)
 		return
@@ -118,7 +124,10 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
 	if err != nil {
+<<<<<<< HEAD
+=======
 		span.RecordError(err)
+>>>>>>> dev
 		a.logger.Errorf("failed to parse wallet update request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -156,23 +165,33 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := req.AggregatedValidate(false); err != nil {
+<<<<<<< HEAD
+=======
 		span.RecordError(err)
+>>>>>>> dev
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if req.IsEmpty() {
+<<<<<<< HEAD
+=======
 		span.RecordError(errors.New("no data provided for wallet update"))
+>>>>>>> dev
 		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
 		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
 		return
 	}
 
 	// Pass fieldsProvided to the service
+<<<<<<< HEAD
+	if err := a.walletApp.UpdateWallet(r.Context(), id, req, fieldsProvided); err != nil {
+=======
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.UpdateWallet(ctx, id, req, fieldsProvided); err != nil {
 		span.RecordError(err)
+>>>>>>> dev
 		a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -324,15 +343,18 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 // GetWallets godoc
 //
 //	@Summary		List wallets
-//	@Description	Retrieve wallets with pagination and optional search
+//	@Description	Retrieve wallets with pagination, filtering, and search. Filterable fields: name, code, enabled. Searchable fields: name, code.
 //	@Tags			Wallet
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int															false	"Page number"		default(1)
-//	@Param			per_page	query		int															false	"Items per page"	default(10)
-//	@Param			search		query		string														false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
+//	@Param			page		query	int		false	"Page number"		default(1)
+//	@Param			per_page	query	int		false	"Items per page"	default(10)
+//	@Param			name		query	string	false	"Filter by wallet name"
+//	@Param			code		query	string	false	"Filter by wallet code"
+//	@Param			enabled		query	bool	false	"Filter by enabled status"
+//	@Param			search		query	string	false	"Search term (searches name, code)"
+//	@Success		200	{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {

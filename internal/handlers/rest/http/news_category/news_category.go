@@ -78,8 +78,6 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/news/category/{id} [delete]
-//
-// DeleteNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -111,9 +109,7 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}						"Bad request - Invalid pagination params"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/category [post]
-//
-// FetchNewsCategories implements newscategory_adaptor.NewsCategoryAdaptor.
+//	@Router			/news/category [get]
 func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.Request) {
 	filterPtr := local_util.ExtractFilterParams(r)
 	filter := *filterPtr
@@ -181,7 +177,7 @@ func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/category/{id} [put]
+//	@Router			/news/category/{id} [patch]
 //
 // UpdateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.Request) {

@@ -320,7 +320,7 @@ func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 //	@Param			page		query		int																	false	"Page number"		default(1)
 //	@Param			per_page	query		int																	false	"Items per page"	default(10)
 //	@Param			search		query		string																false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=[]model.PaginatedEventResponse}	"Events retrieved successfully"
+//	@Success		200			{object}	localization.StandardResponse{data=[]model.Event}	"Events retrieved successfully"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/events [get]
