@@ -1,0 +1,32 @@
+Upgrade KYC Level - Complete Flow
+| esr rmauosnas i
+| {user_code, target_level} ' ' ' ' ' ' '
+i | ValidateUpgrade() : : q 4 i t
+' i | FetchUser(user_code) ' ' ' ' '
+' ' | User data ' ' ' ' '
+' ' {Current KYC level | ' ' ' '
+' ' | Sequential upgrade | ' ' ' '
+' ' ichocuhee docs ' ' ' ' '
+' | Eligible ' ' ' ' ' '
+1g eligible: true, required_docs: [...]} | ' ' ' ' ' '
+——S— a [Phase 2: Create BPS Reto J]
+| post Apgrdekeques Po
+| {user_code, target_level} d ' ' ' ' ‘ '
+i | CreateUpgradeAction() || 1 i i i i
+| epsrctionCreatet) _!
+' ' ' ' | - request_action: UPGRADE_KYC_LEVEL | ' '
+! : ! ! | = previous action: {kyc_level: current} | ' {
+' ' ' ' fesuent action: {kyc_fevel: target} | ' '
+' ‘ ' ‘ 1 Created ' ‘ '
+‘ ' | BPSAction ' ' ' ' '
+' |g Success ' ' ' ' ' '
+1. faction_ code, status: "PENDING"} | ‘ ‘ ' ' ‘ '
+' ' POST /bps_action/approve ' ‘ ' ‘ '
+' | faction code} A i d ; H '
+|BosacionApprovel) | ; ;
+' ' ' ' | Update status = APPROVED ' ' '
+' ' ‘ |_-UpgradeUserkYC(user_code, new level) ! ' ‘ '
+' ' ' | -fyc level = new level ! ! ' '
+' ' ' | Update transaction limits ' ' ' '
+' ' ' | publish kye_upgraded event ' ' ' '
+' | KYC upgraded ! ! ! ! ! !
