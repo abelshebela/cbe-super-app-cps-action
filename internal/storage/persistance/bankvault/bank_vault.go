@@ -12,9 +12,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"github.com/shopspring/decimal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

@@ -286,7 +286,7 @@ func (d *Donation) UpdateDonation(ctx context.Context, id string, donation dto.D
 			return err
 		}
 
-		NewdonationImages = append(NewdonationImages, dto.DonationImage{
+		NewdonationImages = append(NewdonationImages, shared_types.DonationImage{
 			ID:       bson.NewObjectID().Hex(),
 			PhotoURL: url,
 		})

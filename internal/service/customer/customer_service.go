@@ -227,9 +227,9 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 	new_customer.BlockedReason = disable.DisableReason
 
 	if *disable.IsTemporary {
-		new_customer.BlockedOn = shared_constant.BPS
+		new_customer.BlockedOn = members.BlockedOn(shared_constant.BPS)
 	} else {
-		new_customer.BlockedOn = constants.CPS
+		new_customer.BlockedOn = members.BlockedOn(shared_constant.CPS)
 	}
 
 	action := lib.CpsModelBuilder(id, makerData, customer, new_customer, string(constants.RequestEnableDisableCustomer), constants.UPDATE)

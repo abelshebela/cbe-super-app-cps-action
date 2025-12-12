@@ -1,7 +1,7 @@
 package service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
@@ -36,7 +36,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
@@ -340,7 +340,7 @@ type AdvertService interface {
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
-	UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
+	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 
 type AvatarService interface {

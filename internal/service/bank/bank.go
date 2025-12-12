@@ -137,7 +137,6 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		Name:          bank_request.Name,
 		BIC:           bank_request.BIC,
 		Code:          bank_request.Code,
-		AccountLength: *bank_request.AccountLength,
 		Logo:          URL,
 		Enabled:       true,
 	}
@@ -336,9 +335,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 	if bank_request.Name != "" {
 		updatedBank.Name = bank_request.Name
-	}
-	if bank_request.AccountLength != nil {
-		updatedBank.AccountLength = *bank_request.AccountLength
 	}
 	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
