@@ -2,7 +2,6 @@ package sqlc
 
 import (
 	constants "cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/model"
 	utils "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
@@ -10,6 +9,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/godror/godror"
 	"github.com/google/uuid"

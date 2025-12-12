@@ -18,10 +18,11 @@ import (
 
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -40,16 +41,16 @@ type OTPRepository interface {
 }
 
 type UserRepository interface {
-	Save(ctx context.Context, user *model.User) error
-	GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error)
+	Save(ctx context.Context, user *member.User) error
+	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
 	Delete(ctx context.Context, id string) error
 	DeleteHard(ctx context.Context, id string) error
-	FindById(ctx context.Context, id string) (*model.User, error)
-	FindByUserCode(ctx context.Context, userCode string) (*model.User, error)
-	FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.User, error)
-	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error)
-	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error)
-	Update(ctx context.Context, id string, update *model.User) error
+	FindById(ctx context.Context, id string) (*member.User, error)
+	FindByUserCode(ctx context.Context, userCode string) (*member.User, error)
+	FindByCustomerNumber(ctx context.Context, customerNumber string) (*member.User, error)
+	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*member.User, error)
+	FindByDeviceUUID(ctx context.Context, deviceUUID string) (*member.User, error)
+	Update(ctx context.Context, id string, update *member.User) error
 }
 
 type HQRepository interface {
@@ -213,7 +214,7 @@ type AdvertRepository interface {
 }
 
 type ArchivedUserRepository interface {
-	Create(ctx context.Context, user *model.User) error
+	Create(ctx context.Context, user *member.User) error
 	FindByID(ctx context.Context, id string) (*model.ArchivedUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
 }
@@ -476,14 +477,14 @@ type ProductCodeRepository interface {
 }
 
 type FaydaRepository interface {
-	Update(ctx context.Context, user *model.User, isEnabled bool) error
-	FindByUserCode(ctx context.Context, user_code string) (*model.User, error)
+	Update(ctx context.Context, user *member.User, isEnabled bool) error
+	FindByUserCode(ctx context.Context, user_code string) (*member.User, error)
 }
 
 type CustomerRepository interface {
-	FindByID(ctx context.Context, id string) (*model.User, error)
-	Update(ctx context.Context, id string, data model.User) error
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error)
+	FindByID(ctx context.Context, id string) (*member.User, error)
+	Update(ctx context.Context, id string, data member.User) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*member.User], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 }
@@ -583,7 +584,7 @@ type BPSActionApproveIndexRepository interface {
 }
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.	CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {

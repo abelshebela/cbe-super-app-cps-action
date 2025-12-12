@@ -7,10 +7,11 @@ import (
 
 	product_code_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"

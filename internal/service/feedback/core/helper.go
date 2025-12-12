@@ -4,8 +4,9 @@ import (
 	"time"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // BuildFeedbackEntity creates a Feedback model from userID and request with timestamps set.

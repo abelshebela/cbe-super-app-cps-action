@@ -4,13 +4,14 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/service_details/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

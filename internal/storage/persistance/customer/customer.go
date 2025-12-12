@@ -2,12 +2,13 @@ package customer
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"errors"
 	"fmt"
 	"strings"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -22,13 +23,13 @@ import (
 
 type CustomerRepository struct {
 	client           *mongo.Client
-	mongoDal         dal.MongoDal[model.User, model.User]
+	mongoDal         dal.MongoDal[member.User, member.User]
 	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
 	logger           utils.Logger
 }
 
 func InitCustomerDetail(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CustomerRepository {
-	mongoDal := dal.NewMongoDal[model.User, model.User](client, database, collection[0])
+	mongoDal := dal.NewMongoDal[member.User, member.User](client, database, collection[0])
 	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
 	return &CustomerRepository{
 		client:           client,
@@ -38,7 +39,7 @@ func InitCustomerDetail(client *mongo.Client, database string, collection []stri
 	}
 }
 
-func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*member.User], error) {
 
 	searchKeys := bson.M{}
 
@@ -82,13 +83,13 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	p.logger.Infof("[FindAllWithPagination] retrieved %d customers", len(data))
 
-	return &types.PaginatedResponse[[]*model.User]{
+	return &types.PaginatedResponse[[]*member.User]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (p *CustomerRepository) Update(ctx context.Context, id string, data model.User) error {
+func (p *CustomerRepository) Update(ctx context.Context, id string, data member.User) error {
 	p.logger.Infof("[Update] updating customer for id: %s", id)
 	objId, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -105,7 +106,7 @@ func (p *CustomerRepository) Update(ctx context.Context, id string, data model.U
 	p.logger.Infof("[Update] customer updated successfully")
 	return nil
 }
-func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*model.User, error) {
+func (p *CustomerRepository) FindByID(ctx context.Context, id string) (*member.User, error) {
 	p.logger.Infof("[FindByID] fetching customer by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {

@@ -4,10 +4,11 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"

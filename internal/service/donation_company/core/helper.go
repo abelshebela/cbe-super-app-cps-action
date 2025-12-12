@@ -4,7 +4,6 @@ import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -12,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

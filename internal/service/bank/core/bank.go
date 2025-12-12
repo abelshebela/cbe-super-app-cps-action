@@ -1,7 +1,7 @@
 package bank_core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // Bank_mapper maps a map[string]interface{} to a model.Bank.

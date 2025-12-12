@@ -3,7 +3,6 @@ package fayda
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	cps_const "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/fayda/core"
@@ -12,6 +11,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

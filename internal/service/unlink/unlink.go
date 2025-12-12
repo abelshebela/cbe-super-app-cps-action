@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/unlink/core"
@@ -13,6 +12,8 @@ import (
 	"context"
 	"errors"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"

@@ -8,7 +8,8 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/shopspring/decimal"
 )

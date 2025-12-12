@@ -2,9 +2,10 @@ package miniappmerchant
 
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

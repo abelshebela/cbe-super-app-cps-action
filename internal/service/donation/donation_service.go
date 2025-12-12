@@ -7,7 +7,6 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/donation/core"
@@ -15,6 +14,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"time"
 

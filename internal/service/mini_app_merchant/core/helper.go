@@ -8,11 +8,12 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 

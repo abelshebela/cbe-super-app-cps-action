@@ -2,11 +2,12 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"fmt"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo storage.ArchivedUserRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, userOldData *model.User, linkedAccountOldData *model.LinkedAccount, haveAccount bool) (error, error) {

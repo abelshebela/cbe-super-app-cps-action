@@ -5,7 +5,6 @@ import (
 	cpsactionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	core "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler/core"
 	"cbe-super-app-cps-action/internal/service"
@@ -13,6 +12,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

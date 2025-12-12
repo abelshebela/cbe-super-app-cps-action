@@ -32,8 +32,10 @@ import (
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
@@ -101,9 +103,9 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
-	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
-	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error)
+	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
@@ -272,7 +274,7 @@ type ServiceService interface {
 }
 
 type UnlinkService interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -576,5 +578,4 @@ type CPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
-	
 }

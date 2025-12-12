@@ -6,8 +6,9 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
-	"cbe-super-app-cps-action/internal/constants/model"
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func GenerateNotification(notification model.Notification) *model.Notification {

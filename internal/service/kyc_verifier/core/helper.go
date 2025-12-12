@@ -4,12 +4,13 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	accountLookupDto "cbe-super-app-cps-action/internal/constants/dto/account_lookup"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	accountLookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -87,10 +88,6 @@ func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, u
 			userData.IsVerified = true
 			userData.IsSelfRegister = true
 			userData.Gender = constants.Gender(account.Gender)
-			userData.Address.Zone = account.CustomerAddress
-			userData.Address.Region = account.CustomerAddress
-			userData.Address.Woreda = account.CustomerAddress
-			userData.Address.Kebele = account.CustomerAddress
 			userData.MotherName = account.CustomerMotherName
 			userData.Avatar = account.Picture
 			userData.BranchCode = account.AccountBranchCode

@@ -3,10 +3,11 @@ package bpsmakerhandler
 import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 

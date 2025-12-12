@@ -2,8 +2,9 @@ package donation
 
 import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

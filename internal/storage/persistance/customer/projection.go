@@ -1,7 +1,7 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -35,13 +35,13 @@ func UserProjection() bson.M {
 	}
 }
 
-func FaydaEnable(objID bson.ObjectID, data model.User) (bson.M, bson.M) {
+func FaydaEnable(objID bson.ObjectID, data member.User) (bson.M, bson.M) {
 	filter := bson.M{
 		"_id": objID,
 	}
-	update := bson.M{
-		"fayda_risk_level": data.FaydaRiskLevel,
-	}
+	// update := bson.M{
+	// 	"fayda_risk_level": data.FaydaRiskLevel,
+	// }
 
-	return filter, update
+	return filter, nil
 }

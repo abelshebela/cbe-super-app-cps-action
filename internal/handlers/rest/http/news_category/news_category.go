@@ -4,12 +4,13 @@ import (
 	newscategory_dto "cbe-super-app-cps-action/internal/constants/dto/news_category"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_category/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

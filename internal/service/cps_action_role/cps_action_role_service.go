@@ -5,7 +5,6 @@ import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -15,6 +14,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -80,7 +81,6 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	if err == nil && existing != nil {
 		return errors.New(localization.ErrorActionNameAlreadyExists.Code)
 	}
-
 
 	if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
 		return err
@@ -176,12 +176,12 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	payload := model.ActionRole{
-		ActionCode: actionCode,
-		ActionName: local_util.NonEmptyString(req.ActionName, old.ActionName),
-		Enabled:    old.Enabled,
+		ActionCode:  actionCode,
+		ActionName:  local_util.NonEmptyString(req.ActionName, old.ActionName),
+		Enabled:     old.Enabled,
 		IsMakerOnly: req.IsMakerOnly,
 	}
-if req.AssignedMakersRoles != nil {
+	if req.AssignedMakersRoles != nil {
 		makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
 		for _, id := range req.AssignedMakersRoles {
 			oid, err := bson.ObjectIDFromHex(id)
@@ -200,7 +200,7 @@ if req.AssignedMakersRoles != nil {
 		payload.AssignedMakersRoles = makers
 	}
 
-		if req.IsMakerOnly {
+	if req.IsMakerOnly {
 		payload.AssignedCheckerRoles = [][]bson.ObjectID{}
 	} else {
 		if req.AssignedCheckerRoles != nil {
@@ -230,7 +230,7 @@ if req.AssignedMakersRoles != nil {
 			payload.AssignedCheckerRoles = checkers
 		}
 	}
-		if req.AssignedAuditorRoles != nil {
+	if req.AssignedAuditorRoles != nil {
 		auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
 		for _, id := range req.AssignedAuditorRoles {
 			oid, err := bson.ObjectIDFromHex(id)
@@ -373,8 +373,6 @@ func (s *cpsActionRoleService) bindActionRoleModel(in model.CPSActionRole) (mode
 	return in, nil
 }
 
-
-
 func (s *cpsActionRoleService) validateUniqueIDs(ids []string) error {
 	seen := make(map[string]struct{})
 	for _, id := range ids {
@@ -424,7 +422,6 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	}
 	return s.indexRepo.SyncIndices(ctx, oldActionName, indices)
 }
-
 
 func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []model.CPSActionApproveIndex {
 	var indices []model.CPSActionApproveIndex

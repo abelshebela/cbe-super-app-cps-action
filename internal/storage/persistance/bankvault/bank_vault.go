@@ -3,15 +3,17 @@ package bankvault
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault/gen/sqlc"
 	"cbe-super-app-cps-action/pkgs/utils"
+	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/shopspring/decimal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -57,7 +59,7 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 		Name:       product.Name,
 		Currency:   product.Currency,
 		Interest:   product.Interest,
-		Method:     product.Method,
+		Method:     constants.Method,
 		Frequency:  product.Frequency,
 		LockPeriod: product.LockPeriod,
 		MinAmount:  product.MinAmount,
@@ -110,7 +112,7 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 			Name:                       row.Name,
 			Currency:                   row.Currency,
 			Interest:                   row.Interest,
-			Method:                     constants.AccrualMethod(row.Method),
+			Method:                     shared_constants.AccrualMethod(row.Method),
 			Frequency:                  row.Frequency,
 			LockPeriod:                 row.LockPeriod,
 			MinAmount:                  row.MinAmount,
@@ -278,7 +280,7 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 		Name:                       row.Name,
 		Currency:                   row.Currency,
 		Interest:                   row.Interest,
-		Method:                     constants.AccrualMethod(row.Method),
+		Method:                     shared_constants.AccrualMethod(row.Method),
 		Frequency:                  row.Frequency,
 		LockPeriod:                 row.LockPeriod,
 		MinAmount:                  row.MinAmount,

@@ -3,10 +3,11 @@ package wallet
 import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"errors"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	walletcore "cbe-super-app-cps-action/internal/handlers/rest/http/wallet/core"

@@ -3,9 +3,10 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

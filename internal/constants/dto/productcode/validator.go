@@ -2,8 +2,9 @@ package productcode
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

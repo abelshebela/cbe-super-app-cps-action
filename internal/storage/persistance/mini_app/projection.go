@@ -1,8 +1,9 @@
 package mini_app
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -59,6 +60,8 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 				"vat_code":         pc.VATCode,
 				"service_fee_code": pc.ServiceFeeCode,
 			}
+
+			
 		}
 		update["product_code"] = productCodes
 	}
