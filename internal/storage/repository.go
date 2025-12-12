@@ -5,6 +5,7 @@ import (
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
+	"cbe-super-app-cps-action/internal/constants"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -13,16 +14,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-
-	"cbe-super-app-cps-action/internal/constants"
+	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -168,6 +168,7 @@ type AmountBasedAuthRepository interface {
 
 // AccountBlock persistence
 type AccountBlockRepository interface {
+	GetBranchByCode(ctx context.Context, code string) (*model.AccountBlock, error)
 	GetBranchById(ctx context.Context, branchCode string) (*model.AccountBlock, error)
 	GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
@@ -217,11 +218,12 @@ type ArchivedUserRepository interface {
 	Create(ctx context.Context, user *member.User) error
 	FindByID(ctx context.Context, id string) (*model.ArchivedUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
+	FindAllArchievedUsersWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error)
 }
 
 type ArchivedLinkedAccountRepository interface {
 	Create(ctx context.Context, user *model.LinkedAccount) error
-	FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error)
+	FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
 }
 

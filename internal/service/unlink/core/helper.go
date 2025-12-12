@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo storage.ArchivedUserRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, userOldData *member.User, linkedAccountOldData *model.LinkedAccount, haveAccount bool) (error, error) {
@@ -46,3 +46,52 @@ func DeleteUserDataWithLinkedAccount(ctx context.Context, userRepo storage.UserR
 	// fmt.Println("User Deletion from user collection user error: %v linked error: %v", userErr, likedAccount.ID)
 	return userErr, linkedAccErr
 }
+
+// func buildArchivedUserResponse(user *model.ArchivedUser, archivedLinkedUser *model.ArchivedLinkedAccount) *unlink_dto.ArchivedUserResponse {
+// 	return &unlink_dto.ArchivedUserResponse{
+// 		ID:           user.ID,
+// 		CustomerCode: user.UserCode,
+// 		CustomerName: user.FullName,
+// 		BranchCode:   archivedLinkedUser.BranchCode,
+// 		Branch: unlink_dto.AccountBlockResponse{
+// 			ID:   archivedLinkedUser.ID.Hex(),
+// 			Name: branch.Name,
+// 		},
+// 		District: unlink_dto.AccountBlockResponse{
+// 			ID:   district.ID.Hex(),
+// 			Name: district.Name,
+// 		},
+// 		PhoneNumber:         user.PhoneNumber,
+// 		Language:            user.Language,
+// 		Avatar:              user.Avatar,
+// 		Email:               user.Email,
+// 		PushToken:           user.PushToken,
+// 		CustomerNumber:      user.CustomerNumber,
+// 		UserCategory:        user.UserCategory,
+// 		Industry:            user.Industry,
+// 		Sector:              user.Sector,
+// 		Ownership:           user.Ownership,
+// 		CustomerSegment:     user.CustomerSegment,
+// 		BlockedReason:       user.BlockedReason,
+// 		DeviceUUID:          user.DeviceUUID,
+// 		AppVersion:          user.AppVersion,
+// 		Gender:              user.Gender,
+// 		MemberType:          user.MemberType,
+// 		Platform:            user.Platform,
+// 		DeviceStatus:        user.DeviceStatus,
+// 		OnboardingMethod:    user.OnboardingMethod,
+// 		BlockedOn:           user.BlockedOn,
+// 		EnabledChannels:     user.EnabledChannels,
+// 		LoginAttemptCount:   user.LoginAttemptCount,
+// 		LastLoginAttempt:    user.LastLoginAttempt,
+// 		LastLogin:           user.LastLogin,
+// 		APPInstallationDate: user.APPInstallationDate,
+// 		CreatedAt:           user.CreatedAt,
+// 		ExpiryAt:            user.ExpiryAt,
+// 		LastModifiedAt:      user.LastModifiedAt,
+// 		IsBlocked:           user.IsBlocked,
+// 		Enabled:             user.Enabled,
+// 		FirstPinSet:         user.FirstPinSet,
+// 		IsActivated:         user.IsActivated,
+// 	}
+// }

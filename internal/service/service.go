@@ -1,7 +1,6 @@
 package service
 
 import (
-	
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
@@ -34,11 +33,13 @@ import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
+	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
+
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"context"
 	"mime/multipart"
@@ -275,7 +276,7 @@ type ServiceService interface {
 
 type UnlinkService interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
-	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
+	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
