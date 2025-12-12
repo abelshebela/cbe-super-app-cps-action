@@ -44,6 +44,15 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type ServicesService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req model.Services) error
+	Update(ctx context.Context, id string, req model.Services) error
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
+	GetByID(ctx context.Context, id string) (*model.Services, error)
+}
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
 	CreateCPSAction(ctx context.Context, action *model.CPSAction) error
@@ -407,6 +416,7 @@ type ServiceLayer struct {
 	Permission             PermissionService
 	CPSUser                CPSUserService
 	ServiceDetails         ServiceService
+	Services               ServicesService
 	AccountValidation      AccountValidationService
 	ProductCode            ProductCodeService
 	BankVault              BankVaultService
@@ -460,6 +470,7 @@ type ServiceContainer struct {
 	AccountLookup              AccountSearchService
 	BulkServiceContainer       BulkService
 	ServiceCheckContainer      ServiceService
+	ServicesContainer          ServicesService
 	DeviceVersionContainer     DeviceVersionServiceSrv
 	KeyGenService              KeyGeneratorService
 	NotificationService        NotificationService
@@ -576,5 +587,4 @@ type CPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
-	
 }

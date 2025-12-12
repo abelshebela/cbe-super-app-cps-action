@@ -33,6 +33,17 @@ type UnlinkAccount interface {
 	Authorize(ctx context.Context, cpsAction model.CPSAction) (model.ArchivedUser, error)
 }
 
+// ServicesRepository manages CRUD for Services catalog
+type ServicesRepository interface {
+	Create(ctx context.Context, service *model.Services) error
+	Update(ctx context.Context, id string, service *model.Services) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*model.Services, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
+}
+
 type OTPRepository interface {
 	Save(ctx context.Context, otp *model.OTP) error
 	Find(ctx context.Context, filte bson.M) (*model.OTP, error)
@@ -583,7 +594,7 @@ type BPSActionApproveIndexRepository interface {
 }
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.	CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {
