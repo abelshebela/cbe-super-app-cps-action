@@ -20,7 +20,8 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+		shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+shared_contant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -96,21 +97,21 @@ func GenerateEvent(event model.Event) *model.Event {
 		EventName:     event.EventName,
 		EventCity:     event.EventCity,
 		EventVenue:    event.EventVenue,
-		Status:        constants.EventUpcomming,
+		Status:        shared_contant.EventUpcomming,
 		AccountNumber: event.AccountNumber,
-		MerchantInformation: types.MerchantInformation{
+		MerchantInformation: shared_types.MerchantInformation{
 			MerchantID:          event.MerchantInformation.MerchantID,
 			MercahntName:        event.MerchantInformation.MercahntName,
 			MerchantPhoneNumber: event.MerchantInformation.MerchantPhoneNumber,
 			MerchantEmail:       event.MerchantInformation.MerchantEmail,
 		},
-		EventInformation: types.EventInformation{
+		EventInformation: shared_types.EventInformation{
 			StartDate:   event.EventInformation.StartDate,
 			DueDate:     event.EventInformation.DueDate,
 			Description: event.EventInformation.Description,
 			Cover:       event.EventInformation.Cover,
 		},
-		TicketInformation: types.TicketInformation{
+		TicketInformation: shared_types.TicketInformation{
 			TotalNumberOfTicket: event.TicketInformation.TotalNumberOfTicket,
 		},
 		Ticket:         event.Ticket,
@@ -169,23 +170,22 @@ func EventMapperForUpdate(prevEvent *model.Event, update eventdto.EventRequest, 
 		EventName:  NonEmptyString(update.EventName, prevEvent.EventName),
 		EventCity:  NonEmptyString(update.EventCity, prevEvent.EventCity),
 		EventVenue: NonEmptyString(update.EventVenue, prevEvent.EventVenue),
-		Status:     constants.EventUpcomming,
-		MerchantInformation: types.MerchantInformation{
+		Status:     shared_contant.EventUpcomming,
+		MerchantInformation: shared_types.MerchantInformation{
 			MerchantID:          NonEmptyString(update.MerchantID, prevEvent.MerchantInformation.MerchantID),
 			MercahntName:        NonEmptyString(update.MercahntName, prevEvent.MerchantInformation.MercahntName),
 			MerchantPhoneNumber: NonEmptyString(update.MerchantPhoneNumber, prevEvent.MerchantInformation.MerchantPhoneNumber),
 			MerchantEmail:       NonEmptyString(update.MerchantEmail, prevEvent.MerchantInformation.MerchantEmail),
 		},
-		EventInformation: types.EventInformation{
+		EventInformation: shared_types.EventInformation{
 			StartDate:   NonZeroTime(update.StartDate, prevEvent.EventInformation.StartDate),
 			DueDate:     NonZeroTime(update.DueDate, prevEvent.EventInformation.DueDate),
 			Description: NonEmptyString(update.EventDescription, prevEvent.EventInformation.Description),
 			Cover:       NonEmptyString(coverURL, prevEvent.EventInformation.Cover),
 		},
-		TicketInformation: types.TicketInformation{
+		TicketInformation: shared_types.TicketInformation{
 			TotalNumberOfTicket: NonZeroUint64(uint64(update.TotalTicketCount), prevEvent.TicketInformation.TotalNumberOfTicket),
 		},
-		Ticket:         NonEmptyTickets(update.Tickets, prevEvent.Ticket),
 		CreatedAt:      prevEvent.CreatedAt,
 		LastModifiedAt: time.Now(),
 		AccountNumber:  NonEmptyString(update.AccountNumber, prevEvent.AccountNumber),
@@ -198,25 +198,24 @@ func CreateEventMapper(event eventdto.EventRequest, code string, coverURL string
 		EventName:     event.EventName,
 		EventCity:     event.EventCity,
 		EventVenue:    event.EventVenue,
-		Status:        constants.EventUpcomming,
+		Status:        shared_contant.EventUpcomming,
 		AccountNumber: event.AccountNumber,
-		MerchantInformation: types.MerchantInformation{
+		MerchantInformation: shared_types.MerchantInformation{
 			MerchantID:          event.MerchantID,
 			MercahntName:        event.MercahntName,
 			MerchantPhoneNumber: event.MerchantPhoneNumber,
 			MerchantEmail:       event.MerchantEmail,
 		},
-		EventInformation: types.EventInformation{
+		EventInformation: shared_types.EventInformation{
 			StartDate:   event.StartDate,
 			DueDate:     event.DueDate,
 			Description: event.EventDescription,
 			Cover:       coverURL,
 		},
-		TicketInformation: types.TicketInformation{
+		TicketInformation: shared_types.TicketInformation{
 			TotalNumberOfTicket:          uint64(event.TotalTicketCount),
 			TotalNumberOfAvailableTicket: uint64(event.TotalTicketCount),
 		},
-		Ticket:         event.Tickets,
 		CreatedAt:      time.Now(),
 		LastModifiedAt: time.Now(),
 		Enabled:        true,

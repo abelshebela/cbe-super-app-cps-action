@@ -196,11 +196,10 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Dona
 
 	donationImages := make([]shared_types.DonationImage, len(cpsRequest.DonationImages))
 	for i, img := range cpsRequest.DonationImages {
-		createdAt, _ := img.CreatedAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
-		donationImages[i] = shared_types.DonationImage{
+		donationImages[i]= shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: createdAt,
+			CreatedAt: img.CreatedAt,
 		}
 	}
 
@@ -259,11 +258,10 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 
 	donationImages := make([]shared_types.DonationImage, len(donationResponse.DonationImages))
 	for i, img := range donationResponse.DonationImages {
-		createdAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
 		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: createdAt,
+			CreatedAt: img.CreatedAt,
 		}
 	}
 

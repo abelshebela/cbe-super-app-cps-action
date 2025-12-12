@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -85,13 +85,22 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 	if err := core.ValidateApprove(req); err != nil {
 		return err
 	}
+
+// 	type KYCStatus string
+
+// const (
+// 	KYCStatusPending  KYCStatus = "PENDING"
+// 	KYCStatusApproved KYCStatus = "APPROVED"
+// 	KYCStatusRejected KYCStatus = "REJECTED"
+// )
+
 	// Build the fully updated KYC document to include in CurrentAction
 	updated := *prev
 	updated.KYCApproved = req.Approve
 	if req.Approve {
-		updated.KYCStatus = constants.KYCStatusApproved
+		updated.KYCStatus = shared_constant.KYCStatusApproved
 	} else {
-		updated.KYCStatus = constants.KYCStatusRejected
+		updated.KYCStatus = shared_constant.KYCStatusRejected
 	}
 	updated.KYCActivityBy = map[string]any{"admin_id": makerData.UserID, "full_name": makerData.FullName, "role": "kyc_verifier"}
 	if !req.Approve {

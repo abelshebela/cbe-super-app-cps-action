@@ -4,8 +4,7 @@ import (
 	"time"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
-	"cbe-super-app-cps-action/internal/constants/types"
-
+shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
@@ -14,7 +13,7 @@ func BuildFeedbackEntity(userID string, req fbdto.FeedbackRequest) *model.Feedba
 	now := time.Now()
 	fb := &model.Feedback{
 		UserID:    userID,
-		Responses: make(map[string]types.Response),
+		Responses: make(map[string]shared_types.Response),
 		CreatedAt: now,
 		UpdatedAt: now,
 	}

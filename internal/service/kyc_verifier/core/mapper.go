@@ -1,16 +1,16 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 )
 
 func MapUpdateToModel(prev *model.CustomerKYC, req kyc_verifier.UpdateKYCRequest) *model.CustomerKYC {
 	m := *prev
 	if req.KYCStatus != "" {
-		m.KYCStatus = constants.KYCStatus(req.KYCStatus)
+		m.KYCStatus = shared_constant.KYCStatus(req.KYCStatus)
 	}
 	if req.KYCRejectReason != "" {
 		m.KYCRejectReason = req.KYCRejectReason

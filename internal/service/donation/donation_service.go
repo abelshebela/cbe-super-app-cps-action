@@ -16,7 +16,7 @@ import (
 	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -118,7 +118,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		coverImageURL = url
 	}
 
-	donationImages := make([]types.DonationImage, 0)
+	donationImages := make([]shared_types.DonationImage, 0)
 	d.logger.Infof("Processing %d donation images", len(donation.DonationImages))
 	for _, img := range donation.DonationImages {
 		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, img, string(constants.DonationImage), *d.cfg, "", d.logger)
@@ -127,7 +127,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			return err
 		}
 
-		donationImages = append(donationImages, types.DonationImage{
+		donationImages = append(donationImages, shared_types.DonationImage{
 			ID:        bson.NewObjectID().Hex(),
 			PhotoURL:  url,
 			CreatedAt: time.Now(),
@@ -418,7 +418,7 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 		return errors.New(localization.ErrorImageRequired.Code)
 	}
 
-	donationImages := make([]dto.DonationImage, 0)
+	donationImages := make([]shared_types.DonationImage, 0)
 	for i, img := range image.DonationImages {
 		var objectkey string
 		if len(existingDonation.DonationImages) > 0 && existingDonation.DonationImages[i].PhotoURL != "" {
@@ -429,10 +429,10 @@ func (d *Donation) AddDonationImage(ctx context.Context, id string, image dto.Do
 		if err != nil {
 			return err
 		}
-		donationImages = append(donationImages, dto.DonationImage{
+		donationImages = append(donationImages, shared_types.DonationImage{
 			ID:        bson.NewObjectID().Hex(),
 			PhotoURL:  url,
-			CreatedAt: time.Now().Format(time.RFC3339),
+			CreatedAt: time.Now(),
 		})
 	}
 	//todo unique dto for the donation image array
@@ -552,9 +552,9 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			EndDate:             core.ParseTime(donationCPS.EndDate),
 		}
 
-		donationImages := make([]dto.DonationImage, len(donationCPS.DonationImages))
+		donationImages := make([]shared_types.DonationImage, len(donationCPS.DonationImages))
 		for i, img := range donationCPS.DonationImages {
-			donationImages[i] = dto.DonationImage{
+			donationImages[i] = shared_types.DonationImage{
 				ID:        img.ID,
 				PhotoURL:  img.PhotoURL,
 				CreatedAt: img.CreatedAt,
@@ -606,7 +606,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				updatedImages = append(updatedImages, types.DonationImage{
 					ID:        img.ID,
 					PhotoURL:  imageUpdateData.PhotoURL,
-					CreatedAt: core.ParseTime(img.CreatedAt),
+					CreatedAt: img.CreatedAt,
 				})
 				imageUpdated = true
 			} else {
@@ -614,7 +614,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				updatedImages = append(updatedImages, types.DonationImage{
 					ID:        img.ID,
 					PhotoURL:  img.PhotoURL,
-					CreatedAt: core.ParseTime(img.CreatedAt),
+					CreatedAt: img.CreatedAt,
 				})
 			}
 		}
@@ -626,12 +626,12 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 		updateRequest := core.ConvertDonationListResponseToRequest(existingDonation)
 
-		donationImages := make([]dto.DonationImage, len(updatedImages))
+		donationImages := make([]shared_types.DonationImage, len(updatedImages))
 		for i, img := range updatedImages {
-			donationImages[i] = dto.DonationImage{
+			donationImages[i] = shared_types.DonationImage{
 				ID:        img.ID,
 				PhotoURL:  img.PhotoURL,
-				CreatedAt: img.CreatedAt.Format(time.RFC3339),
+				CreatedAt: img.CreatedAt,
 			}
 		}
 
@@ -672,17 +672,17 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 				updatedImages = append(updatedImages, types.DonationImage{
 					ID:        img.ID,
 					PhotoURL:  img.PhotoURL,
-					CreatedAt: core.ParseTime(img.CreatedAt),
+					CreatedAt: img.CreatedAt,
 				})
 			}
 		}
 
-		donationImages := make([]dto.DonationImage, len(updatedImages))
+		donationImages := make([]shared_types.DonationImage, len(updatedImages))
 		for i, img := range updatedImages {
-			donationImages[i] = dto.DonationImage{
+			donationImages[i] = shared_types.DonationImage{
 				ID:        img.ID,
 				PhotoURL:  img.PhotoURL,
-				CreatedAt: img.CreatedAt.Format(time.RFC3339),
+				CreatedAt: img.CreatedAt,
 			}
 		}
 
@@ -722,7 +722,7 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			updatedImages[i] = types.DonationImage{
 				ID:        img.ID,
 				PhotoURL:  img.PhotoURL,
-				CreatedAt: core.ParseTime(img.CreatedAt),
+				CreatedAt: img.CreatedAt,
 			}
 		}
 
@@ -734,12 +734,12 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			})
 		}
 
-		donationImages := make([]dto.DonationImage, len(updatedImages))
+		donationImages := make([]shared_types.DonationImage, len(updatedImages))
 		for i, img := range updatedImages {
-			donationImages[i] = dto.DonationImage{
+			donationImages[i] = shared_types.DonationImage{
 				ID:        img.ID,
 				PhotoURL:  img.PhotoURL,
-				CreatedAt: img.CreatedAt.Format(time.RFC3339),
+				CreatedAt: img.CreatedAt,
 			}
 		}
 

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -38,11 +38,6 @@ func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code strin
 	if err != nil {
 		f.logger.Errorf("[EnableOrDisableFayda] failed to fetch fayda user: %v", err)
 		return err
-	}
-
-	if existingUser.KYCLevel != 1 {
-		f.logger.Errorf("[EnableOrDisableFayda] user is not a fayda account user")
-		return errors.New(localization.ErrorNotFaydaUser.Code)
 	}
 
 	if isEnabled && existingUser.Enabled {
@@ -79,7 +74,7 @@ func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code strin
 func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	f.logger.Infof("[Authorize] authorizing fayda action: %s", cpsAction.RequestAction)
 
-	var faydaUser *model.User
+	var faydaUser *member.User
 	if err := local_util.BindAction(cpsAction.CurrentAction, &faydaUser); err != nil {
 		f.logger.Errorf("[Authorize] failed to bind current action to fayda: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
