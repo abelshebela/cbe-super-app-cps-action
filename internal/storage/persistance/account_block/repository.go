@@ -3,12 +3,13 @@ package account_block
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -35,6 +36,32 @@ func NewAccountBlockRepository(client *mongo.Client, dbName string, collection s
 }
 
 // Standard CRUD operations for Branch
+
+func (a *AccountBlockStorage) GetBranchByCode(ctx context.Context, code string) (*model.AccountBlock, error) {
+	a.logger.Infof("[GetBranchByCode] fetching branch by code: %s", code)
+	collection := a.client.Database(a.dbName).Collection("account_block")
+
+	filter := bson.M{"code": code}
+	filter["type"] = "B"
+
+	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			a.logger.Errorf("[GetBranchByCode] branch not found")
+			return nil, errors.New(localization.ErrorBranchNotFound.Code)
+		}
+		a.logger.Errorf("[GetBranchByCode] failed to fetch branch: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	if len(result) == 0 {
+		a.logger.Errorf("[GetBranchByCode] branch not found")
+		return nil, errors.New(localization.ErrorBranchNotFound.Code)
+	}
+
+	a.logger.Infof("[GetBranchByCode] branch retrieved successfully")
+	return result[0], nil
+}
 
 func (a *AccountBlockStorage) GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error) {
 	a.logger.Infof("[GetBranchByCode] fetching branch by code: %s", id)

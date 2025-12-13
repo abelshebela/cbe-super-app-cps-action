@@ -3,7 +3,6 @@ package bankvault
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault/gen/sqlc"
@@ -14,6 +13,7 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -110,7 +110,7 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 			Name:                       row.Name,
 			Currency:                   row.Currency,
 			Interest:                   row.Interest,
-			Method:                     constants.AccrualMethod(row.Method),
+			Method:                     string(row.Method),
 			Frequency:                  row.Frequency,
 			LockPeriod:                 row.LockPeriod,
 			MinAmount:                  row.MinAmount,
@@ -278,7 +278,7 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 		Name:                       row.Name,
 		Currency:                   row.Currency,
 		Interest:                   row.Interest,
-		Method:                     constants.AccrualMethod(row.Method),
+		Method:                     string(row.Method),
 		Frequency:                  row.Frequency,
 		LockPeriod:                 row.LockPeriod,
 		MinAmount:                  row.MinAmount,

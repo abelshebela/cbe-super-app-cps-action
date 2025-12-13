@@ -1,8 +1,9 @@
 package accountvalidation
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )

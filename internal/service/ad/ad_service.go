@@ -1,10 +1,8 @@
 package ad
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/ad/core"
@@ -15,11 +13,14 @@ import (
 	"mime/multipart"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 )
 
 // Service implements AdvertService
@@ -152,7 +153,7 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 		Title:         local_util.NonEmptyString(ad.Title, prevAdvert.Title),
 		Description:   local_util.NonEmptyString(ad.Description, prevAdvert.Description),
 		BannerImage:   local_util.NonEmptyString(url, prevAdvert.BannerImage),
-		AdvertFor:     local_util.NonEmptyAdvertFor(constants.AdvertFor(ad.AdvertFor), prevAdvert.AdvertFor),
+		AdvertFor:     local_util.NonEmptyAdvertFor(shared_constant.AdvertFor(ad.AdvertFor), prevAdvert.AdvertFor),
 		Enabled:       prevAdvert.Enabled,
 		IsDeleted:     prevAdvert.IsDeleted,
 		CreatedAt:     prevAdvert.CreatedAt,

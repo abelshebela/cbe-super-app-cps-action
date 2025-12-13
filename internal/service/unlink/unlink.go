@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/unlink/core"
@@ -14,6 +13,10 @@ import (
 	"errors"
 	"strings"
 
+	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
+
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -26,21 +29,31 @@ type unlinkService struct {
 	archivedUserRepo          storage.ArchivedUserRepository
 	linkedAccountRepo         storage.LinkedAccountRepository
 	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository
+	accountBlockRepo          storage.AccountBlockRepository
 	cpsService                service.CPSActionService
 }
 
-func NewUnlinkService(client *mongo.Client, userData storage.UserRepository, archivedUserRepo storage.ArchivedUserRepository, linkedAccountRepo storage.LinkedAccountRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, cpsAction service.CPSActionService, logger utils.Logger) service.UnlinkService {
+func NewUnlinkService(client *mongo.Client,
+	userData storage.UserRepository,
+	archivedUserRepo storage.ArchivedUserRepository,
+	linkedAccountRepo storage.LinkedAccountRepository,
+	archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository,
+	accountBlockRepo storage.AccountBlockRepository,
+	cpsAction service.CPSActionService,
+	logger utils.Logger,
+) service.UnlinkService {
 	return &unlinkService{
 		userRepo:                  userData,
 		archivedUserRepo:          archivedUserRepo,
 		linkedAccountRepo:         linkedAccountRepo,
 		archivedLinkedAccountRepo: archivedLinkedAccountRepo,
+		accountBlockRepo:          accountBlockRepo,
 		cpsService:                cpsAction,
 		logger:                    logger,
 	}
 }
 
-func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	account, err := u.linkedAccountRepo.FindByAccountNumber(ctx, accNumber)
 	if err != nil {
 		u.logger.Errorf("[GetUserByAccount] failed to find account: %v", err)
@@ -56,15 +69,15 @@ func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) 
 	u.logger.Infof("[GetUserByAccount] user retrieved successfully for account number")
 	return user, nil
 }
-func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
-	result, err := u.archivedUserRepo.FindAllWithPagination(ctx, *filterParams)
-	if err != nil {
-		u.logger.Errorf("[GetAllArchivedUser] failed to fetch archived users: %v", err)
-		return nil, err
+
+func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error) {
+	if filterParams == nil {
+		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
-	u.logger.Infof("[GetAllArchivedUser] retrieved %d archived users", len(result.Data))
-	return result, nil
+
+	return u.archivedUserRepo.FindAllArchievedUsersWithPagination(ctx, *filterParams)
 }
+
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(makerData); incomplet {

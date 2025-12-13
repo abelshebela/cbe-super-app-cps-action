@@ -5,7 +5,6 @@ import (
 	bankvault "cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	helper "cbe-super-app-cps-action/internal/service/bankvault/core"
@@ -16,6 +15,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/mongo"

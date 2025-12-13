@@ -5,7 +5,8 @@ import (
 	"time"
 
 	vaultgroup_category "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func CategoryMapper(action map[string]interface{}) model.VaultGroupCategory {

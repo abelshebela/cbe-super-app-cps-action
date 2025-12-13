@@ -2,9 +2,10 @@ package transaction_core
 
 import (
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"encoding/json"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/godror/godror"
 )

@@ -9,13 +9,14 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/cps_user/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -115,10 +116,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
-		currentUser, err := s.repo.FindByID(ctx, req.UserCode)
-		if err != nil {
-			return err
-		}
+	currentUser, err := s.repo.FindByID(ctx, req.UserCode)
+	if err != nil {
+		return err
+	}
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
@@ -371,7 +372,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 
 	case string(constants.RequestCpsUserUpdate):
 		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
-		fmt.Println("////////core cps user update",cur)
+		fmt.Println("////////core cps user update", cur)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}

@@ -1,10 +1,10 @@
 package bps_user_core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -57,7 +57,7 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 		}
 	}
 	if v, ok := action["password"]; ok {
-		if p, ok := v.(types.Password); ok {
+		if p, ok := v.(shared_types.Password); ok {
 			user.Password = p
 		}
 	}

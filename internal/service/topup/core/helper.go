@@ -4,17 +4,18 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	TopupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -50,7 +51,7 @@ func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.To
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
-		Services: types.Services{
+		Services: shared_types.Services{
 			Self:  self,
 			Other: other,
 			Agent: agent,

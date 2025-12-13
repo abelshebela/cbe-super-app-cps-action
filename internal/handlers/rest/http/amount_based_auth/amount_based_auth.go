@@ -7,14 +7,13 @@ import (
 	amount_based_auth_dto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"go.opentelemetry.io/otel/attribute"
-
-	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -103,8 +102,8 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 
 	// Validate the method parameter
-	methodEnum := constants.Method(method)
-	if methodEnum == constants.OPEN || methodEnum == constants.PIN || methodEnum == constants.OTPANDPIN {
+	methodEnum := shared_constant.Method(method)
+	if methodEnum == shared_constant.OPEN || methodEnum == shared_constant.PIN || methodEnum == shared_constant.OTPANDPIN {
 	} else {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidMethod.Message)
 		return

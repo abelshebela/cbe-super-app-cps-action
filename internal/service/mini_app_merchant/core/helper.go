@@ -4,15 +4,18 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
+
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
@@ -47,18 +50,18 @@ func nonEmpty(a, b string) string {
 	return b
 }
 
-func MergeBranches(oldBranches, newBranches []types.BranchInformation) []types.BranchInformation {
-	oldMap := make(map[string]types.BranchInformation, len(oldBranches))
+func MergeBranches(oldBranches, newBranches []shared_type.BranchInformation) []shared_type.BranchInformation {
+	oldMap := make(map[string]shared_type.BranchInformation, len(oldBranches))
 	for _, ob := range oldBranches {
 		oldMap[ob.BranchCode] = ob
 	}
 
-	merged := make([]types.BranchInformation, 0, len(newBranches))
+	merged := make([]shared_type.BranchInformation, 0, len(newBranches))
 
 	for _, nb := range newBranches {
 		// If the branch code exists in old branches, merge the information
 		if ob, ok := oldMap[nb.BranchCode]; ok {
-			merged = append(merged, types.BranchInformation{
+			merged = append(merged, shared_type.BranchInformation{
 				BranchCode:          ob.BranchCode,
 				BranchName:          nonEmpty(nb.BranchName, ob.BranchName),
 				BranchAddress:       nonEmpty(nb.BranchAddress, ob.BranchAddress),
@@ -67,7 +70,7 @@ func MergeBranches(oldBranches, newBranches []types.BranchInformation) []types.B
 			})
 			delete(oldMap, nb.BranchCode)
 		} else {
-			merged = append(merged, types.BranchInformation{
+			merged = append(merged, shared_type.BranchInformation{
 				BranchCode:          nb.BranchCode,
 				BranchName:          nb.BranchName,
 				BranchAddress:       nb.BranchAddress,
@@ -101,9 +104,9 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 		IsDeleted:         old.IsDeleted,
 		CreatedAt:         old.CreatedAt,
 		LastModifiedAt:    now,
-		KYC: types.KYC{
+		KYC: shared_type.KYC{
 			Status: old.KYC.Status,
-			Representative: types.KYCInformation{
+			Representative: shared_type.KYCInformation{
 				Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
 				Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
 				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),

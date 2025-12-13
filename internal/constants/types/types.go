@@ -476,3 +476,10 @@ type EmailKafkaMessage struct {
 	Priority           int                    `json:"priority,omitempty"`
 	Metadata           map[string]interface{} `json:"metadata,omitempty"`
 }
+
+type EnableDisableAction struct {
+	ID      string `json:"id" bson:"id"`
+	Name    string `json:"name" bson:"name"`
+	Enabled bool   `json:"enabled" bson:"enabled"`
+	Reason  string `json:"reason,omitempty" bson:"reason,omitempty"`
+}

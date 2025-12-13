@@ -35,6 +35,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -415,7 +416,7 @@ func NonZeroUint64(n, fallback uint64) uint64 {
 }
 
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
-func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
+func NonEmptyAdvertFor(new, old shared_constant.AdvertFor) shared_constant.AdvertFor {
 	if new != "" {
 		return new
 	}

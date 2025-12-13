@@ -2,8 +2,10 @@ package service_details
 
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
+	// "cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 )
 
 // MapToMinimumTransferCapResponse maps ServiceDetails to MinimumTransferCapResponse
@@ -44,9 +46,9 @@ func ServiceMapper(service *model.ServiceDetails, input dto.ServiceFeeDetailDTO)
 	service.AboveAmount = input.AboveAmount
 	service.AboveServiceFee = input.AboveServiceFee
 	// map tiers from DTO to model types
-	tiers := make([]types.Tier, len(input.Tiers))
+	tiers := make([]shared_type.Tier, len(input.Tiers))
 	for i, t := range input.Tiers {
-		tiers[i] = types.Tier{
+		tiers[i] = shared_type.Tier{
 			Min:       t.Min,
 			Max:       t.Max,
 			FeeAmount: t.FeeAmount,
@@ -55,7 +57,7 @@ func ServiceMapper(service *model.ServiceDetails, input dto.ServiceFeeDetailDTO)
 
 	service.Tiers = tiers
 	// map GL entries from DTO to model types
-	service.CBGLEntry = types.GLEntry{
+	service.CBGLEntry = shared_type.GLEntry{
 		ProductAccount:    input.CBglEntry.ProductAccount,
 		ProductBranchCode: input.CBglEntry.ProductBranchCode,
 		ServiceAccount:    input.CBglEntry.ServiceAccount,
@@ -63,7 +65,7 @@ func ServiceMapper(service *model.ServiceDetails, input dto.ServiceFeeDetailDTO)
 		VatAccount:        input.CBglEntry.VatAccount,
 		VatBranchCode:     input.CBglEntry.VatBranchCode,
 	}
-	service.CBIFBGLEntry = types.IFBglEntry{
+	service.CBIFBGLEntry = shared_type.IFBglEntry{
 		ProductAccount:    input.IFBglEntry.ProductAccount,
 		ProductBranchCode: input.IFBglEntry.ProductBranchCode,
 		ServiceAccount:    input.IFBglEntry.ServiceAccount,

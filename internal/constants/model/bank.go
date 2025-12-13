@@ -12,7 +12,6 @@ type Bank struct {
 	Logo           string        `json:"logo" bson:"logo"`
 	Code           string        `json:"code" bson:"code"`
 	BIC            string        `json:"bic" bson:"bic"`
-	AccountLength  int           `json:"account_length" bson:"account_length"`
 	Enabled        bool          `json:"enabled" bson:"enabled"`
 	IsDeleted      bool          `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt      time.Time     `json:"created_at,omitzero" bson:"created_at"`

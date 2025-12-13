@@ -13,11 +13,12 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -136,7 +137,6 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		Name:          bank_request.Name,
 		BIC:           bank_request.BIC,
 		Code:          bank_request.Code,
-		AccountLength: *bank_request.AccountLength,
 		Logo:          URL,
 		Enabled:       true,
 	}
@@ -335,9 +335,6 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	}
 	if bank_request.Name != "" {
 		updatedBank.Name = bank_request.Name
-	}
-	if bank_request.AccountLength != nil {
-		updatedBank.AccountLength = *bank_request.AccountLength
 	}
 	logoUrl = bank.Logo
 	if bank_request.Logo != nil {

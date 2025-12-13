@@ -1,8 +1,8 @@
 package mini_app_merchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
+shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -20,7 +20,7 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if data.MerchantType != "" {
 		result["merchant_type"] = data.MerchantType
 	}
-	if data.KYC != (types.KYC{}) {
+	if data.KYC != (shared_type.KYC{}) {
 		result["kyc"] = data.KYC
 	}
 	if data.BankAccountNumber != "" {
@@ -51,9 +51,9 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		Code:         miniAppMerchant.Code,
 		MerchantName: miniAppMerchant.MerchantName,
 		MerchantType: miniAppMerchant.MerchantType,
-		KYC: types.KYC{
+		KYC: shared_type.KYC{
 			Status: miniAppMerchant.KYC.Status,
-			Representative: types.KYCInformation{
+			Representative: shared_type.KYCInformation{
 				Name:  miniAppMerchant.KYC.Representative.Name,
 				Email: miniAppMerchant.KYC.Representative.Email,
 				Phone: miniAppMerchant.KYC.Representative.Phone,
@@ -71,10 +71,10 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		DeletedAt:      miniAppMerchant.DeletedAt,
 	}
 }
-func convertBranchesModelToDomain(branches []types.BranchInformation) []types.BranchInformation {
-	result := make([]types.BranchInformation, len(branches))
+func convertBranchesModelToDomain(branches []shared_type.BranchInformation) []shared_type.BranchInformation {
+	result := make([]shared_type.BranchInformation, len(branches))
 	for i, b := range branches {
-		result[i] = types.BranchInformation{
+		result[i] = shared_type.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
 			BranchAddress:       b.BranchAddress,

@@ -3,12 +3,13 @@ package department
 import (
 	department_dto "cbe-super-app-cps-action/internal/constants/dto/department"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
 	"strings"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

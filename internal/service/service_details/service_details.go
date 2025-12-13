@@ -5,7 +5,8 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/service_details/core"
@@ -15,6 +16,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -36,6 +39,7 @@ func NewServiceDetailsService(client *mongo.Client, ServiceDetailsRepo storage.S
 		cpsService:  cpsAction,
 	}
 }
+
 func (s *ServiceDetails) GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
 	projection := bson.M{}
 	return s.serviceRepo.FindAllWithPagination(ctx, projection, *filterParams)

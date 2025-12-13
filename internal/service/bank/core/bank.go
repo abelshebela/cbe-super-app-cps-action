@@ -1,7 +1,7 @@
 package bank_core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // Bank_mapper maps a map[string]interface{} to a model.Bank.
@@ -27,11 +27,6 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 	if v, ok := action["bic"]; ok {
 		if bic, ok := v.(string); ok {
 			bank.BIC = bic
-		}
-	}
-	if v, ok := action["account_length"]; ok {
-		if accountLength, ok := v.(float64); ok {
-			bank.AccountLength = int(accountLength)
 		}
 	}
 	if v, ok := action["enabled"]; ok {

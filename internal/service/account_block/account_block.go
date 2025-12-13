@@ -3,7 +3,6 @@ package accountblock
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/account_block/core"
@@ -12,6 +11,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -79,8 +81,8 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	s.logger.Infof("[EnableOrDisableBranches] processing %d branches, enabled: %v", len(branchIds), enabled)
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 
 	for _, id := range branchIds {
 		branch, err := s.repo.GetBranchByIds(ctx, id)
@@ -113,12 +115,12 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 			}
 		}
 
-		previousAction = append(previousAction, model.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      branch.ID.Hex(),
 			Name:    branch.Name,
 			Enabled: branch.IsEnabled,
 		})
-		currentAction = append(currentAction, model.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      branch.ID.Hex(),
 			Name:    branch.Name,
 			Enabled: enabled,
@@ -156,8 +158,8 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 	for _, id := range regionIds {
 		region, err := s.repo.GetRegionById(ctx, id)
 		if err != nil {
@@ -179,12 +181,12 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 			}
 		}
 
-		previousAction = append(previousAction, model.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      region.ID.Hex(),
 			Name:    region.Name,
 			Enabled: region.IsEnabled,
 		})
-		currentAction = append(currentAction, model.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      region.ID.Hex(),
 			Name:    region.Name,
 			Enabled: enabled,
@@ -222,8 +224,8 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 
 	for _, id := range districtIds {
 		district, err := s.repo.GetDistrictById(ctx, id)
@@ -256,12 +258,12 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 			}
 		}
 
-		previousAction = append(previousAction, model.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      district.ID.Hex(),
 			Name:    district.Name,
 			Enabled: district.IsEnabled,
 		})
-		currentAction = append(currentAction, model.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      district.ID.Hex(),
 			Name:    district.Name,
 			Enabled: enabled,
@@ -299,8 +301,8 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 
 	var alreadyEnabled []string
 	var alreadyDisabled []string
-	var previousAction []model.EnableDisableAction
-	var currentAction []model.EnableDisableAction
+	var previousAction []types.EnableDisableAction
+	var currentAction []types.EnableDisableAction
 	for _, id := range ids {
 		city, err := s.repo.FindCityByID(ctx, id)
 		if err != nil {
@@ -332,12 +334,12 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 			}
 		}
 
-		previousAction = append(previousAction, model.EnableDisableAction{
+		previousAction = append(previousAction, types.EnableDisableAction{
 			ID:      city.ID.Hex(),
 			Name:    city.Name,
 			Enabled: city.IsEnabled,
 		})
-		currentAction = append(currentAction, model.EnableDisableAction{
+		currentAction = append(currentAction, types.EnableDisableAction{
 			ID:      city.ID.Hex(),
 			Name:    city.Name,
 			Enabled: enabled,
@@ -374,7 +376,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("[Authorize] authorizing account block action: %s", action.RequestAction)
 
-	actions, err := local_util.JsonUnmarshal[[]model.EnableDisableAction](action.CurrentAction)
+	actions, err := local_util.JsonUnmarshal[[]shared_type.EnableDisableAction](action.CurrentAction)
 	if err != nil {
 		s.logger.Errorf("[Authorize] failed to unmarshal enable branches action: %v", err)
 		return nil, err
