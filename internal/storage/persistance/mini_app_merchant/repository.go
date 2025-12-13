@@ -3,12 +3,11 @@ package mini_app_merchant
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"time"
 
@@ -131,7 +130,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	result, err := m.dal.FindOne(context.Background(), filter, nil)
+	result, err := m.dal.FindOne(context.Background(), filter, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			m.logger.Warnf("Mini app merchant not found, id: %s", id)
@@ -145,7 +144,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 
 func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"search", "merchant_type", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
+	allowedKeys := []string{"search", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}

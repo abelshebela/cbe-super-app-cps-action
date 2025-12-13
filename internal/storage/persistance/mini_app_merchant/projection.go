@@ -1,8 +1,8 @@
 package mini_app_merchant
 
 import (
-shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -11,29 +11,21 @@ shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/
 func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	result := bson.M{}
 
-	if data.Code != "" {
-		result["merchant_code"] = data.Code
+	if data.MerchantCode != "" {
+		result["merchant_code"] = data.MerchantCode
 	}
 	if data.MerchantName != "" {
 		result["merchant_name"] = data.MerchantName
 	}
-	if data.MerchantType != "" {
-		result["merchant_type"] = data.MerchantType
-	}
-	if data.KYC != (shared_type.KYC{}) {
+	if data.KYC != (types.KYC{}) {
 		result["kyc"] = data.KYC
 	}
 	if data.BankAccountNumber != "" {
 		result["bank_account_number"] = data.BankAccountNumber
 	}
-	if len(data.Branches) > 0 {
-		result["branches"] = data.Branches
-	}
-	if data.Email != "" {
-		result["email"] = data.Email
-	}
-	if data.PhoneNumber != "" {
-		result["phone_number"] = data.PhoneNumber
+
+	if data.SettlementMethod != "" {
+		result["settlement_method"] = data.SettlementMethod
 	}
 	// mini apps are not embedded in merchant
 
@@ -48,33 +40,29 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 
 	return &model.MiniAppMerchant{
 		ID:           miniAppMerchant.ID,
-		Code:         miniAppMerchant.Code,
+		MerchantCode: miniAppMerchant.MerchantCode,
 		MerchantName: miniAppMerchant.MerchantName,
-		MerchantType: miniAppMerchant.MerchantType,
-		KYC: shared_type.KYC{
+		KYC: types.KYC{
 			Status: miniAppMerchant.KYC.Status,
-			Representative: shared_type.KYCInformation{
+			Representative: types.KYCInformation{
 				Name:  miniAppMerchant.KYC.Representative.Name,
 				Email: miniAppMerchant.KYC.Representative.Email,
 				Phone: miniAppMerchant.KYC.Representative.Phone,
 			},
 		},
 		BankAccountNumber: miniAppMerchant.BankAccountNumber,
-		Branches:          convertBranchesModelToDomain(miniAppMerchant.Branches),
-		Email:             miniAppMerchant.Email,
-		PhoneNumber:       miniAppMerchant.PhoneNumber,
 
-		Enabled:        miniAppMerchant.Enabled,
-		IsDeleted:      miniAppMerchant.IsDeleted,
-		CreatedAt:      miniAppMerchant.CreatedAt,
-		LastModifiedAt: miniAppMerchant.LastModifiedAt,
-		DeletedAt:      miniAppMerchant.DeletedAt,
+		Enabled:   miniAppMerchant.Enabled,
+		IsDeleted: miniAppMerchant.IsDeleted,
+		CreatedAt: miniAppMerchant.CreatedAt,
+		UpdatedAt: miniAppMerchant.UpdatedAt,
+		DeletedAt: miniAppMerchant.DeletedAt,
 	}
 }
-func convertBranchesModelToDomain(branches []shared_type.BranchInformation) []shared_type.BranchInformation {
-	result := make([]shared_type.BranchInformation, len(branches))
+func convertBranchesModelToDomain(branches []types.BranchInformation) []types.BranchInformation {
+	result := make([]types.BranchInformation, len(branches))
 	for i, b := range branches {
-		result[i] = shared_type.BranchInformation{
+		result[i] = types.BranchInformation{
 			BranchCode:          b.BranchCode,
 			BranchName:          b.BranchName,
 			BranchAddress:       b.BranchAddress,
