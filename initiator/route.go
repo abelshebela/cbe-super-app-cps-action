@@ -17,6 +17,7 @@ import (
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
+	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
@@ -144,6 +145,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
+	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 
 	// Mini App Proxy Routes
 	miniAppProxyHandler := miniapp.CreateMiniAppProxyHandler(logger, cfg)
