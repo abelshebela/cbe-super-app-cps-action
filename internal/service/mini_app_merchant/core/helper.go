@@ -14,6 +14,7 @@ import (
 	"errors"
 	"time"
 
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -90,10 +91,10 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 	updatedBranches := MergeBranches(old.Branches, data.Branches)
 
 	return &model.MiniAppMerchant{
-		ID:                old.ID,
-		Code:              old.Code,
-		MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
-		MerchantType:      local_util.NonEmptyString(data.MerchantType, old.MerchantType),
+		ID:           old.ID,
+		Code:         old.Code,
+		MerchantName: local_util.NonEmptyString(data.MerchantName, old.MerchantName),
+		// MerchantType:      local_util.NonEmptyString(data.MerchantType, old.MerchantType),
 		PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
 		Email:             local_util.NonEmptyString(data.Email, old.Email),
 		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
@@ -101,14 +102,14 @@ func MergeMiniAppMerchantData(old, data *model.MiniAppMerchant) *model.MiniAppMe
 		IsDeleted:         old.IsDeleted,
 		CreatedAt:         old.CreatedAt,
 		LastModifiedAt:    now,
-		KYC: types.KYC{
-			Status: old.KYC.Status,
-			Representative: types.KYCInformation{
-				Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
-				Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
-				Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
-			},
-		},
+		// KYC: types.KYC{
+		// 	Status: old.KYC.Status,
+		// 	Representative: types.KYCInformation{
+		// 		Name:  local_util.NonEmptyString(data.KYC.Representative.Name, old.KYC.Representative.Name),
+		// 		Email: local_util.NonEmptyString(data.KYC.Representative.Email, old.KYC.Representative.Email),
+		// 		Phone: local_util.NonEmptyString(data.KYC.Representative.Phone, old.KYC.Representative.Phone),
+		// 	},
+		// },
 		Branches: updatedBranches,
 	}
 }
@@ -254,4 +255,52 @@ func CheckMerchantExists(
 	}
 
 	return true, nil
+}
+
+func ToMiniAppMerchantResponseDTO(domain *model.MiniAppMerchant) *merchantDto.MiniAppMerchantResponseDTO {
+	return &merchantDto.MiniAppMerchantResponseDTO{
+		ID:   domain.ID.Hex(),
+		Code: domain.Code,
+		// Type:         domain.MerchantType,
+		MerchantName: domain.MerchantName,
+		// KYC: merchantDto.KYCDTO{
+		// 	Status: string(domain.KYC.Status),
+		// 	Representative: merchantDto.RepresentativeDTO{
+		// 		Name:  domain.KYC.Representative.Name,
+		// 		Phone: domain.KYC.Representative.Phone,
+		// 		Email: domain.KYC.Representative.Email,
+		// 	},
+		// },
+		AccountNumber: domain.BankAccountNumber,
+		Enabled:       domain.Enabled,
+		IsDeleted:     domain.IsDeleted,
+		CreatedAt:     domain.CreatedAt,
+		LastModified:  domain.LastModifiedAt,
+	}
+}
+
+// Convert DTO to Domain model for service layer
+func ToMiniAppMerchantDomainFromUpdateDTO(d *merchantDto.MiniAppMerchantDTO) *model.MiniAppMerchant {
+	return &model.MiniAppMerchant{
+		ID:                bson.NewObjectID(),
+		Code:              d.MerchantCode,
+		MerchantName:      d.MerchantName,
+		BankAccountNumber: d.AccountNumber,
+		Email:             d.Email,
+		PhoneNumber:       d.PhoneNumber,
+		SettlementMethod:  d.SettlementMethod,
+		// KYC: types.KYC{
+		// 	Representative: types.KYCInformation{
+		// 		// Name:  d.MerchantRepresentativeName,
+		// 		Phone: d.PhoneNumber,
+		// 		Email: d.Email,
+		// 	},
+		// 	Status: "",
+		// },
+		Branches:       d.Branches,
+		Enabled:        true,
+		IsDeleted:      false,
+		CreatedAt:      time.Now(),
+		LastModifiedAt: time.Now(),
+	}
 }
