@@ -139,11 +139,18 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 	var orFilters []bson.M
 
 	if code != "" {
-		orFilters = append(orFilters, bson.M{"code": code})
+		orFilters = append(orFilters, bson.M{
+			"code": code,
+		})
 	}
 
 	if name != "" {
-		orFilters = append(orFilters, bson.M{"name": bson.M{"$regex": name}})
+		orFilters = append(orFilters, bson.M{
+			"name": bson.M{
+				"$regex":   name,
+				"$options": "i",
+			},
+		})
 	}
 
 	if len(orFilters) > 0 {

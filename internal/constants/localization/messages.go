@@ -315,11 +315,11 @@ const (
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
 	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
-	MsgCpsUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCpsUserDeletedSuccessfully      = "CPS user deleted request sent successfully"
 	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
 	MsgCpsUserRetrievedSuccessfully    = "CPS user retrieved successfully"
-	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
-	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
+	MsgCpsUserEnabledSuccessfully      = "CPS user enabled request sent successfully"
+	MsgCpsUserDisabledSuccessfully     = "CPS user disable request sent successfully"
 
 	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"

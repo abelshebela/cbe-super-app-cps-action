@@ -168,7 +168,7 @@ type AmountBasedAuthRepository interface {
 // AccountBlock persistence
 type AccountBlockRepository interface {
 	GetBranchById(ctx context.Context, branchCode string) (*model.AccountBlock, error)
-	GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
+	// GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error

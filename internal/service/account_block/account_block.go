@@ -98,7 +98,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	var currentAction []model.EnableDisableAction
 
 	for _, id := range branchIds {
-		branch, err := s.repo.GetBranchByIds(ctx, id)
+		branch, err := s.repo.GetBranchById(ctx, id)
 		if err != nil {
 			if err.Error() == localization.ErrorBranchNotFound.Code {
 				span.AddEvent("Branch not found", trace.WithAttributes(attribute.String("branch_id", id), attribute.String("error", err.Error())))
@@ -121,7 +121,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		}
 
 		if enabled {
-			city, err := s.repo.GetBranchById(ctx, branch.CityID.Hex())
+			city, err := s.repo.GetCityById(ctx, branch.CityID.Hex())
 			if err != nil {
 				span.AddEvent("Failed to fetch city for branch", trace.WithAttributes(attribute.String("branch_id", id), attribute.String("city_id", branch.CityID.Hex()), attribute.String("error", err.Error())))
 				return err
@@ -360,7 +360,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 		}
 
 		if enabled {
-			district, err := s.repo.GetDistrictById(ctx, city.RegionID.Hex())
+			district, err := s.repo.GetDistrictById(ctx, city.DistrictID.Hex())
 			if err != nil {
 				span.AddEvent("Failed to fetch district for city", trace.WithAttributes(attribute.String("city_id", id), attribute.String("region_id", city.RegionID.Hex()), attribute.String("error", err.Error())))
 				return err

@@ -460,15 +460,16 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserUpdate):
-		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
+		// cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
+		cur, err := core.BindCPSUserFromAction(action.CurrentAction)
 
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
-		update := core.CPSUUpdateModel(cur)
-		if err := s.repo.Update(ctx, action.UniqueId, update); err != nil {
+		// update := core.CPSUUpdateModel(&cur)
+		if err := s.repo.Update(ctx, action.UniqueId, &cur); err != nil {
 			span.AddEvent("failed to update user", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
