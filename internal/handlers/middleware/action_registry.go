@@ -292,12 +292,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
-			if ent, ok := cpsGuardCache.get(cacheKey); ok {
-				if ent.allow {
-					next.ServeHTTP(w, r)
-					return
-				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
+				next.ServeHTTP(w, r)
 				return
 			}
 
@@ -309,7 +305,9 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
-			cpsGuardCache.set(cacheKey, allowEntry{allow: allowed, exp: nowPlus(cpsGuardCache.ttl)})
+			if allowed {
+				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
+			}
 			if !allowed {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
