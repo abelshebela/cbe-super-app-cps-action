@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -284,7 +285,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			roleID := firstHex24(rawRoleID)
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -370,4 +372,31 @@ func deriveModuleFromPattern(pattern string) string {
 	}
 	res := b.String()
 	return res
+}
+
+// firstHex24 extracts the first 24-hexadecimal substring from a string.
+// Handles formats like ObjectID("...") or {"$oid":"..."} by scanning for 24-hex.
+var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
+
+func firstHex24(s string) string {
+	if s == "" {
+		return ""
+	}
+	if len(s) == 24 && isHex(s) {
+		return strings.ToLower(s)
+	}
+	m := reHex24.FindString(s)
+	if m == "" {
+		return ""
+	}
+	return strings.ToLower(m)
+}
+
+func isHex(s string) bool {
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
