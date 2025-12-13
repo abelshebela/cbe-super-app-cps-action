@@ -154,6 +154,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleEnableRequestCreated,
 	SuccessActionRoleDisableRequestCreated,
 
+	// event merchant success response codes
+	SuccessEventMerchantCreated,
+	SuccessEventMerchantDisabled,
+	SuccessEventMerchantEnabled,
+	SuccessEventMerchantUpdated,
+	SuccessEventMerchantDeleted,
+	SuccessEventMerchantFetched,
+
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -560,6 +568,15 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidFormatForType,
 	ErrorInvalidFormatForCode,
 	ErrorInvalidFormatForName,
+
+	// event mercahnt error
+	ErrorEventMerchantInvalidMerchantID,
+	ErrorEventMerchantInvalidMerchantType,
+	ErrorEventMerchantInvalidSettlementMethod,
+	ErrorEventMerchantInvalidMerchantName,
+	ErrorEventMerchantInvalidBankAccountNumber,
+	ErrorEventMerchantInvalidEmail,
+	ErrorEventMerchantInvalidPhoneNumber,
 }
 
 // Success Response Codes
@@ -3087,6 +3104,43 @@ var (
 		Code:       "SUCCESS_ACTION_ROLE_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgActionRoleDisableRequestCreated,
+		Type:       "success",
+	}
+
+	SuccessEventMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDeleted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantUpdated = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnabled = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisabled = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantFetched = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
 )
@@ -5709,5 +5763,67 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgTransactionRetrievedSuccess,
 		Type:       "success",
+	}
+
+	ErrorEventMerchantInvalidMerchantID = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidID,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidMerchantType = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidType,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidSettlementMethod = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_SETTLEMENT_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidMethod,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidMerchantName = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidName,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidBankAccountNumber = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidEmail = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidEmail,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidPhoneNumber = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidPhoneNumber,
+		Type:       "error",
+	}
+
+	ErrorEventMerchantNotFound = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgEventMerchantNotFound,
+		Type:       "error",
+	}
+	ErrorEventMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgEventMerchantDisableFailed,
+		Type:       "error",
+	}
+	ErrorEventMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgEventMerchantEnableFailed,
+		Type:       "error",
 	}
 )

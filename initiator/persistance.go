@@ -25,6 +25,7 @@ import (
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
+	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
@@ -141,6 +142,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
 		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
+		EventMerchantPersistence:         event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
 	}
 
 	return data

@@ -583,7 +583,7 @@ type BPSActionApproveIndexRepository interface {
 }
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.	CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
 }
 
 type SitotaRepository interface {
@@ -601,4 +601,14 @@ type MiniAppCategoryRepository interface {
 type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+}
+
+type EventMerchantRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
 }

@@ -380,6 +380,16 @@ type KeyGeneratorService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type EventMerchantService interface {
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
 	EventService           EventService
 	BulkService            BulkService
@@ -429,60 +439,62 @@ type ServiceLayer struct {
 	TransactionService     TransactionService
 	MiniAppCategory        MiniAppCategoryService
 	CPSActionRole          CPSActionRoleService
+	EventMerchantService   EventMerchantService
 }
 
 type ServiceContainer struct {
-	AccountBlockContainer      AccountBlockService
-	AccountContainer           AccountValidationService
-	ActionContainer            ActionService
-	AdContainer                AdvertService
-	AmountBasedAuthContainer   AmountBasedAuthService
-	AvatarDomian               AvatarService
-	BankContainer              BankService
-	BPSUserContainer           BPSUserService
-	BudgetCategoryContainer    BudgetCategoryService
-	CPSActionContainer         CPSActionService
-	CPSUserContainer           CPSUserService
-	CustomerContainer          CustomerService
-	DepartmentContainer        DepartmentService
-	EventContainer             EventService // fully not ready
-	FaydaContainer             FaydaAccountService
-	FeedbackContainer          FeedbackService
-	HQContainer                HQService
-	MiniAppContainer           MiniAppService
-	PasswordRuleContainer      PasswordRuleService
-	PermissionContainer        PermissionService
-	PortalCardContainer        PortalCardService
-	UnlinkContainer            UnlinkService
-	WalletContainer            WalletService
-	TopupContainer             TopupService
-	MiniAppMerchantContainer   MiniAppMerchantService
-	AccountLookup              AccountSearchService
-	BulkServiceContainer       BulkService
-	ServiceCheckContainer      ServiceService
-	DeviceVersionContainer     DeviceVersionServiceSrv
-	KeyGenService              KeyGeneratorService
-	NotificationService        NotificationService
-	ProductCodeService         ProductCodeService
-	DonationContainer          DonationService
-	Unlink                     UnlinkService
-	DonationCategoryContainer  DonationCategoryService
-	DonationCompanyContainer   DonationCompanyService
-	ArticleContainer           ArticleService
-	ArticleCategoryContainer   ArticleCategoryService
-	ShortVideoServiceContainer ShortVideoService
-	NewsTagContainer           NewsTagService
-	NewsCategoryContainer      NewsCategoryService
-	SitotaContainer            SitotaService
-	KYCVerifierContainer       KYCVerifierService
-	NewsTagsServiceContainer   NewsTagsService
-	EncryptionContainer        EncryptionService
-	BankProductContainer       BankVaultService
-	VaultCategoryContainer     VaultGroupCategoryService
-	BPSActionRoleContainer     BPSActionRoleService
-	TransactionContainer       TransactionService
-	MiniAppCategoryContainer   MiniAppCategoryService
-	CPSActionRoleContainer     CPSActionRoleService
+	AccountBlockContainer         AccountBlockService
+	AccountContainer              AccountValidationService
+	ActionContainer               ActionService
+	AdContainer                   AdvertService
+	AmountBasedAuthContainer      AmountBasedAuthService
+	AvatarDomian                  AvatarService
+	BankContainer                 BankService
+	BPSUserContainer              BPSUserService
+	BudgetCategoryContainer       BudgetCategoryService
+	CPSActionContainer            CPSActionService
+	CPSUserContainer              CPSUserService
+	CustomerContainer             CustomerService
+	DepartmentContainer           DepartmentService
+	EventContainer                EventService // fully not ready
+	FaydaContainer                FaydaAccountService
+	FeedbackContainer             FeedbackService
+	HQContainer                   HQService
+	MiniAppContainer              MiniAppService
+	PasswordRuleContainer         PasswordRuleService
+	PermissionContainer           PermissionService
+	PortalCardContainer           PortalCardService
+	UnlinkContainer               UnlinkService
+	WalletContainer               WalletService
+	TopupContainer                TopupService
+	MiniAppMerchantContainer      MiniAppMerchantService
+	AccountLookup                 AccountSearchService
+	BulkServiceContainer          BulkService
+	ServiceCheckContainer         ServiceService
+	DeviceVersionContainer        DeviceVersionServiceSrv
+	KeyGenService                 KeyGeneratorService
+	NotificationService           NotificationService
+	ProductCodeService            ProductCodeService
+	DonationContainer             DonationService
+	Unlink                        UnlinkService
+	DonationCategoryContainer     DonationCategoryService
+	DonationCompanyContainer      DonationCompanyService
+	ArticleContainer              ArticleService
+	ArticleCategoryContainer      ArticleCategoryService
+	ShortVideoServiceContainer    ShortVideoService
+	NewsTagContainer              NewsTagService
+	NewsCategoryContainer         NewsCategoryService
+	SitotaContainer               SitotaService
+	KYCVerifierContainer          KYCVerifierService
+	NewsTagsServiceContainer      NewsTagsService
+	EncryptionContainer           EncryptionService
+	BankProductContainer          BankVaultService
+	VaultCategoryContainer        VaultGroupCategoryService
+	BPSActionRoleContainer        BPSActionRoleService
+	TransactionContainer          TransactionService
+	MiniAppCategoryContainer      MiniAppCategoryService
+	CPSActionRoleContainer        CPSActionRoleService
+	EventMerchantServiceContainer EventMerchantService
 }
 
 type BPSActionRoleService interface {
@@ -576,5 +588,4 @@ type CPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
-	
 }

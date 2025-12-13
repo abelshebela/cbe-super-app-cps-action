@@ -237,11 +237,11 @@ const (
 	RequestEnableActionRole      RequestAction = "ENABLE_ACTION_ROLE"
 	RequestDisableActionRole     RequestAction = "DISABLE_ACTION_ROLE"
 	RequestDeleteActionRole      RequestAction = "DELETE_ACTION_ROLE"
-	RequestCreateCpsActionRole      RequestAction = "CREATE_CPS_ACTION_ROLE"
-	RequestUpdateCpsActionRole      RequestAction = "UPDATE_CPS_ACTION_ROLE"
-	RequestEnableCpsActionRole      RequestAction = "ENABLE_CPS_ACTION_ROLE"
-	RequestDisableCpsActionRole     RequestAction = "DISABLE_CPS_ACTION_ROLE"
-	RequestDeleteCpsActionRole      RequestAction = "DELETE_CPS_ACTION_ROLE"
+	RequestCreateCpsActionRole   RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole   RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole   RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole  RequestAction = "DISABLE_CPS_ACTION_ROLE"
+	RequestDeleteCpsActionRole   RequestAction = "DELETE_CPS_ACTION_ROLE"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
@@ -483,6 +483,12 @@ const (
 	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
 	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
 	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 )
 
 type RegistrationType string
