@@ -157,7 +157,7 @@ var cpsActionRegistry = map[string]string{
 	// HQ
 	"POST /hq/block_time":      "BlockTime",
 	"POST /hq/archive_time":    "Archive",
-	"POST /hq/password_expiry": "PasswordExpiry",
+	"POST /hq/password_expiry": "PasswordRule",
 
 	// Fayda
 	"POST /fayda_account/disable/{user_code}": "Fayda",
@@ -249,21 +249,31 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+			rel := pattern
+			if strings.Contains(rel, "/*") {
+				rel = r.URL.Path
+			}
+			if strings.HasPrefix(rel, "/api/v1/cbesuperapp/cps_action") {
+				rel = strings.TrimPrefix(rel, "/api/v1/cbesuperapp/cps_action")
+				if rel == "" {
+					rel = "/"
+				}
+			}
 
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
-				if strings.HasPrefix(pattern, p) {
+				if strings.HasPrefix(rel, p) {
 					next.ServeHTTP(w, r)
 					return
 				}
 			}
 
-			key := strings.ToUpper(r.Method) + " " + pattern
+			key := strings.ToUpper(r.Method) + " " + rel
 			actionName, ok := cpsActionRegistry[key]
 			if !ok {
 				switch r.Method {
 				case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-					actionName = deriveModuleFromPattern(pattern)
+					actionName = deriveModuleFromPattern(rel)
 					if actionName == "" {
 						next.ServeHTTP(w, r)
 						return
