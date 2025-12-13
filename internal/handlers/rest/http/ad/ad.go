@@ -92,16 +92,21 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 // FetchAdverts godoc
 //
 //	@Summary		List adverts
-//	@Description	Fetch adverts with pagination and optional text search.
+//	@Description	Fetch adverts with pagination, optional text search, and field filtering.
 //	@Tags			Adverts
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																false	"Page number"					default(1)	minimum(1)	example(1)
-//	@Param			per_page	query		int																false	"Items per page"				default(10)	minimum(1)	maximum(100)	example(10)
-//	@Param			search		query		string															false	"Search by title/description"	example("promo")
-//	@Success		200			{object}	localization.StandardResponse{data=paginated_advert_response}	"Adverts fetched successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Invalid pagination params"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Server error"
+//	@Param			page			query		int			false	"Page number"					minimum(1)	default(1)	example(1)
+//	@Param			per_page		query		int			false	"Items per page"				minimum(1)	maximum(100)	default(10)	example(10)
+//	//  SEARCH PARAM
+//	@Param			search			query		string		false	"Text search on title & description (case-insensitive partial match)"	example("promo")
+//	//  FILTER PARAMS
+//	@Param			title			query		string		false	"Filter by exact title match"			example("Summer Promo")
+//	@Param			description		query		string		false	"Filter by exact description match"		example("Discount event")
+//	@Param			enabled			query		bool		false	"Filter by enabled flag"				example(true)
+//	@Success		200				{object}	localization.StandardResponse{data=paginated_advert_response}	"Adverts fetched successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}							"Invalid pagination params"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}							"Server error"
 //	@Security		BearerAuth
 //	@Router			/adverts [get]
 func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {

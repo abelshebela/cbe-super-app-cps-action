@@ -3693,6 +3693,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorServiceExists = ResponseCode{
+		Code:       "ERROR_SERVICE_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgServiceExists,
+		Type:       "error",
+	}
+
 	ErrorGetAllBanksFailed = ResponseCode{
 		Code:       "ERROR_GET_ALL_BANKS_FAILED",
 		StatusCode: StatusInternalServerError,

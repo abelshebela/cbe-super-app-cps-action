@@ -39,6 +39,12 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
@@ -87,6 +93,12 @@ const (
 	RequestDeleteWallet               RequestAction = "DELETE_WALLET"
 	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
+
+	// Services catalog (model.Services)
+	RequestCreateService  RequestAction = "CREATE_SERVICE"
+	RequestUpdateService  RequestAction = "UPDATE_SERVICE"
+	RequestEnableService  RequestAction = "ENABLE_SERVICE"
+	RequestDisableService RequestAction = "DISABLE_SERVICE"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -307,11 +319,16 @@ const (
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestCreateBankVault:  {},
-	RequestUpdateBankVault:  {},
-	RequestDeleteBankVault:  {},
-	RequestEnableBankVault:  {},
-	RequestDisAbleBankVault: {},
+	RequestCreateMiniappProductCode:  {},
+	RequestUpdateMiniappProductCode:  {},
+	RequestDeleteMiniappProductCode:  {},
+	RequestEnableMiniappProductCode:  {},
+	RequestDisableMiniappProductCode: {},
+	RequestCreateBankVault:           {},
+	RequestUpdateBankVault:           {},
+	RequestDeleteBankVault:           {},
+	RequestEnableBankVault:           {},
+	RequestDisAbleBankVault:          {},
 
 	// for vault group category
 	RequestCreateVaultGroupCategory:  {},
@@ -351,31 +368,37 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateBudgetIcon:        {},
 	RequestDeleteBudgetIcon:        {},
 
-	RequestCpsUserCreate:            {},
-	RequestCpsUserUpdate:            {},
-	RequestCpsUserDelete:            {},
-	RequestPermissionGroup:          {},
-	RequestCreateDepartment:         {},
-	RequestUpdateDepartment:         {},
-	RequestEnableUser:               {},
-	RequestDisableUser:              {},
-	RequestBPSUser:                  {},
-	RequestDisableBPSUser:           {},
-	RequestEnableBPSUser:            {},
-	RequestUpdateUser:               {},
-	RequestTotalDailyLimit:          {},
-	RequestUpdateVAT:                {},
-	RequestAuthTier:                 {},
-	RequestCreateAdvert:             {},
-	RequestUpdateAdvert:             {},
-	RequestEnableAdvert:             {},
-	RequestDisableAdvert:            {},
-	RequestDeleteAdvert:             {},
-	RequestCreateBank:               {},
-	RequestUpdateBank:               {},
-	RequestUpdateBankLogo:           {},
-	RequestEnableWallet:             {},
-	RequestDisableWallet:            {},
+	RequestCpsUserCreate:    {},
+	RequestCpsUserUpdate:    {},
+	RequestCpsUserDelete:    {},
+	RequestPermissionGroup:  {},
+	RequestCreateDepartment: {},
+	RequestUpdateDepartment: {},
+	RequestEnableUser:       {},
+	RequestDisableUser:      {},
+	RequestBPSUser:          {},
+	RequestDisableBPSUser:   {},
+	RequestEnableBPSUser:    {},
+	RequestUpdateUser:       {},
+	RequestTotalDailyLimit:  {},
+	RequestUpdateVAT:        {},
+	RequestAuthTier:         {},
+	RequestCreateAdvert:     {},
+	RequestUpdateAdvert:     {},
+	RequestEnableAdvert:     {},
+	RequestDisableAdvert:    {},
+	RequestDeleteAdvert:     {},
+	RequestCreateBank:       {},
+	RequestUpdateBank:       {},
+	RequestUpdateBankLogo:   {},
+	RequestEnableWallet:     {},
+	RequestDisableWallet:    {},
+
+	// Services catalog
+	RequestCreateService:            {},
+	RequestUpdateService:            {},
+	RequestEnableService:            {},
+	RequestDisableService:           {},
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -531,6 +554,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateDailyLimit,
 		RequestUpdateDailyLimit,
 		RequestDeleteDailyLimit,
+	},
+	"ServicesCatalog": {
+		RequestCreateService,
+		RequestUpdateService,
+		RequestEnableService,
+		RequestDisableService,
 	},
 	"Account": {
 		RequestUser,

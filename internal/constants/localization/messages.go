@@ -407,6 +407,7 @@ const (
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
+	MsgServiceExists                         = "Service already exists"
 	MsgInvalidFormat                         = "Invalid format"
 	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgActionNameIsRequired                  = "Action name is required"

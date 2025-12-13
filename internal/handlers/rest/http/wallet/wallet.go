@@ -120,6 +120,7 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
 	if err != nil {
+
 		span.RecordError(err)
 		a.logger.Errorf("failed to parse wallet update request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -169,12 +170,14 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	if req.IsEmpty() {
 		span.RecordError(errors.New("no data provided for wallet update"))
+
 		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
 		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
 		return
 	}
 
 	// Pass fieldsProvided to the service
+
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.UpdateWallet(ctx, id, req, fieldsProvided); err != nil {
 		span.RecordError(err)
@@ -329,15 +332,18 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 // GetWallets godoc
 //
 //	@Summary		List wallets
-//	@Description	Retrieve wallets with pagination and optional search
+//	@Description	Retrieve wallets with pagination, filtering, and search. Filterable fields: name, code, enabled. Searchable fields: name, code.
 //	@Tags			Wallet
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int															false	"Page number"		default(1)
-//	@Param			per_page	query		int															false	"Items per page"	default(10)
-//	@Param			search		query		string														false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
+//	@Param			page		query	int		false	"Page number"		default(1)
+//	@Param			per_page	query	int		false	"Items per page"	default(10)
+//	@Param			name		query	string	false	"Filter by wallet name"
+//	@Param			code		query	string	false	"Filter by wallet code"
+//	@Param			enabled		query	bool	false	"Filter by enabled status"
+//	@Param			search		query	string	false	"Search term (searches name, code)"
+//	@Success		200	{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
