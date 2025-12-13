@@ -495,6 +495,12 @@ RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
 	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
 	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 )
 
 type RegistrationType string

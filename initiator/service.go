@@ -10,6 +10,7 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
+	event_merchant_service "cbe-super-app-cps-action/internal/service/event_merchant"
 	"cbe-super-app-cps-action/internal/service/media"
 	newscategory_service "cbe-super-app-cps-action/internal/service/news_category"
 	newstag_service "cbe-super-app-cps-action/internal/service/news_tag"
@@ -119,62 +120,62 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
-  	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
-	miniAppProductCode := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
-	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, nil, logger)
-  	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
+	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
+	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
+	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, nil, logger)
+	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
-		EventContainer:             eventService,
-		FeedbackContainer:          feedbackService,
-		UnlinkContainer:            unlinkService,
-		BPSUserContainer:           bpsUserService,
-		CPSActionContainer:         nil,
-		AdContainer:                adService,
-		PortalCardContainer:        portalCardService,
-		ServiceCheckContainer:      serviceDetails,
-		BankContainer:              bank_service,
-		WalletContainer:            walletService,
-		TopupContainer:             topupService,
-		PasswordRuleContainer:      passwordRule,
-		AccountBlockContainer:      accountBlockService,
-		DepartmentContainer:        departmentService,
-		HQContainer:                hqService,
-		MiniAppContainer:           miniAppService,
-		MiniAppMerchantContainer:   miniAppMerchantService,
-		FaydaContainer:             faydaService,
-		BulkServiceContainer:       bulkService,
-		CustomerContainer:          customerService,
-		PermissionContainer:        permissionService,
-		CPSUserContainer:           cpsUserService,
-		BudgetCategoryContainer:    budgetCategoryService,
-		AccountContainer:           accountValidation,
-		AmountBasedAuthContainer:   amountBased,
-		AvatarDomian:               avatarService,
-		NotificationService:        notificationsvc,
-		ProductCodeService:         productCodeService,
-		DonationContainer:          donationService,
-		DonationCategoryContainer:  donationCategoryService,
-		DonationCompanyContainer:   donationCompanyService,
-		ArticleContainer:           articleService,
-		ArticleCategoryContainer:   articleCategoryService,
-		ShortVideoServiceContainer: ShortVideoService,
-		NewsTagContainer:           newsTagService,
-		NewsCategoryContainer:      newsCategoryService,
-		SitotaContainer:            sitotaService,
-		TransactionContainer:       transactionService,
-		KYCVerifierContainer:       kycService,
-		DeviceVersionContainer:     deviceVersionService,
-		NewsTagsServiceContainer:   newsTagsService,
-		EncryptionContainer:        encryptionService,
-		ServicesContainer:          servicesService,
-		BankProductContainer:       bankVaultProductService,
-		VaultCategoryContainer:     vaultGroupCategoryService,
-		BPSActionRoleContainer:     bpsActionRoleService,
-		MiniAppCategoryContainer:   miniAppCategory,
-		MiniappProductCodeServiceContainer: miniAppProductCode,
-		CPSActionRoleContainer:     cpsActionRoleService,
+		EventContainer:                eventService,
+		FeedbackContainer:             feedbackService,
+		UnlinkContainer:               unlinkService,
+		BPSUserContainer:              bpsUserService,
+		CPSActionContainer:            nil,
+		AdContainer:                   adService,
+		PortalCardContainer:           portalCardService,
+		ServiceCheckContainer:         serviceDetails,
+		BankContainer:                 bank_service,
+		WalletContainer:               walletService,
+		TopupContainer:                topupService,
+		PasswordRuleContainer:         passwordRule,
+		AccountBlockContainer:         accountBlockService,
+		DepartmentContainer:           departmentService,
+		HQContainer:                   hqService,
+		MiniAppContainer:              miniAppService,
+		MiniAppMerchantContainer:      miniAppMerchantService,
+		FaydaContainer:                faydaService,
+		BulkServiceContainer:          bulkService,
+		CustomerContainer:             customerService,
+		PermissionContainer:           permissionService,
+		CPSUserContainer:              cpsUserService,
+		BudgetCategoryContainer:       budgetCategoryService,
+		AccountContainer:              accountValidation,
+		AmountBasedAuthContainer:      amountBased,
+		AvatarDomian:                  avatarService,
+		NotificationService:           notificationsvc,
+		ProductCodeService:            productCodeService,
+		DonationContainer:             donationService,
+		DonationCategoryContainer:     donationCategoryService,
+		DonationCompanyContainer:      donationCompanyService,
+		ArticleContainer:              articleService,
+		ArticleCategoryContainer:      articleCategoryService,
+		ShortVideoServiceContainer:    ShortVideoService,
+		NewsTagContainer:              newsTagService,
+		NewsCategoryContainer:         newsCategoryService,
+		SitotaContainer:               sitotaService,
+		TransactionContainer:          transactionService,
+		KYCVerifierContainer:          kycService,
+		DeviceVersionContainer:        deviceVersionService,
+		NewsTagsServiceContainer:      newsTagsService,
+		EncryptionContainer:           encryptionService,
+		BankProductContainer:          bankVaultProductService,
+		VaultCategoryContainer:        vaultGroupCategoryService,
+		BPSActionRoleContainer:        bpsActionRoleService,
+		MiniAppCategoryContainer:      miniAppCategory,
+		CPSActionRoleContainer:        cpsActionRoleService,
+		EventMerchantServiceContainer: eventMerchantService,
+		ServiceContainer:              servicesService,
 	}
 
 	// CPSActionService Appended
@@ -229,7 +230,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// Services catalog service (uses CPSAction for maker-checker)
 	servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
-	serviceContainer.ServicesContainer = servicesService
+	// serviceContainer.ServicesContainer = servicesService
 	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
@@ -256,7 +257,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	vaultGroupCategoryService = vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
 	productCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
-
+	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, cfg, logger)
+	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	return service.ServiceLayer{
 		CPSAction:              cpsActionService,
 		Feedback:               feedbackService,
@@ -305,7 +307,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultGroupCategory:     vaultGroupCategoryService,
 		BPSActionRole:          bpsActionRoleService,
 		MiniAppCategory:        miniAppCategory,
-		MiniappProductCode: miniAppProductCode,
 		CPSActionRole:          cpsActionRoleService,
+		EventMerchantService:   eventMerchantService,
 	}
 }

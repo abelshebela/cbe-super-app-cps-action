@@ -131,7 +131,7 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	log.Println("  merchant details merchant", merchant)
+
 	event.MercahntName = merchant.MerchantName
 	// event.MerchantEmail = merchant.Email
 	// event.MerchantPhoneNumber = merchant.PhoneNumber

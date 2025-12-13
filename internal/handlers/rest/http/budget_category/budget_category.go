@@ -40,7 +40,7 @@ func InitBudgetCategoryAdapter(budgetCategoryApplication service.BudgetCategoryS
 //	@Security		BearerAuth
 //	@Router			/budget-category [post]
 func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "createBudgetCategory", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "createBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -93,7 +93,7 @@ func (b *budgetCategoryAdapter) CreateBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [patch]
 func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "updateBudgetCategory", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
@@ -153,7 +153,7 @@ func (b *budgetCategoryAdapter) UpdateBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [get]
 func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "getBudgetCategoryById", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getBudgetCategoryById", "handler", "budgetCategory")
 	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -194,7 +194,7 @@ func (b *budgetCategoryAdapter) GetBudgetCategoryByID(w http.ResponseWriter, r *
 //	@Security		BearerAuth
 //	@Router			/budget-category [get]
 func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "getAllBudgetCategories", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllBudgetCategories", "handler", "budgetCategory")
 	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
 
@@ -225,7 +225,7 @@ func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/budget-category/{id} [delete]
 func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "deleteBudgetCategory", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "deleteBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -269,7 +269,7 @@ func (b *budgetCategoryAdapter) DeleteBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/enable/{id} [patch]
 func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "enableBudgetCategory", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "enableBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {
@@ -313,7 +313,7 @@ func (b *budgetCategoryAdapter) EnableBudgetCategory(w http.ResponseWriter, r *h
 //	@Security		BearerAuth
 //	@Router			/budget-category/disable/{id} [patch]
 func (b *budgetCategoryAdapter) DisableBudgetCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "disableBudgetCategory", "handler", "budgetCategory")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "disableBudgetCategory", "handler", "budgetCategory")
 	defer span.End()
 	id, ok := common_util.GetParam(r, "id")
 	if !ok {

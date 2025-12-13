@@ -27,7 +27,7 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 }
 
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createFeedback", "handler", "feedback")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
 	defer span.End()
 	var req feedback.FeedbackRequest
 
@@ -89,7 +89,7 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 //	@Security		BearerAuth
 //	@Router			/feedback [get]
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getFeedbacks", "handler", "feedback")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbacks", "handler", "feedback")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -131,7 +131,7 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/feedback/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getFeedbackById", "handler", "feedback")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbackById", "handler", "feedback")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 

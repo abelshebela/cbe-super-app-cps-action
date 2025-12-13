@@ -10,6 +10,7 @@ type MiniAppMerchantDTO struct {
 	AccountNumber    string                    `json:"account_number"`
 	SettlementMethod string                    `json:"settlement_method" bson:"settlement_method"`
 	Branches         []types.BranchInformation `json:"branches"`
+	// MerchantRepresentativeName string                    `json:"merchant_representative_name"`
 }
 
 type KYCDTO struct {

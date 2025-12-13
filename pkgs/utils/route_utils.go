@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-
 	"github.com/go-chi/chi/v5"
 )
 
@@ -34,13 +32,4 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 	}
 
 	return file, fileHeader, nil
-}
-
-func ParsePrimitiveObjectID(ID string) (bson.ObjectID, error) {
-	objectID, err := bson.ObjectIDFromHex(ID)
-
-	if err != nil {
-		return bson.ObjectID{}, errors.New(localization.ErrorInvalidID.Code)
-	}
-	return objectID, nil
 }

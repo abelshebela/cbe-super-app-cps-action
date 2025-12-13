@@ -14,10 +14,11 @@ type MerchantLookUpResponse struct {
 }
 
 type MiniAppMerchantResponseDTO struct {
-	ID            string    `json:"id"`
-	Code          string    `json:"code"`
-	Type          string    `json:"type"`
-	MerchantName  string    `json:"merchant_name"`
+	ID           string `json:"id"`
+	Code         string `json:"code"`
+	Type         string `json:"type"`
+	MerchantName string `json:"merchant_name"`
+	// KYC           KYCDTO    `json:"kyc"`
 	AccountNumber string    `json:"account_number"`
 	Email         string    `json:"email"`
 	PhoneNumber   string    `json:"phone_number"`

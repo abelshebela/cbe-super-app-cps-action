@@ -178,7 +178,7 @@ type AmountBasedAuthRepository interface {
 // AccountBlock persistence
 type AccountBlockRepository interface {
 	GetBranchById(ctx context.Context, branchCode string) (*model.AccountBlock, error)
-	GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
+	// GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
@@ -613,4 +613,14 @@ type MiniAppProductCodeRepository interface {
 type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+}
+
+type EventMerchantRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
 }

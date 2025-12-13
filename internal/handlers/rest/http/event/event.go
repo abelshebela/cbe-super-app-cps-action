@@ -64,7 +64,7 @@ func InitEventAdapter(eventApp service.EventService, logger utils.Logger) eventI
 //	@Security		BearerAuth
 //	@Router			/events [post]
 func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createEvent", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createEvent", "handler", "event")
 	defer span.End()
 	req, err := eventcore.ParseEventRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -136,7 +136,7 @@ func (a *eventAdapter) CreateEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/{id} [patch]
 func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateEvent", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateEvent", "handler", "event")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -190,7 +190,7 @@ func (a *eventAdapter) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/{id} [delete]
 func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteEvent", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteEvent", "handler", "event")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -224,7 +224,7 @@ func (a *eventAdapter) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/enable/{id} [patch]
 func (a *eventAdapter) EnableEvent(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableEvent", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableEvent", "handler", "event")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -257,7 +257,7 @@ func (a *eventAdapter) EnableEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/disable/{id} [patch]
 func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableEvent", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableEvent", "handler", "event")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -290,7 +290,7 @@ func (a *eventAdapter) DisableEvent(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events/{id} [get]
 func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchEventById", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchEventById", "handler", "event")
 	defer span.End()
 	var _ model.Event
 	id := chi.URLParam(r, "id")
@@ -325,7 +325,7 @@ func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/events [get]
 func (a *eventAdapter) FetchEvents(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchEvents", "handler", "event")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchEvents", "handler", "event")
 	defer span.End()
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching events with filter: %+v", filter)

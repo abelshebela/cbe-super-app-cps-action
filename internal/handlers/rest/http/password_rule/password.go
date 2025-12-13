@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -74,6 +75,7 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "passwordRule", "passwordRuleHandler", "RequestPasswordRuleUpdate")
 	defer span.End()
+	id := chi.URLParam(r, "id")
 	var req dto.PasswordRuleUpdate
 
 	id, ok := core.ExtractID(w, r, p.logger)
@@ -96,9 +98,7 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 		return
 	}
 
-	body := core.PasswordRuleDtoToModel(req)
-
-	err := p.service.RequestPasswordRuleUpdate(ctx, id, body)
+	err := p.service.RequestPasswordRuleUpdate(ctx, id, req)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		p.logger.Errorf("[RequestPasswordRuleUpdate] service error: %v", err)

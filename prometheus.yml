@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+# scrape_configs:
+#   - job_name: "cps-auth"
+#     metrics_path: "/api/v1/cbesuperapp/cps_auth/metrics"
+#     static_configs:
+#       - targets: ["host.docker.internal:8080"]
+
+scrape_configs:
+  - job_name: "cps-auth"
+    # IMPORTANT: Use the VM's IP address directly
+    metrics_path: "/api/v1/cbesuperapp/cps_auth/metrics"
+    static_configs:
+      - targets: ["host.docker.internal:8080"] # <<< Change from host.docker.internal

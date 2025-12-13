@@ -48,7 +48,7 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/adverts [post]
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAdvert", "handler", "advert")
 	defer span.End()
 
 	req, err := core.ParseBannerImage(r, true)
@@ -110,7 +110,7 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts [get]
 func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAdverts", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdverts", "handler", "advert")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	list, err := a.advertApplication.FetchAdverts(ctx, *filterParams)
@@ -145,7 +145,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id} [get]
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAdvertById", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdvertById", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -188,7 +188,7 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/adverts/{id} [patch]
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -250,7 +250,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/advert/{id} [delete]
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -287,7 +287,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id}/enable [patch]
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -325,7 +325,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id}/disable [patch]
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {

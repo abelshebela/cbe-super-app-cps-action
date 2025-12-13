@@ -35,7 +35,7 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 // @Security     BearerAuth
 // @Router       /action-roles [get]
 func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllActionRoles", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllActionRoles", "handler", "actionRole")
 	defer span.End()
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllWithPagination(ctx, filter)
@@ -59,7 +59,7 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [get]
 func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getActionRoleByCode", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getActionRoleByCode", "handler", "actionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -88,7 +88,7 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 // @Security     BearerAuth
 // @Router       /action-roles [post]
 func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createActionRole", "handler", "actionRole")
 	defer span.End()
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -127,7 +127,7 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code} [patch]
 func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateActionRole", "handler", "actionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -162,7 +162,7 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/enable [patch]
 func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableActionRole", "handler", "actionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
@@ -189,7 +189,7 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 // @Security     BearerAuth
 // @Router       /action-roles/{code}/disable [patch]
 func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableActionRole", "handler", "actionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {

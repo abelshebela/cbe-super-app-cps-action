@@ -19,6 +19,7 @@ func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (wallet
 	req.Self = r.FormValue("self") == "true"
 	req.Other = r.FormValue("other") == "true"
 	req.Agent = r.FormValue("agent") == "true"
+	req.Type = r.FormValue("type")
 	_, fileHeader, err := utils.ParseMultipartFormFile(r, "avatar", 5<<20)
 	if err != nil {
 		if isCreate {

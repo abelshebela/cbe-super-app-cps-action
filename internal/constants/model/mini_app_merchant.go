@@ -8,15 +8,19 @@ import (
 )
 
 type MiniAppMerchant struct {
-	ID                bson.ObjectID `bson:"_id" json:"id"`
-	MerchantName      string        `bson:"merchant_name" json:"merchant_name"`
-	MerchantCode      string        `bson:"merchant_code" json:"merchant_code" `
-	SettlementMethod  string        `bson:"settlement_method" json:"settlement_method"`
-	BankAccountNumber string        `bson:"bank_account_number" json:"bank_account_number"`
-	Enabled           bool          `bson:"enabled" json:"enabled"`
-	IsDeleted         bool          `bson:"is_deleted" json:"is_deleted"`
-	KYC               types.KYC     `bson:"kyc" json:"kyc"`
-	CreatedAt         time.Time     `bson:"created_at" json:"created_at"`
-	UpdatedAt         time.Time     `bson:"updated_at" json:"updated_at"`
-	DeletedAt         *time.Time    `bson:"deleted_at" json:"deleted_at"`
+	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	Code         string        `json:"merchant_code" bson:"merchant_code"`
+	MerchantName string        `json:"merchant_name" bson:"merchant_name"`
+	// KYC               types.KYC                 `json:"kyc" bson:"kyc"`
+	SettlementMethod  string                    `json:"settlement_method" bson:"settlement_method"`
+	Branches          []types.BranchInformation `json:"branches" bson:"branches"`
+	Email             string                    `json:"email" bson:"email"`
+	PhoneNumber       string                    `json:"phone_number" bson:"phone_number"`
+	Enabled           bool                      `json:"enabled" bson:"enabled"`
+	IsDeleted         bool                      `json:"is_deleted" bson:"is_deleted"`
+	CreatedAt         time.Time                 `json:"created_at" bson:"created_at"`
+	LastModifiedAt    time.Time                 `json:"last_updated_at" bson:"last_updated_at"`
+	DeletedAt         *time.Time                `json:"deleted_at" bson:"deleted_at"`
+	BankAccountNumber string                    `json:"bank_account_number,omitempty" bson:"bank_account_number,omitempty"`
+	// MerchantType      string                    `json:"merchant_type" bson:"merchant_type"`
 }
