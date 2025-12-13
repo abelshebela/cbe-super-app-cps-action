@@ -9,7 +9,6 @@ import (
 
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/persistance"
 	"context"
 	"errors"
 
@@ -23,7 +22,7 @@ type cpsActionService struct {
 	dispatcher Dispatcher
 }
 
-func NewCPSActionService(repo storage.CPSActionRepository, persistence persistance.Persistence, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
+func NewCPSActionService(repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
 	return &cpsActionService{
 		repo:       repo,
 		logger:     logger,

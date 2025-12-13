@@ -26,13 +26,15 @@ type notificationService struct {
 	repo       storage.NotificationRepository
 	logger     shared_utils.Logger
 	cpsService service.CPSActionService
+	store      *lib.NotificationStore
 }
 
-func InitNotificationService(repo storage.NotificationRepository, logger shared_utils.Logger, cpsService service.CPSActionService) service.NotificationService {
+func InitNotificationService(repo storage.NotificationRepository, logger shared_utils.Logger, cpsService service.CPSActionService, store *lib.NotificationStore) service.NotificationService {
 	return &notificationService{
 		repo:       repo,
 		logger:     logger,
 		cpsService: cpsService,
+		store:      store,
 	}
 }
 
@@ -222,6 +224,23 @@ func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAc
 			return nil, err
 		}
 		s.logger.Infof("[Authorize] notification created successfully")
+
+		// Publish in-app broadcast to Kafka when a public notification is approved
+		if s.store != nil && notif.IsPublic {
+			// default 30-day expiry; adjust as needed or extend DTO to accept expiry
+			exp := time.Now().Add(30 * 24 * time.Hour)
+			payload := types.InAppBroadcastMessage{
+				Title:     notif.Title,
+				Message:   notif.NotificationBody,
+				Type:      "inapp",
+				ExpiresAt: exp,
+			}
+			if err := s.store.PublishInAppBroadcast(ctx, payload); err != nil {
+				s.logger.Errorf("[Authorize] failed to publish in-app broadcast: %v", err)
+			} else {
+				s.logger.Infof("[Authorize] in-app broadcast published to Kafka topic: inapp_notifications")
+			}
+		}
 		return action, nil
 
 	case string(constants.RequestUpdatePublicNotification):

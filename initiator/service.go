@@ -101,7 +101,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, nil, logger)
 	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, nil, logger)
-	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
+	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil, smsService)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
@@ -177,7 +177,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// CPSActionService Appended
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, logger, *dispatcher)
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
@@ -202,7 +202,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AccountContainer = accountValidationService
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	serviceContainer.CPSUserContainer = cpsUserService
-	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService)
+	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService, smsService)
 	deviceVersionService = deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
 	serviceContainer.DeviceVersionContainer = deviceVersionService
 	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
@@ -222,7 +222,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.CPSActionRoleContainer = cpsActionRoleService
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, logger, *dispatcher)
 	serviceContainer.CPSActionContainer = cpsActionService
 
 	// Services catalog service (uses CPSAction for maker-checker)

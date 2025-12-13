@@ -595,6 +595,7 @@ type BPSActionApproveIndexRepository interface {
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
+	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
 }
 
 type SitotaRepository interface {

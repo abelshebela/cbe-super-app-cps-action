@@ -322,6 +322,16 @@ type TicketInformation struct {
 	TotalNumberOFUnsoldTicket    uint64 `json:"total_number_of_unsold_ticket" bson:"total_number_of_unsold_ticket"`
 }
 
+// InAppBroadcastMessage is the payload for in-app broadcast notifications
+// that will be wrapped by shared/notification/dto.NewNotificationMessage
+// and sent to Kafka with type "in_app_broadcast".
+type InAppBroadcastMessage struct {
+	Title     string    `json:"title"`
+	Message   string    `json:"message"`
+	Type      string    `json:"type"`       // should be "inapp"
+	ExpiresAt time.Time `json:"expires_at"` // RFC3339 when marshaled
+}
+
 type EventInformation struct {
 	StartDate   time.Time `json:"start_date" bson:"start_date"`
 	DueDate     time.Time `json:"due_date" bson:"due_date"`
