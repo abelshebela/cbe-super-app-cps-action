@@ -133,8 +133,8 @@ func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerc
 	}
 
 	event.MercahntName = merchant.MerchantName
-	event.MerchantEmail = merchant.Email
-	event.MerchantPhoneNumber = merchant.PhoneNumber
+	// event.MerchantEmail = merchant.Email
+	// event.MerchantPhoneNumber = merchant.PhoneNumber
 	event.AccountNumber = merchant.BankAccountNumber
 
 	log.Println("  merchant details MercahntName: ", event.MercahntName)

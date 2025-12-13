@@ -4,16 +4,16 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/mini_app_merchant/core"
+	"time"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 
-	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"time"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -335,9 +335,6 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	// merchant.Email = ""
-	// merchant.PhoneNumber = ""
-
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniAppMerchant):
 		_, err = m.repo.Create(ctx, merchant)
@@ -367,7 +364,11 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			return nil, err
 		}
 		if err == nil {
-			_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
+			err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
+			if err != nil {
+				m.logger.Errorf("Failed to cascade delete mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
+				return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			}
 		}
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
@@ -388,7 +389,11 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			return nil, err
 		}
 		if err == nil {
-			_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
+			err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
+			if err != nil {
+				m.logger.Errorf("Failed to cascade disable mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
+				return nil, errors.New(localization.ErrorUnexpectedError.Code)
+			}
 		}
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
@@ -397,7 +402,6 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
-
 	}
 
 	cpsAction.CurrentAction = merchant
