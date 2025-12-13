@@ -52,7 +52,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	defer span.End()
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	exist, err := s.repo.Find(ctx, "WAL-"+req.Code, req.Name)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
