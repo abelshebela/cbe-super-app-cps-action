@@ -8,6 +8,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
@@ -214,7 +215,7 @@ type MiniAppMerchantService interface {
 
 type PasswordRuleService interface {
 	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
-	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
 	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
