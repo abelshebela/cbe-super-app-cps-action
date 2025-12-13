@@ -7,10 +7,8 @@ import (
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
-	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
@@ -36,6 +34,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	"context"
@@ -203,13 +202,13 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
+	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	MerchantLookup(ctx context.Context, merchantID string) (*merchant_lookup.MerchantLookUpResponse, error)
+	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
@@ -576,5 +575,4 @@ type CPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
-	
 }

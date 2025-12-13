@@ -40,10 +40,10 @@ func NewMiniAppMerchantAdapter(miniappMerchantService service.MiniAppMerchantSer
 func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
-	var reqDTO miniappmerchant.MiniAppMerchantDTO
+	var req miniappmerchant.MiniAppMerchantDTO
 
 	// Decode request body
-	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("Failed to decode request body: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
@@ -51,32 +51,17 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Validate DTO
-	if err := reqDTO.Validate(true); err != nil {
+	if err := req.Validate(true); err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("Validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
+	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
+	req.PhoneNumber = formattedPhone
 
-	reqDTO.PhoneNumber = formattedPhone
-	// Extract User Context
-	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
-		span.RecordError(errors.New("incomplete user context"))
-		h.logger.Warnf("Incomplete user context: %+v", userContext)
-		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
-		return
-	}
-
-	merchantDomain := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
-
-	h.logger.Debugf("Converted to domain model: %+v", merchantDomain)
-	// Call service to create merchant
-	span.SetAttributes(attribute.String("mini_app_merchant.phone", formattedPhone))
-
-	createdMerchant, err := h.miniappMerchantService.Create(ctx, merchantDomain)
+	createdMerchant, err := h.miniappMerchantService.Create(ctx, &req)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("Failed to create merchant: %v", err)
@@ -84,8 +69,6 @@ func (h *miniAppMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	h.logger.Debugf("Created merchant: %+v", createdMerchant)
-
-	// Send success response
 	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
 }
 
@@ -111,41 +94,27 @@ func (h *miniAppMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var reqDTO miniappmerchant.MiniAppMerchantDTO
-	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
+	var req miniappmerchant.MiniAppMerchantDTO
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		localization.SendErrorResponse(w, localization.ErrorMiniAppMerchantMarshalFailed, nil, nil)
 		return
 	}
 
-	// Check if request body is empty
-	if reqDTO.IsEmpty() {
+	if req.IsEmpty() {
 		span.RecordError(errors.New("no data provided for update"))
 		localization.SendErrorResponse(w, localization.ErrorNoDataProvidedForUpdate, nil, nil)
 		return
 	}
 
-	// Validate input fields
-	if err := reqDTO.Validate(false); err != nil {
+	if err := req.Validate(false); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	// Extract user context
-	userContext := local_util.ExtractUserContext(r)
-	if local_util.IsIncomplete(userContext) {
-		span.RecordError(errors.New("incomplete user context"))
-		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
-		return
-	}
-
-	// Convert DTO → Domain Model
-	merchantReq := ToMiniAppMerchantDomainFromUpdateDTO(&reqDTO)
-
-	// Call service update
 	span.SetAttributes(attribute.String("mini_app_merchant.id", id))
-	_, _, err := h.miniappMerchantService.Update(ctx, id, merchantReq)
+	_, _, err := h.miniappMerchantService.Update(ctx, id, &req)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -306,8 +275,7 @@ func (h *miniAppMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response := ToMiniAppMerchantResponseDTO(result)
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, response)
+	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
 }
 
 // List Mini App Merchants with Pagination

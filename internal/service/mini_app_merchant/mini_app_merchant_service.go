@@ -15,7 +15,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"time"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
@@ -34,7 +34,14 @@ type miniAppMerchantService struct {
 	merchantLookup       merchant_lookup.MerchantLookupAdapter
 }
 
-func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsService service.CPSActionService, miniRepo storage.MiniAppRepository, merchantLookup merchant_lookup.MerchantLookupAdapter, logger utils.Logger, accountLookupService account_lookup.Account) service.MiniAppMerchantService {
+func NewMiniAppMerchantService(
+	repo storage.MiniAppMerchantRepository,
+	cpsService service.CPSActionService,
+	miniRepo storage.MiniAppRepository,
+	merchantLookup merchant_lookup.MerchantLookupAdapter,
+	logger utils.Logger,
+	accountLookupService account_lookup.Account,
+) service.MiniAppMerchantService {
 	return &miniAppMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
@@ -45,16 +52,17 @@ func NewMiniAppMerchantService(repo storage.MiniAppMerchantRepository, cpsServic
 	}
 }
 
-func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "MiniAppMerchant", "Create")
 	defer span.End()
 
-	m.logger.Infof("Creating mini app merchant, name: %s", data.MerchantName)
+	data := core.ToMiniAppMerchantDomainFromUpdateDTO(req)
 
+	m.logger.Infof("Creating mini app merchant, name: %s", data.MerchantName)
 	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMiniAppMerchant{
-		BankAccountNumber: data.BankAccountNumber,
-		Email:             data.KYC.Representative.Email,
-		PhoneNumber:       data.KYC.Representative.Phone,
+		// BankAccountNumber: data.BankAccountNumber,
+		Email:       data.Email,
+		PhoneNumber: data.PhoneNumber,
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
@@ -77,25 +85,20 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 		data.ID = bson.NewObjectID()
 	}
 
-	if data.MerchantType == "merchant" {
-		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
-		if err != nil {
-			m.logger.Errorf("Account number validation failed: %v", err)
-			span.AddEvent("Account number validation failed", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("bank_account_number", data.BankAccountNumber),
-			))
-			return nil, err
-		}
-	}
+	// _, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+	// if err != nil {
+	// 	m.logger.Errorf("Account number validation failed: %v", err)
+	// 	span.AddEvent("Account number validation failed", trace.WithAttributes(
+	// 		attribute.String("error", err.Error()),
+	// 		attribute.String("bank_account_number", data.BankAccountNumber),
+	// 	))
+	// 	return nil, err
+	// }
 
 	now := time.Now()
-	if data.MerchantType == "merchant" {
-		data.Code = utils.RandomGenerator(10)
-	}
 	data.CreatedAt = now
 	data.LastModifiedAt = now
-	data.KYC.Status = string(constants.KYCStatusComplete)
+	// data.KYC.Status = string(constants.KYCStatusComplete)
 	data.Enabled = true
 	err = core.HandleCPSActionForMiniAppMerchant(
 		ctx,
@@ -118,12 +121,12 @@ func (m *miniAppMerchantService) Create(ctx context.Context, data *model.MiniApp
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "MiniAppMerchant", "Update")
 	defer span.End()
 
+	merchantReq := core.ToMiniAppMerchantDomainFromUpdateDTO(req)
 	m.logger.Infof("Updating mini app merchant, id: %s", id)
-
 	old, err := m.repo.FindByID(ctx, id)
 	if err != nil {
 		m.logger.Errorf("Failed to find merchant by ID: %s, error: %v", id, err)
@@ -134,19 +137,19 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 		return nil, nil, err
 	}
 
-	updated := core.MergeMiniAppMerchantData(old, data)
+	updated := core.MergeMiniAppMerchantData(old, merchantReq)
 
 	var check types.CheckMiniAppMerchant
 
 	if updated.BankAccountNumber != old.BankAccountNumber {
 		check.BankAccountNumber = updated.BankAccountNumber
 	}
-	if updated.KYC.Representative.Email != old.KYC.Representative.Email {
-		check.Email = updated.KYC.Representative.Email
-	}
-	if updated.KYC.Representative.Phone != old.KYC.Representative.Phone {
-		check.PhoneNumber = updated.KYC.Representative.Phone
-	}
+	// if updated.KYC.Representative.Email != old.KYC.Representative.Email {
+	// 	check.Email = updated.KYC.Representative.Email
+	// }
+	// if updated.KYC.Representative.Phone != old.KYC.Representative.Phone {
+	// 	check.PhoneNumber = updated.KYC.Representative.Phone
+	// }
 
 	if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
 		exist, err := core.CheckMerchantExists(ctx, m.repo, &check, &types.MiniAppMerchantExistOptions{ExcludeID: id})
@@ -168,7 +171,7 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, data *mo
 		}
 	}
 	if check.BankAccountNumber != "" {
-		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, data.BankAccountNumber, m.accountLookupService)
+		_, err = core.ValidateAccountNumberWithExternalAPI(ctx, merchantReq.BankAccountNumber, m.accountLookupService)
 		if err != nil {
 			m.logger.Errorf("Account number validation failed: %v", err)
 			span.AddEvent("Account number validation failed", trace.WithAttributes(
@@ -221,6 +224,7 @@ func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mode
 		))
 		return nil, err
 	}
+	// response := core.ToMiniAppMerchantResponseDTO(result)
 	return result, nil
 }
 
@@ -243,7 +247,7 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	now := time.Now()
 	deletedMerchant := *prev
 	deletedMerchant.IsDeleted = true
-	deletedMerchant.DeletedAt = now
+	deletedMerchant.DeletedAt = &now
 
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMerchant, *prev, constants.ActionDelete)
 	if err != nil {
