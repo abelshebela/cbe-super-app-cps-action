@@ -27,9 +27,13 @@ func AccountValidationMapper(data model.ValidationRule) bson.M {
 		result["max_length"] = data.MaxLength
 	}
 
-	result["enabled"] = data.Enabled
-	result["is_deleted"] = data.IsDeleted
+	if data.Enabled != nil {
+		result["enabled"] = data.Enabled
 
+	}
+	if data.IsDeleted != nil {
+		result["is_deleted"] = data.IsDeleted
+	}
 	// timestamps (always included)
 	if !data.CreatedAt.IsZero() {
 		result["created_at"] = data.CreatedAt
