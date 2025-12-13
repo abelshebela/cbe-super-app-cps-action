@@ -23,7 +23,6 @@ import (
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
-	miniAppMerchantInterface "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
@@ -73,7 +72,6 @@ import (
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
-	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
 	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
@@ -108,7 +106,6 @@ type Handler struct {
 	PortalCardHander          portalCardInterface.PortalCardAdapter
 	AccountValidation         accountvalidationInterface.AccountValidation
 	HqHandler                 hqInbound.HQAdapter
-	MiniAppMerchantHandler    miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler       accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler     service_details.ServiceAdapter
 	ServicesHandler           servicesInbound.ServicesHandler
@@ -168,7 +165,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		BankVaultHandler:          bankvaulthandler.InitBankVaultHandler(serviceLayer.BankVault, logger),
 		VaultGroupCategoryHandler: vaultgroupcategoryhandler.InitVaultGroupCategoryHandler(serviceLayer.VaultGroupCategory, logger),
 		AmountBasedAuthHandler:    amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
-		MiniAppMerchantHandler:    miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 		ServiceDetailsHandler:     serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
 		ServicesHandler:           services_http.InitServicesAdapter(serviceLayer.Services, logger),
 		ProductCodeHandler:        productCodeHandler.InitProductcodeAdapter(pcs, logger),
