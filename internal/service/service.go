@@ -11,7 +11,6 @@ import (
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
-	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
@@ -507,6 +506,7 @@ type ServiceContainer struct {
 	MiniAppCategoryContainer      MiniAppCategoryService
 	CPSActionRoleContainer        CPSActionRoleService
 	EventMerchantServiceContainer EventMerchantService
+	ServiceContainer              ServicesService
 }
 
 type BPSActionRoleService interface {
