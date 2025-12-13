@@ -344,16 +344,12 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	Environment   constants.EnvironmentType `bson:"environment" json:"environment"`
-	MerchantAppID string                    `bson:"merchant_app_id" json:"merchant_app_id"`
-	FabricAppID   string                    `bson:"fabric_app_id" json:"fabric_app_id"`
-	ShortCode     string                    `bson:"short_code" json:"short_code"`
-	AppSecret     string                    `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string                    `bson:"private_key" json:"private_key"`
-	PublicKey     string                    `bson:"public_key" json:"public_key"`
-	Timestamp     time.Time                 `bson:"timestamp" json:"timestamp"`
-	Signature     string                    `bson:"signature" json:"-"`
-	MiniAppCode   string                    `bson:"mini_app_code" json:"mini_app_code"`
+	MerchantAppID string `json:"merchant_app_id" bson:"merchant_app_id"`
+	FabricAppID   string `bson:"fabric_app_id" json:"fabric_app_id"`
+	ShortCode     string `bson:"short_code" json:"short_code"`
+	AppSecret     string `bson:"app_secret" json:"app_secret"`
+	PrivateKey    string `bson:"private_key" json:"private_key"`
+	PublicKey     string `bson:"public_key" json:"public_key"`
 }
 
 type MiniApps struct {
