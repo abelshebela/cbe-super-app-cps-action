@@ -39,6 +39,12 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE" 
+RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE" 
+RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE" 
+RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE" 
+RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
@@ -307,6 +313,11 @@ const (
 )
 
 var validRequestActions = map[RequestAction]struct{}{
+	RequestCreateMiniappProductCode:  {},
+	RequestUpdateMiniappProductCode:  {},
+	RequestDeleteMiniappProductCode:  {},
+	RequestEnableMiniappProductCode:  {},
+	RequestDisableMiniappProductCode: {},
 	RequestCreateBankVault:  {},
 	RequestUpdateBankVault:  {},
 	RequestDeleteBankVault:  {},
@@ -875,6 +886,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteMiniAppCategory,
 		RequestEnableMiniAppCategory,
 		RequestDisableMiniAppCategory,
+	},
+	"MiniAppProductCode": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
 	},
 }
 

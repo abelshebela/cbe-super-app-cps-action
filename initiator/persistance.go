@@ -143,6 +143,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
 		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
+		MiniAppProductCodePersistence:       mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodeCollection),
 	}
 
 	return data

@@ -389,6 +389,7 @@ type KeyGeneratorService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+
 type ServiceLayer struct {
 	EventService           EventService
 	BulkService            BulkService
@@ -439,6 +440,7 @@ type ServiceLayer struct {
 	TransactionService     TransactionService
 	MiniAppCategory        MiniAppCategoryService
 	CPSActionRole          CPSActionRoleService
+	MiniappProductCode MiniappProductCodeService
 }
 
 type ServiceContainer struct {
@@ -494,6 +496,7 @@ type ServiceContainer struct {
 	TransactionContainer       TransactionService
 	MiniAppCategoryContainer   MiniAppCategoryService
 	CPSActionRoleContainer     CPSActionRoleService
+	MiniappProductCodeServiceContainer MiniappProductCodeService
 }
 
 type BPSActionRoleService interface {
@@ -587,4 +590,8 @@ type CPSActionRoleService interface {
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
+	
+}
+type MiniappProductCodeService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

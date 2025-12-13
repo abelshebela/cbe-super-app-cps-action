@@ -613,3 +613,10 @@ type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }
+
+
+type MiniAppProductCodeRepository interface {
+	Create(ctx context.Context, productCode *model.MiniAppProductCode) error
+	Update(ctx context.Context, productCode *model.MiniAppProductCode, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
