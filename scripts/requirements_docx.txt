@@ -1,0 +1,2 @@
+# Install required packages
+pip install python-docx markdown pillow requests

@@ -77,12 +77,22 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 //	@Produce		json
 //	@Param			page		query		int													false	"Page number"		default(1)
 //	@Param			per_page	query		int													false	"Items per page"	default(10)
-//	@Param			search		query		string												false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=paginated_resp}	"BPS users retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}				"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/bps_users/ [get]
+
+// @Param			branch_code			query	string	false	"Branch code filter"
+// @Param			branch_name			query	string	false	"Branch name filter"
+// @Param			enabled				query	bool	false	"Enabled status filter"
+// @Param			role				query	string	false	"Role filter"
+// @Param			first_password_set	query	bool	false	"First password set filter"
+// @Param			full_name			query	string	false	"Full name filter"
+// @Param			user_code			query	string	false	"User code filter"
+// @Param			phone_number		query	string	false	"Phone number filter"
+// @Param			username			query	string	false	"Username filter"
+// @Param			search			query	string	false	"searchable fieldes (full_name,username,user_code,phone_number)"
+// @Success		200			{object}	localization.StandardResponse{data=paginated_resp}	"BPS users retrieved successfully"
+// @Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request"
+// @Failure		500			{object}	localization.StandardResponse{data=nil}				"Internal server error"
+// @Security	BearerAuth
+// @Router		/bps_users/ [get]
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()

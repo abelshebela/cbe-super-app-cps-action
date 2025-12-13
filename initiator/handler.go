@@ -32,6 +32,7 @@ import (
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
+	servicesInbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
 	unlinkInbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	vaultgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
@@ -83,6 +84,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/handlers/rest/http/portal_card"
 	productCodeHandler "cbe-super-app-cps-action/internal/handlers/rest/http/product_code"
 	serviceDetailsHandler "cbe-super-app-cps-action/internal/handlers/rest/http/service_details"
+	services_http "cbe-super-app-cps-action/internal/handlers/rest/http/services"
 	sitotaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/sitota"
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
@@ -111,6 +113,7 @@ type Handler struct {
 	MiniAppMerchantHandler    miniAppMerchantInterface.MiniAppMerchant
 	AccountBlockHandler       accountBlockHandlerInterface.AccountBlockAdapter
 	ServiceDetailsHandler     service_details.ServiceAdapter
+	ServicesHandler           servicesInbound.ServicesHandler
 	AmountBasedAuthHandler    amountBasedInbound.AmountBasedAuthAdapter
 	DepartmentHandler         department.DepartmentHandler
 	AvatarHandler             avatarHandlerInterface.AvatarInbound
@@ -170,6 +173,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		AmountBasedAuthHandler:    amountBasedAuthHandler.NewAmountBasedAuthHandler(serviceLayer.AmountBasedAuth, logger),
 		MiniAppMerchantHandler:    miniAppMerchantHandler.NewMiniAppMerchantAdapter(serviceLayer.MiniAppMerchant, logger),
 		ServiceDetailsHandler:     serviceDetailsHandler.InitServiceAdapter(serviceLayer.ServiceDetails, logger),
+		ServicesHandler:           services_http.InitServicesAdapter(serviceLayer.Services, logger),
 		ProductCodeHandler:        productCodeHandler.InitProductcodeAdapter(pcs, logger),
 		DonationHandler:           donationHandler.NewDonationAdapter(serviceLayer.Donation, logger),
 		DonationCategoryHandler:   donationCategoryHandler.InitDonationCategoryAdapter(serviceLayer.DonationCategory, logger),

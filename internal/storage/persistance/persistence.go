@@ -56,6 +56,7 @@ type Persistence struct {
 	NotificationPersistence          storage.NotificationRepository
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
+	ServicesPersistence              storage.ServicesRepository
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
