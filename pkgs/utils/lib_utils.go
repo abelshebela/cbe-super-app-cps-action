@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -52,14 +53,20 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
 		return val
 	}
-
+	checkerIndex := int32(0)
+	checkerIndex, ok := r.Context().Value(constants.ContextKey("checker_index")).(int32)
+	if !ok {
+		log.Fatalf("checker_index is not int32")
+		checkerIndex = 0
+	}
 	return types.UserContext{
-		UserCode:    get("user_code"),
-		UserID:      get("user_id"),
-		FullName:    get("full_name"),
-		PhoneNumber: get("phone_number"),
-		Department:  get("department"),
-		UserRole:    get("user_role"),
+		UserCode:     get("user_code"),
+		UserID:       get("user_id"),
+		FullName:     get("full_name"),
+		PhoneNumber:  get("phone_number"),
+		Department:   get("department"),
+		UserRole:     get("user_role"),
+		CheckerIndex: checkerIndex,
 	}
 }
 

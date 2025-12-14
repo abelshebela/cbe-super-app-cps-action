@@ -43,6 +43,12 @@ func AccountCreateAndLink(ctx context.Context, actionData model.CPSAction, id st
 
 func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, userData model.User, account types.Account, userRepo storage.UserRepository, linkedAccountRepo storage.LinkedAccountRepository, logger utils.Logger) error {
 
+	// Determine latest checker name from CheckerUsers (multi-checker model)
+	checkerName := ""
+	if len(actionData.CheckerUsers) > 0 {
+		checkerName = actionData.CheckerUsers[len(actionData.CheckerUsers)-1].CheckerName
+	}
+
 	lib.GoRoutinBaker(types.BakerOptions{UseMutex: true},
 		func() {
 			if err := linkedAccountRepo.Create(ctx, &model.LinkedAccount{
@@ -66,7 +72,7 @@ func AccountLinker(ctx context.Context, actionData model.CPSAction, id string, u
 					Linkers: struct {
 						Maker   string `json:"maker" bson:"maker"`
 						Checker string `json:"checker" bson:"checker"`
-					}{Maker: actionData.MakerName, Checker: actionData.CheckerName},
+					}{Maker: actionData.MakerName, Checker: checkerName},
 					Unlinkers: struct {
 						Maker   string `json:"maker" bson:"maker"`
 						Checker string `json:"checker" bson:"checker"`

@@ -1,0 +1,73 @@
+package cpsaction
+
+import (
+	"context"
+	"strings"
+
+	"cbe-super-app-cps-action/internal/constants"
+	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
+	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/service"
+	"cbe-super-app-cps-action/internal/storage"
+)
+
+// WithActionRolePolicy wraps a base CPSActionService and injects CPSActionRole
+// policy on CPSAction creation (checker_count and action_status).
+func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSActionRoleRepository) service.CPSActionService {
+	return &cpsActionServiceWithRoles{base: base, roles: roles}
+}
+
+type cpsActionServiceWithRoles struct {
+	base  service.CPSActionService
+	roles storage.CPSActionRoleRepository
+}
+
+func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
+	// Only apply policy for CREATE/UPDATE/ENABLE/DISABLE flows
+	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
+	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
+	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) ||
+		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
+		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
+			if role, err := s.roles.FindByActionName(ctx, mod); err == nil && role != nil {
+				if role.IsMakerOnly {
+					cpsAction.CheckerCount = 0
+					cpsAction.ActionStatus = string(constants.Approved)
+				} else if role.ApproverCount > 0 {
+					cpsAction.CheckerCount = int32(role.ApproverCount)
+				}
+			}
+		}
+	}
+	return s.base.CreateCPSAction(ctx, cpsAction)
+}
+
+func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
+	return s.base.ApproveCPSAction(ctx, action)
+}
+
+func (s *cpsActionServiceWithRoles) RejectCPSAction(ctx context.Context, actionCode string, action *model.CPSAction) error {
+	return s.base.RejectCPSAction(ctx, actionCode, action)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsByDepartment(ctx, department, filterParams)
+}
+
+func (s *cpsActionServiceWithRoles) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
+	// Delegate; type alias not available here, forward to base
+	return s.base.GetActionCountsByDepartemnt(ctx, department)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
+	return s.base.GetCPSActionByID(ctx, id, department)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error) {
+	return s.base.GetCPSActionByUniqueID(ctx, id, department)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
+	return s.base.GetCPSActionByActionCode(ctx, uniqueID, department)
+}

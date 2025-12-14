@@ -432,14 +432,15 @@ const (
 	MsgInvalidActionFormat                  = "Invalid action format"
 
 	// System error messages
-	MsgInternalServerError  = "Internal server error occurred"
-	MsgServiceUnavailable   = "Service is temporarily unavailable"
-	MsgDatabaseError        = "Database operation failed"
-	MsgNetworkError         = "Network error occurred"
-	MsgTimeoutError         = "Request timeout occurred"
-	MsgUnexpectedError      = "An unexpected error occurred"
-	MsgConfigurationError   = "Configuration error"
-	MsgExternalServiceError = "External service error"
+	MsgInternalServerError   = "Internal server error occurred"
+	MsgCPSActionWaitPrevious = "Wait for previous checker approval to be completed"
+	MsgServiceUnavailable    = "Service is temporarily unavailable"
+	MsgDatabaseError         = "Database operation failed"
+	MsgNetworkError          = "Network error occurred"
+	MsgTimeoutError          = "Request timeout occurred"
+	MsgUnexpectedError       = "An unexpected error occurred"
+	MsgConfigurationError    = "Configuration error"
+	MsgExternalServiceError  = "External service error"
 
 	// Business logic error messages
 	MsgInsufficientBalance = "Insufficient balance"

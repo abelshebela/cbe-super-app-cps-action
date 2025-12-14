@@ -154,13 +154,14 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
-	UserCode    string
-	UserID      string
-	FullName    string
-	PhoneNumber string
-	Department  string
-	BranchCode  []string
-	UserRole    string
+	UserCode     string
+	UserID       string
+	FullName     string
+	PhoneNumber  string
+	Department   string
+	BranchCode   []string
+	UserRole     string
+	CheckerIndex int32
 }
 
 type RegistrationRecord struct {
@@ -214,6 +215,15 @@ type Password struct {
 	CurrentPassword  string    `json:"current_password" bson:"current_password"`
 	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
 	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
+}
+
+type Checker struct {
+	CheckerID          string    `bson:"checker_id" json:"checker_id,omitempty"`
+	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
+	CheckerIndex       int32     `bson:"checker_index" json:"checker_index,omitempty"`
+	CheckerName        string    `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string    `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
+	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
 }
 
 // ==================================
