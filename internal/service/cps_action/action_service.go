@@ -92,7 +92,7 @@ func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, unique
 }
 
 func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSAction) error {
-	return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_id": "", "checker_name": "", "checker_phone_number": ""})
+	return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_users": []types.Checker{}, "current_checker_index": 0})
 }
 
 func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {
