@@ -29,13 +29,30 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
 	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) ||
 		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
+		// Always ensure multi-checker shape on these flows, even when count is 0
+		if cpsAction.CheckerUsers == nil {
+			cpsAction.CheckerUsers = []types.Checker{}
+		}
+		cpsAction.CurrentCheckerIndex = 0
+
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
-			if role, err := s.roles.FindByActionName(ctx, mod); err == nil && role != nil {
+			// Attempt case-insensitive role lookup to avoid ActionName casing mismatches
+			var role *model.CPSActionRole
+			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
+				role = r
+			} else if r, err := s.roles.FindByActionName(ctx, strings.ToLower(mod)); err == nil && r != nil {
+				role = r
+			} else if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod)); err == nil && r != nil {
+				role = r
+			}
+			if role != nil {
 				if role.IsMakerOnly {
 					cpsAction.CheckerCount = 0
 					cpsAction.ActionStatus = string(constants.Approved)
 				} else if role.ApproverCount > 0 {
 					cpsAction.CheckerCount = int32(role.ApproverCount)
+				} else {
+					cpsAction.CheckerCount = 0
 				}
 			}
 		}
