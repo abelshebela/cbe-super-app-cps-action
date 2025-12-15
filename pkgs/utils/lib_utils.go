@@ -53,10 +53,10 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
 		return val
 	}
-	checkerIndex := float32(0)
+	checkerIndex := float32(0.0)
 	checkerIndex, ok := r.Context().Value(constants.ContextKey("checker_index")).(float32)
 	if !ok {
-		log.Fatalf("checker_index is not float32")
+		log.Fatalf("checker_index is not int32")
 		checkerIndex = 0.0
 	}
 	return types.UserContext{
