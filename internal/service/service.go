@@ -33,7 +33,6 @@ import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/types"
 
-	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
@@ -115,9 +114,9 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
-	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
-	GetCustomerByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error)
+	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
@@ -217,10 +216,10 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)

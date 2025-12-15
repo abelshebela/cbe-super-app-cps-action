@@ -3,7 +3,6 @@ package miniappmerchant
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
@@ -16,10 +15,10 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
@@ -29,16 +28,14 @@ import (
 type miniAppMerchantService struct {
 	repo                 storage.MiniAppMerchantRepository
 	cpsService           service.CPSActionService
-	miniRepo             storage.MiniAppRepository
 	logger               utils.Logger
 	accountLookupService account_lookup.Account
 	merchantLookup       merchant_lookup.MerchantLookupAdapter
 }
 
-func NewMiniAppMerchantService(
+func NewEcommerceMerchantService(
 	repo storage.MiniAppMerchantRepository,
 	cpsService service.CPSActionService,
-	miniRepo storage.MiniAppRepository,
 	merchantLookup merchant_lookup.MerchantLookupAdapter,
 	logger utils.Logger,
 	accountLookupService account_lookup.Account,
@@ -46,14 +43,13 @@ func NewMiniAppMerchantService(
 	return &miniAppMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,
-		miniRepo:             miniRepo,
 		accountLookupService: accountLookupService,
 		merchantLookup:       merchantLookup,
 		logger:               logger,
 	}
 }
 
-func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "MiniAppMerchant", "Create")
 	defer span.End()
 
@@ -99,7 +95,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Mi
 
 	now := time.Now()
 	data.CreatedAt = now
-	data.LastModifiedAt = now
+	data.UpdatedAt = now
 	// data.KYC.Status = string(constants.KYCStatusComplete)
 	data.Enabled = true
 	err = core.HandleCPSActionForMiniAppMerchant(
@@ -123,7 +119,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Mi
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, *model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "MiniAppMerchant", "Update")
 	defer span.End()
 
@@ -198,7 +194,7 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *mer
 	return updated, old, nil
 }
 
-func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
+func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "MiniAppMerchant", "FindAllWithPagination")
 	defer span.End()
 
@@ -213,7 +209,7 @@ func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filt
 	return result, nil
 }
 
-func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
 	defer span.End()
 
@@ -237,7 +233,6 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	m.logger.Infof("Deleting mini app merchant, id: %s", id)
 
 	prev, err := m.repo.FindByID(ctx, id)
-	result, err := m.repo.FindByID(ctx, id)
 	if err != nil {
 		m.logger.Errorf("Failed to find merchant for deletion, id: %s, error: %v", id, err)
 		span.AddEvent("Failed to find merchant", trace.WithAttributes(
@@ -301,7 +296,7 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 	updatedMerchant := *prevMerchant
 	updatedMerchant.Enabled = enable
-	updatedMerchant.LastModifiedAt = time.Now()
+	updatedMerchant.UpdatedAt = time.Now()
 
 	var action constants.RequestAction
 	if enable {
@@ -328,7 +323,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
 	defer span.End()
 
-	merchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
+	merchant, err := local_util.JsonUnmarshal[model.EcommerceMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		m.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
@@ -352,22 +347,8 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err != nil {
-			span.AddEvent("Failed to create mini app merchant", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			return nil, err
-		}
 	case string(constants.RequestUpdateMiniAppMerchant):
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
-		if err != nil {
-			span.AddEvent("Failed to update mini app merchant", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			return nil, err
-		}
 		if err != nil {
 			span.AddEvent("Failed to update mini app merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -384,32 +365,8 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		// if err == nil {
-		// 	_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
-		// }
-		if err != nil {
-			span.AddEvent("Failed to delete mini app merchant", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			return nil, err
-		}
-		if err == nil {
-			err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
-			if err != nil {
-				m.logger.Errorf("Failed to cascade delete mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
-				return nil, errors.New(localization.ErrorUnexpectedError.Code)
-			}
-		}
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
-		if err != nil {
-			span.AddEvent("Failed to enable mini app merchant", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			return nil, err
-		}
 		if err != nil {
 			span.AddEvent("Failed to enable mini app merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -425,23 +382,6 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
-		}
-		// if err == nil {
-		// 	_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
-		// }
-		if err != nil {
-			span.AddEvent("Failed to disable mini app merchant", trace.WithAttributes(
-				attribute.String("error", err.Error()),
-				attribute.String("unique_id", cpsAction.UniqueId),
-			))
-			return nil, err
-		}
-		if err == nil {
-			err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
-			if err != nil {
-				m.logger.Errorf("Failed to cascade disable mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
-				return nil, errors.New(localization.ErrorUnexpectedError.Code)
-			}
 		}
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
@@ -461,7 +401,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	return cpsAction, nil
 }
 
-func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "DetailMiniAppByID", "MiniAppMerchant", "DetailMiniAppByID")
 	defer span.End()
 
@@ -478,9 +418,6 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 }
 
 func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
-	defer span.End()
-
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 

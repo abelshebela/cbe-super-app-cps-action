@@ -15,8 +15,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"fmt"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -142,10 +140,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	currentUser, err := s.repo.FindByID(ctx, req.UserCode)
-	if err != nil {
-		return err
-	}
+
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
@@ -466,17 +461,12 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserUpdate):
-		// cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
 		cur, err := core.BindCPSUserFromAction(action.CurrentAction)
-
-		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
-		fmt.Println("////////core cps user update", cur)
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
-		// update := core.CPSUUpdateModel(&cur)
 		if err := s.repo.Update(ctx, action.UniqueId, &cur); err != nil {
 			span.AddEvent("failed to update user", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
