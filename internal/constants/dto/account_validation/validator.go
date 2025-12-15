@@ -90,8 +90,8 @@ func ToModel(dto ValidationRuleDTO) *model.ValidationRule {
 		Identifier:     dto.Identifier,
 		MinLength:      int(dto.MinLength),
 		MaxLength:      int(dto.MaxLength),
-		Enabled:        dto.Enabled,
-		IsDeleted:      dto.IsDeleted,
+		Enabled:        *dto.Enabled,
+		IsDeleted:      *dto.IsDeleted,
 		ServiceID:      dto.ServiceID,
 		LastModifiedAt: time.Now(),
 	}
@@ -107,10 +107,10 @@ func UpdateToModel(dto UpdateAccountValidationRequest) *model.ValidationRule {
 		LastModifiedAt: time.Now(),
 	}
 	if dto.Enabled != nil {
-		rule.Enabled = dto.Enabled
+		rule.Enabled = *dto.Enabled
 	}
 	if dto.IsDeleted != nil {
-		rule.IsDeleted = dto.IsDeleted
+		rule.IsDeleted = *dto.IsDeleted
 	}
 	return rule
 }

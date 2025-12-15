@@ -217,12 +217,8 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		ActionCode:  actionCode,
 		ActionName:  local_util.NonEmptyString(req.ActionName, old.ActionName),
 		Enabled:     old.Enabled,
-		ActionCode:  actionCode,
-		ActionName:  local_util.NonEmptyString(req.ActionName, old.ActionName),
-		Enabled:     old.Enabled,
 		IsMakerOnly: req.IsMakerOnly,
 	}
-	if req.AssignedMakersRoles != nil {
 	if req.AssignedMakersRoles != nil {
 		makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
 		for _, id := range req.AssignedMakersRoles {
@@ -243,7 +239,6 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		payload.AssignedMakersRoles = makers
 	}
 
-	if req.IsMakerOnly {
 	if req.IsMakerOnly {
 		payload.AssignedCheckerRoles = [][]bson.ObjectID{}
 	} else {
@@ -275,7 +270,6 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 			payload.AssignedCheckerRoles = checkers
 		}
 	}
-	if req.AssignedAuditorRoles != nil {
 	if req.AssignedAuditorRoles != nil {
 		auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
 		for _, id := range req.AssignedAuditorRoles {
@@ -318,11 +312,11 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Enable", "CPSActionRole", "Enable")
 	defer span.End()
+
 	if actionCode == "" {
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	// Ensure exists
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -332,8 +326,10 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("action role already enabled", trace.WithAttributes(attribute.String("error", "action role already enabled")))
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
+
 	maker := local_util.ExtractUserFromContext(ctx)
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: true}
+
 	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableActionRole), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cps)
 	if err != nil {
@@ -519,10 +515,6 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	}
 	return err
 }
-		return s.indexRepo.SaveIndices(ctx, indices)
-	}
-	return s.indexRepo.SyncIndices(ctx, oldActionName, indices)
-}
 
 func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []model.CPSActionApproveIndex {
 	_, span := local_util.TraceLogger(context.Background(), "service", "generateIndices", "CPSActionRole", "generateIndices")
@@ -609,4 +601,3 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 
 	return indices
 }
-

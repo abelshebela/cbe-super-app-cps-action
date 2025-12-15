@@ -13,7 +13,6 @@ import (
 	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -415,7 +414,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 func (s *accountBlockService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("[Authorize] authorizing account block action: %s", action.RequestAction)
 
-	actions, err := local_util.JsonUnmarshal[[]shared_type.EnableDisableAction](action.CurrentAction)
+	actions, err := local_util.JsonUnmarshal[[]types.EnableDisableAction](action.CurrentAction)
 	if err != nil {
 		s.logger.Errorf("[Authorize] failed to unmarshal enable branches action: %v", err)
 		return nil, err

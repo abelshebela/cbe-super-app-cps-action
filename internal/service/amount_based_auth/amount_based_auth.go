@@ -19,7 +19,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// added for cascading logic
 	core "cbe-super-app-cps-action/internal/service/amount_based_auth/core"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
@@ -237,7 +236,7 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 }
 
 // UpdateAmountBasedAuth updates any tier type and applies appropriate cascading logic
-func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
+func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateAmountBasedAuth", "Amount Based Auth", "UpdateAmountBasedAuth")
 	defer span.End()
 

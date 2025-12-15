@@ -24,7 +24,7 @@ require (
 	github.com/shopspring/decimal v1.4.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
-	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.5
+	gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.18
 	go.mongodb.org/mongo-driver v1.17.6
 	go.mongodb.org/mongo-driver/v2 v2.4.1
 	go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/v2/mongo/otelmongo v0.0.0-20251212233814-2da61975ff42
@@ -36,7 +36,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.39.0
 	go.opentelemetry.io/otel/trace v1.39.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/crypto v0.46.0
 	google.golang.org/grpc v1.77.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -148,6 +147,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	golang.org/x/crypto v0.46.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
