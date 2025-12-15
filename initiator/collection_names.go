@@ -14,6 +14,7 @@ var (
 	CardsCollection                  = "portal_cards"
 	MiniAppsCollection               = "mini_app"
 	MiniAppMerchantCollection        = "mini_app_merchant"
+	EcommerceMerchantCollection      = "ecommerce_merchants"
 	AccessListCollection             = "access_list"
 	AvatarsCollection                = "avatars"
 	BranchUserCollection             = "branch_user"

@@ -34,7 +34,7 @@ type miniAppMerchantService struct {
 	merchantLookup       merchant_lookup.MerchantLookupAdapter
 }
 
-func NewMiniAppMerchantService(
+func NewEcommerceMerchantService(
 	repo storage.MiniAppMerchantRepository,
 	cpsService service.CPSActionService,
 	miniRepo storage.MiniAppRepository,

@@ -41,7 +41,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
-	mini_app_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
@@ -114,7 +114,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		FeedbackPersistence:              feedback.NewFeedbackRepository(client, dbName, FeedbackCollection, logger),
 		IconPersistence:                  icon.NewIconRepository(client, dbName, IconsCollection, logger),
 		LinkedAccountPersistence:         linked_account.NewLinkedAccountRepository(client, dbName, LinkedAccountsCollection, logger),
-		MiniAppMerchantPersistence:       mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
+		EcommerceMerchantPersistence:     ecommerce_merchant.NewEcommerceMerchantRepository(client, dbName, EcommerceMerchantCollection, logger),
 		NotificationPersistence:          notification.NewNotificationRepository(client, dbName, NotificationsCollection, logger),
 		PasswordRulePersistence:          password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
 		ServiceDetailsPersistence:        service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),

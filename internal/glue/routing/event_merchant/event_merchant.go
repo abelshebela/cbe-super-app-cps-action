@@ -80,4 +80,3 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 
 	glue.RegisterRoutes(router, routes)
 }
->>>>>>>> 97d09d6944f92972be5047e3259c96888d8d2fce:internal/glue/routing/event_merchant/event_merchant.go
