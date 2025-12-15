@@ -52,6 +52,7 @@ func NewUnlinkService(client *mongo.Client,
 		logger:                    logger,
 	}
 }
+
 func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserByAccount", "unlinkService", "unlinkService")
 	defer span.End()
@@ -73,6 +74,7 @@ func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) 
 	u.logger.Infof("[GetUserByAccount] user retrieved successfully for account number %s", accNumber)
 	return user, nil
 }
+
 func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllArchivedUser", "unlinkService", "unlinkService")
 	defer span.End()
@@ -114,6 +116,7 @@ func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) erro
 	u.logger.Infof("[UnlinkUserCif] unlink user request created successfully for user_code: %s", userCode)
 	return nil
 }
+
 func (u *unlinkService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuthorizeUnlink", "unlinkService", "unlinkService")
 	defer span.End()
