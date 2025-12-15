@@ -3,7 +3,7 @@ package event_merchant_repository
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/event_merchant/core"
@@ -11,6 +11,7 @@ import (
 	"context"
 
 	"errors"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
