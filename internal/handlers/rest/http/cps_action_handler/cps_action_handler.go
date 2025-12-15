@@ -7,7 +7,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/service"
+	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
@@ -83,6 +85,40 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		span.RecordError(fmt.Errorf("out of order checker approval"))
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 		return
+	}
+
+	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
+	actionName := ""
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+		actionName = mod
+	}
+	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+		roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+		if roleID == "" {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, actionName)
+		if err != nil {
+			span.RecordError(err)
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+		if idxDoc == nil || idxDoc.CheckerIndex == nil {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+		expected := int32(*idxDoc.CheckerIndex)
+		if expected != idx32 || expected != currentIndex+1 || expected > checkerCount {
+			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+			return
+		}
+		for _, cu := range action.CheckerUsers {
+			if cu.RoleID == roleID || cu.CheckerID == userData.UserID || cu.CheckerIndex == expected {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
+		}
 	}
 
 	// Build approval update inline (only mark Approved on final checker)
@@ -170,6 +206,49 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		attribute.String("cps_action.code", actionCode),
 		attribute.String("cps_action.rejection_reason", req.RejectionReason),
 	)
+
+	// Enforce ordering and role-based approver index on rejection as well
+	checkerCount := action.CheckerCount
+	currentIndex := int32(action.CurrentCheckerIndex)
+	if idx32 != currentIndex+1 || idx32 > checkerCount {
+		span.RecordError(fmt.Errorf("out of order checker rejection"))
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+		return
+	}
+	{
+		actionName := ""
+		if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+			actionName = mod
+		}
+		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			if roleID == "" {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
+			idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, actionName)
+			if err != nil {
+				span.RecordError(err)
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
+			if idxDoc == nil || idxDoc.CheckerIndex == nil {
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+				return
+			}
+			expected := int32(*idxDoc.CheckerIndex)
+			if expected != idx32 || expected != currentIndex+1 || expected > checkerCount {
+				localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+				return
+			}
+			for _, cu := range action.CheckerUsers {
+				if cu.RoleID == roleID || cu.CheckerID == userData.UserID || cu.CheckerIndex == expected {
+					localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+					return
+				}
+			}
+		}
+	}
 
 	CheckerUser := types.Checker{
 		CheckerID:          userData.UserID,
