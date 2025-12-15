@@ -130,7 +130,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	result, err := m.dal.FindOne(context.Background(), filter, nil)
+	result, err := m.dal.FindOne(context.Background(), filter, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			m.logger.Warnf("Mini app merchant not found, id: %s", id)

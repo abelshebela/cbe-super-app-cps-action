@@ -24,6 +24,7 @@ import (
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
+	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
@@ -56,6 +57,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	role_repo "cbe-super-app-cps-action/internal/storage/persistance/role"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
+	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
@@ -116,6 +118,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NotificationPersistence:          notification.NewNotificationRepository(client, dbName, NotificationsCollection, logger),
 		PasswordRulePersistence:          password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
 		ServiceDetailsPersistence:        service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),
+		ServicesPersistence:              services_repo.NewServicesRepository(client, dbName, ServicesCollection, logger),
 		ValidationRulePersistence:        accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, logger),
 		WalletPersistence:                wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),
 		TopupPersistence:                 Topup.NewTopupRepository(client, dbName, TopUpsCollection, logger),
@@ -137,6 +140,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
 		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
+		EventMerchantPersistence:         event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
 	}
 
 	return data

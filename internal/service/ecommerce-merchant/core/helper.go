@@ -130,53 +130,53 @@ func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.C
 	return nil
 }
 
-func CascadeEnableDisableMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string, enabled bool) error {
-	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
-	for {
-		res, err := miniRepo.FindAllWithPagination(ctx, filter)
-		if err != nil {
-			return err
-		}
-		if res == nil || len(res.Data) == 0 {
-			return nil
-		}
-		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
-			func() {
-				for _, m := range res.Data {
-					_ = miniRepo.EnableOrDisable(ctx, m.ID.Hex(), enabled)
-				}
-			},
-		)
-		if len(res.Data) < filter.PerPage {
-			return nil
-		}
-		filter.Page++
-	}
-}
+// func CascadeEnableDisableMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string, enabled bool) error {
+// 	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
+// 	for {
+// 		res, err := miniRepo.FindAllWithPagination(ctx, filter)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if res == nil || len(res.Data) == 0 {
+// 			return nil
+// 		}
+// 		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
+// 			func() {
+// 				for _, m := range res.Data {
+// 					_ = miniRepo.EnableOrDisable(ctx, m.ID.Hex(), enabled)
+// 				}
+// 			},
+// 		)
+// 		if len(res.Data) < filter.PerPage {
+// 			return nil
+// 		}
+// 		filter.Page++
+// 	}
+// }
 
-func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string) error {
-	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
-	for {
-		res, err := miniRepo.FindAllWithPagination(ctx, filter)
-		if err != nil {
-			return err
-		}
-		if res == nil || len(res.Data) == 0 {
-			return nil
-		}
-		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
-			func() {
-				for _, m := range res.Data {
-					_ = miniRepo.Delete(ctx, m.ID.Hex())
-				}
-			},
-		)
-		if len(res.Data) < filter.PerPage {
-			return nil
-		}
-		filter.Page++
-	}
-}
+// func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string) error {
+// 	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
+// 	for {
+// 		res, err := miniRepo.FindAllWithPagination(ctx, filter)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if res == nil || len(res.Data) == 0 {
+// 			return nil
+// 		}
+// 		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
+// 			func() {
+// 				for _, m := range res.Data {
+// 					_ = miniRepo.Delete(ctx, m.ID.Hex())
+// 				}
+// 			},
+// 		)
+// 		if len(res.Data) < filter.PerPage {
+// 			return nil
+// 		}
+// 		filter.Page++
+// 	}
+// }
 
 func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{

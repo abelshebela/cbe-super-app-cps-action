@@ -1,4 +1,4 @@
-package miniappmerchant
+package ecommercemerchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants"

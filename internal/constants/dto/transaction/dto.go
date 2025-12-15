@@ -34,7 +34,7 @@ type FullTransaction struct {
 	IsReversed              bool            `json:"is_reversed"`
 	PaidAt                  *time.Time      `json:"paid_at"`
 	ReversedAt              *time.Time      `json:"reversed_at"`
-	Metadata                json.RawMessage `json:"metadata"`
+	Metadata                json.RawMessage `json:"metadata" swaggertype:"object" format:"byte"`
 	CreatedAt               *time.Time      `json:"created_at"`
 	LastModifiedAt          *time.Time      `json:"last_modified_at"`
 }

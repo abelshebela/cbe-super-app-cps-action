@@ -367,9 +367,9 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err == nil {
-			_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
-		}
+		// if err == nil {
+		// 	_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
+		// }
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
@@ -388,9 +388,9 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err == nil {
-			_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
-		}
+		// if err == nil {
+		// 	_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
+		// }
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(

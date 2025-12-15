@@ -17,7 +17,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
@@ -31,6 +30,17 @@ type UnlinkAccount interface {
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[*model.ArchivedUser], error)
 	Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction model.CPSAction) (model.ArchivedUser, error)
+}
+
+// ServicesRepository manages CRUD for Services catalog
+type ServicesRepository interface {
+	Create(ctx context.Context, service *model.Services) error
+	Update(ctx context.Context, id string, service *model.Services) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+
+	FindByID(ctx context.Context, id string) (*model.Services, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
 }
 
 type OTPRepository interface {
@@ -322,11 +332,8 @@ type MiniAppRepository interface {
 	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
-	Find(ctx context.Context, name string) (*model.MiniApp, error)
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
-	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
-	FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
+	DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
+	DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error
 }
 
 type EventRepository interface {
@@ -597,8 +604,23 @@ type MiniAppCategoryRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
+type MiniAppProductCodeRepository interface {
+	Create(ctx context.Context, productCode *model.MiniAppProductCode) error
+	Update(ctx context.Context, productCode *model.MiniAppProductCode, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
 
 type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+}
+
+type EventMerchantRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
 }

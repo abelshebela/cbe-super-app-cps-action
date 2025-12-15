@@ -53,6 +53,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Service"):
 		return d.app.ServiceCheckContainer.Authorize(ctx, cpsAction)
 
+	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
+		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
+
 	case IsActionInGroup(RequestAction(action), "DeviceVersion"):
 		return d.app.DeviceVersionContainer.Authorize(ctx, cpsAction)
 
@@ -137,6 +140,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CpsActionRole"):
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "eventMerchant"):
+		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))

@@ -17,6 +17,7 @@ import (
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
+	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
@@ -31,9 +32,7 @@ import (
 	cpsaction "cbe-super-app-cps-action/internal/glue/routing/cps_action"
 	"cbe-super-app-cps-action/internal/glue/routing/customer"
 	"cbe-super-app-cps-action/internal/glue/routing/department"
-	miniappmerchant "cbe-super-app-cps-action/internal/glue/routing/ecommerce-merchant"
 	eventhandler "cbe-super-app-cps-action/internal/glue/routing/event"
-	miniapp "cbe-super-app-cps-action/internal/glue/routing/mini-apps"
 	"cbe-super-app-cps-action/internal/glue/routing/notification"
 	"cbe-super-app-cps-action/internal/glue/routing/topup"
 	vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
@@ -47,6 +46,7 @@ import (
 	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+	service "cbe-super-app-cps-action/internal/glue/routing/services"
 
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
@@ -117,12 +117,12 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
-	miniappmerchant.Init(r, handlerLayer.MiniAppMerchantHandler, authMiddleware)
 	accountblock.Init(r, handlerLayer.AccountBlockHandler, authMiddleware)
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
 	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
+	service.Init(r, handlerLayer.ServicesHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)
 	device_version.Init(r, handlerLayer.DeviceVersionHandler, authMiddleware)
@@ -144,28 +144,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
-
-	// Mini App Proxy Routes
-	miniAppProxyHandler := miniapp.CreateMiniAppProxyHandler(logger, cfg)
-	if miniAppProxyHandler == nil {
-		logger.Fatalf("Failed to create mini-app proxy handler")
-	}
-
-	r.Route("/mini-apps", func(r chi.Router) {
-		r.Use(authMiddleware.AuthenticateToken)
-		r.Handle("/*", miniAppProxyHandler)
-	})
-
-	// Mini App Category Proxy Routes
-	miniAppCategoryProxyHandler := miniapp.CreateMiniAppCategoryProxyHandler(logger, cfg)
-	if miniAppProxyHandler == nil {
-		logger.Fatalf("Failed to create mini-app proxy handler")
-	}
-
-	r.Route("/mini-apps/categories", func(r chi.Router) {
-		r.Use(authMiddleware.AuthenticateToken)
-		r.Handle("/*", miniAppCategoryProxyHandler)
-	})
+	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// router.Use(customeMiddleware.ChiCORS())

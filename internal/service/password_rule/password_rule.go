@@ -2,6 +2,7 @@ package passwordrule
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -49,7 +50,7 @@ func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams 
 	return result, nil
 }
 
-func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error {
+func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "RequestPasswordRuleUpdate", "PasswordRule", "RequestPasswordRuleUpdate")
 	defer span.End()
 
@@ -62,8 +63,9 @@ func (p *passwordService) RequestPasswordRuleUpdate(ctx context.Context, id stri
 		))
 		return errors.New(localization.ErrorNoPasswordRule.Code)
 	}
+	updated := core.PasswordRuleDtoToModel(*existingRule, body)
 
-	err = core.HandleCPSAction(ctx, p.cpsService, existingRule.ID.Hex(), constants.RequestUpdatePasswordRule, body, existingRule, constants.ActionUpdate)
+	err = core.HandleCPSAction(ctx, p.cpsService, existingRule.ID.Hex(), constants.RequestUpdatePasswordRule, updated, existingRule, constants.ActionUpdate)
 	if err != nil {
 		p.logger.Errorf("[RequestPasswordRuleUpdate] failed to create CPS action: %v", err)
 		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
@@ -98,7 +100,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		return false, fmt.Sprintf("password must be at most %d characters", rule.MaxLength)
 	}
 
-	if rule.Numbers {
+	if rule.Numbers != nil && *rule.Numbers {
 		hasNumber := false
 		for _, c := range password {
 			if c >= '0' && c <= '9' {
@@ -111,7 +113,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.CapitalLetters {
+	if rule.CapitalLetters != nil && *rule.CapitalLetters {
 		hasUpper := false
 		for _, c := range password {
 			if c >= 'A' && c <= 'Z' {
@@ -124,7 +126,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.SmallLetters {
+	if rule.SmallLetters != nil && *rule.SmallLetters {
 		hasLower := false
 		for _, c := range password {
 			if unicode.IsLower(c) {
@@ -137,7 +139,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.Characters {
+	if rule.Characters != nil && *rule.Characters {
 		hasSpecial := false
 		for _, c := range password {
 			if (c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126) {
