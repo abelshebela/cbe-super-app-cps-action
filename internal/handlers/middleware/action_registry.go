@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -158,7 +157,7 @@ var cpsActionRegistry = map[string]string{
 	// HQ
 	"POST /hq/block_time":      "BlockTime",
 	"POST /hq/archive_time":    "Archive",
-	"POST /hq/password_expiry": "PasswordRule",
+	"POST /hq/password_expiry": "PasswordExpiry",
 
 	// Fayda
 	"POST /fayda_account/disable/{user_code}": "Fayda",
@@ -245,36 +244,27 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+
 			pattern := routeFullPattern(rc)
 			if pattern == "" {
 				next.ServeHTTP(w, r)
 				return
 			}
-			rel := pattern
-			if strings.Contains(rel, "/*") {
-				rel = r.URL.Path
-			}
-			if strings.HasPrefix(rel, "/api/v1/cbesuperapp/cps_action") {
-				rel = strings.TrimPrefix(rel, "/api/v1/cbesuperapp/cps_action")
-				if rel == "" {
-					rel = "/"
-				}
-			}
 
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
-				if strings.HasPrefix(rel, p) {
+				if strings.HasPrefix(pattern, p) {
 					next.ServeHTTP(w, r)
 					return
 				}
 			}
 
-			key := strings.ToUpper(r.Method) + " " + rel
+			key := strings.ToUpper(r.Method) + " " + pattern
 			actionName, ok := cpsActionRegistry[key]
 			if !ok {
 				switch r.Method {
 				case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-					actionName = deriveModuleFromPattern(rel)
+					actionName = deriveModuleFromPattern(pattern)
 					if actionName == "" {
 						next.ServeHTTP(w, r)
 						return
@@ -285,8 +275,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-			roleID := firstHex24(rawRoleID)
+			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -294,8 +283,12 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
-			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
-				next.ServeHTTP(w, r)
+			if ent, ok := cpsGuardCache.get(cacheKey); ok {
+				if ent.allow {
+					next.ServeHTTP(w, r)
+					return
+				}
+				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
@@ -307,9 +300,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
-			if allowed {
-				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
-			}
+			cpsGuardCache.set(cacheKey, allowEntry{allow: allowed, exp: nowPlus(cpsGuardCache.ttl)})
 			if !allowed {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -372,31 +363,4 @@ func deriveModuleFromPattern(pattern string) string {
 	}
 	res := b.String()
 	return res
-}
-
-// firstHex24 extracts the first 24-hexadecimal substring from a string.
-// Handles formats like ObjectID("...") or {"$oid":"..."} by scanning for 24-hex.
-var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
-
-func firstHex24(s string) string {
-	if s == "" {
-		return ""
-	}
-	if len(s) == 24 && isHex(s) {
-		return strings.ToLower(s)
-	}
-	m := reHex24.FindString(s)
-	if m == "" {
-		return ""
-	}
-	return strings.ToLower(m)
-}
-
-func isHex(s string) bool {
-	for _, c := range s {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-			return false
-		}
-	}
-	return true
 }

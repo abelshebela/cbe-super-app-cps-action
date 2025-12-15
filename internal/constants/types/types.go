@@ -161,7 +161,7 @@ type UserContext struct {
 	Department   string
 	BranchCode   []string
 	UserRole     string
-	CheckerIndex int32
+	CheckerIndex float32
 }
 
 type RegistrationRecord struct {
