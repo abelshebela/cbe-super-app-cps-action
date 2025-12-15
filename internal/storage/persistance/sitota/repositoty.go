@@ -2,6 +2,7 @@ package sitota
 
 import (
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
 	"time"
@@ -18,7 +19,7 @@ type SitotaRepository struct {
 	logger shared_utils.Logger
 }
 
-func NewSitotaRepository(db *sql.DB, logger shared_utils.Logger) *SitotaRepository {
+func NewSitotaRepository(db *sql.DB, logger shared_utils.Logger) storage.SitotaRepository {
 	return &SitotaRepository{
 		db:     db,
 		logger: logger,
