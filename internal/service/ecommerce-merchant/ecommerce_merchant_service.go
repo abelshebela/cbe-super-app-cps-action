@@ -5,7 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/mini_app_merchant/core"
+	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -15,7 +15,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"time"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
@@ -61,8 +61,9 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Mi
 	m.logger.Infof("Creating mini app merchant, name: %s", data.MerchantName)
 	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMiniAppMerchant{
 		// BankAccountNumber: data.BankAccountNumber,
-		Email:       data.Email,
-		PhoneNumber: data.PhoneNumber,
+		// Email:        data.Email,
+		// PhoneNumber:  data.PhoneNumber,
+		MerchantCode: data.Code,
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)

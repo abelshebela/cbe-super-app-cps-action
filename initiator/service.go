@@ -35,10 +35,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	avatar "cbe-super-app-cps-action/internal/service/avatar"
+	mini_app_merchant "cbe-super-app-cps-action/internal/service/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/service/fayda"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	"cbe-super-app-cps-action/internal/service/hq"
-	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
@@ -48,16 +48,16 @@ import (
 	donation_company "cbe-super-app-cps-action/internal/service/donation_company"
 	service_details "cbe-super-app-cps-action/internal/service/service_details"
 
+	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
+	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
+	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	"cbe-super-app-cps-action/internal/service/notification"
 	"cbe-super-app-cps-action/internal/service/productcode"
+	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
-	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
-	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
-	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
-	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -118,8 +118,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
 	productCodeService := productcode.NewProductCodeService(persistence.ProductCodePersistence, nil, logger)
 	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
-  	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
-	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, nil, logger)
+	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
+	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -216,7 +216,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AmountBasedAuthContainer = amountBased
 	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.BPSActionRoleContainer = bpsActionRoleService
-	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence,persistence.CPSActionApproveIndexPersistence,persistence.RolePersistence, cpsActionService, logger)
+	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.CPSActionRoleContainer = cpsActionRoleService
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
 	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)

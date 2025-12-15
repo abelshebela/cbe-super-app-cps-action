@@ -36,6 +36,7 @@ type CheckMiniAppMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
 	PhoneNumber       string `json:"phone_number"`
+	MerchantCode      string `json:"merchant_code"`
 }
 type MiniAppMerchantExistOptions struct {
 	ExcludeID string

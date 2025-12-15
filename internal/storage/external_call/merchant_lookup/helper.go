@@ -1,7 +1,7 @@
 package merchant_lookup
 
 import (
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"context"
 	"encoding/json"

@@ -1,11 +1,11 @@
-package miniappmerchant
+package ecommercemerchant
 
 import (
 	"encoding/json"
 	"errors"
 	"net/http"
 
-	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
+	miniappmerchant "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	miniappmerchat "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"

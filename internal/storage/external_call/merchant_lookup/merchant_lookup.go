@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"

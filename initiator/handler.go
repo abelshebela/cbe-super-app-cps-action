@@ -41,7 +41,7 @@ import (
 	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
-	
+
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
@@ -66,13 +66,13 @@ import (
 	donationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation"
 	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
 	donationCompanyHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_company"
+	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/ecommerce-merchant"
 	encryptionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/encryption"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
 	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
-	miniAppMerchantHandler "cbe-super-app-cps-action/internal/handlers/rest/http/mini_app_merchant"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
 	notificationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/notifications"
@@ -131,7 +131,7 @@ type Handler struct {
 	EncryptionHandler         encryptionInbound.EncryptionAdapter
 	DeviceVersionHandler      dviface.DeviceVersionHandler
 	BPSActionRoleHandler      actionrole_iface.BPSActionRoleHandler
-	CPSActionRoleHandler	  cps_actionrole_iface.CPSActionRoleHandler
+	CPSActionRoleHandler      cps_actionrole_iface.CPSActionRoleHandler
 	TransactionHandler        transaction.TransactionInterface
 }
 
@@ -178,7 +178,7 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		EncryptionHandler:         encryptionHandler.InitEncryption(serviceLayer.Encryption, logger),
 		DeviceVersionHandler:      deviceversionhandler.InitDeviceVersionAdapter(serviceLayer.DeviceVersion, logger),
 		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
-		CPSActionRoleHandler:  cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
+		CPSActionRoleHandler:      cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 	}
 }

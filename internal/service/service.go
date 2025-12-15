@@ -33,8 +33,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	"context"
