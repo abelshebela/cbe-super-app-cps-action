@@ -482,6 +482,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
+	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
@@ -4492,6 +4493,12 @@ var (
 		Code:       "ERROR_PHONENUMBER_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
 		Message:    MsgPhonenumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCodeAlreadyExist = ResponseCode{
+		Code:       "ERROR_CODE_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCodeAlreadyExists,
 		Type:       "error",
 	}
 

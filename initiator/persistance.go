@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
-	// "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
 	"cbe-super-app-cps-action/internal/storage/persistance/account_block"
@@ -34,23 +33,20 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"time"
 
-	// "cbe-super-app-cps-action/internal/storage/persistance/cps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	"cbe-super-app-cps-action/internal/storage/persistance/district"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 
-	// "cbe-super-app-cps-action/internal/storage/persistance/donation_category"
-	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
-	// "cbe-super-app-cps-action/internal/storage/persistance/event"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/budget_category"
+	"cbe-super-app-cps-action/internal/storage/persistance/donation_company"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/storage/persistance/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/fayda"
 	"cbe-super-app-cps-action/internal/storage/persistance/feedback"
 	"cbe-super-app-cps-action/internal/storage/persistance/hq"
 	kyc_repo "cbe-super-app-cps-action/internal/storage/persistance/kyc_verifier"
 	"cbe-super-app-cps-action/internal/storage/persistance/mini_app"
-	"cbe-super-app-cps-action/internal/storage/persistance/mini_app_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 
@@ -118,7 +114,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		FeedbackPersistence:              feedback.NewFeedbackRepository(client, dbName, FeedbackCollection, logger),
 		IconPersistence:                  icon.NewIconRepository(client, dbName, IconsCollection, logger),
 		LinkedAccountPersistence:         linked_account.NewLinkedAccountRepository(client, dbName, LinkedAccountsCollection, logger),
-		MiniAppMerchantPersistence:       mini_app_merchant.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
+		EcommerceMerchantPersistence:     ecommerce_merchant.NewEcommerceMerchantRepository(client, dbName, EcommerceMerchantCollection, logger),
 		NotificationPersistence:          notification.NewNotificationRepository(client, dbName, NotificationsCollection, logger),
 		PasswordRulePersistence:          password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
 		ServiceDetailsPersistence:        service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),

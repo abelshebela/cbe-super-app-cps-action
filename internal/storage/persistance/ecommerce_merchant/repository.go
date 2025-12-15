@@ -28,7 +28,7 @@ type MiniAppMerchantStorage struct {
 	collection string
 }
 
-func NewMiniAppMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppMerchantRepository {
+func NewEcommerceMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppMerchantRepository {
 	return &MiniAppMerchantStorage{
 		dal:        dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, dbName, collection),
 		client:     client,
