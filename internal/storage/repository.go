@@ -21,7 +21,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -38,13 +37,13 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, service *entities.Services) error
-	Update(ctx context.Context, id string, service *entities.Services) error
+	Create(ctx context.Context, service *model.Services) error
+	Update(ctx context.Context, id string, service *model.Services) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
-	FindByID(ctx context.Context, id string) (*entities.Services, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*entities.Services], error)
+	FindByID(ctx context.Context, id string) (*model.Services, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
 }
 
 type OTPRepository interface {
@@ -496,7 +495,7 @@ type FaydaRepository interface {
 type CustomerRepository interface {
 	FindByID(ctx context.Context, id string) (*member.User, error)
 	Update(ctx context.Context, id string, data member.User) error
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*member.User], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
