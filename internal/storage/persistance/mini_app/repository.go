@@ -8,6 +8,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/persistancce/mini_app"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -118,7 +119,7 @@ func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
-func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error) {
+func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*mini_app.MiniAppResponse, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -186,61 +187,14 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	var resp miniappdto.MiniAppResponse
+	var resp mini_app.MiniAppResponse
 	if err := cursor.Decode(&resp); err != nil {
 		m.logger.Errorf("decode mini app response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	return &resp, nil
-func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantID string) error {
-	objID, err := bson.ObjectIDFromHex(merchantID)
-	if err != nil {
-		m.logger.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{
-		"merchant_id": objID,
-		"is_deleted":  false,
-	}
-	update := bson.M{
-		"enabled":          false,
-		"last_modified_at": time.Now(),
-	}
-	_, err = m.collection.UpdateMany(ctx, filter, bson.M{"$set": update})
-	if err != nil {
-		m.logger.Errorf("DisableManyByMerchantIDs failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	m.logger.Infof("Successfully disabled mini apps for merchant ID: %s", merchantID)
-	return nil
-
 }
-
-func (m *MiniAppStorage) DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error {
-	objID, err := bson.ObjectIDFromHex(merchantID)
-	if err != nil {
-		m.logger.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	filter := bson.M{
-		"merchant_id": objID,
-		"is_deleted":  false,
-	}
-	update := bson.M{
-		"is_deleted":       true,
-		"deleted_at":       time.Now(),
-		"last_modified_at": time.Now(),
-	}
-	_, err = m.collection.UpdateMany(ctx, filter, bson.M{"$set": update})
-	if err != nil {
-		m.logger.Errorf("DeleteManyByMerchantIDs failed: %v", err)
-		return errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	return nil
-}
-
 func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantID string) error {
 	objID, err := bson.ObjectIDFromHex(merchantID)
 	if err != nil {
