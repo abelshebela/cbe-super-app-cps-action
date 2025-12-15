@@ -50,7 +50,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
 		if err != nil {
 			span.AddEvent("Merchant validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -68,7 +68,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 
 	case string(constants.RequestUpdateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
 		if err != nil {
 			span.AddEvent("Merchant validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -96,7 +96,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 
 	case string(constants.RequestEnableMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
 		if err != nil {
 			span.AddEvent("Merchant validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
