@@ -70,6 +70,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// Derive next expected checker index and attach into request context
 	idx32 := int32(action.CurrentCheckerIndex) + 1
 	r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
+	ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
 
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -109,6 +110,9 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 		expected := int32(*idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+		r = r.WithContext(ctx)
 		if expected != idx32 || expected != currentIndex+1 || expected > checkerCount {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 			return
@@ -184,6 +188,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 	idx32 := int32(action.CurrentCheckerIndex) + 1
 	r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
+	ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
 
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -237,6 +242,9 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 				return
 			}
 			expected := int32(*idxDoc.CheckerIndex)
+			ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+			ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+			r = r.WithContext(ctx)
 			if expected != idx32 || expected != currentIndex+1 || expected > checkerCount {
 				localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 				return
