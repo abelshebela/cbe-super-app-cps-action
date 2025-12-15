@@ -13,6 +13,8 @@ import (
 	"errors"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"

@@ -38,7 +38,6 @@ import (
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -51,12 +50,12 @@ import (
 
 type ServicesService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req entities.Services) error
-	Update(ctx context.Context, id string, req entities.Services) error
+	Create(ctx context.Context, req model.Services) error
+	Update(ctx context.Context, id string, req model.Services) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*entities.Services], error)
-	GetByID(ctx context.Context, id string) (*entities.Services, error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
+	GetByID(ctx context.Context, id string) (*model.Services, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
