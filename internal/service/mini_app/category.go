@@ -3,13 +3,13 @@ package miniapp
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-shared_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -33,7 +33,7 @@ func (m *mediaCategoryService) Authorize(ctx context.Context, cpsAction *model.C
 
 	m.logger.Infof("Mini app category service authorizing action: %s", cpsAction.ActionCode)
 
-	category, err := local_util.JsonUnmarshal[shared_model.MiniAppCategory](cpsAction.CurrentAction)
+	category, err := local_util.JsonUnmarshal[model.MiniAppCategory](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),

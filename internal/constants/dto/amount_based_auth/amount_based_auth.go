@@ -1,8 +1,9 @@
 package amount_based_auth
 
-import( 
+import (
 	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 )
+
 // UpdateAmountBasedAuthRequest carries fields for updating any tier type
 type UpdateAmountBasedAuthRequest struct {
 	MinAmount uint64 `json:"min_amount,omitempty"`

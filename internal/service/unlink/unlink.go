@@ -13,9 +13,7 @@ import (
 	"errors"
 	"strings"
 
-	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
-
-	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -54,12 +52,10 @@ func NewUnlinkService(client *mongo.Client,
 		logger:                    logger,
 	}
 }
-
-func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserByAccount", "unlinkService", "unlinkService")
 	defer span.End()
 
-func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	account, err := u.linkedAccountRepo.FindByAccountNumber(ctx, accNumber)
 	if err != nil {
 		span.AddEvent("FindByAccountNumber error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("accountNumber", accNumber)))
@@ -88,14 +84,6 @@ func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *ty
 	}
 	u.logger.Infof("[GetAllArchivedUser] retrieved %d archived users", len(result.Data))
 	return result, nil
-}
-
-func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error) {
-	if filterParams == nil {
-		return nil, errors.New(localization.ErrorInvalidRequest.Code)
-	}
-
-	return u.archivedUserRepo.FindAllArchievedUsersWithPagination(ctx, *filterParams)
 }
 
 func (u *unlinkService) UnlinkUserCif(ctx context.Context, userCode string) error {
