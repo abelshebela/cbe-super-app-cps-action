@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
@@ -14,7 +15,7 @@ import (
 	"errors"
 	"time"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -129,53 +130,53 @@ func HandleCPSActionForMiniAppMerchant(ctx context.Context, cpsService service.C
 	return nil
 }
 
-func CascadeEnableDisableMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string, enabled bool) error {
-	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
-	for {
-		res, err := miniRepo.FindAllWithPagination(ctx, filter)
-		if err != nil {
-			return err
-		}
-		if res == nil || len(res.Data) == 0 {
-			return nil
-		}
-		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
-			func() {
-				for _, m := range res.Data {
-					_ = miniRepo.EnableOrDisable(ctx, m.ID.Hex(), enabled)
-				}
-			},
-		)
-		if len(res.Data) < filter.PerPage {
-			return nil
-		}
-		filter.Page++
-	}
-}
+// func CascadeEnableDisableMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string, enabled bool) error {
+// 	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
+// 	for {
+// 		res, err := miniRepo.FindAllWithPagination(ctx, filter)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if res == nil || len(res.Data) == 0 {
+// 			return nil
+// 		}
+// 		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
+// 			func() {
+// 				for _, m := range res.Data {
+// 					_ = miniRepo.EnableOrDisable(ctx, m.ID.Hex(), enabled)
+// 				}
+// 			},
+// 		)
+// 		if len(res.Data) < filter.PerPage {
+// 			return nil
+// 		}
+// 		filter.Page++
+// 	}
+// }
 
-func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string) error {
-	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
-	for {
-		res, err := miniRepo.FindAllWithPagination(ctx, filter)
-		if err != nil {
-			return err
-		}
-		if res == nil || len(res.Data) == 0 {
-			return nil
-		}
-		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
-			func() {
-				for _, m := range res.Data {
-					_ = miniRepo.Delete(ctx, m.ID.Hex())
-				}
-			},
-		)
-		if len(res.Data) < filter.PerPage {
-			return nil
-		}
-		filter.Page++
-	}
-}
+// func CascadeDeleteMiniApps(ctx context.Context, miniRepo storage.MiniAppRepository, merchantID string) error {
+// 	filter := types.Filter{Filters: map[string]interface{}{"merchant_id": merchantID, "is_deleted": false}, Page: 1, PerPage: 100}
+// 	for {
+// 		res, err := miniRepo.FindAllWithPagination(ctx, filter)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		if res == nil || len(res.Data) == 0 {
+// 			return nil
+// 		}
+// 		lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},
+// 			func() {
+// 				for _, m := range res.Data {
+// 					_ = miniRepo.Delete(ctx, m.ID.Hex())
+// 				}
+// 			},
+// 		)
+// 		if len(res.Data) < filter.PerPage {
+// 			return nil
+// 		}
+// 		filter.Page++
+// 	}
+// }
 
 func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber string, accountLookupService account_lookup.Account) (*model.AccountDetail, error) {
 	accountRequest := model.AccountLookUpRequest{
@@ -205,14 +206,17 @@ func CheckMerchantExists(
 
 	var conditions []bson.M
 
-	if data.BankAccountNumber != "" {
-		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
-	}
-	if data.Email != "" {
-		conditions = append(conditions, bson.M{"kyc.representative.email": data.Email})
-	}
-	if data.PhoneNumber != "" {
-		conditions = append(conditions, bson.M{"kyc.representative.phone": data.PhoneNumber})
+	// if data.BankAccountNumber != "" {
+	// 	conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
+	// }
+	// if data.Email != "" {
+	// 	conditions = append(conditions, bson.M{"kyc.representative.email": data.Email})
+	// }
+	// if data.PhoneNumber != "" {
+	// 	conditions = append(conditions, bson.M{"kyc.representative.phone": data.PhoneNumber})
+	// }
+	if data.MerchantCode != "" {
+		conditions = append(conditions, bson.M{"merchant_code": data.MerchantCode})
 	}
 
 	if len(conditions) == 0 {
@@ -244,14 +248,18 @@ func CheckMerchantExists(
 		return false, nil
 	}
 
-	if res.BankAccountNumber == data.BankAccountNumber {
-		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
-	}
-	if res.Email == data.Email {
-		return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
-	}
-	if res.PhoneNumber == data.PhoneNumber {
-		return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+	// if res.BankAccountNumber == data.BankAccountNumber {
+	// 	return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
+	// }
+	// if res.Email == data.Email {
+	// 	return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
+	// }
+	// if res.PhoneNumber == data.PhoneNumber {
+	// 	return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+	// }
+	if res.Code == data.MerchantCode {
+		fmt.Println("+============", res.Code)
+		return false, errors.New(localization.ErrorCodeAlreadyExist.Code)
 	}
 
 	return true, nil

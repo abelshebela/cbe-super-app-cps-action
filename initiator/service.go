@@ -36,10 +36,10 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	avatar "cbe-super-app-cps-action/internal/service/avatar"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/service/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/service/fayda"
 	feedback "cbe-super-app-cps-action/internal/service/feedback"
 	"cbe-super-app-cps-action/internal/service/hq"
-	mini_app_merchant "cbe-super-app-cps-action/internal/service/mini_app_merchant"
 	password "cbe-super-app-cps-action/internal/service/password_rule"
 	permission "cbe-super-app-cps-action/internal/service/permission"
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
@@ -89,7 +89,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)
-	miniAppMerchantService := mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, nil, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
+	miniAppMerchantService := ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, nil, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, logger)
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)
 
@@ -192,7 +192,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	passwordRule = password.NewPasswordRuleService(persistence.PasswordRulePersistent, cpsActionService, logger)
 	hqService = hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, cpsActionService, miniAppMerchantService, logger)
-	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
+	miniAppMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	faydaService = fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
 	adService = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, cfg.S3BucketName, cfg, logger)
 	serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
@@ -231,7 +231,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Services catalog service (uses CPSAction for maker-checker)
 	servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
 	// serviceContainer.ServicesContainer = servicesService
-	miniAppMerchantService = mini_app_merchant.NewMiniAppMerchantService(persistence.MiniAppMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
+	miniAppMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MiniAppPersistence, persistence.MerchantLookup, logger, accountLookupAdapter)
 	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, cpsActionService, logger)
