@@ -2,7 +2,7 @@ package mini_app
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -10,24 +10,24 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-
-
 type miniAppProductCode struct {
-	logger             shared_utils.Logger
+	logger                shared_utils.Logger
 	miniAppProductCodeDal dal.MongoDal[model.MiniAppProductCode, model.MiniAppProductCode]
-	client             *mongo.Client
+	client                *mongo.Client
 }
 
 func NewMiniAppProdutCodeRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.MiniAppProductCodeRepository {
 	return &miniAppProductCode{
-		logger:             logger,
+		logger:                logger,
 		miniAppProductCodeDal: dal.NewMongoDal[model.MiniAppProductCode, model.MiniAppProductCode](client, dbName, collectionName),
-		client:             client,
+		client:                client,
 	}
 }
 
@@ -58,7 +58,6 @@ func (a *miniAppProductCode) Update(ctx context.Context, productCode *model.Mini
 	}
 	return nil
 }
-
 
 func (a *miniAppProductCode) EnableOrDisable(ctx context.Context, id string, enable bool) error {
 	objId, err := bson.ObjectIDFromHex(id)
@@ -103,4 +102,3 @@ func buildProductCodeUpdate(updateFields model.MiniAppProductCode) bson.M {
 
 	return update
 }
-

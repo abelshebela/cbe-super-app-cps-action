@@ -1,18 +1,18 @@
 package mini_app_merchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // MiniAppMerchantMapper maps MiniAppMerchant model to BSON for database operations
-func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
+func MiniAppMerchantMapper(data model.EcommerceMerchant) bson.M {
 	result := bson.M{}
 
-	if data.MerchantCode != "" {
-		result["merchant_code"] = data.MerchantCode
+	if data.Code != "" {
+		result["merchant_code"] = data.Code
 	}
 	if data.MerchantName != "" {
 		result["merchant_name"] = data.MerchantName

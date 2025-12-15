@@ -1,7 +1,9 @@
 package mini_app
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
