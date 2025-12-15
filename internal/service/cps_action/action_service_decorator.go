@@ -33,7 +33,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 		if cpsAction.CheckerUsers == nil {
 			cpsAction.CheckerUsers = []types.Checker{}
 		}
-		cpsAction.CurrentCheckerIndex = 0
+		cpsAction.CurrentCheckerIndex = 0.0
 
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 			// Attempt case-insensitive role lookup to avoid ActionName casing mismatches
