@@ -14,6 +14,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -43,7 +44,7 @@ func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSA
 	}
 }
 
-func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error) {
+func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomersDetail", "Customer", "GetCustomersDetail")
 	defer span.End()
 
@@ -89,7 +90,7 @@ func (s *customerService) GetLinkedAccount(ctx context.Context, customerNumber s
 	return accounts, nil
 }
 
-func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*member.User], error) {
+func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetBlockedCustomer", "Customer", "GetBlockedCustomer")
 	defer span.End()
 

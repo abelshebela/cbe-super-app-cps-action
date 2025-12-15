@@ -11,7 +11,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	entities "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -99,17 +98,17 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 }
 
 // Reads (direct)
-func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*entities.Services], error) {
+func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
 
-func (s *servicesService) GetByID(ctx context.Context, id string) (*entities.Services, error) {
+func (s *servicesService) GetByID(ctx context.Context, id string) (*model.Services, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
 // Authorize applies changes on approval
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	serviceDoc, err := local_util.JsonUnmarshal[entities.Services](action.CurrentAction)
+	serviceDoc, err := local_util.JsonUnmarshal[model.Services](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
 	}
