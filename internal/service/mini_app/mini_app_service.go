@@ -6,10 +6,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -49,7 +50,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			span.AddEvent("Merchant validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -67,7 +68,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 
 	case string(constants.RequestUpdateMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			span.AddEvent("Merchant validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -95,7 +96,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 		}
 
 	case string(constants.RequestEnableMiniApp):
-		err = s.ValidMerchant(miniApp.MerchantID.Hex(), ctx, s.merchantService)
+		err = s.ValidMerchant(miniApp.MerchantID, ctx, s.merchantService)
 		if err != nil {
 			span.AddEvent("Merchant validation failed", trace.WithAttributes(
 				attribute.String("error", err.Error()),

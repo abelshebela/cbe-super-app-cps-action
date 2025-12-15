@@ -18,12 +18,12 @@ import (
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -406,13 +406,13 @@ type BranchRepository interface {
 }
 
 type MiniAppMerchantRepository interface {
-	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
+	Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error)
 }
 
 type NotificationRepository interface {
@@ -611,6 +611,7 @@ type MiniAppCategoryRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
+
 type MiniAppProductCodeRepository interface {
 	Create(ctx context.Context, productCode *model.MiniAppProductCode) error
 	Update(ctx context.Context, productCode *model.MiniAppProductCode, id string) error

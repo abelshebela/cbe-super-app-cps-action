@@ -94,35 +94,6 @@ func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, field
 	}
 
 	return &wallet, changeCount
-	wallet := existing
-	changeCount := 0
-
-	if fieldsProvided["self"] && req.Self != existing.Services.Self {
-		changeCount++
-		wallet.Services.Self = req.Self
-	}
-
-	if fieldsProvided["other"] && req.Other != existing.Services.Other {
-		changeCount++
-		wallet.Services.Other = req.Other
-	}
-
-	if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
-		changeCount++
-		wallet.Services.Agent = req.Agent
-	}
-
-	if req.Name != "" && req.Name != existing.Name {
-		changeCount++
-		wallet.Name = req.Name
-	}
-
-	if req.Code != "" && req.Code != existing.Code {
-		changeCount++
-		wallet.Code = req.Code
-	}
-
-	return &wallet, changeCount
 }
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)

@@ -12,9 +12,9 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo storage.ArchivedUserRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, userOldData *model.User, linkedAccountOldData *model.LinkedAccount, haveAccount bool) (error, error) {
-	ctx, span := local_util.TraceLogger(ctx, "core", "CreatArchiveUserDataWithLinkedAccount", "core", "core")
-	defer span.End()
+//	func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo storage.ArchivedUserRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, userOldData *model.User, linkedAccountOldData *model.LinkedAccount, haveAccount bool) (error, error) {
+//		ctx, span := local_util.TraceLogger(ctx, "core", "CreatArchiveUserDataWithLinkedAccount", "core", "core")
+//		defer span.End()
 func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo storage.ArchivedUserRepository, archivedLinkedAccountRepo storage.ArchivedLinkedAccountRepository, userOldData *member.User, linkedAccountOldData *model.LinkedAccount, haveAccount bool) (error, error) {
 	var archUserErr, archLinkedAccErr error
 
@@ -36,9 +36,9 @@ func CreatArchiveUserDataWithLinkedAccount(ctx context.Context, archivedUserRepo
 	return archUserErr, archLinkedAccErr
 }
 
-func DeleteUserDataWithLinkedAccount(ctx context.Context, userRepo storage.UserRepository, LinkedAccountRepo storage.LinkedAccountRepository, user model.User, likedAccount model.LinkedAccount, haveAccount bool) (error, error) {
-	ctx, span := local_util.TraceLogger(ctx, "core", "DeleteUserDataWithLinkedAccount", "core", "core")
-	defer span.End()
+//	func DeleteUserDataWithLinkedAccount(ctx context.Context, userRepo storage.UserRepository, LinkedAccountRepo storage.LinkedAccountRepository, user model.User, likedAccount model.LinkedAccount, haveAccount bool) (error, error) {
+//		ctx, span := local_util.TraceLogger(ctx, "core", "DeleteUserDataWithLinkedAccount", "core", "core")
+//		defer span.End()
 func DeleteUserDataWithLinkedAccount(ctx context.Context, userRepo storage.UserRepository, LinkedAccountRepo storage.LinkedAccountRepository, user member.User, likedAccount model.LinkedAccount, haveAccount bool) (error, error) {
 	var userErr, linkedAccErr error
 	lib.GoRoutinBaker(types.BakerOptions{Sequential: false, UseMutex: false},

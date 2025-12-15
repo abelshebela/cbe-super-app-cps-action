@@ -4,8 +4,10 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
+	"time"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -22,8 +24,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type miniAppMerchantService struct {
@@ -35,14 +35,6 @@ type miniAppMerchantService struct {
 	merchantLookup       merchant_lookup.MerchantLookupAdapter
 }
 
-func NewEcommerceMerchantService(
-	repo storage.MiniAppMerchantRepository,
-	cpsService service.CPSActionService,
-	miniRepo storage.MiniAppRepository,
-	merchantLookup merchant_lookup.MerchantLookupAdapter,
-	logger utils.Logger,
-	accountLookupService account_lookup.Account,
-) service.MiniAppMerchantService {
 func NewMiniAppMerchantService(
 	repo storage.MiniAppMerchantRepository,
 	cpsService service.CPSActionService,
@@ -225,9 +217,6 @@ func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mode
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
 	defer span.End()
 
-	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
-	defer span.End()
-
 	m.logger.Infof("Finding mini app merchant by ID: %s", id)
 	result, err := m.repo.FindByID(ctx, id)
 	if err != nil {
@@ -333,20 +322,9 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 	m.logger.Infof("Mini app merchant enable/disable completed successfully, id: %s, enabled: %v", id, enable)
 	return nil
-		span.AddEvent("Failed to find mini app merchant", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		return nil, err
-	}
-	// response := core.ToMiniAppMerchantResponseDTO(result)
-	return result, nil
 }
 
 func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
-	defer span.End()
-
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
 	defer span.End()
 

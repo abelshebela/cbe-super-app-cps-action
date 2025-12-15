@@ -49,15 +49,6 @@ func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code strin
 		return err
 	}
 
-	if existingUser.KYCLevel != 1 {
-		f.logger.Errorf("[EnableOrDisableFayda] user is not a fayda account user")
-		span.AddEvent("User is not a fayda account user", trace.WithAttributes(
-			attribute.String("error", localization.ErrorNotFaydaUser.Code),
-			attribute.String("user_code", user_code),
-		))
-		return errors.New(localization.ErrorNotFaydaUser.Code)
-	}
-
 	if isEnabled && existingUser.Enabled {
 		f.logger.Errorf("[EnableOrDisableFayda] fayda user account already enabled")
 		span.AddEvent("Fayda user account already enabled", trace.WithAttributes(
