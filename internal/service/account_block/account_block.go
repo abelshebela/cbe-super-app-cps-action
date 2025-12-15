@@ -17,6 +17,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type accountBlockService struct {
@@ -34,11 +36,16 @@ func (s *accountBlockService) GetBranchById(ctx context.Context, id string) (*mo
 }
 
 func (s *accountBlockService) GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetRegionById", "BlockAccount", "GetRegionById")
+	defer span.End()
+
 	region, err := s.repo.GetRegionById(ctx, id)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			span.AddEvent("Region not found", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorRegionNotFound.Code)
 		}
+		span.AddEvent("Failed to fetch region", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
 		return nil, err
 	}
 	return region, nil
@@ -57,11 +64,16 @@ func (s *accountBlockService) GetAllBranches(ctx context.Context, filterParams *
 }
 
 func (s *accountBlockService) GetAllRegions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllRegions", "BlockAccount", "GetAllRegions")
+	defer span.End()
+
 	regions, err := s.repo.FindAllRegionsWithPagination(ctx, *filterParams)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			span.AddEvent("Region not found", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage), attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorRegionNotFound.Code)
 		}
+		span.AddEvent("Failed to fetch regions", trace.WithAttributes(attribute.Int("page", filterParams.Page), attribute.Int("per_page", filterParams.PerPage), attribute.String("error", err.Error())))
 		return nil, err
 	}
 	return regions, nil
@@ -76,6 +88,9 @@ func (s *accountBlockService) GetAllCities(ctx context.Context, filterParams *ty
 }
 
 func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableBranches", "BlockAccount", "EnableOrDisableBranches")
+	defer span.End()
+
 	s.logger.Infof("[EnableOrDisableBranches] processing %d branches, enabled: %v", len(branchIds), enabled)
 	var alreadyEnabled []string
 	var alreadyDisabled []string
@@ -83,12 +98,14 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	var currentAction []model.EnableDisableAction
 
 	for _, id := range branchIds {
-		branch, err := s.repo.GetBranchByIds(ctx, id)
+		branch, err := s.repo.GetBranchById(ctx, id)
 		if err != nil {
 			if err.Error() == localization.ErrorBranchNotFound.Code {
+				span.AddEvent("Branch not found", trace.WithAttributes(attribute.String("branch_id", id), attribute.String("error", err.Error())))
 				s.logger.Errorf("[EnableOrDisableBranches] branch not found: %s", id)
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 			}
+			span.AddEvent("Failed to get branch", trace.WithAttributes(attribute.String("branch_id", id), attribute.String("error", err.Error())))
 			s.logger.Errorf("[EnableOrDisableBranches] failed to get branch %s: %v", id, err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
@@ -104,8 +121,9 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 		}
 
 		if enabled {
-			city, err := s.repo.GetBranchById(ctx, branch.CityID.Hex())
+			city, err := s.repo.GetCityById(ctx, branch.CityID.Hex())
 			if err != nil {
+				span.AddEvent("Failed to fetch city for branch", trace.WithAttributes(attribute.String("branch_id", id), attribute.String("city_id", branch.CityID.Hex()), attribute.String("error", err.Error())))
 				return err
 			}
 			if !city.IsEnabled {
@@ -144,6 +162,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 	cpsAction := core.GenerateCPSAction(ctx, "BRANCH", enabled, previousAction, currentAction, reason, actionType, requestActionType)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
 		s.logger.Errorf("[EnableOrDisableBranches] failed to create CPS action: %v", err)
 		return err
 	}
@@ -152,6 +171,9 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 }
 
 func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableRegions", "BlockAccount", "EnableOrDisableRegions")
+	defer span.End()
+
 	s.logger.Infof("[EnableOrDisableRegions] processing %d regions, enabled: %v", len(regionIds), enabled)
 
 	var alreadyEnabled []string
@@ -162,9 +184,11 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 		region, err := s.repo.GetRegionById(ctx, id)
 		if err != nil {
 			if err.Error() == localization.ErrorRegionNotFound.Code {
+				span.AddEvent("Region not found", trace.WithAttributes(attribute.String("region_id", id), attribute.String("error", err.Error())))
 				s.logger.Errorf("[EnableOrDisableRegions] region not found: %s", id)
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 			}
+			span.AddEvent("Failed to get region", trace.WithAttributes(attribute.String("region_id", id), attribute.String("error", err.Error())))
 			s.logger.Errorf("[EnableOrDisableRegions] failed to get region %s: %v", id, err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
@@ -210,6 +234,7 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 	cpsAction := core.GenerateCPSAction(ctx, "REGION", enabled, previousAction, currentAction, reason, actionType, requestActionType)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
 		s.logger.Errorf("[EnableOrDisableRegions] failed to create CPS action: %v", err)
 		return err
 	}
@@ -218,6 +243,9 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 }
 
 func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, districtIds []string, reason string, enabled bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableDistricts", "BlockAccount", "EnableOrDisableDistricts")
+	defer span.End()
+
 	s.logger.Infof("[EnableOrDisableDistricts] processing %d districts, enabled: %v", len(districtIds), enabled)
 
 	var alreadyEnabled []string
@@ -229,9 +257,11 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		district, err := s.repo.GetDistrictById(ctx, id)
 		if err != nil {
 			if err.Error() == localization.ErrorDistrictNotFound.Code {
+				span.AddEvent("District not found", trace.WithAttributes(attribute.String("district_id", id), attribute.String("error", err.Error())))
 				s.logger.Errorf("[EnableOrDisableDistricts] district not found: %s", id)
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 			}
+			span.AddEvent("Failed to get district", trace.WithAttributes(attribute.String("district_id", id), attribute.String("error", err.Error())))
 			s.logger.Errorf("[EnableOrDisableDistricts] failed to get district %s: %v", id, err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
@@ -249,6 +279,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 		if enabled {
 			region, err := s.repo.GetRegionById(ctx, district.RegionID.Hex())
 			if err != nil {
+				span.AddEvent("Failed to fetch region for district", trace.WithAttributes(attribute.String("district_id", id), attribute.String("region_id", district.RegionID.Hex()), attribute.String("error", err.Error())))
 				return err
 			}
 			if !region.IsEnabled {
@@ -287,6 +318,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 	cpsAction := core.GenerateCPSAction(ctx, "DISTRICT", enabled, previousAction, currentAction, reason, actionType, requestActionType)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
 		s.logger.Errorf("[EnableOrDisableDistricts] failed to create CPS action: %v", err)
 		return err
 	}
@@ -295,6 +327,9 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 }
 
 func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableCities", "BlockAccount", "EnableOrDisableCities")
+	defer span.End()
+
 	s.logger.Infof("[EnableOrDisableCities] processing %d cities, enabled: %v", len(ids), enabled)
 
 	var alreadyEnabled []string
@@ -305,9 +340,11 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 		city, err := s.repo.FindCityByID(ctx, id)
 		if err != nil {
 			if err.Error() == localization.ErrorCityNotFound.Code {
+				span.AddEvent("City not found", trace.WithAttributes(attribute.String("city_id", id), attribute.String("error", err.Error())))
 				s.logger.Errorf("[EnableOrDisableCities] city not found: %s", id)
 				return errors.New(localization.ErrorOneOrMoreInvalidCodes.Code)
 			}
+			span.AddEvent("Failed to get city", trace.WithAttributes(attribute.String("city_id", id), attribute.String("error", err.Error())))
 			s.logger.Errorf("[EnableOrDisableCities] failed to get city %s: %v", id, err)
 			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
@@ -323,8 +360,9 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 		}
 
 		if enabled {
-			district, err := s.repo.GetDistrictById(ctx, city.RegionID.Hex())
+			district, err := s.repo.GetDistrictById(ctx, city.DistrictID.Hex())
 			if err != nil {
+				span.AddEvent("Failed to fetch district for city", trace.WithAttributes(attribute.String("city_id", id), attribute.String("region_id", city.RegionID.Hex()), attribute.String("error", err.Error())))
 				return err
 			}
 			if !district.IsEnabled {
@@ -364,6 +402,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 	cpsAction := core.GenerateCPSAction(ctx, "CITY", enabled, previousAction, currentAction, reason, actionType, requestActionType)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
 		s.logger.Errorf("[EnableOrDisableCities] failed to create CPS action: %v", err)
 		return err
 	}

@@ -12,6 +12,8 @@ import (
 	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type shortVideoService struct {
@@ -29,6 +31,9 @@ func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.Redis
 }
 
 func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Media", "Authorize")
+	defer span.End()
+
 	m.logger.Infof("Media short video service authorizing action: %s", cpsAction.ActionCode)
 
 	const (
@@ -38,14 +43,32 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 
 	shortVideo, err := local_util.JsonUnmarshal[model.ShortVideoDetail](cpsAction.CurrentAction)
 	if err != nil {
+		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateShortVideo):
 		err = m.repo.Create(ctx, shortVideo.ToShortVideo())
+		if err != nil {
+			span.AddEvent("Failed to create short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 	case string(constants.RequestUpdateShortVideo):
 		err = m.repo.Update(ctx, shortVideo.ToShortVideo(), cpsAction.UniqueId)
+		if err != nil {
+			span.AddEvent("Failed to update short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
@@ -53,6 +76,13 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		}
 	case string(constants.RequestDeleteShortVideo):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
+		if err != nil {
+			span.AddEvent("Failed to delete short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
@@ -60,6 +90,13 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		}
 	case string(constants.RequestEnableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, true)
+		if err != nil {
+			span.AddEvent("Failed to enable short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
@@ -67,6 +104,13 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		}
 	case string(constants.RequestDisableShortVideo):
 		err = m.repo.PublishUnpublish(ctx, cpsAction.UniqueId, false)
+		if err != nil {
+			span.AddEvent("Failed to disable short video", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
 		if err := m.cache.Delete(ctx, cacheKey); err != nil {
@@ -74,12 +118,11 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 		}
 	default:
 		m.logger.Errorf("Unsupported request action: %s", cpsAction.RequestAction)
+		span.AddEvent("Unsupported request action", trace.WithAttributes(
+			attribute.String("error", localization.ErrorInvalidRequest.Code),
+			attribute.String("request_action", string(cpsAction.RequestAction)),
+		))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
-	}
-
-	if err != nil {
-		m.logger.Errorf("Failed to process action %s: %v", cpsAction.RequestAction, err)
-		return nil, err
 	}
 
 	cpsAction.CurrentAction = shortVideo

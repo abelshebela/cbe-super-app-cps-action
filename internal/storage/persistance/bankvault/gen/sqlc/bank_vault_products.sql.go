@@ -81,13 +81,16 @@ WHERE id = :1 AND deleted_at IS NULL
 `
 
 func (q *Queries) DeleteBankVault(ctx context.Context, id string) (string, error) {
+	fmt.Println("================111111", id)
 	res, err := q.db.ExecContext(ctx, deleteBankVault, id)
 	if err != nil {
+		fmt.Println("========================Err", err)
 		return "", fmt.Errorf("failed to delete bank product: %w", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
+		fmt.Println("========================Err 2", err)
 		return "", fmt.Errorf("failed to get rows affected: %w", err)
 	}
 
@@ -471,6 +474,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 
 	rows, err := q.db.QueryContext(ctx, findLocksByProductID, id)
 	if err != nil {
+		fmt.Println("failed to query locked vaults from locked_vaults table: %v", err)
 		return BankVaultProductWithLocks{}, fmt.Errorf("failed to query locks: %w", err)
 	}
 	defer rows.Close()
@@ -745,8 +749,6 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 		return nil, err
 	}
 
-	utils.PrintRecord("Items", items)
-
 	return items, nil
 }
 
@@ -877,8 +879,6 @@ func (q *Queries) GetAllTransactions(ctx context.Context, arg GetAllTransactions
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	utils.PrintRecord("Transactions", items)
 
 	return items, nil
 }

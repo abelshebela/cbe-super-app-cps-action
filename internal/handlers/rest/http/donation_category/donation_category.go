@@ -45,7 +45,7 @@ func InitDonationCategoryAdapter(donationCategoryApp service.DonationCategorySer
 //	@Security		BearerAuth
 //	@Router			/donation_category [get]
 func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationCategory", "handler", "donationCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCategory", "handler", "donationCategory")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -79,7 +79,7 @@ func (d *donationCategoryAdapter) FetchDonationCategory(w http.ResponseWriter, r
 //	@Security		BearerAuth
 //	@Router			/donation_category/{id} [get]
 func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationCategoryById", "handler", "donationCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCategoryById", "handler", "donationCategory")
 	defer span.End()
 
 	id := chi.URLParam(r, "id")
@@ -116,7 +116,7 @@ func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWrite
 //	@Security		BearerAuth
 //	@Router			/donation_category [post]
 func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createDonationCategory", "handler", "donationCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCategory", "handler", "donationCategory")
 	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -163,7 +163,7 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 //	@Security		BearerAuth
 //	@Router			/donation_category/{id} [patch]
 func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateDonationCategory", "handler", "donationCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCategory", "handler", "donationCategory")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -219,7 +219,7 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 //	@Router			/donation_category/enable/{id} [patch]
 
 func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableDonationCategory", "handler", "donationCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCategory", "handler", "donationCategory")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -254,7 +254,7 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 //	@Router			/donation_category/enable/{id} [patch]
 
 func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableDonationCategory", "handler", "donationCategory")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCategory", "handler", "donationCategory")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {

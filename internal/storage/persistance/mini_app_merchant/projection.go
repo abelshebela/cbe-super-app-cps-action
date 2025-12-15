@@ -11,29 +11,24 @@ import (
 func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	result := bson.M{}
 
-	if data.Code != "" {
-		result["merchant_code"] = data.Code
+	if data.MerchantCode != "" {
+		result["merchant_code"] = data.MerchantCode
 	}
 	if data.MerchantName != "" {
 		result["merchant_name"] = data.MerchantName
 	}
-	if data.MerchantType != "" {
-		result["merchant_type"] = data.MerchantType
-	}
-	if data.KYC != (types.KYC{}) {
-		result["kyc"] = data.KYC
-	}
+	// if data.MerchantType != "" {
+	// 	result["merchant_type"] = data.MerchantType
+	// }
+	// if data.KYC != (types.KYC{}) {
+	// 	result["kyc"] = data.KYC
+	// }
 	if data.BankAccountNumber != "" {
 		result["bank_account_number"] = data.BankAccountNumber
 	}
-	if len(data.Branches) > 0 {
-		result["branches"] = data.Branches
-	}
-	if data.Email != "" {
-		result["email"] = data.Email
-	}
-	if data.PhoneNumber != "" {
-		result["phone_number"] = data.PhoneNumber
+
+	if data.SettlementMethod != "" {
+		result["settlement_method"] = data.SettlementMethod
 	}
 	// mini apps are not embedded in merchant
 
@@ -48,9 +43,18 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 
 	return &model.MiniAppMerchant{
 		ID:           miniAppMerchant.ID,
-		Code:         miniAppMerchant.Code,
+		MerchantCode: miniAppMerchant.MerchantCode,
 		MerchantName: miniAppMerchant.MerchantName,
-		MerchantType: miniAppMerchant.MerchantType,
+<<<<<<< HEAD
+		// KYC: types.KYC{
+		// 	Status: miniAppMerchant.KYC.Status,
+		// 	Representative: types.KYCInformation{
+		// 		Name:  miniAppMerchant.KYC.Representative.Name,
+		// 		Email: miniAppMerchant.KYC.Representative.Email,
+		// 		Phone: miniAppMerchant.KYC.Representative.Phone,
+		// 	},
+		// },
+=======
 		KYC: types.KYC{
 			Status: miniAppMerchant.KYC.Status,
 			Representative: types.KYCInformation{
@@ -59,16 +63,14 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 				Phone: miniAppMerchant.KYC.Representative.Phone,
 			},
 		},
+>>>>>>> ae92994537937fdf5fedd466c7e1191fd6e23619
 		BankAccountNumber: miniAppMerchant.BankAccountNumber,
-		Branches:          convertBranchesModelToDomain(miniAppMerchant.Branches),
-		Email:             miniAppMerchant.Email,
-		PhoneNumber:       miniAppMerchant.PhoneNumber,
 
-		Enabled:        miniAppMerchant.Enabled,
-		IsDeleted:      miniAppMerchant.IsDeleted,
-		CreatedAt:      miniAppMerchant.CreatedAt,
-		LastModifiedAt: miniAppMerchant.LastModifiedAt,
-		DeletedAt:      miniAppMerchant.DeletedAt,
+		Enabled:   miniAppMerchant.Enabled,
+		IsDeleted: miniAppMerchant.IsDeleted,
+		CreatedAt: miniAppMerchant.CreatedAt,
+		UpdatedAt: miniAppMerchant.UpdatedAt,
+		DeletedAt: miniAppMerchant.DeletedAt,
 	}
 }
 func convertBranchesModelToDomain(branches []types.BranchInformation) []types.BranchInformation {

@@ -18,6 +18,8 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type bpsActionRoleService struct {
@@ -46,12 +48,19 @@ func NewBPSActionRoleService(
 
 // FindAllWithPagination implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "BPS Action Role", "FindAllWithPagination")
+	defer span.End()
+
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
 
 // GetByActionCode implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetByActionCode", "BPS Action Role", "GetByActionCode")
+	defer span.End()
+
 	if actionCode == "" {
+		span.AddEvent("[GetByActionCode] action code is empty")
 		s.logger.Errorf("[GetByActionCode] action code is empty")
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
@@ -59,9 +68,14 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code == localization.ErrorResourceNotFound.Code {
+			span.AddEvent("[GetByActionCode] action role not found", trace.WithAttributes(attribute.String("action_code", actionCode)))
 			s.logger.Errorf("[GetByActionCode] action role not found: %s", actionCode)
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
+		span.AddEvent("[GetByActionCode] failed to fetch action role", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[GetByActionCode] failed to fetch action role: %v", err)
 		return nil, err
 	}
@@ -72,7 +86,11 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 // Create implements service.bpsActionRoleService.
 
 func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "BPS Action Role", "Create")
+	defer span.End()
+
 	if req.ActionName == "" {
+		span.AddEvent("[Create] action name is required")
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
 	// Format Action Name: Uppercase and replace spaces with underscores
@@ -84,11 +102,13 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	// Check if Action Name already exists
 	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
 	if err == nil && existing != nil {
+		span.AddEvent("[Create] action name already exists", trace.WithAttributes(attribute.String("action_name", req.ActionName)))
 		return errors.New(localization.ErrorActionNameAlreadyExists.Code)
 	}
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
+		span.AddEvent("[Create] incomplete user data")
 		s.logger.Errorf("[Create] incomplete user data")
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
@@ -158,6 +178,10 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		constants.CREATE,
 	)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("[Create] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", req.ActionCode),
+		))
 		s.logger.Errorf("[Create] failed to create CPS action: %v", err)
 		return err
 	}
@@ -167,19 +191,28 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 
 // Update implements service.bpsActionRoleService.
 func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "BPS Action Role", "Update")
+	defer span.End()
+
 	s.logger.Infof("[Update] updating action role for action code: %s", actionCode)
 	if actionCode == "" {
+		span.AddEvent("[Update] action code is empty")
 		s.logger.Errorf("[Update] action code is empty")
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
+		span.AddEvent("[Update] failed to find action role", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[Update] failed to find action role: %v", err)
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
+		span.AddEvent("[Update] incomplete user data")
 		s.logger.Errorf("[Update] incomplete user data")
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
@@ -291,6 +324,10 @@ func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		constants.UPDATE,
 	)
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("[Update] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[Update] failed to create CPS action: %v", err)
 		return err
 	}
@@ -299,18 +336,27 @@ func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, re
 }
 
 func (s *bpsActionRoleService) Enable(ctx context.Context, actionCode string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Enable", "BPS Action Role", "Enable")
+	defer span.End()
+
 	s.logger.Infof("[Enable] enabling action role for action code: %s", actionCode)
 	if actionCode == "" {
+		span.AddEvent("[Enable] action code is empty")
 		s.logger.Errorf("[Enable] action code is empty")
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 	// Ensure exists
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
+		span.AddEvent("[Enable] failed to find action role", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[Enable] failed to find action role: %v", err)
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	if old.Enabled {
+		span.AddEvent("[Enable] action role already enabled", trace.WithAttributes(attribute.String("action_code", actionCode)))
 		s.logger.Errorf("[Enable] action role already enabled")
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
@@ -318,6 +364,10 @@ func (s *bpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: true}
 	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableActionRole), constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cps); err != nil {
+		span.AddEvent("[Enable] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[Enable] failed to create CPS action: %v", err)
 		return err
 	}
@@ -326,17 +376,26 @@ func (s *bpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 }
 
 func (s *bpsActionRoleService) Disable(ctx context.Context, actionCode string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Disable", "BPS Action Role", "Disable")
+	defer span.End()
+
 	s.logger.Infof("[Disable] disabling action role for action code: %s", actionCode)
 	if actionCode == "" {
+		span.AddEvent("[Disable] action code is empty")
 		s.logger.Errorf("[Disable] action code is empty")
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
+		span.AddEvent("[Disable] failed to find action role", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[Disable] failed to find action role: %v", err)
 		return errors.New(localization.ErrorResourceNotFound.Code)
 	}
 	if !old.Enabled {
+		span.AddEvent("[Disable] action role already disabled", trace.WithAttributes(attribute.String("action_code", actionCode)))
 		s.logger.Errorf("[Disable] action role already disabled")
 		return errors.New(localization.ErrorAlreadyDisabled.Code)
 	}
@@ -344,6 +403,10 @@ func (s *bpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: false}
 	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestDisableActionRole), constants.UPDATE)
 	if err := s.cpsService.CreateCPSAction(ctx, &cps); err != nil {
+		span.AddEvent("[Disable] failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("action_code", actionCode),
+		))
 		s.logger.Errorf("[Disable] failed to create CPS action: %v", err)
 		return err
 	}
@@ -353,12 +416,18 @@ func (s *bpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 
 // Authorize applies approved CPS actions
 func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "BPS Action Role", "Authorize")
+	defer span.End()
 
 	s.logger.Infof("[Authorize] authorizing action role action: %s", action.RequestAction)
 
 	cur, err := local_util.JsonUnmarshal[model.ActionRole](action.CurrentAction)
 
 	if err != nil {
+		span.AddEvent("[Authorize] failed to unmarshal action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", action.UniqueId),
+		))
 		s.logger.Errorf("[Authorize] failed to unmarshal action: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 	}
@@ -366,6 +435,10 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	case string(constants.CREATE):
 		ar, err := s.bindActionRoleModel(*cur)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to bind action role model", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to bind action role model: %v", err)
 			return nil, err
 		}
@@ -373,6 +446,10 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		ar.CreatedAt = time.Now()
 		ar.UpdatedAt = time.Now()
 		if err := s.repo.Create(ctx, &ar); err != nil {
+			span.AddEvent("[Authorize] failed to create action role", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to create action role: %v", err)
 			return nil, err
 		}
@@ -391,11 +468,19 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	case string(constants.UPDATE):
 		existing, err := s.repo.FindByActionCode(ctx, action.UniqueId)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to find existing action role", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to find existing action role: %v", err)
 			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		upd, err := s.bindActionRoleModel(*cur)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to bind action role model", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to bind action role model: %v", err)
 			return nil, err
 		}
@@ -404,6 +489,10 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		if cur.AssignedMakersRoles == nil && cur.AssignedCheckerRoles == nil && cur.ActionName == "" {
 			// enable/disable path
 			if err := s.repo.EnableOrDisableByActionCode(ctx, existing.ActionCode, cur.Enabled); err != nil {
+				span.AddEvent("[Authorize] failed to enable/disable action role", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", action.UniqueId),
+				))
 				s.logger.Errorf("[Authorize] failed to enable/disable action role: %v", err)
 				return nil, err
 			}
@@ -411,6 +500,10 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return action, nil
 		}
 		if err := s.repo.UpdateByActionCode(ctx, existing.ActionCode, &upd); err != nil {
+			span.AddEvent("[Authorize] failed to update action role", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to update action role: %v", err)
 			return nil, err
 		}
@@ -430,6 +523,7 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		action.CurrentAction = updatedPayload
 		return action, nil
 	default:
+		span.AddEvent("[Authorize] unsupported action type", trace.WithAttributes(attribute.String("action_type", action.ActionType)))
 		s.logger.Errorf("[Authorize] unsupported action type: %s", action.ActionType)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}

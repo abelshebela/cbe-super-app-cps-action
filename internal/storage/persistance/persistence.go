@@ -56,6 +56,7 @@ type Persistence struct {
 	NotificationPersistence          storage.NotificationRepository
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
+	ServicesPersistence              storage.ServicesRepository
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
@@ -74,7 +75,8 @@ type Persistence struct {
 	BPSActionRolePersistence         storage.BPSActionRoleRepository
 	BPSActionApproveIndexPersistence storage.BPSActionApproveIndexRepository
 	RolePersistence                  storage.RoleRepository
-  MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
-  	CPSActionRolePersistence         storage.CPSActionRoleRepository
+	MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
+	CPSActionRolePersistence         storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence storage.CPSActionApproveIndexRepository
+	EventMerchantPersistence         storage.EventMerchantRepository
 }

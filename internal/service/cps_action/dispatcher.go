@@ -7,6 +7,10 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type CPSActionModule interface {
@@ -24,7 +28,11 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 }
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Dispatcher", "Authorize")
+	defer span.End()
+
 	action := cpsAction.RequestAction
+	span.SetAttributes(attribute.String("action", action))
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
@@ -44,6 +52,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 
 	case IsActionInGroup(RequestAction(action), "Service"):
 		return d.app.ServiceCheckContainer.Authorize(ctx, cpsAction)
+
+	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
+		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "DeviceVersion"):
 		return d.app.DeviceVersionContainer.Authorize(ctx, cpsAction)
@@ -127,10 +138,13 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MiniAppCategory"):
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
-			case IsActionInGroup(RequestAction(action), "CpsActionRole"):
+	case IsActionInGroup(RequestAction(action), "CpsActionRole"):
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "eventMerchant"):
+		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
 
 	default:
+		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }
