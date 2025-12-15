@@ -46,7 +46,7 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth [get]
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
 
@@ -79,7 +79,7 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/update/{method}/{id} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "updateAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
@@ -145,7 +145,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	_, span := common_util.TraceLogger(r.Context(), "", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
+	_, span := common_util.TraceLogger(r.Context(), "handler", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
 
 	idParam, ok := common_util.GetParam(r, "id")

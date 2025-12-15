@@ -9,6 +9,7 @@ type CreateBankRequest struct {
 	Logo          *multipart.FileHeader `form:"logo" json:"logo"`
 	Code          string                `form:"code" json:"code"`
 	BIC           string                `form:"bic" json:"bic"`
+	Type          string                `form:"type" json:"type"`
 	AccountLength *int                  `form:"account_length" json:"account_length"`
 }
 
@@ -18,6 +19,7 @@ type UpdateBankRequest struct {
 	Name          string                `json:"name" bson:"name"`
 	Code          string                `json:"code" bson:"code"`
 	BIC           string                `json:"bic" bson:"bic"`
+	Type          string                `form:"type" json:"type"`
 	AccountLength *int                  `form:"account_length" json:"account_length"`
 }
 

@@ -17,13 +17,13 @@ import (
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
+	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
-	
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	notificationInbound "cbe-super-app-cps-action/internal/constants/interfaces/notification"
@@ -42,6 +42,7 @@ import (
 	actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
+	event_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant"
 
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
@@ -134,6 +135,7 @@ type Handler struct {
 	BPSActionRoleHandler      actionrole_iface.BPSActionRoleHandler
 	CPSActionRoleHandler      cps_actionrole_iface.CPSActionRoleHandler
 	TransactionHandler        transaction.TransactionInterface
+	EventMerchantHandler      event_merchant_port.EventMerchantInboundAdaptor
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -181,5 +183,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		BPSActionRoleHandler:      actionrole_handler.NewBPSActionRoleHandler(serviceLayer.BPSActionRole, logger),
 		CPSActionRoleHandler:      cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
+		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
 	}
 }

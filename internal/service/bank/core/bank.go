@@ -39,6 +39,11 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 			bank.IsDeleted = isDeleted
 		}
 	}
+	if v, ok := action["type"]; ok {
+		if bankType, ok := v.(string); ok {
+			bank.Type = bankType
+		}
+	}
 
 	return bank
 }

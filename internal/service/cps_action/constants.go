@@ -39,11 +39,11 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
-	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE" 
-RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE" 
-RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE" 
-RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE" 
-RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
 
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
@@ -310,6 +310,12 @@ RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
 	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
 	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -318,11 +324,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteMiniappProductCode:  {},
 	RequestEnableMiniappProductCode:  {},
 	RequestDisableMiniappProductCode: {},
-	RequestCreateBankVault:  {},
-	RequestUpdateBankVault:  {},
-	RequestDeleteBankVault:  {},
-	RequestEnableBankVault:  {},
-	RequestDisAbleBankVault: {},
+	RequestCreateBankVault:           {},
+	RequestUpdateBankVault:           {},
+	RequestDeleteBankVault:           {},
+	RequestEnableBankVault:           {},
+	RequestDisAbleBankVault:          {},
 
 	// for vault group category
 	RequestCreateVaultGroupCategory:  {},
@@ -524,6 +530,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteMiniAppCategory:  {},
 	RequestEnableMiniAppCategory:  {},
 	RequestDisableMiniAppCategory: {},
+
+	RequestCreateEventMerchant:  {},
+	RequestUpdateEventMerchant:  {},
+	RequestDeleteEventMerchant:  {},
+	RequestEnableEventMerchant:  {},
+	RequestDisableEventMerchant: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -887,12 +899,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniAppCategory,
 		RequestDisableMiniAppCategory,
 	},
-	"MiniAppProductCode": {
-		RequestCreateMiniappProductCode,
-		RequestUpdateMiniappProductCode,
-		RequestDeleteMiniappProductCode,
-		RequestEnableMiniappProductCode,
-		RequestDisableMiniappProductCode,
+
+	"eventMerchant": {
+		RequestCreateEventMerchant,
+		RequestUpdateEventMerchant,
+		RequestDeleteEventMerchant,
+		RequestEnableEventMerchant,
+		RequestDisableEventMerchant,
 	},
 }
 

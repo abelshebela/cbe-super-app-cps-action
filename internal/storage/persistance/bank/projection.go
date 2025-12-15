@@ -18,6 +18,9 @@ func BankMapper(data model.Bank) bson.M {
 	if data.BIC != "" {
 		result["bic"] = data.BIC
 	}
+	if data.Type != "" {
+		result["type"] = data.Type
+	}
 	if data.Logo != "" {
 		result["logo"] = data.Logo
 	}

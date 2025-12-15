@@ -154,6 +154,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleEnableRequestCreated,
 	SuccessActionRoleDisableRequestCreated,
 
+	// event merchant success response codes
+	SuccessEventMerchantCreated,
+	SuccessEventMerchantDisabled,
+	SuccessEventMerchantEnabled,
+	SuccessEventMerchantUpdated,
+	SuccessEventMerchantDeleted,
+	SuccessEventMerchantFetched,
+
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -297,6 +305,7 @@ var ResponseCodesList = []ResponseCode{
 	//wallet related error codes
 	ErrorWalletNameRequired,
 	ErrorWalletCodeRequired,
+	ErrorWalletTypeRequired,
 	ErrorWalletAvatarRequired,
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
@@ -473,6 +482,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
+	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
@@ -556,8 +566,18 @@ var ResponseCodesList = []ResponseCode{
 	// bank related errors
 	ErrorInvalidAccountNumberFormat,
 	ErrorInvalidFormatForBIC,
+	ErrorInvalidFormatForType,
 	ErrorInvalidFormatForCode,
 	ErrorInvalidFormatForName,
+
+	// event mercahnt error
+	ErrorEventMerchantInvalidMerchantID,
+	ErrorEventMerchantInvalidMerchantType,
+	ErrorEventMerchantInvalidSettlementMethod,
+	ErrorEventMerchantInvalidMerchantName,
+	ErrorEventMerchantInvalidBankAccountNumber,
+	ErrorEventMerchantInvalidEmail,
+	ErrorEventMerchantInvalidPhoneNumber,
 }
 
 // Success Response Codes
@@ -1680,6 +1700,12 @@ var (
 		Code:       "ERROR_WALLET_CODE_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet code is required",
+		Type:       "error",
+	}
+	ErrorWalletTypeRequired = ResponseCode{
+		Code:       "ERROR_WALLET_TYPE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet type is required",
 		Type:       "error",
 	}
 
@@ -3081,6 +3107,43 @@ var (
 		Message:    MsgActionRoleDisableRequestCreated,
 		Type:       "success",
 	}
+
+	SuccessEventMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDeleted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantUpdated = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnabled = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisabled = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantFetched = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantFetchedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -3395,6 +3458,12 @@ var (
 		Code:       "ERROR_INVALID_FORMAT_FOR_BIC",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidRequestBankBIC,
+		Type:       "error",
+	}
+	ErrorInvalidFormatForType = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankType,
 		Type:       "error",
 	}
 	ErrorInvalidAccountNumberFormat = ResponseCode{
@@ -4424,6 +4493,12 @@ var (
 		Code:       "ERROR_PHONENUMBER_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
 		Message:    MsgPhonenumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCodeAlreadyExist = ResponseCode{
+		Code:       "ERROR_CODE_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCodeAlreadyExists,
 		Type:       "error",
 	}
 
@@ -5702,5 +5777,67 @@ var (
 		StatusCode: StatusOK,
 		Message:    MsgTransactionRetrievedSuccess,
 		Type:       "success",
+	}
+
+	ErrorEventMerchantInvalidMerchantID = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidID,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidMerchantType = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidType,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidSettlementMethod = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_SETTLEMENT_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidMethod,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidMerchantName = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidName,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidBankAccountNumber = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidEmail = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidEmail,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidPhoneNumber = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidPhoneNumber,
+		Type:       "error",
+	}
+
+	ErrorEventMerchantNotFound = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgEventMerchantNotFound,
+		Type:       "error",
+	}
+	ErrorEventMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgEventMerchantDisableFailed,
+		Type:       "error",
+	}
+	ErrorEventMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgEventMerchantEnableFailed,
+		Type:       "error",
 	}
 )

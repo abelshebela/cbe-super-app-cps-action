@@ -18,12 +18,11 @@ import (
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage/external_call"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -184,7 +183,7 @@ type AmountBasedAuthRepository interface {
 type AccountBlockRepository interface {
 	GetBranchByCode(ctx context.Context, code string) (*model.AccountBlock, error)
 	GetBranchById(ctx context.Context, branchCode string) (*model.AccountBlock, error)
-	GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
+	// GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
 	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
@@ -339,11 +338,8 @@ type MiniAppRepository interface {
 	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.MiniApp, error)
-	Find(ctx context.Context, name string) (*model.MiniApp, error)
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
-	RunInTransaction(ctx context.Context, fn func(ctx context.Context) error) error
-	FindByIDWithMerchant(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
+	DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
+	DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error
 }
 
 type EventRepository interface {
@@ -615,15 +611,23 @@ type MiniAppCategoryRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
+type MiniAppProductCodeRepository interface {
+	Create(ctx context.Context, productCode *model.MiniAppProductCode) error
+	Update(ctx context.Context, productCode *model.MiniAppProductCode, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
 
 type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }
 
-
-type MiniAppProductCodeRepository interface {
-	Create(ctx context.Context, productCode *local_model.MiniAppProductCode) error
-	Update(ctx context.Context, productCode *local_model.MiniAppProductCode, id string) error
+type EventMerchantRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*model.EventMerchant, error)
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
 }

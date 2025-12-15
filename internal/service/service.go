@@ -6,7 +6,7 @@ import (
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
@@ -34,14 +34,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities"
 
 	"context"
 	"mime/multipart"
@@ -217,18 +218,18 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
+	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	MerchantLookup(ctx context.Context, merchantID string) (*merchant_lookup.MerchantLookUpResponse, error)
+	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
 	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
-	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
 	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -394,6 +395,15 @@ type KeyGeneratorService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type EventMerchantService interface {
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
 
 type ServiceLayer struct {
 	EventService           EventService
@@ -445,63 +455,66 @@ type ServiceLayer struct {
 	TransactionService     TransactionService
 	MiniAppCategory        MiniAppCategoryService
 	CPSActionRole          CPSActionRoleService
-	MiniappProductCode MiniappProductCodeService
+	MiniappProductCode     MiniappProductCodeService
+	EventMerchantService   EventMerchantService
 }
 
 type ServiceContainer struct {
-	AccountBlockContainer      AccountBlockService
-	AccountContainer           AccountValidationService
-	ActionContainer            ActionService
-	AdContainer                AdvertService
-	AmountBasedAuthContainer   AmountBasedAuthService
-	AvatarDomian               AvatarService
-	BankContainer              BankService
-	BPSUserContainer           BPSUserService
-	BudgetCategoryContainer    BudgetCategoryService
-	CPSActionContainer         CPSActionService
-	CPSUserContainer           CPSUserService
-	CustomerContainer          CustomerService
-	DepartmentContainer        DepartmentService
-	EventContainer             EventService // fully not ready
-	FaydaContainer             FaydaAccountService
-	FeedbackContainer          FeedbackService
-	HQContainer                HQService
-	MiniAppContainer           MiniAppService
-	PasswordRuleContainer      PasswordRuleService
-	PermissionContainer        PermissionService
-	PortalCardContainer        PortalCardService
-	UnlinkContainer            UnlinkService
-	WalletContainer            WalletService
-	TopupContainer             TopupService
-	MiniAppMerchantContainer   MiniAppMerchantService
-	AccountLookup              AccountSearchService
-	BulkServiceContainer       BulkService
-	ServiceCheckContainer      ServiceService
-	ServicesContainer          ServicesService
-	DeviceVersionContainer     DeviceVersionServiceSrv
-	KeyGenService              KeyGeneratorService
-	NotificationService        NotificationService
-	ProductCodeService         ProductCodeService
-	DonationContainer          DonationService
-	Unlink                     UnlinkService
-	DonationCategoryContainer  DonationCategoryService
-	DonationCompanyContainer   DonationCompanyService
-	ArticleContainer           ArticleService
-	ArticleCategoryContainer   ArticleCategoryService
-	ShortVideoServiceContainer ShortVideoService
-	NewsTagContainer           NewsTagService
-	NewsCategoryContainer      NewsCategoryService
-	SitotaContainer            SitotaService
-	KYCVerifierContainer       KYCVerifierService
-	NewsTagsServiceContainer   NewsTagsService
-	EncryptionContainer        EncryptionService
-	BankProductContainer       BankVaultService
-	VaultCategoryContainer     VaultGroupCategoryService
-	BPSActionRoleContainer     BPSActionRoleService
-	TransactionContainer       TransactionService
-	MiniAppCategoryContainer   MiniAppCategoryService
-	CPSActionRoleContainer     CPSActionRoleService
+	AccountBlockContainer              AccountBlockService
+	AccountContainer                   AccountValidationService
+	ActionContainer                    ActionService
+	AdContainer                        AdvertService
+	AmountBasedAuthContainer           AmountBasedAuthService
+	AvatarDomian                       AvatarService
+	BankContainer                      BankService
+	BPSUserContainer                   BPSUserService
+	BudgetCategoryContainer            BudgetCategoryService
+	CPSActionContainer                 CPSActionService
+	CPSUserContainer                   CPSUserService
+	CustomerContainer                  CustomerService
+	DepartmentContainer                DepartmentService
+	EventContainer                     EventService // fully not ready
+	FaydaContainer                     FaydaAccountService
+	FeedbackContainer                  FeedbackService
+	HQContainer                        HQService
+	MiniAppContainer                   MiniAppService
+	PasswordRuleContainer              PasswordRuleService
+	PermissionContainer                PermissionService
+	PortalCardContainer                PortalCardService
+	UnlinkContainer                    UnlinkService
+	WalletContainer                    WalletService
+	TopupContainer                     TopupService
+	MiniAppMerchantContainer           MiniAppMerchantService
+	AccountLookup                      AccountSearchService
+	BulkServiceContainer               BulkService
+	ServiceCheckContainer              ServiceService
+	ServicesContainer                  ServicesService
+	DeviceVersionContainer             DeviceVersionServiceSrv
+	KeyGenService                      KeyGeneratorService
+	NotificationService                NotificationService
+	ProductCodeService                 ProductCodeService
+	DonationContainer                  DonationService
+	Unlink                             UnlinkService
+	DonationCategoryContainer          DonationCategoryService
+	DonationCompanyContainer           DonationCompanyService
+	ArticleContainer                   ArticleService
+	ArticleCategoryContainer           ArticleCategoryService
+	ShortVideoServiceContainer         ShortVideoService
+	NewsTagContainer                   NewsTagService
+	NewsCategoryContainer              NewsCategoryService
+	SitotaContainer                    SitotaService
+	KYCVerifierContainer               KYCVerifierService
+	NewsTagsServiceContainer           NewsTagsService
+	EncryptionContainer                EncryptionService
+	BankProductContainer               BankVaultService
+	VaultCategoryContainer             VaultGroupCategoryService
+	BPSActionRoleContainer             BPSActionRoleService
+	TransactionContainer               TransactionService
+	MiniAppCategoryContainer           MiniAppCategoryService
+	CPSActionRoleContainer             CPSActionRoleService
 	MiniappProductCodeServiceContainer MiniappProductCodeService
+	EventMerchantServiceContainer      EventMerchantService
+	ServiceContainer                   ServicesService
 }
 
 type BPSActionRoleService interface {
@@ -599,4 +612,3 @@ type CPSActionRoleService interface {
 type MiniappProductCodeService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
-

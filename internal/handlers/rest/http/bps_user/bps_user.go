@@ -47,7 +47,7 @@ func InitBPSUserMakerHandler(service service.BPSUserService, logger utils.Logger
 //	@Security		BearerAuth
 //	@Router			/bps_users/{user_code} [get]
 func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "fetchBpsUserByCode", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchBpsUserByCode", "handler", "bpsUser")
 	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
@@ -95,7 +95,7 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 // @Security	BearerAuth
 // @Router		/bps_users/ [get]
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllBpsUsers", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -127,7 +127,7 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/disable/{user_code} [post]
 func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableBpsUser", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBpsUser", "handler", "bpsUser")
 	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
@@ -163,7 +163,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/enable/{user_code} [post]
 func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableBpsUser", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBpsUser", "handler", "bpsUser")
 	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {

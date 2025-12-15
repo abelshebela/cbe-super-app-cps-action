@@ -19,8 +19,10 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Service implements AdvertService
@@ -65,19 +67,31 @@ func (s *advertService) handleCPSAction(ctx context.Context, uniqueID string, re
 
 // CreateAdvert prepares a new advert without persisting
 func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateAdvert", "Ad", "CreateAdvert")
+	defer span.End()
+
 	s.logger.Infof("[CreateAdvert] creating advert")
 	isDuplicate, err := s.Repository.FindByTitle(ctx, ad.Title)
 	if err != nil {
+		span.AddEvent("[CreateAdvert] failed to check for duplicate advert", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("title", ad.Title),
+		))
 		s.logger.Errorf("[CreateAdvert] failed to check for duplicate advert: %v", err)
 		return err
 	}
 	if isDuplicate != nil {
+		span.AddEvent("[CreateAdvert] duplicate advert title found", trace.WithAttributes(attribute.String("title", ad.Title)))
 		s.logger.Errorf("[CreateAdvert] duplicate advert title found")
 		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 	}
 
 	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
 	if err != nil {
+		span.AddEvent("[CreateAdvert] failed to upload banner image", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("title", ad.Title),
+		))
 		s.logger.Errorf("[CreateAdvert] failed to upload banner image: %v", err)
 		return errors.New(localization.ErrorFileUploadFailed.Code)
 	}
@@ -88,6 +102,10 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 
 	err = s.handleCPSAction(ctx, "", cpsaction.RequestCreateAdvert, ad, nil, cpsaction.ActionCreate)
 	if err != nil {
+		span.AddEvent("[CreateAdvert] failed to handle CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("title", ad.Title),
+		))
 		s.logger.Errorf("[CreateAdvert] failed to handle CPS action: %v", err)
 		return err
 	}
@@ -98,8 +116,14 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 
 // FetchAdverts fetches adverts with pagination and filtering
 func (s *advertService) FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchAdverts", "Ad", "FetchAdverts")
+	defer span.End()
+
 	result, err := s.Repository.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
+		span.AddEvent("[FetchAdverts] failed to fetch adverts", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		s.logger.Errorf("[FetchAdverts] failed to fetch adverts: %v", err)
 		return nil, err
 	}
@@ -109,8 +133,15 @@ func (s *advertService) FetchAdverts(ctx context.Context, filterParam types.Filt
 
 // FetchAdvertByID fetches an advert by ID
 func (s *advertService) FetchAdvertByID(ctx context.Context, id string) (*model.Advert, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FetchAdvertByID", "Ad", "FetchAdvertByID")
+	defer span.End()
+
 	result, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("[FetchAdvertByID] failed to fetch advert", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[FetchAdvertByID] failed to fetch advert: %v", err)
 		return nil, err
 	}
@@ -120,19 +151,31 @@ func (s *advertService) FetchAdvertByID(ctx context.Context, id string) (*model.
 
 // // UpdateAdvert updates an existing advert without persisting
 func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateAdvert", "Ad", "UpdateAdvert")
+	defer span.End()
+
 	s.logger.Infof("[UpdateAdvert] updating advert for id: %s", id)
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("[UpdateAdvert] failed to fetch advert", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[UpdateAdvert] failed to fetch advert: %v", err)
 		return err
 	}
 	if ad.Title != "" {
 		isDuplicate, err := s.Repository.FindByTitle(ctx, ad.Title)
 		if err != nil {
+			span.AddEvent("[UpdateAdvert] failed to check for duplicate advert", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
 			s.logger.Errorf("[UpdateAdvert] failed to check for duplicate advert: %v", err)
 			return err
 		}
 		if isDuplicate != nil && isDuplicate.ID.Hex() != id {
+			span.AddEvent("[UpdateAdvert] duplicate advert title found", trace.WithAttributes(attribute.String("title", ad.Title)))
 			s.logger.Errorf("[UpdateAdvert] duplicate advert title found")
 			return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 		}
@@ -143,6 +186,10 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 
 		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
 		if err != nil {
+			span.AddEvent("[UpdateAdvert] failed to upload banner image", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("id", id),
+			))
 			s.logger.Errorf("Failed to upload banner image: %v", err)
 			return err
 		}
@@ -161,6 +208,10 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 	}
 	err = s.handleCPSAction(ctx, id, cpsaction.RequestUpdateAdvert, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
+		span.AddEvent("[UpdateAdvert] failed to handle CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[UpdateAdvert] failed to handle CPS action: %v", err)
 		return err
 	}
@@ -170,10 +221,17 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 
 // DeleteAdvert soft-deletes an advert without persisting
 func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "DeleteAdvert", "Ad", "DeleteAdvert")
+	defer span.End()
+
 	s.logger.Infof("[DeleteAdvert] deleting advert for id: %s", id)
 
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("[DeleteAdvert] failed to fetch advert", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[DeleteAdvert] failed to fetch advert: %v", err)
 		return err
 	}
@@ -185,6 +243,10 @@ func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
 
 	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), cpsaction.RequestDeleteAdvert, curAdvert, prevAdvert, cpsaction.ActionDelete)
 	if err != nil {
+		span.AddEvent("[DeleteAdvert] failed to handle CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[DeleteAdvert] failed to handle CPS action: %v", err)
 		return err
 	}
@@ -195,20 +257,29 @@ func (s *advertService) DeleteAdvert(ctx context.Context, id string) error {
 
 // EnableDisableAdvert enables or disables an advert without persisting
 func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enable bool) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableDisableAdvert", "Ad", "EnableDisableAdvert")
+	defer span.End()
+
 	s.logger.Infof("[EnableDisableAdvert] processing advert enable/disable for id: %s, enabled: %v", id, enable)
 
 	prevAdvert, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("[EnableDisableAdvert] failed to fetch advert", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[EnableDisableAdvert] failed to fetch advert: %v", err)
 		return err
 	}
 
 	if enable && prevAdvert.Enabled {
+		span.AddEvent("[EnableDisableAdvert] advert already enabled", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("[EnableDisableAdvert] advert already enabled")
 		return errors.New(localization.ErrorAdvertAlreadyEnabled.Code)
 	}
 
 	if !enable && !prevAdvert.Enabled {
+		span.AddEvent("[EnableDisableAdvert] advert already disabled", trace.WithAttributes(attribute.String("id", id)))
 		s.logger.Errorf("[EnableDisableAdvert] advert already disabled")
 		return errors.New(localization.ErrorAdvertAlreadyDisabled.Code)
 	}
@@ -226,6 +297,10 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 
 	err = s.handleCPSAction(ctx, curAdvert.ID.Hex(), action, curAdvert, prevAdvert, cpsaction.ActionUpdate)
 	if err != nil {
+		span.AddEvent("[EnableDisableAdvert] failed to handle CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("[EnableDisableAdvert] failed to handle CPS action: %v", err)
 		return err
 	}
@@ -236,10 +311,17 @@ func (s *advertService) EnableDisableAdvert(ctx context.Context, id string, enab
 
 // Authorize handles persistence for advert actions
 func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Ad", "Authorize")
+	defer span.End()
+
 	s.logger.Infof("[Authorize] authorizing advert action: %s", action.RequestAction)
 
 	advert, err := local_util.JsonUnmarshal[model.Advert](action.CurrentAction)
 	if err != nil {
+		span.AddEvent("[Authorize] failed to unmarshal current action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", action.UniqueId),
+		))
 		s.logger.Errorf("[Authorize] failed to unmarshal current action into advert: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
@@ -248,6 +330,10 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(cpsaction.RequestCreateAdvert):
 		err = s.Repository.Create(ctx, advert)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to create advert", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to create advert: %v", err)
 			return nil, err
 		}
@@ -255,6 +341,10 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(cpsaction.RequestUpdateAdvert):
 		err = s.Repository.Update(ctx, action.UniqueId, advert)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to update advert", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to update advert: %v", err)
 			return nil, err
 		}
@@ -262,6 +352,10 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(cpsaction.RequestDeleteAdvert):
 		err = s.Repository.Delete(ctx, action.UniqueId)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to delete advert", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to delete advert: %v", err)
 			return nil, err
 		}
@@ -269,6 +363,10 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(cpsaction.RequestEnableAdvert):
 		err = s.Repository.EnableOrDisable(ctx, action.UniqueId, true)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to enable advert", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to enable advert: %v", err)
 			return nil, err
 		}
@@ -276,11 +374,16 @@ func (s *advertService) Authorize(ctx context.Context, action *model.CPSAction) 
 	case string(cpsaction.RequestDisableAdvert):
 		err = s.Repository.EnableOrDisable(ctx, action.UniqueId, false)
 		if err != nil {
+			span.AddEvent("[Authorize] failed to disable advert", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", action.UniqueId),
+			))
 			s.logger.Errorf("[Authorize] failed to disable advert: %v", err)
 			return nil, err
 		}
 		s.logger.Infof("[Authorize] advert disabled successfully for id: %s", action.UniqueId)
 	default:
+		span.AddEvent("[Authorize] unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))
 		s.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}

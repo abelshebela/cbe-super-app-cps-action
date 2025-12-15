@@ -47,7 +47,7 @@ func NewHttpAccountValidation(accountValidationService service.AccountValidation
 //	@Security		BearerAuth
 //	@Router			/account_validation/{id} [get]
 func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findAccountValidationById", "handler", "accountValidation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAccountValidationById", "handler", "accountValidation")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -87,19 +87,19 @@ func (h *accountValidationAdapter) FindById(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_validation/update/{id} [patch]
 func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAccountValidation", "handler", "accountValidation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAccountValidation", "handler", "accountValidation")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 
 	// ─── Parse Request Body ───────────────────────────────────────────────
-	var req account_validation_dto.ValidationRuleDTO
+	var req account_validation_dto.UpdateAccountValidationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("[Update] failed to decode request: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorValidationRuleConvertIDFailed, nil, nil)
 		return
 	}
-
+	req.ID = id
 	// ─── Validation Checks ───────────────────────────────────────────────
 	if req.MinLength > req.MaxLength {
 		localization.SendErrorResponse(w, localization.ErrorValidationRuleMinMaxLengthMismatch, nil, nil)
@@ -114,7 +114,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 	}
 
 	// ─── Map DTO To Model ────────────────────────────────────────────────
-	rule := account_validation_dto.ToModel(req)
+	rule := account_validation_dto.UpdateToModel(req)
 	span.SetAttributes(
 		attribute.String("account_validation.id", id),
 		attribute.String("account_validation.identifier", req.Identifier),
@@ -147,7 +147,7 @@ func (h *accountValidationAdapter) Update(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/account_validation [get]
 func (s *accountValidationAdapter) FindAllWithPagination(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "findAllAccountValidation", "handler", "accountValidation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "findAllAccountValidation", "handler", "accountValidation")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {

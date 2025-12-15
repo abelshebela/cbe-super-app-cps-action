@@ -40,7 +40,7 @@ func InitNotificationHandler(svc service.NotificationService, logger utils.Logge
 //	@Security		BearerAuth
 //	@Router			/notifications [post]
 func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createNotification", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createNotification", "handler", "notification")
 	defer span.End()
 	req, ok := core.ParseAndValidateNotificationRequest(w, r, true)
 	if !ok {
@@ -86,7 +86,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/{id} [patch]
 func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateNotification", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateNotification", "handler", "notification")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -131,7 +131,7 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/{id} [delete]
 func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteNotification", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteNotification", "handler", "notification")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -169,7 +169,7 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/enable/{id} [patch]
 func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableNotification", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableNotification", "handler", "notification")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -209,7 +209,7 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/disable/{id} [patch]
 func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableNotification", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableNotification", "handler", "notification")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -249,7 +249,7 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/{id} [get]
 func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "fetchNotificationById", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchNotificationById", "handler", "notification")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -292,7 +292,7 @@ func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/notifications [get]
 func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "fetchNotifications", "handler", "notification")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchNotifications", "handler", "notification")
 	defer span.End()
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	filterParams := common_utils.ExtractFilterParams(r)

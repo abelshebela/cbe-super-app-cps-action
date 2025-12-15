@@ -10,9 +10,10 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"encoding/json"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -196,7 +197,7 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Dona
 
 	donationImages := make([]shared_types.DonationImage, len(cpsRequest.DonationImages))
 	for i, img := range cpsRequest.DonationImages {
-		donationImages[i]= shared_types.DonationImage{
+		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
 			CreatedAt: img.CreatedAt,
@@ -245,6 +246,7 @@ func GetIntValueOrDefault(value, defaultValue int32) int32 {
 	}
 	return value
 }
+
 func GetTimeValueOrDefault(value, defaultValue time.Time) time.Time {
 	if value.IsZero() {
 		return defaultValue

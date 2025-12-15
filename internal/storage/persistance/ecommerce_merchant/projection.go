@@ -17,9 +17,12 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if data.MerchantName != "" {
 		result["merchant_name"] = data.MerchantName
 	}
-	if data.KYC != (types.KYC{}) {
-		result["kyc"] = data.KYC
-	}
+	// if data.MerchantType != "" {
+	// 	result["merchant_type"] = data.MerchantType
+	// }
+	// if data.KYC != (types.KYC{}) {
+	// 	result["kyc"] = data.KYC
+	// }
 	if data.BankAccountNumber != "" {
 		result["bank_account_number"] = data.BankAccountNumber
 	}
@@ -42,14 +45,14 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		ID:           miniAppMerchant.ID,
 		MerchantCode: miniAppMerchant.MerchantCode,
 		MerchantName: miniAppMerchant.MerchantName,
-		KYC: types.KYC{
-			Status: miniAppMerchant.KYC.Status,
-			Representative: types.KYCInformation{
-				Name:  miniAppMerchant.KYC.Representative.Name,
-				Email: miniAppMerchant.KYC.Representative.Email,
-				Phone: miniAppMerchant.KYC.Representative.Phone,
-			},
-		},
+		// KYC: types.KYC{
+		// 	Status: miniAppMerchant.KYC.Status,
+		// 	Representative: types.KYCInformation{
+		// 		Name:  miniAppMerchant.KYC.Representative.Name,
+		// 		Email: miniAppMerchant.KYC.Representative.Email,
+		// 		Phone: miniAppMerchant.KYC.Representative.Phone,
+		// 	},
+		// },
 		BankAccountNumber: miniAppMerchant.BankAccountNumber,
 
 		Enabled:   miniAppMerchant.Enabled,

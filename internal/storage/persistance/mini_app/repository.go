@@ -5,7 +5,6 @@ import (
 	"errors"
 	"time"
 
-	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
@@ -194,6 +193,52 @@ func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*
 	}
 
 	return &resp, nil
+func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantID string) error {
+	objID, err := bson.ObjectIDFromHex(merchantID)
+	if err != nil {
+		m.logger.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{
+		"merchant_id": objID,
+		"is_deleted":  false,
+	}
+	update := bson.M{
+		"enabled":          false,
+		"last_modified_at": time.Now(),
+	}
+	_, err = m.collection.UpdateMany(ctx, filter, bson.M{"$set": update})
+	if err != nil {
+		m.logger.Errorf("DisableManyByMerchantIDs failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	m.logger.Infof("Successfully disabled mini apps for merchant ID: %s", merchantID)
+	return nil
+
+}
+
+func (m *MiniAppStorage) DeleteManyByMerchantIDs(ctx context.Context, merchantID string) error {
+	objID, err := bson.ObjectIDFromHex(merchantID)
+	if err != nil {
+		m.logger.Errorf("Invalid Merchant ID format: %s, error: %v", merchantID, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{
+		"merchant_id": objID,
+		"is_deleted":  false,
+	}
+	update := bson.M{
+		"is_deleted":       true,
+		"deleted_at":       time.Now(),
+		"last_modified_at": time.Now(),
+	}
+	_, err = m.collection.UpdateMany(ctx, filter, bson.M{"$set": update})
+	if err != nil {
+		m.logger.Errorf("DeleteManyByMerchantIDs failed: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
 }
 
 func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantID string) error {

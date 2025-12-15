@@ -52,7 +52,7 @@ type Persistence struct {
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
-	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
+	EcommerceMerchantPersistence     storage.MiniAppMerchantRepository
 	NotificationPersistence          storage.NotificationRepository
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
@@ -78,5 +78,5 @@ type Persistence struct {
 	MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
 	CPSActionRolePersistence         storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence storage.CPSActionApproveIndexRepository
-	MiniAppProductCodePersistence    storage.MiniAppProductCodeRepository
+	EventMerchantPersistence         storage.EventMerchantRepository
 }

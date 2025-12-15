@@ -53,7 +53,7 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 //	@Security		BearerAuth
 //	@Router			/bulk_services [get]
 func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "getAllBulkServices", "handler", "bulkService")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
 	defer span.End()
 	filter_params := util.ExtractFilterParams(r)
 	bulk_services, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
@@ -83,7 +83,7 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/bulk_services/enable [post]
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "enableBulkService", "handler", "bulkService")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
 	defer span.End()
 	var req dto.BulkServiceDTO
 
@@ -121,7 +121,7 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 //	@Security		BearerAuth
 //	@Router			/bulk_services/disable [post]
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "disableBulkService", "handler", "bulkService")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
 	defer span.End()
 	var req dto.BulkServiceDTO
 

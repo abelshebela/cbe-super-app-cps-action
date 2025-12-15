@@ -45,7 +45,7 @@ func InitKYCAdapter(app service.KYCVerifierService, logger utils.Logger) inbound
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier [get]
 func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getKycList", "handler", "kyc")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getKycList", "handler", "kyc")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -77,7 +77,7 @@ func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/{id} [get]
 func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getKycById", "handler", "kyc")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getKycById", "handler", "kyc")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -109,7 +109,7 @@ func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/update/{id} [patch]
 func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateKyc", "handler", "kyc")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateKyc", "handler", "kyc")
 	defer span.End()
 	var req kyc_verifier.UpdateKYCRequest
 	id := chi.URLParam(r, "id")
@@ -148,7 +148,7 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/approve/{id} [patch]
 func (h *kycAdapter) ApproveKYC(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "approveKyc", "handler", "kyc")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "approveKyc", "handler", "kyc")
 	defer span.End()
 	var req kyc_verifier.ApproveKYCRequest
 	id := chi.URLParam(r, "id")

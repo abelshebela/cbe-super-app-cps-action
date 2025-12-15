@@ -18,6 +18,8 @@ import (
 	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func NonEmptyString(s, fallback string) string {
@@ -98,8 +100,12 @@ func ToUpdateTopupDoc(existing model.Topup, req TopupDto.TopupRequest) (*model.T
 }
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
+	ctx, span := local_util.TraceLogger(ctx, "core", "HandleCPSAction", "core", "core")
+	defer span.End()
+	log.Println("Handling CPS action", "uniqueID", uniqueID, "requestAction", requestAction)
 	userData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(userData); incomplet {
+		span.AddEvent("Incomplete user data", trace.WithAttributes(attribute.String("userCode", userData.UserCode)))
 		log.Println("User data incomplete for CPS action", "userCode", userData.UserCode)
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
@@ -107,6 +113,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
 	if err := cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
+		span.AddEvent("CPS action creation failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userCode", userData.UserCode)))
 		log.Println("Failed to create CPS action", "error", err)
 		return err
 	}

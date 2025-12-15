@@ -11,4 +11,5 @@ type WalletRequest struct {
 	Self   bool                  `form:"self" json:"self"`
 	Other  bool                  `form:"other" json:"other"`
 	Agent  bool                  `form:"agent" json:"agent"`
+	Type   string                `form:"type" json:"type"`
 }
