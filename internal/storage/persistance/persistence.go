@@ -52,7 +52,7 @@ type Persistence struct {
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
-	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
+	EcommerceMerchantPersistence     storage.MiniAppMerchantRepository
 	NotificationPersistence          storage.NotificationRepository
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository

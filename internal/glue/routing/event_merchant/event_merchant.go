@@ -1,4 +1,4 @@
-package event_merchant_routing
+package eventmerchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants"

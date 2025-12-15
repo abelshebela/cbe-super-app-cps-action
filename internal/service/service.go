@@ -35,8 +35,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	"context"
@@ -508,57 +508,6 @@ type ServiceContainer struct {
 	MiniAppCategoryContainer           MiniAppCategoryService
 	CPSActionRoleContainer             CPSActionRoleService
 	MiniappProductCodeServiceContainer MiniappProductCodeService
-	AccountBlockContainer              AccountBlockService
-	AccountContainer                   AccountValidationService
-	ActionContainer                    ActionService
-	AdContainer                        AdvertService
-	AmountBasedAuthContainer           AmountBasedAuthService
-	AvatarDomian                       AvatarService
-	BankContainer                      BankService
-	BPSUserContainer                   BPSUserService
-	BudgetCategoryContainer            BudgetCategoryService
-	CPSActionContainer                 CPSActionService
-	CPSUserContainer                   CPSUserService
-	CustomerContainer                  CustomerService
-	DepartmentContainer                DepartmentService
-	EventContainer                     EventService // fully not ready
-	FaydaContainer                     FaydaAccountService
-	FeedbackContainer                  FeedbackService
-	HQContainer                        HQService
-	MiniAppContainer                   MiniAppService
-	PasswordRuleContainer              PasswordRuleService
-	PermissionContainer                PermissionService
-	PortalCardContainer                PortalCardService
-	UnlinkContainer                    UnlinkService
-	WalletContainer                    WalletService
-	TopupContainer                     TopupService
-	MiniAppMerchantContainer           MiniAppMerchantService
-	AccountLookup                      AccountSearchService
-	BulkServiceContainer               BulkService
-	ServiceCheckContainer              ServiceService
-	DeviceVersionContainer             DeviceVersionServiceSrv
-	KeyGenService                      KeyGeneratorService
-	NotificationService                NotificationService
-	ProductCodeService                 ProductCodeService
-	DonationContainer                  DonationService
-	Unlink                             UnlinkService
-	DonationCategoryContainer          DonationCategoryService
-	DonationCompanyContainer           DonationCompanyService
-	ArticleContainer                   ArticleService
-	ArticleCategoryContainer           ArticleCategoryService
-	ShortVideoServiceContainer         ShortVideoService
-	NewsTagContainer                   NewsTagService
-	NewsCategoryContainer              NewsCategoryService
-	SitotaContainer                    SitotaService
-	KYCVerifierContainer               KYCVerifierService
-	NewsTagsServiceContainer           NewsTagsService
-	EncryptionContainer                EncryptionService
-	BankProductContainer               BankVaultService
-	VaultCategoryContainer             VaultGroupCategoryService
-	BPSActionRoleContainer             BPSActionRoleService
-	TransactionContainer               TransactionService
-	MiniAppCategoryContainer           MiniAppCategoryService
-	CPSActionRoleContainer             CPSActionRoleService
 	EventMerchantServiceContainer      EventMerchantService
 	ServiceContainer                   ServicesService
 }

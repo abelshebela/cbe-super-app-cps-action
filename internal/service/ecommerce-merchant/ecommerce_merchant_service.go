@@ -4,18 +4,18 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/mini_app_merchant/core"
-	"time"
+	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
 
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 
+	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"time"
 
-	merchantDto "cbe-super-app-cps-action/internal/constants/dto/mini_app_merchant"
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
@@ -34,7 +34,7 @@ type miniAppMerchantService struct {
 	merchantLookup       merchant_lookup.MerchantLookupAdapter
 }
 
-func NewMiniAppMerchantService(
+func NewEcommerceMerchantService(
 	repo storage.MiniAppMerchantRepository,
 	cpsService service.CPSActionService,
 	miniRepo storage.MiniAppRepository,
@@ -61,8 +61,9 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Mi
 	m.logger.Infof("Creating mini app merchant, name: %s", data.MerchantName)
 	exist, err := core.CheckMerchantExists(ctx, m.repo, &types.CheckMiniAppMerchant{
 		// BankAccountNumber: data.BankAccountNumber,
-		Email:       data.Email,
-		PhoneNumber: data.PhoneNumber,
+		// Email:        data.Email,
+		// PhoneNumber:  data.PhoneNumber,
+		MerchantCode: data.Code,
 	}, nil)
 	if err != nil {
 		m.logger.Errorf("Failed to check merchant existence: %v", err)
@@ -335,6 +336,9 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
+	// merchant.Email = ""
+	// merchant.PhoneNumber = ""
+
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateMiniAppMerchant):
 		_, err = m.repo.Create(ctx, merchant)
@@ -363,13 +367,9 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err == nil {
-			err := m.miniRepo.DeleteManyByMerchantIDs(ctx, cpsAction.UniqueId)
-			if err != nil {
-				m.logger.Errorf("Failed to cascade delete mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
-				return nil, errors.New(localization.ErrorUnexpectedError.Code)
-			}
-		}
+		// if err == nil {
+		// 	_ = core.CascadeDeleteMiniApps(ctx, m.miniRepo, cpsAction.UniqueId)
+		// }
 	case string(constants.RequestEnableMiniAppMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
@@ -388,13 +388,9 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-		if err == nil {
-			err := m.miniRepo.DisableManyByMerchantIDs(ctx, cpsAction.UniqueId)
-			if err != nil {
-				m.logger.Errorf("Failed to cascade disable mini apps for merchant ID: %s, error: %v", cpsAction.UniqueId, err)
-				return nil, errors.New(localization.ErrorUnexpectedError.Code)
-			}
-		}
+		// if err == nil {
+		// 	_ = core.CascadeEnableDisableMiniApps(ctx, m.miniRepo, cpsAction.UniqueId, false)
+		// }
 	default:
 		m.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
 		span.AddEvent("Unsupported action", trace.WithAttributes(
@@ -402,6 +398,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			attribute.String("request_action", string(cpsAction.RequestAction)),
 		))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
+
 	}
 
 	cpsAction.CurrentAction = merchant

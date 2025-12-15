@@ -482,6 +482,7 @@ const (
 	MsgAccountNumberAlreadyExists        = "company with this account number already exists"
 	MsgEmailAlreadyExists                = "Email already exists"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
+	MsgCodeAlreadyExists                 = "Ecommerce merchant with this code/id already exists"
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
@@ -586,8 +587,8 @@ const (
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
 	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
 	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantEnableFailed   = "mini app merchant already enabled"
-	MsgMiniAppMerchantDisableFailed  = "mini app merchant already disabled"
+	MsgMiniAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
+	MsgMiniAppMerchantEnableFailed   = "ecommerce merchant is already enabled"
 	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
 	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
 
