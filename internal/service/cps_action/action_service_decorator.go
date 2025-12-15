@@ -38,11 +38,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 			// Attempt case-insensitive role lookup to avoid ActionName casing mismatches
 			var role *model.CPSActionRole
-			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
-				role = r
-			} else if r, err := s.roles.FindByActionName(ctx, strings.ToLower(mod)); err == nil && r != nil {
-				role = r
-			} else if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod)); err == nil && r != nil {
+			if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod)); err == nil && r != nil {
 				role = r
 			}
 			if role != nil {

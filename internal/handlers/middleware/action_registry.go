@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -251,15 +252,25 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
+			rel := pattern
+			if strings.Contains(rel, "/") {
+				rel = r.URL.Path
+			}
+			if strings.HasPrefix(rel, "/api/v1/cbesuperapp/cps_action") {
+				rel = strings.TrimPrefix(rel, "/api/v1/cbesuperapp/cps_action")
+				if rel == "" {
+					rel = "/"
+				}
+			}
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
-				if strings.HasPrefix(pattern, p) {
+				if strings.HasPrefix(rel, p) {
 					next.ServeHTTP(w, r)
 					return
 				}
 			}
 
-			key := strings.ToUpper(r.Method) + " " + pattern
+			key := strings.ToUpper(r.Method) + " " + rel
 			actionName, ok := cpsActionRegistry[key]
 			if !ok {
 				switch r.Method {
@@ -275,7 +286,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			roleID := firstHex24(rawRoleID)
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -283,12 +295,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
-			if ent, ok := cpsGuardCache.get(cacheKey); ok {
-				if ent.allow {
-					next.ServeHTTP(w, r)
-					return
-				}
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
+				next.ServeHTTP(w, r)
 				return
 			}
 
@@ -310,6 +318,29 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	}
 }
 
+var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
+
+func isHex(s string) bool {
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+func firstHex24(s string) string {
+	if s == "" {
+		return ""
+	}
+	if len(s) == 24 && isHex(s) {
+		return strings.ToLower(s)
+	}
+	m := reHex24.FindString(s)
+	if m == "" {
+		return ""
+	}
+	return strings.ToLower(m)
+}
 func nowPlus(dur time.Duration) time.Time {
 	return time.Now().Add(dur)
 }
