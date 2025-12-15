@@ -15,7 +15,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -231,7 +230,7 @@ type ArchivedUserRepository interface {
 	Create(ctx context.Context, user *member.User) error
 	FindByID(ctx context.Context, id string) (*model.ArchivedUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
-	FindAllArchievedUsersWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*unlink_dto.ArchivedUserResponse], error)
+	FindAllArchievedUsersWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
 }
 
 type ArchivedLinkedAccountRepository interface {

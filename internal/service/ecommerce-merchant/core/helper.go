@@ -17,9 +17,6 @@ import (
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -53,18 +50,18 @@ func nonEmpty(a, b string) string {
 	return b
 }
 
-func MergeBranches(oldBranches, newBranches []shared_type.BranchInformation) []shared_type.BranchInformation {
-	oldMap := make(map[string]shared_type.BranchInformation, len(oldBranches))
+func MergeBranches(oldBranches, newBranches []model.BranchInformation) []model.BranchInformation {
+	oldMap := make(map[string]model.BranchInformation, len(oldBranches))
 	for _, ob := range oldBranches {
 		oldMap[ob.BranchCode] = ob
 	}
 
-	merged := make([]shared_type.BranchInformation, 0, len(newBranches))
+	merged := make([]model.BranchInformation, 0, len(newBranches))
 
 	for _, nb := range newBranches {
 		// If the branch code exists in old branches, merge the information
 		if ob, ok := oldMap[nb.BranchCode]; ok {
-			merged = append(merged, shared_type.BranchInformation{
+			merged = append(merged, model.BranchInformation{
 				BranchCode:          ob.BranchCode,
 				BranchName:          nonEmpty(nb.BranchName, ob.BranchName),
 				BranchAddress:       nonEmpty(nb.BranchAddress, ob.BranchAddress),
@@ -73,7 +70,7 @@ func MergeBranches(oldBranches, newBranches []shared_type.BranchInformation) []s
 			})
 			delete(oldMap, nb.BranchCode)
 		} else {
-			merged = append(merged, shared_type.BranchInformation{
+			merged = append(merged, model.BranchInformation{
 				BranchCode:          nb.BranchCode,
 				BranchName:          nb.BranchName,
 				BranchAddress:       nb.BranchAddress,

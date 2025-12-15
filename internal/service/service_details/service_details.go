@@ -6,7 +6,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
-	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	core "cbe-super-app-cps-action/internal/service/service_details/core"
