@@ -1,10 +1,7 @@
 package middleware
 
 import (
-	"context"
-	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
@@ -12,7 +9,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/pkgs/utils"
 )
 
 // cpsActionRegistry maps METHOD + " " + RoutePattern to CPS action name
@@ -266,34 +263,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			var idxDoc *model.CPSActionApproveIndex
-			// Pre-attach role checker index/group BEFORE whitelist so downstream handlers always have it
-			if cpsApproveRepo != nil {
-				rawRoleIDPre, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-				roleIDPre := firstHex24(rawRoleIDPre)
-				if roleIDPre != "" {
-					keyPre := strings.ToUpper(r.Method) + " " + rel
-					actionNamePre, okPre := cpsActionRegistry[keyPre]
-					if !okPre {
-						switch r.Method {
-						case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-							actionNamePre = deriveModuleFromPattern(rel)
-						}
-					}
-					if actionNamePre != "" {
-						actionPre := strings.ToUpper(strings.TrimSpace(actionNamePre))
-						idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleIDPre, actionPre)
-						if err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
-							expected := int32(*idxDoc.CheckerIndex)
-							ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-							ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
-							r = r.WithContext(ctx)
-						}
-					}
-				}
-			}
-
-			fmt.Println(idxDoc)
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
 				if strings.HasPrefix(rel, p) {
@@ -319,7 +288,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-			roleID := firstHex24(rawRoleID)
+			roleID := utils.FirstHex24(rawRoleID)
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -328,13 +297,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
-				// Attach role checker index/group on cache hit
-				if idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleID, action); err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
-					expected := int32(*idxDoc.CheckerIndex)
-					ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-					ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
-					r = r.WithContext(ctx)
-				}
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -349,13 +311,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 			if allowed {
 				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
-				// Attach role checker index/group after authorization
-				if idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleID, action); err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
-					expected := int32(*idxDoc.CheckerIndex)
-					ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-					ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
-					r = r.WithContext(ctx)
-				}
 			}
 			if !allowed {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -366,29 +321,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	}
 }
 
-var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
-
-func isHex(s string) bool {
-	for _, c := range s {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-			return false
-		}
-	}
-	return true
-}
-func firstHex24(s string) string {
-	if s == "" {
-		return ""
-	}
-	if len(s) == 24 && isHex(s) {
-		return strings.ToLower(s)
-	}
-	m := reHex24.FindString(s)
-	if m == "" {
-		return ""
-	}
-	return strings.ToLower(m)
-}
 func nowPlus(dur time.Duration) time.Time {
 	return time.Now().Add(dur)
 }

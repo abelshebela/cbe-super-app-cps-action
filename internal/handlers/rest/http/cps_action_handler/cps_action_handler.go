@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -91,25 +92,20 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	checkerCount := action.CheckerCount
 	currentIndex := int32(action.CurrentCheckerIndex)
 
-	// Enforce ordering: must approve in sequence
-	if idx32 != currentIndex+1 || idx32 > checkerCount {
-		span.RecordError(fmt.Errorf("out of order checker approval"))
-		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
-		return
-	}
-
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
+	var idxDoc *model.CPSActionApproveIndex
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-		if roleID == "" {
+		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+		if rawRoleID == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
-		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, actionName)
+		roleID := local_util.FirstHex24(rawRoleID)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
 		if err != nil {
 			span.RecordError(err)
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -123,7 +119,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
-		if expected != idx32 || expected != currentIndex+1 || expected > checkerCount {
+		if expected != int32(*idxDoc.CheckerIndex) || expected != currentIndex+1 || expected > checkerCount {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 			return
 		}
@@ -135,6 +131,12 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	// Enforce ordering: must approve in sequence
+	if int32(*idxDoc.CheckerIndex) != currentIndex+1 || int32(*idxDoc.CheckerIndex) > checkerCount {
+		span.RecordError(fmt.Errorf("out of order checker approval"))
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+		return
+	}
 	// Build approval update inline (only mark Approved on final checker)
 	finalStatus := string(constants.Pending)
 	if idx32 == checkerCount {

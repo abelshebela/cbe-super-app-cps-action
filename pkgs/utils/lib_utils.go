@@ -18,7 +18,29 @@ import (
 )
 
 var counter uint64
+var reHex24 = regexp.MustCompile(`(?i)[0-9a-f]{24}`)
 
+func isHex(s string) bool {
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+func FirstHex24(s string) string {
+	if s == "" {
+		return ""
+	}
+	if len(s) == 24 && isHex(s) {
+		return strings.ToLower(s)
+	}
+	m := reHex24.FindString(s)
+	if m == "" {
+		return ""
+	}
+	return strings.ToLower(m)
+}
 func NewNotificationID() string {
 	// timestamp format: YYYYMMDDHHMMSS
 	timestamp := time.Now().Format("20060102150405")
