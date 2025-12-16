@@ -319,6 +319,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+	ErrorInvalidWalletCode,
+	ErrorInvalidWalletName,
 
 	//topup related error codes
 	ErrorTopupNameRequired,
@@ -1693,6 +1695,20 @@ var (
 		Code:       "ERROR_WALLET_NAME_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet name is required",
+		Type:       "error",
+	}
+
+	ErrorInvalidWalletName = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_NAME",
+		StatusCode: 400,
+		Message:    "Invalid wallet name, special characters are not allowed",
+		Type:       "error",
+	}
+
+	ErrorInvalidWalletCode = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_CODE",
+		StatusCode: 400,
+		Message:    "Invalid wallet code, special characters are not allowed",
 		Type:       "error",
 	}
 
