@@ -1,5 +1,5 @@
 -- ===========================================
--- Drop ANY existing object named group_vault_categories
+-- Drop ANY existing object named vault_categories
 -- ===========================================
 
 DECLARE
@@ -8,7 +8,7 @@ BEGIN
   FOR obj IN (
     SELECT object_name, object_type
     FROM user_objects
-    WHERE object_name = 'GROUP_VAULT_CATEGORIES'
+    WHERE object_name = 'vault_categories'
   ) LOOP
     v_sql := 'DROP ' || obj.object_type || ' ' || obj.object_name;
 
@@ -23,7 +23,7 @@ END;
 /
  
 -- ===========================================
--- Drop ANY existing object named idx_group_vault_categories_is_active
+-- Drop ANY existing object named idx_vault_categories_is_active
 -- ===========================================
 
 DECLARE
@@ -32,7 +32,7 @@ BEGIN
   FOR obj IN (
     SELECT object_name, object_type
     FROM user_objects
-    WHERE object_name = 'IDX_GROUP_VAULT_CATEGORIES_IS_ACTIVE'
+    WHERE object_name = 'IDX_vault_categories_IS_ACTIVE'
   ) LOOP
     EXECUTE IMMEDIATE 'DROP INDEX ' || obj.object_name;
   END LOOP;
@@ -43,46 +43,47 @@ END;
 -- Create Table
 -- ===========================================
 
-CREATE TABLE group_vault_categories (
+CREATE TABLE vault_categories (
     id          VARCHAR2(36) NOT NULL PRIMARY KEY,
     name        VARCHAR2(255) NOT NULL,
+    interest    NUMBER(19,4) NOT NULL CHECK (interest >= 0),
     cover_image VARCHAR2(255),
     is_active   NUMBER(1) DEFAULT 0 NOT NULL,
     created_at  TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
     updated_at  TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
     deleted_at  TIMESTAMP WITH TIME ZONE,
     is_deleted  NUMBER(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT uq_group_vault_categories_name UNIQUE (name),
-    CONSTRAINT chk_group_vault_categories_is_active CHECK (is_active IN (0,1)),
-    CONSTRAINT chk_group_vault_categories_is_deleted CHECK (is_deleted IN (0,1))
+    CONSTRAINT uq_vault_categories_name UNIQUE (name),
+    CONSTRAINT chk_vault_categories_is_active CHECK (is_active IN (0,1)),
+    CONSTRAINT chk_vault_categories_is_deleted CHECK (is_deleted IN (0,1))
 );
 /
 
-COMMENT ON COLUMN group_vault_categories.deleted_at IS 'Used for soft deletes';
+COMMENT ON COLUMN vault_categories.deleted_at IS 'Used for soft deletes';
 /
 
 -- ===========================================
 -- Recreate Index
 -- ===========================================
 
-CREATE INDEX idx_group_vault_categories_is_active
-    ON group_vault_categories(is_active);
+CREATE INDEX idx_vault_categories_is_active
+    ON vault_categories(is_active);
 /
 
 -- ===========================================
 -- Triggers
 -- ===========================================
 
-CREATE OR REPLACE TRIGGER trg_group_vault_categories_updated_at
-  BEFORE UPDATE ON group_vault_categories
+CREATE OR REPLACE TRIGGER trg_vault_categories_updated_at
+  BEFORE UPDATE ON vault_categories
   FOR EACH ROW
 BEGIN
   :NEW.updated_at := SYSTIMESTAMP;
 END;
 /
 
-CREATE OR REPLACE TRIGGER trg_group_vault_categories_insert
-  BEFORE INSERT ON group_vault_categories
+CREATE OR REPLACE TRIGGER trg_vault_categories_insert
+  BEFORE INSERT ON vault_categories
   FOR EACH ROW
 BEGIN
   IF :NEW.created_at IS NULL THEN
