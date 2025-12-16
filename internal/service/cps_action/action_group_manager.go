@@ -83,18 +83,21 @@ func ResolveModuleFor(action string) (string, bool) {
 
 // ResolveModuleForRA resolves a RequestAction to a parent module name.
 func ResolveModuleForRA(action RequestAction) (string, bool) {
+
 	// First, check in priority order to mirror dispatcher behavior
 	for _, mod := range modulePriority {
 		if IsActionInGroup(action, mod) {
 			return mod, true
 		}
 	}
+
 	// Then, scan any remaining groups not explicitly prioritized
 	for mod := range RequestActionGroups {
 		// skip already-checked modules
 		if contains(modulePriority, mod) {
 			continue
 		}
+
 		if IsActionInGroup(action, mod) {
 			return mod, true
 		}

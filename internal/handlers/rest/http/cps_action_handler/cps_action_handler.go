@@ -32,6 +32,76 @@ type cpsActionAdapter struct {
 	logger               utils.Logger
 }
 
+// ReverseCPSAction reverses an already-approved CPS action
+//
+//	@Summary		Reverse CPS action (auditor only)
+//	@Description	Reverses an APPROVED CPS action by applying the inverse operation. Restricted to auditor roles.
+//	@Tags			CPS Actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			action_code	path	string	true	"Action Code"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}	"CPS action reversed successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		403	{object}	localization.StandardResponse{data=nil}	"Forbidden"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"Action not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/actions/{action_code}/reverse [patch]
+func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "reverseCpsAction", "handler", "cpsAction")
+	defer span.End()
+	actionCode := chi.URLParam(r, string(constants.ActionCode))
+
+	// Load action and validate status
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if action.ActionStatus != string(constants.Approved) {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	// Validate caller is auditor for this module via approver index (role_id + action group)
+	userData, err := local_util.ParseUserContext(r)
+	if err != nil {
+		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
+		return
+	}
+	actionName := ""
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+		actionName = mod
+	}
+	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+		roleID := local_util.FirstHex24(rawRoleID)
+		if roleID == "" {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
+		if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+	}
+
+	// Perform reversal via service
+	if err := a.cpsActionApplication.ReverseCPSAction(ctx, actionCode); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	span.SetAttributes(
+		attribute.String("cps_action.code", actionCode),
+		attribute.String("auditor.id", userData.UserID),
+	)
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
+}
+
 func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger utils.Logger) cpsaction.CPSActionAdapter {
 	return &cpsActionAdapter{
 		logger:               logger,
