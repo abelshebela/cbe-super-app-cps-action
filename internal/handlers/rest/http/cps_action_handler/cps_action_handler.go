@@ -67,6 +67,16 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	// Prevent approving an action that is already finalized
+	if action.ActionStatus == string(constants.Approved) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
+		return
+	}
+	if action.ActionStatus == string(constants.Rejected) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
+		return
+	}
+
 	// Derive next expected checker index and attach into request context
 	idx32 := int32(action.CurrentCheckerIndex) + 1
 	r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
@@ -184,6 +194,15 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	// Prevent rejecting an action that is already finalized
+	if action.ActionStatus == string(constants.Approved) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
+		return
+	}
+	if action.ActionStatus == string(constants.Rejected) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
 		return
 	}
 	idx32 := int32(action.CurrentCheckerIndex) + 1
