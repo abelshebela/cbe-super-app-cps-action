@@ -46,6 +46,7 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["card_name"] = searchRegex // choose your searchable field(s)
+		searchKeys["_id"] = searchRegex       // choose your searchable field(s)
 	}
 
 	// 4. Build filter, skip, limit
