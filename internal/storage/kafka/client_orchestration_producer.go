@@ -83,7 +83,7 @@ func (np *ClientOrchestrationProducer) PublishMessage(ctx context.Context, msg i
 
 	// Create Sarama producer message
 	kafkaMsg := &sarama.ProducerMessage{
-		Topic: topic,
+		Topic: np.config.UserOrchastrator,
 		Value: sarama.StringEncoder(messageBytes),
 		Headers: []sarama.RecordHeader{
 			{Key: []byte("message_id"), Value: []byte(clientOrchestrationMsg.ID)},
@@ -92,7 +92,7 @@ func (np *ClientOrchestrationProducer) PublishMessage(ctx context.Context, msg i
 		},
 	}
 
-	return np.produceAndWait(ctx, kafkaMsg, clientOrchestrationMsg.ID, topic, logType)
+	return np.produceAndWait(ctx, kafkaMsg, clientOrchestrationMsg.ID, np.config.UserOrchastrator, logType)
 }
 
 // produceAndWait handles message production and delivery confirmation
