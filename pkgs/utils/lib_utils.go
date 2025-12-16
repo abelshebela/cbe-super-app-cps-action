@@ -59,7 +59,7 @@ func ExtractUserContext(r *http.Request) types.UserContext {
 		PhoneNumber:  get("phone_number"),
 		Department:   get("department"),
 		UserRole:     get("user_role"),
-		CheckerIndex: get("checker_index"),
+		CheckerIndex: get("role_checker_index"),
 	}
 }
 

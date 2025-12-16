@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 )
 
 // cpsActionRegistry maps METHOD + " " + RoutePattern to CPS action name
@@ -263,6 +265,35 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 					rel = "/"
 				}
 			}
+
+			var idxDoc *model.CPSActionApproveIndex
+			// Pre-attach role checker index/group BEFORE whitelist so downstream handlers always have it
+			if cpsApproveRepo != nil {
+				rawRoleIDPre, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+				roleIDPre := firstHex24(rawRoleIDPre)
+				if roleIDPre != "" {
+					keyPre := strings.ToUpper(r.Method) + " " + rel
+					actionNamePre, okPre := cpsActionRegistry[keyPre]
+					if !okPre {
+						switch r.Method {
+						case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+							actionNamePre = deriveModuleFromPattern(rel)
+						}
+					}
+					if actionNamePre != "" {
+						actionPre := strings.ToUpper(strings.TrimSpace(actionNamePre))
+						idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleIDPre, actionPre)
+						if err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
+							expected := int32(*idxDoc.CheckerIndex)
+							ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+							ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+							r = r.WithContext(ctx)
+						}
+					}
+				}
+			}
+
+			fmt.Println(idxDoc)
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
 				if strings.HasPrefix(rel, p) {
