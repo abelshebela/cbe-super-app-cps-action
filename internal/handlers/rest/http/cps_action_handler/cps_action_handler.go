@@ -79,9 +79,9 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Derive next expected checker index and attach into request context
-	idx32 := int32(action.CurrentCheckerIndex) + 1
-	r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
-	ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
+	// idx32 := int32(action.CurrentCheckerIndex) + 1
+	// r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
+	// ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
 
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -119,10 +119,16 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
+		if currentIndex == int32(*idxDoc.CheckerIndex) {
+			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
+			return
+		}
+
 		if expected != int32(*idxDoc.CheckerIndex) || expected != currentIndex+1 || expected > checkerCount {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 			return
 		}
+
 		for _, cu := range action.CheckerUsers {
 			if cu.RoleID == roleID || cu.CheckerID == userData.UserID || cu.CheckerIndex == expected {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -139,13 +145,13 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 	// Build approval update inline (only mark Approved on final checker)
 	finalStatus := string(constants.Pending)
-	if idx32 == checkerCount {
+	if int32(*idxDoc.CheckerIndex) == checkerCount {
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := types.Checker{
 		CheckerID:          userData.UserID,
 		RoleID:             r.Context().Value(constants.ContextKey("role_id")).(string),
-		CheckerIndex:       idx32,
+		CheckerIndex:       int32(*idxDoc.CheckerIndex),
 		CheckerName:        userData.FullName,
 		CheckerPhoneNumber: userData.PhoneNumber,
 		ApprovedAt:         time.Now(),
@@ -154,7 +160,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	update := &model.CPSAction{
 		ActionCode:          action.ActionCode,
 		ActionStatus:        finalStatus,
-		CurrentCheckerIndex: float32(idx32),
+		CurrentCheckerIndex: float32(*idxDoc.CheckerIndex),
 		CheckerUsers:        append(action.CheckerUsers, checkerUser),
 		Department:          userData.Department,
 	}
