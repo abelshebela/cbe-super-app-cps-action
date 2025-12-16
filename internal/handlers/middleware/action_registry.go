@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"regexp"
 	"strings"
@@ -262,31 +261,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			// Pre-attach role checker index/group BEFORE whitelist so downstream handlers always have it
-			if cpsApproveRepo != nil {
-				rawRoleIDPre, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-				roleIDPre := firstHex24(rawRoleIDPre)
-				if roleIDPre != "" {
-					keyPre := strings.ToUpper(r.Method) + " " + rel
-					actionNamePre, okPre := cpsActionRegistry[keyPre]
-					if !okPre {
-						switch r.Method {
-						case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-							actionNamePre = deriveModuleFromPattern(rel)
-						}
-					}
-					if actionNamePre != "" {
-						actionPre := strings.ToUpper(strings.TrimSpace(actionNamePre))
-						if idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleIDPre, actionPre); err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
-							expected := int32(*idxDoc.CheckerIndex)
-							ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-							ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
-							r = r.WithContext(ctx)
-						}
-					}
-				}
-			}
-
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
 				if strings.HasPrefix(rel, p) {
@@ -321,13 +295,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
-				// Attach role checker index/group on cache hit
-				if idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleID, action); err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
-					expected := int32(*idxDoc.CheckerIndex)
-					ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-					ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
-					r = r.WithContext(ctx)
-				}
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -342,13 +309,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 			if allowed {
 				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
-				// Attach role checker index/group after authorization
-				if idxDoc, err := cpsApproveRepo.FindByRoleAndAction(r.Context(), roleID, action); err == nil && idxDoc != nil && idxDoc.CheckerIndex != nil {
-					expected := int32(*idxDoc.CheckerIndex)
-					ctx := context.WithValue(r.Context(), constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-					ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
-					r = r.WithContext(ctx)
-				}
 			}
 			if !allowed {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
