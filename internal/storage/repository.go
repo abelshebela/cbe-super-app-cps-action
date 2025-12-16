@@ -181,40 +181,29 @@ type AmountBasedAuthRepository interface {
 
 // AccountBlock persistence
 type AccountBlockRepository interface {
-	// GetBranchByCode(ctx context.Context, code string) (*model.AccountBlock, error)
-	GetBranchById(ctx context.Context, branchCode string) (*model.AccountBlock, error)
-	// GetBranchByIds(ctx context.Context, branchIds string) (*model.AccountBlock, error)
 	CreateBranch(ctx context.Context, branch *model.AccountBlock) error
-	UpdateBranch(ctx context.Context, id string, branch *model.AccountBlock) error
 	DeleteBranch(ctx context.Context, id string) error
-	EnableOrDisableBranch(ctx context.Context, id string, reason string, enabled bool) error
-	FindBranchByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllBranchesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	EnableOrDisableBranches(ctx context.Context, ids []string, reason string, enabled bool) error
+	GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 
-	GetCityById(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateCity(ctx context.Context, city *model.AccountBlock) error
-	UpdateCity(ctx context.Context, id string, city *model.AccountBlock) error
 	DeleteCity(ctx context.Context, id string) error
-	EnableOrDisableCity(ctx context.Context, ids string, reason string, enabled bool) error
-	FindCityByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllCitiesWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
+	GetCitiesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 
-	// GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
-	GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateRegion(ctx context.Context, region *model.AccountBlock) error
-	UpdateRegion(ctx context.Context, id string, region *model.AccountBlock) error
 	DeleteRegion(ctx context.Context, id string) error
-	EnableOrDisableRegion(ctx context.Context, id string, reason string, enabled bool) error
-	FindRegionByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllRegionsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	EnableOrDisableRegions(ctx context.Context, ids []string, reason string, enabled bool) error
+	GetRegionsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 
-	GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error)
 	CreateDistrict(ctx context.Context, district *model.AccountBlock) error
-	UpdateDistrict(ctx context.Context, id string, district *model.AccountBlock) error
 	DeleteDistrict(ctx context.Context, id string) error
-	EnableOrDisableDistrict(ctx context.Context, id string, reason string, enabled bool) error
-	FindDistrictByID(ctx context.Context, id string) (*model.AccountBlock, error)
 	FindAllDistrictsWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
+	EnableOrDisableDistricts(ctx context.Context, ids []string, reason string, enabled bool) error
+	GetDistrictsByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error)
 }
 
 type AdvertRepository interface {

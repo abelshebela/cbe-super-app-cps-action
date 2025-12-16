@@ -44,15 +44,16 @@ END;
 -- ===========================================
 
 CREATE TABLE vault_categories (
-    id          VARCHAR2(36) NOT NULL PRIMARY KEY,
-    name        VARCHAR2(255) NOT NULL,
-    interest    NUMBER(19,4) NOT NULL CHECK (interest >= 0),
-    cover_image VARCHAR2(255),
-    is_active   NUMBER(1) DEFAULT 0 NOT NULL,
-    created_at  TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
-    updated_at  TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
-    deleted_at  TIMESTAMP WITH TIME ZONE,
-    is_deleted  NUMBER(1) DEFAULT 0 NOT NULL,
+    id              VARCHAR2(36) NOT NULL PRIMARY KEY,
+    name            VARCHAR2(255) NOT NULL,
+    interest        NUMBER(19,4) NOT NULL CHECK (interest >= 0),
+    category_type   VARCHAR2(20) NOT NULL CHECK (method IN ('PERSONAL', 'GROUP')),
+    cover_image     VARCHAR2(255),
+    is_active       NUMBER(1) DEFAULT 0 NOT NULL,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT SYSTIMESTAMP NOT NULL,
+    deleted_at      TIMESTAMP WITH TIME ZONE,
+    is_deleted      NUMBER(1) DEFAULT 0 NOT NULL,
     CONSTRAINT uq_vault_categories_name UNIQUE (name),
     CONSTRAINT chk_vault_categories_is_active CHECK (is_active IN (0,1)),
     CONSTRAINT chk_vault_categories_is_deleted CHECK (is_deleted IN (0,1))
