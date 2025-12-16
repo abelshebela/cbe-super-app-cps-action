@@ -133,7 +133,7 @@ func (b *BankStorage) FindByID(ctx context.Context, id string) (*model.Bank, err
 }
 
 func (s *BankStorage) FindByNameOrBICOrCode(
-	ctx context.Context, bic, code, name string, account_length *int) (*model.Bank, error) {
+	ctx context.Context, bic, code, name string) (*model.Bank, error) {
 
 	// Build conditions dynamically, only for non-empty parameters
 	conditions := []bson.M{}
@@ -154,14 +154,6 @@ func (s *BankStorage) FindByNameOrBICOrCode(
 		conditions = append(conditions, bson.M{
 			"code": bson.M{"$regex": "^" + regexp.QuoteMeta(code) + "$", "$options": "i"},
 		})
-	}
-
-	// If no conditions provided, return error or handle appropriately
-	if len(conditions) == 0 {
-		if account_length != nil {
-			return nil, nil
-		}
-		return nil, errors.New("at least one search parameter must be provided")
 	}
 
 	filter := bson.M{"$or": conditions}
