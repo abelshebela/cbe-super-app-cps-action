@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"time"
@@ -20,18 +21,20 @@ import (
 )
 
 type AccountBlockStorage struct {
-	accountBlock dal.MongoDal[model.AccountBlock, model.AccountBlock]
-	client       *mongo.Client
-	dbName       string
-	logger       utils.Logger
+	accountBlock  dal.MongoDal[model.AccountBlock, model.AccountBlock]
+	client        *mongo.Client
+	dbName        string
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock: dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
-		client:       client,
-		dbName:       dbName,
-		logger:       logger,
+		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
+		client:        client,
+		dbName:        dbName,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 

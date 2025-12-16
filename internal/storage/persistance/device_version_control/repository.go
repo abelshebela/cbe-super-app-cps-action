@@ -1,10 +1,12 @@
 package deviceversioncontrol
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -19,24 +21,29 @@ import (
 )
 
 type DeviceVersionControlRepository struct {
-	deviceDal dal.MongoDal[model.DeviceVersionControl, model.DeviceVersionControl]
-	logger    utils.Logger
-	client    *mongo.Client
+	deviceDal     dal.MongoDal[model.DeviceVersionControl, model.DeviceVersionControl]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewDeviceVersionControlRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DeviceVersionControlRepository {
+func NewDeviceVersionControlRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DeviceVersionControlRepository {
 	return &DeviceVersionControlRepository{
-		deviceDal: dal.NewMongoDal[model.DeviceVersionControl, model.DeviceVersionControl](client, dbName, collection),
-		logger:    logger,
-		client:    client,
+		deviceDal:     dal.NewMongoDal[model.DeviceVersionControl, model.DeviceVersionControl](client, dbName, collection),
+		client:        client,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
 func (d *DeviceVersionControlRepository) Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error {
-	_, err := d.deviceDal.InsertOne(ctx, deviceVersionControl)
+	newDeviceVersion, err := d.deviceDal.InsertOne(ctx, deviceVersionControl)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	d.kafkaProducer.PublishMessage(ctx, newDeviceVersion, string(constants.ClientOrchestrationDeviceVersionControlTopic), string(constants.ClientOrchestrationDeviceVersionControlTopic), "new device version control created")
+
 	return nil
 }
 
@@ -51,7 +58,7 @@ func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, 
 
 	deviceVersionControl["updated_at"] = time.Now()
 	deviceVersionControl["last_modified_at"] = time.Now()
-	_, err = d.deviceDal.UpdateOne(ctx, filter, deviceVersionControl)
+	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, deviceVersionControl)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			d.logger.Errorf("[Update] device version control not found")
@@ -60,6 +67,9 @@ func (d *DeviceVersionControlRepository) Update(ctx context.Context, id string, 
 		d.logger.Errorf("[Update] failed to update device version control: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	d.kafkaProducer.PublishMessage(ctx, updatedDeviceVersion, string(constants.ClientOrchestrationDeviceVersionControlTopic), string(constants.ClientOrchestrationDeviceVersionControlTopic), "update device version control")
+
 	d.logger.Infof("[Update] device version control updated successfully")
 	return nil
 }
@@ -91,11 +101,13 @@ func (d *DeviceVersionControlRepository) EnableOrDisable(ctx context.Context, id
 
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
-	_, err = d.deviceDal.UpdateOne(ctx, filter, update)
+	updatedDeviceVersion, err := d.deviceDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		d.logger.Errorf("[EnableOrDisable] failed to enable/disable device version control: %v", err)
 		return err
 	}
+	d.kafkaProducer.PublishMessage(ctx, updatedDeviceVersion, string(constants.ClientOrchestrationDeviceVersionControlTopic), string(constants.ClientOrchestrationDeviceVersionControlTopic), "update device version control enable/disable")
+
 	d.logger.Infof("[EnableOrDisable] device version control enable/disable completed successfully")
 	return nil
 }

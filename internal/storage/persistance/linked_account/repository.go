@@ -1,9 +1,11 @@
 package linked_account
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -17,16 +19,18 @@ import (
 )
 
 type LinkedAccountStorage struct {
-	dal    dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewLinkedAccountRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.LinkedAccountRepository {
+func NewLinkedAccountRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.LinkedAccountRepository {
 	return &LinkedAccountStorage{
-		dal:    dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, dbName, collection),
+		client:        client,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -46,10 +50,13 @@ func (l *LinkedAccountStorage) FindByCustomerNumber(ctx context.Context, custome
 }
 
 func (l *LinkedAccountStorage) Create(ctx context.Context, account *model.LinkedAccount) error {
-	_, err := l.dal.InsertOne(ctx, *account)
+	newLinkedAccount, err := l.dal.InsertOne(ctx, *account)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	l.kafkaProducer.PublishMessage(ctx, newLinkedAccount, string(constants.ClientOrchestrationLinkedAccountTopic), string(constants.ClientOrchestrationLinkedAccountTopic), "new linked account created")
+
 	return nil
 }
 
@@ -61,13 +68,16 @@ func (l *LinkedAccountStorage) Update(ctx context.Context, id string, account *m
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := LinkedAccountMapper(*account)
 
-	_, err = l.dal.UpdateOne(ctx, filter, updateData)
+	updatedLinkedAccount, err := l.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	l.kafkaProducer.PublishMessage(ctx, updatedLinkedAccount, string(constants.ClientOrchestrationLinkedAccountTopic), string(constants.ClientOrchestrationLinkedAccountTopic), "linked account updated")
+
 	return nil
 }
 
