@@ -3,12 +3,13 @@ package account_block
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -377,7 +378,6 @@ func (a *AccountBlockStorage) EnableOrDisableRegion(ctx context.Context, id stri
 		}
 		for _, city := range cities.Data {
 			filter := bson.M{"_id": city.ID}
-
 			update := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
 
 			_, err = a.accountBlock.UpdateOne(ctx, filter, update)
@@ -560,7 +560,6 @@ func (a *AccountBlockStorage) EnableOrDisableDistrict(ctx context.Context, id st
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	districtFilter := bson.M{"_id": obj}
-
 	districtUpdate := bson.M{"is_enabled": enabled, "updated_at": time.Now()}
 	_, err = a.accountBlock.UpdateOne(ctx, districtFilter, districtUpdate)
 	if err != nil {
@@ -692,7 +691,6 @@ func (a *AccountBlockStorage) GetCityById(ctx context.Context, id string) (*mode
 
 	filter := bson.M{"_id": obj}
 	filter["type"] = "C"
-
 	result, err := FindAccountBlocksWithParentPopulatedRecursive(ctx, collection, filter, 0, 1, a.logger)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

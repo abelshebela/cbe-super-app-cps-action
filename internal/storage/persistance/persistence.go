@@ -5,11 +5,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
+	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
+	Account_lookup_external         account_lookup.Account
 	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
 	AccountLookup                   core.CBECoreAPIInterface
 	MerchantLookup                  merchant_lookup.MerchantLookupAdapter

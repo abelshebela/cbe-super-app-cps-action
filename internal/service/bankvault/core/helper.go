@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/shopspring/decimal"
 )
@@ -19,7 +19,7 @@ func ConvertBankVaultToMongoSafe(product *model.BankVaultProduct) map[string]int
 		"name":                           product.Name,
 		"currency":                       product.Currency,
 		"interest":                       func() float64 { f, _ := product.Interest.Float64(); return f }(),
-		"method":                         string(product.Method),
+		"method":                         product.Method,
 		"frequency":                      product.Frequency,
 		"lock_period":                    product.LockPeriod,
 		"min_amount":                     func() float64 { f, _ := product.MinAmount.Float64(); return f }(),
@@ -42,7 +42,7 @@ func MapBankVaultToResponse(bankVault *model.BankVaultProduct) *bankvault.BankVa
 		Name:                       bankVault.Name,
 		Currency:                   bankVault.Currency,
 		Interest:                   bankVault.Interest,
-		Method:                     bankVault.Method,
+		Method:                     string(bankVault.Method),
 		Frequency:                  bankVault.Frequency,
 		LockPeriod:                 bankVault.LockPeriod,
 		MinAmount:                  bankVault.MinAmount,
@@ -92,7 +92,8 @@ func MapBankVaultProduct(data map[string]interface{}) (model.BankVaultProduct, e
 
 	BV.Name = getString(data, "name")
 	BV.Currency = getString(data, "currency")
-	BV.Method = constants.AccrualMethod(getString(data, "method"))
+	// BV.Method = constants.AccrualMethod(getString(data, "method"))
+	BV.Method = getString(data, "method")
 	BV.Frequency = getInteger(data, "frequency")
 
 	BV.Interest = getDecimal(data, "interest")

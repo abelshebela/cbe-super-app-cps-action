@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"cbe-super-app-cps-action/internal/constants"
+	// "cbe-super-app-cps-action/internal/constants"
 	notify "cbe-super-app-cps-action/internal/constants/dto/notification"
-	"cbe-super-app-cps-action/internal/constants/model"
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
+
+	shared_constants "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func GenerateNotification(notification model.Notification) *model.Notification {
@@ -35,9 +37,9 @@ func BuildCreateNotification(req notify.NotificationRequest) model.Notification 
 		NotificationType: req.NotificationType,
 		NotificationBody: req.NotificationBody,
 		IsPublic:         req.IsPublic,
-		For:              constants.NotificationFor(req.For),
+		For:              shared_constants.NotificationFor(req.For),
 		CreatedBy:        req.CreatedBy,
-		Status:           constants.StatusPending,
+		Status:           shared_constants.StatusPending,
 		Seen:             false,
 		Enabled:          true,
 		IsDeleted:        false,
@@ -58,7 +60,7 @@ func BuildUpdateNotification(prev *model.Notification, req notify.NotificationRe
 		cur.NotificationBody = req.NotificationBody
 	}
 	if req.For != "" {
-		cur.For = constants.NotificationFor(req.For)
+		cur.For = shared_constants.NotificationFor(req.For)
 	}
 	if req.CreatedBy != "" {
 		cur.CreatedBy = req.CreatedBy

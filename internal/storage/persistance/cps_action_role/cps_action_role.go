@@ -4,13 +4,14 @@ import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"fmt"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -141,26 +142,26 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		// This renames the fields to match the DTO struct's JSON/BSON tags if necessary
 		// and ensures the output document is clean.
 		{{Key: "$project", Value: bson.D{
-    {Key: "_id", Value: 1},
-    {Key: "action_code", Value: 1},
-    {Key: "action_name", Value: 1},
-    {Key: "enabled", Value: 1},
-    {Key: "updated_at", Value: 1},
-    {Key: "created_at", Value: 1},
-    {Key: "assigned_makers_roles", Value: 1},
-    {Key: "assigned_checkers_roles", Value: 1},
-    {Key: "assigned_auditor_roles", Value: 1}, // FIXED spelling
-}}},
+			{Key: "_id", Value: 1},
+			{Key: "action_code", Value: 1},
+			{Key: "action_name", Value: 1},
+			{Key: "enabled", Value: 1},
+			{Key: "updated_at", Value: 1},
+			{Key: "created_at", Value: 1},
+			{Key: "assigned_makers_roles", Value: 1},
+			{Key: "assigned_checkers_roles", Value: 1},
+			{Key: "assigned_auditor_roles", Value: 1}, // FIXED spelling
+		}}},
 	}
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		
+
 		return nil, err
 	}
 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
 	if err := cursor.All(ctx, &results); err != nil {
-		fmt.Println("/////// pipline error ",err)
+		fmt.Println("/////// pipline error ", err)
 		return nil, err
 	}
 	if len(results) == 0 {

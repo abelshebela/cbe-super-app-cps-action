@@ -1,11 +1,12 @@
 package media
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -126,7 +127,6 @@ func buildUpdate(updateFields model.NewsArticle) bson.M {
 	if updateFields.Slug != "" {
 		update["slug"] = updateFields.Slug
 	}
-
 
 	if updateFields.ThumbnailAltText != "" {
 		update["thumbnail_alt_text"] = updateFields.ThumbnailAltText

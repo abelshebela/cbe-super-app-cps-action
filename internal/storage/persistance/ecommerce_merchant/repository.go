@@ -3,12 +3,13 @@ package mini_app_merchant
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -21,7 +22,7 @@ import (
 )
 
 type MiniAppMerchantStorage struct {
-	dal        dal.MongoDal[model.MiniAppMerchant, model.MiniAppMerchant]
+	dal        dal.MongoDal[model.EcommerceMerchant, model.EcommerceMerchant]
 	client     *mongo.Client
 	logger     utils.Logger
 	dbName     string
@@ -30,7 +31,7 @@ type MiniAppMerchantStorage struct {
 
 func NewEcommerceMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppMerchantRepository {
 	return &MiniAppMerchantStorage{
-		dal:        dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, dbName, collection),
+		dal:        dal.NewMongoDal[model.EcommerceMerchant, model.EcommerceMerchant](client, dbName, collection),
 		client:     client,
 		logger:     logger,
 		dbName:     dbName,
@@ -38,7 +39,7 @@ func NewEcommerceMerchantRepository(client *mongo.Client, dbName string, collect
 	}
 }
 
-func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
+func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error) {
 	if merchant.ID.IsZero() {
 		merchant.ID = bson.ObjectID(primitive.NewObjectID())
 	}
@@ -50,7 +51,7 @@ func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.Min
 	return &createdMerchant, nil
 }
 
-func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error {
+func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
@@ -122,7 +123,7 @@ func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string,
 	return nil
 }
 
-func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
@@ -142,7 +143,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 	return result, nil
 }
 
-func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
+func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -175,13 +176,13 @@ func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.MiniAppMerchant]{
+	return &types.PaginatedResponse[[]*model.EcommerceMerchant]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (m *MiniAppMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error) {
+func (m *MiniAppMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.EcommerceMerchant, error) {
 	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

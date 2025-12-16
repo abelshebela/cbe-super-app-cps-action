@@ -5,7 +5,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -14,6 +13,10 @@ import (
 	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -41,7 +44,7 @@ func NewCustomerService(repo storage.CustomerRepository, cpsService service.CPSA
 	}
 }
 
-func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomersDetail", "Customer", "GetCustomersDetail")
 	defer span.End()
 
@@ -56,7 +59,7 @@ func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *
 	return customers, nil
 }
 
-func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*model.User, error) {
+func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerByID", "Customer", "GetCustomerByID")
 	defer span.End()
 
@@ -86,7 +89,8 @@ func (s *customerService) GetLinkedAccount(ctx context.Context, customerNumber s
 	}
 	return accounts, nil
 }
-func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error) {
+
+func (s *customerService) GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetBlockedCustomer", "Customer", "GetBlockedCustomer")
 	defer span.End()
 
@@ -206,18 +210,18 @@ func (c *customerService) ApproveFaydaCustomer(ctx context.Context, id string, r
 		return errors.New(localization.ErrorCustomerAlreadyEnabled.Code)
 	}
 
-	if customer.KYCLevel != uint8(constants.ONE) {
-		c.logger.Errorf("[ApproveFaydaCustomer] user is not a Fayda registered customer")
-		span.AddEvent("User is not a Fayda registered customer", trace.WithAttributes(
-			attribute.String("error", localization.ErrorUserNotFaydaRegistered.Code),
-			attribute.String("id", id),
-		))
-		return errors.New(localization.ErrorUserNotFaydaRegistered.Code)
-	}
+	// if customer.KYCLevel != uint8(constants.ONE) {
+	// 	c.logger.Errorf("[ApproveFaydaCustomer] user is not a Fayda registered customer")
+	// 	span.AddEvent("User is not a Fayda registered customer", trace.WithAttributes(
+	// 		attribute.String("error", localization.ErrorUserNotFaydaRegistered.Code),
+	// 		attribute.String("id", id),
+	// 	))
+	// 	return errors.New(localization.ErrorUserNotFaydaRegistered.Code)
+	// }
 
 	updateData := *customer
 
-	updateData.FaydaRiskLevel = req.RiskLevel
+	// updateData.FaydaRiskLevel = req.RiskLevel
 
 	action := lib.CpsModelBuilder(id, makerData, customer, updateData, string(constants.RequestApproveFaydaCustomer), constants.UPDATE)
 
@@ -353,9 +357,9 @@ func (c *customerService) DisableCustomerByID(ctx context.Context, id string, di
 	new_customer.BlockedReason = disable.DisableReason
 
 	if *disable.IsTemporary {
-		new_customer.BlockedOn = constants.BPS
+		new_customer.BlockedOn = member.BlockedOn(constants.BPS)
 	} else {
-		new_customer.BlockedOn = constants.CPS
+		new_customer.BlockedOn = member.BlockedOn(constants.CPS)
 	}
 
 	action := lib.CpsModelBuilder(id, makerData, customer, new_customer, string(constants.RequestEnableDisableCustomer), constants.UPDATE)
@@ -378,7 +382,7 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	defer span.End()
 
 	d.logger.Infof("[Authorize] authorizing customer action: %s", cpsAction.RequestAction)
-	actionData, err := local_util.JsonUnmarshal[model.User](cpsAction.CurrentAction)
+	actionData, err := local_util.JsonUnmarshal[member.User](cpsAction.CurrentAction)
 	if err != nil {
 		d.logger.Errorf("[Authorize] failed to unmarshal CurrentAction to User: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(

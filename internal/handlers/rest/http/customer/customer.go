@@ -4,11 +4,11 @@ import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
 
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
@@ -18,8 +18,8 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type customer_resp *model.User
-type customers_paginated_resp *types.PaginatedResponse[[]*model.User]
+type customer_resp *member.User
+type customers_paginated_resp *types.PaginatedResponse[[]*member.User]
 
 type customerAdapter struct {
 	customerService service.CustomerService

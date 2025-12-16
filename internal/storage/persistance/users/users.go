@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -15,7 +15,7 @@ import (
 )
 
 type userRepository struct {
-	userDal    dal.MongoDal[model.User, model.User]
+	userDal    dal.MongoDal[member.User, member.User]
 	client     *mongo.Client
 	logger     utils.Logger
 	dbName     string
@@ -24,7 +24,7 @@ type userRepository struct {
 
 func NewUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.UserRepository {
 	return &userRepository{
-		userDal:    dal.NewMongoDal[model.User, model.User](client, dbName, collection),
+		userDal:    dal.NewMongoDal[member.User, member.User](client, dbName, collection),
 		logger:     logger,
 		client:     client,
 		dbName:     dbName,
@@ -32,7 +32,7 @@ func NewUserRepository(client *mongo.Client, dbName string, collection string, l
 	}
 }
 
-func (r *userRepository) Save(ctx context.Context, user *model.User) error {
+func (r *userRepository) Save(ctx context.Context, user *member.User) error {
 
 	if _, err := r.userDal.InsertOne(ctx, *user); err != nil {
 		r.logger.Errorf("failed to insert user ")
@@ -42,7 +42,7 @@ func (r *userRepository) Save(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, error) {
+func (r *userRepository) FindById(ctx context.Context, id string) (*member.User, error) {
 	// projection := UserProjection()
 	filter, err := UserIdFilterAttachMent(id)
 	if err != nil {
@@ -64,7 +64,7 @@ func (r *userRepository) FindById(ctx context.Context, id string) (*model.User, 
 	return user, nil
 }
 
-func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.User, error) {
+func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*member.User, error) {
 
 	projection := UserProjection()
 	filter := UserPhoneFilterAttachment(phoneNumber)
@@ -84,7 +84,7 @@ func (r *userRepository) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 	return user, nil
 }
 
-func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*model.User, error) {
+func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string) (*member.User, error) {
 
 	projection := UserProjection()
 
@@ -104,7 +104,7 @@ func (r *userRepository) FindByDeviceUUID(ctx context.Context, deviceUUID string
 	return user, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, id string, update *model.User) error {
+func (r *userRepository) Update(ctx context.Context, id string, update *member.User) error {
 
 	filter, _ := UserIdFilterAttachMent(id)
 	req := UserBuilder(*update)
@@ -118,7 +118,7 @@ func (r *userRepository) Update(ctx context.Context, id string, update *model.Us
 	return nil
 }
 
-func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*model.User, error) {
+func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*member.User, error) {
 	filter := bson.M{
 		"user_code": userCode,
 	}
@@ -134,7 +134,7 @@ func (r *userRepository) FindByUserCode(ctx context.Context, userCode string) (*
 	return user, nil
 }
 
-func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumber string) (*model.User, error) {
+func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumber string) (*member.User, error) {
 	filter := bson.M{
 		"customer_number": customerNumber,
 	}
@@ -149,7 +149,7 @@ func (r *userRepository) FindByCustomerNumber(ctx context.Context, customerNumbe
 	return user, nil
 }
 
-func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error) {
+func (r *userRepository) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
 	linkedAccountCollection := r.client.Database(r.dbName).Collection("linked_accounts")
 	linkedAccountFilter := bson.M{"account_number": accNumber}
 	var linkedAccount struct {

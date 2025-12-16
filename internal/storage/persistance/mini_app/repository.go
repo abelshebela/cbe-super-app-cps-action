@@ -6,7 +6,10 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	mini_app "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	"cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -118,6 +121,82 @@ func (m *MiniAppStorage) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
+func (m *MiniAppStorage) FindByIDWithMerchant(ctx context.Context, id string) (*mini_app.MiniAppResponse, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	pipeline := mongo.Pipeline{
+		// Match mini app by ID and not deleted
+		{{Key: "$match", Value: bson.D{
+			{Key: "_id", Value: objID},
+			{Key: "is_deleted", Value: false},
+		}}},
+
+		// Convert merchant_id string to ObjectID
+		{{Key: "$addFields", Value: bson.D{
+			{Key: "merchant_id_obj", Value: bson.D{
+				{Key: "$toObjectId", Value: "$merchant_id"},
+			}},
+		}}},
+
+		// Lookup merchant
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "mini_app_merchant"},
+			{Key: "localField", Value: "merchant_id_obj"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "merchant"},
+		}}},
+
+		// Unwind merchant array
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$merchant"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+
+		// Project only required fields
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "app_name", Value: 1},
+			{Key: "app_icon", Value: 1},
+			{Key: "banner_image", Value: 1},
+			{Key: "commison_gl_account", Value: 1},
+			{Key: "app_type", Value: 1},
+			{Key: "app_view_type", Value: 1},
+			{Key: "url", Value: 1},
+			{Key: "stage", Value: 1},
+			{Key: "product_code", Value: 1},
+			{Key: "credential", Value: 1},
+			{Key: "is_event_mini_app", Value: 1},
+			{Key: "is_three_click", Value: 1},
+			{Key: "enabled", Value: 1},
+			{Key: "created_at", Value: 1},
+			{Key: "last_modified_at", Value: 1},
+			{Key: "merchant._id", Value: 1},
+			{Key: "merchant.merchant_name", Value: 1},
+		}}},
+	}
+
+	cursor, err := m.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		m.logger.Errorf("aggregate mini app by id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	var resp mini_app.MiniAppResponse
+	if err := cursor.Decode(&resp); err != nil {
+		m.logger.Errorf("decode mini app response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	return &resp, nil
+}
 func (m *MiniAppStorage) DisableManyByMerchantIDs(ctx context.Context, merchantID string) error {
 	objID, err := bson.ObjectIDFromHex(merchantID)
 	if err != nil {

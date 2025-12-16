@@ -2,11 +2,9 @@ package model
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	"database/sql"
 	"encoding/json"
 	"time"
 
-	"github.com/godror/godror"
 	"github.com/shopspring/decimal"
 )
 
@@ -14,10 +12,10 @@ type BankVaultProduct struct {
 	ID                         string                  `json:"id" bson:"id"`
 	Name                       string                  `json:"name" bson:"name"`
 	Currency                   string                  `json:"currency" bson:"currency"`
-	Interest                   decimal.Decimal         `json:"interest" bson:"interest"`
+	RateBps                    decimal.Decimal         `json:"rate_bps" bson:"rate_bps"`
 	Method                     constants.AccrualMethod `json:"method" bson:"method"`
 	Frequency                  int64                   `json:"frequency" bson:"frequency"`
-	LockPeriod                 float64                 `json:"lock_period" bson:"lock_period"`
+	LockPeriod                 time.Duration           `json:"lock_period" bson:"lock_period"`
 	MinAmount                  decimal.Decimal         `json:"min_amount" bson:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount" bson:"max_amount"`
 	ApplyInterestOnEarlyUnlock bool                    `json:"apply_interest_on_early_unlock" bson:"apply_interest_on_early_unlock"`
@@ -60,7 +58,7 @@ type LockedVault struct {
 	TermsAcceptedAt            time.Time               `json:"terms_accepted_at"`
 	MinAmount                  decimal.Decimal         `json:"min_amount"`
 	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	Interest                   decimal.Decimal         `json:"interest"`
+	RateBps                    decimal.Decimal         `json:"interest"`
 	Method                     constants.AccrualMethod `json:"method"`
 	Frequency                  int64                   `json:"frequency"`
 	ApplyInterestOnEarlyUnlock *bool                   `json:"apply_interest_on_early_unlock,omitempty"`
@@ -150,38 +148,4 @@ type Transaction struct {
 	CreatedAt               time.Time         `json:"created_at"`
 	LastModifiedAt          time.Time         `json:"last_modified_at,omitzero"`
 	TotalCount              int64             `json:"total_count,omitempty"`
-}
-
-type TransactionModel struct {
-	ID                      string            `json:"id"`
-	TransactionID           string            `json:"transaction_id"`
-	FTNumber                string            `json:"ft_number"`
-	DebitBranchCode         string            `json:"debit_branch_code"`
-	DebitDistrictCode       string            `json:"debit_district_code"`
-	DebitUserID             string            `json:"debit_user_id"`
-	DebitAccountNumber      string            `json:"debit_account_number"`
-	DebitAccountHolderName  string            `json:"debit_account_holder_name"`
-	CreditUserID            string            `json:"credit_user_id"`
-	CreditAccountNumber     string            `json:"credit_account_number"`
-	CreditAccountHolderName string            `json:"credit_account_holder_name"`
-	InstitutionCode         string            `json:"institution_code"`
-	InstitutionName         string            `json:"institution_name"`
-	Currency                Currency          `json:"currency"`
-	ServiceFee              godror.Number     `json:"service_fee"`
-	TipAmount               godror.Number     `json:"tip_amount"`
-	PaidAmount              godror.Number     `json:"paid_amount"`
-	VAT                     godror.Number     `json:"vat"`
-	Amount                  godror.Number     `json:"amount"`
-	TotalAmount             godror.Number     `json:"total_amount"`
-	ExternalReference       string            `json:"external_reference,omitempty"`
-	TransactionReason       string            `json:"transaction_reason,omitempty"`
-	TransactionType         TransactionType   `json:"transaction_type"`
-	TransactionStatus       TransactionStatus `json:"transaction_status"`
-	IsIFB                   string            `json:"is_ifb"`
-	IsReversed              sql.NullBool      `json:"is_reversed"`
-	PaidAt                  sql.NullTime      `json:"paid_at,omitzero"`
-	ReversedAt              sql.NullTime      `json:"reversed_at,omitzero"`
-	Metadata                *godror.JSON      `json:"metadata,omitempty"`
-	CreatedAt               sql.NullTime      `json:"created_at"`
-	LastModifiedAt          sql.NullTime      `json:"last_modified_at,omitzero"`
 }

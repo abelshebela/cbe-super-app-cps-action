@@ -1,8 +1,6 @@
 package sqlc
 
 import (
-	constants "cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/model"
 	utils "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
@@ -10,6 +8,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/godror/godror"
 	"github.com/google/uuid"
@@ -358,17 +359,17 @@ RETURNING id INTO :13
 `
 
 type SaveBankVaultParams struct {
-	ID                         string                  `json:"id"`
-	Name                       string                  `json:"name"`
-	Currency                   string                  `json:"currency"`
-	Interest                   decimal.Decimal         `json:"interest"`
-	Method                     constants.AccrualMethod `json:"method"`
-	Frequency                  int64                   `json:"frequency"`
-	LockPeriod                 float64                 `json:"lock_period"`
-	MinAmount                  decimal.Decimal         `json:"min_amount"`
-	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
-	IsActive                   sql.NullBool            `json:"is_active"`
+	ID                         string          `json:"id"`
+	Name                       string          `json:"name"`
+	Currency                   string          `json:"currency"`
+	Interest                   decimal.Decimal `json:"interest"`
+	Method                     string          `json:"method"`
+	Frequency                  int64           `json:"frequency"`
+	LockPeriod                 float64         `json:"lock_period"`
+	MinAmount                  decimal.Decimal `json:"min_amount"`
+	MaxAmount                  decimal.Decimal `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool    `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool    `json:"is_active"`
 }
 
 func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error) {
