@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"path"
+	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -52,15 +53,20 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 	defer span.End()
 	s.logger.Infof("Createtopup called", "topup_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	exist, err := s.repo.Find(ctx, "TOP-"+req.Code, req.Name)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	if exist != nil {
+	if exist != nil && strings.EqualFold(exist.Name, req.Name) {
 		span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+	}
+
+	if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
+		span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 	}
 
 	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
@@ -113,26 +119,31 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, "name", req.Name)
+		exist, err := s.repo.Find(ctx, "TOP-"+req.Code, req.Name)
 		if err != nil {
 			span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 
-		if exist != nil && exist.ID.Hex() != id {
+		if exist != nil && strings.EqualFold(exist.Name, req.Name) {
 			span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 		}
+
+		if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
+			span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+		}
 	}
 
-	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
-	if err != nil {
-		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
-
-	req.Code = code
 	if req.Code != "" {
+		code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+		if err != nil {
+			span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
+			return errors.New(localization.ErrorUnhandledServer.Code)
+		}
+		req.Code = code
+
 		exist, err := s.repo.Find(ctx, "code", req.Code)
 		if err != nil {
 			span.AddEvent("Repo find by code error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", req.Code)))
