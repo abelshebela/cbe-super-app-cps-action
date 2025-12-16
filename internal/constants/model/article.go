@@ -7,7 +7,7 @@ import (
 )
 
 type NewsArticle struct {
-	ID               bson.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
+	ID               bson.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
 	CategoryID       bson.ObjectID   `bson:"category_id" json:"category_id"`
 	Title            string          `bson:"title" json:"title"`
 	Content          string          `bson:"content" json:"content"`
@@ -83,7 +83,7 @@ type ShortVideo struct {
 }
 
 type ShortVideoDetail struct {
-	ID               bson.ObjectID     `bson:"_id,omitempty" json:"id,omitempty"`
+	ID               bson.ObjectID     `bson:"_id,omitempty" json:"_id,omitempty"`
 	Category         NewsCategoryModel `bson:"category" json:"category"`
 	Title            string            `bson:"title" json:"title"`
 	Caption          string            `bson:"caption" json:"caption"`
