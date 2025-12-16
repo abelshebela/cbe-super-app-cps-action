@@ -79,4 +79,5 @@ type Persistence struct {
 	CPSActionRolePersistence         storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence storage.CPSActionApproveIndexRepository
 	EventMerchantPersistence         storage.EventMerchantRepository
+	MiniAppProductCodePersistence    storage.MiniAppProductCodeRepository
 }

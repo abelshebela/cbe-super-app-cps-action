@@ -907,6 +907,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableEventMerchant,
 		RequestDisableEventMerchant,
 	},
+	"MiniAppProductCode": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
+	},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {
