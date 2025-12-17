@@ -38,6 +38,7 @@ import (
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -130,7 +131,7 @@ type DepartmentService interface {
 	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
 	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
 	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
-	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.Department], error)
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]*model.Department], error)
 	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
