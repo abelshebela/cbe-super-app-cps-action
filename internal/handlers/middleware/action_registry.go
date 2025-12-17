@@ -68,14 +68,6 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /banks/{id}/disable": "Bank",
 	"PATCH /banks/{id}/logo":    "Bank",
 
-	// Bank (singular aliases)
-	"POST /bank":               "Bank",
-	"PATCH /bank/{id}":         "Bank",
-	"DELETE /bank/{id}":        "Bank",
-	"PATCH /bank/{id}/enable":  "Bank",
-	"PATCH /bank/{id}/disable": "Bank",
-	"PATCH /bank/{id}/logo":    "Bank",
-
 	// BankVault
 	"POST /vault/products/create":        "BankVault",
 	"PATCH /vault/products/update/{id}":  "BankVault",
@@ -305,15 +297,6 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			if actionName == "" || actionName == "Api" {
-				for _, v := range cpsActionRegistry {
-					if strings.Contains(relPath, strings.ToLower(v)) {
-						actionName = v
-						continue
-					}
-				}
-			}
-
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
 			if roleID == "" {
@@ -321,7 +304,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			action := strings.ToUpper(actionName)
+			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
 				next.ServeHTTP(w, r)
