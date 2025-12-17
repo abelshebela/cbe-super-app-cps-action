@@ -235,6 +235,28 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /wallets/{id}/disable": "Wallet",
 }
 
+func patternSpecificity(pattern string) (literalCount int, totalSegments int, hasWildcard bool) {
+	if pattern == "" {
+		return 0, 0, false
+	}
+	if !strings.HasPrefix(pattern, "/") {
+		pattern = "/" + pattern
+	}
+	segs := strings.Split(strings.Trim(pattern, "/"), "/")
+	totalSegments = len(segs)
+	for _, seg := range segs {
+		if seg == "*" {
+			hasWildcard = true
+			continue
+		}
+		if len(seg) > 1 && seg[0] == '{' && seg[len(seg)-1] == '}' {
+			continue
+		}
+		literalCount++
+	}
+	return
+}
+
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -306,11 +328,28 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			if actionName == "" || actionName == "Api" {
-				for _, v := range cpsActionRegistry {
-					if strings.Contains(relPath, strings.ToLower(v)) {
-						actionName = v
+				m := strings.ToUpper(r.Method)
+				bestV := ""
+				bestLit, bestSegs := -1, -1
+				bestHasStar := true
+				for k, v := range cpsActionRegistry {
+					if !strings.HasPrefix(k, m+" ") {
 						continue
 					}
+					pat := k[len(m)+1:]
+					if !patternMatches(pat, relPath) {
+						continue
+					}
+					lit, segs, hasStar := patternSpecificity(pat)
+					if lit > bestLit ||
+						(lit == bestLit && segs > bestSegs) ||
+						(lit == bestLit && segs == bestSegs && bestHasStar && !hasStar) {
+						bestLit, bestSegs, bestHasStar = lit, segs, hasStar
+						bestV = v
+					}
+				}
+				if bestV != "" {
+					actionName = bestV
 				}
 			}
 
@@ -401,4 +440,36 @@ func deriveModuleFromPattern(pattern string) string {
 	}
 	res := b.String()
 	return res
+}
+
+func patternMatches(pattern, path string) bool {
+	if pattern == "" || path == "" {
+		return false
+	}
+	if !strings.HasPrefix(pattern, "/") {
+		pattern = "/" + pattern
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	pSegs := strings.Split(strings.Trim(pattern, "/"), "/")
+	sSegs := strings.Split(strings.Trim(path, "/"), "/")
+	i, j := 0, 0
+	for i < len(pSegs) && j < len(sSegs) {
+		seg := pSegs[i]
+		if seg == "*" {
+			return true
+		}
+		if len(seg) > 1 && seg[0] == '{' && seg[len(seg)-1] == '}' {
+			i++
+			j++
+			continue
+		}
+		if !strings.EqualFold(seg, sSegs[j]) {
+			return false
+		}
+		i++
+		j++
+	}
+	return i == len(pSegs) && j == len(sSegs)
 }
