@@ -123,6 +123,7 @@ type CustomerService interface {
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
 	GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
+	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -599,6 +600,7 @@ type MiniAppCategoryService interface {
 type TransactionService interface {
 	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

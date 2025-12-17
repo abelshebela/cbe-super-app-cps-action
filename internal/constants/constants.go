@@ -786,3 +786,11 @@ const (
 	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
 	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
 )
+
+type FinancialInstitutionType string
+
+const (
+	Bank   FinancialInstitutionType = "BANK"
+	Wallet FinancialInstitutionType = "WALLET"
+	MFI    FinancialInstitutionType = "MFI"
+)

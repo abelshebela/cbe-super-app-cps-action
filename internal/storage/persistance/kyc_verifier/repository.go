@@ -199,7 +199,7 @@ func (s *KYCVerifierStorage) Update(ctx context.Context, id string, kyc *model.C
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID, "is_deleted": false, "kyc_status": "PENDING"}
 	data, err := local_util.JsonUnmarshal[bson.M](kyc)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -223,7 +223,7 @@ func (s *KYCVerifierStorage) EnableOrDisable(ctx context.Context, id string, ena
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID, "is_deleted": false, "kyc_status": "PENDING"}
 	update := bson.M{"$set": bson.M{"enabled": enable}}
 	updatedKycVerifier, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -244,7 +244,7 @@ func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.Cu
 		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": idObj, "is_deleted": false}
+	filter := bson.M{"_id": idObj, "is_deleted": false, "kyc_status": "PENDING"}
 	result, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		s.logger.Errorf("Error finding kyc verifier: %v", err)
@@ -255,7 +255,7 @@ func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.Cu
 }
 
 func (s *KYCVerifierStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerKYC], error) {
-	filter := bson.M{"is_deleted": false}
+	filter := bson.M{"is_deleted": false, "kyc_status": "PENDING"}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"kyc_status", "kyc_level", "kyc_approved", "enabled"}
 	if filterParam.Search != "" {

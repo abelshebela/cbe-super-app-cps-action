@@ -65,7 +65,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
-	bankRequest.Type = r.FormValue("type")
+	bankRequest.Type = constants.FinancialInstitutionType(r.FormValue("type"))
 	bankRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
@@ -370,8 +370,8 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
-	updateRequest.Type = r.FormValue("type")
-	updateRequest.Logo = fileHeader
+	updateRequest.Type = constants.FinancialInstitutionType(r.FormValue("type"))
+
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		span.SetAttributes(attribute.String("invalid input", response_code.Code))
 		b.logger.Errorf("invalid input", response_code)
