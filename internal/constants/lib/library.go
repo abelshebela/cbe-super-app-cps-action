@@ -231,9 +231,9 @@ func RemoveFileFromMinio(
 func FallbackModuleForRA(action constants.RequestAction) (string, bool) {
 	s := strings.ToUpper(string(action))
 	switch {
-	case strings.Contains(s, "WALLET"), strings.Contains(s, "wallet"):
+	case strings.Contains(s, "WALLET"):
 		return "Wallet", true
-	case strings.Contains(s, "TOPUP"), strings.Contains(s, "topup"):
+	case strings.Contains(s, "TOPUP"):
 		return "Topup", true
 	case strings.Contains(s, "BANK_VAULT"):
 		return "BankVault", true

@@ -305,6 +305,15 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
+			if actionName == "" {
+				for _, v := range cpsActionRegistry {
+					if strings.Contains(relPath, v) {
+						actionName = v
+						continue
+					}
+				}
+			}
+
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
 			if roleID == "" {
