@@ -275,7 +275,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			}
 
 			method := strings.ToUpper(r.Method)
-			keyPattern := method + " " + relPattern
+			keyPattern := method + " " + relPath
 			// actionName, ok := cpsActionRegistry[keyPattern]
 
 			// if !ok {
