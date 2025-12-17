@@ -274,8 +274,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			method := strings.ToUpper(r.Method)
-			keyPattern := method + " " + relPattern
+			// method := strings.ToUpper(r.Method)
+			// keyPattern := method + " " + relPattern
 			// actionName, ok := cpsActionRegistry[keyPattern]
 
 			// if !ok {
@@ -297,25 +297,15 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			// 	}
 			// }
 			// actionName, ok := cpsActionRegistry[keyPattern]
-			actionName := ResolveActionKey(keyPattern)
-			// if !ok {
-			// 	// Fallback: try concrete path key (legacy behavior)
-			// 	keyPath := method + " " + relPath
-			// 	actionName, ok = cpsActionRegistry[keyPath]
-			// }
-			// if !ok {
-			// 	switch r.Method {
-			// 	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-			// 		actionName = deriveModuleFromPattern(pattern)
-			// 		if actionName == "" {
-			// 			next.ServeHTTP(w, r)
-			// 			return
-			// 		}
-			// 	default:
-			// 		next.ServeHTTP(w, r)
-			// 		return
-			// 	}
-			// }
+			actionName := ""
+			for _, v := range cpsActionRegistry {
+				path := strings.ReplaceAll(relPath, "_", "")
+				path = strings.ReplaceAll(path, "-", "")
+				if strings.Contains(path, strings.ToLower(v)) {
+					actionName = v
+					break
+				}
+			}
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
