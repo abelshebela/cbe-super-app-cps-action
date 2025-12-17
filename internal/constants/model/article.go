@@ -7,7 +7,7 @@ import (
 )
 
 type NewsArticle struct {
-	ID               bson.ObjectID   `bson:"_id,omitempty" json:"id,omitempty"`
+	ID               bson.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
 	CategoryID       bson.ObjectID   `bson:"category_id" json:"category_id"`
 	Title            string          `bson:"title" json:"title"`
 	Content          string          `bson:"content" json:"content"`
@@ -24,26 +24,29 @@ type NewsArticle struct {
 	UpdatedAt        time.Time       `bson:"updated_at" json:"updated_at"`
 	IsDeleted        bool            `bson:"is_deleted" json:"is_deleted"`
 	DeletedAt        *time.Time      `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+	IsFeatured       *bool           `bson:"is_featured" json:"is_featured"`
 }
 type NewsArticleDetail struct {
-	ID               bson.ObjectID     `bson:"_id,omitempty" json:"_id,omitempty"`
-	Category         NewsCategoryModel `bson:"category" json:"category"`
-	Title            string            `bson:"title" json:"title"`
-	Content          string            `bson:"content" json:"content"`
-	Tags             []NewsTags        `bson:"tags" json:"tags"`
-	Language         string            `bson:"language" json:"language"`
-	Author           string            `bson:"author" json:"author"`
-	Thumbnail        string            `bson:"thumbnail" json:"thumbnail"`
-	ThumbnailAltText string            `bson:"thumbnail_alt_text" json:"thumbnail_alt_text"`
-	IsPublished      bool              `bson:"is_published" json:"is_published"`
-	PublishedAt      *time.Time        `bson:"published_at,omitempty" json:"published_at,omitempty"`
-	Views            int               `bson:"views" json:"views"`
-	CopyLinkCounter  int               `bson:"copy_link_counter" json:"copy_link_counter"`
-	Slug             string            `bson:"slug" json:"slug"`
-	CreatedAt        time.Time         `bson:"created_at" json:"created_at"`
-	UpdatedAt        time.Time         `bson:"updated_at" json:"updated_at"`
-	IsDeleted        bool              `bson:"is_deleted" json:"is_deleted"`
-	DeletedAt        *time.Time        `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+	ID                   bson.ObjectID     `bson:"_id,omitempty" json:"_id,omitempty"`
+	Category             NewsCategoryModel `bson:"category" json:"category"`
+	Title                string            `bson:"title" json:"title"`
+	Content              string            `bson:"content" json:"content"`
+	Tags                 []NewsTags        `bson:"tags" json:"tags"`
+	Language             string            `bson:"language" json:"language"`
+	Author               string            `bson:"author" json:"author"`
+	Thumbnail            string            `bson:"thumbnail" json:"thumbnail"`
+	ThumbnailAltText     string            `bson:"thumbnail_alt_text" json:"thumbnail_alt_text"`
+	IsPublished          bool              `bson:"is_published" json:"is_published"`
+	PublishedAt          *time.Time        `bson:"published_at,omitempty" json:"published_at,omitempty"`
+	Views                int               `bson:"views" json:"views"`
+	CopyLinkCounter      int               `bson:"copy_link_counter" json:"copy_link_counter"`
+	Slug                 string            `bson:"slug" json:"slug"`
+	CreatedAt            time.Time         `bson:"created_at" json:"created_at"`
+	UpdatedAt            time.Time         `bson:"updated_at" json:"updated_at"`
+	IsDeleted            bool              `bson:"is_deleted" json:"is_deleted"`
+	DeletedAt            *time.Time        `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
+	IsFeatured           *bool             `bson:"is_featured" json:"is_featured"`
+	EstimatedReadMinutes int               `bson:"estimated_read_minutes" json:"estimated_read_minutes"`
 }
 
 type NewsCategoryModel struct {
@@ -76,10 +79,11 @@ type ShortVideo struct {
 	UpdatedAt        time.Time       `bson:"updated_at" json:"updated_at"`
 	DeletedAt        *time.Time      `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 	PublishedAt      *time.Time      `bson:"published_at,omitempty" json:"published_at,omitempty"`
+	IsFeatured       *bool           `bson:"is_featured" json:"is_featured"`
 }
 
 type ShortVideoDetail struct {
-	ID               bson.ObjectID     `bson:"_id,omitempty" json:"id,omitempty"`
+	ID               bson.ObjectID     `bson:"_id,omitempty" json:"_id,omitempty"`
 	Category         NewsCategoryModel `bson:"category" json:"category"`
 	Title            string            `bson:"title" json:"title"`
 	Caption          string            `bson:"caption" json:"caption"`
@@ -99,6 +103,7 @@ type ShortVideoDetail struct {
 	UpdatedAt        time.Time         `bson:"updated_at" json:"updated_at"`
 	DeletedAt        *time.Time        `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 	PublishedAt      *time.Time        `bson:"published_at,omitempty" json:"published_at,omitempty"`
+	IsFeatured       *bool             `bson:"is_featured" json:"is_featured"`
 }
 
 type NewsTags struct {

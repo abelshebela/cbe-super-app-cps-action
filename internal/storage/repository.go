@@ -242,7 +242,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
-	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string, account_length *int) (*model.Bank, error)
+	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {
@@ -498,6 +498,7 @@ type CustomerRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
+	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
 }
 
 type BulkServiceRepository interface {
@@ -618,6 +619,7 @@ type MiniAppProductCodeRepository interface {
 
 type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }
 

@@ -1,7 +1,9 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"fmt"
@@ -30,9 +32,10 @@ type CustomerRepository struct {
 	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
 	logger           utils.Logger
 	coll             *mongo.Collection
+	kafkaProducer    kafka.ClientOrchestrationProducer
 }
 
-func InitCustomerDetail(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CustomerRepository {
+func InitCustomerDetail(client *mongo.Client, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
 	mongoDal := dal.NewMongoDal[member.User, member.User](client, database, collection[0])
 	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
 	return &CustomerRepository{
@@ -41,6 +44,7 @@ func InitCustomerDetail(client *mongo.Client, database string, collection []stri
 		logger:           logger,
 		linkedAccountDal: linkedAccountDal,
 		coll:             client.Database(database).Collection(collection[0]),
+		kafkaProducer:    clientOrchestrationProducer,
 	}
 }
 
@@ -165,17 +169,14 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 		data = make([]*customer_dto.CustomerListResponse, len(result[0].Data))
 		for i, d := range result[0].Data {
 			data[i] = &customer_dto.CustomerListResponse{
-				ID:           d.ID.Hex(),
-				UserCode:     d.UserCode,
-				FullName:     d.FullName,
-				PhoneNumber:  d.PhoneNumber,
-				BranchCode:   d.BranchCode,
-				Gender:       d.Gender,
-				CreatedAt:    d.CreatedAt.Format(time.RFC3339),
-				IsBlocked:    d.IsBlocked,
-				BranchName:   d.BranchName,
-				DistrictName: d.DistrictName,
-				Status:       d.Status,
+				ID:          d.ID.Hex(),
+				UserCode:    d.UserCode,
+				FullName:    d.FullName,
+				PhoneNumber: d.PhoneNumber,
+				BranchCode:  d.BranchCode,
+				Gender:      d.Gender,
+				CreatedAt:   d.CreatedAt.Format(time.RFC3339),
+				IsBlocked:   d.IsBlocked,
 			}
 		}
 		if len(result[0].Total) > 0 {
@@ -201,11 +202,13 @@ func (p *CustomerRepository) Update(ctx context.Context, id string, data member.
 	}
 
 	filter, update := FaydaEnable(objId, data)
-	_, err = p.mongoDal.UpdateOne(ctx, filter, update)
+	updatedCustomer, err := p.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		p.logger.Errorf("[Update] failed to update customer: %v", err)
 		return err
 	}
+	p.kafkaProducer.PublishMessage(ctx, updatedCustomer, string(constants.ClientOrchestrationMemberTopic), string(constants.ClientOrchestrationMemberTopic), "Customer Update")
+
 	p.logger.Infof("[Update] customer updated successfully")
 	return nil
 }
@@ -247,11 +250,14 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
-	_, err = b.mongoDal.UpdateOne(ctx, filter, update)
+	updatedCustomer, err := b.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		b.logger.Errorf("[EnableOrDisable] failed to enable/disable customer: %v", err)
 		return err
 	}
+
+	b.kafkaProducer.PublishMessage(ctx, updatedCustomer, string(constants.ClientOrchestrationMemberTopic), string(constants.ClientOrchestrationMemberTopic), "enable/disable Customer")
+
 	b.logger.Infof("[EnableOrDisable] customer enable/disable completed successfully")
 	return nil
 }
@@ -396,6 +402,50 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 		BirthDate:      res.KYCData.BirthDate,
 		Address:        res.KYCData.Address,
 		MonthlyIncome:  res.KYCData.MonthlyIncome,
+	}
+
+	return response, nil
+}
+
+func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error) {
+	p.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", req.CifOrAccountNumber)
+
+	// Step 1: Find user_id from linked_account where customer_id and account_number match
+	linkedAccountColl := p.client.Database(p.coll.Database().Name()).Collection("linked_account")
+	var linkedResult struct {
+		UserID interface{} `bson:"user_id"`
+	}
+	f := bson.M{"$or": bson.A{
+		bson.M{"customer_id": req.CifOrAccountNumber},
+		bson.M{"account_number": req.CifOrAccountNumber},
+	}}
+
+	err := linkedAccountColl.FindOne(ctx, f).Decode(&linkedResult)
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[searchCustomerByCIForAccountNumber] customer not found")
+			return nil, fmt.Errorf("%s", code)
+		}
+		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to fetch customer: %v", err)
+		return nil, err
+	}
+
+	res, err := p.mongoDal.FindOne(ctx, bson.M{"_id": linkedResult.UserID}, nil)
+	if err != nil {
+		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to find customer: %v", err)
+		return nil, err
+	}
+
+	response := &customer_dto.CustomerListResponse{
+		ID:          res.ID.Hex(),
+		UserCode:    res.UserCode,
+		FullName:    res.FullName,
+		PhoneNumber: res.PhoneNumber,
+		BranchCode:  res.BranchCode,
+		Gender:      string(res.Gender),
+		CreatedAt:   res.CreatedAt.Format(time.RFC3339),
+		IsBlocked:   res.IsBlocked,
 	}
 
 	return response, nil

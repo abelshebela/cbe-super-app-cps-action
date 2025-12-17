@@ -23,6 +23,27 @@ type TransactionHandler struct {
 	logger  utils.Logger
 }
 
+// FindTransactionByCifOrAccountNumberOrFT implements transaction.TransactionInterface.
+func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FindTransactionByCifOrAccountNumberOrFT")
+	defer span.End()
+
+	identifier := chi.URLParam(r, "identifier")
+	if identifier == "" {
+		span.AddEvent("Missing identifier", trace.WithAttributes(attribute.String("error", "identifier required")))
+		localization.SendErrorByCodeResponse(w, localization.ErrorTransactionIdentifierRequired.Code)
+		return
+	}
+	transaction, err := t.service.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
+	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("identifier", identifier)))
+		t.logger.Errorf("FindTransactionByCifOrAccountNumberOrFT failed: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessTransactionRetrieved, transaction)
+}
+
 // FetchAllTransactions godoc
 // @Summary      Get all transactions
 // @Description  Returns a paginated list of transactions. Supports filtering by status and type.

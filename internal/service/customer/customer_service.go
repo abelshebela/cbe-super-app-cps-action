@@ -15,6 +15,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -425,4 +426,20 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	}
 	d.logger.Infof("[Authorize] customer action authorized successfully: %s", cpsAction.RequestAction)
 	return cpsAction, nil
+}
+
+func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "SearchCustomerByCIForAccountNumber", "Customer", "SearchCustomerByCIForAccountNumber")
+	defer span.End()
+	d.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", req.CifOrAccountNumber)
+
+	customer, err := d.repo.SearchCustomerByCIForAccountNumber(ctx, req)
+	if err != nil {
+		span.AddEvent("Failed to fetch customer by CI", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("cif_or_account_number", req.CifOrAccountNumber),
+		))
+		return nil, err
+	}
+	return customer, nil
 }
