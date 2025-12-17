@@ -61,6 +61,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("error fetching wallet create request data")
+		localization.SendBadRequestResponse(w, err.Error())
 	}
 	a.logger.Infof("this is the wallet request%+v\n", req)
 

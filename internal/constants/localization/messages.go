@@ -1045,9 +1045,10 @@ const (
 	MsgBpsActionRoleNotFound = "BPS action role not found"
 
 	// transaction related messages
-	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
-	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
-	MsgTransactionIDRequired        = "Transaction ID is required"
+	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess   = "Transaction retrieved successfully"
+	MsgTransactionIDRequired         = "Transaction ID is required"
+	MsgTransactionIdentifierRequired = "Transaction Identifier is required"
 
 	// event merchant message
 	MsgEventMerchantCreatedSuccessfully  = "Event merchant created successfully"

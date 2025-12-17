@@ -320,6 +320,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
 	ErrorInvalidWalletCode,
+	ErrorInvalidWalletType,
 	ErrorInvalidWalletName,
 
 	//topup related error codes
@@ -566,6 +567,7 @@ var ResponseCodesList = []ResponseCode{
 	// transaction related responses
 	SuccessTransactionRetrieved,
 	ErrorTransactionIDRequired,
+	ErrorTransactionIdentifierRequired,
 
 	// bank related errors
 	ErrorInvalidAccountNumberFormat,
@@ -1719,6 +1721,12 @@ var (
 		Code:       "ERROR_INVALID_WALLET_CODE",
 		StatusCode: 400,
 		Message:    "Invalid wallet code, special characters are not allowed",
+		Type:       "error",
+	}
+	ErrorInvalidWalletType = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_TYPE",
+		StatusCode: 400,
+		Message:    "Invalid wallet type, special characters are not allowed",
 		Type:       "error",
 	}
 
@@ -3936,6 +3944,13 @@ var (
 		Code:       "ERROR_TRANSACTION_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgTransactionFailed,
+		Type:       "error",
+	}
+
+	ErrorTransactionIdentifierRequired = ResponseCode{
+		Code:       "ERROR_TRANSACTION_IDENTIFIER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTransactionIdentifierRequired,
 		Type:       "error",
 	}
 
