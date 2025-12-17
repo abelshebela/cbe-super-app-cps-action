@@ -47,20 +47,20 @@ var modulePriority = []string{
 	"ProductCode",
 	"BPSUser",
 	"Avatar",
-	"donationCategory",
-	"donationCompany",
+	"DonationCategory",
+	"DonationCompany",
 	"Donation",
 	"Department",
 	"CPSUser",
 	"BankVault",
 	"VaultGroupCategory",
-	"article",
-	"articleCategory",
-	"short_video",
-	"customer",
-	"news_tag",
+	"Article",
+	"ArticleCategory",
+	"ShortVideo",
+	"Customer",
+	"NewsTag",
 	"ActionRole",
-	"news_category",
+	"NewsCategory",
 	"BudgetCategory",
 	"MiniAppCategory",
 	"CpsActionRole",
@@ -177,9 +177,9 @@ func fallbackModuleForRA(action RequestAction) (string, bool) {
 	case strings.Contains(s, "AVATAR"):
 		return "Avatar", true
 	case strings.Contains(s, "DONATION_CATEGORY"):
-		return "donationCategory", true
+		return "DonationCategory", true
 	case strings.Contains(s, "DONATION_COMPANY"):
-		return "donationCompany", true
+		return "DonationCompany", true
 	case strings.Contains(s, "DONATION"):
 		return "Donation", true
 	case strings.Contains(s, "DEPARTMENT"):
@@ -189,17 +189,17 @@ func fallbackModuleForRA(action RequestAction) (string, bool) {
 	case strings.Contains(s, "VAULT_GROUP_CATEGORY"):
 		return "VaultGroupCategory", true
 	case strings.Contains(s, "ARTICLE_CATEGORY"):
-		return "articleCategory", true
+		return "ArticleCategory", true
 	case strings.Contains(s, "ARTICLE"):
-		return "article", true
+		return "Article", true
 	case strings.Contains(s, "SHORT_VIDEO"):
-		return "short_video", true
+		return "ShortVideo", true
 	case strings.Contains(s, "CUSTOMER"):
-		return "customer", true
+		return "Customer", true
 	case strings.Contains(s, "NEWS_TAG"):
-		return "news_tag", true
+		return "NewsTag", true
 	case strings.Contains(s, "NEWS_CATEGORY"):
-		return "news_category", true
+		return "NewsCategory", true
 	case strings.Contains(s, "BUDGET_CATEGORY"):
 		return "BudgetCategory", true
 	case strings.Contains(s, "SERVICE_FEE") || strings.Contains(s, "DAILY_LIMIT") || strings.Contains(s, "MINIMUM") || strings.Contains(s, "TOTAL") || strings.Contains(s, "ACCESS_CONFIG"):
