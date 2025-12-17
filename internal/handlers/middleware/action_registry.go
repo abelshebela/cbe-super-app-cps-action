@@ -68,6 +68,14 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /banks/{id}/disable": "Bank",
 	"PATCH /banks/{id}/logo":    "Bank",
 
+	// Bank (singular aliases)
+	"POST /bank":               "Bank",
+	"PATCH /bank/{id}":         "Bank",
+	"DELETE /bank/{id}":        "Bank",
+	"PATCH /bank/{id}/enable":  "Bank",
+	"PATCH /bank/{id}/disable": "Bank",
+	"PATCH /bank/{id}/logo":    "Bank",
+
 	// BankVault
 	"POST /vault/products/create":        "BankVault",
 	"PATCH /vault/products/update/{id}":  "BankVault",
