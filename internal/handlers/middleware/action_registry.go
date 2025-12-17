@@ -291,6 +291,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				path := strings.ReplaceAll(relPath, "_", "")
 				if strings.Contains(relPath, strings.ToLower(v)) {
 					actionName = path
+					break
 				}
 			}
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
