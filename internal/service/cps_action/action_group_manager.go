@@ -1,6 +1,9 @@
 package cpsaction
 
-import "strings"
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
+)
 
 // ActionGroupManager provides requestAction -> parent module resolution
 // without touching the dispatcher. It mirrors the dispatcher's priority
@@ -105,7 +108,7 @@ func ResolveModuleForRA(action RequestAction) (string, bool) {
 		}
 	}
 	// Fallback: infer module from request action string patterns
-	if mod, ok := fallbackModuleForRA(action); ok {
+	if mod, ok := lib.FallbackModuleForRA(constants.RequestAction(action)); ok {
 		return mod, true
 	}
 	return "", false
@@ -139,85 +142,4 @@ func contains(list []string, v string) bool {
 		}
 	}
 	return false
-}
-
-// fallbackModuleForRA tries to infer a module name from the action string when
-// it isn't mapped in RequestActionGroups. Best-effort, case-insensitive.
-func fallbackModuleForRA(action RequestAction) (string, bool) {
-	s := strings.ToUpper(string(action))
-	switch {
-	case strings.Contains(s, "WALLET"):
-		return "Wallet", true
-	case strings.Contains(s, "TOPUP"):
-		return "Topup", true
-	case strings.Contains(s, "BANK_VAULT"):
-		return "BankVault", true
-	case strings.Contains(s, "BANK"):
-		return "Bank", true
-	case strings.Contains(s, "KYC"):
-		return "KYCVerifier", true
-	case strings.Contains(s, "FAYDA"):
-		return "Fayda", true
-	case strings.Contains(s, "MINI_APP_MERCHANT"):
-		return "MiniAppMerchant", true
-	case strings.Contains(s, "MINI_APP_CATEGORY"):
-		return "MiniAppCategory", true
-	case strings.Contains(s, "MINI_APP"):
-		return "MiniApp", true
-	case strings.Contains(s, "DEVICE_VERSION"):
-		return "DeviceVersion", true
-	case strings.Contains(s, "PERMISSION"):
-		return "Permission", true
-	case strings.Contains(s, "PASSWORD"):
-		return "Password", true
-	case strings.Contains(s, "AMOUNT_BASED_AUTH") || strings.Contains(s, "AUTHTIER"):
-		return "AmountBasedAuth", true
-	case strings.Contains(s, "NOTIFICATION"):
-		return "Notification", true
-	case strings.Contains(s, "AVATAR"):
-		return "Avatar", true
-	case strings.Contains(s, "DONATION_CATEGORY"):
-		return "DonationCategory", true
-	case strings.Contains(s, "DONATION_COMPANY"):
-		return "DonationCompany", true
-	case strings.Contains(s, "DONATION"):
-		return "Donation", true
-	case strings.Contains(s, "DEPARTMENT"):
-		return "Department", true
-	case strings.Contains(s, "CPS_USER"):
-		return "CPSUser", true
-	case strings.Contains(s, "VAULT_GROUP_CATEGORY"):
-		return "VaultGroupCategory", true
-	case strings.Contains(s, "ARTICLE_CATEGORY"):
-		return "ArticleCategory", true
-	case strings.Contains(s, "ARTICLE"):
-		return "Article", true
-	case strings.Contains(s, "SHORT_VIDEO"):
-		return "ShortVideo", true
-	case strings.Contains(s, "CUSTOMER"):
-		return "Customer", true
-	case strings.Contains(s, "NEWS_TAG"):
-		return "NewsTag", true
-	case strings.Contains(s, "NEWS_CATEGORY"):
-		return "NewsCategory", true
-	case strings.Contains(s, "BUDGET_CATEGORY"):
-		return "BudgetCategory", true
-	case strings.Contains(s, "SERVICE_FEE") || strings.Contains(s, "DAILY_LIMIT") || strings.Contains(s, "MINIMUM") || strings.Contains(s, "TOTAL") || strings.Contains(s, "ACCESS_CONFIG"):
-		return "Service", true
-	case strings.Contains(s, "SERVICE"):
-		return "ServicesCatalog", true
-	case strings.Contains(s, "PRODUCT_CODE"):
-		return "ProductCode", true
-	case strings.Contains(s, "EVENT"):
-		return "Event", true
-	case strings.Contains(s, "BULK_SERVICE"):
-		return "BulkService", true
-	case strings.Contains(s, "UNLINK"):
-		return "UnlinkDevice", true
-	case strings.Contains(s, "ACTION_ROLE"):
-		return "ActionRole", true
-	case strings.Contains(s, "CPS_ACTION_ROLE"):
-		return "CpsActionRole", true
-	}
-	return "", false
 }
