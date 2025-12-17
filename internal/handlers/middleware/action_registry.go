@@ -68,14 +68,6 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /banks/{id}/disable": "Bank",
 	"PATCH /banks/{id}/logo":    "Bank",
 
-	// Bank (singular aliases)
-	"POST /bank":               "Bank",
-	"PATCH /bank/{id}":         "Bank",
-	"DELETE /bank/{id}":        "Bank",
-	"PATCH /bank/{id}/enable":  "Bank",
-	"PATCH /bank/{id}/disable": "Bank",
-	"PATCH /bank/{id}/logo":    "Bank",
-
 	// BankVault
 	"POST /vault/products/create":        "BankVault",
 	"PATCH /vault/products/update/{id}":  "BankVault",
@@ -284,6 +276,26 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			method := strings.ToUpper(r.Method)
 			keyPattern := method + " " + relPattern
+			// actionName, ok := cpsActionRegistry[keyPattern]
+
+			// if !ok {
+			// 	// Fallback: try concrete path key (legacy behavior)
+			// 	keyPath := method + " " + relPath
+			// 	actionName, ok = cpsActionRegistry[keyPath]
+			// }
+			// if !ok {
+			// 	switch r.Method {
+			// 	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+			// 		actionName = deriveModuleFromPattern(pattern)
+			// 		if actionName == "" {
+			// 			next.ServeHTTP(w, r)
+			// 			return
+			// 		}
+			// 	default:
+			// 		next.ServeHTTP(w, r)
+			// 		return
+			// 	}
+			// }
 			// actionName, ok := cpsActionRegistry[keyPattern]
 			actionName := ResolveActionKey(keyPattern)
 			// if !ok {
