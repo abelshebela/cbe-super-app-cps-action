@@ -284,35 +284,26 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			method := strings.ToUpper(r.Method)
 			keyPattern := method + " " + relPattern
-			actionName, ok := cpsActionRegistry[keyPattern]
-
-			if !ok {
-				// Fallback: try concrete path key (legacy behavior)
-				keyPath := method + " " + relPath
-				actionName, ok = cpsActionRegistry[keyPath]
-			}
-			if !ok {
-				switch r.Method {
-				case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-					actionName = deriveModuleFromPattern(pattern)
-					if actionName == "" {
-						next.ServeHTTP(w, r)
-						return
-					}
-				default:
-					next.ServeHTTP(w, r)
-					return
-				}
-			}
-
-			if actionName == "" || actionName == "Api" {
-				for _, v := range cpsActionRegistry {
-					if strings.Contains(relPath, strings.ToLower(v)) {
-						actionName = v
-						continue
-					}
-				}
-			}
+			// actionName, ok := cpsActionRegistry[keyPattern]
+			actionName := ResolveActionKey(keyPattern)
+			// if !ok {
+			// 	// Fallback: try concrete path key (legacy behavior)
+			// 	keyPath := method + " " + relPath
+			// 	actionName, ok = cpsActionRegistry[keyPath]
+			// }
+			// if !ok {
+			// 	switch r.Method {
+			// 	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+			// 		actionName = deriveModuleFromPattern(pattern)
+			// 		if actionName == "" {
+			// 			next.ServeHTTP(w, r)
+			// 			return
+			// 		}
+			// 	default:
+			// 		next.ServeHTTP(w, r)
+			// 		return
+			// 	}
+			// }
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
@@ -321,7 +312,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			action := strings.ToUpper(actionName)
+			action := strings.ToUpper(strings.TrimSpace(actionName))
 			cacheKey := roleID + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
 				next.ServeHTTP(w, r)
@@ -336,6 +327,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
+
 			if allowed {
 				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
 			}
@@ -348,6 +340,56 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	}
 }
 
+func ResolveActionKey(request string) string {
+	request = strings.TrimSpace(request)
+
+	for key := range cpsActionRegistry {
+		if matchRequest(key, request) {
+			return key // ✅ return matched key
+		}
+	}
+
+	return ""
+}
+
+func matchRequest(template, request string) bool {
+	tpl := strings.SplitN(template, " ", 2)
+	req := strings.SplitN(request, " ", 2)
+
+	if len(tpl) != 2 || len(req) != 2 {
+		return false
+	}
+
+	// METHOD must match exactly
+	if tpl[0] != req[0] {
+		return false
+	}
+
+	return matchPath(tpl[1], req[1])
+}
+
+func matchPath(template, path string) bool {
+	templateParts := strings.Split(strings.Trim(template, "/"), "/")
+	pathParts := strings.Split(strings.Trim(path, "/"), "/")
+
+	if len(templateParts) != len(pathParts) {
+		return false
+	}
+
+	for i := range templateParts {
+		// dynamic segment: {id}, {userId}, etc.
+		if strings.HasPrefix(templateParts[i], "{") &&
+			strings.HasSuffix(templateParts[i], "}") {
+			continue
+		}
+
+		if templateParts[i] != pathParts[i] {
+			return false
+		}
+	}
+
+	return true
+}
 func nowPlus(dur time.Duration) time.Time {
 	return time.Now().Add(dur)
 }
