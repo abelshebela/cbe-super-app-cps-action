@@ -252,27 +252,40 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			rel := pattern
-			if strings.Contains(rel, "/") {
-				rel = r.URL.Path
+			// Normalize pattern-relative route (keeps placeholders like {id})
+			relPattern := pattern
+			if strings.HasPrefix(relPattern, "/api/v1/cbesuperapp/cps_action") {
+				relPattern = strings.TrimPrefix(relPattern, "/api/v1/cbesuperapp/cps_action")
+				if relPattern == "" {
+					relPattern = "/"
+				}
 			}
-			if strings.HasPrefix(rel, "/api/v1/cbesuperapp/cps_action") {
-				rel = strings.TrimPrefix(rel, "/api/v1/cbesuperapp/cps_action")
-				if rel == "" {
-					rel = "/"
+
+			// Normalize actual path route (concrete values like /banks/567...)
+			relPath := r.URL.Path
+			if strings.HasPrefix(relPath, "/api/v1/cbesuperapp/cps_action") {
+				relPath = strings.TrimPrefix(relPath, "/api/v1/cbesuperapp/cps_action")
+				if relPath == "" {
+					relPath = "/"
 				}
 			}
 
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
-				if strings.HasPrefix(rel, p) {
+				if strings.HasPrefix(relPath, p) {
 					next.ServeHTTP(w, r)
 					return
 				}
 			}
 
-			key := strings.ToUpper(r.Method) + " " + rel
-			actionName, ok := cpsActionRegistry[key]
+			method := strings.ToUpper(r.Method)
+			keyPattern := method + " " + relPattern
+			actionName, ok := cpsActionRegistry[keyPattern]
+			if !ok {
+				// Fallback: try concrete path key (legacy behavior)
+				keyPath := method + " " + relPath
+				actionName, ok = cpsActionRegistry[keyPath]
+			}
 			if !ok {
 				switch r.Method {
 				case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
