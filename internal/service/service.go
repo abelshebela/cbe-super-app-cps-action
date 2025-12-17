@@ -582,7 +582,7 @@ type TransactionService interface {
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error

@@ -25,6 +25,7 @@ type CPSAction struct {
 	ActionType          string          `bson:"action_type" json:"action_type,omitempty"`
 	IsDeleted           bool            `bson:"is_deleted" json:"is_deleted,omitempty"`
 	RequestAction       string          `bson:"request_action" json:"request_action"`
+	JobTitle            string          `bson:"job_title" json:"job_title"`
 
 	CreatedAt         time.Time  `bson:"created_at" json:"created_at,omitempty"`
 	LastModifiedAt    time.Time  `bson:"last_modified_at" json:"last_modified_at,omitempty"`

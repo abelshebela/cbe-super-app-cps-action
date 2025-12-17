@@ -114,7 +114,7 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
 }

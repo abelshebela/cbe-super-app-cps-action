@@ -141,26 +141,26 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		// This renames the fields to match the DTO struct's JSON/BSON tags if necessary
 		// and ensures the output document is clean.
 		{{Key: "$project", Value: bson.D{
-    {Key: "_id", Value: 1},
-    {Key: "action_code", Value: 1},
-    {Key: "action_name", Value: 1},
-    {Key: "enabled", Value: 1},
-    {Key: "updated_at", Value: 1},
-    {Key: "created_at", Value: 1},
-    {Key: "assigned_makers_roles", Value: 1},
-    {Key: "assigned_checkers_roles", Value: 1},
-    {Key: "assigned_auditor_roles", Value: 1}, // FIXED spelling
-}}},
+			{Key: "_id", Value: 1},
+			{Key: "action_code", Value: 1},
+			{Key: "action_name", Value: 1},
+			{Key: "enabled", Value: 1},
+			{Key: "updated_at", Value: 1},
+			{Key: "created_at", Value: 1},
+			{Key: "assigned_makers_roles", Value: 1},
+			{Key: "assigned_checkers_roles", Value: 1},
+			{Key: "assigned_auditor_roles", Value: 1}, // FIXED spelling
+		}}},
 	}
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		
+
 		return nil, err
 	}
 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
 	if err := cursor.All(ctx, &results); err != nil {
-		fmt.Println("/////// pipline error ",err)
+		fmt.Println("/////// pipline error ", err)
 		return nil, err
 	}
 	if len(results) == 0 {
@@ -168,7 +168,45 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 	}
 	return results[0], nil
 }
-func (r *CPSActionRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error) {
+
+// func (r *CPSActionRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error) {
+// 	searchKeys := bson.M{}
+// 	allowedKeys := []string{"action_code", "action_name", "enabled"}
+
+// 	if filterParam.Search != "" {
+// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+// 		searchKeys["$or"] = []bson.M{
+// 			{"action_code": searchRegex},
+// 			{"action_name": searchRegex},
+// 		}
+// 	}
+// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+// 	data, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+// 	if err != nil {
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	total, err := r.mongoDal.TotalCount(ctx, filter)
+// 	if err != nil {
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+//		return &types.PaginatedResponse[[]*model.CPSActionRole]{
+//			Data: data,
+//			Meta: meta,
+//		}, nil
+//	}
+func (r *CPSActionRoleRepository) FindAllWithPagination(
+	ctx context.Context,
+	filterParam types.Filter,
+) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error) {
+
+	// -----------------------------
+	// Build search filter
+	// -----------------------------
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_code", "action_name", "enabled"}
 
@@ -179,25 +217,138 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(ctx context.Context, fil
 			{"action_name": searchRegex},
 		}
 	}
+
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	// -----------------------------
+	// Aggregation pipeline
+	// -----------------------------
+	pipeline := mongo.Pipeline{
+		// 1Match base filter
+		{{Key: "$match", Value: filter}},
+
+		//  Lookup maker roles
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from": "roles",
+				"let":  bson.M{"roleIds": "$assigned_makers_roles"},
+				"pipeline": mongo.Pipeline{
+					{{Key: "$match", Value: bson.M{
+						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
+					}}},
+				},
+				"as": "assigned_makers_roles",
+			},
+		}},
+
+		//  Lookup all checker roles (flat)
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from": "roles",
+				"let": bson.M{"allCheckerIds": bson.M{
+					"$reduce": bson.M{
+						"input":        "$assigned_checkers_roles",
+						"initialValue": bson.A{},
+						"in":           bson.M{"$concatArrays": bson.A{"$$value", "$$this"}},
+					},
+				}},
+				"pipeline": mongo.Pipeline{
+					{{Key: "$match", Value: bson.M{
+						"$expr": bson.M{"$in": []interface{}{"$_id", "$$allCheckerIds"}},
+					}}},
+				},
+				"as": "checker_roles_all",
+			},
+		}},
+
+		//  Map nested checker arrays to full documents
+		{{
+			Key: "$addFields",
+			Value: bson.M{
+				"assigned_checkers_roles": bson.M{
+					"$map": bson.M{
+						"input": "$assigned_checkers_roles",
+						"as":    "level",
+						"in": bson.M{
+							"$map": bson.M{
+								"input": "$$level",
+								"as":    "rid",
+								"in": bson.M{
+									"$first": bson.M{
+										"$filter": bson.M{
+											"input": "$checker_roles_all",
+											"as":    "role",
+											"cond":  bson.M{"$eq": []interface{}{"$$role._id", "$$rid"}},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}},
+
+		//  Lookup auditor roles
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from": "roles",
+				"let":  bson.M{"roleIds": "$assigned_auditor_roles"},
+				"pipeline": mongo.Pipeline{
+					{{Key: "$match", Value: bson.M{
+						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
+					}}},
+				},
+				"as": "assigned_auditor_roles",
+			},
+		}},
+
+		//  Remove helper flat array
+		{{Key: "$project", Value: bson.M{"checker_roles_all": 0}}},
+
+		//  Pagination
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+	}
+
+	// -----------------------------
+	// Execute aggregation
+	// -----------------------------
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	defer cursor.Close(ctx)
 
+	var data []*model.CPSActionRoleResposne
+	if err := cursor.All(ctx, &data); err != nil {
+		fmt.Println(err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	// -----------------------------
+	// Total count
+	// -----------------------------
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	meta := local_util.BuildPaginationMeta(
+		total,
+		filterParam.Page,
+		filterParam.PerPage,
+	)
 
-	return &types.PaginatedResponse[[]*model.CPSActionRole]{
+	return &types.PaginatedResponse[[]*model.CPSActionRoleResposne]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
+
 func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error) {
 	return r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 }
