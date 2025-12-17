@@ -122,6 +122,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, nil, logger)
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
+	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -174,6 +175,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSActionRoleContainer:        cpsActionRoleService,
 		EventMerchantServiceContainer: eventMerchantService,
 		ServiceContainer:              servicesService,
+		MiniAppProductCodeContainer:   miniAppProductCodeContainer,
 	}
 
 	// CPSActionService Appended
@@ -307,5 +309,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniAppCategory:        miniAppCategory,
 		CPSActionRole:          cpsActionRoleService,
 		EventMerchantService:   eventMerchantService,
+		MiniappProductCode:     miniAppProductCodeContainer,
 	}
 }

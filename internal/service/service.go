@@ -514,6 +514,7 @@ type ServiceContainer struct {
 	MiniappProductCodeServiceContainer MiniappProductCodeService
 	EventMerchantServiceContainer      EventMerchantService
 	ServiceContainer                   ServicesService
+	MiniAppProductCodeContainer        MiniappProductCodeService
 }
 
 type BPSActionRoleService interface {
