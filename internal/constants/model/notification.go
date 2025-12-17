@@ -25,6 +25,7 @@ type Notification struct {
 	LastModified      time.Time                    `json:"last_modified" bson:"last_modified"`
 	DeletedAt         time.Time                    `json:"deleted_at" bson:"deleted_at"`
 }
+
 type NotificationDocument struct {
 	ID                bson.ObjectID `bson:"_id,omitempty" json:"id"`
 	Title             string        `bson:"title,omitempty" json:"title"`
