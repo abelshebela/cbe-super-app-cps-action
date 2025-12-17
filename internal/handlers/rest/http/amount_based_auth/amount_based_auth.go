@@ -7,14 +7,13 @@ import (
 	amount_based_auth_dto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	amount_based "cbe-super-app-cps-action/internal/constants/interfaces/amount_based_auth"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"go.opentelemetry.io/otel/attribute"
-
-	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -41,13 +40,13 @@ func NewAmountBasedAuthHandler(service service.AmountBasedAuthService, logger ut
 //	@Produce		json
 //	@Param			page		query		int																false	"Page number"				default(1)	minimum(1)	example(1)
 //	@Param			per_page	query		int																false	"Items per page"			default(10)	minimum(1)	maximum(100)	example(10)
-//	@Param			search		query		string															false	"Search by method or range"	example("PIN")
+//	@Param			search		query		string															false	"Search by method or range"	example("PIN or OPEN")
 //	@Success		200			{object}	localization.StandardResponse{data=paginated_auth_tier_resp}	"Fetched successfully"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Server error"
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth [get]
 func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
 
@@ -80,7 +79,7 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/update/{method}/{id} [patch]
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_util.TraceLogger(r.Context(), "", "updateAmountBasedAuth", "handler", "amountBasedAuth")
+	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
@@ -103,8 +102,8 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	}
 
 	// Validate the method parameter
-	methodEnum := constants.Method(method)
-	if methodEnum == constants.OPEN || methodEnum == constants.PIN || methodEnum == constants.OTPANDPIN {
+	methodEnum := shared_constant.Method(method)
+	if methodEnum == shared_constant.OPEN || methodEnum == shared_constant.PIN || methodEnum == shared_constant.OTPANDPIN {
 	} else {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidMethod.Message)
 		return
@@ -146,7 +145,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/amount_based_auth/reject/{id} [patch]
 func (a *AmountBasedAuthHandler) RejectAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
-	_, span := common_util.TraceLogger(r.Context(), "", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
+	_, span := common_util.TraceLogger(r.Context(), "handler", "rejectAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
 
 	idParam, ok := common_util.GetParam(r, "id")

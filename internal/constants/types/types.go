@@ -36,6 +36,7 @@ type CheckMiniAppMerchant struct {
 	BankAccountNumber string `json:"bank_account_number"`
 	Email             string `json:"email"`
 	PhoneNumber       string `json:"phone_number"`
+	MerchantCode      string `json:"merchant_code"`
 }
 type MiniAppMerchantExistOptions struct {
 	ExcludeID string
@@ -344,16 +345,12 @@ type ProductCode struct {
 }
 
 type CredentialInformation struct {
-	Environment   constants.EnvironmentType `bson:"environment" json:"environment"`
-	MerchantAppID string                    `bson:"merchant_app_id" json:"merchant_app_id"`
-	FabricAppID   string                    `bson:"fabric_app_id" json:"fabric_app_id"`
-	ShortCode     string                    `bson:"short_code" json:"short_code"`
-	AppSecret     string                    `bson:"app_secret" json:"app_secret"`
-	PrivateKey    string                    `bson:"private_key" json:"private_key"`
-	PublicKey     string                    `bson:"public_key" json:"public_key"`
-	Timestamp     time.Time                 `bson:"timestamp" json:"timestamp"`
-	Signature     string                    `bson:"signature" json:"-"`
-	MiniAppCode   string                    `bson:"mini_app_code" json:"mini_app_code"`
+	MerchantAppID string `json:"merchant_app_id" bson:"merchant_app_id"`
+	FabricAppID   string `bson:"fabric_app_id" json:"fabric_app_id"`
+	ShortCode     string `bson:"short_code" json:"short_code"`
+	AppSecret     string `bson:"app_secret" json:"app_secret"`
+	PrivateKey    string `bson:"private_key" json:"private_key"`
+	PublicKey     string `bson:"public_key" json:"public_key"`
 }
 
 type MiniApps struct {
@@ -475,4 +472,11 @@ type EmailKafkaMessage struct {
 	TransactionDetails map[string]interface{} `json:"transaction_details,omitempty"`
 	Priority           int                    `json:"priority,omitempty"`
 	Metadata           map[string]interface{} `json:"metadata,omitempty"`
+}
+
+type EnableDisableAction struct {
+	ID      string `json:"id" bson:"id"`
+	Name    string `json:"name" bson:"name"`
+	Enabled bool   `json:"enabled" bson:"enabled"`
+	Reason  string `json:"reason,omitempty" bson:"reason,omitempty"`
 }

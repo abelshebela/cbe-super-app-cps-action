@@ -7,10 +7,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -139,11 +140,18 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 	var orFilters []bson.M
 
 	if code != "" {
-		orFilters = append(orFilters, bson.M{"code": code})
+		orFilters = append(orFilters, bson.M{
+			"code": code,
+		})
 	}
 
 	if name != "" {
-		orFilters = append(orFilters, bson.M{"name": bson.M{"$regex": name, "$options": "i"}})
+		orFilters = append(orFilters, bson.M{
+			"name": bson.M{
+				"$regex":   name,
+				"$options": "i",
+			},
+		})
 	}
 
 	if len(orFilters) > 0 {

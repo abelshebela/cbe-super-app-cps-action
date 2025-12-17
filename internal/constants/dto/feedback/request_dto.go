@@ -1,20 +1,19 @@
 package feedback
 
 import (
-	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
-
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type FeedbackRequest struct {
-	Responses map[string]types.Response `json:"responses" bson:"responses"`
+	Responses map[string]shared_types.Response `json:"responses" bson:"responses"`
 }
 
 type FeedbackResponse struct {
 	ID             bson.ObjectID             `json:"id" bson:"_id,omitempty"`
 	User           User                      `json:"user" bson:"user,omitempty"`
-	Responses      map[string]types.Response `json:"responses" bson:"responses"`
+	Responses      map[string]shared_types.Response `json:"responses" bson:"responses"`
 	CreatedAt      time.Time                 `json:"created_at" bson:"created_at"`
 	UpdatedAt      time.Time                 `json:"updated_at" bson:"updated_at"`
 }

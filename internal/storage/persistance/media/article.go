@@ -1,11 +1,14 @@
 package media
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -14,25 +17,28 @@ import (
 )
 
 type article struct {
-	logger     shared_utils.Logger
-	articleDal dal.MongoDal[model.NewsArticle, model.NewsArticle]
-	client     *mongo.Client
+	logger        shared_utils.Logger
+	articleDal    dal.MongoDal[model.NewsArticle, model.NewsArticle]
+	kafkaProducer kafka.ClientOrchestrationProducer
+	client        *mongo.Client
 }
 
-func NewsArticleRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.ArticleRepository {
+func NewsArticleRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string, kafkaProducer kafka.ClientOrchestrationProducer) storage.ArticleRepository {
 	return &article{
-		logger:     logger,
-		articleDal: dal.NewMongoDal[model.NewsArticle, model.NewsArticle](client, dbName, collectionName),
-		client:     client,
+		logger:        logger,
+		articleDal:    dal.NewMongoDal[model.NewsArticle, model.NewsArticle](client, dbName, collectionName),
+		client:        client,
+		kafkaProducer: kafkaProducer,
 	}
 }
 
 func (a *article) CreateArticle(ctx context.Context, article *model.NewsArticle) error {
-	_, err := a.articleDal.InsertOne(ctx, *article)
+	newNewsArticle, err := a.articleDal.InsertOne(ctx, *article)
 	if err != nil {
 		a.logger.Errorf("Error inserting article into database:", err)
 		return middleware.NewDatabaseError("Error inserting article into database", err)
 	}
+	a.kafkaProducer.PublishMessage(ctx, newNewsArticle, string(constants.ClientOrchestrationArticleTopic), string(constants.ClientOrchestrationArticleTopic), "new article created")
 
 	return nil
 }
@@ -46,7 +52,7 @@ func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle,
 	filter := bson.M{"_id": objId, "is_deleted": false}
 	update := buildUpdate(*article)
 
-	_, err = a.articleDal.UpdateOne(ctx, filter, update)
+	updateArticle, err := a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error updating article in database:", err)
 		if err == mongo.ErrNoDocuments {
@@ -54,6 +60,9 @@ func (a *article) UpdateArticle(ctx context.Context, article *model.NewsArticle,
 		}
 		return middleware.NewDatabaseError("Error updating article in database", err)
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, updateArticle, string(constants.ClientOrchestrationArticleTopic), string(constants.ClientOrchestrationArticleTopic), "article updated")
+
 	return nil
 }
 
@@ -90,7 +99,7 @@ func (a *article) PublishUnpublishArticle(ctx context.Context, id string, isPubl
 		update["published_at"] = time.Now()
 	}
 
-	_, err = a.articleDal.UpdateOne(ctx, filter, update)
+	updateArticle, err := a.articleDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		a.logger.Errorf("Error updating article publish status in database:", err)
 		if err == mongo.ErrNoDocuments {
@@ -98,6 +107,7 @@ func (a *article) PublishUnpublishArticle(ctx context.Context, id string, isPubl
 		}
 		return middleware.NewDatabaseError("Error updating article publish status in database", err)
 	}
+	a.kafkaProducer.PublishMessage(ctx, updateArticle, string(constants.ClientOrchestrationArticleTopic), string(constants.ClientOrchestrationArticleTopic), "article publish status updated")
 	return nil
 }
 
@@ -126,7 +136,6 @@ func buildUpdate(updateFields model.NewsArticle) bson.M {
 	if updateFields.Slug != "" {
 		update["slug"] = updateFields.Slug
 	}
-
 
 	if updateFields.ThumbnailAltText != "" {
 		update["thumbnail_alt_text"] = updateFields.ThumbnailAltText

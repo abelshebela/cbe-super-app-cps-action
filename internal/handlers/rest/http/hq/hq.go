@@ -27,22 +27,27 @@ func InitHQAdapter(hqApp service.HQService, logger utils.Logger) *hqAdapter {
 	}
 }
 
-// GetHQ godoc
+// // GetHQ godoc
+
+// //	@Summary		Get HQ by ID
+// //	@Description	Fetch HQ details by ID
+// //	@Tags			HQ
+// //	@Accept			json
 //
-//	@Summary		Get HQ by ID
-//	@Description	Fetch HQ details by ID
-//	@Tags			HQ
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		string						true	"HQ ID"
-//	@Success		200	{object}	localization.ResponseCode	"HQ fetched successfully"
-//	@Failure		400	{object}	localization.ResponseCode	"HQ ID required"
-//	@Failure		404	{object}	localization.ResponseCode	"HQ not found"
-//	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/hq/{id} [get]
+//	//@Produce		json
+//	//@Param			id	path		string						true	"HQ ID"
+//
+// //	@Success		200	{object}	localization.ResponseCode	"HQ fetched successfully"
+//
+//	//@Failure		400	{object}	localization.ResponseCode	"HQ ID required"
+//
+// //	@Failure		404	{object}	localization.ResponseCode	"HQ not found"
+// //	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
+// //	@Security		BearerAuth
+//
+//	//@Router			/hq/{id} [get]
 func (a *hqAdapter) GetHQ(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getHq", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getHq", "handler", "hq")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -62,23 +67,23 @@ func (a *hqAdapter) GetHQ(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessHQFetched, hqResp)
 }
 
-// GetAllHQ godoc
+// //GetAllHQ godoc
 //
-//	@Summary		Get all HQs
-//	@Description	Fetch a list of HQs with pagination and filters
-//	@Tags			HQ
-//	@Accept			json
-//	@Produce		json
-//	@Param			page		query		int							false	"Page number (default 1)"
-//	@Param			per_page	query		int							false	"Items per page (default 10, max 100)"
-//	@Param			sort		query		string						false	"Sort field"
-//	@Param			order		query		string						false	"Sort order (asc/desc)"
-//	@Success		200			{object}	localization.ResponseCode	"HQs fetched successfully"
-//	@Failure		500			{object}	localization.ResponseCode	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/hq [get]
+//	//@Summary		Get all HQs
+//	//@Description	Fetch a list of HQs with pagination and filters
+//	//@Tags			HQ
+//	//@Accept			json
+//	//@Produce		json
+//	//@Param			page		query		int							false	"Page number (default 1)"
+//	//@Param			per_page	query		int							false	"Items per page (default 10, max 100)"
+//	//@Param			sort		query		string						false	"Sort field"
+//	//@Param			order		query		string						false	"Sort order (asc/desc)"
+//	//@Success		200			{object}	localization.ResponseCode	"HQs fetched successfully"
+//	//@Failure		500			{object}	localization.ResponseCode	"Internal server error"
+//	//@Security		BearerAuth
+//	//@Router			/hq [get]
 func (a *hqAdapter) GetAllHQ(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllHq", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllHq", "handler", "hq")
 	defer span.End()
 	filter := local_util.ExtractFilterParams(r)
 	list, err := a.hqApp.GetHQDetail(ctx, *filter)
@@ -104,7 +109,7 @@ func (a *hqAdapter) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/hq/block_time [get]
 func (a *hqAdapter) GetBlockTime(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getHqBlockTime", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getHqBlockTime", "handler", "hq")
 	defer span.End()
 
 	resp, err := a.hqApp.GetBlockTime(ctx)
@@ -129,7 +134,7 @@ func (a *hqAdapter) GetBlockTime(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/hq/archive_time [get]
 func (a *hqAdapter) GetArchiveTime(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getHqArchiveTime", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getHqArchiveTime", "handler", "hq")
 	defer span.End()
 
 	resp, err := a.hqApp.GetArchiveTime(ctx)
@@ -154,7 +159,7 @@ func (a *hqAdapter) GetArchiveTime(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/hq/password_expiry [get]
 func (a *hqAdapter) GetPasswordExpiry(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getHqPasswordExpiry", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getHqPasswordExpiry", "handler", "hq")
 	defer span.End()
 
 	resp, err := a.hqApp.GetPasswordExpiry(ctx)
@@ -181,7 +186,7 @@ func (a *hqAdapter) GetPasswordExpiry(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/hq/block_time [post]
 func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateHqBlockTime", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateHqBlockTime", "handler", "hq")
 	defer span.End()
 	var request hqDto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -218,7 +223,7 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/hq/archive_time [post]
 func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateHqArchiveTime", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateHqArchiveTime", "handler", "hq")
 	defer span.End()
 	var request hqDto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -256,7 +261,7 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/hq/password_expiry [post]
 func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateHqPasswordExpiry", "handler", "hq")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateHqPasswordExpiry", "handler", "hq")
 	defer span.End()
 	var request hqDto.UpdatePasswordExpiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

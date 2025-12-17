@@ -3,10 +3,11 @@ package unlink
 import (
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -32,16 +33,20 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 // GetArchivedUser godoc
 //
 //	@Summary		Get archived user
-//	@Description	Get archived user
+//	@Description	Get archived users with pagination, filtering, and search. Filterable fields: enabled, kyc_level, is_blocked, is_verified. Searchable fields: full_name, username, user_code, phone_number.
 //	@Tags			Unlink
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																	false	"Page number"
-//	@Param			per_page	query		int																	false	"Items per page"
-//	@Param			search		query		string																false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=PaginatedArchieveUserResponse}	"User retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Param			page		query	int		false	"Page number"
+//	@Param			per_page	query	int		false	"Items per page"
+//	@Param			enabled		query	bool	false	"Filter by enabled status"
+//	@Param			kyc_level	query	string	false	"Filter by KYC level"
+//	@Param			is_blocked	query	bool	false	"Filter by blocked status"
+//	@Param			is_verified	query	bool	false	"Filter by verified status"
+//	@Param			search		query	string	false	"Search term (searches full_name, username, user_code, phone_number)"
+//	@Success		200	{object}	localization.StandardResponse{data=PaginatedArchieveUserResponse}	"User retrieved successfully"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/unlink/archived_user [get]
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {

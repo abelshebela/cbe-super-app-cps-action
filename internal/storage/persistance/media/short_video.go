@@ -1,13 +1,16 @@
 package media
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -22,22 +25,27 @@ var (
 type shortVideoRepo struct {
 	logger        shared_utils.Logger
 	shortVideoDal dal.MongoDal[model.ShortVideo, model.ShortVideo]
+	kafkaProducer kafka.ClientOrchestrationProducer
 	client        *mongo.Client
 }
 
-func NewShortVideoRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.ShortVideoRepository {
+func NewShortVideoRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string, kafkaProducer kafka.ClientOrchestrationProducer) storage.ShortVideoRepository {
 	return &shortVideoRepo{
 		logger:        logger,
 		shortVideoDal: dal.NewMongoDal[model.ShortVideo, model.ShortVideo](client, dbName, collectionName),
 		client:        client,
+		kafkaProducer: kafkaProducer,
 	}
 }
 
 func (s *shortVideoRepo) Create(ctx context.Context, shortVideo *model.ShortVideo) error {
-	_, err := s.shortVideoDal.InsertOne(ctx, *shortVideo)
+	newShortVidoe, err := s.shortVideoDal.InsertOne(ctx, *shortVideo)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, newShortVidoe, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "new short video created")
+
 	return nil
 }
 
@@ -50,7 +58,7 @@ func (s *shortVideoRepo) Update(ctx context.Context, shortVideo *model.ShortVide
 	}
 	filter := bson.M{"_id": objId, "is_deleted": false}
 	update := buildShortVideoUpdate(*shortVideo)
-	_, err = s.shortVideoDal.UpdateOne(ctx, filter, update)
+	updatedShotVideo, err := s.shortVideoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		s.logger.Errorf("Error updating short video in database:", err)
 		if err == mongo.ErrNoDocuments {
@@ -58,6 +66,7 @@ func (s *shortVideoRepo) Update(ctx context.Context, shortVideo *model.ShortVide
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	s.kafkaProducer.PublishMessage(ctx, updatedShotVideo, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "short video updated")
 	return nil
 }
 
@@ -102,7 +111,7 @@ func (s *shortVideoRepo) PublishUnpublish(ctx context.Context, id string, isPubl
 		update["published_at"] = time.Now()
 	}
 
-	_, err = s.shortVideoDal.UpdateOne(ctx, filter, update)
+	updatedShortVideo, err := s.shortVideoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		s.logger.Errorf("Error updating short video publish status in database:", err)
 		if err == mongo.ErrNoDocuments {
@@ -110,6 +119,7 @@ func (s *shortVideoRepo) PublishUnpublish(ctx context.Context, id string, isPubl
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	s.kafkaProducer.PublishMessage(ctx, updatedShortVideo, string(constants.ClientOrchestrationShortVideoTopic), string(constants.ClientOrchestrationShortVideoTopic), "short video publish status updated")
 	return nil
 }
 

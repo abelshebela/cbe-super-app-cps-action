@@ -44,7 +44,7 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 //	@Security		BearerAuth
 //	@Router			/donation_company [get]
 func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationCompany", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompany", "handler", "donationCompany")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
@@ -78,7 +78,7 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 //	@Security		BearerAuth
 //	@Router			/donation_company/{id} [get]
 func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchDonationCompanyById", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompanyById", "handler", "donationCompany")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -114,7 +114,7 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 //	@Security		BearerAuth
 //	@Router			/donation_company [post]
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createDonationCompany", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCompany", "handler", "donationCompany")
 	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
@@ -164,7 +164,7 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/donation_company/{id} [patch]
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateDonationCompany", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCompany", "handler", "donationCompany")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -205,7 +205,7 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 }
 
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "donationCompanyAccountLookup", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "donationCompanyAccountLookup", "handler", "donationCompany")
 	defer span.End()
 	accountNumber := chi.URLParam(r, "account_number")
 	if accountNumber == "" {
@@ -240,7 +240,7 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 //	@Router			/donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableDonationCompany", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCompany", "handler", "donationCompany")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -275,7 +275,7 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 //	@Router			/donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableDonationCompany", "handler", "donationCompany")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {

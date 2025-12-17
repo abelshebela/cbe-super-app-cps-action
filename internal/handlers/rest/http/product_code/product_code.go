@@ -7,10 +7,11 @@ import (
 
 	product_code_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -41,7 +42,7 @@ func InitProductcodeAdapter(service service.ProductCodeService, logger shared.Lo
 //	@Param			productCode			body		productcode.UpdateProductCodeRequest	true	"Update Product Code Request"
 //	@Success		200					{object}	localization.StandardResponse{data=map[string]model.ProductCode}
 //	@Failure		400,401,403,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/product-codes/{id} [patch]
+//	@Router			/productcodes/{id} [patch]
 func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.TraceLogger(r.Context(), "handler", "productCode", "ProductCodeAdapter", "UpdateProductCode")
 	defer span.End()
@@ -98,7 +99,7 @@ func (h *ProductCodeAdapter) UpdateProductCode(w http.ResponseWriter, r *http.Re
 //	@Param			id					path		string	true	"Product Code ID"
 //	@Success		200					{object}	localization.StandardResponse{data=productcode.ProductCodeResponse}
 //	@Failure		400,401,403,404,500	{object}	localization.StandardResponse{data=nil}
-//	@Router			/product-codes/{id} [get]
+//	@Router			/productcodes/{id} [get]
 func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.TraceLogger(r.Context(), "handler", "productCode", "ProductCodeAdapter", "FetchProductCodeByID")
 	defer span.End()
@@ -123,19 +124,18 @@ func (h *ProductCodeAdapter) FetchProductCodeByID(w http.ResponseWriter, r *http
 
 type ProductCodePaginatedResponse types.PaginatedResponse[[]*product_code_dto.ProductCodeResponse]
 
-// Get All Product Codes
+// GetProductCodeList
 //
-//	@Summary		Fetch all product codes
-//	@Description	Retrieves a paginated list of product codes. Search using service_name.Filter using {_id,service_name,created_at,...}
+//	@Summary		Get product code list
+//	@Description	Retrieves a paginated list of product codes. Searchable fields: service_name, cbe_product_codes.prd, cbe_ifb_product_codes.prd.
 //	@Tags			ProductCode
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			page			query		int		false	"Page number"
-//	@Param			per_page		query		int		false	"Items per page"
-//	@Param			search			query		string	false	"Search term"
-//	@Param			filter			query		string	false	"filter term"
-//	@Success		200				{object}	localization.StandardResponse{data=ProductCodePaginatedResponse}
-//	@Failure		400,401,403,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			page		query	int		false	"Page number"
+//	@Param			per_page	query	int		false	"Items per page"
+//	@Param			search		query	string	false	"Search term (searches service_name, cbe_product_codes.prd, cbe_ifb_product_codes.prd)"
+//	@Success		200	{object}	localization.StandardResponse{data=[]model.ProductCode}	"Product codes retrieved successfully"
+//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/productcodes [get]
 func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.TraceLogger(r.Context(), "handler", "productCode", "ProductCodeAdapter", "FetchProductCodes")

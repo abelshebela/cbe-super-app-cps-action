@@ -4,12 +4,13 @@ import (
 	newscategory_dto "cbe-super-app-cps-action/internal/constants/dto/news_category"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_category/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -78,8 +79,6 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/news/category/{id} [delete]
-//
-// DeleteNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -111,9 +110,7 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}						"Bad request - Invalid pagination params"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/category [post]
-//
-// FetchNewsCategories implements newscategory_adaptor.NewsCategoryAdaptor.
+//	@Router			/news/category [get]
 func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.Request) {
 	filterPtr := local_util.ExtractFilterParams(r)
 	filter := *filterPtr
@@ -181,7 +178,7 @@ func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/category/{id} [put]
+//	@Router			/news/category/{id} [patch]
 //
 // UpdateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.Request) {

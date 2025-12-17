@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  # JAEGER (TRACING)
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      # ... other environment variables
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "4317:4317"  # OTLP GRPC
+      - "4318:4318"  # <<< ADD THIS FOR OTLP HTTP
+    restart: unless-stopped
+
+  # PROMETHEUS (METRICS)
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: prometheus
+    volumes:
+      # This points to your existing file
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090" # Prometheus UI
+    command: --config.file=/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  # GRAFANA (DASHBOARDS)
+  grafana:
+    image: grafana/grafana:9.5.15
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000" # Grafana UI
+    restart: unless-stopped

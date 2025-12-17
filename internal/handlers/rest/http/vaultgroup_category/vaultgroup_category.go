@@ -38,7 +38,7 @@ func InitVaultGroupCategoryHandler(svc service.VaultGroupCategoryService, logger
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/create [post]
 func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	var req vaultgroup_category.CreateVaultGroupCategoryRequest
 
@@ -87,7 +87,7 @@ func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory [get]
 func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllVaultGroupCategories(ctx, params)
@@ -115,7 +115,7 @@ func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/{id} [get]
 func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -140,24 +140,26 @@ func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) 
 	}
 	h.logger.Infof("Vault group category retrieved with ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessVaultGroupCategoryRetrieved, result)
+
 }
 
 // UpdateVaultGroupCategory
 //
 //	@Summary		Update Vault Group Category
-//	@Description	Update a vault group category by the provided ID
+//	@Description	Update a vault group category by the provided ID. Expects multipart/form-data (optional file "cover_image" and form field "name").
 //	@Tags			Vault Group Category
-//	@Accept			json
+//	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			id		path		string												true	"Vault group category ID"
-//	@Param			request	body		vaultgroupcategory.UpdateVaultGroupCategoryRequest	true	"Vault group category request"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}				"Vault group category update request submitted successfully"
-//	@Failure		400		{object}	localization.StandardResponse{data=nil}				"Bad request"
-//	@Failure		500		{object}	localization.StandardResponse{data=nil}				"Internal server error"
+//	@Param			id			path		string	true	"Vault group category ID"
+//	@Param			cover_image	formData	 file	false	"Cover image file"
+//	@Param			name		formData	 string	false	"Name"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"Vault group category update request submitted successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/update/{id} [patch]
 func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -223,7 +225,7 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/delete/{id} [delete]
 func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -256,7 +258,6 @@ func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Summary		Disable Vault Group Category
 //	@Description	Disable a vault group category by the provided ID
 //	@Tags			Vault Group Category
-//	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string									true	"Vault group category ID"
 //	@Success		200	{object}	localization.StandardResponse{data=nil}	"Vault group category disable request submitted successfully"
@@ -265,7 +266,7 @@ func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/disable/{id} [patch]
 func (h *handler) DisableVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -308,7 +309,7 @@ func (h *handler) DisableVaultGroupCategory(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/enable/{id} [patch]
 func (h *handler) EnableVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {

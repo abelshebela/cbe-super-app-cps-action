@@ -1,6 +1,6 @@
 package productcode
 
-import "cbe-super-app-cps-action/internal/constants/model"
+import "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 // Mapper functions
 // ToDomainProductCodeRequest converts an HTTP ProductCodeRequest to a domain-level UpdateProductCodeRequest

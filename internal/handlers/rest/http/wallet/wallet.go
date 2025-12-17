@@ -3,10 +3,11 @@ package wallet
 import (
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	walletInbound "cbe-super-app-cps-action/internal/constants/interfaces/wallet"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"errors"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	walletcore "cbe-super-app-cps-action/internal/handlers/rest/http/wallet/core"
@@ -41,6 +42,7 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 //	@Produce		json
 //	@Param			name	formData	string									false	"name"
 //	@Param			code	formData	string									false	"code"
+//	@Param			type	formData	string									false	"type"
 //	@Param			self	formData	bool									false	"self"
 //	@Param			other	formData	bool									false	"other"
 //	@Param			agent	formData	bool									false	"agent"
@@ -51,7 +53,7 @@ func InitWalletAdapter(walletApp service.WalletService, logger utils.Logger) wal
 //	@Security		BearerAuth
 //	@Router			/wallets [post]
 func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createWallet", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createWallet", "handler", "wallet")
 	defer span.End()
 
 	var req walletDto.WalletRequest
@@ -95,6 +97,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Param			id		path		string									true	"Wallet ID"
 //	@Param			name	formData	string									false	"name"
 //	@Param			code	formData	string									false	"code"
+//	@Param			type	formData	string									false	"type"
 //	@Param			self	formData	bool									false	"self"
 //	@Param			other	formData	bool									false	"other"
 //	@Param			agent	formData	bool									false	"agent"
@@ -105,7 +108,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [patch]
 func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateWallet", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateWallet", "handler", "wallet")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 
@@ -118,6 +121,7 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	req, err := walletcore.ParseWalletRequestFromMultipartForm(r, false)
 	if err != nil {
+
 		span.RecordError(err)
 		a.logger.Errorf("failed to parse wallet update request: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -151,6 +155,9 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("agent") != "" {
 		fieldsProvided["agent"] = true
 	}
+	if r.FormValue("type") != "" {
+		fieldsProvided["type"] = true
+	}
 	if _, _, err := r.FormFile("avatar"); err == nil {
 		fieldsProvided["avatar"] = true
 	}
@@ -164,12 +171,14 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 
 	if req.IsEmpty() {
 		span.RecordError(errors.New("no data provided for wallet update"))
+
 		a.logger.Warnf("no data provided for wallet update, wallet ID: %s", id)
 		localization.SendErrorResponse(w, localization.ErrorWalletUpdateEmptyPayload, nil, nil)
 		return
 	}
 
 	// Pass fieldsProvided to the service
+
 	span.SetAttributes(attribute.String("wallet.id", id))
 	if err := a.walletApp.UpdateWallet(ctx, id, req, fieldsProvided); err != nil {
 		span.RecordError(err)
@@ -197,7 +206,7 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [delete]
 func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteWallet", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteWallet", "handler", "wallet")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -232,7 +241,7 @@ func (a *walletAdapter) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id}/enable [patch]
 func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableWallet", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableWallet", "handler", "wallet")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -266,7 +275,7 @@ func (a *walletAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id}/disable [patch]
 func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableWallet", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableWallet", "handler", "wallet")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -300,7 +309,7 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/wallets/{id} [get]
 func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getWallet", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getWallet", "handler", "wallet")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -324,19 +333,22 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 // GetWallets godoc
 //
 //	@Summary		List wallets
-//	@Description	Retrieve wallets with pagination and optional search
+//	@Description	Retrieve wallets with pagination, filtering, and search. Filterable fields: name, code, enabled. Searchable fields: name, code.
 //	@Tags			Wallet
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int															false	"Page number"		default(1)
-//	@Param			per_page	query		int															false	"Items per page"	default(10)
-//	@Param			search		query		string														false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
+//	@Param			page		query	int		false	"Page number"		default(1)
+//	@Param			per_page	query	int		false	"Items per page"	default(10)
+//	@Param			name		query	string	false	"Filter by wallet name"
+//	@Param			code		query	string	false	"Filter by wallet code"
+//	@Param			enabled		query	bool	false	"Filter by enabled status"
+//	@Param			search		query	string	false	"Search term (searches name, code)"
+//	@Success		200	{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllWallets", "handler", "wallet")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllWallets", "handler", "wallet")
 	defer span.End()
 	filter := local_util.ExtractFilterParams(r)
 	a.logger.Infof("fetching wallets with filter: %+v", filter)

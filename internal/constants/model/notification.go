@@ -9,7 +9,7 @@ import (
 
 type Notification struct {
 	ID                bson.ObjectID                `json:"id,omitempty" bson:"_id"`
-	NotificationCode  string                       `json:"notification_code" bson:"notification_code"`
+	NotificationCode             string                       `json:"notification_code" bson:"notification_code"`
 	Title             string                       `json:"title" bson:"title"`
 	NotificationType  string                       `json:"notification_type" bson:"notification_type"`
 	NotificationBody  string                       `json:"notification_body" bson:"notification_body"`
@@ -29,7 +29,6 @@ type Notification struct {
 type NotificationDocument struct {
 	ID                bson.ObjectID `bson:"_id,omitempty" json:"id"`
 	Title             string        `bson:"title,omitempty" json:"title"`
-	NotificationCode  string        `bson:"notification_code" json:"notification_code"`
 	NotificationType  string        `bson:"notification_type" json:"notification_type"`
 	NotificationBody  string        `bson:"notification_body" json:"notification_body"`
 	IsPublic          bool          `bson:"is_public" json:"is_public"`

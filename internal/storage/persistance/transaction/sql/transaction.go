@@ -2,11 +2,14 @@ package sqlc
 
 import (
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	transaction_core "cbe-super-app-cps-action/internal/storage/persistance/transaction/core"
 	"context"
 	"fmt"
+
+	// members "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 const findTransactionByID = `SELECT 

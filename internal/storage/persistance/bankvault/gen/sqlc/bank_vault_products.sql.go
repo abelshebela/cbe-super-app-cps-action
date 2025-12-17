@@ -1,8 +1,6 @@
 package sqlc
 
 import (
-	constants "cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/model"
 	utils "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
@@ -10,6 +8,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/godror/godror"
 	"github.com/google/uuid"
@@ -81,13 +82,16 @@ WHERE id = :1 AND deleted_at IS NULL
 `
 
 func (q *Queries) DeleteBankVault(ctx context.Context, id string) (string, error) {
+	fmt.Println("================111111", id)
 	res, err := q.db.ExecContext(ctx, deleteBankVault, id)
 	if err != nil {
+		fmt.Println("========================Err", err)
 		return "", fmt.Errorf("failed to delete bank product: %w", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
+		fmt.Println("========================Err 2", err)
 		return "", fmt.Errorf("failed to get rows affected: %w", err)
 	}
 
@@ -355,17 +359,17 @@ RETURNING id INTO :13
 `
 
 type SaveBankVaultParams struct {
-	ID                         string                  `json:"id"`
-	Name                       string                  `json:"name"`
-	Currency                   string                  `json:"currency"`
-	Interest                   decimal.Decimal         `json:"interest"`
-	Method                     constants.AccrualMethod `json:"method"`
-	Frequency                  int64                   `json:"frequency"`
-	LockPeriod                 float64                 `json:"lock_period"`
-	MinAmount                  decimal.Decimal         `json:"min_amount"`
-	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
-	IsActive                   sql.NullBool            `json:"is_active"`
+	ID                         string          `json:"id"`
+	Name                       string          `json:"name"`
+	Currency                   string          `json:"currency"`
+	Interest                   decimal.Decimal `json:"interest"`
+	Method                     string          `json:"method"`
+	Frequency                  int64           `json:"frequency"`
+	LockPeriod                 float64         `json:"lock_period"`
+	MinAmount                  decimal.Decimal `json:"min_amount"`
+	MaxAmount                  decimal.Decimal `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool    `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool    `json:"is_active"`
 }
 
 func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error) {
@@ -471,6 +475,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 
 	rows, err := q.db.QueryContext(ctx, findLocksByProductID, id)
 	if err != nil {
+		fmt.Println("failed to query locked vaults from locked_vaults table: %v", err)
 		return BankVaultProductWithLocks{}, fmt.Errorf("failed to query locks: %w", err)
 	}
 	defer rows.Close()
@@ -745,8 +750,6 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 		return nil, err
 	}
 
-	utils.PrintRecord("Items", items)
-
 	return items, nil
 }
 
@@ -877,8 +880,6 @@ func (q *Queries) GetAllTransactions(ctx context.Context, arg GetAllTransactions
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	utils.PrintRecord("Transactions", items)
 
 	return items, nil
 }

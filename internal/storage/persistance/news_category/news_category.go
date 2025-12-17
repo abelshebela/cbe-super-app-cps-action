@@ -1,13 +1,16 @@
 package newscategory_repo
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -16,17 +19,19 @@ import (
 )
 
 type NewsCategoryRepository struct {
-	client   *mongo.Client
-	mongoDal dal.MongoDal[model.NewsCategory, model.NewsCategory]
-	logger   utils.Logger
+	client        *mongo.Client
+	mongoDal      dal.MongoDal[model.NewsCategory, model.NewsCategory]
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewNewsCategoryRepository(client *mongo.Client, database string, collection string, logger utils.Logger) storage.NewsCategoryRepository {
+func NewNewsCategoryRepository(client *mongo.Client, database string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NewsCategoryRepository {
 	mongoDal := dal.NewMongoDal[model.NewsCategory, model.NewsCategory](client, database, collection)
 	return &NewsCategoryRepository{
-		client:   client,
-		mongoDal: mongoDal,
-		logger:   logger,
+		client:        client,
+		mongoDal:      mongoDal,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -70,6 +75,7 @@ func (n *NewsCategoryRepository) Create(ctx context.Context, categoryName []stri
 	if err != nil {
 		n.logger.Errorf("Create: transaction failed: %v", err)
 	} else {
+		n.kafkaProducer.PublishMessage(ctx, categoryName, string(constants.ClientOrchestrationNewsCategoryTopic), string(constants.ClientOrchestrationNewsCategoryTopic), "new news categories created")
 		n.logger.Infof("Create completed for category names: %v", categoryName)
 	}
 	return err
@@ -214,9 +220,10 @@ func (n *NewsCategoryRepository) Update(ctx context.Context, id string, category
 	// if err:= n.mongoDal.FindOne(ctx,bson.M{}, bson.M{}) err==nil{
 
 	// }
-	_, err = n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"category_name": categoryName})
+	updatedNewsCategory, err := n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"category_name": categoryName})
 	if err != nil {
 		return err
 	}
+	n.kafkaProducer.PublishMessage(ctx, updatedNewsCategory, string(constants.ClientOrchestrationNewsCategoryTopic), string(constants.ClientOrchestrationNewsCategoryTopic), "news category updated")
 	return nil
 }
