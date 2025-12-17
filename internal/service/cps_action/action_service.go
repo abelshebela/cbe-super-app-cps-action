@@ -87,6 +87,7 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 
 	return ca.repo.SanitizedFindOne(context.Background(), filter)
 }
+
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	return ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": uniqueID})
 }

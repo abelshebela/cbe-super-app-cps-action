@@ -2,6 +2,7 @@ package cpsaction
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -66,16 +67,37 @@ func (ca *cpsActionService) ReverseCPSAction(ctx context.Context, actionCode str
 		CurrentAction: payload,
 		Department:    orig.Department,
 	}
+
+	// Ensure a valid UniqueId for modules that require it (e.g., UPDATE/DELETE/ENABLE/DISABLE)
+	if id := strings.TrimSpace(rev.UniqueId); id == "" || local_util.FirstHex24(id) == "" {
+		tryExtract := func(v any) string {
+			b, _ := json.Marshal(v)
+			return local_util.FirstHex24(string(b))
+		}
+		if cand := tryExtract(payload); cand != "" {
+			rev.UniqueId = cand
+		} else if cand := tryExtract(orig.CurrentAction); cand != "" {
+			rev.UniqueId = cand
+		} else if cand := tryExtract(orig.PreviousAction); cand != "" {
+			rev.UniqueId = cand
+		}
+	}
+
 	if _, err := ca.dispatcher.Authorize(ctx, rev); err != nil {
 		return err
 	}
 
 	// 4) Record auditor metadata on the original action
 	auditor := local_util.ExtractUserFromContext(ctx)
+	roleID, _ := ctx.Value(constants.ContextKey("role_id")).(string)
+
 	update := bson.M{
-		"reversed_by_id":   auditor.UserID,
-		"reversed_by_name": auditor.FullName,
-		"reversed_at":      time.Now(),
+		"reversed_by_role_id": roleID,
+		"reversed_by_id":      auditor.UserID,
+		"reversed_by_name":    auditor.FullName,
+		"reversed_at":         time.Now(),
+		"action_status":       string(constants.Reversed),
+		"action_type":         string(constants.UPDATE),
 	}
 
 	if err := ca.repo.UpdateCustome(ctx, bson.M{"action_code": actionCode}, update); err != nil {

@@ -31,6 +31,10 @@ var Projection = bson.M{
 	"unique_id":             1,
 	"created_at":            1,
 	"last_modified_at":      1,
+	"reversed_by_role_id":   1,
+	"reversed_by_id":        1,
+	"reversed_by_name":      1,
+	"reversed_at":           1,
 }
 
 func BuildCPSActionFilter(cps model.CPSAction) bson.M {

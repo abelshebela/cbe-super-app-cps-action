@@ -87,3 +87,8 @@ func (s *cpsActionServiceWithRoles) GetCPSActionByUniqueID(ctx context.Context, 
 func (s *cpsActionServiceWithRoles) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	return s.base.GetCPSActionByActionCode(ctx, uniqueID, department)
 }
+
+// ReverseCPSAction delegates to the base implementation to satisfy service.CPSActionService
+func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
+	return s.base.ReverseCPSAction(ctx, actionCode)
+}

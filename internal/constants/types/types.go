@@ -226,6 +226,15 @@ type Checker struct {
 	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
 }
 
+type Auditor struct {
+	AuditorID          string    `bson:"auditor_id" json:"auditor_id,omitempty"`
+	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
+	AuditorIndex       int32     `bson:"auditor_index" json:"auditor_index,omitempty"`
+	AuditorName        string    `bson:"auditor_name" json:"auditor_name,omitempty"`
+	AuditorPhoneNumber string    `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
+	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
+}
+
 // ==================================
 
 type AdvertDate struct {
