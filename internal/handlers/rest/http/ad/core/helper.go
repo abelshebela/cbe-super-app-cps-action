@@ -9,7 +9,7 @@ import (
 
 	"net/http"
 
-	cps_entities "cbe-super-app-cps-action/internal/constants/model"
+	cps_entities "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

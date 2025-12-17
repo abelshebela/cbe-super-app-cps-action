@@ -136,7 +136,6 @@ func (m *NewsArticleDetail) ToNewsArticle() *NewsArticle {
 		Views:            m.Views,
 		CopyLinkCounter:  m.CopyLinkCounter,
 		DeletedAt:        m.DeletedAt,
-		IsFeatured:       m.IsFeatured,
 	}
 }
 
@@ -161,7 +160,6 @@ func (m *ShortVideoDetail) ToShortVideo() *ShortVideo {
 		ViewsCount:       m.ViewsCount,
 		SharesCount:      m.SharesCount,
 		DeletedAt:        m.DeletedAt,
-		IsFeatured:       m.IsFeatured,
 	}
 }
 

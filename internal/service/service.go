@@ -1,7 +1,6 @@
 package service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
@@ -32,12 +31,17 @@ import (
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
+
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"context"
 	"mime/multipart"
@@ -111,9 +115,9 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
-	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
-	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
+	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
@@ -127,7 +131,7 @@ type DepartmentService interface {
 	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
 	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
 	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
-	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.Department], error)
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]*model.Department], error)
 	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
@@ -213,10 +217,10 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
@@ -282,7 +286,7 @@ type ServiceService interface {
 }
 
 type UnlinkService interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -348,7 +352,7 @@ type AdvertService interface {
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
-	UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
+	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 
 type AvatarService interface {

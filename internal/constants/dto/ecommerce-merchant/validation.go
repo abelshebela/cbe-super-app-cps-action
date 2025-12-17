@@ -1,13 +1,13 @@
 package miniappmerchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"regexp"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 type BranchInformation struct {
@@ -17,7 +17,7 @@ type BranchInformation struct {
 	BranchOwner   string `json:"branch_owner"`
 }
 
-func isBranchEmpty(branch types.BranchInformation) bool {
+func isBranchEmpty(branch model.BranchInformation) bool {
 	return strings.TrimSpace(branch.BranchCode) == "" &&
 		strings.TrimSpace(branch.BranchName) == "" &&
 		strings.TrimSpace(branch.BranchAddress) == "" &&

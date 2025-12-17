@@ -9,8 +9,8 @@ import (
 
 	"cbe-super-app-cps-action/config"
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
-	"cbe-super-app-cps-action/internal/constants/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"github.com/IBM/sarama"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )

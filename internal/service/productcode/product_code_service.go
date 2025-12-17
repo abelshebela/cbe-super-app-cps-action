@@ -9,12 +9,13 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/productcode/core"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -133,8 +134,8 @@ func (s *productCodeService) UpdateProductCode(ctx context.Context, request prod
 	updated := &model.ProductCode{
 		ID:                 existing.ID,
 		ProductName:        utils.NonEmptyString(request.ProductName, existing.ProductName),
-		CBEProductCodes:    model.NonEmptyProductCodes(request.CBEProductCodes, existing.CBEProductCodes),
-		CBEIFBProductCodes: model.NonEmptyProductCodes(request.CBEIFBProductCodes, existing.CBEIFBProductCodes),
+		CBEProductCodes:    core.NonEmptyProductCodes(request.CBEProductCodes, existing.CBEProductCodes),
+		CBEIFBProductCodes: core.NonEmptyProductCodes(request.CBEIFBProductCodes, existing.CBEIFBProductCodes),
 		CreatedAt:          existing.CreatedAt,
 		LastUpdatedAt:      time.Now(),
 	}

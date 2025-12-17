@@ -1,6 +1,8 @@
 package miniappmerchant
 
-import "cbe-super-app-cps-action/internal/constants/types"
+import (
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+)
 
 type MiniAppMerchantDTO struct {
 	MerchantName     string                    `json:"merchant_name"`
@@ -9,8 +11,7 @@ type MiniAppMerchantDTO struct {
 	Email            string                    `json:"email"`
 	AccountNumber    string                    `json:"account_number"`
 	SettlementMethod string                    `json:"settlement_method" bson:"settlement_method"`
-	Branches         []types.BranchInformation `json:"branches"`
-	// MerchantRepresentativeName string                    `json:"merchant_representative_name"`
+	Branches         []model.BranchInformation `json:"branches"`
 }
 
 type KYCDTO struct {

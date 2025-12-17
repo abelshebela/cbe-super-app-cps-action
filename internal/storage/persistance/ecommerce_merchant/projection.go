@@ -1,14 +1,14 @@
 package mini_app_merchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // MiniAppMerchantMapper maps MiniAppMerchant model to BSON for database operations
-func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
+func MiniAppMerchantMapper(data model.EcommerceMerchant) bson.M {
 	result := bson.M{}
 
 	if data.Code != "" {
@@ -26,14 +26,9 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	if data.BankAccountNumber != "" {
 		result["bank_account_number"] = data.BankAccountNumber
 	}
-	if len(data.Branches) > 0 {
-		result["branches"] = data.Branches
-	}
-	if data.Email != "" {
-		result["email"] = data.Email
-	}
-	if data.PhoneNumber != "" {
-		result["phone_number"] = data.PhoneNumber
+
+	if data.SettlementMethod != "" {
+		result["settlement_method"] = data.SettlementMethod
 	}
 	// mini apps are not embedded in merchant
 
@@ -48,7 +43,7 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 
 	return &model.MiniAppMerchant{
 		ID:           miniAppMerchant.ID,
-		Code:         miniAppMerchant.Code,
+		MerchantCode: miniAppMerchant.MerchantCode,
 		MerchantName: miniAppMerchant.MerchantName,
 		// KYC: types.KYC{
 		// 	Status: miniAppMerchant.KYC.Status,
@@ -59,15 +54,12 @@ func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.Mini
 		// 	},
 		// },
 		BankAccountNumber: miniAppMerchant.BankAccountNumber,
-		Branches:          convertBranchesModelToDomain(miniAppMerchant.Branches),
-		Email:             miniAppMerchant.Email,
-		PhoneNumber:       miniAppMerchant.PhoneNumber,
 
-		Enabled:        miniAppMerchant.Enabled,
-		IsDeleted:      miniAppMerchant.IsDeleted,
-		CreatedAt:      miniAppMerchant.CreatedAt,
-		LastModifiedAt: miniAppMerchant.LastModifiedAt,
-		DeletedAt:      miniAppMerchant.DeletedAt,
+		Enabled:   miniAppMerchant.Enabled,
+		IsDeleted: miniAppMerchant.IsDeleted,
+		CreatedAt: miniAppMerchant.CreatedAt,
+		UpdatedAt: miniAppMerchant.UpdatedAt,
+		DeletedAt: miniAppMerchant.DeletedAt,
 	}
 }
 func convertBranchesModelToDomain(branches []types.BranchInformation) []types.BranchInformation {

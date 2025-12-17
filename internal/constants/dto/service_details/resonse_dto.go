@@ -1,9 +1,9 @@
 package dto
 
 import (
-	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

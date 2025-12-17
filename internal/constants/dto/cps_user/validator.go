@@ -62,19 +62,20 @@ func IsStringSliceRequired(value interface{}) error {
 		return validation.NewError("validation_string_slice_required", "must be a non-empty list of strings")
 	}
 	if len(slice) > 0 {
-	for i, s := range slice {
-		trimmed := strings.TrimSpace(s)
-		if trimmed == "" {
-			return validation.NewError("validation_string_slice_required",
-				fmt.Sprintf("item at index %d cannot be empty", i))
-		}
+		for i, s := range slice {
+			trimmed := strings.TrimSpace(s)
+			if trimmed == "" {
+				return validation.NewError("validation_string_slice_required",
+					fmt.Sprintf("item at index %d cannot be empty", i))
+			}
 
-		// Reuse your existing utils.NoSpecialChars
-		if err := utils.NoSpecialChars(trimmed); err != nil {
-			return validation.NewError("validation_string_slice_required",
-				fmt.Sprintf("item at index %d is invalid: %s", i, err.Error()))
+			// Reuse your existing utils.NoSpecialChars
+			if err := utils.NoSpecialChars(trimmed); err != nil {
+				return validation.NewError("validation_string_slice_required",
+					fmt.Sprintf("item at index %d is invalid: %s", i, err.Error()))
+			}
 		}
-	}}
+	}
 
 	return nil
 }

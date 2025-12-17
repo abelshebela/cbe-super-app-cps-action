@@ -144,6 +144,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	sitota.Init(r, handlerLayer.SitotaHandler, authMiddleware)
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
+
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)

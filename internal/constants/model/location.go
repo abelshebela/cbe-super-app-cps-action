@@ -25,9 +25,9 @@ type AccountBlock struct {
 	Slug       string           `bson:"slug" json:"slug"`
 	Type       AccountBlockType `bson:"type" json:"type"`
 	IsEnabled  bool             `bson:"is_enabled" json:"is_enabled"`
-	CityID     *bson.ObjectID   `bson:"city_id,omitempty" json:"city_id,omitempty"`
-	RegionID   *bson.ObjectID   `bson:"region_id,omitempty" json:"region_id,omitempty"`
-	DistrictID *bson.ObjectID   `bson:"district_id,omitempty" json:"district_id,omitempty"`
+	CityID     string           `bson:"city_id,omitempty" json:"city_id,omitempty"`
+	RegionID   string           `bson:"region_id,omitempty" json:"region_id,omitempty"`
+	DistrictID string           `bson:"district_id,omitempty" json:"district_id,omitempty"`
 	IsDeleted  bool             `bson:"is_deleted,omitempty" json:"-"`
 	CreatedAt  time.Time        `bson:"created_at" json:"created_at"`
 	UpdatedAt  time.Time        `bson:"updated_at" json:"updated_at"`

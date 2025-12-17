@@ -19,7 +19,7 @@ type MiniAppMerchant struct {
 	Enabled           bool                      `json:"enabled" bson:"enabled"`
 	IsDeleted         bool                      `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt         time.Time                 `json:"created_at" bson:"created_at"`
-	LastModifiedAt    time.Time                 `json:"last_updated_at" bson:"last_updated_at"`
+	UpdatedAt         time.Time                 `json:"updated_at" bson:"updated_at"`
 	DeletedAt         *time.Time                `json:"deleted_at" bson:"deleted_at"`
 	BankAccountNumber string                    `json:"bank_account_number,omitempty" bson:"bank_account_number,omitempty"`
 	// MerchantType      string                    `json:"merchant_type" bson:"merchant_type"`

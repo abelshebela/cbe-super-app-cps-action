@@ -10,14 +10,16 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -199,12 +201,12 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
-		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
+		if bank_request.Code != "" && result.Code != "" && strings.ToLower(result.Code) == strings.ToLower(bank_request.Code) {
 			b.logger.Errorf("[CreateOneBank] bank with code already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
 
-		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && result.Name != "" && strings.ToLower(result.Name) == strings.ToLower(bank_request.Name) {
 			b.logger.Errorf("[CreateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}

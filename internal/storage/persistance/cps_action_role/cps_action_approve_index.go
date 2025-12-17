@@ -1,16 +1,16 @@
 package action_role_repo
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
-
 
 type CPSActionApproveIndexRepository struct {
 	client     *mongo.Client
@@ -59,7 +59,7 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	for _, idx := range oldIndices {
 		oldMap[idx.RoleId] = idx
 	}
-		var writes []mongo.WriteModel
+	var writes []mongo.WriteModel
 
 	for _, newIdx := range newIndices {
 		if oldIdx, exists := oldMap[newIdx.RoleId]; exists {

@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
@@ -14,10 +13,12 @@ import (
 	"errors"
 	"time"
 
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// added for cascading logic
 	core "cbe-super-app-cps-action/internal/service/amount_based_auth/core"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
@@ -235,7 +236,7 @@ func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filt
 }
 
 // UpdateAmountBasedAuth updates any tier type and applies appropriate cascading logic
-func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
+func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateAmountBasedAuth", "Amount Based Auth", "UpdateAmountBasedAuth")
 	defer span.End()
 
@@ -273,7 +274,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 	now := time.Now()
 
 	switch method {
-	case constants.OPEN:
+	case shared_constant.OPEN:
 		// For OPEN: only MaxAmount is updated, preserve MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 		// Fetch PIN tier to cascade min change
@@ -316,7 +317,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 
 		return nil
 
-	case constants.PIN:
+	case shared_constant.PIN:
 		// For PIN: both MinAmount and MaxAmount can be updated
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
@@ -405,7 +406,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		s.logger.Infof("[UpdateAmountBasedAuth] PIN tier update request created successfully")
 		return nil
 
-	case constants.OTPANDPIN:
+	case shared_constant.OTPANDPIN:
 		// For OTP_PIN: only MinAmount is updated, preserve MaxAmount
 		existingTier.MinAmount = request.MinAmount
 

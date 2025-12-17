@@ -4,17 +4,19 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	TopupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -52,7 +54,7 @@ func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.To
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
-		Services: types.Services{
+		Services: shared_types.Services{
 			Self:  self,
 			Other: other,
 			Agent: agent,
@@ -62,7 +64,10 @@ func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.To
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
 func ToUpdateTopupDoc(existing model.Topup, req TopupDto.TopupRequest) (*model.Topup, int) {
-	var Topup model.Topup
+	// var Topup model.Topup
+	Topup := existing
+	Topup.LastModifiedAt = time.Now()
+
 	change_count := 0
 	if req.Agent == existing.Services.Agent {
 		Topup.Services.Agent = existing.Services.Agent
@@ -82,18 +87,23 @@ func ToUpdateTopupDoc(existing model.Topup, req TopupDto.TopupRequest) (*model.T
 		change_count++
 		Topup.Services.Self = req.Self
 	}
-	if req.Name == existing.Name {
-		Topup.Name = existing.Name
-	} else {
-		change_count++
-		Topup.Name = req.Name
+	if req.Name != "" {
+		if req.Name == existing.Name {
+			Topup.Name = existing.Name
+		} else {
+			change_count++
+			Topup.Name = req.Name
+		}
 	}
-	if req.Code == existing.Code {
-		Topup.Code = existing.Code
-	} else {
-		change_count++
-		Topup.Code = req.Code
+	if req.Code != "" {
+		if req.Code == existing.Code {
+			Topup.Code = existing.Code
+		} else {
+			change_count++
+			Topup.Code = req.Code
+		}
 	}
+	Topup.Enabled = existing.Enabled
 	Topup.Avatar = existing.Avatar
 	return &Topup, change_count
 }

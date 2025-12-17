@@ -75,15 +75,25 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	return nil
 }
 
+const specialChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/?"
+
 func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 	errs := validation.Errors{}
 
 	if isCreate {
 		if strings.TrimSpace(w.Name) == "" {
 			errs["name"] = localization.ErrorWalletNameRequired
+		} else {
+			if strings.ContainsAny(w.Name, specialChars) {
+				errs["name"] = localization.ErrorInvalidWalletName
+			}
 		}
 		if strings.TrimSpace(w.Code) == "" {
 			errs["code"] = localization.ErrorWalletCodeRequired
+		} else {
+			if strings.ContainsAny(w.Code, specialChars) {
+				errs["code"] = localization.ErrorInvalidWalletCode
+			}
 		}
 		if !(w.Self || w.Other || w.Agent) {
 			errs["recharge_option"] = localization.ErrorWalletRechangeOption
@@ -99,9 +109,17 @@ func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 	} else {
 		if w.Name != "" && strings.TrimSpace(w.Name) == "" {
 			errs["name"] = localization.ErrorWalletNameRequired
+		} else if w.Name != "" {
+			if strings.ContainsAny(w.Name, specialChars) {
+				errs["name"] = localization.ErrorInvalidWalletName
+			}
 		}
 		if w.Code != "" && strings.TrimSpace(w.Code) == "" {
 			errs["code"] = localization.ErrorWalletCodeRequired
+		} else if w.Code != "" {
+			if strings.ContainsAny(w.Code, specialChars) {
+				errs["code"] = localization.ErrorInvalidWalletCode
+			}
 		}
 		if w.Avatar != nil {
 			if err := validateAvatar(w.Avatar); err != nil {

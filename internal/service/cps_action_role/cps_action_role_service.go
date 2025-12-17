@@ -5,7 +5,6 @@ import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -18,6 +17,8 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -311,11 +312,11 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Enable", "CPSActionRole", "Enable")
 	defer span.End()
+
 	if actionCode == "" {
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorInvalidInputParameter.Code)
 	}
-	// Ensure exists
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -325,8 +326,10 @@ func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) er
 		span.AddEvent("action role already enabled", trace.WithAttributes(attribute.String("error", "action role already enabled")))
 		return errors.New(localization.ErrorAlreadyEnabled.Code)
 	}
+
 	maker := local_util.ExtractUserFromContext(ctx)
 	payload := model.ActionRole{ActionCode: actionCode, Enabled: true}
+
 	cps := lib.CpsModelBuilder(actionCode, maker, old, payload, string(constants.RequestEnableActionRole), constants.UPDATE)
 	err = s.cpsService.CreateCPSAction(ctx, &cps)
 	if err != nil {
