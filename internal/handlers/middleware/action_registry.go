@@ -155,6 +155,13 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /events/disable/{id}": "Event",
 	"DELETE /events/{id}":        "Event",
 
+	// Event (singular aliases)
+	"POST /event":               "Event",
+	"PATCH /event/{id}":         "Event",
+	"PATCH /event/enable/{id}":  "Event",
+	"PATCH /event/disable/{id}": "Event",
+	"DELETE /event/{id}":        "Event",
+
 	// HQ
 	"POST /hq/block_time":      "BlockTime",
 	"POST /hq/archive_time":    "Archive",
@@ -282,6 +289,20 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				keyPath := method + " " + relPath
 				actionName, ok = cpsActionRegistry[keyPath]
 			}
+			// Fallback: wildcard match where any segment like {param} matches a single path segment
+			if !ok {
+				for k, v := range cpsActionRegistry {
+					if !strings.HasPrefix(k, method+" ") {
+						continue
+					}
+					pat := strings.TrimPrefix(k, method+" ")
+					if patternMatches(pat, relPath) {
+						actionName = v
+						ok = true
+						break
+					}
+				}
+			}
 			if !ok {
 				switch r.Method {
 				case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
@@ -383,4 +404,54 @@ func deriveModuleFromPattern(pattern string) string {
 	}
 	res := b.String()
 	return res
+}
+
+// patternMatches returns true if a route pattern (which may include
+// chi-style placeholders like {id}) matches a concrete path.
+// It performs single-segment wildcard matching for any {param} segment.
+func patternMatches(pattern, path string) bool {
+	// Normalize leading/trailing slashes
+	normalize := func(s string) string {
+		if s == "" {
+			return "/"
+		}
+		if !strings.HasPrefix(s, "/") {
+			s = "/" + s
+		}
+		// keep root `/` intact
+		if len(s) > 1 && strings.HasSuffix(s, "/") {
+			s = s[:len(s)-1]
+		}
+		return s
+	}
+	pattern = normalize(pattern)
+	path = normalize(path)
+
+	split := func(s string) []string {
+		s = strings.Trim(s, "/")
+		if s == "" {
+			return []string{}
+		}
+		return strings.Split(s, "/")
+	}
+
+	pSeg := split(pattern)
+	rSeg := split(path)
+	if len(pSeg) != len(rSeg) {
+		return false
+	}
+	isPlaceholder := func(seg string) bool {
+		return len(seg) >= 2 && seg[0] == '{' && seg[len(seg)-1] == '}'
+	}
+	for i := range pSeg {
+		ps := pSeg[i]
+		rs := rSeg[i]
+		if isPlaceholder(ps) {
+			continue
+		}
+		if ps != rs {
+			return false
+		}
+	}
+	return true
 }
