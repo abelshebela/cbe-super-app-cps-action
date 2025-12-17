@@ -5,8 +5,10 @@ import (
 	"errors"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -22,14 +24,16 @@ import (
 )
 
 type ServicesStorage struct {
-	dal    dal.MongoDal[model.Services, model.Services]
-	logger utils.Logger
+	dal           dal.MongoDal[model.Services, model.Services]
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewServicesRepository(client *mongo.Client, dbName, collection string, logger utils.Logger) storage.ServicesRepository {
+func NewServicesRepository(client *mongo.Client, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
-		dal:    dal.NewMongoDal[model.Services, model.Services](client, dbName, collection),
-		logger: logger,
+		dal:           dal.NewMongoDal[model.Services, model.Services](client, dbName, collection),
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -44,11 +48,12 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Services) e
 	service.LastModifiedAt = time.Now()
 	service.IsDeleted = false
 
-	_, err := s.dal.InsertOne(ctx, *service)
+	createService, err := s.dal.InsertOne(ctx, *service)
 	if err != nil {
 		s.logger.Errorf("insert service failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	s.kafkaProducer.PublishMessage(ctx, createService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "new service created")
 	return nil
 }
 
@@ -104,7 +109,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if len(update) == 1 { // only last_modified_at
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
-	_, err = s.dal.UpdateOne(ctx, filter, update)
+	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return errors.New(localization.ErrorFileNotFound.Code)
@@ -112,6 +117,9 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		s.logger.Errorf("update service failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service updated")
+
 	return nil
 }
 
@@ -140,7 +148,7 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
-	_, err = s.dal.UpdateOne(ctx, filter, update)
+	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return errors.New(localization.ErrorFileNotFound.Code)
@@ -148,6 +156,9 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 		s.logger.Errorf("enable/disable service failed: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, updatedService, string(constants.ClientOrchestrationServicesTopic), string(constants.ClientOrchestrationServicesTopic), "service enabled/disabled")
+
 	return nil
 }
 

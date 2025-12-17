@@ -1,10 +1,12 @@
 package account_block
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"time"
@@ -20,18 +22,20 @@ import (
 )
 
 type AccountBlockStorage struct {
-	accountBlock dal.MongoDal[model.AccountBlock, model.AccountBlock]
-	client       *mongo.Client
-	dbName       string
-	logger       utils.Logger
+	accountBlock  dal.MongoDal[model.AccountBlock, model.AccountBlock]
+	client        *mongo.Client
+	dbName        string
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock: dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
-		client:       client,
-		dbName:       dbName,
-		logger:       logger,
+		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
+		client:        client,
+		dbName:        dbName,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -76,12 +80,14 @@ func (a *AccountBlockStorage) CreateBranch(ctx context.Context, branch *model.Ac
 	branch.CreatedAt = now
 	branch.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *branch)
+	newBranch, err := a.accountBlock.InsertOne(ctx, *branch)
 	if err != nil {
 		a.logger.Errorf("[CreateBranch] failed to create branch: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	a.logger.Infof("[CreateBranch] branch created successfully")
+
+	a.kafkaProducer.PublishMessage(ctx, newBranch, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new branch")
 	return nil
 }
 
@@ -211,11 +217,12 @@ func (a *AccountBlockStorage) CreateRegion(ctx context.Context, region *model.Ac
 	region.CreatedAt = now
 	region.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *region)
+	newRegion, err := a.accountBlock.InsertOne(ctx, *region)
 	if err != nil {
 		a.logger.Errorf("Error creating region: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	a.kafkaProducer.PublishMessage(ctx, newRegion, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new region")
 
 	return nil
 }
@@ -334,11 +341,12 @@ func (a *AccountBlockStorage) CreateDistrict(ctx context.Context, district *mode
 	district.CreatedAt = now
 	district.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *district)
+	newDistrict, err := a.accountBlock.InsertOne(ctx, *district)
 	if err != nil {
 		a.logger.Errorf("Error creating district: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	a.kafkaProducer.PublishMessage(ctx, newDistrict, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new district")
 
 	return nil
 }
@@ -465,11 +473,13 @@ func (a *AccountBlockStorage) CreateCity(ctx context.Context, city *model.Accoun
 	city.CreatedAt = now
 	city.UpdatedAt = now
 
-	_, err := a.accountBlock.InsertOne(ctx, *city)
+	newCity, err := a.accountBlock.InsertOne(ctx, *city)
 	if err != nil {
 		a.logger.Errorf("Error creating city: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, newCity, string(constants.ClientOrchestrationAccountBlockTopic), string(constants.ClientOrchestrationAccountBlockTopic), "create new city")
 
 	return nil
 }

@@ -1,11 +1,13 @@
 package donation_category
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -19,26 +21,31 @@ import (
 )
 
 type DonationCategoryStorage struct {
-	dal    dal.MongoDal[model.DonationCategory, model.DonationCategory]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.DonationCategory, model.DonationCategory]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewDonationCategoryRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DonationCategoryRepository {
+func NewDonationCategoryRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCategoryRepository {
 	return &DonationCategoryStorage{
-		dal:    dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, dbName, collection),
+		client:        client,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
 func (s *DonationCategoryStorage) Create(ctx context.Context, details *model.DonationCategory) error {
 	s.logger.Infof("[Create] creating donation category")
-	_, err := s.dal.InsertOne(ctx, *details)
+	newDonationCategory, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		s.logger.Errorf("[Create] failed to create donation category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, newDonationCategory, string(constants.ClientOrchestrationDonationCategoryTopic), string(constants.ClientOrchestrationDonationCategoryTopic), "new donation category created")
+
 	s.logger.Infof("[Create] donation category created successfully")
 	return nil
 }
@@ -52,7 +59,7 @@ func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := DonationCategoryMapper(*details)
-	_, err = s.dal.UpdateOne(ctx, filter, updateData)
+	updatedDonationCategory, err := s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			s.logger.Errorf("[Update] donation category not found")
@@ -61,6 +68,9 @@ func (s *DonationCategoryStorage) Update(ctx context.Context, id string, details
 		s.logger.Errorf("[Update] failed to update donation category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, updatedDonationCategory, string(constants.ClientOrchestrationDonationCategoryTopic), string(constants.ClientOrchestrationDonationCategoryTopic), "new donation category updated")
+
 	s.logger.Infof("[Update] donation category updated successfully")
 	return nil
 }

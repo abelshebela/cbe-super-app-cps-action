@@ -1,7 +1,9 @@
 package customer
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"fmt"
@@ -30,9 +32,10 @@ type CustomerRepository struct {
 	linkedAccountDal dal.MongoDal[model.LinkedAccount, model.LinkedAccount]
 	logger           utils.Logger
 	coll             *mongo.Collection
+	kafkaProducer    kafka.ClientOrchestrationProducer
 }
 
-func InitCustomerDetail(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CustomerRepository {
+func InitCustomerDetail(client *mongo.Client, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
 	mongoDal := dal.NewMongoDal[member.User, member.User](client, database, collection[0])
 	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
 	return &CustomerRepository{
@@ -41,6 +44,7 @@ func InitCustomerDetail(client *mongo.Client, database string, collection []stri
 		logger:           logger,
 		linkedAccountDal: linkedAccountDal,
 		coll:             client.Database(database).Collection(collection[0]),
+		kafkaProducer:    clientOrchestrationProducer,
 	}
 }
 
@@ -201,11 +205,13 @@ func (p *CustomerRepository) Update(ctx context.Context, id string, data member.
 	}
 
 	filter, update := FaydaEnable(objId, data)
-	_, err = p.mongoDal.UpdateOne(ctx, filter, update)
+	updatedCustomer, err := p.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		p.logger.Errorf("[Update] failed to update customer: %v", err)
 		return err
 	}
+	p.kafkaProducer.PublishMessage(ctx, updatedCustomer, string(constants.ClientOrchestrationMemberTopic), string(constants.ClientOrchestrationMemberTopic), "Customer Update")
+
 	p.logger.Infof("[Update] customer updated successfully")
 	return nil
 }
@@ -247,11 +253,14 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"enabled": enable}
-	_, err = b.mongoDal.UpdateOne(ctx, filter, update)
+	updatedCustomer, err := b.mongoDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		b.logger.Errorf("[EnableOrDisable] failed to enable/disable customer: %v", err)
 		return err
 	}
+
+	b.kafkaProducer.PublishMessage(ctx, updatedCustomer, string(constants.ClientOrchestrationMemberTopic), string(constants.ClientOrchestrationMemberTopic), "enable/disable Customer")
+
 	b.logger.Infof("[EnableOrDisable] customer enable/disable completed successfully")
 	return nil
 }

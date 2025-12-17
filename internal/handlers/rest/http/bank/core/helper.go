@@ -55,7 +55,7 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 				return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 			}
 		}
-		name, code, bic, bankType, accountLength = &v.Name, &v.Code, &v.BIC, &v.Type, v.AccountLength
+		name, code, bic, bankType = &v.Name, &v.Code, &v.BIC, &v.Type
 	case *bank_dto.CreateBankRequest:
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
@@ -63,7 +63,7 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		if err := v.Validate(); err != nil {
 			return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 		}
-		name, code, bic, bankType, accountLength = &v.Name, &v.Code, &v.BIC, &v.Type, v.AccountLength
+		name, code, bic, bankType = &v.Name, &v.Code, &v.BIC, &v.Type
 	default:
 		return localization.ErrorInvalidBankRequest
 	}
