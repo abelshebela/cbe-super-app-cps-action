@@ -51,6 +51,17 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
+	// Add $or filter after FilterBuilder to search by card_name or _id
+	if objID, err := bson.ObjectIDFromHex(filterParam.Search); err == nil {
+		newFilter := bson.M{}
+		newFilter["$or"] = []bson.M{
+			filter,
+			{"_id": objID},
+		}
+
+		filter = newFilter
+	}
+
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

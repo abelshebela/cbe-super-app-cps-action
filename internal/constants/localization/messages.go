@@ -798,10 +798,12 @@ const (
 	MsgNotificationDeleteFailed    = "Failed to delete notification"
 
 	// Customer related error messages
-	MsgCustomerCountFailed     = "Failed to count customers"
-	MsgCustomerConvertIDFailed = "Failed to convert customer ID"
-	MsgCustomerNotFound        = "Customer not found"
-	MsgCustomerFetchFailed     = "Failed to get customer"
+	MsgCustomerCountFailed                         = "Failed to count customers"
+	MsgCustomerConvertIDFailed                     = "Failed to convert customer ID"
+	MsgCustomerNotFound                            = "Customer not found"
+	MsgCustomerFetchFailed                         = "Failed to get customer"
+	MsgCustomerCIFMustContainOnlyNumbers           = "CIF must contain only numbers"
+	MsgCustomerAccountNumberMustContainOnlyNumbers = "Account number must contain only numbers"
 
 	// Account Validation related error messages
 	MsgValidationRuleGetFailed                = "Failed to get validation rule"
@@ -1048,9 +1050,10 @@ const (
 	MsgBpsActionRoleNotFound = "BPS action role not found"
 
 	// transaction related messages
-	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
-	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
-	MsgTransactionIDRequired        = "Transaction ID is required"
+	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess   = "Transaction retrieved successfully"
+	MsgTransactionIDRequired         = "Transaction ID is required"
+	MsgTransactionIdentifierRequired = "Transaction Identifier is required"
 
 	// event merchant message
 	MsgEventMerchantCreatedSuccessfully  = "Event merchant created successfully"

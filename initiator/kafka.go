@@ -10,7 +10,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func InitKafkaService(cfg *config.VaultConfig, logger utils.Logger) *kafka.NotificationProducer {
+func InitKafkaService(cfg *config.VaultConfig, logger utils.Logger) (*kafka.NotificationProducer, *kafka.ClientOrchestrationProducer) {
 
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll
@@ -29,8 +29,8 @@ func InitKafkaService(cfg *config.VaultConfig, logger utils.Logger) *kafka.Notif
 	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
 		logger.Errorf("Failed to create Kafka producer: %v", err)
-		return nil
+		return nil, nil
 	}
 
-	return kafka.NewNotificationProducer(cfg, producer, logger)
+	return kafka.NewNotificationProducer(cfg, producer, logger), kafka.NewClientOrchestrationProducer(cfg, producer, logger)
 }

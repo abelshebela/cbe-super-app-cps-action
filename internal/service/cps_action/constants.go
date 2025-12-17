@@ -921,6 +921,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableVaultAmountTier,
 		RequestDisAbleVaultAmountTier,
 	},
+	"MiniAppProductCode": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
+	},
 }
 
 func IsActionInGroup(action RequestAction, group string) bool {

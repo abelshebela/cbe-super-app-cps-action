@@ -17,7 +17,9 @@ type CustomerEnableSessionResponse struct {
 type FaydaApproveRequest struct {
 	RiskLevel constants.RiskLevel `json:"risk_level"`
 }
-
+type SearchCustomerByCIRequest struct {
+	CifOrAccountNumber string `json:"cif_or_account_number"`
+}
 type Address struct {
 	Zone        string `json:"zone" bson:"zone"`
 	Wereda      string `json:"wereda" bson:"wereda"`
@@ -49,15 +51,13 @@ type CustomerDetailResponse struct {
 }
 
 type CustomerListResponse struct {
-	ID           string `json:"id" bson:"_id"`
-	UserCode     string `json:"user_code" bson:"user_code"`
-	FullName     string `json:"full_name" bson:"full_name"`
-	PhoneNumber  string `json:"phone_number" bson:"phone_number"`
-	BranchCode   string `json:"branch_code" bson:"branch_code"`
-	Gender       string `json:"gender" bson:"gender"`
-	CreatedAt    string `json:"created_at" bson:"created_at"`
-	IsBlocked    bool   `json:"is_blocked" bson:"is_blocked"`
-	BranchName   string `json:"branch_name" bson:"branch_name"`
-	DistrictName string `json:"district_name" bson:"district_name"`
-	Status       string `json:"status" bson:"status"`
+	ID          string `json:"id" bson:"_id"`
+	UserCode    string `json:"user_code" bson:"user_code"`
+	FullName    string `json:"full_name" bson:"full_name"`
+	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	BranchCode  string `json:"branch_code" bson:"branch_code"`
+	Gender      string `json:"gender" bson:"gender"`
+	Avatar      string `json:"avatar" bson:"avatar"`
+	CreatedAt   string `json:"created_at" bson:"created_at"`
+	IsBlocked   bool   `json:"is_blocked" bson:"is_blocked"`
 }

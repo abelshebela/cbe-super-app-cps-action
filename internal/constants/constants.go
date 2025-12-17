@@ -770,3 +770,33 @@ const (
 	Deletion   Type = "DELETION"
 	End        Type = "END"
 )
+
+type KafkaTopic string
+
+const (
+	ClientOrchestrationMemberTopic               KafkaTopic = "member.sync.cps"
+	ClientOrchestrationKycTopic                  KafkaTopic = "kyc.sync.cps"
+	ClientOrchestrationAccessControlTopic        KafkaTopic = "access_control.sync.cps"
+	ClientOrchestrationLinkedAccountTopic        KafkaTopic = "linked_account.sync.cps"
+	ClientOrchestrationAccountBlockTopic         KafkaTopic = "account_block.sync.cps"
+	ClientOrchestrationAccountValidationTopic    KafkaTopic = "account_validation.sync.cps"
+	ClientOrchestrationDeviceVersionControlTopic KafkaTopic = "device_version_control.sync.cps"
+	ClientOrchestrationDonationTopic             KafkaTopic = "donation.sync.cps"
+	ClientOrchestrationDonationCategoryTopic     KafkaTopic = "donation_category.sync.cps"
+	ClientOrchestrationDonationCompanyTopic      KafkaTopic = "donation_company.sync.cps"
+	ClientOrchestrationBudgetCategoryTopic       KafkaTopic = "budget_category.sync.cps"
+	ClientOrchestrationArticleTopic              KafkaTopic = "news_article.sync.cps"
+	ClientOrchestrationShortVideoTopic           KafkaTopic = "short_video.sync.cps"
+	ClientOrchestrationNewsCategoryTopic         KafkaTopic = "news_category.sync.cps"
+	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
+	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
+	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+)
+
+type FinancialInstitutionType string
+
+const (
+	Bank   FinancialInstitutionType = "BANK"
+	Wallet FinancialInstitutionType = "WALLET"
+	MFI    FinancialInstitutionType = "MFI"
+)

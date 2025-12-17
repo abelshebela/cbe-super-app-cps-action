@@ -124,6 +124,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, nil, logger)
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 	vaultAmountTierSrv := vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, nil, logger)
+	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -177,6 +178,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		EventMerchantServiceContainer: eventMerchantService,
 		ServiceContainer:              servicesService,
 		VaultAmountTierContainer:      vaultAmountTierSrv,
+		MiniAppProductCodeContainer:   miniAppProductCodeContainer,
 	}
 
 	// CPSActionService Appended
@@ -312,5 +314,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSActionRole:          cpsActionRoleService,
 		EventMerchantService:   eventMerchantService,
 		VaultAmountTierService: vaultAmountTierSrv,
+		MiniappProductCode:     miniAppProductCodeContainer,
 	}
 }
