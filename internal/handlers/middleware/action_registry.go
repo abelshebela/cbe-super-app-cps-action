@@ -307,7 +307,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			if actionName == "" || actionName == "Api" {
 				for _, v := range cpsActionRegistry {
-					if strings.Contains(relPath, v) {
+					if strings.Contains(relPath, strings.ToLower(v)) {
 						actionName = v
 						continue
 					}
