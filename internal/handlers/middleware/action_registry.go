@@ -54,11 +54,11 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /amount_based_auth/reject/{id}":          "AmountBasedAuth",
 
 	// Avatar
-	"POST /avatar":               "Avatar",
-	"DELETE /avatar/{id}":        "Avatar",
-	"PATCH /avatar/disable/{id}": "Avatar",
-	"PATCH /avatar/enable/{id}":  "Avatar",
-	"PATCH /avatar/{id}":         "Avatar",
+	"POST /avatar":            "Avatar",
+	"DELETE /avatar/{id}":     "Avatar",
+	"PATCH /avatar/disable/*": "Avatar",
+	"PATCH /avatar/enable/*":  "Avatar",
+	"PATCH /avatar/{id}":      "Avatar",
 
 	// Bank
 	"POST /banks":               "Bank",
@@ -227,10 +227,6 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /wallets/{id}/disable": "Wallet",
 }
 
-// CPSActionRouteGuard is a central controller middleware that:
-// - skips paths whose route pattern starts with any whitelist prefix (e.g., /actions for CPSAction module)
-// - if a route is mapped in cpsActionRegistry, checks role_id + action_name in cps_action_approver_index
-// - caches allow/deny decisions using the guard cache defined in action_guard.go
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -256,6 +252,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			if strings.Contains(rel, "/") {
 				rel = r.URL.Path
 			}
+
 			if strings.HasPrefix(rel, "/api/v1/cbesuperapp/cps_action") {
 				rel = strings.TrimPrefix(rel, "/api/v1/cbesuperapp/cps_action")
 				if rel == "" {
