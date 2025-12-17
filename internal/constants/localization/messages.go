@@ -198,9 +198,14 @@ const (
 	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
 	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
 	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
-	// Budget Category related success messages
-	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
+	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
 
+	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
+	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
+	MsgVaultAmountTierUpdateRequestSubmitted  = "Vault amount tier update request submitted successfully"
+	MsgVaultAmountTierDeleteRequestSubmitted  = "Vault amount tier delete request submitted successfully"
+	MsgVaultAmountTierDisableRequestSubmitted = "Vault amount tier disable request submitted successfully"
+	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 

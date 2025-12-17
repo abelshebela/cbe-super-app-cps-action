@@ -287,11 +287,20 @@ type BankVaultRepository interface {
 }
 
 type VaultGroupCategoryRepository interface {
-	Create(ctx context.Context, vaultGroupCategory *model.VaultGroupCategory) (string, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error)
-	FindByID(ctx context.Context, id string) (*model.VaultGroupCategory, error)
-	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultGroupCategory, error)
-	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultGroupCategory) error
+	Create(ctx context.Context, vaultGroupCategory *model.VaultCategory) (string, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultCategory], error)
+	FindByID(ctx context.Context, id string) (*model.VaultCategory, error)
+	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultCategory, error)
+	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultCategory) error
+	Delete(ctx context.Context, id string) (string, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type VaultAmountTierRepository interface {
+	Create(ctx context.Context, vaultAmountTier *model.VaultAmountTier) (string, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
+	FindByID(ctx context.Context, id string) (*model.VaultAmountTier, error)
+	Update(ctx context.Context, id string, vaultAmountTier *model.VaultAmountTier) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }

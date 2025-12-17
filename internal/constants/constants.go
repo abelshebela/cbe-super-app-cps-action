@@ -230,11 +230,11 @@ const (
 type RequestAction string
 
 const (
-RequestCreateMiniappProductCode  string = "CREATE_MINI_APP_PRODUCT_CODE" 
-RequestUpdateMiniappProductCode  string = "UPDATE_MINI_APP_PRODUCT_CODE" 
-RequestDeleteMiniappProductCode  string = "DELETE_MINI_APP_PRODUCT_CODE" 
-RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE" 
-RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
+	RequestCreateMiniappProductCode  string = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  string = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  string = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
 
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
@@ -376,6 +376,12 @@ RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteBankVault  RequestAction = "DELETE_VAULT_BANK"
 	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
+
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
 
 	// for vault group category
 	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"

@@ -143,6 +143,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "eventMerchant"):
 		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VaultAmountTier"):
+		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
