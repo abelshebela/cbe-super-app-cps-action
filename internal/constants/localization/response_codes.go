@@ -439,6 +439,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarNotExist,
 	ErrorBulkServiceAlreadyEnabled,
 	ErrorDuplicateCBEIFBProductCode,
+	ErrorCustomerAccountNumberMustContainOnlyNumbers,
+	ErrorCustomerCIFMustContainOnlyNumbers,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -5862,6 +5864,19 @@ var (
 		Code:       "ERROR_EVENT_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgEventMerchantEnableFailed,
+		Type:       "error",
+	}
+
+	ErrorCustomerAccountNumberMustContainOnlyNumbers = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ACCOUNT_NUMBER_MUST_CONTAIN_ONLY_NUMBERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAccountNumberMustContainOnlyNumbers,
+		Type:       "error",
+	}
+	ErrorCustomerCIFMustContainOnlyNumbers = ResponseCode{
+		Code:       "ERROR_CUSTOMER_CIF_MUST_CONTAIN_ONLY_NUMBERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerCIFMustContainOnlyNumbers,
 		Type:       "error",
 	}
 )
