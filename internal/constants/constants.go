@@ -794,3 +794,9 @@ const (
 	Wallet FinancialInstitutionType = "WALLET"
 	MFI    FinancialInstitutionType = "MFI"
 )
+
+type maxMemory int64
+
+const (
+	MaxMemoryForUpload maxMemory = 15 << 20 // 15 MB
+)
