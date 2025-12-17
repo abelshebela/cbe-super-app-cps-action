@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
 	"fmt"
@@ -22,24 +23,27 @@ import (
 )
 
 type NotificationStorage struct {
-	dal    dal.MongoDal[model.Notification, model.Notification]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.Notification, model.Notification]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewNotificationRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.NotificationRepository {
+func NewNotificationRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NotificationRepository {
 	return &NotificationStorage{
-		dal:    dal.NewMongoDal[model.Notification, model.Notification](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.Notification, model.Notification](client, dbName, collection),
+		client:        client,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
 func (n *NotificationStorage) Create(ctx context.Context, notification *model.Notification) error {
-	_, err := n.dal.InsertOne(ctx, *notification)
+	newNotification, err := n.dal.InsertOne(ctx, *notification)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	n.kafkaProducer.PublishMessage(ctx, newNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "new notification created")
 	return nil
 }
 
@@ -53,7 +57,7 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := NotificationMapper(*notification)
 
-	_, err = n.dal.UpdateOne(ctx, filter, updateData)
+	updatedNotification, err := n.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			n.logger.Errorf("[Update] notification not found")
@@ -62,6 +66,9 @@ func (n *NotificationStorage) Update(ctx context.Context, id string, notificatio
 		n.logger.Errorf("[Update] failed to update notification: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	n.kafkaProducer.PublishMessage(ctx, updatedNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "notification updated")
+
 	n.logger.Infof("[Update] notification updated successfully")
 	return nil
 }
@@ -180,7 +187,7 @@ func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id 
 		"enabled":          enable,
 		"last_modified_at": time.Now(),
 	}
-	_, err = n.dal.UpdateOne(ctx, filter, update)
+	updatedNotification, err := n.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
@@ -188,5 +195,8 @@ func (n *NotificationStorage) EnableDisableNotification(ctx context.Context, id 
 		n.logger.Errorf("EnableOrDisable Event failed", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	n.kafkaProducer.PublishMessage(ctx, updatedNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "notification enabled/disabled")
+
 	return nil, nil
 }

@@ -176,16 +176,15 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	bank := model.Bank{
-		Name:          bank_request.Name,
-		BIC:           bank_request.BIC,
-		Code:          bank_request.Code,
-		Type:          bank_request.Type,
-		AccountLength: *bank_request.AccountLength,
-		Logo:          URL,
-		Enabled:       true,
+		Name:    bank_request.Name,
+		BIC:     bank_request.BIC,
+		Code:    bank_request.Code,
+		Type:    bank_request.Type,
+		Logo:    URL,
+		Enabled: true,
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name, bank_request.AccountLength)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
@@ -450,9 +449,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 	if bank_request.Type != "" {
 		updatedBank.Type = bank_request.Type
 	}
-	if bank_request.AccountLength != nil {
-		updatedBank.AccountLength = *bank_request.AccountLength
-	}
+
 	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
 		var objectkey string
@@ -482,7 +479,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		logoUrl = URL
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name, bank_request.AccountLength)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
