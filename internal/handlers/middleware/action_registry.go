@@ -321,7 +321,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			action := strings.ToUpper(strings.TrimSpace(actionName))
+			action := strings.ToUpper(actionName)
 			cacheKey := roleID + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
 				next.ServeHTTP(w, r)
