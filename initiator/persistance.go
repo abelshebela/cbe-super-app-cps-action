@@ -46,6 +46,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 
+	job_repo "cbe-super-app-cps-action/internal/storage/persistance/job_role"
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
@@ -71,6 +72,7 @@ import (
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi, merchantXAPIKey string, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
+		JobRolePersistence:              job_repo.NewJobRoleRepository(client, dbName, RolesCollection, logger),
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
 		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
 		UserPersistence:                 users.NewUserRepository(client, dbName, MembersCollection, clientOrchestrationProducer, logger),
@@ -126,7 +128,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
 		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
-
 		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
 		RolePersistence:                  role_repo.NewRoleRepository(client, dbName, RolesCollection, logger),
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),

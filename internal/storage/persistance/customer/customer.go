@@ -169,17 +169,14 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 		data = make([]*customer_dto.CustomerListResponse, len(result[0].Data))
 		for i, d := range result[0].Data {
 			data[i] = &customer_dto.CustomerListResponse{
-				ID:           d.ID.Hex(),
-				UserCode:     d.UserCode,
-				FullName:     d.FullName,
-				PhoneNumber:  d.PhoneNumber,
-				BranchCode:   d.BranchCode,
-				Gender:       d.Gender,
-				CreatedAt:    d.CreatedAt.Format(time.RFC3339),
-				IsBlocked:    d.IsBlocked,
-				BranchName:   d.BranchName,
-				DistrictName: d.DistrictName,
-				Status:       d.Status,
+				ID:          d.ID.Hex(),
+				UserCode:    d.UserCode,
+				FullName:    d.FullName,
+				PhoneNumber: d.PhoneNumber,
+				BranchCode:  d.BranchCode,
+				Gender:      d.Gender,
+				CreatedAt:   d.CreatedAt.Format(time.RFC3339),
+				IsBlocked:   d.IsBlocked,
 			}
 		}
 		if len(result[0].Total) > 0 {
@@ -405,6 +402,50 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 		BirthDate:      res.KYCData.BirthDate,
 		Address:        res.KYCData.Address,
 		MonthlyIncome:  res.KYCData.MonthlyIncome,
+	}
+
+	return response, nil
+}
+
+func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error) {
+	p.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", req.CifOrAccountNumber)
+
+	// Step 1: Find user_id from linked_account where customer_id and account_number match
+	linkedAccountColl := p.client.Database(p.coll.Database().Name()).Collection("linked_account")
+	var linkedResult struct {
+		UserID interface{} `bson:"user_id"`
+	}
+	f := bson.M{"$or": bson.A{
+		bson.M{"customer_id": req.CifOrAccountNumber},
+		bson.M{"account_number": req.CifOrAccountNumber},
+	}}
+
+	err := linkedAccountColl.FindOne(ctx, f).Decode(&linkedResult)
+	if err != nil {
+		code, _ := local_util.HandleMongoError(err)
+		if code == localization.ErrorResourceNotFound.Code {
+			p.logger.Errorf("[searchCustomerByCIForAccountNumber] customer not found")
+			return nil, fmt.Errorf("%s", code)
+		}
+		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to fetch customer: %v", err)
+		return nil, err
+	}
+
+	res, err := p.mongoDal.FindOne(ctx, bson.M{"_id": linkedResult.UserID}, nil)
+	if err != nil {
+		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to find customer: %v", err)
+		return nil, err
+	}
+
+	response := &customer_dto.CustomerListResponse{
+		ID:          res.ID.Hex(),
+		UserCode:    res.UserCode,
+		FullName:    res.FullName,
+		PhoneNumber: res.PhoneNumber,
+		BranchCode:  res.BranchCode,
+		Gender:      string(res.Gender),
+		CreatedAt:   res.CreatedAt.Format(time.RFC3339),
+		IsBlocked:   res.IsBlocked,
 	}
 
 	return response, nil

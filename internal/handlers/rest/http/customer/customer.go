@@ -8,10 +8,11 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/customer/core"
 	"encoding/json"
 
-	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"cbe-super-app-cps-action/internal/service"
 	util "cbe-super-app-cps-action/pkgs/utils"
 	"net/http"
+
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	"github.com/go-chi/chi/v5"
 	utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -362,4 +363,32 @@ func (c customerAdapter) ApproveFaydaCustomer(w http.ResponseWriter, r *http.Req
 
 	c.logger.Infof("[ApproveFaydaCustomer] request sent successfully for customer id: %s", id)
 	localization.SendSuccessResponse(w, localization.FaydaCustomerApprovalRequestSent, nil)
+}
+
+func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "searchCustomerByCIForAccountNumber", "handler", "customer")
+	defer span.End()
+
+	var req dto.SearchCustomerByCIRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		c.logger.Errorf("invalid search customer by ci request")
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	customer, err := c.customerService.SearchCustomerByCIForAccountNumber(ctx, req)
+	if err != nil {
+		span.RecordError(err)
+		c.logger.Errorf("[SearchCustomerByCIForAccountNumber] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customer)
+
 }

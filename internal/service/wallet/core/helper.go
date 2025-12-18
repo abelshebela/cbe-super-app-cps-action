@@ -88,9 +88,9 @@ func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, field
 		changeCount++
 		wallet.Code = req.Code
 	}
-	if req.Type != "" && req.Type != existing.Type {
+	if string(req.Type) != "" && string(req.Type) != (existing.Type) {
 		changeCount++
-		wallet.Type = req.Type
+		wallet.Type = string(req.Type)
 	}
 
 	return &wallet, changeCount

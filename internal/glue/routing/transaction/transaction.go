@@ -23,6 +23,15 @@ func Init(router chi.Router, transactionHandler transaction.TransactionInterface
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/transactions/search/{identifier}",
+			Handler: transactionHandler.FindTransactionByCifOrAccountNumberOrFT,
+			Middlewares: []func(http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/transactions",
 			Handler: transactionHandler.FetchAllTransactions,
 			Middlewares: []func(http.Handler) http.Handler{

@@ -9,14 +9,20 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-func CategoryMapper(action map[string]interface{}) model.VaultGroupCategory {
-	category := model.VaultGroupCategory{}
+func CategoryMapper(action map[string]interface{}) model.VaultCategory {
+	category := model.VaultCategory{}
 
 	if v, ok := action["name"]; ok {
 		if name, ok := v.(string); ok {
 			category.Name = name
 		}
 	}
+	if v, ok := action["category_type"]; ok {
+		if categoryType, ok := v.(string); ok {
+			category.CategoryType = categoryType
+		}
+	}
+
 	if v, ok := action["cover_image"]; ok {
 		if img, ok := v.(string); ok {
 			category.CoverImage = img
@@ -42,7 +48,7 @@ func CategoryMapper(action map[string]interface{}) model.VaultGroupCategory {
 // 	return result
 // }
 
-func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultGroupCategory) *vaultgroup_category.VaultGroupCategoryResponse {
+func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultCategory) *vaultgroup_category.VaultGroupCategoryResponse {
 	return &vaultgroup_category.VaultGroupCategoryResponse{
 		ID:         vaultGroupCategory.ID,
 		Name:       vaultGroupCategory.Name,
@@ -66,9 +72,9 @@ func MapVaultGroupCategoryToResponse(vaultGroupCategory *model.VaultGroupCategor
 // 	return req
 // }
 
-func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultGroupCategory, error) {
-	var VaultGroupCategory model.VaultGroupCategory
-	if v, ok := current.(model.VaultGroupCategory); ok {
+func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultCategory, error) {
+	var VaultGroupCategory model.VaultCategory
+	if v, ok := current.(model.VaultCategory); ok {
 		return v, nil
 	}
 	if s, ok := current.(string); ok {
@@ -83,8 +89,8 @@ func BindVaultGroupCategoryFromCPSAction(current interface{}) (model.VaultGroupC
 	return MapCamelCaseToVaultGroupCategory(bytes)
 }
 
-func MapCamelCaseToVaultGroupCategory(jsonBytes []byte) (model.VaultGroupCategory, error) {
-	var result model.VaultGroupCategory
+func MapCamelCaseToVaultGroupCategory(jsonBytes []byte) (model.VaultCategory, error) {
+	var result model.VaultCategory
 
 	var data map[string]interface{}
 	if err := json.Unmarshal(jsonBytes, &data); err != nil {
@@ -95,20 +101,17 @@ func MapCamelCaseToVaultGroupCategory(jsonBytes []byte) (model.VaultGroupCategor
 
 	result.ID = getString(data, "id")
 	result.Name = getString(data, "name")
-	result.IsActive = getBool(data, "isactive")
-	result.CreatedBy = getString(data, "createdby")
-	result.UpdatedBy = getString(data, "updatedby")
-	result.IsDeleted = getBool(data, "isdeleted")
-	result.CreatedAt = getTime(data, "createdat")
-	result.UpdatedAt = getTime(data, "updatedat")
-	result.DeletedAt = getTimePtr(data, "deletedat")
-
+	result.IsActive = getBool(data, "is_active")
+	result.IsDeleted = getBool(data, "is_deleted")
+	result.CreatedAt = getTime(data, "created_at")
+	result.UpdatedAt = getTime(data, "updated_at")
+	result.DeletedAt = getTimePtr(data, "deleted_at")
 	return result, nil
 }
 
-func BindVaultGroupCategoryUpdateFromCPSAction(current interface{}) (model.VaultGroupCategory, error) {
-	var BV model.VaultGroupCategory
-	if v, ok := current.(model.VaultGroupCategory); ok {
+func BindVaultGroupCategoryUpdateFromCPSAction(current interface{}) (model.VaultCategory, error) {
+	var BV model.VaultCategory
+	if v, ok := current.(model.VaultCategory); ok {
 		return v, nil
 	}
 
@@ -128,8 +131,8 @@ func BindVaultGroupCategoryUpdateFromCPSAction(current interface{}) (model.Vault
 	// Use custom mapping function to handle camelCase -> UpdateBankVault conversion
 	return MapCamelCaseToUpdateaultGroupCategory(bytes)
 }
-func MapCamelCaseToUpdateaultGroupCategory(jsonBytes []byte) (model.VaultGroupCategory, error) {
-	var result model.VaultGroupCategory
+func MapCamelCaseToUpdateaultGroupCategory(jsonBytes []byte) (model.VaultCategory, error) {
+	var result model.VaultCategory
 	var data map[string]interface{}
 	if err := json.Unmarshal(jsonBytes, &result); err != nil {
 		return result, err

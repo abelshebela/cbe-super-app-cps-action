@@ -45,6 +45,7 @@ type JobRoleRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
 }
 
 type UnlinkAccount interface {
@@ -305,11 +306,20 @@ type BankVaultRepository interface {
 }
 
 type VaultGroupCategoryRepository interface {
-	Create(ctx context.Context, vaultGroupCategory *model.VaultGroupCategory) (string, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error)
-	FindByID(ctx context.Context, id string) (*model.VaultGroupCategory, error)
-	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultGroupCategory, error)
-	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultGroupCategory) error
+	Create(ctx context.Context, vaultGroupCategory *model.VaultCategory) (string, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultCategory], error)
+	FindByID(ctx context.Context, id string) (*model.VaultCategory, error)
+	GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultCategory, error)
+	Update(ctx context.Context, id string, vaultGroupCategory *model.VaultCategory) error
+	Delete(ctx context.Context, id string) (string, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type VaultAmountTierRepository interface {
+	Create(ctx context.Context, vaultAmountTier *model.VaultAmountTier) (string, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
+	FindByID(ctx context.Context, id string) (*model.VaultAmountTier, error)
+	Update(ctx context.Context, id string, vaultAmountTier *model.VaultAmountTier) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
@@ -471,6 +481,7 @@ type CustomerRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
+	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
 }
 
 type BulkServiceRepository interface {
@@ -591,6 +602,7 @@ type MiniAppProductCodeRepository interface {
 
 type TransactionRepository interface {
 	FindTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
 }
 

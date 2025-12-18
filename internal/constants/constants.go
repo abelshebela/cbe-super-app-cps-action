@@ -383,6 +383,12 @@ const (
 	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
 	// for vault group category
 	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
 	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
@@ -788,4 +794,18 @@ const (
 	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
 	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
 	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+)
+
+type FinancialInstitutionType string
+
+const (
+	Bank   FinancialInstitutionType = "BANK"
+	Wallet FinancialInstitutionType = "WALLET"
+	MFI    FinancialInstitutionType = "MFI"
+)
+
+type maxMemory int64
+
+const (
+	MaxMemoryForUpload maxMemory = 15 << 20 // 15 MB
 )

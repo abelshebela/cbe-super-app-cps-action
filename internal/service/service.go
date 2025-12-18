@@ -29,8 +29,10 @@ import (
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
@@ -123,6 +125,7 @@ type CustomerService interface {
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
 	GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
+	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -412,7 +415,16 @@ type JobRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type RoleService interface {
+	Create(ctx context.Context, jobs imodel.JobRole) error
+	Update(ctx context.Context, id string, update imodel.JobRole) error
+	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
+	RoleService            RoleService
 	EventService           EventService
 	BulkService            BulkService
 	CustomerService        CustomerService
@@ -465,9 +477,11 @@ type ServiceLayer struct {
 	MiniappProductCode     MiniappProductCodeService
 	EventMerchantService   EventMerchantService
 	JobRoleService         JobRoleService
+	VaultAmountTierService VaultAmountBasedTierService
 }
 
 type ServiceContainer struct {
+	RoleContainer                      RoleService
 	JobRoleContainer                   JobRoleService
 	AccountBlockContainer              AccountBlockService
 	AccountContainer                   AccountValidationService
@@ -524,6 +538,7 @@ type ServiceContainer struct {
 	MiniappProductCodeServiceContainer MiniappProductCodeService
 	EventMerchantServiceContainer      EventMerchantService
 	ServiceContainer                   ServicesService
+	VaultAmountTierContainer           VaultAmountBasedTierService
 	MiniAppProductCodeContainer        MiniappProductCodeService
 }
 
@@ -561,6 +576,16 @@ type VaultGroupCategoryService interface {
 	EnableVaultGroupCategory(ctx context.Context, id string) error
 	DisableVaultGroupCategory(ctx context.Context, id string) error
 }
+type VaultAmountBasedTierService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateAmountTier(ctx context.Context, req *vault_amount_dto.VaultAmountTierRequest) (string, error)
+	FindAllAmountTiers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
+	GetAmountTier(ctx context.Context, id string) (*model.VaultAmountTier, error)
+	UpdateAmountTier(ctx context.Context, id string, req *vault_amount_dto.UpdateVaultAmountTierRequest) (string, error)
+	DeleteAmountTier(ctx context.Context, id string) (string, error)
+	EnableOrDisableAmountTier(ctx context.Context, id string, enable bool) (string, error)
+}
+
 type ArticleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -609,6 +634,7 @@ type MiniAppCategoryService interface {
 type TransactionService interface {
 	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
 	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)

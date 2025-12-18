@@ -21,6 +21,7 @@ import (
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	job_role_interface "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
+	vaultAmountTierInbound "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
 
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
@@ -31,6 +32,7 @@ import (
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
+	roleInbound "cbe-super-app-cps-action/internal/constants/interfaces/roles"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 	servicesInbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
@@ -44,6 +46,7 @@ import (
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
 	event_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/roles"
 
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
@@ -89,6 +92,7 @@ import (
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
+	amount_tier_handler "cbe-super-app-cps-action/internal/handlers/rest/http/vault_amount_tier"
 	vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
@@ -96,6 +100,7 @@ import (
 )
 
 type Handler struct {
+	RoleHandler               roleInbound.RolesInbound
 	jobRoleHandler            job_role_interface.RolesInbound
 	CpsActionHandler          actionInbound.CPSActionAdapter
 	UnlinkHandler             unlinkInbound.UnlinkAdapter
@@ -139,11 +144,13 @@ type Handler struct {
 	CPSActionRoleHandler      cps_actionrole_iface.CPSActionRoleHandler
 	TransactionHandler        transaction.TransactionInterface
 	EventMerchantHandler      event_merchant_port.EventMerchantInboundAdaptor
+	AmountTierHandler         vaultAmountTierInbound.VaultAmountTierHandler
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
 	pcs := serviceLayer.ProductCode
 	return Handler{
+		RoleHandler:               roles.NewRoleHandler(serviceLayer.RoleService, logger),
 		jobRoleHandler:            jobRoleHandler.NewJobRoleHandler(serviceLayer.JobRoleService, logger),
 		BudgetCategoryHandler:     budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
 		UnlinkHandler:             unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
@@ -187,5 +194,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		CPSActionRoleHandler:      cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
+		AmountTierHandler:         amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
 	}
 }

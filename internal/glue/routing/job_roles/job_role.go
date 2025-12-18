@@ -13,7 +13,7 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 	routes := []glue.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/roles",
+			Path:    "/job_roles",
 			Handler: handler.GetAll,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -21,7 +21,7 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/roles/{id}",
+			Path:    "/job_roles/{id}",
 			Handler: handler.GetByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -29,7 +29,7 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 		},
 		{
 			Method:  http.MethodPost,
-			Path:    "/roles",
+			Path:    "/job_roles",
 			Handler: handler.Create,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
@@ -37,7 +37,7 @@ func Init(router chi.Router, handler inbound.RolesInbound, auth middleware.AuthM
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/roles/{id}",
+			Path:    "/job_roles/{id}",
 			Handler: handler.Update,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,

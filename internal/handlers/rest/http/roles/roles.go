@@ -6,31 +6,31 @@ import (
 	"strings"
 	"time"
 
-	roles_dto "cbe-super-app-cps-action/internal/constants/dto/job_role"
-	inbound "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
+	roles_dto "cbe-super-app-cps-action/internal/constants/dto/roles"
+	inbound "cbe-super-app-cps-action/internal/constants/interfaces/roles"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	service "cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
-	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
 )
 
-type JobRoleHandler struct {
-	service service.JobRoleService
+type RoleHandler struct {
+	service service.RoleService
 	logger  utils.Logger
 }
 
-func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbound.RolesInbound {
-	return &JobRoleHandler{
+func NewRoleHandler(service service.RoleService, logger utils.Logger) inbound.RolesInbound {
+	return &RoleHandler{
 		service: service,
 		logger:  logger,
 	}
 }
 
-func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (j *RoleHandler) FindAll(w http.ResponseWriter, r *http.Request) {
 	filter := common_utils.ExtractFilterParams(r)
 	resp, err := j.service.FindAllWithPagination(r.Context(), *filter)
 	if err != nil {
@@ -41,7 +41,7 @@ func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, resp)
 }
 
-func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -56,8 +56,8 @@ func (j *JobRoleHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, role)
 }
 
-func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var body roles_dto.RequestRolesCreate
+func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var body roles_dto.CreateJobRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
@@ -68,10 +68,11 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := sharedmodel.Role{
-		JobTitle:  strings.TrimSpace(body.JobTitle),
-		Role:      strings.TrimSpace(body.Role),
-		CreatedAt: time.Now(),
+	role := imodel.JobRole{
+		Name:        strings.TrimSpace(body.Name),
+		Code:        strings.TrimSpace(body.Code),
+		PortalCards: body.PortalCards,
+		CreatedAt:   time.Now(),
 	}
 
 	if err := j.service.Create(r.Context(), role); err != nil {
@@ -81,14 +82,14 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
-func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	var body roles_dto.RequestRolesUpdate
+	var body roles_dto.UpdateJobRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
@@ -99,14 +100,18 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updated := sharedmodel.Role{
+	updated := imodel.JobRole{
 		UpdatedAt: time.Now(),
 	}
-	if body.JobTitle != "" {
-		updated.JobTitle = strings.TrimSpace(body.JobTitle)
+	if body.Name != "" {
+		updated.Name = strings.TrimSpace(body.Name)
 	}
-	if body.Role != "" {
-		updated.Role = strings.TrimSpace(body.Role)
+	if body.Code != "" {
+		updated.Code = strings.TrimSpace(body.Code)
+	}
+
+	if len(body.PortalCards) > 0 {
+		updated.PortalCards = body.PortalCards
 	}
 
 	if err := j.service.Update(r.Context(), id, updated); err != nil {
