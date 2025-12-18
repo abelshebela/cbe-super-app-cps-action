@@ -98,6 +98,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	cpsUser := core.CPSUModel(req)
+	cpsUser.JobTitle = req.JobTitle
 	payload := cpsuser.CPSUserActionPayload{
 		User:                 cpsUser,
 		PermissionCategories: populatedCategories,
@@ -115,10 +116,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
-		currentUser, err := s.repo.FindByID(ctx, req.UserCode)
-		if err != nil {
-			return err
-		}
+	currentUser, err := s.repo.FindByID(ctx, req.UserCode)
+	if err != nil {
+		return err
+	}
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
@@ -371,7 +372,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 
 	case string(constants.RequestCpsUserUpdate):
 		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
-		fmt.Println("////////core cps user update",cur)
+		fmt.Println("////////core cps user update", cur)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}

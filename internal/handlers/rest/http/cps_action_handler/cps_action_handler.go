@@ -175,7 +175,8 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 		roleID := local_util.FirstHex24(rawRoleID)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
+		UpperCaseAction := strings.ToUpper(actionName)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
 		if err != nil {
 			span.RecordError(err)
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -226,7 +227,6 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		CheckerPhoneNumber: userData.PhoneNumber,
 		ApprovedAt:         time.Now(),
 	}
-
 	update := &model.CPSAction{
 		ActionCode:          action.ActionCode,
 		ActionStatus:        finalStatus,
