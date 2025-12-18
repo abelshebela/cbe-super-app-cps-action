@@ -190,7 +190,7 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 	}
 
 	if name := r.FormValue("name"); name != "" {
-		req.Name = &name
+		req.Name = name
 	}
 
 	req.CategoryType = r.FormValue("category_type")

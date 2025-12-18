@@ -55,11 +55,12 @@ func (q *Queries) DeactivateVaultGroupCategory(ctx context.Context, id string) (
 const deleteVaultGroupCategory = `-- name: DeleteVaultGroupCategory :one
 UPDATE vault_categories
 SET is_deleted = 1, deleted_at = SYSTIMESTAMP, updated_at = SYSTIMESTAMP
-WHERE id = :1 AND is_deleted = 0
+WHERE id = :1
 RETURNING id INTO :result`
 
 func (q *Queries) DeleteVaultGroupCategory(ctx context.Context, id string) (string, error) {
 	var result string
+	fmt.Println("===============", id)
 	res, err := q.db.ExecContext(ctx, deleteVaultGroupCategory, id, sql.Out{Dest: &result})
 	if err != nil {
 		return "", fmt.Errorf("failed to delete vault group category: %w", err)
@@ -80,8 +81,6 @@ SELECT
   is_active,
   created_at,
   updated_at,
-  deleted_at,
-  is_deleted,
   COUNT(*) OVER() AS total_count
 FROM vault_categories
 WHERE (:is_active IS NULL OR is_active = :is_active)
@@ -136,8 +135,6 @@ func (q *Queries) FindVaultGroupCategory(ctx context.Context, arg FindVaultGroup
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.DeletedAt,
-			&i.IsDeleted,
 			&i.TotalCount,
 		); err != nil {
 			return nil, err
@@ -158,22 +155,9 @@ SELECT
   cover_image,
   is_active,
   created_at,
-  updated_at,
-  deleted_at
-  is_deleted,
+  updated_at
 FROM vault_categories
 WHERE id = :1 AND deleted_at IS NULL`
-
-// type FindVaultGroupCategoryByIdRow struct {
-// 	ID         string       `json:"id"`
-// 	Name       string       `json:"name"`
-// 	CoverImage string       `json:"cover_image"`
-// 	IsActive   bool         `json:"is_active"`
-// 	IsDeleted  bool         `json:"is_deleted"`
-// 	CreatedAt  sql.NullTime `json:"created_at"`
-// 	UpdatedAt  sql.NullTime `json:"updated_at"`
-// 	DeletedAt  sql.NullTime `json:"deleted_at"`
-// }
 
 func (q *Queries) FindVaultGroupCategoryById(ctx context.Context, id string) (VaultCategory, error) {
 	row := q.db.QueryRowContext(ctx, findVaultGroupCategoryById, id)
@@ -186,9 +170,8 @@ func (q *Queries) FindVaultGroupCategoryById(ctx context.Context, id string) (Va
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.DeletedAt,
-		&i.IsDeleted,
 	)
+
 	return i, err
 }
 
@@ -208,8 +191,6 @@ func (q *Queries) FindVaultGroupCategoryByName(ctx context.Context, name string)
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.DeletedAt,
-		&i.IsDeleted,
 	)
 	return i, err
 }

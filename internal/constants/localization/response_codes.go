@@ -551,6 +551,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailedToBeingTransaction,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
+	ErrorCannotDeleteActiveVaultGroupCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
 	ErrorCannotEnableOrDisable,

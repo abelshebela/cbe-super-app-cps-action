@@ -9,7 +9,7 @@ type CreateVaultGroupCategoryRequest struct {
 }
 
 type UpdateVaultGroupCategoryRequest struct {
-	Name         *string               `form:"name,omitempty"`
+	Name         string                `form:"name,omitempty"`
 	CategoryType string                `form:"category_type"`
 	CoverImage   *multipart.FileHeader `form:"cover_image,omitempty"`
 }
