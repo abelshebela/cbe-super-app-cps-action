@@ -47,16 +47,16 @@ func (r *UpdateVaultGroupCategoryRequest) Validate() error {
 		return errors.New("request is required")
 	}
 
-	if r.Name == nil && r.CoverImage == nil && r.CategoryType == "" {
+	if r.Name == "" && r.CoverImage == nil && r.CategoryType == "" {
 		return errors.New("at least one field (name, or cover_image) must be provided")
 	}
 
-	if r.Name != nil {
-		sanitized, err := sanitizeString(*r.Name)
+	if r.Name != "" {
+		sanitized, err := sanitizeString(r.Name)
 		if err != nil {
 			return fmt.Errorf("name: %w", err)
 		}
-		r.Name = &sanitized
+		r.Name = sanitized
 	}
 	if r.CategoryType != "" {
 		sanitized, err := sanitizeString(r.CategoryType)
@@ -68,12 +68,12 @@ func (r *UpdateVaultGroupCategoryRequest) Validate() error {
 
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
-			validation.When(r.Name != nil,
+			validation.When(r.Name != "",
 				validation.Length(3, 100).Error("name must be between 3 and 100 characters"),
 				validation.By(noSpecialChars),
 			),
 		),
-		validation.Field(
+		validation.Field(&r.CategoryType,
 			validation.When(r.CategoryType != "",
 				validation.Required.Error("category_type is required"),
 				validation.In("GROUP", "PERSONAL").Error("category_type must be GROUP or PERSONAL"),
@@ -87,7 +87,7 @@ func (r *UpdateVaultGroupCategoryRequest) Validate() error {
 }
 
 func (r *UpdateVaultGroupCategoryRequest) HasUpdates() bool {
-	return r.Name != nil || r.CoverImage != nil
+	return r.Name != "" || r.CoverImage != nil || r.CategoryType != ""
 }
 
 func sanitizeString(s string) (string, error) {
