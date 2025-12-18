@@ -5,8 +5,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"

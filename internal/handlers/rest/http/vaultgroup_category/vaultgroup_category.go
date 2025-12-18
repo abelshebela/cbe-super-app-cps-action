@@ -151,9 +151,9 @@ func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) 
 //	@Tags			Vault Group Category
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			id			path		string	true	"Vault group category ID"
-//	@Param			cover_image	formData	 file	false	"Cover image file"
-//	@Param			name		formData	 string	false	"Name"
+//	@Param			id			path		string									true	"Vault group category ID"
+//	@Param			cover_image	formData	file									false	"Cover image file"
+//	@Param			name		formData	string									false	"Name"
 //	@Success		200			{object}	localization.StandardResponse{data=nil}	"Vault group category update request submitted successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
