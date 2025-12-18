@@ -134,13 +134,13 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
 		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
 		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
-
 		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
 		RolePersistence:                  role_repo.NewRoleRepository(client, dbName, RolesCollection, logger),
 		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
 		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
 		EventMerchantPersistence:         event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
+		MiniAppProductCodePersistence:    mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodes),
 	}
 
 	return data

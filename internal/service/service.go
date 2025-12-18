@@ -29,6 +29,7 @@ import (
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -457,6 +458,7 @@ type ServiceLayer struct {
 	CPSActionRole          CPSActionRoleService
 	MiniappProductCode     MiniappProductCodeService
 	EventMerchantService   EventMerchantService
+	VaultAmountTierService VaultAmountBasedTierService
 }
 
 type ServiceContainer struct {
@@ -515,6 +517,8 @@ type ServiceContainer struct {
 	MiniappProductCodeServiceContainer MiniappProductCodeService
 	EventMerchantServiceContainer      EventMerchantService
 	ServiceContainer                   ServicesService
+	VaultAmountTierContainer           VaultAmountBasedTierService
+	MiniAppProductCodeContainer        MiniappProductCodeService
 }
 
 type BPSActionRoleService interface {
@@ -551,6 +555,16 @@ type VaultGroupCategoryService interface {
 	EnableVaultGroupCategory(ctx context.Context, id string) error
 	DisableVaultGroupCategory(ctx context.Context, id string) error
 }
+type VaultAmountBasedTierService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateAmountTier(ctx context.Context, req *vault_amount_dto.VaultAmountTierRequest) (string, error)
+	FindAllAmountTiers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
+	GetAmountTier(ctx context.Context, id string) (*model.VaultAmountTier, error)
+	UpdateAmountTier(ctx context.Context, id string, req *vault_amount_dto.UpdateVaultAmountTierRequest) (string, error)
+	DeleteAmountTier(ctx context.Context, id string) (string, error)
+	EnableOrDisableAmountTier(ctx context.Context, id string, enable bool) (string, error)
+}
+
 type ArticleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

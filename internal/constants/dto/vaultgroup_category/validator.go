@@ -21,12 +21,19 @@ func (r *CreateVaultGroupCategoryRequest) Validate() error {
 	if r.Name, err = sanitizeString(r.Name); err != nil {
 		return fmt.Errorf("name: %w", err)
 	}
+	if r.CategoryType, err = sanitizeString(r.CategoryType); err != nil {
+		return fmt.Errorf("category_type: %w", err)
+	}
 
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
 			validation.Required.Error("name is required"),
 			validation.Length(3, 100).Error("name must be between 3 and 100 characters"),
 			validation.By(noSpecialChars),
+		),
+		validation.Field(&r.CategoryType,
+			validation.Required.Error("category_type is required"),
+			validation.In("GROUP", "PERSONAL").Error("category_type must be GROUP or PERSONAL"),
 		),
 		validation.Field(&r.CoverImage,
 			validation.Required.Error("cover_image is required"),
@@ -40,7 +47,7 @@ func (r *UpdateVaultGroupCategoryRequest) Validate() error {
 		return errors.New("request is required")
 	}
 
-	if r.Name == nil && r.CoverImage == nil {
+	if r.Name == nil && r.CoverImage == nil && r.CategoryType == "" {
 		return errors.New("at least one field (name, or cover_image) must be provided")
 	}
 
@@ -51,12 +58,25 @@ func (r *UpdateVaultGroupCategoryRequest) Validate() error {
 		}
 		r.Name = &sanitized
 	}
+	if r.CategoryType != "" {
+		sanitized, err := sanitizeString(r.CategoryType)
+		if err != nil {
+			return fmt.Errorf("category_type: %w", err)
+		}
+		r.CategoryType = sanitized
+	}
 
 	return validation.ValidateStruct(r,
 		validation.Field(&r.Name,
 			validation.When(r.Name != nil,
 				validation.Length(3, 100).Error("name must be between 3 and 100 characters"),
 				validation.By(noSpecialChars),
+			),
+		),
+		validation.Field(
+			validation.When(r.CategoryType != "",
+				validation.Required.Error("category_type is required"),
+				validation.In("GROUP", "PERSONAL").Error("category_type must be GROUP or PERSONAL"),
 			),
 		),
 		validation.Field(&r.CoverImage,

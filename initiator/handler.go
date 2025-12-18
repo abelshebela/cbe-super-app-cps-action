@@ -20,6 +20,7 @@ import (
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
+	vaultAmountTierInbound "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
 
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
@@ -87,6 +88,7 @@ import (
 	TopupHandler "cbe-super-app-cps-action/internal/handlers/rest/http/topup"
 	transaction_handler "cbe-super-app-cps-action/internal/handlers/rest/http/transaction"
 	unlinkHandler "cbe-super-app-cps-action/internal/handlers/rest/http/unlink"
+	amount_tier_handler "cbe-super-app-cps-action/internal/handlers/rest/http/vault_amount_tier"
 	vaultgroupcategoryhandler "cbe-super-app-cps-action/internal/handlers/rest/http/vaultgroup_category"
 	walletHandler "cbe-super-app-cps-action/internal/handlers/rest/http/wallet"
 
@@ -136,6 +138,7 @@ type Handler struct {
 	CPSActionRoleHandler      cps_actionrole_iface.CPSActionRoleHandler
 	TransactionHandler        transaction.TransactionInterface
 	EventMerchantHandler      event_merchant_port.EventMerchantInboundAdaptor
+	AmountTierHandler         vaultAmountTierInbound.VaultAmountTierHandler
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -184,5 +187,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		CPSActionRoleHandler:      cps_actionrole_handler.NewCPSActionRoleHandler(serviceLayer.CPSActionRole, logger),
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
+		AmountTierHandler:         amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
 	}
 }

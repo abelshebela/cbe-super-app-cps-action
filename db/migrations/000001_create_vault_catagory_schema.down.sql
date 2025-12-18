@@ -1,10 +1,13 @@
 -- ===========================================
--- Oracle Migration: Drop Group Vault Categories Schema
+-- Oracle Migration: Drop Vault Categories Schema
 -- ===========================================
 
+-- ===========================================
 -- Drop triggers
+-- ===========================================
+
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TRIGGER trg_group_vault_categories_updated_at';
+    EXECUTE IMMEDIATE 'DROP TRIGGER trg_vault_categories_updated_at';
 EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE != -4080 THEN  -- ORA-04080: trigger does not exist
@@ -14,7 +17,7 @@ END;
 /
 
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TRIGGER trg_group_vault_categories_insert';
+    EXECUTE IMMEDIATE 'DROP TRIGGER trg_vault_categories_insert';
 EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE != -4080 THEN  -- ORA-04080: trigger does not exist
@@ -23,9 +26,12 @@ EXCEPTION
 END;
 /
 
--- Drop indexes
+-- ===========================================
+-- Drop index
+-- ===========================================
+
 BEGIN
-    EXECUTE IMMEDIATE 'DROP INDEX idx_group_vault_categories_is_active';
+    EXECUTE IMMEDIATE 'DROP INDEX idx_vault_categories_is_active';
 EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE NOT IN (-1418, -942) THEN  -- ORA-01418 or ORA-00942
@@ -34,19 +40,22 @@ EXCEPTION
 END;
 /
 
+-- ===========================================
+-- Drop tables (child table first)
+-- ===========================================
+
 BEGIN
-    EXECUTE IMMEDIATE 'DROP INDEX idx_group_vault_categories_display_order';
+    EXECUTE IMMEDIATE 'DROP TABLE amount_tier CASCADE CONSTRAINTS';
 EXCEPTION
     WHEN OTHERS THEN
-        IF SQLCODE NOT IN (-1418, -942) THEN  -- ORA-01418 or ORA-00942
+        IF SQLCODE != -942 THEN  -- ORA-00942: table does not exist
             RAISE;
         END IF;
 END;
 /
 
--- Drop table
 BEGIN
-    EXECUTE IMMEDIATE 'DROP TABLE group_vault_categories CASCADE CONSTRAINTS';
+    EXECUTE IMMEDIATE 'DROP TABLE vault_categories CASCADE CONSTRAINTS';
 EXCEPTION
     WHEN OTHERS THEN
         IF SQLCODE != -942 THEN  -- ORA-00942: table does not exist

@@ -261,6 +261,12 @@ const (
 	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
 	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
 
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
 	RequestUpdateKYCVerifier RequestAction = "UPDATE_KYC"
 	RequestApproveKYC        RequestAction = "APPROVE_KYC"
 	// for article
@@ -906,6 +912,21 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteEventMerchant,
 		RequestEnableEventMerchant,
 		RequestDisableEventMerchant,
+	},
+
+	"VaultAmountTier": {
+		RequestCreateVaultAmountTier,
+		RequestUpdateVaultAmountTier,
+		RequestDeleteVaultAmountTier,
+		RequestEnableVaultAmountTier,
+		RequestDisAbleVaultAmountTier,
+	},
+	"MiniAppProductCode": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
 	},
 }
 
