@@ -236,6 +236,12 @@ const (
 	RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE"
 	RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
 
+	RequestCreateJobRole  string = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  string = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  string = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  string = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole string = "DISABLE_JOB_ROLE"
+
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"

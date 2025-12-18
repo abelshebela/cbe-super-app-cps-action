@@ -5789,6 +5789,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorRoleNotFound = ResponseCode{
+		Code:       "ERROR_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleNotFound,
+		Type:       "error",
+	}
+
 	// Transaction Service Related Responses
 	ErrorTransactionIDRequired = ResponseCode{
 		Code:       "ERROR_TRANSACTION_ID_REQUIRED",

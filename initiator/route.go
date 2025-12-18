@@ -52,6 +52,7 @@ import (
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
 	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
+	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
@@ -106,7 +107,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
 	topup.Init(r, handlerLayer.TopupHandler, authMiddleware)
-
+	jobRole.Init(r, handlerLayer.jobRoleHandler, authMiddleware)
 	customer.Init(r, handlerLayer.customerHandler, authMiddleware)
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
 

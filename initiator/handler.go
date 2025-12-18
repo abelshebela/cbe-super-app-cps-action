@@ -19,6 +19,7 @@ import (
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
+	job_role_interface "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
@@ -73,6 +74,7 @@ import (
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
+	jobRoleHandler "cbe-super-app-cps-action/internal/handlers/rest/http/job_roles"
 	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
@@ -94,6 +96,7 @@ import (
 )
 
 type Handler struct {
+	jobRoleHandler            job_role_interface.RolesInbound
 	CpsActionHandler          actionInbound.CPSActionAdapter
 	UnlinkHandler             unlinkInbound.UnlinkAdapter
 	EventHandler              eventInbound.EventAdapter
@@ -141,7 +144,7 @@ type Handler struct {
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
 	pcs := serviceLayer.ProductCode
 	return Handler{
-
+		jobRoleHandler:            jobRoleHandler.NewJobRoleHandler(serviceLayer.JobRoleService, logger),
 		BudgetCategoryHandler:     budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
 		UnlinkHandler:             unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler:                bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),

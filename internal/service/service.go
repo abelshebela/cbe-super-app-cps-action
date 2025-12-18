@@ -404,6 +404,14 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type JobRoleService interface {
+	Create(ctx context.Context, jobs model.Role) error
+	Update(ctx context.Context, id string, update model.Role) error
+	FindById(ctx context.Context, id string) (*model.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
 	EventService           EventService
 	BulkService            BulkService
@@ -456,9 +464,11 @@ type ServiceLayer struct {
 	CPSActionRole          CPSActionRoleService
 	MiniappProductCode     MiniappProductCodeService
 	EventMerchantService   EventMerchantService
+	JobRoleService         JobRoleService
 }
 
 type ServiceContainer struct {
+	JobRoleContainer                   JobRoleService
 	AccountBlockContainer              AccountBlockService
 	AccountContainer                   AccountValidationService
 	ActionContainer                    ActionService

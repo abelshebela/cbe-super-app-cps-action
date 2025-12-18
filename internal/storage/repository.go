@@ -23,11 +23,29 @@ import (
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
+
+type RoleRepository interface {
+	Exists(ctx context.Context, id string) (bool, error)
+	ExistsMany(ctx context.Context, ids []string) (bool, error)
+	Create(ctx context.Context, role *model.Role) error
+	Update(ctx context.Context, id string, role *model.Role) error
+	FindByID(ctx context.Context, id string) (*model.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+}
+
+type JobRoleRepository interface {
+	Create(ctx context.Context, role *imodel.JobRole) error
+	Update(ctx context.Context, id string, role *imodel.JobRole) error
+	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
+}
 
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
