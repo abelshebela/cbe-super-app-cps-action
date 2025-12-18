@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -225,6 +226,13 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /wallets/{id}":        "Wallet",
 	"PATCH /wallets/{id}/enable":  "Wallet",
 	"PATCH /wallets/{id}/disable": "Wallet",
+
+	// 	ROLE
+	"POST /job_role":               "JOBROLE",
+	"PATCH /job_role/{id}":         "JOBROLE",
+	"DELETE /job_role/{id}":        "JOBROLE",
+	"PATCH /job_role/{id}/enable":  "JOBROLE",
+	"PATCH /job_role/{id}/disable": "JOBROLE",
 }
 
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
@@ -274,23 +282,30 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			// method := strings.ToUpper(r.Method)
+			method := strings.ToUpper(r.Method)
+
+			if method == "GET" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			// keyPattern := method + " " + relPattern
 			// actionName, ok := cpsActionRegistry[keyPattern]
 			actionName := ""
 
 			for _, v := range cpsActionRegistry {
 				path := strings.ReplaceAll(relPath, "_", "")
-<<<<<<< HEAD
-				if strings.Contains(path, strings.ToLower(v)) {
-					actionName = v
-=======
+				if v == "JOBROLE" {
+					fmt.Printf(" path: %v,-- value: %v, is sub: %v", path, strings.ToLower(v), strings.Contains(relPath, strings.ToLower(v)))
+				}
+
 				if strings.Contains(relPath, strings.ToLower(v)) {
 					actionName = path
->>>>>>> bd9591c3f575c6df22281ee3cb940d5d56e862d4
 					break
 				}
+
 			}
+
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
 			if roleID == "" {
