@@ -25,7 +25,6 @@ type cpsActionServiceWithRoles struct {
 
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
 	// Only apply policy for CREATE/UPDATE/ENABLE/DISABLE flows
-	var role *model.CPSActionRole
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
 
@@ -42,6 +41,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
 			// Attempt case-insensitive role lookup to avoid ActionName casing mismatches
+			var role *model.CPSActionRole
 
 			if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod)); err == nil && r != nil {
 				role = r
@@ -57,13 +57,17 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 					cpsAction.CheckerCount = 0
 				}
 			}
+			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
+				return err
+			}
+			if role.IsMakerOnly {
+				s.base.ApproveCPSAction(ctx, cpsAction)
+			}
+
 		}
 	}
 
-	if role.IsMakerOnly {
-		s.base.ApproveCPSAction(ctx, cpsAction)
-	}
-	return s.base.CreateCPSAction(ctx, cpsAction)
+	return nil
 }
 
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
