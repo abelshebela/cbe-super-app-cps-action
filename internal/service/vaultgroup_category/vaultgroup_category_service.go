@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -64,10 +65,11 @@ func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context
 				s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
 			}
 
-			req_data := &model.VaultGroupCategory{
-				Name:       req.Name,
-				CoverImage: coverImageUrl,
-				IsActive:   false,
+			req_data := &model.VaultCategory{
+				Name:         req.Name,
+				CategoryType: req.CategoryType,
+				CoverImage:   coverImageUrl,
+				IsActive:     false,
 			}
 
 			cpsActionModel := lib.CpsModelBuilder("", makerData, nil, req_data, string(constants.RequestCreateVaultGroupCategory), string(constants.CREATE))
@@ -143,9 +145,14 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 
 	updatedName := strings.ToUpper(prev.Name)
 	updatedCover := prev.CoverImage
+	updatedCategoryType := prev.CategoryType
 
 	if req.Name != nil {
 		updatedName = *req.Name
+	}
+
+	if req.CategoryType != "" {
+		updatedCategoryType = req.CategoryType
 	}
 
 	var coverImageUrl string
@@ -159,11 +166,12 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 		updatedCover = coverImageUrl
 	}
 
-	req_data := &model.VaultGroupCategory{
-		Name:       updatedName,
-		CoverImage: updatedCover,
-		UpdatedAt:  time.Now(),
-		IsActive:   prev.IsActive,
+	req_data := &model.VaultCategory{
+		Name:         updatedName,
+		CategoryType: updatedCategoryType,
+		CoverImage:   updatedCover,
+		UpdatedAt:    time.Now(),
+		IsActive:     prev.IsActive,
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -348,6 +356,7 @@ func (s *vaultgroupCategoryService) Authorize(ctx context.Context, cpsAction *mo
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateVaultGroupCategory):
 		span.AddEvent("RequestCreateVaultGroupCategory", trace.WithAttributes(attribute.String("id", cpsAction.UniqueId)))
+		fmt.Println("========ACTION DATA NAME========", actionData.CategoryType)
 		_, err := s.repo.Create(ctx, &actionData)
 		if err != nil {
 			span.AddEvent("Failed to create vault group category", trace.WithAttributes(attribute.String("error", err.Error())))

@@ -52,6 +52,7 @@ func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 	defer file.Close()
 
 	req.Name = r.FormValue("name")
+	req.CategoryType = r.FormValue("category_type")
 	req.CoverImage = fileHeader
 
 	if err := req.Validate(); err != nil {
@@ -191,6 +192,8 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 	if name := r.FormValue("name"); name != "" {
 		req.Name = &name
 	}
+
+	req.CategoryType = r.FormValue("category_type")
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)

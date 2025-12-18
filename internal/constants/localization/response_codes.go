@@ -543,6 +543,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessVaultGroupCategoryDeleteRequestSubmitted,
 	SuccessVaultGroupCategoryEnableRequestSubmitted,
 	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	SuccessVaultAmountTierCreationRequestSubmitted,
+	SuccessVaultAmountTierFetchedSuccessfully,
+	SuccessVaultAmountTierUpdateRequestSubmitted,
+	SuccessVaultAmountTierDeleteRequestSubmitted,
+	SuccessVaultAmountTierDisableRequestSubmitted,
 	ErrorFailedToBeingTransaction,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
@@ -1343,6 +1348,43 @@ var (
 		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessVaultAmountTierCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierCreated,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_RETRIEVED_SUCCEFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierDisableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierEnableRequestSubmitted,
+		Type:       "success",
+	}
+
 	// Event related error response codes for bankvault
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",

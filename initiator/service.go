@@ -56,6 +56,7 @@ import (
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 	"cbe-super-app-cps-action/internal/service/topup"
 	"cbe-super-app-cps-action/internal/service/unlink"
+	vault_amount_tier "cbe-super-app-cps-action/internal/service/vault_amount_tier"
 	"cbe-super-app-cps-action/internal/service/wallet"
 	"cbe-super-app-cps-action/internal/storage/persistance"
 
@@ -122,6 +123,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, nil, logger)
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
+	vaultAmountTierSrv := vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 
 	// Attach Service to Container
@@ -175,6 +177,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSActionRoleContainer:        cpsActionRoleService,
 		EventMerchantServiceContainer: eventMerchantService,
 		ServiceContainer:              servicesService,
+		VaultAmountTierContainer:      vaultAmountTierSrv,
 		MiniAppProductCodeContainer:   miniAppProductCodeContainer,
 	}
 
@@ -253,12 +256,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
 	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
-
 	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
 	vaultGroupCategoryService = vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, cpsActionService, logger, minioClient, minioPubUrl, cfg.S3BucketName, cfg)
 	productCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	eventMerchantService = event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, cpsActionService, cfg, logger)
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
+	vaultAmountTierSrv = vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, cpsActionService, logger)
+
 	return service.ServiceLayer{
 		CPSAction:         cpsActionService,
 		Feedback:          feedbackService,
@@ -309,6 +313,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniAppCategory:        miniAppCategory,
 		CPSActionRole:          cpsActionRoleService,
 		EventMerchantService:   eventMerchantService,
+		VaultAmountTierService: vaultAmountTierSrv,
 		MiniappProductCode:     miniAppProductCodeContainer,
 	}
 }

@@ -82,16 +82,13 @@ WHERE id = :1 AND deleted_at IS NULL
 `
 
 func (q *Queries) DeleteBankVault(ctx context.Context, id string) (string, error) {
-	fmt.Println("================111111", id)
 	res, err := q.db.ExecContext(ctx, deleteBankVault, id)
 	if err != nil {
-		fmt.Println("========================Err", err)
 		return "", fmt.Errorf("failed to delete bank product: %w", err)
 	}
 
 	rows, err := res.RowsAffected()
 	if err != nil {
-		fmt.Println("========================Err 2", err)
 		return "", fmt.Errorf("failed to get rows affected: %w", err)
 	}
 

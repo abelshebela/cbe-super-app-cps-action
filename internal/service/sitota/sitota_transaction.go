@@ -18,8 +18,7 @@ import (
 )
 
 type SitotaTransactionService struct {
-	repo storage.SitotaRepository
-	// client transactionpb.TransactionServiceClient
+	repo   storage.SitotaRepository
 	logger utils.Logger
 }
 

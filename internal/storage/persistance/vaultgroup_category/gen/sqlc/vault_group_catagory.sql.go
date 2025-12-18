@@ -15,7 +15,7 @@ func generateUUID() string {
 }
 
 const activateVaultGroupCategory = `-- name: ActivateVaultGroupCategory :one
-UPDATE group_vault_categories
+UPDATE vault_categories
 SET is_active = 1, updated_at = SYSTIMESTAMP
 WHERE id = :1 AND is_deleted = 0
 RETURNING id INTO :result`
@@ -34,7 +34,7 @@ func (q *Queries) ActivateVaultGroupCategory(ctx context.Context, id string) (st
 }
 
 const deactivateVaultGroupCategory = `-- name: DeactivateVaultGroupCategory :one
-UPDATE group_vault_categories
+UPDATE vault_categories
 SET is_active = 0, updated_at = SYSTIMESTAMP
 WHERE id = :1 AND is_deleted = 0
 RETURNING id INTO :result`
@@ -53,7 +53,7 @@ func (q *Queries) DeactivateVaultGroupCategory(ctx context.Context, id string) (
 }
 
 const deleteVaultGroupCategory = `-- name: DeleteVaultGroupCategory :one
-UPDATE group_vault_categories
+UPDATE vault_categories
 SET is_deleted = 1, deleted_at = SYSTIMESTAMP, updated_at = SYSTIMESTAMP
 WHERE id = :1 AND is_deleted = 0
 RETURNING id INTO :result`
@@ -75,14 +75,15 @@ const findVaultGroupCategory = `-- name: FindVaultGroupCategory :many
 SELECT
   id,
   name,
+  category_type,
   cover_image,
   is_active,
-  is_deleted,
   created_at,
   updated_at,
   deleted_at,
+  is_deleted,
   COUNT(*) OVER() AS total_count
-FROM group_vault_categories
+FROM vault_categories
 WHERE (:is_active IS NULL OR is_active = :is_active)
   AND (:name IS NULL OR UPPER(name) LIKE :name)
   AND deleted_at IS NULL
@@ -97,19 +98,19 @@ type FindVaultGroupCategoryParams struct {
 	Limit     sql.NullInt64  `json:"limit"`
 }
 
-type FindVaultGroupCategoryRow struct {
-	ID         string       `json:"id"`
-	Name       string       `json:"name"`
-	CoverImage string       `json:"cover_image"`
-	IsActive   bool         `json:"is_active"`
-	IsDeleted  bool         `json:"is_deleted"`
-	CreatedAt  sql.NullTime `json:"created_at"`
-	UpdatedAt  sql.NullTime `json:"updated_at"`
-	DeletedAt  sql.NullTime `json:"deleted_at"`
-	TotalCount int64        `json:"total_count"`
-}
+// type FindVaultGroupCategoryRow struct {
+// 	ID         string       `json:"id"`
+// 	Name       string       `json:"name"`
+// 	CoverImage string       `json:"cover_image"`
+// 	IsActive   bool         `json:"is_active"`
+// 	IsDeleted  bool         `json:"is_deleted"`
+// 	CreatedAt  sql.NullTime `json:"created_at"`
+// 	UpdatedAt  sql.NullTime `json:"updated_at"`
+// 	DeletedAt  sql.NullTime `json:"deleted_at"`
+// 	TotalCount int64        `json:"total_count"`
+// }
 
-func (q *Queries) FindVaultGroupCategory(ctx context.Context, arg FindVaultGroupCategoryParams) ([]FindVaultGroupCategoryRow, error) {
+func (q *Queries) FindVaultGroupCategory(ctx context.Context, arg FindVaultGroupCategoryParams) ([]VaultCategory, error) {
 	namePtr := utils.NullStringToPtrLike(arg.NameQuery)
 	limitPtr := utils.NullInt64ToPtr(arg.Limit)
 	offsetPtr := (arg.Page.Int64 - 1) * arg.Limit.Int64
@@ -124,18 +125,19 @@ func (q *Queries) FindVaultGroupCategory(ctx context.Context, arg FindVaultGroup
 		return nil, err
 	}
 	defer rows.Close()
-	items := []FindVaultGroupCategoryRow{}
+	items := []VaultCategory{}
 	for rows.Next() {
-		var i FindVaultGroupCategoryRow
+		var i VaultCategory
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
+			&i.CategoryType,
 			&i.CoverImage,
 			&i.IsActive,
-			&i.IsDeleted,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.IsDeleted,
 			&i.TotalCount,
 		); err != nil {
 			return nil, err
@@ -152,92 +154,87 @@ const findVaultGroupCategoryById = `-- name: FindVaultGroupCategoryById :one
 SELECT
   id,
   name,
+  category_type,
   cover_image,
   is_active,
-  is_deleted,
   created_at,
   updated_at,
   deleted_at
-FROM group_vault_categories
+  is_deleted,
+FROM vault_categories
 WHERE id = :1 AND deleted_at IS NULL`
 
-type FindVaultGroupCategoryByIdRow struct {
-	ID         string       `json:"id"`
-	Name       string       `json:"name"`
-	CoverImage string       `json:"cover_image"`
-	IsActive   bool         `json:"is_active"`
-	IsDeleted  bool         `json:"is_deleted"`
-	CreatedAt  sql.NullTime `json:"created_at"`
-	UpdatedAt  sql.NullTime `json:"updated_at"`
-	DeletedAt  sql.NullTime `json:"deleted_at"`
-}
+// type FindVaultGroupCategoryByIdRow struct {
+// 	ID         string       `json:"id"`
+// 	Name       string       `json:"name"`
+// 	CoverImage string       `json:"cover_image"`
+// 	IsActive   bool         `json:"is_active"`
+// 	IsDeleted  bool         `json:"is_deleted"`
+// 	CreatedAt  sql.NullTime `json:"created_at"`
+// 	UpdatedAt  sql.NullTime `json:"updated_at"`
+// 	DeletedAt  sql.NullTime `json:"deleted_at"`
+// }
 
-func (q *Queries) FindVaultGroupCategoryById(ctx context.Context, id string) (FindVaultGroupCategoryByIdRow, error) {
+func (q *Queries) FindVaultGroupCategoryById(ctx context.Context, id string) (VaultCategory, error) {
 	row := q.db.QueryRowContext(ctx, findVaultGroupCategoryById, id)
-	var i FindVaultGroupCategoryByIdRow
+	var i VaultCategory
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.CategoryType,
 		&i.CoverImage,
 		&i.IsActive,
-		&i.IsDeleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }
 
 const findVaultGroupCategoryByName = `-- name: FindVaultGroupCategoryByName :one
 SELECT id, name, is_active, is_deleted, created_at, updated_at, deleted_at
-FROM group_vault_categories
+FROM vault_categories
 WHERE UPPER(name) = UPPER(:name)`
 
-type FindVaultGroupCategoryByNameRow struct {
-	ID         string       `json:"id"`
-	Name       string       `json:"name"`
-	CoverImage string       `json:"cover_image"`
-	IsActive   bool         `json:"is_active"`
-	IsDeleted  bool         `json:"is_deleted"`
-	CreatedAt  sql.NullTime `json:"created_at"`
-	UpdatedAt  sql.NullTime `json:"updated_at"`
-	DeletedAt  sql.NullTime `json:"deleted_at"`
-}
-
-func (q *Queries) FindVaultGroupCategoryByName(ctx context.Context, name string) (FindVaultGroupCategoryByNameRow, error) {
+func (q *Queries) FindVaultGroupCategoryByName(ctx context.Context, name string) (VaultCategory, error) {
 	row := q.db.QueryRowContext(ctx, findVaultGroupCategoryByName, sql.Named("name", name))
-	var i FindVaultGroupCategoryByNameRow
+	var i VaultCategory
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
+		&i.CategoryType,
 		&i.CoverImage,
 		&i.IsActive,
-		&i.IsDeleted,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.IsDeleted,
 	)
 	return i, err
 }
 
 const saveVaultGroupCategory = `-- name: SaveVaultGroupCategory :one
-INSERT INTO group_vault_categories (
+INSERT INTO vault_categories (
   id,
   name,
+  category_type,
   cover_image,
   is_active
 ) VALUES (
   UPPER(:1),
   :2,
   :3,
-  :4
+  :4,
+  :5
 )
 RETURNING id INTO :result`
 
 type SaveVaultGroupCategoryParams struct {
-	Name       string       `json:"name"`
-	CoverImage string       `json:"cover_image"`
-	IsActive   sql.NullBool `json:"is_active"`
+	Name         string       `json:"name"`
+	CategoryType string       `json:"category_type"`
+	CoverImage   string       `json:"cover_image"`
+	IsActive     sql.NullBool `json:"is_active"`
 }
 
 func (q *Queries) SaveVaultGroupCategory(ctx context.Context, arg SaveVaultGroupCategoryParams) (string, error) {
@@ -245,6 +242,7 @@ func (q *Queries) SaveVaultGroupCategory(ctx context.Context, arg SaveVaultGroup
 	_, err := q.db.ExecContext(ctx, saveVaultGroupCategory,
 		generateUUID(),
 		strings.ToUpper(arg.Name),
+		arg.CategoryType,
 		arg.CoverImage,
 		utils.NullBoolToInt(arg.IsActive),
 		sql.Out{Dest: &id},
@@ -256,7 +254,7 @@ func (q *Queries) SaveVaultGroupCategory(ctx context.Context, arg SaveVaultGroup
 }
 
 const updateVaultGroupCategory = `-- name: UpdateVaultGroupCategory :one
-UPDATE group_vault_categories
+UPDATE vault_categories
 SET
   name 				  = COALESCE(UPPER(:1), name),
   cover_image         = COALESCE(:2, cover_image),
