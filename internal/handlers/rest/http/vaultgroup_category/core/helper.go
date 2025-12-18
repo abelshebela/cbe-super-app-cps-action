@@ -25,8 +25,8 @@ func ToDomainCreateVaultGroupCategoryRequest(req helper.CreateVaultGroupCategory
 func ToDomainUpdateVaultGroupCategoryRequest(req helper.UpdateVaultGroupCategoryRequest) *model.VaultCategory {
 	return &model.VaultCategory{
 		Name: func() string {
-			if req.Name != nil {
-				return *req.Name
+			if req.Name != "" {
+				return req.Name
 			}
 			return ""
 		}(),

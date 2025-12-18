@@ -132,6 +132,7 @@ func (s *vaultgroupCategoryService) GetVaultGroupCategory(ctx context.Context, i
 func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context, id string, req *vaultgroup_category.UpdateVaultGroupCategoryRequest) (string, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateVaultGroupCategory", "vaultgroupCategoryService", "vaultgroupCategoryService")
 	defer span.End()
+
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -147,8 +148,8 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 	updatedCover := prev.CoverImage
 	updatedCategoryType := prev.CategoryType
 
-	if req.Name != nil {
-		updatedName = *req.Name
+	if req.Name != "" {
+		updatedName = req.Name
 	}
 
 	if req.CategoryType != "" {
@@ -201,6 +202,10 @@ func (s *vaultgroupCategoryService) DeleteVaultGroupCategory(ctx context.Context
 	}
 	exist, err := s.repo.FindByID(ctx, id)
 	if err != nil {
+		if err.Error() == sql.ErrNoRows.Error() {
+			span.AddEvent("Not found", trace.WithAttributes(attribute.String("id", id)))
+			return "", errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		s.logger.Errorf("failed to fetch vault group category by id | err=%v", err)
 		if errors.Is(err, mongo.ErrNoDocuments) {
