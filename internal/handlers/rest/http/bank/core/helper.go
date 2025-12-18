@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	bank_dto "cbe-super-app-cps-action/internal/constants/dto/bank"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"fmt"
 	"mime/multipart"
@@ -14,14 +15,14 @@ import (
 )
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action string, logger utils.Logger) (multipart.File, *multipart.FileHeader, error) {
-	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
-	}
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
-	}
+	// if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+	// 	return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
+	// }
+	// if err := r.ParseMultipartForm(maxMemory); err != nil {
+	// 	return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
+	// }
 
-	file, fileHeader, err := r.FormFile(key)
+	file, fileHeader, err := local_util.ParseMultipartFormFile(r, "logo", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 
@@ -44,7 +45,6 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 func ValidateBankRequest(r *http.Request, data interface{}) localization.ResponseCode {
 	var name, code, bic *string
 	var bankType *constants.FinancialInstitutionType
-	var accountLength *int
 
 	switch v := data.(type) {
 	case *bank_dto.UpdateBankRequest:
@@ -84,9 +84,6 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		// valid type
 	default:
 		return localization.ErrorInvalidBankRequest
-	}
-	if *accountLength != 0 && *accountLength <= 0 {
-		return localization.ErrorInvalidAccountNumberFormat
 	}
 
 	return localization.ResponseCode{}
