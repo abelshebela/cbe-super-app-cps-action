@@ -125,6 +125,10 @@ SELECT
   updated_at,               -- r.UpdatedAt
   COUNT(*) OVER()           -- r.TotalCount
 FROM sitota_sessions
+WHERE (:search IS NULL
+    OR debit_account_number LIKE '%' || :search || '%'
+    OR credit_account_number LIKE '%' || :search || '%'
+    OR locked_id LIKE '%' || :search || '%')
 ORDER BY created_at DESC
 OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY
@@ -147,14 +151,16 @@ WHERE id = :1
 `
 
 type FindSitotaTransactionsParams struct {
-	Page  sql.NullInt64 `json:"page"`
-	Limit sql.NullInt64 `json:"limit"`
+	Search string        `json:"search"`
+	Page   sql.NullInt64 `json:"page"`
+	Limit  sql.NullInt64 `json:"limit"`
 }
 
 func (q *Queries) FindSitotaTransactions(ctx context.Context, arg FindSitotaTransactionsParams) ([]FindSitotaTransactionRow, error) {
 	offset := (arg.Page.Int64 - 1) * arg.Limit.Int64
 
 	rows, err := q.db.QueryContext(ctx, findSitotaTransactions,
+		sql.Named("search", arg.Search),
 		sql.Named("offset", offset),
 		sql.Named("limit", arg.Limit),
 	)

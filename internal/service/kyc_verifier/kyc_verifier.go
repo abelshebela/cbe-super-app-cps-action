@@ -15,9 +15,9 @@ import (
 	"errors"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.opentelemetry.io/otel/attribute"
@@ -143,13 +143,13 @@ func (s *KYCVerifier) ApproveKYC(ctx context.Context, id string, req dto.Approve
 		return err
 	}
 
-// 	type KYCStatus string
+	// 	type KYCStatus string
 
-// const (
-// 	KYCStatusPending  KYCStatus = "PENDING"
-// 	KYCStatusApproved KYCStatus = "APPROVED"
-// 	KYCStatusRejected KYCStatus = "REJECTED"
-// )
+	// const (
+	// 	KYCStatusPending  KYCStatus = "PENDING"
+	// 	KYCStatusApproved KYCStatus = "APPROVED"
+	// 	KYCStatusRejected KYCStatus = "REJECTED"
+	// )
 
 	// Build the fully updated KYC document to include in CurrentAction
 	updated := *prev

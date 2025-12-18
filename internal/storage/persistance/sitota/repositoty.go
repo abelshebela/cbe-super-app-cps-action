@@ -30,6 +30,7 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 	q := sqlc.New(r.db)
 
 	params := sqlc.FindSitotaTransactionsParams{}
+	params.Search = filterParam.Search
 	if filterParam.Page > 0 && filterParam.PerPage > 0 {
 		params.Page = sql.NullInt64{Int64: int64(filterParam.Page), Valid: true}
 		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}

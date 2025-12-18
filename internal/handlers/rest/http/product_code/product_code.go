@@ -131,11 +131,11 @@ type ProductCodePaginatedResponse types.PaginatedResponse[[]*product_code_dto.Pr
 //	@Tags			ProductCode
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number"
-//	@Param			per_page	query	int		false	"Items per page"
-//	@Param			search		query	string	false	"Search term (searches service_name, cbe_product_codes.prd, cbe_ifb_product_codes.prd)"
-//	@Success		200	{object}	localization.StandardResponse{data=[]model.ProductCode}	"Product codes retrieved successfully"
-//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			page		query		int														false	"Page number"
+//	@Param			per_page	query		int														false	"Items per page"
+//	@Param			search		query		string													false	"Search term (searches service_name, cbe_product_codes.prd, cbe_ifb_product_codes.prd)"
+//	@Success		200			{object}	localization.StandardResponse{data=[]model.ProductCode}	"Product codes retrieved successfully"
+//	@Failure		400,500		{object}	localization.StandardResponse{data=nil}
 //	@Router			/productcodes [get]
 func (h *ProductCodeAdapter) FetchProductCodes(w http.ResponseWriter, r *http.Request) {
 	ctx, span := utils.TraceLogger(r.Context(), "handler", "productCode", "ProductCodeAdapter", "FetchProductCodes")

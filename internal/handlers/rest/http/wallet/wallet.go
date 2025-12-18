@@ -338,14 +338,14 @@ func (a *walletAdapter) GetWallet(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Wallet
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number"		default(1)
-//	@Param			per_page	query	int		false	"Items per page"	default(10)
-//	@Param			name		query	string	false	"Filter by wallet name"
-//	@Param			code		query	string	false	"Filter by wallet code"
-//	@Param			enabled		query	bool	false	"Filter by enabled status"
-//	@Param			search		query	string	false	"Search term (searches name, code)"
-//	@Success		200	{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			page		query		int															false	"Page number"		default(1)
+//	@Param			per_page	query		int															false	"Items per page"	default(10)
+//	@Param			name		query		string														false	"Filter by wallet name"
+//	@Param			code		query		string														false	"Filter by wallet code"
+//	@Param			enabled		query		bool														false	"Filter by enabled status"
+//	@Param			search		query		string														false	"Search term (searches name, code)"
+//	@Success		200			{object}	localization.StandardResponse{data=PaginatedWalletResponse}	"Wallets retrieved successfully"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/wallets [get]
 func (a *walletAdapter) GetAllWallet(w http.ResponseWriter, r *http.Request) {
