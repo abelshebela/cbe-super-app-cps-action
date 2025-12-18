@@ -14,8 +14,7 @@ import (
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
 		strings.TrimSpace(w.Code) == "" &&
-		w.Avatar == nil &&
-		strings.TrimSpace(w.Type) == ""
+		w.Avatar == nil
 }
 
 func (w WalletRequest) Validate(isCreate bool) error {
@@ -58,9 +57,9 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	}
 
 	if isCreate {
-		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", w.Type, true, localization.ErrorWalletTypeRequired.Code))))
-	} else if w.Type != "" {
-		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", w.Type, false, localization.ErrorWalletTypeRequired.Code))))
+		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", string(w.Type), true, localization.ErrorWalletTypeRequired.Code))))
+	} else if string(w.Type) != "" {
+		rules = append(rules, validation.Field(&w.Type, validation.By(validateString("type", string(w.Type), false, localization.ErrorWalletTypeRequired.Code))))
 	}
 
 	if len(rules) > 0 {
@@ -103,7 +102,7 @@ func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 		} else if err := validateAvatar(w.Avatar); err != nil {
 			errs["avatar"] = err
 		}
-		if strings.TrimSpace(w.Type) == "" {
+		if strings.TrimSpace(string(w.Type)) == "" {
 			errs["type"] = localization.ErrorWalletTypeRequired
 		}
 	} else {
@@ -126,7 +125,7 @@ func (w WalletRequest) AggregatedValidate(isCreate bool) error {
 				errs["avatar"] = err
 			}
 		}
-		if w.Type != "" && strings.TrimSpace(w.Type) == "" {
+		if string(w.Type) != "" && strings.TrimSpace(string(w.Type)) == "" {
 			errs["type"] = localization.ErrorWalletTypeRequired
 		}
 	}
