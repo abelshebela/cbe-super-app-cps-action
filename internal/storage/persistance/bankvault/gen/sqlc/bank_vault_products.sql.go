@@ -531,7 +531,6 @@ SELECT
   customer_id,
   linked_account,
   account_holder_name,
-  transaction_reference,
   product_id,
   principal,
   start_date,
