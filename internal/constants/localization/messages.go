@@ -57,6 +57,7 @@ const (
 
 	// Bank related success messages
 	MsgBankCreatedRequestSent     = "Bank created request sent successfully"
+	MsgJobRoleCreatedRequestSent  = "Job role created request sent successfully"
 	MsgBankUpdatedRequestSent     = "Bank updated request sent successfully"
 	MsgBankDeletedRequestSent     = "Bank deleted request sent successfully"
 	MsgBanksRetrievedRequestSent  = "Banks retrieved request sent successfully"

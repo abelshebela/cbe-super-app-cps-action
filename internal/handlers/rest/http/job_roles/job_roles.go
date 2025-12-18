@@ -62,6 +62,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	if err := body.Validate(); err != nil {
 		j.logger.Errorf("[JobRoleHandler] error: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -78,7 +79,7 @@ func (j *JobRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessJobRoleCreatedRequestSent, nil)
 }
 
 func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {

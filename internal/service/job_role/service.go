@@ -46,7 +46,7 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 	}
 
 	if err := core.CheckRoleExistent(ctx, role.Role, j.jobRoleRepository); err != nil {
-		j.logger.Errorf("[JobRole Service] the give role not found")
+		j.logger.Errorf("[JobRole Service] the give role not found %v", err)
 		return err
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateJobRole, constants.CREATE)

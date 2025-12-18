@@ -72,7 +72,7 @@ import (
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi, merchantXAPIKey string, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
-		JobRolePersistence:              job_repo.NewJobRoleRepository(client, dbName, RolesCollection, logger),
+		JobRolePersistence:              job_repo.NewJobRoleRepository(client, dbName, JobRolesCollection, logger),
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
 		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
 		UserPersistence:                 users.NewUserRepository(client, dbName, MembersCollection, clientOrchestrationProducer, logger),

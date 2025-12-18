@@ -756,6 +756,14 @@ var (
 		Type:       "success",
 	}
 
+	// Bank related success response codes
+	SuccessJobRoleCreatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRoleCreatedRequestSent,
+		Type:       "success",
+	}
+
 	SuccessBankUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_BANK_UPDATED_REQUEST_SENT",
 		StatusCode: StatusOK,
