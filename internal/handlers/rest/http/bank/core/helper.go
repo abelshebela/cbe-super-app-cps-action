@@ -45,7 +45,6 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 func ValidateBankRequest(r *http.Request, data interface{}) localization.ResponseCode {
 	var name, code, bic *string
 	var bankType *constants.FinancialInstitutionType
-	var accountLength *int
 
 	switch v := data.(type) {
 	case *bank_dto.UpdateBankRequest:
@@ -85,9 +84,6 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		// valid type
 	default:
 		return localization.ErrorInvalidBankRequest
-	}
-	if *accountLength != 0 && *accountLength <= 0 {
-		return localization.ErrorInvalidAccountNumberFormat
 	}
 
 	return localization.ResponseCode{}
