@@ -200,8 +200,8 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 // 	// Build streamed URL served by the uploader service
 // 	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
 // 	return url, nil
-
 // }
+
 func UploadFileToMinio(
 	ctx context.Context,
 	s3Client *s3.Client,
