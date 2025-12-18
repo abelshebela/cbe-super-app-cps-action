@@ -125,6 +125,7 @@ func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) 
 	q := sqlc.New(r.db)
 	rrow, err := q.FindVaultGroupCategoryById(ctx, id)
 	if err != nil {
+		fmt.Println("===========", err)
 		return nil, err
 	}
 	e := &model.VaultCategory{

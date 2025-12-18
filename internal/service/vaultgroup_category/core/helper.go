@@ -101,12 +101,11 @@ func MapCamelCaseToVaultGroupCategory(jsonBytes []byte) (model.VaultCategory, er
 
 	result.ID = getString(data, "id")
 	result.Name = getString(data, "name")
-	result.IsActive = getBool(data, "isactive")
-	result.IsDeleted = getBool(data, "isdeleted")
-	result.CreatedAt = getTime(data, "createdat")
-	result.UpdatedAt = getTime(data, "updatedat")
-	result.DeletedAt = getTimePtr(data, "deletedat")
-
+	result.IsActive = getBool(data, "is_active")
+	result.IsDeleted = getBool(data, "is_deleted")
+	result.CreatedAt = getTime(data, "created_at")
+	result.UpdatedAt = getTime(data, "updated_at")
+	result.DeletedAt = getTimePtr(data, "deleted_at")
 	return result, nil
 }
 
