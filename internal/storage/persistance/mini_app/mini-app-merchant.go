@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -124,6 +125,7 @@ func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string,
 }
 
 func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+	fmt.Println("=============I ahvwbfkjsBDFKBFRKDBSSFSHF", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
@@ -131,7 +133,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 	}
 
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	result, err := m.dal.FindOne(context.Background(), filter, bson.M{})
+	result, err := m.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			m.logger.Warnf("Mini app merchant not found, id: %s", id)

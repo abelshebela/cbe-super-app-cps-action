@@ -2,7 +2,9 @@ package miniapp
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -19,18 +21,24 @@ import (
 
 type miniAppService struct {
 	repo            storage.MiniAppRepository
-	cpsService      service.CPSActionService
 	merchantService service.MiniAppMerchant
 	logger          utils.Logger
 }
 
-func NewMiniAppService(repo storage.MiniAppRepository, cpsService service.CPSActionService, merchantService service.MiniAppMerchant, logger utils.Logger) service.MiniAppService {
+func NewMiniAppService(repo storage.MiniAppRepository, merchantService service.MiniAppMerchant, logger utils.Logger) service.MiniAppService {
 	return &miniAppService{
 		repo:            repo,
-		cpsService:      cpsService,
 		merchantService: merchantService,
 		logger:          logger,
 	}
+}
+
+func PrettyPrintJSON(v any) string {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
@@ -40,6 +48,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	s.logger.Infof("Authorize called, action: %s", cpsAction.RequestAction)
 
 	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
+	fmt.Println(PrettyPrintJSON(miniApp))
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
