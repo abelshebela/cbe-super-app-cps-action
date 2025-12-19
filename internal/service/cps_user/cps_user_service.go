@@ -323,7 +323,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error) {
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
 	if userCode == "" {
 		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
 	}
@@ -336,8 +336,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
-	detail := cpsuser.BuildCpsUserDetail(populated)
-	return detail, nil
+	// detail := cpsuser.BuildCpsUserDetail(populated)
+	return populated, nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
