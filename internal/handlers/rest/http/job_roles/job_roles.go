@@ -114,5 +114,5 @@ func (j *JobRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessJobRoleUpdatedRequestSent, nil)
 }

@@ -79,7 +79,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessRoleCreatedRequestSent, nil)
 }
 
 func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -118,5 +118,5 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
+	localization.SendSuccessResponse(w, localization.SuccessRoleUpdatedRequestSent, nil)
 }

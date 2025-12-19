@@ -242,6 +242,12 @@ const (
 	RequestEnableJobRole  string = "ENABLE_JOB_ROLE"
 	RequestDisableJobRole string = "DISABLE_JOB_ROLE"
 
+	RequestCreateRole  string = "CREATE_ROLE"
+	RequestUpdateRole  string = "UPDATE_ROLE"
+	RequestDeleteRole  string = "DELETE_ROLE"
+	RequestEnableRole  string = "ENABLE_ROLE"
+	RequestDisableRole string = "DISABLE_ROLE"
+
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"

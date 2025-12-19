@@ -57,7 +57,6 @@ const (
 
 	// Bank related success messages
 	MsgBankCreatedRequestSent     = "Bank created request sent successfully"
-	MsgJobRoleCreatedRequestSent  = "Job role created request sent successfully"
 	MsgBankUpdatedRequestSent     = "Bank updated request sent successfully"
 	MsgBankDeletedRequestSent     = "Bank deleted request sent successfully"
 	MsgBanksRetrievedRequestSent  = "Banks retrieved request sent successfully"
@@ -66,6 +65,11 @@ const (
 	MsgBankDisableRequestSent     = "Bank disable request sent successfully"
 	MsgBankEnableRequestSent      = "Bank enable request sent successfully"
 	MsgBankLogoUpdatedRequestSent = "Bank logo updated request sent successfully"
+
+	MsgJobRoleCreatedRequestSent = "Job role created request sent successfully"
+	MsgJobRoleUpdateRequestSent  = "Job role updated request sent successfully"
+	MsgRoleCreatedRequestSent    = "Rule created    request sent successfully"
+	MsgRoleUpdatedRequestSent    = "Rule updated request sent successfully"
 
 	// Donation related success messages
 	MsgDonationCategoryCreateRequestSent     = "Donation category create request submitted successfully"

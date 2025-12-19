@@ -50,7 +50,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 		j.logger.Errorf("[Role Service] the give role not found")
 		return err
 	}
-	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateJobRole, constants.CREATE)
+	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
@@ -61,9 +61,11 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.CheckPortalCardsExistent(ctx, update.PortalCards, j.portalCardRepo); err != nil {
-		j.logger.Errorf("[Role Service] the give role not found")
-		return err
+	if len(update.PortalCards) > 0 {
+		if err := core.CheckPortalCardsExistent(ctx, update.PortalCards, j.portalCardRepo); err != nil {
+			j.logger.Errorf("[Role Service] the give role not found")
+			return err
+		}
 	}
 
 	prev, err := j.roleRepository.FindByID(ctx, id)
@@ -83,7 +85,7 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 	}
 	newRole.UpdatedAt = time.Now()
 
-	cpsModel := lib.CpsModelBuilder(id, maker, prev, newRole, constants.RequestUpdateJobRole, constants.UPDATE)
+	cpsModel := lib.CpsModelBuilder(id, maker, prev, newRole, constants.RequestUpdateRole, constants.UPDATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
 
@@ -121,12 +123,12 @@ func (j *RoleService) Authorize(ctx context.Context, cpsAction *sharedmodel.CPSA
 	}
 
 	switch string(cpsAction.RequestAction) {
-	case string(constants.RequestCreateJobRole):
+	case string(constants.RequestCreateRole):
 		role.CreatedAt = time.Now()
 		if err := j.roleRepository.Create(ctx, &role); err != nil {
 			return nil, err
 		}
-	case string(constants.RequestUpdateJobRole):
+	case string(constants.RequestUpdateRole):
 		role.UpdatedAt = time.Now()
 		if err := j.roleRepository.Update(ctx, role.ID.Hex(), &role); err != nil {
 			return nil, err
