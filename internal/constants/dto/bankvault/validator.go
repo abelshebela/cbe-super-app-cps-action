@@ -101,13 +101,13 @@ func (r *CreateBankVaultProductRequest) Validate() error {
 
 			return nil
 		})),
-		// validation.Field(&r.RateBps, validation.By(func(value interface{}) error {
+		// validation.Field(&r.Interest, validation.By(func(value interface{}) error {
 		// 	if v, ok := value.(decimal.Decimal); ok {
 		// 		if v.Equal(decimal.Zero) {
-		// 			return errors.New("rate_bps cannnot be empty")
+		// 			return errors.New("interest cannnot be empty")
 		// 		}
 		// 		if v.LessThan(decimal.Zero) {
-		// 			return errors.New("rate_bps must be >= 0")
+		// 			return errors.New("interest must be >= 0")
 		// 		}
 		// 	}
 		// 	return nil

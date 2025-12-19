@@ -34,6 +34,8 @@ func NewOtelConfig() telemetry.Config {
 	if v := os.Getenv("OTLP"); v != "" && endpoint == "localhost:4317" {
 		endpoint = v
 	}
+	endpoint = "192.168.136.1:4317"
+
 	if v := os.Getenv("OTEL_ENABLED"); v != "" {
 		lv := strings.ToLower(v)
 		enabled = (lv == "1" || lv == "true" || lv == "yes")

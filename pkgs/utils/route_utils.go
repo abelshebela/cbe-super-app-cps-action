@@ -7,10 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	// "github.com/CBE-Super-App/cbe-super-app-cps-action/internal/adapter/outbound/model"
-
-	"go.mongodb.org/mongo-driver/v2/bson"
-
 	"github.com/go-chi/chi/v5"
 )
 
@@ -38,11 +34,58 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multi
 	return file, fileHeader, nil
 }
 
-func ParsePrimitiveObjectID(ID string) (bson.ObjectID, error) {
-	objectID, err := bson.ObjectIDFromHex(ID)
+// type nopFile struct {
+// 	*bytes.Reader
+// }
 
-	if err != nil {
-		return bson.ObjectID{}, errors.New(localization.ErrorInvalidID.Code)
-	}
-	return objectID, nil
-}
+// func (n nopFile) Close() error { return nil }
+
+// func ParseMultipartFormFile(
+// 	r *http.Request,
+// 	key string,
+// 	maxMemory int64,
+// ) (multipart.File, *multipart.FileHeader, error) {
+
+// 	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+// 		return nil, nil, errors.New(localization.ErrorMissingFile.Code)
+// 	}
+
+// 	if err := r.ParseMultipartForm(maxMemory); err != nil {
+// 		return nil, nil, errors.New(localization.ErrorFileParseFailed.Code)
+// 	}
+
+// 	origFile, origHeader, err := r.FormFile(key)
+// 	if err != nil {
+// 		return nil, nil, err
+// 	}
+// 	defer origFile.Close()
+
+// 	// --- gzip compression ---
+// 	var buf bytes.Buffer
+// 	gw := gzip.NewWriter(&buf)
+
+// 	if _, err := io.Copy(gw, origFile); err != nil {
+// 		gw.Close()
+// 		return nil, nil, err
+// 	}
+
+// 	if err := gw.Close(); err != nil {
+// 		return nil, nil, err
+// 	}
+
+// 	// Create a multipart.File-compatible reader
+// 	reader := bytes.NewReader(buf.Bytes())
+// 	compressedFile := nopFile{Reader: reader}
+
+// 	// --- modify FileHeader safely ---
+// 	newHeader := &multipart.FileHeader{
+// 		Filename: origHeader.Filename + ".gz",
+// 		Size:     int64(buf.Len()),
+// 		Header:   make(textproto.MIMEHeader),
+// 	}
+
+// 	newHeader.Header.Set("Content-Type", "application/gzip")
+// 	newHeader.Header.Set("Content-Encoding", "gzip")
+
+// 	return compressedFile, newHeader, nil
+// }

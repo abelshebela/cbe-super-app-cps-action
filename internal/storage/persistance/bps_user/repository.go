@@ -3,11 +3,12 @@ package bps_user
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -32,11 +33,14 @@ func NewBPSUserRepository(client *mongo.Client, dbName string, collection string
 }
 
 func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) {
+	b.logger.Infof("[GetByUserCode] fetching BPS user by user code")
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		b.logger.Errorf("[GetByUserCode] failed to find BPS user: %v", err)
 		return nil, err
 	}
+	b.logger.Infof("[GetByUserCode] BPS user retrieved successfully")
 	return result, nil
 }
 
@@ -64,17 +68,20 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch BPS users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to count BPS users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
 
 	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.BPSUser]{
@@ -84,14 +91,18 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 }
 
 func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) error {
+	b.logger.Infof("[Update] updating BPS user")
 	filter := bson.M{"user_code": BpsUser.UserCode, "is_deleted": false}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			b.logger.Errorf("[Update] BPS user not found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		b.logger.Errorf("[Update] failed to update BPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	b.logger.Infof("[Update] BPS user updated successfully")
 	return nil
 
 }

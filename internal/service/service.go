@@ -1,12 +1,13 @@
 package service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	"cbe-super-app-cps-action/internal/constants/dto/merchant_lookup"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
+	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
@@ -26,16 +27,22 @@ import (
 	eventdto "cbe-super-app-cps-action/internal/constants/dto/event"
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	miniappdto "cbe-super-app-cps-action/internal/constants/dto/mini_app"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
 	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
+	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
+
+	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"context"
 	"mime/multipart"
@@ -43,6 +50,15 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+type ServicesService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req model.Services) error
+	Update(ctx context.Context, id string, req model.Services) error
+	Enable(ctx context.Context, id string) error
+	Disable(ctx context.Context, id string) error
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
+	GetByID(ctx context.Context, id string) (*model.Services, error)
+}
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
 	CreateCPSAction(ctx context.Context, action *model.CPSAction) error
@@ -100,14 +116,15 @@ type NotificationService interface {
 }
 
 type CustomerService interface {
-	GetCustomersDetail(ctx context.Context, kyc_level int, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
-	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.User], error)
-	GetCustomerByID(ctx context.Context, id string) (*model.User, error)
+	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
+	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
+	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
 	GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
+	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -116,7 +133,7 @@ type DepartmentService interface {
 	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
 	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
 	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
-	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Department], error)
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]*model.Department], error)
 	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
@@ -148,7 +165,7 @@ type DonationCompanyService interface {
 	CreateDonationCompany(ctx context.Context, donationCompany donationComp_dto.DonationCompanyRequest) error
 	FetchDonationCompany(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]donationComp_dto.DonationCompanyListResponse], error)
 	FetchDonationCompanyByID(ctx context.Context, id string) (*donationComp_dto.DonationCompanyListResponse, error)
-	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (donationComp_dto.DonationCompanyRequest, error)
+	UpdateDonationCompany(ctx context.Context, id string, donationCompany donationComp_dto.DonationCompanyRequest) (*model.DonationCompany, error)
 	AccountLookup(ctx context.Context, accountNumber string) (*model.AccountDetail, error)
 	EnableDonationCompany(ctx context.Context, id string) error
 	DisableDonationCompany(ctx context.Context, id string) error
@@ -181,7 +198,7 @@ type FeedbackService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
-	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*fbdto.FeedbackResponse], error)
+	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error)
 }
 
 type HQService interface {
@@ -197,29 +214,34 @@ type HQService interface {
 }
 
 type MiniAppService interface {
-	CreateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
-	UpdateMiniApp(ctx context.Context, req *miniappdto.MiniAppCreateRequest) error
-	DeleteMiniApp(ctx context.Context, id string) error
-	EnableDisableMiniAppByID(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*miniappdto.MiniAppResponse, error)
-	ListMiniApp(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.MiniApp], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, data *model.MiniAppMerchant) (*model.MiniAppMerchant, *model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	MerchantLookup(ctx context.Context, merchantID string) (*merchant_lookup.MerchantLookUpResponse, error)
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
+}
+
+type EcommerceMerchantService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
 	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
-	RequestPasswordRuleUpdate(ctx context.Context, id string, body model.PasswordRule) error
+	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
 	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -277,7 +299,7 @@ type ServiceService interface {
 }
 
 type UnlinkService interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*model.User, error)
+	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -285,7 +307,7 @@ type UnlinkService interface {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
-	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
@@ -304,18 +326,18 @@ type TopupService interface {
 }
 
 type AccountBlockService interface {
-	GetBranchByCode(ctx context.Context, branchCode string) (*model.AccountBlock, error)
+	GetBranchById(ctx context.Context, id string) (*model.AccountBlock, error)
 	GetAllBranches(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetRegionByCode(ctx context.Context, regionCode string) (*model.AccountBlock, error)
+	GetRegionById(ctx context.Context, id string) (*model.AccountBlock, error)
 	GetAllRegions(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetDistrictByCode(ctx context.Context, districtCode string) (*model.AccountBlock, error)
+	GetDistrictById(ctx context.Context, id string) (*model.AccountBlock, error)
 	GetAllDistricts(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	GetCityByCode(ctx context.Context, cityCode string) (*model.AccountBlock, error)
+	GetCityById(ctx context.Context, Id string) (*model.AccountBlock, error)
 	GetAllCities(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*model.AccountBlock], error)
-	EnableOrDisableBranches(ctx context.Context, branchCodes []string, reason string, enabled bool) error
-	EnableOrDisableRegions(ctx context.Context, regionsCode []string, reason string, enabled bool) error
-	EnableOrDisableDistricts(ctx context.Context, districtsCode []string, reason string, enabled bool) error
-	EnableOrDisableCities(ctx context.Context, citiesCode []string, reason string, enabled bool) error
+	EnableOrDisableBranches(ctx context.Context, branchIds []string, reason string, enabled bool) error
+	EnableOrDisableRegions(ctx context.Context, regionIds []string, reason string, enabled bool) error
+	EnableOrDisableDistricts(ctx context.Context, regionIds []string, reason string, enabled bool) error
+	EnableOrDisableCities(ctx context.Context, ids []string, reason string, enabled bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -343,7 +365,7 @@ type AdvertService interface {
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
-	UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
+	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 
 type AvatarService interface {
@@ -385,6 +407,16 @@ type KeyGeneratorService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type EventMerchantService interface {
+	Update(ctx context.Context, id string, eventMerchant model.EventMerchant) error
+	Create(ctx context.Context, eventMerchant model.EventMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
 	EventService           EventService
 	BulkService            BulkService
@@ -400,7 +432,7 @@ type ServiceLayer struct {
 	ValidationService      AccountValidationService
 	Wallet                 WalletService
 	Topup                  TopupService
-	MiniAppMerchant        MiniAppMerchantService
+	EcommerceMerchant      EcommerceMerchantService
 	AccountBlock           AccountBlockService
 	Department             DepartmentService
 	PasswordRule           PasswordRuleService
@@ -412,6 +444,7 @@ type ServiceLayer struct {
 	Permission             PermissionService
 	CPSUser                CPSUserService
 	ServiceDetails         ServiceService
+	Services               ServicesService
 	AccountValidation      AccountValidationService
 	ProductCode            ProductCodeService
 	BankVault              BankVaultService
@@ -430,57 +463,85 @@ type ServiceLayer struct {
 	NewsTagsService        NewsTagsService
 	DeviceVersion          DeviceVersionServiceSrv
 	Encryption             EncryptionService
+	BPSActionRole          BPSActionRoleService
+	TransactionService     TransactionService
+	MiniAppCategory        MiniAppCategoryService
+	CPSActionRole          CPSActionRoleService
+	MiniappProductCode     MiniappProductCodeService
+	EventMerchantService   EventMerchantService
+	VaultAmountTierService VaultAmountBasedTierService
 }
 
 type ServiceContainer struct {
-	AccountBlockContainer      AccountBlockService
-	AccountContainer           AccountValidationService
-	ActionContainer            ActionService
-	AdContainer                AdvertService
-	AmountBasedAuthContainer   AmountBasedAuthService
-	AvatarDomian               AvatarService
-	BankContainer              BankService
-	BPSUserContainer           BPSUserService
-	BudgetCategoryContainer    BudgetCategoryService
-	CPSActionContainer         CPSActionService
-	CPSUserContainer           CPSUserService
-	CustomerContainer          CustomerService
-	DepartmentContainer        DepartmentService
-	EventContainer             EventService // fully not ready
-	FaydaContainer             FaydaAccountService
-	FeedbackContainer          FeedbackService
-	HQContainer                HQService
-	MiniAppContainer           MiniAppService
-	PasswordRuleContainer      PasswordRuleService
-	PermissionContainer        PermissionService
-	PortalCardContainer        PortalCardService
-	UnlinkContainer            UnlinkService
-	WalletContainer            WalletService
-	TopupContainer             TopupService
-	MiniAppMerchantContainer   MiniAppMerchantService
-	AccountLookup              AccountSearchService
-	BulkServiceContainer       BulkService
-	ServiceCheckContainer      ServiceService
-	DeviceVersionContainer     DeviceVersionServiceSrv
-	KeyGenService              KeyGeneratorService
-	NotificationService        NotificationService
-	ProductCodeService         ProductCodeService
-	DonationContainer          DonationService
-	Unlink                     UnlinkService
-	DonationCategoryContainer  DonationCategoryService
-	DonationCompanyContainer   DonationCompanyService
-	ArticleContainer           ArticleService
-	ArticleCategoryContainer   ArticleCategoryService
-	ShortVideoServiceContainer ShortVideoService
-	NewsTagContainer           NewsTagService
-	NewsCategoryContainer      NewsCategoryService
-	SitotaContainer            SitotaService
-	KYCVerifierContainer       KYCVerifierService
-	NewsTagsServiceContainer   NewsTagsService
-	EncryptionContainer        EncryptionService
-	BankProductContainer       BankVaultService
-	VaultCategoryContainer     VaultGroupCategoryService
+	AccountBlockContainer              AccountBlockService
+	AccountContainer                   AccountValidationService
+	ActionContainer                    ActionService
+	AdContainer                        AdvertService
+	AmountBasedAuthContainer           AmountBasedAuthService
+	AvatarDomian                       AvatarService
+	BankContainer                      BankService
+	BPSUserContainer                   BPSUserService
+	BudgetCategoryContainer            BudgetCategoryService
+	CPSActionContainer                 CPSActionService
+	CPSUserContainer                   CPSUserService
+	CustomerContainer                  CustomerService
+	DepartmentContainer                DepartmentService
+	EventContainer                     EventService // fully not ready
+	FaydaContainer                     FaydaAccountService
+	FeedbackContainer                  FeedbackService
+	HQContainer                        HQService
+	MiniAppContainer                   MiniAppService
+	PasswordRuleContainer              PasswordRuleService
+	PermissionContainer                PermissionService
+	PortalCardContainer                PortalCardService
+	UnlinkContainer                    UnlinkService
+	WalletContainer                    WalletService
+	TopupContainer                     TopupService
+	EcommerceMerchantContainer         EcommerceMerchantService
+	AccountLookup                      AccountSearchService
+	BulkServiceContainer               BulkService
+	ServiceCheckContainer              ServiceService
+	ServicesContainer                  ServicesService
+	DeviceVersionContainer             DeviceVersionServiceSrv
+	KeyGenService                      KeyGeneratorService
+	NotificationService                NotificationService
+	ProductCodeService                 ProductCodeService
+	DonationContainer                  DonationService
+	Unlink                             UnlinkService
+	DonationCategoryContainer          DonationCategoryService
+	DonationCompanyContainer           DonationCompanyService
+	ArticleContainer                   ArticleService
+	ArticleCategoryContainer           ArticleCategoryService
+	ShortVideoServiceContainer         ShortVideoService
+	NewsTagContainer                   NewsTagService
+	NewsCategoryContainer              NewsCategoryService
+	SitotaContainer                    SitotaService
+	KYCVerifierContainer               KYCVerifierService
+	NewsTagsServiceContainer           NewsTagsService
+	EncryptionContainer                EncryptionService
+	BankProductContainer               BankVaultService
+	VaultCategoryContainer             VaultGroupCategoryService
+	BPSActionRoleContainer             BPSActionRoleService
+	TransactionContainer               TransactionService
+	MiniAppCategoryContainer           MiniAppCategoryService
+	CPSActionRoleContainer             CPSActionRoleService
+	MiniappProductCodeServiceContainer MiniappProductCodeService
+	EventMerchantServiceContainer      EventMerchantService
+	ServiceContainer                   ServicesService
+	VaultAmountTierContainer           VaultAmountBasedTierService
+	MiniAppProductCodeContainer        MiniappProductCodeService
 }
+
+type BPSActionRoleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
+	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
+	Enable(ctx context.Context, actionCode string) error
+	Disable(ctx context.Context, actionCode string) error
+}
+
 type BankVaultService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateBankVault(ctx context.Context, req *model.BankVaultProduct) (string, error)
@@ -505,6 +566,16 @@ type VaultGroupCategoryService interface {
 	EnableVaultGroupCategory(ctx context.Context, id string) error
 	DisableVaultGroupCategory(ctx context.Context, id string) error
 }
+type VaultAmountBasedTierService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateAmountTier(ctx context.Context, req *vault_amount_dto.VaultAmountTierRequest) (string, error)
+	FindAllAmountTiers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
+	GetAmountTier(ctx context.Context, id string) (*model.VaultAmountTier, error)
+	UpdateAmountTier(ctx context.Context, id string, req *vault_amount_dto.UpdateVaultAmountTierRequest) (string, error)
+	DeleteAmountTier(ctx context.Context, id string) (string, error)
+	EnableOrDisableAmountTier(ctx context.Context, id string, enable bool) (string, error)
+}
+
 type ArticleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -538,10 +609,32 @@ type NewsCategoryService interface {
 }
 
 type SitotaService interface {
-	GetAllSitotas(ctx context.Context) ([]*model.SitotaTransaction, error)
+	GetAllSitotas(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.SitotaTransaction], error)
 	GetSitotaByID(ctx context.Context, id string) (*model.SitotaTransaction, error)
 }
 
 type EncryptionService interface {
 	LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error)
+}
+
+type MiniAppCategoryService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type TransactionService interface {
+	FetchTransactionByID(ctx context.Context, id string) (transaction_dto.FullTransaction, error)
+	FetchAllTransactions(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]transaction_dto.FullTransaction], error)
+	FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (transaction_dto.FullTransaction, error)
+}
+type CPSActionRoleService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
+	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
+	Enable(ctx context.Context, actionCode string) error
+	Disable(ctx context.Context, actionCode string) error
+}
+type MiniappProductCodeService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }

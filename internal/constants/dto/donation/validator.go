@@ -20,6 +20,7 @@ func (d DonationRequest) Validate() error {
 		),
 		validation.Field(&d.Title,
 			validation.Required.Error("title is required"),
+			validation.By(utils.TrimWhiteSpace),
 			validation.Length(5, 200).Error("title must be between 5 and 200 characters"),
 			validation.By(utils.NoSpecialChars),
 		),
@@ -29,6 +30,7 @@ func (d DonationRequest) Validate() error {
 			validation.By(validateDonationAmount),
 		),
 		validation.Field(&d.DonationDescription,
+			validation.By(utils.TrimWhiteSpace),
 			validation.Required.Error("donation description is required"),
 		),
 		validation.Field(&d.DonationImages,
@@ -101,7 +103,7 @@ func validateImage(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (2 << 20) {
+	if file.Size > (15 << 20) {
 		return validation.NewError("logo", localization.MsgFileTooLarge)
 	}
 

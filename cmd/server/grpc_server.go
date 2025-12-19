@@ -7,11 +7,12 @@ import (
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"net"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"

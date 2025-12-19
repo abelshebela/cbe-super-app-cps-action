@@ -4,12 +4,13 @@ import (
 	newscategory_dto "cbe-super-app-cps-action/internal/constants/dto/news_category"
 	newscategory_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_category/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -57,11 +58,12 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	if err := n.service.CreateNewsCategory(r.Context(), req.CategoryName); err != nil {
-		n.logger.Errorf("create news category failed: %v", err)
+		n.logger.Errorf("[CreateNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[CreateNewsCategory] request sent successfully for category_name: %s", req.CategoryName)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryCreated, nil)
 }
 
@@ -77,8 +79,6 @@ func (n NewsCategoryHandler) CreateNewsCategory(w http.ResponseWriter, r *http.R
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/news/category/{id} [delete]
-//
-// DeleteNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -88,11 +88,12 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 	}
 
 	if err := n.service.DeleteNewsCategory(r.Context(), id); err != nil {
-		n.logger.Errorf("delete news category failed: %v", err)
+		n.logger.Errorf("[DeleteNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[DeleteNewsCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryDeleted, nil)
 }
 
@@ -109,9 +110,7 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}						"Bad request - Invalid pagination params"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}						"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/category [post]
-//
-// FetchNewsCategories implements newscategory_adaptor.NewsCategoryAdaptor.
+//	@Router			/news/category [get]
 func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.Request) {
 	filterPtr := local_util.ExtractFilterParams(r)
 	filter := *filterPtr
@@ -123,11 +122,12 @@ func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.
 
 	list, err := n.service.FindAllWithPagination(r.Context(), filter)
 	if err != nil {
-		n.logger.Errorf("failed to fetch news categories: %v", err)
+		n.logger.Errorf("[FetchNewsCategories] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[FetchNewsCategories] retrieved %d news categories", len(list.Data))
 	// return as-is
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryFetched, list)
 }
@@ -156,11 +156,12 @@ func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.
 
 	data, err := n.service.GetNewsCategoryByID(r.Context(), id)
 	if err != nil {
-		n.logger.Errorf("get news category by id failed: %v", err)
+		n.logger.Errorf("[GetNewsCategoryByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[GetNewsCategoryByID] news category retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryFetched, data)
 }
 
@@ -177,7 +178,7 @@ func (n NewsCategoryHandler) GetNewsCategoryByID(w http.ResponseWriter, r *http.
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}		"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}		"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/category/{id} [put]
+//	@Router			/news/category/{id} [patch]
 //
 // UpdateNewsCategory implements newscategory_adaptor.NewsCategoryAdaptor.
 func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.Request) {
@@ -203,10 +204,11 @@ func (n NewsCategoryHandler) UpdateNewsCategory(w http.ResponseWriter, r *http.R
 
 	// Note: service.UpdateNewsCategory signature accepts only the category name.
 	if err := n.service.UpdateNewsCategory(r.Context(), id, req.CategoryName); err != nil {
-		n.logger.Errorf("update news category failed: %v", err)
+		n.logger.Errorf("[UpdateNewsCategory] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[UpdateNewsCategory] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsCategoryUpdated, nil)
 }

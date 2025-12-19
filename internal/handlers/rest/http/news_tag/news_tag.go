@@ -4,12 +4,13 @@ import (
 	newstag_dto "cbe-super-app-cps-action/internal/constants/dto/news_tag"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_tag/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -40,8 +41,6 @@ func NewNewsTagHandler(newsTagService service.NewsTagService, logger utils.Logge
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/news/tags/create [post]
-//
-// CreateNewsTags implements newstag_adaptor.NewsTagAdaptor.
 func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 	var req newstag_dto.CreateNewsTagRequest
 
@@ -57,11 +56,12 @@ func (n NewsTagHandler) CreateNewsTags(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.CreateNewsTags(r.Context(), req.TagName); err != nil {
-		n.logger.Errorf("create news tag failed: %v", err)
+		n.logger.Errorf("[CreateNewsTags] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[CreateNewsTags] request sent successfully for tag_name: %s", req.TagName)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagCreated, nil)
 }
 
@@ -88,11 +88,12 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.DeleteNewsTag(r.Context(), id); err != nil {
-		n.logger.Errorf("delete news tag failed: %v", err)
+		n.logger.Errorf("[DeleteNewsTag] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[DeleteNewsTag] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagDeleted, nil)
 }
 
@@ -105,13 +106,13 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			page		query		int													false	"Page number"
 //	@Param			per_page	query		int													false	"Items per page"
+//	@Param			search		query		string												false	"search field tag_name"
+//	@Param			tag_name	query		string												false	"filter key list tag_name"
 //	@Success		200			{object}	localization.StandardResponse{data=[]model.NewsTag}	"List of news tags"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request - Invalid pagination params"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}				"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/tags [post]
-//
-// FetchNewsTags implements newstag_adaptor.NewsTagAdaptor.
+//	@Router			/news/tags [get]
 func (n NewsTagHandler) FetchNewsTags(w http.ResponseWriter, r *http.Request) {
 	filterPtr := local_util.ExtractFilterParams(r)
 	filter := *filterPtr
@@ -123,11 +124,12 @@ func (n NewsTagHandler) FetchNewsTags(w http.ResponseWriter, r *http.Request) {
 
 	list, err := n.service.FindAllWithPagination(r.Context(), filter)
 	if err != nil {
-		n.logger.Errorf("failed to fetch news tags: %v", err)
+		n.logger.Errorf("[FetchNewsTags] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[FetchNewsTags] retrieved %d news tags", len(list.Data))
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagFetched, list)
 }
 
@@ -155,11 +157,12 @@ func (n NewsTagHandler) GetNewsTagByID(w http.ResponseWriter, r *http.Request) {
 
 	data, err := n.service.GetNewsTagByID(r.Context(), id)
 	if err != nil {
-		n.logger.Errorf("get news tag by id failed: %v", err)
+		n.logger.Errorf("[GetNewsTagByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[GetNewsTagByID] news tag retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagFetched, data)
 }
 
@@ -176,7 +179,7 @@ func (n NewsTagHandler) GetNewsTagByID(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Invalid input"
 //	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/news/tags/{id} [put]
+//	@Router			/news/tags/{id} [patch]
 //
 // UpdateNewsTag implements newstag_adaptor.NewsTagAdaptor.
 func (n NewsTagHandler) UpdateNewsTag(w http.ResponseWriter, r *http.Request) {
@@ -201,10 +204,11 @@ func (n NewsTagHandler) UpdateNewsTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := n.service.UpdateNewsTag(r.Context(), id, req.TagName); err != nil {
-		n.logger.Errorf("update news tag failed: %v", err)
+		n.logger.Errorf("[UpdateNewsTag] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	n.logger.Infof("[UpdateNewsTag] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNewsTagUpdated, nil)
 }

@@ -7,6 +7,8 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"go.opentelemetry.io/otel/attribute"
+
 	ad_dto "cbe-super-app-cps-action/internal/constants/dto/ad"
 	advertInbound "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -46,25 +48,43 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/adverts [post]
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	req, err := core.ParseAndValidateAdvertRequest(r, false, a.logger)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAdvert", "handler", "advert")
+	defer span.End()
+
+	req, err := core.ParseBannerImage(r, true)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-
-	domainReq, err := core.ToAdvert(*req)
+	if err := req.Validate(false); err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("advert create  update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	domainReq, err := core.ToAdvert(req)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[event.CreateAdvert] failed to convert to domain advert, error: %v", err)
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequest.Message)
 		return
 	}
 
-	err = a.advertApplication.CreateAdvert(r.Context(), &domainReq, req.BannerImage)
+	span.SetAttributes(
+		attribute.String("advert.title", req.Title),
+		attribute.String("advert.for", req.AdvertFor),
+	)
+
+	err = a.advertApplication.CreateAdvert(ctx, &domainReq, req.BannerImage)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[CreateAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[CreateAdvert] request sent successfully for title: %s", req.Title)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)
 
 }
@@ -72,22 +92,29 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 // FetchAdverts godoc
 //
 //	@Summary		List adverts
-//	@Description	Fetch adverts with pagination and optional text search.
+//	@Description	Fetch adverts with pagination, optional text search, and field filtering.
 //	@Tags			Adverts
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																false	"Page number"					default(1)	minimum(1)	example(1)
-//	@Param			per_page	query		int																false	"Items per page"				default(10)	minimum(1)	maximum(100)	example(10)
-//	@Param			search		query		string															false	"Search by title/description"	example("promo")
+//	@Param			page		query		int																false	"Page number"															minimum(1)	default(1)		example(1)
+//	@Param			per_page	query		int																false	"Items per page"														minimum(1)	maximum(100)	default(10)	example(10)
+//	@Param			search		query		string															false	"Text search on title & description (case-insensitive partial match)"	example("promo")
+//	@Param			title		query		string															false	"Filter by exact title match"											example("Summer Promo")
+//	@Param			description	query		string															false	"Filter by exact description match"										example("Discount event")
+//	@Param			enabled		query		bool															false	"Filter by enabled flag"												example(true)
 //	@Success		200			{object}	localization.StandardResponse{data=paginated_advert_response}	"Adverts fetched successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Invalid pagination params"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Server error"
 //	@Security		BearerAuth
 //	@Router			/adverts [get]
 func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdverts", "handler", "advert")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
-	list, err := a.advertApplication.FetchAdverts(r.Context(), *filterParams)
+	list, err := a.advertApplication.FetchAdverts(ctx, *filterParams)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[FetchAdverts] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -97,6 +124,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 		Data: docs,
 		Meta: list.Meta,
 	}
+	a.logger.Infof("[FetchAdverts] retrieved %d adverts", len(docs))
 	localization.SendSuccessResponse(w, localization.SuccessAdvertsFetched, res)
 }
 
@@ -115,19 +143,27 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id} [get]
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdvertById", "handler", "advert")
+	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	data, err := a.advertApplication.FetchAdvertByID(r.Context(), id)
+	span.SetAttributes(attribute.String("advert.id", id))
+
+	data, err := a.advertApplication.FetchAdvertByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[FetchAdvertByID] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
 	res := core.ToAdvertResponse(*data)
+	a.logger.Infof("[FetchAdvertByID] advert retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertFetched, res)
 }
 
@@ -150,20 +186,29 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/adverts/{id} [patch]
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAdvert", "handler", "advert")
+	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	req, err := core.ParseAndValidateAdvertRequest(r, true, a.logger)
+	req, err := core.ParseBannerImage(r, false)
 	if err != nil {
+		span.RecordError(err)
 		a.logger.Errorf("[event.UpdateAdvert] failed to parse and validate advert request, id: %s, error: %v", id, err.Error())
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	domainReq, _ := core.ToAdvert(*req)
+	if err := req.Validate(true); err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("advert update request validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	domainReq, _ := core.ToAdvert(req)
 
 	if domainReq.Title == "" && domainReq.Description == "" && domainReq.AdvertFor == "" && req.BannerImage == nil {
 		a.logger.Errorf("[event.UpdateAdvert] no data provided for update, id: %s", id)
@@ -171,12 +216,20 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.advertApplication.UpdateAdvert(r.Context(), id, &domainReq, req.BannerImage)
+	span.SetAttributes(
+		attribute.String("advert.id", id),
+		attribute.String("advert.for", string(domainReq.AdvertFor)),
+	)
+
+	err = a.advertApplication.UpdateAdvert(ctx, id, &domainReq, req.BannerImage)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[UpdateAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[UpdateAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 }
 
@@ -195,17 +248,25 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/advert/{id} [delete]
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAdvert", "handler", "advert")
+	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	err = a.advertApplication.DeleteAdvert(r.Context(), id)
+	span.SetAttributes(attribute.String("advert.id", id))
+
+	err = a.advertApplication.DeleteAdvert(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[DeleteAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	a.logger.Infof("[DeleteAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
 }
 
@@ -224,18 +285,26 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id}/enable [patch]
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAdvert", "handler", "advert")
+	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, true)
+	span.SetAttributes(attribute.String("advert.id", id))
+
+	err = a.advertApplication.EnableDisableAdvert(ctx, id, true)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[EnableAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[EnableAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
 }
 
@@ -254,17 +323,25 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id}/disable [patch]
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAdvert", "handler", "advert")
+	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	err = a.advertApplication.EnableDisableAdvert(r.Context(), id, false)
+	span.SetAttributes(attribute.String("advert.id", id))
+
+	err = a.advertApplication.EnableDisableAdvert(ctx, id, false)
 	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[DisableAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	a.logger.Infof("[DisableAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)
 }

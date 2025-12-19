@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type feedbackAdapter struct {
@@ -25,29 +26,20 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 	}
 }
 
-// CreateFeedback godoc
-//
-//	@Summary		Submit feedback
-//	@Description	Allows a user (or anonymous) to submit feedback
-//	@Tags			Feedback
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		feedback.FeedbackRequest	true	"Feedback creation payload"
-//	@Success		201		{object}	localization.ResponseCode	"Feedback created successfully"
-//	@Failure		400		{object}	localization.ResponseCode	"Invalid request payload"
-//	@Failure		500		{object}	localization.ResponseCode	"Internal server error"
-//	@Security		BearerAuth
-//	@Router			/feedback/create [post]
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
+	defer span.End()
 	var req feedback.FeedbackRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("failed to bind feedback data: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		f.logger.Errorf("validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
@@ -61,20 +53,25 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	_, err := f.feedbackApplication.CreateFeedback(r.Context(), req, userID)
+	span.SetAttributes(
+		attribute.String("feedback.user_id", userID),
+	)
+	_, err := f.feedbackApplication.CreateFeedback(ctx, req, userID)
 	if err != nil {
-		f.logger.Errorf("failed to create feedback: %v", err)
+		span.RecordError(err)
+		f.logger.Errorf("[CreateFeedback] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
 }
 
 // GetFeedbacks godoc
 //
 //	@Summary		Get list of feedbacks
-//	@Description	Fetch feedbacks with pagination and optional filters
+//	@Description	Fetch feedbacks with pagination, filtering, and search. Filterable fields: created_at, user_id, responses. Searchable field: responses.
 //	@Tags			Feedback
 //	@Accept			json
 //	@Produce		json
@@ -82,12 +79,18 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 //	@Param			per_page	query		int							false	"Items per page (default 10, max 100)"
 //	@Param			sort		query		string						false	"Sort field"
 //	@Param			order		query		string						false	"Sort order (asc/desc)"
+//	@Param			created_at	query		string						false	"Filter by created_at"
+//	@Param			user_id		query		string						false	"Filter by user_id"
+//	@Param			responses	query		string						false	"Filter by responses"
+//	@Param			search		query		string						false	"Search term (searches responses)"
 //	@Success		200			{object}	localization.ResponseCode	"Feedbacks fetched successfully"
 //	@Failure		400			{object}	localization.ResponseCode	"Invalid query params"
 //	@Failure		500			{object}	localization.ResponseCode	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/feedback [get]
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbacks", "handler", "feedback")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
 	// Enhanced pagination validation
@@ -101,12 +104,15 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 		filterParams.PerPage = 100
 	}
 
-	feedbacks, err := f.feedbackApplication.GetFeedbacks(r.Context(), filterParams)
+	feedbacks, err := f.feedbackApplication.GetFeedbacks(ctx, filterParams)
 	if err != nil {
-		f.logger.Errorf("failed to get feedbacks: %v", err)
+		span.RecordError(err)
+		f.logger.Errorf("[GetFeedbacks] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
+	f.logger.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
 }
 
@@ -125,6 +131,8 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/feedback/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbackById", "handler", "feedback")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 
 	// Enhanced ID validation
@@ -140,13 +148,15 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ctx := r.Context()
+	span.SetAttributes(attribute.String("feedback.id", id))
 	feedback, err := f.feedbackApplication.GetFeedbackByID(ctx, id)
 	if err != nil {
-		f.logger.Errorf("failed to get feedback by ID %s: %v", id, err)
+		span.RecordError(err)
+		f.logger.Errorf("[GetFeedbackByID] service error for id %s: %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	f.logger.Infof("[GetFeedbackByID] feedback retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedback)
 }

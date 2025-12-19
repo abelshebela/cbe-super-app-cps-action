@@ -4,17 +4,20 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/types"
+
+	// "cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -42,57 +45,56 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent bool) *model.Wallet {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent bool, walletType string) *model.Wallet {
 	return &model.Wallet{
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
-		Services: types.Services{
+		Services: shared_type.Services{
 			Self:  self,
 			Other: other,
 			Agent: agent,
 		},
+		Type: walletType,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet, int) {
-	var wallet model.Wallet
-	change_count := 0
-	if req.Agent == existing.Services.Agent {
-		wallet.Services.Agent = existing.Services.Agent
-	} else {
-		change_count++
-		wallet.Services.Agent = req.Agent
-	}
-	if req.Other == existing.Services.Other {
-		wallet.Services.Other = existing.Services.Other
-	} else {
-		change_count++
-		wallet.Services.Other = req.Other
-	}
-	if req.Self == existing.Services.Self {
-		wallet.Services.Self = existing.Services.Self
-	} else {
-		change_count++
+func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, fieldsProvided map[string]bool) (*model.Wallet, int) {
+	wallet := existing
+	changeCount := 0
+
+	if fieldsProvided["self"] && req.Self != existing.Services.Self {
+		changeCount++
 		wallet.Services.Self = req.Self
 	}
-	if req.Name == existing.Name {
-		wallet.Name = existing.Name
-	} else {
-		change_count++
+
+	if fieldsProvided["other"] && req.Other != existing.Services.Other {
+		changeCount++
+		wallet.Services.Other = req.Other
+	}
+
+	if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
+		changeCount++
+		wallet.Services.Agent = req.Agent
+	}
+
+	if req.Name != "" && req.Name != existing.Name {
+		changeCount++
 		wallet.Name = req.Name
 	}
-	if req.Code == existing.Code {
-		wallet.Code = existing.Code
-	} else {
-		change_count++
+
+	if req.Code != "" && req.Code != existing.Code {
+		changeCount++
 		wallet.Code = req.Code
 	}
-	wallet.Avatar = existing.Avatar
-	return &wallet, change_count
-}
+	if string(req.Type) != "" && string(req.Type) != (existing.Type) {
+		changeCount++
+		wallet.Type = string(req.Type)
+	}
 
+	return &wallet, changeCount
+}
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(userData); incomplet {

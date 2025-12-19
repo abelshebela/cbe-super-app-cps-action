@@ -2,9 +2,10 @@ package core
 
 import (
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

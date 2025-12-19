@@ -39,6 +39,12 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
@@ -87,6 +93,12 @@ const (
 	RequestDeleteWallet               RequestAction = "DELETE_WALLET"
 	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
+
+	// Services catalog (model.Services)
+	RequestCreateService  RequestAction = "CREATE_SERVICE"
+	RequestUpdateService  RequestAction = "UPDATE_SERVICE"
+	RequestEnableService  RequestAction = "ENABLE_SERVICE"
+	RequestDisableService RequestAction = "DISABLE_SERVICE"
 
 	RequestCreateTopup  RequestAction = "CREATE_TOPUP"
 	RequestUpdateTopup  RequestAction = "UPDATE_TOPUP"
@@ -177,9 +189,11 @@ const (
 	RequestUpdatePermissionGroup RequestAction = "UPDATE_PERMISSION_GROUP"
 	RequestDeletePermissionGroup RequestAction = "DELETE_PERMISSION_GROUP"
 
-	RequestCreateBudgetCategory RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
+	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
 	RequestUnlinkDevice           RequestAction = "UNLINK_DEVICE"
 	RequestUnlinkUser             RequestAction = "UNLINK_USER"
@@ -247,6 +261,12 @@ const (
 	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
 	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
 
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
 	RequestUpdateKYCVerifier RequestAction = "UPDATE_KYC"
 	RequestApproveKYC        RequestAction = "APPROVE_KYC"
 	// for article
@@ -270,6 +290,17 @@ const (
 	RequestDisableNewsTag RequestAction = "DISABLE_NEWS_TAG"
 	RequestDeleteNewsTag  RequestAction = "DELETE_NEWS_TAG"
 
+	// Action Role Mapper
+	RequestCreateActionRole  RequestAction = "CREATE_ACTION_ROLE"
+	RequestUpdateActionRole  RequestAction = "UPDATE_ACTION_ROLE"
+	RequestEnableActionRole  RequestAction = "ENABLE_ACTION_ROLE"
+	RequestDisableActionRole RequestAction = "DISABLE_ACTION_ROLE"
+
+	RequestCreateCpsActionRole  RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole  RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole  RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole RequestAction = "DISABLE_CPS_ACTION_ROLE"
+
 	RequestCreateShortVideo  RequestAction = "CREATE_SHORT_VIDEO"
 	RequestUpdateShortVideo  RequestAction = "UPDATE_SHORT_VIDEO"
 	RequestEnableShortVideo  RequestAction = "ENABLE_SHORT_VIDEO"
@@ -279,14 +310,31 @@ const (
 	RequestApproveFaydaCustomer RequestAction = "APPROVE_FAYDA_CUSTOMER"
 
 	RequestEnableDisableCustomer RequestAction = "ENABLE_DISABLE_CUSTOMER"
+
+	RequestCreateMiniAppCategory  RequestAction = "CREATE_MINI_APP_CATEGORY"
+	RequestUpdateMiniAppCategory  RequestAction = "UPDATE_MINI_APP_CATEGORY"
+	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
+	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
+	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestCreateBankVault:  {},
-	RequestUpdateBankVault:  {},
-	RequestDeleteBankVault:  {},
-	RequestEnableBankVault:  {},
-	RequestDisAbleBankVault: {},
+	RequestCreateMiniappProductCode:  {},
+	RequestUpdateMiniappProductCode:  {},
+	RequestDeleteMiniappProductCode:  {},
+	RequestEnableMiniappProductCode:  {},
+	RequestDisableMiniappProductCode: {},
+	RequestCreateBankVault:           {},
+	RequestUpdateBankVault:           {},
+	RequestDeleteBankVault:           {},
+	RequestEnableBankVault:           {},
+	RequestDisAbleBankVault:          {},
 
 	// for vault group category
 	RequestCreateVaultGroupCategory:  {},
@@ -326,31 +374,37 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestUpdateBudgetIcon:        {},
 	RequestDeleteBudgetIcon:        {},
 
-	RequestCpsUserCreate:            {},
-	RequestCpsUserUpdate:            {},
-	RequestCpsUserDelete:            {},
-	RequestPermissionGroup:          {},
-	RequestCreateDepartment:         {},
-	RequestUpdateDepartment:         {},
-	RequestEnableUser:               {},
-	RequestDisableUser:              {},
-	RequestBPSUser:                  {},
-	RequestDisableBPSUser:           {},
-	RequestEnableBPSUser:            {},
-	RequestUpdateUser:               {},
-	RequestTotalDailyLimit:          {},
-	RequestUpdateVAT:                {},
-	RequestAuthTier:                 {},
-	RequestCreateAdvert:             {},
-	RequestUpdateAdvert:             {},
-	RequestEnableAdvert:             {},
-	RequestDisableAdvert:            {},
-	RequestDeleteAdvert:             {},
-	RequestCreateBank:               {},
-	RequestUpdateBank:               {},
-	RequestUpdateBankLogo:           {},
-	RequestEnableWallet:             {},
-	RequestDisableWallet:            {},
+	RequestCpsUserCreate:    {},
+	RequestCpsUserUpdate:    {},
+	RequestCpsUserDelete:    {},
+	RequestPermissionGroup:  {},
+	RequestCreateDepartment: {},
+	RequestUpdateDepartment: {},
+	RequestEnableUser:       {},
+	RequestDisableUser:      {},
+	RequestBPSUser:          {},
+	RequestDisableBPSUser:   {},
+	RequestEnableBPSUser:    {},
+	RequestUpdateUser:       {},
+	RequestTotalDailyLimit:  {},
+	RequestUpdateVAT:        {},
+	RequestAuthTier:         {},
+	RequestCreateAdvert:     {},
+	RequestUpdateAdvert:     {},
+	RequestEnableAdvert:     {},
+	RequestDisableAdvert:    {},
+	RequestDeleteAdvert:     {},
+	RequestCreateBank:       {},
+	RequestUpdateBank:       {},
+	RequestUpdateBankLogo:   {},
+	RequestEnableWallet:     {},
+	RequestDisableWallet:    {},
+
+	// Services catalog
+	RequestCreateService:            {},
+	RequestUpdateService:            {},
+	RequestEnableService:            {},
+	RequestDisableService:           {},
 	RequestUpdatePasswordExpiry:     {},
 	RequestCreateValidation:         {},
 	RequestUpdateValidation:         {},
@@ -460,12 +514,34 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDisableNewsTag: {},
 	RequestDeleteNewsTag:  {},
 
+	// Action Role Mapper
+	RequestCreateActionRole:     {},
+	RequestUpdateActionRole:     {},
+	RequestEnableActionRole:     {},
+	RequestDisableActionRole:    {},
+	RequestCreateCpsActionRole:  {},
+	RequestUpdateCpsActionRole:  {},
+	RequestEnableCpsActionRole:  {},
+	RequestDisableCpsActionRole: {},
+
 	RequestCreateDeviceVersion:        {},
 	RequestUpdateDeviceVersion:        {},
 	RequestEnableDeviceVersion:        {},
 	RequestDisableDeviceVersion:       {},
 	RequestDeleteDeviceVersion:        {},
 	RequestEnableDisableDeviceVersion: {},
+
+	RequestCreateMiniAppCategory:  {},
+	RequestUpdateMiniAppCategory:  {},
+	RequestDeleteMiniAppCategory:  {},
+	RequestEnableMiniAppCategory:  {},
+	RequestDisableMiniAppCategory: {},
+
+	RequestCreateEventMerchant:  {},
+	RequestUpdateEventMerchant:  {},
+	RequestDeleteEventMerchant:  {},
+	RequestEnableEventMerchant:  {},
+	RequestDisableEventMerchant: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -484,6 +560,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateDailyLimit,
 		RequestUpdateDailyLimit,
 		RequestDeleteDailyLimit,
+	},
+	"ServicesCatalog": {
+		RequestCreateService,
+		RequestUpdateService,
+		RequestEnableService,
+		RequestDisableService,
 	},
 	"Account": {
 		RequestUser,
@@ -672,6 +754,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateBudgetCategory,
 		RequestUpdateBudgetCategory,
 		RequestDeleteBudgetCategory,
+		RequestDisableBudgetCategory,
+		RequestEnableBudgetCategory,
 	},
 	"UnlinkDevice": {
 		RequestUnlinkDevice,
@@ -794,6 +878,18 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableNewsTag,
 		RequestDeleteNewsTag,
 	},
+	"ActionRole": {
+		RequestCreateActionRole,
+		RequestUpdateActionRole,
+		RequestEnableActionRole,
+		RequestDisableActionRole,
+	},
+	"CpsActionRole": {
+		RequestCreateCpsActionRole,
+		RequestUpdateCpsActionRole,
+		RequestEnableCpsActionRole,
+		RequestDisableCpsActionRole,
+	},
 	"DeviceVersion": {
 		RequestCreateDeviceVersion,
 		RequestUpdateDeviceVersion,
@@ -801,6 +897,36 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableDeviceVersion,
 		RequestDeleteDeviceVersion,
 		RequestEnableDisableDeviceVersion,
+	},
+	"MiniAppCategory": {
+		RequestCreateMiniAppCategory,
+		RequestUpdateMiniAppCategory,
+		RequestDeleteMiniAppCategory,
+		RequestEnableMiniAppCategory,
+		RequestDisableMiniAppCategory,
+	},
+
+	"eventMerchant": {
+		RequestCreateEventMerchant,
+		RequestUpdateEventMerchant,
+		RequestDeleteEventMerchant,
+		RequestEnableEventMerchant,
+		RequestDisableEventMerchant,
+	},
+
+	"VaultAmountTier": {
+		RequestCreateVaultAmountTier,
+		RequestUpdateVaultAmountTier,
+		RequestDeleteVaultAmountTier,
+		RequestEnableVaultAmountTier,
+		RequestDisAbleVaultAmountTier,
+	},
+	"MiniAppProductCode": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
 	},
 }
 

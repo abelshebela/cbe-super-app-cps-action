@@ -1,13 +1,14 @@
 package notification
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func MapNotificationToResponse(entity *model.Notification) *NotificationResponse {
 	return &NotificationResponse{
 		ID:                entity.ID.Hex(),
 		Title:             entity.Title,
+		NotificationCode:  entity.NotificationCode,
 		NotificationType:  entity.NotificationType,
 		NotificationBody:  entity.NotificationBody,
 		IsPublic:          entity.IsPublic,

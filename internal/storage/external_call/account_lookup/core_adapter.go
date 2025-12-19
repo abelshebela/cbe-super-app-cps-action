@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/hugokessem/coreio/core"
 )
@@ -60,13 +61,11 @@ func (a *CoreAccountLookupAdapter) LookupAccountByAccountNumber(ctx context.Cont
 	response, err := a.coreAPI.AccountLookup(core.AccountLookupParam{
 		AccountNumber: account.AccountNumber,
 	})
+
 	if err != nil {
 		return nil, err
 	}
-	if !response.Success {
-		return nil, errors.New(localization.ErrorExternalServiceError.Code)
-	}
-	if response.Detail == nil {
+	if !response.Success || response.Detail == nil {
 		return nil, errors.New(localization.ErrorAccountNumberNotFound.Code)
 	}
 

@@ -9,6 +9,7 @@ import (
 
 type Notification struct {
 	ID                bson.ObjectID                `json:"id,omitempty" bson:"_id"`
+	NotificationCode  string                       `json:"notification_code" bson:"notification_code"`
 	Title             string                       `json:"title" bson:"title"`
 	NotificationType  string                       `json:"notification_type" bson:"notification_type"`
 	NotificationBody  string                       `json:"notification_body" bson:"notification_body"`

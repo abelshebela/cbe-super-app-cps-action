@@ -3,7 +3,6 @@ package bankvault
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/bankvault/gen/sqlc"
@@ -14,6 +13,7 @@ import (
 	"fmt"
 
 	"github.com/shopspring/decimal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -56,8 +56,8 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 	params := sqlc.SaveBankVaultParams{
 		Name:       product.Name,
 		Currency:   product.Currency,
-		RateBps:    product.RateBps,
-		Method:     product.Method,
+		Interest:   product.Interest,
+		Method:     string(product.Method),
 		Frequency:  product.Frequency,
 		LockPeriod: product.LockPeriod,
 		MinAmount:  product.MinAmount,
@@ -67,20 +67,12 @@ func (r *bankVaultRepositary) Create(ctx context.Context, product *model.BankVau
 			Valid: true,
 		},
 		IsActive: sql.NullBool{
-			Bool:  product.IsActive,
+			Bool:  true,
 			Valid: true,
 		},
 	}
 
-	_, err := r.queries.FindBankVaultByName(ctx, params.Name)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return r.queries.SaveBankVault(ctx, params)
-		}
-		return "", errors.New(localization.ErrorUnexpectedError.Code)
-	} else {
-		return "", errors.New(localization.ErrorDuplicateBankProduct.Code)
-	}
+	return r.queries.SaveBankVault(ctx, params)
 }
 
 func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BankVaultProduct], error) {
@@ -107,7 +99,7 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 
 	rows, err := r.queries.FindBankVault(ctx, params)
 	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	products := make([]*model.BankVaultProduct, 0, len(rows))
@@ -117,8 +109,8 @@ func (r *bankVaultRepositary) FindAllWithPagination(ctx context.Context, filterP
 			ID:                         row.ID,
 			Name:                       row.Name,
 			Currency:                   row.Currency,
-			RateBps:                    row.RateBps,
-			Method:                     constants.AccrualMethod(row.Method),
+			Interest:                   row.Interest,
+			Method:                     string(row.Method),
 			Frequency:                  row.Frequency,
 			LockPeriod:                 row.LockPeriod,
 			MinAmount:                  row.MinAmount,
@@ -155,7 +147,7 @@ func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.
 	rows, err := r.queries.GetAllLockedVaults(ctx, params)
 	if err != nil {
 		r.logger.Errorf("failed to get locked vaults: %v", err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+		return nil, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	lockedVaults := make([]*model.LockedVault, 0, len(rows))
@@ -177,9 +169,9 @@ func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.
 			TermsAcceptedAt:            row.TermsAcceptedAt,
 			MinAmount:                  row.MinAmount,
 			MaxAmount:                  row.MaxAmount,
-			RateBps:                    row.RateBps.Div(decimal.NewFromInt(100)),
+			Interest:                   row.Interest.Div(decimal.NewFromInt(100)),
 			Method:                     row.Method,
-			Frequency:                  string(row.Frequency),
+			Frequency:                  row.Frequency,
 			ApplyInterestOnEarlyUnlock: nil,
 			LockPeriod:                 fmt.Sprintf("%d months", utils.DurationToMonths(row.LockPeriod)),
 			CreatedAt:                  row.CreatedAt,
@@ -285,8 +277,8 @@ func (r *bankVaultRepositary) FindByID(ctx context.Context, id string) (*model.B
 		ID:                         row.ID,
 		Name:                       row.Name,
 		Currency:                   row.Currency,
-		RateBps:                    row.RateBps,
-		Method:                     constants.AccrualMethod(row.Method),
+		Interest:                   row.Interest,
+		Method:                     string(row.Method),
 		Frequency:                  row.Frequency,
 		LockPeriod:                 row.LockPeriod,
 		MinAmount:                  row.MinAmount,

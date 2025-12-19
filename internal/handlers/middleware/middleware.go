@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"time"
@@ -24,6 +25,7 @@ import (
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/storage"
 )
 
 func CORS() func(http.Handler) http.Handler {
@@ -33,7 +35,7 @@ func CORS() func(http.Handler) http.Handler {
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders: []string{
 			"Content-Type", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Allow-Origin",
-			"Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid",
+			"Authorization", "X-Requested-With", "X-CSRF-Token", "Origin", "Accept", "x-api-applicationid", "x-source-secret",
 		},
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,
@@ -66,23 +68,26 @@ type UserPayload struct {
 	PhoneNumber string   `json:"phone_number,omitempty"`
 	UserRole    string   `json:"user_role,omitempty"`
 	UserID      string   `json:"user_id,omitempty"`
+	RoleID      string   `json:"role_id,omitempty"`
 	UserCode    string   `json:"user_code,omitempty"`
 	FullName    string   `json:"full_name,omitempty"`
 	Department  string   `json:"department,omitempty"`
 	NextStep    string   `json:"next_step,omitempty"`
 	Action      string   `json:"action"`
+	DeviceID    string   `json:"device_id,omitempty"`
 	SessionExp  int64    `json:"session_expiry,omitempty"`
 	Environment string   `json:"environment"`
 	Permission  []string `json:"permission_group"`
 }
 
 type authMiddleware struct {
-	client       cps_auth.CpsAuthServiceClient
-	logger       utils.Logger
-	JWTSecretKey string
-	Key          string
-	IV           string
-	cfg          config.VaultConfig
+	client          cps_auth.CpsAuthServiceClient
+	logger          utils.Logger
+	JWTSecretKey    string
+	Key             string
+	IV              string
+	cfg             config.VaultConfig
+	redisRepository storage.RedisRepository
 }
 
 type AuthMiddleware interface {
@@ -92,14 +97,15 @@ type AuthMiddleware interface {
 	RequireFormContentType() func(http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
-		client:       client,
-		JWTSecretKey: secretKey,
-		Key:          key,
-		IV:           iv,
-		cfg:          cfg,
-		logger:       logger,
+		client:          client,
+		redisRepository: redisRepository,
+		JWTSecretKey:    secretKey,
+		Key:             key,
+		IV:              iv,
+		cfg:             cfg,
+		logger:          logger,
 	}
 }
 
@@ -163,16 +169,13 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
 			if !ok || role == "" {
-
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 
 				return
 			}
 
 			if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
-
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-
 				return
 			}
 
@@ -183,7 +186,7 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.logger.Infof("/////////////////////////////////////////")
+		w.Header().Set("Access-Control-Expose-Headers", "X-Refreshed-Token")
 		authHeader := r.Header.Get("Authorization")
 		bearer := "Bearer "
 
@@ -212,32 +215,43 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 			localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
 			return
 		}
-		a.logger.Infof("/////////////////////////////////////////", userPayload)
 
-		// if userPayload.Environment != a.cfg.GoEnv {
-		// 	localization.SendUnauthorizedResponse(w, localization.ErrorUserUnauthorized.Message)
-		// 	return
-		// }
 		ctx := a.setUserPayload(r.Context(), userPayload)
-		// refresh token payload if session expiry has less than 1 minute
 		now := time.Now().Unix()
-		a.logger.Infof("/////////////////////////////////////////", now, ctx)
 
-		if userPayload.SessionExp != 0 {
-			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now)
+		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
+		if err != nil || remainTime == 0 {
+			remainTime = 120
+		} else {
+			remainTime *= 60
+		}
+		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("cps:auth:device:%s", userPayload.UserID))
+		if err != nil {
+			a.logger.Warnf("failed to get device id from redis: %v", err)
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
+		}
+
+		deviceID = strings.Trim(deviceID, "\"")
+		if userPayload.SessionExp != 0 && userPayload.DeviceID == deviceID {
+			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 			if userPayload.SessionExp < now {
 				a.logger.Warnf("session has expired")
 				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
 				return
 			}
 
-			if userPayload.SessionExp-now < 60000 {
+			if userPayload.SessionExp-now <= 0 {
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			} else if userPayload.SessionExp-now < int64(remainTime) {
 				// Less than 1 minute left, refresh token
 				a.logger.Infof("session expiring soon, refreshing token")
 				// Inject Bearer token and user_id from context into gRPC metadata
 				md := metadata.New(map[string]string{
 					"authorization": "Bearer " + tokenString,
 				})
+
 				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
 				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
 				if err != nil {
@@ -249,13 +263,14 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 					a.logger.Errorf("refresh token response from grpc is nil")
 				}
 			}
+
+		} else {
+			a.logger.Warnf("session has expired")
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
 		}
 
-		// fmt.Println("userPayload", userPayload)
-		// ctx = a.setUserPayload(r.Context(), userPayload)
 		r = r.WithContext(ctx)
-		a.logger.Infof("/////////////////////////////////////////")
-
 		next.ServeHTTP(w, r)
 	})
 }

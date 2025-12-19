@@ -2,7 +2,8 @@ package kyc_verifier
 
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func MapToResponse(m *model.CustomerKYC) *kyc_verifier.KYCVerifierResponse {

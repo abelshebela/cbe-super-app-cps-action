@@ -34,7 +34,7 @@ func validateBudgetIcon(value interface{}) error {
 		return localization.ErrorMissingOrInvalidImage
 	}
 
-	if file.Size > (2 << 20) {
+	if file.Size > (15 << 20) {
 		return validation.NewError("Budget Icon", localization.MsgFileTooLarge)
 	}
 
@@ -45,7 +45,8 @@ func (b CreateBudgetRequest) Validate() error {
 	return validation.ValidateStruct(&b,
 		validation.Field(&b.Name,
 			validation.Required.Error("name is required"),
-			validation.Length(1, 100).Error("name must be between 1 and 100 characters"),
+			validation.Length(1, 50).Error("name must be between 1 and 50 characters"),
+			validation.By(utils.NoSpecialChars),
 		),
 		validation.Field(&b.Color,
 			validation.Required.Error("color is required"),
@@ -59,12 +60,13 @@ func (b CreateBudgetRequest) Validate() error {
 func (r UpdateBudgetRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name,
-			validation.When(r.Name != nil,
-				validation.Length(1, 100).Error("name must be between 1 and 100 characters"),
+			validation.When(r.Name != "",
+				validation.Length(1, 50).Error("name must be between 1 and 50 characters"),
+				validation.By(utils.NoSpecialChars),
 			),
 		),
 		validation.Field(&r.Color,
-			validation.When(r.Color != nil,
+			validation.When(r.Color != "",
 				validation.Length(7, 7).Error("color must be 7 characters long"),
 				validation.Match(hexColorRegex).Error("invalid color format, please enter a valid hex color"),
 			),

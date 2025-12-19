@@ -3,9 +3,13 @@ package lib
 import (
 	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
+	"image"
+	"image/gif"
+	"image/jpeg"
+	"image/png"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -19,6 +23,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
@@ -136,6 +142,66 @@ func FilterBuilder(filterParam types.Filter, searchKeys bson.M, allowedKeys []st
 	return filter, skip, limit
 }
 
+// func UploadFileToMinio(
+// 	ctx context.Context,
+// 	s3Client *s3.Client,
+// 	bucketName string,
+// 	fileHeader *multipart.FileHeader,
+// 	prefix string,
+// 	env config.VaultConfig,
+// 	objectkey string,
+// 	logger interface {
+// 		Errorf(format string, args ...any)
+// 	},
+// ) (string, error) {
+
+// 	// Open file and buffer its content
+// 	file, err := fileHeader.Open()
+// 	if err != nil {
+// 		logger.Errorf("failed to open file: %v", err)
+// 		return "", errors.New(err.Error())
+// 	}
+// 	defer file.Close()
+
+// 	buf := new(bytes.Buffer)
+// 	n, err := io.Copy(buf, file)
+// 	if err != nil {
+// 		logger.Errorf("failed to read uploaded file error: %v", err)
+// 		return "", errors.New(err.Error())
+// 	}
+
+// 	// Build object key under a folder (bucketName used as folder/prefix)
+// 	// and generate unique filename based on prefix and timestamp to avoid collisions
+// 	genName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+// 	key := genName
+// 	// key := path.Join(bucketName, genName)
+
+// 	// Determine content type
+// 	contentType := fileHeader.Header.Get("Content-Type")
+// 	if strings.TrimSpace(contentType) == "" {
+// 		contentType = "application/octet-stream"
+// 	}
+
+// 	// Upload using the buffered bytes to avoid EOF issues
+// 	cl := n
+// 	putInput := &s3.PutObjectInput{
+// 		Bucket:        aws.String(bucketName), // secrets.AWS_BUCKET_NAME
+// 		Key:           aws.String(key),
+// 		Body:          bytes.NewReader(buf.Bytes()),
+// 		ContentType:   aws.String(contentType),
+// 		ContentLength: &cl,
+// 	}
+
+// 	if _, err := s3Client.PutObject(context.TODO(), putInput); err != nil {
+// 		logger.Errorf("upload failed error: %v", err)
+// 		return "", errors.New(err.Error())
+// 	}
+
+// 	// Build streamed URL served by the uploader service
+// 	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
+// 	return url, nil
+// }
+
 func UploadFileToMinio(
 	ctx context.Context,
 	s3Client *s3.Client,
@@ -149,83 +215,106 @@ func UploadFileToMinio(
 	},
 ) (string, error) {
 
-	// Open file and buffer its content
+	// 1. Open the file
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.Errorf("failed to open file: %v", err)
-		return "", errors.New(err.Error())
+		return "", err
 	}
 	defer file.Close()
 
-	buf := new(bytes.Buffer)
-	n, err := io.Copy(buf, file)
+	// 2. Read the original bytes into memory first.
+	// This acts as our safety "fallback" buffer.
+	originalBytes, err := io.ReadAll(file)
 	if err != nil {
-		logger.Errorf("failed to read uploaded file error: %v", err)
-		return "", errors.New(err.Error())
+		logger.Errorf("failed to read file: %v", err)
+		return "", err
 	}
 
-	// Build object key under a folder (bucketName used as folder/prefix)
-	// and generate unique filename based on prefix and timestamp to avoid collisions
+	// Default values for the upload
+	finalBytes := originalBytes
+	contentType := fileHeader.Header.Get("Content-Type")
+
+	// 3. Attempt Compression
+	// We use bytes.NewReader so we don't exhaust the original stream
+	img, format, decodeErr := image.Decode(bytes.NewReader(originalBytes))
+
+	if decodeErr == nil {
+		// If decoding succeeded, we try to encode with compression
+		buf := new(bytes.Buffer)
+		var encodeErr error
+
+		switch format {
+		case "jpeg":
+			encodeErr = jpeg.Encode(buf, img, &jpeg.Options{Quality: 75})
+		case "png":
+			enc := png.Encoder{CompressionLevel: png.BestCompression}
+			encodeErr = enc.Encode(buf, img)
+		case "gif":
+			encodeErr = gif.Encode(buf, img, nil)
+		default:
+			// No specific compressor for this format?
+			// We do nothing and keep originalBytes
+			encodeErr = errors.New("no specific encoder")
+		}
+
+		// Only swap to compressed bytes if the process actually worked
+		if encodeErr == nil {
+			finalBytes = buf.Bytes()
+		}
+	}
+
+	// 4. Metadata Preparation
 	genName := fmt.Sprintf("%s-%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
 	key := genName
-	// key := path.Join(bucketName, genName)
 
-	// Determine content type
-	contentType := fileHeader.Header.Get("Content-Type")
 	if strings.TrimSpace(contentType) == "" {
 		contentType = "application/octet-stream"
 	}
 
-	// Upload using the buffered bytes to avoid EOF issues
-	cl := n
+	// 5. Upload the resulting bytes (compressed or original)
+	cl := int64(len(finalBytes))
 	putInput := &s3.PutObjectInput{
-		Bucket:        aws.String(bucketName), // secrets.AWS_BUCKET_NAME
+		Bucket:        aws.String(bucketName),
 		Key:           aws.String(key),
-		Body:          bytes.NewReader(buf.Bytes()),
+		Body:          bytes.NewReader(finalBytes),
 		ContentType:   aws.String(contentType),
 		ContentLength: &cl,
 	}
 
-	if _, err := s3Client.PutObject(context.TODO(), putInput); err != nil {
+	if _, err := s3Client.PutObject(ctx, putInput); err != nil {
 		logger.Errorf("upload failed error: %v", err)
-		return "", errors.New(err.Error())
+		return "", err
 	}
 
-	// Build streamed URL served by the uploader service
+	// Build public URL
 	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
 	return url, nil
-
 }
-
-func RemoveFileFromMino(ctx context.Context, client aws.Config, bucketName string, objectkey string,
+func RemoveFileFromMinio(
+	ctx context.Context,
+	client *s3.Client,
+	bucketName string,
+	objectKey string,
 	logger interface {
 		Errorf(format string, args ...any)
-	},
-) error {
-	// exist, err := client.BucketExist(ctx, bucketName)
-	// if err != nil {
-	// 	logger.Errorf("failed to check bucket '%s': '%v'", bucketName, err)
-	// 	return errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	}) error {
+	_, err := client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: &bucketName,
+	})
+	if err != nil {
+		logger.Errorf("bucket '%s' does not exist", bucketName)
+		return errors.New(localization.ErrorBucketNotFound.Code)
+	}
 
-	// if !exist {
-	// 	logger.Errorf("bucket '%s' does not exist", bucketName)
-	// 	return errors.New(localization.ErrorBucketNotFound.Code)
-	// }
-
-	// isDeleted, err := client.DeleteObject(ctx, config.DeleteObjectBody{
-	// 	BucketName: bucketName,
-	// 	ObjectName: objectkey,
-	// })
-	// if err != nil {
-	// 	logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectkey, bucketName, err)
-	// 	return errors.New(localization.ErrorUnexpectedError.Code)
-	// }
-
-	// if !isDeleted {
-	// 	logger.Errorf("object '%s' could not be deleted from bucket '%s'", objectkey, bucketName)
-	// 	return errors.New(localization.ErrorUnexpectedError.Code)
-	// }
+	_, err = client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: &bucketName,
+		Key:    &objectKey,
+	})
+	if err != nil {
+		logger.Errorf("failed to delete object '%s' from bucket '%s': %v", objectKey, bucketName, err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
 
 	return nil
 }

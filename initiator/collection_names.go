@@ -14,6 +14,7 @@ var (
 	CardsCollection                  = "portal_cards"
 	MiniAppsCollection               = "mini_app"
 	MiniAppMerchantCollection        = "mini_app_merchant"
+	EcommerceMerchantCollection      = "ecommerce_merchants"
 	AccessListCollection             = "access_list"
 	AvatarsCollection                = "avatars"
 	BranchUserCollection             = "branch_user"
@@ -46,6 +47,17 @@ var (
 	NewsTagsCollection               = "news_tags"
 	NewsCategoryCollection           = "news_category"
 	CustomersKYCCollection           = "customer_kyc"
+	BPSActionRolesCollection         = "action_roles"
+	RolesCollection                  = "roles"
+
+	BPSActionApproveIndexCollection = "bps_action_approver_index"
+
+	MiniAppCategoryCollection = "mini_app_categories"
+
+	CPSActionRolesCollection        = "cps_action_roles"
+	CPSActionApproveIndexCollection = "cps_action_approver_index"
+	EventMerchantsCollection        = "event_merchants"
+	MiniAppProductCodes             = "mini_app_product_codes"
 )
 
 // Minio Bucket Names

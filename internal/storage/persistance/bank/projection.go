@@ -1,7 +1,7 @@
 package bank
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -18,10 +18,12 @@ func BankMapper(data model.Bank) bson.M {
 	if data.BIC != "" {
 		result["bic"] = data.BIC
 	}
+	if data.Type != "" {
+		result["type"] = data.Type
+	}
 	if data.Logo != "" {
 		result["logo"] = data.Logo
 	}
-
 	result["enabled"] = data.Enabled
 	return result
 }

@@ -7,10 +7,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -133,14 +134,30 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 
 func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wallet, error) {
 	filter := bson.M{
-		"$or": []bson.M{
-			{"code": code},
-			{"name": name},
-		},
 		"is_deleted": false,
 	}
 
-	// filter := bson.M{key: value, "is_deleted": false}
+	var orFilters []bson.M
+
+	if code != "" {
+		orFilters = append(orFilters, bson.M{
+			"code": code,
+		})
+	}
+
+	if name != "" {
+		orFilters = append(orFilters, bson.M{
+			"name": bson.M{
+				"$regex":   name,
+				"$options": "i",
+			},
+		})
+	}
+
+	if len(orFilters) > 0 {
+		filter["$or"] = orFilters
+	}
+
 	doc, err := w.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
@@ -148,11 +165,6 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 			return nil, nil
 		}
 		w.logger.Errorf("FindBy code:%s name:%s wallet failed: %v", code, name, err)
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-
-	if err != nil {
-		w.logger.Errorf("Failed to convert document to wallet: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

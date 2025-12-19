@@ -89,10 +89,20 @@ func SendValidationErrorResponse(w http.ResponseWriter, fieldErrors []FieldError
 func SendErrorByCodeResponse(w http.ResponseWriter, code string) {
 	responseCode, ok := GetResponseCodeByCode(code)
 	if !ok {
-		SendErrorResponse(w, ErrorValidationFailed, nil, nil)
+		SendErrorResponse(w, ErrorFormatter(code), nil, nil)
 		return
 	}
 	SendSuccessResponse(w, responseCode, nil)
+}
+
+func ErrorFormatter(code string) ResponseCode {
+	return ResponseCode{
+		Message:    code,
+		TimeStamp:  time.Now(),
+		StatusCode: http.StatusBadRequest,
+		Code:       strings.ToUpper(strings.ReplaceAll(code, " ", "_")),
+		Type:       "error",
+	}
 }
 
 // SendUnauthorizedResponse sends an unauthorized error response

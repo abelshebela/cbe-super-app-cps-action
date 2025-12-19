@@ -9,6 +9,7 @@
 *.dylib
 cmd/_debug_bin.*
 cmd/.env
+cmd/__debug_bin.exe*
 # Test binary, built with `go test -c`
 *.test
 

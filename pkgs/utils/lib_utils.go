@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -17,6 +16,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
+var counter uint64
+
+func NewNotificationID() string {
+	// timestamp format: YYYYMMDDHHMMSS
+	timestamp := time.Now().Format("20060102150405")
+	return fmt.Sprintf("%s", timestamp)
+}
 func ParseTime(date string) time.Time {
 	parsedTime, err := time.Parse("2006-01-02", date)
 	if err != nil {
@@ -24,6 +30,12 @@ func ParseTime(date string) time.Time {
 		return time.Time{}
 	}
 	return parsedTime
+}
+
+func UniqueIdGenerator() string {
+	// timestamp format: YYYYMMDDHHMMSS
+	timestamp := time.Now().Format("20060102150405")
+	return fmt.Sprintf("%s", timestamp)
 }
 
 func ParseUserContext(r *http.Request) (types.UserContext, error) {
@@ -332,20 +344,4 @@ func ParseDateString(dateStr string) (time.Time, error) {
 	}
 
 	return time.Time{}, fmt.Errorf("unable to parse date: %s", dateStr)
-}
-func ValidateAndNormalizePhoneNumber(phoneNumber string) (string, error) {
-	cleaned := strings.ReplaceAll(phoneNumber, " ", "")
-	cleaned = strings.ReplaceAll(cleaned, "-", "")
-	cleaned = strings.TrimPrefix(cleaned, "+")
-
-	re := regexp.MustCompile(`^(2519\d{8}|09\d{8}|2517\d{8}|07\d{8})$`)
-	if !re.MatchString(cleaned) {
-		return "", localization.ErrorInvalidPhoneNumber
-	}
-
-	if strings.HasPrefix(cleaned, "0") {
-		cleaned = "251" + cleaned[1:]
-	}
-
-	return cleaned, nil
 }

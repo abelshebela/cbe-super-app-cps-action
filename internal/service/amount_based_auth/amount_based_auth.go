@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
@@ -14,15 +13,19 @@ import (
 	"errors"
 	"time"
 
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
-	// added for cascading logic
 	core "cbe-super-app-cps-action/internal/service/amount_based_auth/core"
 
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type amountBasedAuthService struct {
@@ -43,24 +46,31 @@ func NewAmountBasedAuthService(repository storage.AmountBasedAuthRepository, cps
 
 // Authorize handles persistence for amount-based auth actions
 func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	s.logger.Infof("Authorizing amount-based auth action, action:************* %s", action.RequestAction)
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Amount Based Auth", "Authorize")
+	defer span.End()
+
+	s.logger.Infof("[Authorize] authorizing amount-based auth action: %s", action.RequestAction)
 
 	// Unmarshal the current action data
 	// Try direct type assertion first
 
 	currentAction, err := local_util.JsonUnmarshal[map[string]interface{}](action.CurrentAction)
 	if err != nil {
+		span.AddEvent("Failed to extract currentAction", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", action.UniqueId),
+		))
 		s.logger.Errorf("Failed to extract currentAction from action.CurrentAction: %v", err)
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	s.logger.Infof("Authorizing amount-based auth action, pass action:************* %s", action.RequestAction)
+	s.logger.Infof("[Authorize] processing action: %s", action.RequestAction)
 
 	result := (*currentAction)
 
 	switch result["method"] {
 	case "OPEN":
-		s.logger.Infof("Processing OPEN tier update===================")
+		s.logger.Infof("[Authorize] processing OPEN tier update")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occurred when extracting data tier: %v", err)
@@ -99,9 +109,9 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		s.logger.Infof("OPEN tier update request completed successfully")
+		s.logger.Infof("[Authorize] OPEN tier update completed successfully")
 	case "PIN":
-		s.logger.Infof("Processing PIN tier update================")
+		s.logger.Infof("[Authorize] processing PIN tier update")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
@@ -156,8 +166,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 	case "OTP_PIN":
-		s.logger.Infof("Processing OTP_PIN tier update================")
-		s.logger.Infof("Authorizing amount-based auth action, pass OTP_PIN action:************* %s", action.RequestAction)
+		s.logger.Infof("[Authorize] processing OTP_PIN tier update")
 		data, err := local_util.JsonUnmarshal[map[string]interface{}](result["data"])
 		if err != nil {
 			s.logger.Errorf("Error occcure when extracting data tier error: %v", err)
@@ -206,29 +215,57 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	s.logger.Infof("Authorization completed for action, action: %s", action.RequestAction)
+	s.logger.Infof("[Authorize] authorization completed successfully for action: %s", action.RequestAction)
 	return action, nil
 }
 
 // FindAllWithPagination retrieves all amount-based auth tiers with pagination
 func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error) {
-	return s.Repository.FindAllWithPagination(ctx, filterParam)
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "Amount Based Auth", "FindAllWithPagination")
+	defer span.End()
+
+	result, err := s.Repository.FindAllWithPagination(ctx, filterParam)
+	if err != nil {
+		span.AddEvent("[FindAllWithPagination] failed to fetch amount-based auth tiers", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch amount-based auth tiers: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 // UpdateAmountBasedAuth updates any tier type and applies appropriate cascading logic
-func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method constants.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
+func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateAmountBasedAuth", "Amount Based Auth", "UpdateAmountBasedAuth")
+	defer span.End()
+
 	// Validate the request based on method
 	if !request.Validate(method) {
+		span.AddEvent("Invalid amount values", trace.WithAttributes(
+			attribute.String("method", string(method)),
+			attribute.Int64("min_amount", int64(request.MinAmount)),
+			attribute.Int64("max_amount", int64(request.MaxAmount)),
+		))
 		s.logger.Errorf("Invalid amount values for method %s: MinAmount=%d, MaxAmount=%d", method, request.MinAmount, request.MaxAmount)
 		return errors.New(localization.ErrorInvalidAmounts.Code)
 	}
 
 	existingTier, err := s.Repository.FindByID(ctx, id)
 	if err != nil {
+		span.AddEvent("Failed to find existing tier", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf(" Failed to find existing tier by ID %s: %v", id, err)
 		return err
 	}
 	if existingTier.Method != method {
+		span.AddEvent("Mismatched method", trace.WithAttributes(
+			attribute.String("expected", string(method)),
+			attribute.String("got", string(existingTier.Method)),
+			attribute.String("id", id),
+		))
 		s.logger.Errorf("Mismatched method for tier ID %s: expected %s, got %s", id, existingTier.Method, method)
 		return errors.New(localization.ErrorInvalidMethod.Code)
 	}
@@ -237,7 +274,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 	now := time.Now()
 
 	switch method {
-	case constants.OPEN:
+	case shared_constant.OPEN:
 		// For OPEN: only MaxAmount is updated, preserve MinAmount
 		existingTier.MaxAmount = request.MaxAmount
 		// Fetch PIN tier to cascade min change
@@ -280,7 +317,7 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 
 		return nil
 
-	case constants.PIN:
+	case shared_constant.PIN:
 		// For PIN: both MinAmount and MaxAmount can be updated
 		existingTier.MinAmount = request.MinAmount
 		existingTier.MaxAmount = request.MaxAmount
@@ -366,10 +403,10 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 			s.logger.Errorf("Failed to create CPS action: %v", err)
 			return err
 		}
-		s.logger.Infof("PIN tier update request completed successfully")
+		s.logger.Infof("[UpdateAmountBasedAuth] PIN tier update request created successfully")
 		return nil
 
-	case constants.OTPANDPIN:
+	case shared_constant.OTPANDPIN:
 		// For OTP_PIN: only MinAmount is updated, preserve MaxAmount
 		existingTier.MinAmount = request.MinAmount
 
