@@ -35,8 +35,6 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
 	defer span.End()
 
-	s.logger.Infof("Authorize called, action: %s", cpsAction.RequestAction)
-
 	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(

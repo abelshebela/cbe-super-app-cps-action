@@ -73,8 +73,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Assign variable for minio public url
 	minioPubUrl := cfg.MinioPublicEndPoint
 
-	// MerchantLookup := *merchantlookup.NewMerchantLookupAdapter(merchantApi, *cfg, merchantXAPIKey, logger)
-
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout))
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
@@ -189,8 +187,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ServiceContainer:              servicesService,
 		VaultAmountTierContainer:      vaultAmountTierSrv,
 		MiniAppProductCodeContainer:   miniAppProductCodeContainer,
-
-
 	}
 
 	// CPSActionService Appended
@@ -335,6 +331,5 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		EventMerchantService:   eventMerchantService,
 		VaultAmountTierService: vaultAmountTierSrv,
 		MiniappProductCode:     miniAppProductCodeContainer,
-		
 	}
 }
