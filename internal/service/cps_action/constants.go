@@ -334,6 +334,10 @@ const (
 	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
 	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
+
+	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
+	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -566,6 +570,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteEventMerchant:  {},
 	RequestEnableEventMerchant:  {},
 	RequestDisableEventMerchant: {},
+
+	RequestCreateAccessListSegmentation:        {},
+	RequestUpdateAccessListSegmentation:        {},
+	RequestEnableDisableAccessListSegmentation: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -965,6 +973,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteMiniappProductCode,
 		RequestEnableMiniappProductCode,
 		RequestDisableMiniappProductCode,
+	},
+
+	"AccessListSegmentation": {
+		RequestCreateAccessListSegmentation,
+		RequestUpdateAccessListSegmentation,
+		RequestEnableDisableAccessListSegmentation,
 	},
 }
 

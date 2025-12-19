@@ -519,6 +519,10 @@ const (
 	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
 	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
 	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
+
+	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
+	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
 )
 
 type RegistrationType string

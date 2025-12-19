@@ -157,6 +157,12 @@ func Init(ctx context.Context) {
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
 	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
+	// Walker to log all registered routes
+	// chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
+	// 	logger.Infof("Route registered: %s %s", method, route)
+	// 	return nil
+	// })
+
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "cps-action")
 

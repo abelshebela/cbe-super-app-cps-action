@@ -1,11 +1,13 @@
 package storage
 
 import (
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants"
+	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -482,6 +484,7 @@ type CustomerRepository interface {
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
+	FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error)
 }
 
 type BulkServiceRepository interface {
@@ -614,4 +617,14 @@ type EventMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+}
+
+type AccessListSegmentationRepository interface {
+	Create(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccessListSegmentation], error)
+	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
+	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
+	Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }

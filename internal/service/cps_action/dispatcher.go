@@ -147,6 +147,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MiniAppProductCode"):
 		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "AccessListSegmentation"):
+		return d.app.AccessListSegmentationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "JobRole"):
 		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Role"):
