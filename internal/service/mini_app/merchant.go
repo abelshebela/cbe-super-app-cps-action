@@ -11,6 +11,7 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
@@ -41,7 +42,7 @@ func NewMiniAppMerchantService(
 	}
 }
 
-func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindByID", "MiniAppMerchant", "FindByID")
 	defer span.End()
 
@@ -61,7 +62,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniAppMerchant", "Authorize")
 	defer span.End()
 
-	merchant, err := local_util.JsonUnmarshal[model.MiniAppMerchant](cpsAction.CurrentAction)
+	merchant, err := local_util.JsonUnmarshal[mini_model.MiniAppMerchant](cpsAction.CurrentAction)
 	if err != nil {
 		m.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
