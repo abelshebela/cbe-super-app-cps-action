@@ -10,14 +10,16 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -174,16 +176,15 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	bank := model.Bank{
-		Name:          bank_request.Name,
-		BIC:           bank_request.BIC,
-		Code:          bank_request.Code,
-		Type:          bank_request.Type,
-		AccountLength: *bank_request.AccountLength,
-		Logo:          URL,
-		Enabled:       true,
+		Name:    bank_request.Name,
+		BIC:     bank_request.BIC,
+		Code:    bank_request.Code,
+		Type:    string(bank_request.Type),
+		Logo:    URL,
+		Enabled: true,
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name, bank_request.AccountLength)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
@@ -199,12 +200,12 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
 
-		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
+		if bank_request.Code != "" && result.Code != "" && strings.ToLower(result.Code) == strings.ToLower(bank_request.Code) {
 			b.logger.Errorf("[CreateOneBank] bank with code already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
 
-		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {
+		if bank_request.Name != "" && result.Name != "" && strings.ToLower(result.Name) == strings.ToLower(bank_request.Name) {
 			b.logger.Errorf("[CreateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
 		}
@@ -446,11 +447,9 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		updatedBank.Name = bank_request.Name
 	}
 	if bank_request.Type != "" {
-		updatedBank.Type = bank_request.Type
+		updatedBank.Type = string(bank_request.Type)
 	}
-	if bank_request.AccountLength != nil {
-		updatedBank.AccountLength = *bank_request.AccountLength
-	}
+
 	logoUrl = bank.Logo
 	if bank_request.Logo != nil {
 		var objectkey string
@@ -480,7 +479,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		logoUrl = URL
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name, bank_request.AccountLength)
+	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {

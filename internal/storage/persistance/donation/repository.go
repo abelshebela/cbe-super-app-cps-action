@@ -1,13 +1,16 @@
 package donation
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -24,26 +27,30 @@ type DonationStorage struct {
 	donationCompanyDal  dal.MongoDal[model.DonationCompany, model.DonationCompany]
 	donationCategoryDal dal.MongoDal[model.DonationCategory, model.DonationCategory]
 	client              *mongo.Client
+	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
 }
 
-func NewDonationRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DonationRepository {
+func NewDonationRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
 		dal:                 dal.NewMongoDal[model.Donation, model.Donation](client, dbName, collection),
 		donationCompanyDal:  dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, dbName, "donation_companies"),
 		donationCategoryDal: dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, dbName, "donation_categories"),
 		client:              client,
+		kafkaProducer:       kafkaProducer,
 		logger:              logger,
 	}
 }
 
 func (d *DonationStorage) Create(ctx context.Context, donation *model.Donation) error {
 	d.logger.Infof("[Create] creating donation")
-	_, err := d.dal.InsertOne(ctx, *donation)
+	newDonation, err := d.dal.InsertOne(ctx, *donation)
 	if err != nil {
 		d.logger.Errorf("[Create] failed to create donation: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	d.kafkaProducer.PublishMessage(ctx, newDonation, string(constants.ClientOrchestrationDonationTopic), string(constants.ClientOrchestrationDonationTopic), "new donation created")
+
 	d.logger.Infof("[Create] donation created successfully")
 	return nil
 }
@@ -58,7 +65,7 @@ func (d *DonationStorage) Update(ctx context.Context, id string, donation *model
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updatedData := DonationMapper(*donation)
 
-	_, err = d.dal.UpdateOne(ctx, filter, updatedData)
+	updatedDonation, err := d.dal.UpdateOne(ctx, filter, updatedData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			d.logger.Errorf("[Update] donation not found")
@@ -67,6 +74,9 @@ func (d *DonationStorage) Update(ctx context.Context, id string, donation *model
 		d.logger.Errorf("[Update] failed to update donation: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	d.kafkaProducer.PublishMessage(ctx, updatedDonation, string(constants.ClientOrchestrationDonationTopic), string(constants.ClientOrchestrationDonationTopic), "donation updated")
+
 	d.logger.Infof("[Update] donation updated successfully")
 	return nil
 }

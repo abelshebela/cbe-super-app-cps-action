@@ -198,9 +198,14 @@ const (
 	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
 	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
 	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
-	// Budget Category related success messages
-	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
+	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
 
+	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
+	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
+	MsgVaultAmountTierUpdateRequestSubmitted  = "Vault amount tier update request submitted successfully"
+	MsgVaultAmountTierDeleteRequestSubmitted  = "Vault amount tier delete request submitted successfully"
+	MsgVaultAmountTierDisableRequestSubmitted = "Vault amount tier disable request submitted successfully"
+	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
@@ -793,10 +798,12 @@ const (
 	MsgNotificationDeleteFailed    = "Failed to delete notification"
 
 	// Customer related error messages
-	MsgCustomerCountFailed     = "Failed to count customers"
-	MsgCustomerConvertIDFailed = "Failed to convert customer ID"
-	MsgCustomerNotFound        = "Customer not found"
-	MsgCustomerFetchFailed     = "Failed to get customer"
+	MsgCustomerCountFailed                         = "Failed to count customers"
+	MsgCustomerConvertIDFailed                     = "Failed to convert customer ID"
+	MsgCustomerNotFound                            = "Customer not found"
+	MsgCustomerFetchFailed                         = "Failed to get customer"
+	MsgCustomerCIFMustContainOnlyNumbers           = "CIF must contain only numbers"
+	MsgCustomerAccountNumberMustContainOnlyNumbers = "Account number must contain only numbers"
 
 	// Account Validation related error messages
 	MsgValidationRuleGetFailed                = "Failed to get validation rule"
@@ -1043,9 +1050,10 @@ const (
 	MsgBpsActionRoleNotFound = "BPS action role not found"
 
 	// transaction related messages
-	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
-	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
-	MsgTransactionIDRequired        = "Transaction ID is required"
+	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess   = "Transaction retrieved successfully"
+	MsgTransactionIDRequired         = "Transaction ID is required"
+	MsgTransactionIdentifierRequired = "Transaction Identifier is required"
 
 	// event merchant message
 	MsgEventMerchantCreatedSuccessfully  = "Event merchant created successfully"

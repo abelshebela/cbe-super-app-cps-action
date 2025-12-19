@@ -2,15 +2,11 @@ package donation
 
 import (
 	"mime/multipart"
-
+shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"time"
 )
 
-type DonationImage struct {
-	ID        string `json:"id" bson:"id"`
-	PhotoURL  string `json:"photo_url" bson:"photo_url"`
-	CreatedAt string `json:"created_at" bson:"created_at"`
-}
+
 
 type DonationCPSRequest struct {
 	ID                  string          `json:"id" bson:"id"`
@@ -25,7 +21,7 @@ type DonationCPSRequest struct {
 	IsFeatured          *bool           `json:"is_featured" bson:"is_featured"`
 	Target              int32           `json:"target" bson:"target"`
 	DonationDescription string          `json:"donation_description" bson:"donation_description"`
-	DonationImages      []DonationImage `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
+	DonationImages      []shared_types.DonationImage `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
 	CoverImage          string          `json:"cover_image,omitempty" bson:"cover_image,omitempty"`
 	EndDate             string          `json:"end_date" bson:"end_date"`
 	StartDate           string          `json:"start_date" bson:"start_date"`
@@ -68,7 +64,7 @@ type DonationImageDeleteCPSRequest struct {
 }
 
 type DonationImageAddRequest struct {
-	DonationImages []DonationImage `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
+	DonationImages []shared_types.DonationImage `json:"donation_images,omitempty" bson:"donation_images,omitempty"`
 }
 type EnableDonationRequest struct {
 	Enabled bool `json:"enabled" bson:"enabled"`

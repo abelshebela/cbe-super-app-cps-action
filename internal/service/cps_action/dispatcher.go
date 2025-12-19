@@ -5,12 +5,13 @@ import (
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 type CPSActionModule interface {
@@ -142,6 +143,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "eventMerchant"):
 		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VaultAmountTier"):
+		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MiniAppProductCode"):
 		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
 

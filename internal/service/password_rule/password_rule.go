@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/password_rule/core"
@@ -14,6 +13,8 @@ import (
 	"errors"
 	"fmt"
 	"unicode"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -100,7 +101,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		return false, fmt.Sprintf("password must be at most %d characters", rule.MaxLength)
 	}
 
-	if rule.Numbers != nil && *rule.Numbers {
+	if rule.Numbers {
 		hasNumber := false
 		for _, c := range password {
 			if c >= '0' && c <= '9' {
@@ -113,7 +114,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.CapitalLetters != nil && *rule.CapitalLetters {
+	if rule.CapitalLetters {
 		hasUpper := false
 		for _, c := range password {
 			if c >= 'A' && c <= 'Z' {
@@ -126,7 +127,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.SmallLetters != nil && *rule.SmallLetters {
+	if rule.SmallLetters {
 		hasLower := false
 		for _, c := range password {
 			if unicode.IsLower(c) {
@@ -139,7 +140,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.Characters != nil && *rule.Characters {
+	if rule.Characters {
 		hasSpecial := false
 		for _, c := range password {
 			if (c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126) {

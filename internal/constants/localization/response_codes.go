@@ -319,6 +319,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+	ErrorInvalidWalletCode,
+	ErrorInvalidWalletType,
+	ErrorInvalidWalletName,
 
 	//topup related error codes
 	ErrorTopupNameRequired,
@@ -437,6 +440,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarNotExist,
 	ErrorBulkServiceAlreadyEnabled,
 	ErrorDuplicateCBEIFBProductCode,
+	ErrorCustomerAccountNumberMustContainOnlyNumbers,
+	ErrorCustomerCIFMustContainOnlyNumbers,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -538,9 +543,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessVaultGroupCategoryDeleteRequestSubmitted,
 	SuccessVaultGroupCategoryEnableRequestSubmitted,
 	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	SuccessVaultAmountTierCreationRequestSubmitted,
+	SuccessVaultAmountTierFetchedSuccessfully,
+	SuccessVaultAmountTierUpdateRequestSubmitted,
+	SuccessVaultAmountTierDeleteRequestSubmitted,
+	SuccessVaultAmountTierDisableRequestSubmitted,
 	ErrorFailedToBeingTransaction,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
+	ErrorCannotDeleteActiveVaultGroupCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
 	ErrorCannotEnableOrDisable,
@@ -562,6 +573,7 @@ var ResponseCodesList = []ResponseCode{
 	// transaction related responses
 	SuccessTransactionRetrieved,
 	ErrorTransactionIDRequired,
+	ErrorTransactionIdentifierRequired,
 
 	// bank related errors
 	ErrorInvalidAccountNumberFormat,
@@ -1337,6 +1349,43 @@ var (
 		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessVaultAmountTierCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierCreated,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_RETRIEVED_SUCCEFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierDisableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierEnableRequestSubmitted,
+		Type:       "success",
+	}
+
 	// Event related error response codes for bankvault
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
@@ -1597,11 +1646,19 @@ var (
 
 	//
 	ErrorTopupNameAlreadyExists = ResponseCode{
-		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
+		Code:       "ERROR_TOPUP_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Topup with the given name and code already exists",
+		Message:    "Topup with the given name already exists",
 		Type:       "error",
 	}
+
+	ErrorTopupcoDEAlreadyExists = ResponseCode{
+		Code:       "ERROR_TOPUP_WITH_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup with the given code already exists",
+		Type:       "error",
+	}
+
 	ErrorTopupCodeAlreadyExists = ResponseCode{
 		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -1693,6 +1750,26 @@ var (
 		Code:       "ERROR_WALLET_NAME_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet name is required",
+		Type:       "error",
+	}
+
+	ErrorInvalidWalletName = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_NAME",
+		StatusCode: 400,
+		Message:    "Invalid wallet name, special characters are not allowed",
+		Type:       "error",
+	}
+
+	ErrorInvalidWalletCode = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_CODE",
+		StatusCode: 400,
+		Message:    "Invalid wallet code, special characters are not allowed",
+		Type:       "error",
+	}
+	ErrorInvalidWalletType = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_TYPE",
+		StatusCode: 400,
+		Message:    "Invalid wallet type, special characters are not allowed",
 		Type:       "error",
 	}
 
@@ -3913,6 +3990,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorTransactionIdentifierRequired = ResponseCode{
+		Code:       "ERROR_TRANSACTION_IDENTIFIER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTransactionIdentifierRequired,
+		Type:       "error",
+	}
+
 	ErrorFailedToBeingTransaction = ResponseCode{
 		Code:       "ERROR_FAILED_TO_BE_TRANSACTION",
 		StatusCode: StatusInternalServerError,
@@ -5838,6 +5922,19 @@ var (
 		Code:       "ERROR_EVENT_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgEventMerchantEnableFailed,
+		Type:       "error",
+	}
+
+	ErrorCustomerAccountNumberMustContainOnlyNumbers = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ACCOUNT_NUMBER_MUST_CONTAIN_ONLY_NUMBERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAccountNumberMustContainOnlyNumbers,
+		Type:       "error",
+	}
+	ErrorCustomerCIFMustContainOnlyNumbers = ResponseCode{
+		Code:       "ERROR_CUSTOMER_CIF_MUST_CONTAIN_ONLY_NUMBERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerCIFMustContainOnlyNumbers,
 		Type:       "error",
 	}
 )

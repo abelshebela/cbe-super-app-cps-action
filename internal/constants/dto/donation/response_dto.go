@@ -1,5 +1,7 @@
 package donation
-
+import (
+shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+)
 type DonationResponse struct {
 	DonationCode        string          `json:"donation_code" bson:"donation_code"`
 	CompanyID           string          `json:"company_id" bson:"company_id"`
@@ -8,7 +10,7 @@ type DonationResponse struct {
 	IsFeatured          bool            `json:"is_featured" bson:"is_featured"`
 	Target              int32           `json:"target" bson:"target"`
 	DonationDescription string          `json:"donation_description" bson:"donation_description"`
-	DonationImages      []DonationImage `json:"donation_images" bson:"donation_images"`
+	DonationImages      []shared_types.DonationImage `json:"donation_images" bson:"donation_images"`
 	CoverImage          string          `json:"cover_image,omitempty" bson:"cover_image,omitempty"` // URL for cover image
 	EndDate             string          `json:"end_date" bson:"end_date"`
 	StartDate           string          `json:"start_date" bson:"start_date"`
@@ -38,7 +40,7 @@ type DonationListResponse struct {
 	Target              int32           `json:"target" bson:"target"`
 	CurrentAmount       int32           `json:"current_amount" bson:"current_amount"`
 	DonationDescription string          `json:"donation_description" bson:"donation_description"`
-	DonationImages      []DonationImage `json:"donation_images" bson:"donation_images"`
+	DonationImages      []shared_types.DonationImage `json:"donation_images" bson:"donation_images"`
 	CoverImage          string          `json:"cover_image,omitempty" bson:"cover_image,omitempty"` // URL for cover image
 	EndDate             string          `json:"end_date" bson:"end_date"`
 	StartDate           string          `json:"start_date" bson:"start_date"`

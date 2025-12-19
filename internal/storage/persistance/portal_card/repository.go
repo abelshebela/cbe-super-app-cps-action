@@ -3,13 +3,14 @@ package portal_card
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"fmt"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -49,6 +50,17 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 
 	// 4. Build filter, skip, limit
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	// Add $or filter after FilterBuilder to search by card_name or _id
+	if objID, err := bson.ObjectIDFromHex(filterParam.Search); err == nil {
+		newFilter := bson.M{}
+		newFilter["$or"] = []bson.M{
+			filter,
+			{"_id": objID},
+		}
+
+		filter = newFilter
+	}
 
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)

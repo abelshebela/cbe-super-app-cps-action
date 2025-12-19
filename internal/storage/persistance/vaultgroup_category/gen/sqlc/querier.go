@@ -12,9 +12,9 @@ type Querier interface {
 	ActivateVaultGroupCategory(ctx context.Context, id string) (string, error)
 	DeactivateVaultGroupCategory(ctx context.Context, id string) (string, error)
 	DeleteVaultGroupCategory(ctx context.Context, id string) (string, error)
-	FindVaultGroupCategory(ctx context.Context, arg FindVaultGroupCategoryParams) ([]FindVaultGroupCategoryRow, error)
-	FindVaultGroupCategoryById(ctx context.Context, id string) (FindVaultGroupCategoryByIdRow, error)
-	FindVaultGroupCategoryByName(ctx context.Context, name string) (FindVaultGroupCategoryByNameRow, error)
+	FindVaultGroupCategory(ctx context.Context, arg FindVaultGroupCategoryParams) ([]VaultCategory, error)
+	FindVaultGroupCategoryById(ctx context.Context, id string) (VaultCategory, error)
+	FindVaultGroupCategoryByName(ctx context.Context, name string) (VaultCategory, error)
 	SaveVaultGroupCategory(ctx context.Context, arg SaveVaultGroupCategoryParams) (string, error)
 	UpdateVaultGroupCategory(ctx context.Context, arg UpdateVaultGroupCategoryParams) (string, error)
 }

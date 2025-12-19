@@ -4,7 +4,6 @@ import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -12,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -239,13 +240,12 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
 
-	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
+	donationImages := make([]shared_types.DonationImage, len(donationResponse.DonationImages))
 	for i, img := range donationResponse.DonationImages {
-		createdAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
-		donationImages[i] = types.DonationImage{
+		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: createdAt,
+			CreatedAt: img.CreatedAt,
 		}
 	}
 

@@ -2,10 +2,9 @@ package users
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"errors"
 
+	"errors"
+member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -60,19 +59,10 @@ func UserDeviceUUIDAttachment(deviceUUID string) bson.M {
 	}
 }
 
-func UserBuilder(update model.User) bson.M {
+func UserBuilder(update member.User) bson.M {
 	data := bson.M{}
 	if update.FullName != "" {
 		data["full_name"] = update.FullName
-	}
-	if update.MotherName != "" {
-		data["mother_name"] = update.MotherName
-	}
-	if !update.BirthDate.IsZero() {
-		data["birth_date"] = update.BirthDate
-	}
-	if update.Nationality != "" {
-		data["nationality"] = update.Nationality
 	}
 	if update.PhoneNumber != "" {
 		data["phone_number"] = update.PhoneNumber
@@ -87,57 +77,17 @@ func UserBuilder(update model.User) bson.M {
 	if update.Email != "" {
 		data["email"] = update.Email
 	}
-	if update.Username != "" {
-		data["username"] = update.Username
-	}
-	if update.IsSelfRegister {
-		data["is_self_register"] = true
-	}
-	if update.IsVerified {
-		data["is_verified"] = update.IsVerified
-	}
 	if update.DeviceUUID != "" {
 		data["device_uuid"] = update.DeviceUUID
 	}
-	if update.LoginPIN != (types.LoginPIN{}) {
-		data["login_pin"] = update.LoginPIN
-	}
-	if update.ProfileThemeType != "" {
-		data["profile_theme_type"] = update.ProfileThemeType
-	}
+
 	if update.IsBlocked {
 		data["is_blocked"] = update.IsBlocked
 	}
-	if update.Address.Zone != "" {
-		data["address.zone"] = update.Address.Zone
-	}
-	if update.Address.Kebele != "" {
-		data["address.kebele"] = update.Address.Kebele
-	}
-	if update.Address.Woreda != "" {
-		data["address.woreda"] = update.Address.Woreda
-	}
-	if update.Address.Region != "" {
-		data["address.region"] = update.Address.Region
-	}
-	if update.BranchName != "" {
-		data["branch_name"] = update.BranchName
-	}
-	if update.DistrictName != "" {
-		data["district_name"] = update.DistrictName
-	}
+		
 	if update.BranchCode != "" {
 		data["branch_code"] = update.BranchCode
 	}
-	if update.DistrictCode != "" {
-		data["district_code"] = update.DistrictCode
-	}
-	if update.ResidentialStatus != "" {
-		data["residential_status"] = update.ResidentialStatus
-	}
-	if !update.IssuedDate.IsZero() {
-		data["issued_date"] = update.IssuedDate
-	}
-
+	
 	return data
 }

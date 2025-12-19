@@ -3,7 +3,6 @@ package fayda
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	cps_const "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/fayda/core"
@@ -13,6 +12,8 @@ import (
 	"errors"
 	"time"
 
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -46,15 +47,6 @@ func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code strin
 			attribute.String("user_code", user_code),
 		))
 		return err
-	}
-
-	if existingUser.KYCLevel != 1 {
-		f.logger.Errorf("[EnableOrDisableFayda] user is not a fayda account user")
-		span.AddEvent("User is not a fayda account user", trace.WithAttributes(
-			attribute.String("error", localization.ErrorNotFaydaUser.Code),
-			attribute.String("user_code", user_code),
-		))
-		return errors.New(localization.ErrorNotFaydaUser.Code)
 	}
 
 	if isEnabled && existingUser.Enabled {
@@ -106,7 +98,7 @@ func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction
 
 	f.logger.Infof("[Authorize] authorizing fayda action: %s", cpsAction.RequestAction)
 
-	var faydaUser *model.User
+	var faydaUser *member.User
 	if err := local_util.BindAction(cpsAction.CurrentAction, &faydaUser); err != nil {
 		f.logger.Errorf("[Authorize] failed to bind current action to fayda: %v", err)
 		span.AddEvent("Failed to bind current action", trace.WithAttributes(

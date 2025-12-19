@@ -10,15 +10,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-// const maxFileSize = 2 * 1024 * 1024
-
-// var allowedMIMETypes = map[string]bool{
-// 	"image/jpeg": true,
-// 	"image/png":  true,
-// 	"image/gif":  true,
-// 	"image/webp": true,
-// }
-
 func (w TopupRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
 		strings.TrimSpace(w.Code) == "" &&
@@ -34,13 +25,15 @@ func (w TopupRequest) Validate(isCreate bool) error {
 				&w.Name,
 				validation.Required.Error(localization.ErrorTopupNameRequired.Code),
 				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
 			),
 		)
 	} else {
 		rules = append(rules,
 			validation.Field(
 				&w.Name,
-				validation.By(utils.TrimWhiteSpace),
+				validation.When(w.Name != "", validation.By(utils.TrimWhiteSpace)),
+				validation.By(utils.NoSpecialChars),
 			),
 		)
 	}
@@ -51,13 +44,15 @@ func (w TopupRequest) Validate(isCreate bool) error {
 				&w.Code,
 				validation.Required.Error(localization.ErrorTopupCodeRequired.Code),
 				validation.By(utils.TrimWhiteSpace),
+				validation.By(utils.NoSpecialChars),
 			),
 		)
 	} else {
 		rules = append(rules,
 			validation.Field(
 				&w.Code,
-				validation.By(utils.TrimWhiteSpace),
+				validation.When(w.Code != "", validation.By(utils.TrimWhiteSpace)),
+				validation.By(utils.NoSpecialChars),
 			),
 		)
 	}
@@ -97,15 +92,22 @@ func (w TopupRequest) Validate(isCreate bool) error {
 
 func (w TopupRequest) AggregatedValidate(isCreate bool) error {
 	errs := validation.Errors{}
-	if strings.TrimSpace(w.Name) == "" {
-		errs["name"] = localization.ErrorWalletNameRequired
+	if isCreate {
+		if strings.TrimSpace(w.Name) == "" {
+			errs["name"] = localization.ErrorTopupNameRequired
+		}
+		if strings.TrimSpace(w.Code) == "" {
+			errs["code"] = localization.ErrorTopupCodeRequired
+		}
+		if !(w.Self || w.Other || w.Agent) {
+			errs["recharge_option"] = localization.ErrorWalletRechangeOption
+		}
 	}
-	if strings.TrimSpace(w.Code) == "" {
-		errs["code"] = localization.ErrorWalletCodeRequired
+
+	if err := w.Validate(isCreate); err != nil {
+		return err
 	}
-	if !(w.Self || w.Other || w.Agent) {
-		errs["recharge_option"] = localization.ErrorWalletRechangeOption
-	}
+
 	if isCreate {
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired
