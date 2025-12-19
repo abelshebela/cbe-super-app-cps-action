@@ -79,11 +79,13 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		return localization.ErrorInvalidFormatForBIC
 	}
 
-	switch *bankType {
-	case constants.Bank, constants.Wallet, constants.MFI:
-		// valid type
-	default:
-		return localization.ErrorInvalidBankRequest
+	if bankType != nil && *bankType != "" {
+		switch *bankType {
+		case constants.Bank, constants.Wallet, constants.MFI:
+			// valid type
+		default:
+			return localization.ErrorInvalidBankRequest
+		}
 	}
 
 	return localization.ResponseCode{}

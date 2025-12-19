@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
+	access_list_segmentation "cbe-super-app-cps-action/internal/glue/routing/access_list_segmentaion"
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
@@ -150,6 +151,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
 	vaultAmountTier.Init(r, handlerLayer.AmountTierHandler, authMiddleware)
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
+	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)

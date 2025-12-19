@@ -590,6 +590,36 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidBankAccountNumber,
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
+
+	// Access List Segmentation Success Codes
+	SuccessAccessListSegmentationCreated,
+	SuccessAccessListSegmentationUpdated,
+	SuccessAccessListSegmentationEnabled,
+	SuccessAccessListSegmentationDisabled,
+	SuccessAccessListSegmentationsRetrieved,
+	SuccessAccessListSegmentationRetrieved,
+
+	// Access List Segmentation Error Codes
+	ErrorAccessListSegmentationNotFound,
+	ErrorAccessListSegmentationAlreadyEnabled,
+	ErrorAccessListSegmentationAlreadyDisabled,
+	ErrorAccessListSegmentationInvalidID,
+	ErrorAccessListSegmentationInvalidID,
+	ErrorAccessListSegmentationAlreadyEnabled,
+	ErrorAccessListSegmentationNotFound,
+	UnableToCreateAccessListSegmentation,
+	ErrorAccessListSegmentationInvalidID,
+	ErrorAccessListSegmentationIDSRequired,
+	ErrorAccessListSegmentationNameAlreadyExists,
+	ErrorServiceIdRequired,
+
+	// Access List Segmentaion Success Code
+	SuccessAccessListSegmentationRetrieved,
+	SuccessAccessListSegmentationDisabled,
+	SuccessAccessListSegmentationEnabled,
+	SuccessAccessListSegmentationUpdated,
+	SuccessAccessListSegmentationCreated,
+	AccessListSegmentationCreatedSuccessfully,
 }
 
 // Success Response Codes
@@ -5969,6 +5999,101 @@ var (
 		Code:       "ERROR_CUSTOMER_CIF_MUST_CONTAIN_ONLY_NUMBERS",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCustomerCIFMustContainOnlyNumbers,
+		Type:       "error",
+	}
+
+	UnableToCreateAccessListSegmentation = ResponseCode{
+		Code:       "ERROR_UNABLE_TO_CREATE_ACCESS_LIST_SEGMENTATION",
+		StatusCode: StatusInternalServerError,
+		Message:    "Unable to create access list segmentation",
+		Type:       "error",
+	}
+	AccessListSegmentationCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ACCESS_LIST_SEGMENTATION_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Access list segmentation created successfully",
+		Type:       "success",
+	}
+
+	// Access List Segmentation Success Codes
+	SuccessAccessListSegmentationCreated = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessAccessListSegmentationUpdated = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationUpdatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessAccessListSegmentationEnabled = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessAccessListSegmentationDisabled = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessAccessListSegmentationsRetrieved = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATIONS_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationsRetrievedSuccessfully,
+		Type:       "success",
+	}
+	SuccessAccessListSegmentationRetrieved = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	// Access List Segmentation Error Codes
+	ErrorAccessListSegmentationNotFound = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccessListSegmentationNotFound,
+		Type:       "error",
+	}
+	ErrorAccessListSegmentationAlreadyEnabled = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListSegmentationAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorAccessListSegmentationAlreadyDisabled = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListSegmentationAlreadyDisabled,
+		Type:       "error",
+	}
+	ErrorAccessListSegmentationInvalidID = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_INVALID_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccessListSegmentationInvalidID,
+		Type:       "error",
+	}
+	ErrorAccessListSegmentationNameAlreadyExists = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_NAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgAccessListSegmentationNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorAccessListSegmentationIDSRequired = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_IDS_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgAccessListSegmentationIDsRequired,
+		Type:       "error",
+	}
+	ErrorServiceIdRequired = ResponseCode{
+		Code:       "ERROR_SERVICE_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgServiceIdRequired,
 		Type:       "error",
 	}
 )
