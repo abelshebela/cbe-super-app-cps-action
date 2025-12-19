@@ -20,11 +20,11 @@ import (
 type miniAppService struct {
 	repo            storage.MiniAppRepository
 	cpsService      service.CPSActionService
-	merchantService service.MiniAppMerchantService
+	merchantService service.MiniAppMerchant
 	logger          utils.Logger
 }
 
-func NewMiniAppService(repo storage.MiniAppRepository, cpsService service.CPSActionService, merchantService service.MiniAppMerchantService, logger utils.Logger) service.MiniAppService {
+func NewMiniAppService(repo storage.MiniAppRepository, cpsService service.CPSActionService, merchantService service.MiniAppMerchant, logger utils.Logger) service.MiniAppService {
 	return &miniAppService{
 		repo:            repo,
 		cpsService:      cpsService,
@@ -144,7 +144,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	return cpsAction, nil
 }
 
-func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchantService) error {
+func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchant) error {
 	merchant, err := merchantService.FindByID(ctx, MerchantID)
 	if err != nil {
 		s.logger.Errorf("Failed to get merchant details", "merchantID", MerchantID, "error", err)

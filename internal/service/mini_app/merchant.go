@@ -13,6 +13,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	dto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
@@ -23,7 +24,6 @@ import (
 
 type miniAppMerchantService struct {
 	repo                 storage.MiniAppMerchant
-	cpsService           service.CPSActionService
 	miniRepo             storage.MiniAppRepository
 	logger               utils.Logger
 	accountLookupService account_lookup.Account
@@ -32,7 +32,6 @@ type miniAppMerchantService struct {
 
 func NewMiniAppMerchantService(
 	repo storage.MiniAppMerchant,
-	cpsService service.CPSActionService,
 	miniRepo storage.MiniAppRepository,
 	merchantLookup merchant_lookup.MerchantLookupAdapter,
 	logger utils.Logger,
@@ -40,7 +39,6 @@ func NewMiniAppMerchantService(
 ) service.MiniAppMerchant {
 	return &miniAppMerchantService{
 		repo:                 repo,
-		cpsService:           cpsService,
 		miniRepo:             miniRepo,
 		accountLookupService: accountLookupService,
 		merchantLookup:       merchantLookup,
@@ -61,7 +59,6 @@ func (m *miniAppMerchantService) FindByID(ctx context.Context, id string) (*mode
 		))
 		return nil, err
 	}
-	// response := core.ToMiniAppMerchantResponseDTO(result)
 	return result, nil
 }
 
@@ -158,7 +155,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	return cpsAction, nil
 }
 
-func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
+func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*dto.MerchantLookUpResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
@@ -174,9 +171,3 @@ func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID 
 
 	return &merchantData, nil
 }
-
-
-
-
-
-
