@@ -23,6 +23,19 @@ func NewVaultAmountTierHandler(service service.VaultAmountBasedTierService, logg
 	}
 }
 
+// CreateAmountTier godoc
+//
+//	@Summary		Create amount tier for group and personal vaults
+//	@Description	Create amount tier for group and personal vaults with the provided information
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		amount_tier.VaultAmountTierRequest	true	"Vault Amount Tier Request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/create [post]
 func (h *VaultAmountTierHandler) CreateAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateAmountTier", "handler", "CreateAmountTier")
 	defer span.End()
@@ -54,6 +67,20 @@ func (h *VaultAmountTierHandler) CreateAmountTier(w http.ResponseWriter, r *http
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierCreationRequestSubmitted, nil)
 }
 
+// FindAllAmountTiers godoc
+//
+//	@Summary		List amount tiers
+//	@Description	Retrieve amount tiers with pagination and optional search
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int		false	"Page number"		default(1)
+//	@Param			per_page	query		int		false	"Items per page"	default(10)
+//	@Param			search		query		string	false	"Search term"
+//	@Success		200			{object}	localization.StandardResponse{data=[]amount_tier.VaultAmountTierResponse}
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/find-all [get]
 func (h *VaultAmountTierHandler) FindAllAmountTiers(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "FindAllAmountTiers", "handler", "FindAllAmountTiers")
 	defer span.End()
@@ -72,6 +99,20 @@ func (h *VaultAmountTierHandler) FindAllAmountTiers(w http.ResponseWriter, r *ht
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierFetchedSuccessfully, amountTiers)
 }
 
+// GetAmountTier godoc
+//
+//	@Summary		Get amount tier by ID
+//	@Description	Retrieve a amount tier's details by ID
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Amount Tier ID"
+//	@Success		200	{object}	localization.StandardResponse{data=amount_tier.VaultAmountTierResponse}
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/{id} [get]
 func (h *VaultAmountTierHandler) GetAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "GetAmountTier", "handler", "GetAmountTier")
 	defer span.End()
@@ -95,6 +136,20 @@ func (h *VaultAmountTierHandler) GetAmountTier(w http.ResponseWriter, r *http.Re
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierFetchedSuccessfully, amountTier)
 }
 
+// UpdateAmountTier godoc
+//
+//	@Summary		Update amount tier
+//	@Description	Update amount tier with the provided information
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string										true	"Amount Tier ID"
+//	@Param			request	body		amount_tier.UpdateVaultAmountTierRequest	true	"Update Amount Tier Request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/{id}/update [put]
 func (h *VaultAmountTierHandler) UpdateAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "UpdateAmountTier", "handler", "UpdateAmountTier")
 	defer span.End()
@@ -133,6 +188,19 @@ func (h *VaultAmountTierHandler) UpdateAmountTier(w http.ResponseWriter, r *http
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierUpdateRequestSubmitted, nil)
 }
 
+// DeleteAmountTier godoc
+//
+//	@Summary		Delete amount tier
+//	@Description	Delete amount tier by ID
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Amount Tier ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/{id}/delete [delete]
 func (h *VaultAmountTierHandler) DeleteAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "DeleteAmountTier", "handler", "DeleteAmountTier")
 	defer span.End()
@@ -156,6 +224,19 @@ func (h *VaultAmountTierHandler) DeleteAmountTier(w http.ResponseWriter, r *http
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDeleteRequestSubmitted, nil)
 }
 
+// DisableAmountTier godoc
+//
+//	@Summary		Disable amount tier
+//	@Description	Disable amount tier by ID
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Amount Tier ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/{id}/disable [patch]
 func (h *VaultAmountTierHandler) DisableAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "DisableAmountTier", "handler", "DisableAmountTier")
 	defer span.End()
@@ -179,6 +260,19 @@ func (h *VaultAmountTierHandler) DisableAmountTier(w http.ResponseWriter, r *htt
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDisableRequestSubmitted, nil)
 }
 
+// EnableAmountTier godoc
+//
+//	@Summary		Enable amount tier
+//	@Description	Enable amount tier by ID
+//	@Tags			Vault Amount Tier
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string	true	"Amount Tier ID"
+//	@Success		200	{object}	localization.StandardResponse{data=nil}
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/vault-amount-tier/{id}/enable [patch]
 func (h *VaultAmountTierHandler) EnableAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "EnableAmountTier", "handler", "EnableAmountTier")
 	defer span.End()

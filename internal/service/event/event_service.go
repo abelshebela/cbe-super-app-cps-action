@@ -27,7 +27,7 @@ import (
 type eventService struct {
 	repo            storage.EventRepository
 	cpsService      service.CPSActionService
-	merchantService service.MiniAppMerchantService
+	merchantService service.EcommerceMerchantService
 	userRepo        storage.UserRepository
 	bucketName      string
 	logger          utils.Logger
@@ -36,7 +36,7 @@ type eventService struct {
 	cfg             *config.VaultConfig
 }
 
-func NewEventService(repo storage.EventRepository, cpsActionService service.CPSActionService, merchantService service.MiniAppMerchantService, userRepo storage.UserRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.EventService {
+func NewEventService(repo storage.EventRepository, cpsActionService service.CPSActionService, merchantService service.EcommerceMerchantService, userRepo storage.UserRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.EventService {
 	return &eventService{
 		repo:            repo,
 		cpsService:      cpsActionService,

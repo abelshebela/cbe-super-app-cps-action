@@ -3,8 +3,8 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func MapUpdateToModel(prev *model.CustomerKYC, req kyc_verifier.UpdateKYCRequest) *model.CustomerKYC {

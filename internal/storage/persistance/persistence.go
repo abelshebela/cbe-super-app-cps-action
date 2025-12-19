@@ -30,10 +30,6 @@ type Persistence struct {
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
 	MiniAppPersistence              storage.MiniAppRepository
-	CityPersistence                 storage.CityRepository
-	RegionPersistence               storage.RegionRepository
-	DistrictPersistence             storage.DistrictRepository
-	BranchPersistence               storage.BranchRepository
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
@@ -55,7 +51,7 @@ type Persistence struct {
 	DonationCompanyPersistence        storage.DonationCompanyRepository
 	FeedbackPersistence               storage.FeedbackRepository
 	LinkedAccountPersistence          storage.LinkedAccountRepository
-	EcommerceMerchantPersistence      storage.MiniAppMerchantRepository
+	EcommerceMerchantPersistence      storage.EcommerceMerchantRepository
 	NotificationPersistence           storage.NotificationRepository
 	PasswordRulePersistence           storage.PasswordRuleRepository
 	ServiceDetailsPersistence         storage.ServiceDetailsRepository
@@ -66,6 +62,7 @@ type Persistence struct {
 	TopupPersistence                  storage.TopupRepository
 	ProductCodePersistence            storage.ProductCodeRepository
 	DepartmentPersistence             storage.DepartmentRepository
+	JobRolePersistence                storage.JobRoleRepository
 	FaydaPersistence                  storage.FaydaRepository
 	PermissionPersistence             storage.PermissionRepository
 	ArticlePersistence                storage.ArticleRepository

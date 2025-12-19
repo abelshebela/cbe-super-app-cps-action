@@ -24,16 +24,17 @@ func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logg
 }
 
 // GetAll godoc
-// @Summary      List action roles
-// @Tags         ActionRole
-// @Accept       json
-// @Produce      json
-// @Param        page     query  int  false  "Page"
-// @Param        per_page query  int  false  "Per Page"
-// @Param        search   query  string false "Search"
-// @Success      200 {object} localization.StandardResponse
-// @Security     BearerAuth
-// @Router       /action-roles [get]
+//
+//	@Summary	List action roles
+//	@Tags		ActionRole
+//	@Accept		json
+//	@Produce	json
+//	@Param		page		query		int		false	"Page"
+//	@Param		per_page	query		int		false	"Per Page"
+//	@Param		search		query		string	false	"Search"
+//	@Success	200			{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles [get]
 func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
 	defer span.End()
@@ -50,13 +51,14 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetByActionCode godoc
-// @Summary      Get action role by code
-// @Tags         ActionRole
-// @Produce      json
-// @Param        code  path string true "Action Code"
-// @Success      200 {object} localization.StandardResponse
-// @Security     BearerAuth
-// @Router       /action-roles/{code} [get]
+//
+//	@Summary	Get action role by code
+//	@Tags		ActionRole
+//	@Produce	json
+//	@Param		code	path		string	true	"Action Code"
+//	@Success	200		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/{code} [get]
 func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
@@ -77,14 +79,15 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 }
 
 // Create godoc
-// @Summary      Create action role (maker)
-// @Tags         ActionRole
-// @Accept       json
-// @Produce      json
-// @Param        body body actionrole_dto.CreateActionRoleRequest true "Create"
-// @Success      201 {object} localization.StandardResponse
-// @Security     BearerAuth
-// @Router       /action-roles [post]
+//
+//	@Summary	Create action role (maker)
+//	@Tags		ActionRole
+//	@Accept		json
+//	@Produce	json
+//	@Param		body	body		actionrole_dto.CreateActionRoleRequest	true	"Create"
+//	@Success	201		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles [post]
 func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -110,15 +113,16 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update godoc
-// @Summary      Update action role (maker)
-// @Tags         ActionRole
-// @Accept       json
-// @Produce      json
-// @Param        code path string true "Action Code"
-// @Param        body body actionrole_dto.UpdateActionRoleRequest true "Update"
-// @Success      201 {object} localization.StandardResponse
-// @Security     BearerAuth
-// @Router       /action-roles/{code} [patch]
+//
+//	@Summary	Update action role (maker)
+//	@Tags		ActionRole
+//	@Accept		json
+//	@Produce	json
+//	@Param		code	path		string									true	"Action Code"
+//	@Param		body	body		actionrole_dto.UpdateActionRoleRequest	true	"Update"
+//	@Success	201		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/{code} [patch]
 func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -145,13 +149,14 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 // Enable godoc
-// @Summary      Enable action role (maker)
-// @Tags         ActionRole
-// @Produce      json
-// @Param        code path string true "Action Code"
-// @Success      201 {object} localization.StandardResponse
-// @Security     BearerAuth
-// @Router       /action-roles/{code}/enable [patch]
+//
+//	@Summary	Enable action role (maker)
+//	@Tags		ActionRole
+//	@Produce	json
+//	@Param		code	path		string	true	"Action Code"
+//	@Success	201		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/{code}/enable [patch]
 func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
@@ -171,13 +176,14 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 }
 
 // Disable godoc
-// @Summary      Disable action role (maker)
-// @Tags         ActionRole
-// @Produce      json
-// @Param        code path string true "Action Code"
-// @Success      201 {object} localization.StandardResponse
-// @Security     BearerAuth
-// @Router       /action-roles/{code}/disable [patch]
+//
+//	@Summary	Disable action role (maker)
+//	@Tags		ActionRole
+//	@Produce	json
+//	@Param		code	path		string	true	"Action Code"
+//	@Success	201		{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/{code}/disable [patch]
 func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()

@@ -33,6 +33,7 @@ import (
 	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
@@ -220,13 +221,24 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, error)
-	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
+}
+
+type EcommerceMerchantService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
@@ -407,7 +419,24 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type JobRoleService interface {
+	Create(ctx context.Context, jobs model.Role) error
+	Update(ctx context.Context, id string, update model.Role) error
+	FindById(ctx context.Context, id string) (*model.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type RoleService interface {
+	Create(ctx context.Context, jobs imodel.JobRole) error
+	Update(ctx context.Context, id string, update imodel.JobRole) error
+	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
+	RoleService                   RoleService
 	EventService                  EventService
 	BulkService                   BulkService
 	CustomerService               CustomerService
@@ -422,7 +451,7 @@ type ServiceLayer struct {
 	ValidationService             AccountValidationService
 	Wallet                        WalletService
 	Topup                         TopupService
-	MiniAppMerchant               MiniAppMerchantService
+	EcommerceMerchant             EcommerceMerchantService
 	AccountBlock                  AccountBlockService
 	Department                    DepartmentService
 	PasswordRule                  PasswordRuleService
@@ -459,11 +488,14 @@ type ServiceLayer struct {
 	CPSActionRole                 CPSActionRoleService
 	MiniappProductCode            MiniappProductCodeService
 	EventMerchantService          EventMerchantService
+	JobRoleService                JobRoleService
 	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
 }
 
 type ServiceContainer struct {
+	RoleContainer                      RoleService
+	JobRoleContainer                   JobRoleService
 	AccountBlockContainer              AccountBlockService
 	AccountContainer                   AccountValidationService
 	ActionContainer                    ActionService
@@ -488,7 +520,7 @@ type ServiceContainer struct {
 	UnlinkContainer                    UnlinkService
 	WalletContainer                    WalletService
 	TopupContainer                     TopupService
-	MiniAppMerchantContainer           MiniAppMerchantService
+	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
 	ServiceCheckContainer              ServiceService

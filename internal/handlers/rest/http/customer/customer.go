@@ -77,14 +77,14 @@ func (c *customerAdapter) SetEnableCustomerSession(w http.ResponseWriter, r *htt
 //	@Description	Disables a customer by their ID
 //	@Tags			Customers
 //
-// @Accept			json
+//	@Accept			json
 //
 //	@Produce		json
-//	@Param			id	path		string									true	"Customer ID"
-//	@Param			body	body	dto.CustomerDisableDTO	true	" body (fields: is_temporary, disable_reason)"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"Customer disabled successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			id		path		string									true	"Customer ID"
+//	@Param			body	body		dto.CustomerDisableDTO					true	" body (fields: is_temporary, disable_reason)"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer disabled successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers/disable/{id} [patch]
 func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +135,7 @@ func (c *customerAdapter) DisableCustomer(w http.ResponseWriter, r *http.Request
 //	@Accept			json
 //	@Produce		json
 //	@Param			id		path		string									true	"Customer ID"
-//	@Param			body	body	dto.CustomerDisableDTO	true	" body (fields: is_temporary, disable_reason)"
+//	@Param			body	body		dto.CustomerDisableDTO					true	" body (fields: is_temporary, disable_reason)"
 //	@Param			body	body		customer.CustomerEnableDTO				true	"Enable customer payload"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Customer enabled successfully"
 //	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Bad request - Customer ID required or invalid body"
@@ -178,18 +178,18 @@ func (c *customerAdapter) EnableCustomer(w http.ResponseWriter, r *http.Request)
 //	@Tags			Customers
 //	@Accept			json
 //	@Produce		json
-//	@Param			page			query	int		false	"Page number"
-//	@Param			per_page		query	int		false	"Items per page"
-//	@Param			search			query	string	false	"Search term (searches full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level)"
-//	@Param			gender			query	string	false	"Filter by gender"
-//	@Param			branch_code		query	string	false	"Filter by branch code"
-//	@Param			kyc_level		query	int	false	"Filter by KYC level"
-//	@Param			is_blocked		query	bool	false	"Filter by blocked status"
-//	@Param			enabled			query	bool	false	"Filter by enabled status"
-//	@Param			bps_reject_status	query	string	false	"Filter by BPS reject status"
-//	@Success		200	{object}	localization.StandardResponse{data=[]model.User}	"Customer details retrieved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			page				query		int													false	"Page number"
+//	@Param			per_page			query		int													false	"Items per page"
+//	@Param			search				query		string												false	"Search term (searches full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level)"
+//	@Param			gender				query		string												false	"Filter by gender"
+//	@Param			branch_code			query		string												false	"Filter by branch code"
+//	@Param			kyc_level			query		int													false	"Filter by KYC level"
+//	@Param			is_blocked			query		bool												false	"Filter by blocked status"
+//	@Param			enabled				query		bool												false	"Filter by enabled status"
+//	@Param			bps_reject_status	query		string												false	"Filter by BPS reject status"
+//	@Success		200					{object}	localization.StandardResponse{data=[]model.User}	"Customer details retrieved successfully"
+//	@Failure		400					{object}	localization.StandardResponse{data=nil}				"Bad request"
+//	@Failure		500					{object}	localization.StandardResponse{data=nil}				"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers [get]
 func (c customerAdapter) GetCustomerDetail(w http.ResponseWriter, r *http.Request) {
@@ -253,17 +253,17 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 //	@Tags			Customers
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																false	"Page number"		default(1)
-//	@Param			per_page	query		int																false	"Items per page"	default(10)
-//	@Param			search			query	string	false	"Search term (searches full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level)"
-//	@Param			gender			query	string	false	"Filter by gender"
-//	@Param			branch_code		query	string	false	"Filter by branch code"
-//	@Param			kyc_level		query	int	false	"Filter by KYC level"
-//	@Param			enabled			query	bool	false	"Filter by enabled status"
-//	@Param			bps_reject_status	query	string	false	"Filter by BPS reject status"
-//	@Success		200			{object}	localization.StandardResponse{data=customers_paginated_resp}	"Blocked customers retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Bad request"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Internal server error"
+//	@Param			page				query		int																false	"Page number"		default(1)
+//	@Param			per_page			query		int																false	"Items per page"	default(10)
+//	@Param			search				query		string															false	"Search term (searches full_name, phone_number, gender, user_name, user_code, is_blocked, kyc_level)"
+//	@Param			gender				query		string															false	"Filter by gender"
+//	@Param			branch_code			query		string															false	"Filter by branch code"
+//	@Param			kyc_level			query		int																false	"Filter by KYC level"
+//	@Param			enabled				query		bool															false	"Filter by enabled status"
+//	@Param			bps_reject_status	query		string															false	"Filter by BPS reject status"
+//	@Success		200					{object}	localization.StandardResponse{data=customers_paginated_resp}	"Blocked customers retrieved successfully"
+//	@Failure		400					{object}	localization.StandardResponse{data=nil}							"Bad request"
+//	@Failure		500					{object}	localization.StandardResponse{data=nil}							"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/customers/blocked [get]
 func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Request) {

@@ -106,7 +106,7 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			page		query		int													false	"Page number"
 //	@Param			per_page	query		int													false	"Items per page"
-//	@Param			search	query		string													false	"search field tag_name"
+//	@Param			search		query		string												false	"search field tag_name"
 //	@Param			tag_name	query		string												false	"filter key list tag_name"
 //	@Success		200			{object}	localization.StandardResponse{data=[]model.NewsTag}	"List of news tags"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request - Invalid pagination params"

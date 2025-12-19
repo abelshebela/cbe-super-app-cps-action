@@ -11,8 +11,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	common_util "cbe-super-app-cps-action/pkgs/utils"
 
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"go.opentelemetry.io/otel/attribute"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
