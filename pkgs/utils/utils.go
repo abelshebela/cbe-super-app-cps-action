@@ -425,6 +425,13 @@ func NullStringToPtr(v any) *string {
 	}
 }
 
+func NullTimeToPtr(nt sql.NullTime) *time.Time {
+	if nt.Valid {
+		return &nt.Time
+	}
+	return nil
+}
+
 func NullInt64ToPtr(ni sql.NullInt64) *int64 {
 	if !ni.Valid {
 		return (*int64)(nil)

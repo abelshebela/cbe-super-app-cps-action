@@ -9,23 +9,23 @@ import (
 )
 
 type BankVaultProduct struct {
-	ID                         string                  `json:"id" bson:"id"`
-	Name                       string                  `json:"name" bson:"name"`
-	Currency                   string                  `json:"currency" bson:"currency"`
-	RateBps                    decimal.Decimal         `json:"rate_bps" bson:"rate_bps"`
-	Method                     constants.AccrualMethod `json:"method" bson:"method"`
-	Frequency                  int64                   `json:"frequency" bson:"frequency"`
-	LockPeriod                 time.Duration           `json:"lock_period" bson:"lock_period"`
-	MinAmount                  decimal.Decimal         `json:"min_amount" bson:"min_amount"`
-	MaxAmount                  decimal.Decimal         `json:"max_amount" bson:"max_amount"`
-	ApplyInterestOnEarlyUnlock bool                    `json:"apply_interest_on_early_unlock" bson:"apply_interest_on_early_unlock"`
-	IsActive                   bool                    `json:"is_active" bson:"is_active"`
-	CreatedAt                  time.Time               `json:"created_at" bson:"created_at"`
-	UpdatedAt                  time.Time               `json:"updated_at" bson:"updated_at"`
-	DeletedAt                  *time.Time              `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
-	CreatedBy                  string                  `json:"created_by" bson:"created_by"`
-	UpdatedBy                  string                  `json:"updated_by" bson:"updated_by"`
-	IsDeleted                  bool                    `json:"is_deleted" bson:"is_deleted"`
+	ID                         string          `json:"id" bson:"id"`
+	Name                       string          `json:"name" bson:"name"`
+	Currency                   string          `json:"currency" bson:"currency"`
+	RateBps                    decimal.Decimal `json:"rate_bps" bson:"rate_bps"`
+	Method                     string          `json:"method" bson:"method"`
+	Frequency                  int64           `json:"frequency" bson:"frequency"`
+	LockPeriod                 time.Duration   `json:"lock_period" bson:"lock_period"`
+	MinAmount                  decimal.Decimal `json:"min_amount" bson:"min_amount"`
+	MaxAmount                  decimal.Decimal `json:"max_amount" bson:"max_amount"`
+	ApplyInterestOnEarlyUnlock bool            `json:"apply_interest_on_early_unlock" bson:"apply_interest_on_early_unlock"`
+	IsActive                   bool            `json:"is_active" bson:"is_active"`
+	CreatedAt                  time.Time       `json:"created_at" bson:"created_at"`
+	UpdatedAt                  time.Time       `json:"updated_at" bson:"updated_at"`
+	DeletedAt                  *time.Time      `json:"deleted_at,omitempty" bson:"deleted_at,omitempty"`
+	CreatedBy                  string          `json:"created_by" bson:"created_by"`
+	UpdatedBy                  string          `json:"updated_by" bson:"updated_by"`
+	IsDeleted                  bool            `json:"is_deleted" bson:"is_deleted"`
 }
 
 type BankVaultProductPatch struct {
@@ -44,29 +44,29 @@ type UpdateBankVault struct {
 }
 
 type LockedVault struct {
-	ID                         string                  `json:"id"`
-	CustomerID                 string                  `json:"customer_id"`
-	LinkedAccount              string                  `json:"linked_account"`
-	AccountHolderName          string                  `json:"account_holder_name"`
-	TransactionReference       string                  `json:"transaction_reference"`
-	ProductID                  string                  `json:"product_id"`
-	Principal                  decimal.Decimal         `json:"principal"`
-	StartDate                  time.Time               `json:"start_date"`
-	MaturityDate               time.Time               `json:"maturity_date"`
-	Status                     constants.VaultStatus   `json:"status"`
-	TermsVersion               string                  `json:"terms_version"`
-	TermsAcceptedAt            time.Time               `json:"terms_accepted_at"`
-	MinAmount                  decimal.Decimal         `json:"min_amount"`
-	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	RateBps                    decimal.Decimal         `json:"interest"`
-	Method                     constants.AccrualMethod `json:"method"`
-	Frequency                  int64                   `json:"frequency"`
-	ApplyInterestOnEarlyUnlock *bool                   `json:"apply_interest_on_early_unlock,omitempty"`
-	LockPeriod                 string                  `json:"lock_period"`
-	CreatedAt                  time.Time               `json:"created_at"`
-	UpdatedAt                  time.Time               `json:"updated_at"`
-	ClosedAt                   *time.Time              `json:"closed_at,omitempty"`
-	DeletedAt                  *time.Time              `json:"deleted_at,omitempty"`
+	ID                         string                `json:"id"`
+	CustomerID                 string                `json:"customer_id"`
+	LinkedAccount              string                `json:"linked_account"`
+	AccountHolderName          string                `json:"account_holder_name"`
+	TransactionReference       string                `json:"transaction_reference"`
+	ProductID                  string                `json:"product_id"`
+	Principal                  decimal.Decimal       `json:"principal"`
+	StartDate                  time.Time             `json:"start_date"`
+	MaturityDate               time.Time             `json:"maturity_date"`
+	Status                     constants.VaultStatus `json:"status"`
+	TermsVersion               string                `json:"terms_version"`
+	TermsAcceptedAt            time.Time             `json:"terms_accepted_at"`
+	MinAmount                  decimal.Decimal       `json:"min_amount"`
+	MaxAmount                  decimal.Decimal       `json:"max_amount"`
+	RateBps                    decimal.Decimal       `json:"interest"`
+	Method                     string                `json:"method"`
+	Frequency                  int64                 `json:"frequency"`
+	ApplyInterestOnEarlyUnlock *bool                 `json:"apply_interest_on_early_unlock,omitempty"`
+	LockPeriod                 string                `json:"lock_period"`
+	CreatedAt                  time.Time             `json:"created_at"`
+	UpdatedAt                  time.Time             `json:"updated_at"`
+	ClosedAt                   *time.Time            `json:"closed_at,omitempty"`
+	DeletedAt                  *time.Time            `json:"deleted_at,omitempty"`
 }
 
 type GroupVault struct {
