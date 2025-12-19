@@ -113,15 +113,15 @@ func Init(ctx context.Context) {
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)
 	logger.Infof("SMS service initialized")
 
-	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
-	if err != nil {
-		logger.Fatalf("Failed to initialize gRPC session client: %v", err)
-	}
-	defer func() {
-		if cerr := clientStore.Close(); cerr != nil {
-			logger.Errorf("error closing client store: %v", cerr)
-		}
-	}()
+	// sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
+	// if err != nil {
+	// 	logger.Fatalf("Failed to initialize gRPC session client: %v", err)
+	// }
+	// defer func() {
+	// 	if cerr := clientStore.Close(); cerr != nil {
+	// 		logger.Errorf("error closing client store: %v", cerr)
+	// 	}
+	// }()
 
 	auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
 	if err != nil {
@@ -142,7 +142,7 @@ func Init(ctx context.Context) {
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sessionGRPCClient, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {

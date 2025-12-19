@@ -39,6 +39,7 @@ func NewNotificationRepository(client *mongo.Client, dbName string, collection s
 }
 
 func (n *NotificationStorage) Create(ctx context.Context, notification *model.Notification) error {
+	// notification.IsFromCPS = true
 	newNotification, err := n.dal.InsertOne(ctx, *notification)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)

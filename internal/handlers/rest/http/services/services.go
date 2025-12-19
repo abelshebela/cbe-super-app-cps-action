@@ -72,6 +72,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	mapped := model.Services{
 		ServiceCode: req.ServiceCode,
 		ServiceName: req.ServiceName,
+		// ProductAccount: req.ProductAccount,
 		ServiceType: req.ServiceType,
 		Key:         req.Key,
 		Cap: model.Cap{
