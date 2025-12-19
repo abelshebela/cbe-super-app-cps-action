@@ -16,6 +16,7 @@ import (
 	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
@@ -69,6 +70,7 @@ import (
 	donationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation"
 	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
 	donationCompanyHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_company"
+	ecommerce_handler "cbe-super-app-cps-action/internal/handlers/rest/http/ecommerce-merchant"
 	encryptionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/encryption"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
@@ -139,6 +141,7 @@ type Handler struct {
 	TransactionHandler        transaction.TransactionInterface
 	EventMerchantHandler      event_merchant_port.EventMerchantInboundAdaptor
 	AmountTierHandler         vaultAmountTierInbound.VaultAmountTierHandler
+	EcommerceMerchantHandler  ecommerce_merchant.EcommerceMerchant
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -188,5 +191,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
 		AmountTierHandler:         amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
+		EcommerceMerchantHandler:  ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
 	}
 }

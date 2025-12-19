@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-type MiniAppMerchant interface {
+type EcommerceMerchant interface {
 	Create(w http.ResponseWriter, r *http.Request)
 	FindByID(w http.ResponseWriter, r *http.Request)
 	FindAllWithPagination(w http.ResponseWriter, r *http.Request)

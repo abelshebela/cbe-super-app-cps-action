@@ -5,15 +5,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_key, url, merchantId string, logger utils.Logger) (*http.Response, merchantDto.MerchantLookUpResponse, error) {
-	var accountInfo merchantDto.MerchantLookUpResponse
-	var err error
+func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_key, token, url, merchantId string, logger utils.Logger) (*http.Response, merchantDto.MerchantLookUpResponse, error) {
+	var apiResp merchantDto.MerchantLookupAPIResponse
 
 	if merchantId == "" {
 		return nil, merchantDto.MerchantLookUpResponse{}, localization.ErrorMerchantIDRequired
@@ -27,6 +27,7 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_ke
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("x-api-key", x_api_key)
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -34,15 +35,23 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_ke
 		return nil, merchantDto.MerchantLookUpResponse{}, localization.ErrorUnexpectedError
 	}
 
+	defer res.Body.Close()
+
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
+		logger.Errorf("error reading body: %v", err)
 		return nil, merchantDto.MerchantLookUpResponse{}, localization.ErrorUnexpectedError
 	}
 
-	if err := json.Unmarshal(resBody, &accountInfo); err != nil {
+	if err := json.Unmarshal(resBody, &apiResp); err != nil {
 		logger.Errorf("system error while unmarshaling error:%v", err)
 		return nil, merchantDto.MerchantLookUpResponse{}, localization.ErrorUnexpectedError
 	}
 
-	return res, accountInfo, nil
+	if len(apiResp.Data) == 0 {
+		return res, merchantDto.MerchantLookUpResponse{}, fmt.Errorf("no merchant found")
+	}
+
+	merchant := apiResp.Data[0]
+	return res, merchant, nil
 }

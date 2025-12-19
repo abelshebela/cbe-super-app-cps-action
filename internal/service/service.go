@@ -219,13 +219,24 @@ type MiniAppService interface {
 
 type MiniAppMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, error)
-	Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
+}
+
+type EcommerceMerchantService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
@@ -421,7 +432,7 @@ type ServiceLayer struct {
 	ValidationService      AccountValidationService
 	Wallet                 WalletService
 	Topup                  TopupService
-	MiniAppMerchant        MiniAppMerchantService
+	EcommerceMerchant      EcommerceMerchantService
 	AccountBlock           AccountBlockService
 	Department             DepartmentService
 	PasswordRule           PasswordRuleService
@@ -486,7 +497,7 @@ type ServiceContainer struct {
 	UnlinkContainer                    UnlinkService
 	WalletContainer                    WalletService
 	TopupContainer                     TopupService
-	MiniAppMerchantContainer           MiniAppMerchantService
+	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
 	ServiceCheckContainer              ServiceService

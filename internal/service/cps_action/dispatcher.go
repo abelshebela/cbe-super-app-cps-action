@@ -64,7 +64,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.FaydaContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniAppMerchant"):
-		return d.app.MiniAppMerchantContainer.Authorize(ctx, cpsAction)
+		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniApp"):
 		return d.app.MiniAppContainer.Authorize(ctx, cpsAction)

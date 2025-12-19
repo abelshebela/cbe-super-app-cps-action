@@ -24,7 +24,7 @@ func isBranchEmpty(branch model.BranchInformation) bool {
 		strings.TrimSpace(branch.BranchOwner) == ""
 }
 
-func (dto MiniAppMerchantDTO) IsEmpty() bool {
+func (dto EcommerceMerchant) IsEmpty() bool {
 	if strings.TrimSpace(dto.MerchantName) != "" ||
 		strings.TrimSpace(dto.PhoneNumber) != "" ||
 		strings.TrimSpace(dto.Email) != "" ||
@@ -32,7 +32,6 @@ func (dto MiniAppMerchantDTO) IsEmpty() bool {
 		return false
 	}
 
-	// branches empty = slice empty OR all branches empty
 	if len(dto.Branches) == 0 {
 		return true
 	}
@@ -46,7 +45,7 @@ func (dto MiniAppMerchantDTO) IsEmpty() bool {
 	return true
 }
 
-func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
+func (dto EcommerceMerchant) Validate(isCreate bool) error {
 	if !isCreate && dto.IsEmpty() {
 		return nil
 	}
@@ -55,12 +54,6 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 
 	if isCreate {
 		rules = []*validation.FieldRules{
-			// validation.Field(&dto.Type,
-			// 	validation.Required.Error("type is required"),
-			// 	validation.By(utils.NoSpecialChars),
-			// 	validation.By(utils.TrimWhiteSpace),
-			// 	validation.In("3-click", "merchant").Error("type must be either '3-click' or 'merchant'"),
-			// ),
 			validation.Field(&dto.MerchantName,
 				validation.Required.Error("merchant name is required"),
 				validation.By(utils.TrimWhiteSpace),
@@ -68,9 +61,6 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			),
 			validation.Field(&dto.MerchantCode,
 				validation.By(func(value interface{}) error {
-					// if dto.Type != "3-click" {
-					// 	return nil
-					// }
 					validation.By(utils.TrimWhiteSpace)
 					if err := validation.Required.Error("mercahnt code is required").Validate(value); err != nil {
 						return err
@@ -79,20 +69,6 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 					return nil
 				}),
 			),
-			// validation.Field(&dto.MerchantRepresentativeName,
-			// 	validation.By(func(value interface{}) error {
-			// 		// if dto.Type != "merchant" {
-			// 		// 	return nil
-			// 		// }
-			// 		// if err := validation.Required.Error("representative name is required").Validate(value); err != nil {
-			// 		// 	return err
-			// 		// }
-			// 		validation.By(utils.TrimWhiteSpace)
-			// 		validation.By(utils.NoSpecialChars)
-
-			// 		return nil
-			// 	}),
-			// ),
 			validation.Field(&dto.PhoneNumber,
 				validation.Required.Error("phone number is required"),
 				validation.Match(regexp.MustCompile(`^(?:\+251|251|0)(9|7)\d{8}$`)).Error("invalid phone number format"),
@@ -110,12 +86,6 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			),
 			validation.Field(&dto.AccountNumber,
 				validation.By(func(value interface{}) error {
-					// if dto.Type != "merchant" {
-					// 	return nil
-					// }
-					// if err := validation.Required.Error("account number is required").Validate(value); err != nil {
-					// 	return err
-					// }
 					validation.By(utils.TrimWhiteSpace)
 					validation.By(utils.NoSpecialChars)
 					validation.By(utils.NumbersOnly)
@@ -128,17 +98,9 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 			),
 		}
 	} else {
-		// if strings.TrimSpace(dto.Type) != "" {
-		// 	rules = append(rules, validation.Field(&dto.Type,
-		// 		validation.By(utils.NoSpecialChars)),
-		// 	)
-		// }
 		if strings.TrimSpace(dto.MerchantName) != "" {
 			rules = append(rules, validation.Field(&dto.MerchantName, validation.By(utils.NoSpecialChars)))
 		}
-		// if strings.TrimSpace(dto.MerchantRepresentativeName) != "" {
-		// 	rules = append(rules, validation.Field(&dto.MerchantRepresentativeName, validation.By(utils.NoSpecialChars)))
-		// }
 		if strings.TrimSpace(dto.PhoneNumber) != "" {
 			rules = append(rules, validation.Field(&dto.PhoneNumber,
 				validation.Length(9, 15).Error("phone number must be between 9 and 15 digits"),
@@ -155,6 +117,13 @@ func (dto MiniAppMerchantDTO) Validate(isCreate bool) error {
 
 		if strings.TrimSpace(dto.AccountNumber) != "" {
 			rules = append(rules, validation.Field(&dto.AccountNumber, validation.By(utils.NoSpecialChars)))
+		}
+
+		if strings.TrimSpace(dto.SettlementMethod) != "" {
+			rules = append(rules,
+				validation.Field(&dto.SettlementMethod,
+					validation.By(utils.NoSpecialChars),
+				))
 		}
 	}
 

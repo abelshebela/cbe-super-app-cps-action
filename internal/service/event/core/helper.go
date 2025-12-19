@@ -120,7 +120,7 @@ func GenerateEvent(event model.Event) *model.Event {
 	}
 }
 
-func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, event *eventdto.EventRequest) error {
+func SetMerchantDetails(ctx context.Context, merchantService service.EcommerceMerchantService, event *eventdto.EventRequest) error {
 	if event.MerchantID == "" {
 		return nil
 	}

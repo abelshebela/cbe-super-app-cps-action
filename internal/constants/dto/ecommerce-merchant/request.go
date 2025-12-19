@@ -4,7 +4,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-type MiniAppMerchantDTO struct {
+type EcommerceMerchant struct {
 	MerchantName     string                    `json:"merchant_name"`
 	MerchantCode     string                    `json:"merchant_code"`
 	PhoneNumber      string                    `json:"phone_number"`
