@@ -1,7 +1,6 @@
 package initiator
 
 import (
-	session "cbe-super-app-cps-action/grpc"
 	transactionpb "cbe-super-app-cps-action/grpc/sitota"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/service"
@@ -49,9 +48,11 @@ import (
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/service/donation_company"
 	encryption_service "cbe-super-app-cps-action/internal/service/encryption"
+	job_role "cbe-super-app-cps-action/internal/service/job_role"
 	kycsvc "cbe-super-app-cps-action/internal/service/kyc_verifier"
 	"cbe-super-app-cps-action/internal/service/notification"
 	"cbe-super-app-cps-action/internal/service/productcode"
+	"cbe-super-app-cps-action/internal/service/roles"
 	services_svc "cbe-super-app-cps-action/internal/service/services"
 	sitota_service "cbe-super-app-cps-action/internal/service/sitota"
 	"cbe-super-app-cps-action/internal/service/topup"
@@ -66,7 +67,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sessionGRPCClient session.SessionServiceClient, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore) service.ServiceLayer {
+func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persistence, oracle OraclePersistence, logger utils.Logger, sitotagRPCClient transactionpb.TransactionServiceClient, cfg *config.VaultConfig, minioClient *s3.Client, redis storage.RedisRepository, smsService *lib.NotificationStore) service.ServiceLayer {
 
 	// Initiate Service Layer
 	// Assign variable for minio public url
@@ -125,9 +126,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	servicesService := services_svc.NewServicesService(persistence.ServicesPersistence, nil, logger)
 	vaultAmountTierSrv := vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
+	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
+	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, nil, *cfg, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
+		RoleContainer:       RoleService,
+		JobRoleContainer:    jobRoleService,
 		EventContainer:      eventService,
 		FeedbackContainer:   feedbackService,
 		UnlinkContainer:     unlinkService,
@@ -263,7 +268,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	vaultAmountTierSrv = vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, cpsActionService, logger)
 
+	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
+	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, cpsActionService, *cfg, logger)
+
 	return service.ServiceLayer{
+		RoleService:       RoleService,
+		JobRoleService:    jobRoleService,
 		CPSAction:         cpsActionService,
 		Feedback:          feedbackService,
 		EventService:      eventService,

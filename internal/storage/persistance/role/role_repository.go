@@ -1,8 +1,13 @@
 package role_repo
 
 import (
+	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"errors"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -58,4 +63,96 @@ func (r *RoleRepository) ExistsMany(ctx context.Context, ids []string) (bool, er
 		return false, err
 	}
 	return count == int64(len(ids)), nil
+}
+
+func (r *RoleRepository) Create(ctx context.Context, role *model.Role) error {
+	role.ID = bson.NewObjectID()
+	_, err := r.mongoDal.InsertOne(ctx, *role)
+	if err != nil {
+		r.logger.Errorf("[Role Repository] Error while creating Error: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (r *RoleRepository) Update(ctx context.Context, id string, role *model.Role) error {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("[Role Repository][Update] invalid object id: %v", err)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	update := bson.M{}
+	if role.JobTitle != "" {
+		update["job_title"] = role.JobTitle
+	}
+	if role.Role != "" {
+		update["role"] = role.Role
+	}
+	if !role.UpdatedAt.IsZero() {
+		update["updated_at"] = role.UpdatedAt
+	}
+
+	filter := bson.M{"_id": objID}
+	_, err = r.mongoDal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][Update] failed to update: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return nil
+}
+
+func (r *RoleRepository) FindByID(ctx context.Context, id string) (*model.Role, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		r.logger.Errorf("[Role Repository][FindByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"_id": objID}
+	result, err := r.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][FindByID] failed to find: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
+}
+
+func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error) {
+	searchKeys := bson.M{}
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"job_title": searchRegex},
+		}
+	}
+
+	allowedKeys := []string{"enabled"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	data, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][FindAllWithPagination] fetch error: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	total, err := r.mongoDal.TotalCount(ctx, filter)
+	if err != nil {
+		r.logger.Errorf("[Role Repository][FindAllWithPagination] count error: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	return &types.PaginatedResponse[[]*model.Role]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }

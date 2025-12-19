@@ -756,6 +756,33 @@ var (
 		Type:       "success",
 	}
 
+	SuccessRoleCreatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgRoleCreatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessRoleUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgRoleUpdatedRequestSent,
+		Type:       "success",
+	}
+
+	SuccessJobRoleCreatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRoleCreatedRequestSent,
+		Type:       "success",
+	}
+	SuccessJobRoleUpdatedRequestSent = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_UPDATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRoleUpdateRequestSent,
+		Type:       "success",
+	}
+
 	SuccessBankUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_BANK_UPDATED_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -5846,6 +5873,13 @@ var (
 		Code:       "ERROR_BPS_ACTION_ROLE_NOT_FOUND",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBpsActionRoleNotFound,
+		Type:       "error",
+	}
+
+	ErrorRoleNotFound = ResponseCode{
+		Code:       "ERROR_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleNotFound,
 		Type:       "error",
 	}
 

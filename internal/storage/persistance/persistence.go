@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
 	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+
 	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -29,10 +30,6 @@ type Persistence struct {
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
 	MiniAppPersistence              storage.MiniAppRepository
-	CityPersistence                 storage.CityRepository
-	RegionPersistence               storage.RegionRepository
-	DistrictPersistence             storage.DistrictRepository
-	BranchPersistence               storage.BranchRepository
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
@@ -65,6 +62,7 @@ type Persistence struct {
 	TopupPersistence                 storage.TopupRepository
 	ProductCodePersistence           storage.ProductCodeRepository
 	DepartmentPersistence            storage.DepartmentRepository
+	JobRolePersistence               storage.JobRoleRepository
 	FaydaPersistence                 storage.FaydaRepository
 	PermissionPersistence            storage.PermissionRepository
 	ArticlePersistence               storage.ArticleRepository
