@@ -628,3 +628,13 @@ type AccessListSegmentationRepository interface {
 	Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
+
+type MiniAppMerchant interface {
+	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
+	FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error)
+}

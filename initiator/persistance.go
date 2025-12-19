@@ -137,6 +137,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodes),
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, dbName, AccessListSegmentationCollection, logger),
+		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
 	}
 
 	return data

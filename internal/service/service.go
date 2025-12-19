@@ -419,6 +419,10 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type MiniAppMerchant interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+}
 type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
 	Update(ctx context.Context, id string, update model.Role) error
@@ -520,6 +524,7 @@ type ServiceContainer struct {
 	UnlinkContainer                    UnlinkService
 	WalletContainer                    WalletService
 	TopupContainer                     TopupService
+	MiniAppMerchantContainer           MiniAppMerchant
 	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService

@@ -81,4 +81,5 @@ type Persistence struct {
 	EventMerchantPersistence          storage.EventMerchantRepository
 	MiniAppProductCodePersistence     storage.MiniAppProductCodeRepository
 	AccessListSegmentationPersistence storage.AccessListSegmentationRepository
+	MiniAppMerchant                   storage.MiniAppMerchant
 }
