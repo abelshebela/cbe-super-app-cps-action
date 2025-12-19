@@ -492,7 +492,7 @@ type ServiceContainer struct {
 	UnlinkContainer                    UnlinkService
 	WalletContainer                    WalletService
 	TopupContainer                     TopupService
-	MiniAppMerchantContainer           MiniAppMerchantService
+	MiniAppMerchantContainer           MiniAppMerchant
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
 	ServiceCheckContainer              ServiceService

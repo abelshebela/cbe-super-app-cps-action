@@ -147,7 +147,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		DepartmentContainer:           departmentService,
 		HQContainer:                   hqService,
 		MiniAppContainer:              miniAppService,
-		MiniAppMerchantContainer:      miniAppMerchantService,
+		MiniAppMerchantContainer:      miniMerchant,
 		FaydaContainer:                faydaService,
 		BulkServiceContainer:          bulkService,
 		CustomerContainer:             customerService,
@@ -238,7 +238,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	servicesService = services_svc.NewServicesService(persistence.ServicesPersistence, cpsActionService, logger)
 	// serviceContainer.ServicesContainer = servicesService
 	miniAppMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter)
-	serviceContainer.MiniAppMerchantContainer = miniAppMerchantService
+	serviceContainer.MiniAppMerchantContainer = miniMerchant
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
 	serviceContainer.Unlink = unlinkService
