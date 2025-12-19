@@ -64,7 +64,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.FaydaContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniAppMerchant"):
-		return d.app.MiniAppMerchantContainer.Authorize(ctx, cpsAction)
+		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniApp"):
 		return d.app.MiniAppContainer.Authorize(ctx, cpsAction)
@@ -147,6 +147,10 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MiniAppProductCode"):
 		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "JobRole"):
+		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "Role"):
+		return d.app.RoleContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))

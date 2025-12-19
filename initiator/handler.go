@@ -16,9 +16,11 @@ import (
 	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	FaydaInbound "cbe-super-app-cps-action/internal/constants/interfaces/fayda"
+	job_role_interface "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 	vaultAmountTierInbound "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
 
@@ -31,6 +33,7 @@ import (
 	passwordInbound "cbe-super-app-cps-action/internal/constants/interfaces/password_rule"
 	permissionInbound "cbe-super-app-cps-action/internal/constants/interfaces/permission"
 	portalCardInterface "cbe-super-app-cps-action/internal/constants/interfaces/portal_card"
+	roleInbound "cbe-super-app-cps-action/internal/constants/interfaces/roles"
 	service_details "cbe-super-app-cps-action/internal/constants/interfaces/service_details"
 	servicesInbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	TopupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
@@ -44,6 +47,7 @@ import (
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
 	event_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/roles"
 
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
@@ -69,11 +73,13 @@ import (
 	donationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation"
 	donationCategoryHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_category"
 	donationCompanyHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation_company"
+	ecommerce_handler "cbe-super-app-cps-action/internal/handlers/rest/http/ecommerce-merchant"
 	encryptionHandler "cbe-super-app-cps-action/internal/handlers/rest/http/encryption"
 	eventhandler "cbe-super-app-cps-action/internal/handlers/rest/http/event"
 	faydaHandler "cbe-super-app-cps-action/internal/handlers/rest/http/fayda"
 	feedbackhandler "cbe-super-app-cps-action/internal/handlers/rest/http/feedback"
 	hqHandler "cbe-super-app-cps-action/internal/handlers/rest/http/hq"
+	jobRoleHandler "cbe-super-app-cps-action/internal/handlers/rest/http/job_roles"
 	kyc_handler "cbe-super-app-cps-action/internal/handlers/rest/http/kyc_verifier"
 	newscategory_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_category"
 	newstag_handler "cbe-super-app-cps-action/internal/handlers/rest/http/news_tag"
@@ -96,6 +102,8 @@ import (
 )
 
 type Handler struct {
+	RoleHandler               roleInbound.RolesInbound
+	jobRoleHandler            job_role_interface.RolesInbound
 	CpsActionHandler          actionInbound.CPSActionAdapter
 	UnlinkHandler             unlinkInbound.UnlinkAdapter
 	EventHandler              eventInbound.EventAdapter
@@ -139,12 +147,14 @@ type Handler struct {
 	TransactionHandler        transaction.TransactionInterface
 	EventMerchantHandler      event_merchant_port.EventMerchantInboundAdaptor
 	AmountTierHandler         vaultAmountTierInbound.VaultAmountTierHandler
+	EcommerceMerchantHandler  ecommerce_merchant.EcommerceMerchant
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
 	pcs := serviceLayer.ProductCode
 	return Handler{
-
+		RoleHandler:               roles.NewRoleHandler(serviceLayer.RoleService, logger),
+		jobRoleHandler:            jobRoleHandler.NewJobRoleHandler(serviceLayer.JobRoleService, logger),
 		BudgetCategoryHandler:     budgetCategoryHandler.InitBudgetCategoryAdapter(serviceLayer.BudgetCategory, logger),
 		UnlinkHandler:             unlinkHandler.InitUnlinkAdapter(serviceLayer.Unlink, logger),
 		BpsHandler:                bpsHandler.InitBPSUserMakerHandler(serviceLayer.BpsUser, logger),
@@ -188,5 +198,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
 		AmountTierHandler:         amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
+		EcommerceMerchantHandler:  ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
 	}
 }

@@ -2,9 +2,7 @@ package miniapp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -33,14 +31,6 @@ func NewMiniAppService(repo storage.MiniAppRepository, merchantService service.M
 	}
 }
 
-func PrettyPrintJSON(v any) string {
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return ""
-	}
-	return string(b)
-}
-
 func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
 	defer span.End()
@@ -48,7 +38,6 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	s.logger.Infof("Authorize called, action: %s", cpsAction.RequestAction)
 
 	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
-	fmt.Println(PrettyPrintJSON(miniApp))
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),

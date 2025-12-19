@@ -35,18 +35,18 @@ func NewDepartmentHandler(departmentService service.DepartmentService, logger ut
 //	@Tags			Department
 //	@Accept			json
 //	@Produce		json
-//	@Param			page			query	int		false	"Page number"
-//	@Param			per_page		query	int		false	"Items per page"
-//	@Param			search			query	string	false	"Search term (searches department_code, department, created_at, last_modified_at)"
-//	@Param			department_code	query	string	false	"Filter by department code"
-//	@Param			department		query	string	false	"Filter by department name"
-//	@Param			enabled			query	bool	false	"Filter by enabled status"
-//	@Param			is_deleted		query	bool	false	"Filter by deleted status"
-//	@Param			created_at		query	string	false	"Filter by created at"
-//	@Param			last_modified	query	string	false	"Filter by last modified"
-//	@Success		200	{object}	localization.StandardResponse{data=[]model.Department}	"Departments retrieved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			page			query		int														false	"Page number"
+//	@Param			per_page		query		int														false	"Items per page"
+//	@Param			search			query		string													false	"Search term (searches department_code, department, created_at, last_modified_at)"
+//	@Param			department_code	query		string													false	"Filter by department code"
+//	@Param			department		query		string													false	"Filter by department name"
+//	@Param			enabled			query		bool													false	"Filter by enabled status"
+//	@Param			is_deleted		query		bool													false	"Filter by deleted status"
+//	@Param			created_at		query		string													false	"Filter by created at"
+//	@Param			last_modified	query		string													false	"Filter by last modified"
+//	@Success		200				{object}	localization.StandardResponse{data=[]model.Department}	"Departments retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}					"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/departments [get]
 func (d *DepartmentHandler) GetAllDepartments(w http.ResponseWriter, r *http.Request) {

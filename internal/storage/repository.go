@@ -23,11 +23,30 @@ import (
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
+
+type RoleRepository interface {
+	Exists(ctx context.Context, id string) (bool, error)
+	ExistsMany(ctx context.Context, ids []string) (bool, error)
+	Create(ctx context.Context, role *model.Role) error
+	Update(ctx context.Context, id string, role *model.Role) error
+	FindByID(ctx context.Context, id string) (*model.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+}
+
+type JobRoleRepository interface {
+	Create(ctx context.Context, role *imodel.JobRole) error
+	Update(ctx context.Context, id string, role *imodel.JobRole) error
+	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+}
 
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
@@ -367,43 +386,7 @@ type LinkedAccountRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error)
 }
 
-type CityRepository interface {
-	Create(ctx context.Context, city *model.City) error
-	Update(ctx context.Context, id string, city *model.City) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.City, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
-}
-
-type RegionRepository interface {
-	Create(ctx context.Context, region *model.Region) error
-	Update(ctx context.Context, id string, region *model.Region) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Region, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
-}
-
-type DistrictRepository interface {
-	Create(ctx context.Context, district *model.District) error
-	Update(ctx context.Context, id string, district *model.District) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.District, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-}
-
-type BranchRepository interface {
-	Create(ctx context.Context, branch *model.Branch) error
-	Update(ctx context.Context, id string, branch *model.Branch) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Branch, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
-}
-
-type MiniAppMerchantRepository interface {
+type EcommerceMerchantRepository interface {
 	Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error)
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error

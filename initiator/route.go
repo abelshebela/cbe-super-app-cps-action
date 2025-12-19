@@ -17,6 +17,7 @@ import (
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/glue/routing/ecommerce-merchant"
 	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
@@ -52,7 +53,9 @@ import (
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
 	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
+	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
+	roles "cbe-super-app-cps-action/internal/glue/routing/roles"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	vaultAmountTier "cbe-super-app-cps-action/internal/glue/routing/vault_amount_tier"
@@ -107,7 +110,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	eventhandler.Init(r, handlerLayer.EventHandler, authMiddleware)
 	wallet.Init(r, handlerLayer.WalletHandler, authMiddleware)
 	topup.Init(r, handlerLayer.TopupHandler, authMiddleware)
-
+	jobRole.Init(r, handlerLayer.jobRoleHandler, authMiddleware)
 	customer.Init(r, handlerLayer.customerHandler, authMiddleware)
 	bulk_service.Init(r, handlerLayer.bulkServiceHandler, authMiddleware)
 
@@ -146,10 +149,12 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
 	vaultAmountTier.Init(r, handlerLayer.AmountTierHandler, authMiddleware)
-
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
+	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
 
+	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+
 	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes

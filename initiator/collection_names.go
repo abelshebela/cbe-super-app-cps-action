@@ -38,6 +38,7 @@ var (
 	WalletsCollection                = "wallets"
 	TopUpsCollection                 = "topups"
 	DepartmentsCollection            = "department"
+	JobRolesCollection               = "job_roles"
 	PermissionGroupsCollection       = "permission_groups"
 	PermissionCategoryCollection     = "permission_category"
 	PermissionCollection             = "permission"

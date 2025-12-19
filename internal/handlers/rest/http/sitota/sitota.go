@@ -40,6 +40,7 @@ func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSitotas", "handler", "sitota")
 	defer span.End()
 	params := local_util.ExtractFilterParams(r)
+
 	sitotas, err := h.svc.GetAllSitotas(ctx, params)
 	if err != nil {
 		span.RecordError(err)

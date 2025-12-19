@@ -15,8 +15,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
 	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/bps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
-	"cbe-super-app-cps-action/internal/storage/persistance/branch"
-	"cbe-super-app-cps-action/internal/storage/persistance/city"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	cps_actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/cps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
@@ -30,11 +28,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
 	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
-	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"time"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
-	"cbe-super-app-cps-action/internal/storage/persistance/district"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
@@ -50,6 +46,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 
+	job_repo "cbe-super-app-cps-action/internal/storage/persistance/job_role"
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
@@ -75,6 +72,7 @@ import (
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi, merchantXAPIKey string, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
+		JobRolePersistence:              job_repo.NewJobRoleRepository(client, dbName, JobRolesCollection, logger),
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
 		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
 		UserPersistence:                 users.NewUserRepository(client, dbName, MembersCollection, clientOrchestrationProducer, logger),
@@ -89,10 +87,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, merchantXAPIKey, logger),
 		SMSSenderApi:                    notificationProducer,
-		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
-		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
-		DistrictPersistence:             district.NewDistrictRepository(client, dbName, "districts", logger),
-		BranchPersistence:               branch.NewBranchRepository(client, dbName, "branches", logger),
 		// Additional repositories
 		AccessListPersistence:            access_list.NewAccessListRepository(client, dbName, AccessListCollection, clientOrchestrationProducer, logger),
 		AvatarPersistence:                avatar.NewAvatarRepository(client, dbName, AvatarsCollection, logger),

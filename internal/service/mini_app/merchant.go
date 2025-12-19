@@ -13,7 +13,6 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	dto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -149,21 +148,4 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	cpsAction.CurrentAction = merchant
 	m.logger.Infof("Authorization completed for merchant action, action: %s, id: %s", cpsAction.RequestAction, merchant.ID)
 	return cpsAction, nil
-}
-
-func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*dto.MerchantLookUpResponse, error) {
-	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
-	defer span.End()
-
-	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID)
-	if err != nil {
-		m.logger.Errorf("Merchant lookup error : %v", err)
-		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("merchant_id", merchantID),
-		))
-		return nil, err
-	}
-
-	return &merchantData, nil
 }

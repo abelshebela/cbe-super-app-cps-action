@@ -62,6 +62,7 @@ func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
 		Name:      data.Name,
 		Avatar:    data.Avatar,
 		Code:      data.Code,
+		Type:      data.Type,
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{

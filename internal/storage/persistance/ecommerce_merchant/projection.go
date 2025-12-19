@@ -2,41 +2,39 @@ package mini_app_merchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants/types"
+	"time"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// MiniAppMerchantMapper maps MiniAppMerchant model to BSON for database operations
 func MiniAppMerchantMapper(data model.EcommerceMerchant) bson.M {
-	result := bson.M{}
+	update := bson.M{}
 
-	if data.Code != "" {
-		result["merchant_code"] = data.Code
-	}
 	if data.MerchantName != "" {
-		result["merchant_name"] = data.MerchantName
+		update["merchant_name"] = data.MerchantName
 	}
-	// if data.MerchantType != "" {
-	// 	result["merchant_type"] = data.MerchantType
-	// }
-	// if data.KYC != (types.KYC{}) {
-	// 	result["kyc"] = data.KYC
-	// }
 	if data.BankAccountNumber != "" {
-		result["bank_account_number"] = data.BankAccountNumber
+		update["bank_account_number"] = data.BankAccountNumber
 	}
-
 	if data.SettlementMethod != "" {
-		result["settlement_method"] = data.SettlementMethod
+		update["settlement_method"] = data.SettlementMethod
 	}
-	// mini apps are not embedded in merchant
+	if data.Email != "" {
+		update["email"] = data.Email
+	}
+	if data.PhoneNumber != "" {
+		update["phone_number"] = data.PhoneNumber
+	}
 
-	// MUST include enabled and is_deleted
-	result["enabled"] = data.Enabled
-	result["is_deleted"] = data.IsDeleted
+	if len(data.Branches) > 0 {
+		update["branches"] = data.Branches
+	}
 
-	return result
+	update["updated_at"] = time.Now()
+
+	return update
 }
 
 func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.MiniAppMerchant {

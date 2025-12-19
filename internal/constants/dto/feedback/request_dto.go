@@ -2,6 +2,7 @@ package feedback
 
 import (
 	"time"
+
 	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -11,11 +12,11 @@ type FeedbackRequest struct {
 }
 
 type FeedbackResponse struct {
-	ID             bson.ObjectID             `json:"id" bson:"_id,omitempty"`
-	User           User                      `json:"user" bson:"user,omitempty"`
-	Responses      map[string]shared_types.Response `json:"responses" bson:"responses"`
-	CreatedAt      time.Time                 `json:"created_at" bson:"created_at"`
-	UpdatedAt      time.Time                 `json:"updated_at" bson:"updated_at"`
+	ID        bson.ObjectID                    `json:"id" bson:"_id,omitempty"`
+	User      User                             `json:"user" bson:"user,omitempty"`
+	Responses map[string]shared_types.Response `json:"responses" bson:"responses"`
+	CreatedAt time.Time                        `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time                        `json:"updated_at" bson:"updated_at"`
 }
 
 type User struct {

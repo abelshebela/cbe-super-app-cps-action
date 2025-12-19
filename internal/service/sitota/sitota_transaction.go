@@ -30,11 +30,13 @@ func (s *SitotaTransactionService) GetAllSitotas(ctx context.Context, filterPara
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllSitotas", "Sitota", "GetAllSitotas")
 	defer span.End()
 
-	if filterParams == nil {
-		f := &types.Filter{}
-		filterParams = f
-
+	if filterParams.Search == "" && len(filterParams.Filters) == 0 {
+		return &types.PaginatedResponse[[]*model.SitotaTransaction]{
+			Data: []*model.SitotaTransaction{},
+			Meta: types.PaginationMeta{},
+		}, nil
 	}
+
 	sitotas, err := s.repo.FindAllWithPagination(ctx, *filterParams)
 	if err != nil {
 		s.logger.Errorf("[GetAllSitotas] failed to fetch sitotas: %v", err)
