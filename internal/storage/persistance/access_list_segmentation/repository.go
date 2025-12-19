@@ -21,6 +21,7 @@ import (
 type AccessListSegmentation struct {
 	repo           dal.MongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation]
 	client         *mongo.Client
+	accBlock       storage.AccountBlockRepository
 	dbName         string
 	collectionName string
 	logger         utils.Logger
@@ -40,7 +41,7 @@ func (a *AccessListSegmentation) FindBySegmentationAndServiceID(ctx context.Cont
 }
 
 // FindByIDS implements storage.AccessListSegmentationRepository.
-func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string) (*local_model.AccessListSegmentation, error) {
+func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error) {
 	var filter bson.M
 	var objIDs []bson.ObjectID
 	for _, idStr := range ids {
@@ -51,7 +52,7 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string) (*
 		}
 		objIDs = append(objIDs, objID)
 	}
-	filter = bson.M{"segmented_id": bson.M{"$in": objIDs}}
+	filter = bson.M{"segmented_id": bson.M{"$in": objIDs}, "type": t}
 
 	als, err := a.repo.FindOne(ctx, filter, nil)
 	if err != nil {

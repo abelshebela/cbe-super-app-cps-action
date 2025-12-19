@@ -23,6 +23,8 @@ import (
 
 type AccessListSegmentationService struct {
 	repo        storage.AccessListSegmentationRepository
+	accBlock    storage.AccountBlockRepository
+	memberRepo  storage.CustomerRepository
 	serviceRepo storage.ServicesRepository
 	cpsAction   service.CPSActionService
 	logger      utils.Logger
@@ -94,12 +96,17 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 	}
 	req.ServiceName = service.ServiceName
 
-	if als, err := a.repo.FindByIDS(ctx, req.SegmentedID); err != nil {
+	if als, err := a.repo.FindByIDS(ctx, req.SegmentedID, req.Type); err != nil {
 		a.logger.Errorf("[Create] failed to find access list segmentation by id: %v", err)
 		return err
 	} else if als != nil {
 		a.logger.Errorf("[Create] access list segmentation already exists with id: %s", req.SegmentedID)
-		return fmt.Errorf("access list with id: %v already exists", als.ID)
+		return fmt.Errorf("access list segmentation with id: %v already exists", als.ID)
+	}
+
+	if err := a.CheckALLIdsExist(ctx, req.Type, req.SegmentedID); err != nil {
+		a.logger.Errorf("[Create] failed to check all IDs exist: %v", err)
+		return err
 	}
 
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, string(constants.RequestCreateAccessListSegmentation), constants.CREATE)
@@ -230,11 +237,76 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 	return nil
 }
 
-func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, serviceRepo storage.ServicesRepository, logger utils.Logger) service.AccessListSegmentationService {
+func (a *AccessListSegmentationService) CheckALLIdsExist(ctx context.Context, t string, ids []string) error {
+	switch t {
+	case "U":
+		if r, err := a.memberRepo.FindCustomerByIDs(ctx, ids); err != nil {
+			return err
+		} else if len(r) != len(ids) {
+			var modelMaps []map[string]interface{}
+			for _, d := range r {
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+			}
+			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
+			return fmt.Errorf("some user ids do not exist:%v", missingids)
+		}
+	case "B":
+		if r, err := a.accBlock.GetBranchesByIds(ctx, ids); err != nil {
+			return err
+		} else if len(r) != len(ids) {
+			var modelMaps []map[string]interface{}
+			for _, d := range r {
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+			}
+			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
+			return fmt.Errorf("some Branch ids do not exist:%v", missingids)
+		}
+	case "R":
+		if r, err := a.accBlock.GetRegionsByIds(ctx, ids); err != nil {
+			return err
+		} else if len(r) != len(ids) {
+			var modelMaps []map[string]interface{}
+			for _, d := range r {
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+			}
+			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
+			return fmt.Errorf("some Region ids do not exist:%v", missingids)
+		}
+	case "D":
+		if r, err := a.accBlock.GetDistrictsByIds(ctx, ids); err != nil {
+			return err
+		} else if len(r) != len(ids) {
+			var modelMaps []map[string]interface{}
+			for _, d := range r {
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+			}
+			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
+			return fmt.Errorf("some District ids do not exist:%v", missingids)
+		}
+	case "C":
+		if r, err := a.accBlock.GetCitiesByIds(ctx, ids); err != nil {
+			return err
+		} else if len(r) != len(ids) {
+			var modelMaps []map[string]interface{}
+			for _, d := range r {
+				modelMaps = append(modelMaps, map[string]interface{}{"_id": d.ID.Hex()})
+			}
+			missingids := access_list_segmentation_core.GetMissingIds(ids, modelMaps)
+			return fmt.Errorf("some City ids do not exist:%v", missingids)
+		}
+	default:
+		return errors.New("type must be one of: B,R, D, C, U")
+	}
+	return nil
+}
+
+func NewAccessListSegmentationService(repo storage.AccessListSegmentationRepository, cpsAction service.CPSActionService, serviceRepo storage.ServicesRepository, accBlock storage.AccountBlockRepository, memberRepo storage.CustomerRepository, logger utils.Logger) service.AccessListSegmentationService {
 	return &AccessListSegmentationService{
 		repo:        repo,
 		cpsAction:   cpsAction,
+		memberRepo:  memberRepo,
 		serviceRepo: serviceRepo,
+		accBlock:    accBlock,
 		logger:      logger,
 	}
 }

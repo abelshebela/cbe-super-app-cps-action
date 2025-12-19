@@ -501,6 +501,7 @@ type CustomerRepository interface {
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
+	FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error)
 }
 
 type BulkServiceRepository interface {
@@ -640,7 +641,7 @@ type AccessListSegmentationRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccessListSegmentation], error)
 	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
-	FindByIDS(ctx context.Context, ids []string) (*local_model.AccessListSegmentation, error)
+	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
 	Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }

@@ -32,3 +32,21 @@ func MapModelToDTO(model local_model.AccessListSegmentation) access_list_segment
 		UpdatedAt:   model.UpdatedAt,
 	}
 }
+
+func GetMissingIds(request []string, models []map[string]interface{}) []string {
+	var missingIds []string
+	idSet := make(map[string]struct{})
+	for _, m := range models {
+		if idVal, ok := m["_id"]; ok {
+			if idStr, ok := idVal.(string); ok {
+				idSet[idStr] = struct{}{}
+			}
+		}
+	}
+	for _, reqID := range request {
+		if _, found := idSet[reqID]; !found {
+			missingIds = append(missingIds, reqID)
+		}
+	}
+	return missingIds
+}

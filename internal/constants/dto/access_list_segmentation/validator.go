@@ -13,13 +13,13 @@ func (c CreateAccessListSegmentationRequest) Validate() error {
 	if c.ServiceID == "" {
 		return errors.New(localization.ErrorServiceIdRequired.Code)
 	}
-	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}}
+	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}, "B": {}}
 	t := strings.TrimSpace(c.Type)
 	if t == "" {
 		return errors.New("type is required")
 	}
 	if _, ok := validTypes[t]; !ok {
-		return errors.New("type must be one of: R, D, C, U")
+		return errors.New("type must be one of: R, D, C, U, B")
 	}
 	return nil
 }
@@ -34,11 +34,11 @@ func (u UpdateAccessListSegmentationRequest) Validate() error {
 	// if u.NewServiceID == "" {
 	// 	return errors.New(localization.ErrorServiceIdRequired.Code)
 	// }
-	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}}
+	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}, "B": {}}
 	t := strings.TrimSpace(u.Type)
 	if t != "" {
 		if _, ok := validTypes[t]; !ok {
-			return errors.New("type must be one of: R, D, C, U")
+			return errors.New("type must be one of: R, D, C, U, B")
 		}
 	}
 	return nil

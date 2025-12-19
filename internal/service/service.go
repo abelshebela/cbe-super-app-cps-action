@@ -638,4 +638,5 @@ type AccessListSegmentationService interface {
 	GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
 	UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool) error
+	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
 }

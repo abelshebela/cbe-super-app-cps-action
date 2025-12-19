@@ -4,6 +4,7 @@ import "time"
 
 type CreateAccessListSegmentationRequest struct {
 	ServiceID   string   `json:"service_id" bson:"service_id" validate:"required"`
+	SegmentType string   `json:"segment_type" bson:"segment_type" validate:"required,oneof=R D C U B"`
 	ServiceName string   `json:"service_name" bson:"service_name" validate:"required"`
 	SegmentedID []string `json:"segmented_id" bson:"segmented_id" validate:"required"`
 	Type        string   `json:"type" bson:"type" validate:"required,oneof=R D C U"`
