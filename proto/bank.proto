@@ -11,6 +11,7 @@ message Bank {
     string bic = 4;
     string code = 5;
     bool enabled = 6;
+    string type = 7;
 }
 
 message docs {

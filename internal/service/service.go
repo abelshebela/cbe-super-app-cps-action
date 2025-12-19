@@ -1,6 +1,7 @@
 package service
 
 import (
+	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
@@ -32,6 +33,7 @@ import (
 	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
@@ -417,62 +419,87 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type MiniAppMerchant interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+}
+type JobRoleService interface {
+	Create(ctx context.Context, jobs model.Role) error
+	Update(ctx context.Context, id string, update model.Role) error
+	FindById(ctx context.Context, id string) (*model.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type RoleService interface {
+	Create(ctx context.Context, jobs imodel.JobRole) error
+	Update(ctx context.Context, id string, update imodel.JobRole) error
+	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
-	EventService           EventService
-	BulkService            BulkService
-	CustomerService        CustomerService
-	CPSAction              CPSActionService
-	Feedback               FeedbackService
-	Unlink                 UnlinkService
-	BpsUser                BPSUserService
-	BudgetCategory         BudgetCategoryService
-	Bank                   BankService
-	PortalCard             PortalCardService
-	Advert                 AdvertService
-	ValidationService      AccountValidationService
-	Wallet                 WalletService
-	Topup                  TopupService
-	EcommerceMerchant      EcommerceMerchantService
-	AccountBlock           AccountBlockService
-	Department             DepartmentService
-	PasswordRule           PasswordRuleService
-	HQService              HQService
-	MiniAppService         MiniAppService
-	Fayda                  FaydaAccountService
-	Avatar                 AvatarService
-	AmountBasedAuth        AmountBasedAuthService
-	Permission             PermissionService
-	CPSUser                CPSUserService
-	ServiceDetails         ServiceService
-	Services               ServicesService
-	AccountValidation      AccountValidationService
-	ProductCode            ProductCodeService
-	BankVault              BankVaultService
-	VaultGroupCategory     VaultGroupCategoryService
-	DonationCategory       DonationCategoryService
-	DonationCompany        DonationCompanyService
-	Donation               DonationService
-	NotificationService    NotificationService
-	ArticleService         ArticleService
-	ArticleCategoryService ArticleCategoryService
-	ShortVideoService      ShortVideoService
-	NewsTagService         NewsTagService
-	NewsCategoryService    NewsCategoryService
-	Sitota                 SitotaService
-	KYCVerifier            KYCVerifierService
-	NewsTagsService        NewsTagsService
-	DeviceVersion          DeviceVersionServiceSrv
-	Encryption             EncryptionService
-	BPSActionRole          BPSActionRoleService
-	TransactionService     TransactionService
-	MiniAppCategory        MiniAppCategoryService
-	CPSActionRole          CPSActionRoleService
-	MiniappProductCode     MiniappProductCodeService
-	EventMerchantService   EventMerchantService
-	VaultAmountTierService VaultAmountBasedTierService
+	RoleService                   RoleService
+	EventService                  EventService
+	BulkService                   BulkService
+	CustomerService               CustomerService
+	CPSAction                     CPSActionService
+	Feedback                      FeedbackService
+	Unlink                        UnlinkService
+	BpsUser                       BPSUserService
+	BudgetCategory                BudgetCategoryService
+	Bank                          BankService
+	PortalCard                    PortalCardService
+	Advert                        AdvertService
+	ValidationService             AccountValidationService
+	Wallet                        WalletService
+	Topup                         TopupService
+	EcommerceMerchant             EcommerceMerchantService
+	AccountBlock                  AccountBlockService
+	Department                    DepartmentService
+	PasswordRule                  PasswordRuleService
+	HQService                     HQService
+	MiniAppService                MiniAppService
+	Fayda                         FaydaAccountService
+	Avatar                        AvatarService
+	AmountBasedAuth               AmountBasedAuthService
+	Permission                    PermissionService
+	CPSUser                       CPSUserService
+	ServiceDetails                ServiceService
+	Services                      ServicesService
+	AccountValidation             AccountValidationService
+	ProductCode                   ProductCodeService
+	BankVault                     BankVaultService
+	VaultGroupCategory            VaultGroupCategoryService
+	DonationCategory              DonationCategoryService
+	DonationCompany               DonationCompanyService
+	Donation                      DonationService
+	NotificationService           NotificationService
+	ArticleService                ArticleService
+	ArticleCategoryService        ArticleCategoryService
+	ShortVideoService             ShortVideoService
+	NewsTagService                NewsTagService
+	NewsCategoryService           NewsCategoryService
+	Sitota                        SitotaService
+	KYCVerifier                   KYCVerifierService
+	NewsTagsService               NewsTagsService
+	DeviceVersion                 DeviceVersionServiceSrv
+	Encryption                    EncryptionService
+	BPSActionRole                 BPSActionRoleService
+	TransactionService            TransactionService
+	MiniAppCategory               MiniAppCategoryService
+	CPSActionRole                 CPSActionRoleService
+	MiniappProductCode            MiniappProductCodeService
+	EventMerchantService          EventMerchantService
+	JobRoleService                JobRoleService
+	VaultAmountTierService        VaultAmountBasedTierService
+	AccessListSegmentationService AccessListSegmentationService
 }
 
 type ServiceContainer struct {
+	RoleContainer                      RoleService
+	JobRoleContainer                   JobRoleService
 	AccountBlockContainer              AccountBlockService
 	AccountContainer                   AccountValidationService
 	ActionContainer                    ActionService
@@ -497,6 +524,7 @@ type ServiceContainer struct {
 	UnlinkContainer                    UnlinkService
 	WalletContainer                    WalletService
 	TopupContainer                     TopupService
+	MiniAppMerchantContainer           MiniAppMerchant
 	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
@@ -530,6 +558,7 @@ type ServiceContainer struct {
 	ServiceContainer                   ServicesService
 	VaultAmountTierContainer           VaultAmountBasedTierService
 	MiniAppProductCodeContainer        MiniappProductCodeService
+	AccessListSegmentationContainer    AccessListSegmentationService
 }
 
 type BPSActionRoleService interface {
@@ -637,4 +666,14 @@ type CPSActionRoleService interface {
 }
 type MiniappProductCodeService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type AccessListSegmentationService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	CreateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	GetAllAccessListSegmentation(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse], error)
+	GetAccessListSegmentationByID(ctx context.Context, id string) (access_list_segmentation_dto.AccessListSegmentationResponse, error)
+	UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool) error
+	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
 }

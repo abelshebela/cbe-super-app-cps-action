@@ -236,6 +236,18 @@ const (
 	RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE"
 	RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
 
+	RequestCreateJobRole  string = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  string = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  string = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  string = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole string = "DISABLE_JOB_ROLE"
+
+	RequestCreateRole  string = "CREATE_ROLE"
+	RequestUpdateRole  string = "UPDATE_ROLE"
+	RequestDeleteRole  string = "DELETE_ROLE"
+	RequestEnableRole  string = "ENABLE_ROLE"
+	RequestDisableRole string = "DISABLE_ROLE"
+
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"
@@ -507,6 +519,10 @@ const (
 	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
 	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
 	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
+
+	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
+	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
 )
 
 type RegistrationType string
@@ -625,17 +641,14 @@ const (
 	VaultStatusMatured       VaultStatus = "MATURED"
 	VaultStatusUnlockedEarly VaultStatus = "UNLOCKED_EARLY"
 	VaultStatusPaidOut       VaultStatus = "PAID_OUT"
-)
-
-const (
-	StatusOpen       VaultStatus = "OPEN"
-	StatusClosed     VaultStatus = "CLOSED"
-	StatusLocked     VaultStatus = "LOCKED"
-	StatusActive     VaultStatus = "ACTIVE"
-	StatusMatured    VaultStatus = "MATURED"
-	StatusWithdrawn  VaultStatus = "WITHDRAWN"
-	StatusEndedEarly VaultStatus = "ENDED_EARLY"
-	StatusDeleted    VaultStatus = "DELETED"
+	StatusOpen               VaultStatus = "OPEN"
+	StatusClosed             VaultStatus = "CLOSED"
+	StatusLocked             VaultStatus = "LOCKED"
+	StatusActive             VaultStatus = "ACTIVE"
+	StatusMatured            VaultStatus = "MATURED"
+	StatusWithdrawn          VaultStatus = "WITHDRAWN"
+	StatusEndedEarly         VaultStatus = "ENDED_EARLY"
+	StatusDeleted            VaultStatus = "DELETED"
 )
 
 func ParseVaultStatus(input string) (VaultStatus, error) {

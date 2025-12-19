@@ -98,16 +98,21 @@ func (s *server) bankMapper(data *model.Bank) *bankpb.Bank {
 		Code:    data.Code,
 		Logo:    data.Logo,
 		Enabled: data.Enabled,
+		Type:    data.Type,
 	}
 }
 func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
+	var nextPage int32
+	if meta.NextPage != nil {
+		nextPage = int32(*meta.NextPage)
+	}
 	return &bankpb.Meta{
 		TotalPages:  int32(meta.TotalPages),
 		Limit:       int32(meta.Limit),
 		TotalDocs:   int32(meta.TotalDocs),
 		Page:        int32(meta.Page),
 		HasNextPage: meta.HasNextPage,
-		NextPage:    int32(*meta.NextPage),
+		NextPage:    nextPage,
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
@@ -170,13 +175,17 @@ func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneS
 }
 
 func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
+	var nextPage int32
+	if meta.NextPage != nil {
+		nextPage = int32(*meta.NextPage)
+	}
 	return &servicepb.Meta{
 		TotalPages:  int32(meta.TotalPages),
 		Limit:       int32(meta.Limit),
 		TotalDocs:   int32(meta.TotalDocs),
 		Page:        int32(meta.Page),
 		HasNextPage: meta.HasNextPage,
-		NextPage:    int32(*meta.NextPage),
+		NextPage:    nextPage,
 		HasPrevPage: meta.HasPrevPage,
 	}
 }

@@ -47,3 +47,5 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, 
 
 	return merchantInfo, nil
 }
+
+
