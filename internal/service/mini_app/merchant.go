@@ -14,7 +14,6 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	dto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
-	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,11 +22,10 @@ import (
 )
 
 type miniAppMerchantService struct {
-	repo                 storage.MiniAppMerchant
-	miniRepo             storage.MiniAppRepository
-	logger               utils.Logger
-	accountLookupService account_lookup.Account
-	merchantLookup       merchant_lookup.MerchantLookupAdapter
+	repo           storage.MiniAppMerchant
+	miniRepo       storage.MiniAppRepository
+	logger         utils.Logger
+	merchantLookup merchant_lookup.MerchantLookupAdapter
 }
 
 func NewMiniAppMerchantService(
@@ -35,14 +33,12 @@ func NewMiniAppMerchantService(
 	miniRepo storage.MiniAppRepository,
 	merchantLookup merchant_lookup.MerchantLookupAdapter,
 	logger utils.Logger,
-	accountLookupService account_lookup.Account,
 ) service.MiniAppMerchant {
 	return &miniAppMerchantService{
-		repo:                 repo,
-		miniRepo:             miniRepo,
-		accountLookupService: accountLookupService,
-		merchantLookup:       merchantLookup,
-		logger:               logger,
+		repo:           repo,
+		miniRepo:       miniRepo,
+		merchantLookup: merchantLookup,
+		logger:         logger,
 	}
 }
 
