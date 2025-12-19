@@ -228,6 +228,17 @@ type MiniAppMerchantService interface {
 	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
+type EcommerceMerchantService interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
+	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
+}
+
 type PasswordRuleService interface {
 	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
 	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
@@ -421,7 +432,7 @@ type ServiceLayer struct {
 	ValidationService      AccountValidationService
 	Wallet                 WalletService
 	Topup                  TopupService
-	MiniAppMerchant        MiniAppMerchantService
+	EcommerceMerchant      EcommerceMerchantService
 	AccountBlock           AccountBlockService
 	Department             DepartmentService
 	PasswordRule           PasswordRuleService
@@ -486,7 +497,7 @@ type ServiceContainer struct {
 	UnlinkContainer                    UnlinkService
 	WalletContainer                    WalletService
 	TopupContainer                     TopupService
-	MiniAppMerchantContainer           MiniAppMerchantService
+	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
 	ServiceCheckContainer              ServiceService

@@ -141,7 +141,7 @@ type Handler struct {
 	TransactionHandler        transaction.TransactionInterface
 	EventMerchantHandler      event_merchant_port.EventMerchantInboundAdaptor
 	AmountTierHandler         vaultAmountTierInbound.VaultAmountTierHandler
-	EcommerceMerchantHandler  ecommerce_merchant.MiniAppMerchant
+	EcommerceMerchantHandler  ecommerce_merchant.EcommerceMerchant
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -191,6 +191,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		TransactionHandler:        transaction_handler.NewTransactionHandler(serviceLayer.TransactionService, logger),
 		EventMerchantHandler:      event_merchant_handler.NewEventMerchantHandler(serviceLayer.EventMerchantService, logger),
 		AmountTierHandler:         amount_tier_handler.NewVaultAmountTierHandler(serviceLayer.VaultAmountTierService, logger),
-		EcommerceMerchantHandler:  ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.MiniAppMerchant, logger),
+		EcommerceMerchantHandler:  ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
 	}
 }

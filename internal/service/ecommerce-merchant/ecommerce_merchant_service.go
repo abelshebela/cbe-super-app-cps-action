@@ -26,7 +26,7 @@ import (
 )
 
 type miniAppMerchantService struct {
-	repo                 storage.MiniAppMerchantRepository
+	repo                 storage.EcommerceMerchantRepository
 	cpsService           service.CPSActionService
 	logger               utils.Logger
 	accountLookupService account_lookup.Account
@@ -34,12 +34,12 @@ type miniAppMerchantService struct {
 }
 
 func NewEcommerceMerchantService(
-	repo storage.MiniAppMerchantRepository,
+	repo storage.EcommerceMerchantRepository,
 	cpsService service.CPSActionService,
 	merchantLookup merchant_lookup.MerchantLookupAdapter,
 	logger utils.Logger,
 	accountLookupService account_lookup.Account,
-) service.MiniAppMerchantService {
+) service.EcommerceMerchantService {
 	return &miniAppMerchantService{
 		repo:                 repo,
 		cpsService:           cpsService,

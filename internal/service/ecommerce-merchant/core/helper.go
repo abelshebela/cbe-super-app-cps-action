@@ -141,7 +141,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 func CheckMerchantExists(
 	ctx context.Context,
-	merchantRepo storage.MiniAppMerchantRepository,
+	merchantRepo storage.EcommerceMerchantRepository,
 	data *types.CheckMiniAppMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
@@ -150,16 +150,6 @@ func CheckMerchantExists(
 	}
 
 	var conditions []bson.M
-
-	// if data.BankAccountNumber != "" {
-	// 	conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
-	// }
-	// if data.Email != "" {
-	// 	conditions = append(conditions, bson.M{"kyc.representative.email": data.Email})
-	// }
-	// if data.PhoneNumber != "" {
-	// 	conditions = append(conditions, bson.M{"kyc.representative.phone": data.PhoneNumber})
-	// }
 	if data.MerchantCode != "" {
 		conditions = append(conditions, bson.M{"merchant_code": data.MerchantCode})
 	}

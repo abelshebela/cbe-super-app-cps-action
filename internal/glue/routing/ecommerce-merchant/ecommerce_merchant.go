@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func Init(router chi.Router, handler miniappmerchat.MiniAppMerchant, authMiddleware middleware.AuthMiddleware) {
+func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddleware middleware.AuthMiddleware) {
 	routes := []glue.Route{
 		{
 			Method:  http.MethodPost,
