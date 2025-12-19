@@ -89,110 +89,74 @@ func PermissionCategoryProjection(permissionColl, permissionCategoryColl string)
 	}}}
 }
 
-func PipelineBuilder(userCode string, departmentColl, permissionGroupColl, permissionColl, permissionCategoryColl string) mongo.Pipeline {
+func PipelineBuilder(userCode string) mongo.Pipeline {
 	return mongo.Pipeline{
-		// Match the user by user_code and ensure it's not deleted
+		// Match the user
 		bson.D{{Key: "$match", Value: bson.M{"user_code": userCode, "is_deleted": false}}},
 
-		// Lookup department information
+		// Lookup roles by job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         departmentColl,
-			"localField":   "department",
-			"foreignField": "_id",
-			"as":           "department_doc",
+			"from": "roles",
+			"let":  bson.M{"jobTitle": "$job_title"},
 			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$eq": []interface{}{"$job_title", "$$jobTitle"}},
+				}}},
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":          1,
-					"department":   1,
+					"_id":  1,
+					"role": 1,
+				}}},
+			},
+			"as": "role_doc",
+		}}},
+
+		// Unwind role_doc
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$role_doc", "preserveNullAndEmptyArrays": true}}},
+
+		// Lookup job_roles using role code
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "job_roles",
+			"let":  bson.M{"roleCode": "$role_doc.role"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{"$eq": []interface{}{"$code", "$$roleCode"}},
+				}}},
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":          0,
 					"portal_cards": 1,
 				}}},
 			},
+			"as": "job_role_doc",
 		}}},
 
-		// Unwind department (preserve null for users without department)
+		// Unwind job_role_doc
+		bson.D{{Key: "$unwind", Value: bson.M{"path": "$job_role_doc", "preserveNullAndEmptyArrays": true}}},
+
+		// Lookup department document
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "departments",
+			"localField":   "department",
+			"foreignField": "_id",
+			"as":           "department_doc",
+		}}},
 		bson.D{{Key: "$unwind", Value: bson.M{"path": "$department_doc", "preserveNullAndEmptyArrays": true}}},
 
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         permissionGroupColl,
-			"localField":   "permission_group",
-			"foreignField": "_id",
-			"as":           "permission_groups_raw",
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{"is_deleted": bson.M{"$ne": true}}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"group_name":          1,
-					"permission_category": 1,
-				}}},
-				PermissionCategoryProjection(permissionColl, permissionCategoryColl),
-			},
-		}}},
-
+		// Project final user fields with populated portal_cards and department
 		bson.D{{Key: "$project", Value: bson.M{
-			"_id":           1,
-			"user_code":     1,
-			"full_name":     1,
-			"role":          1,
-			"gender":        1,
-			"phone_number":  1,
-			"email":         1,
-			"username":      1,
-			"realm":         1,
-			"enabled":       1,
-			"date_joined":   1,
-			"last_modified": 1,
-			"country":       1,
-			"region":        1,
-			"department": bson.M{
-				"$cond": bson.M{
-					"if": bson.M{"$ne": []interface{}{"$department_doc", nil}},
-					"then": bson.M{
-						"id":           "$department_doc._id",
-						"name":         "$department_doc.department",
-						"portal_cards": "$department_doc.portal_cards",
-						// "portal_cards": bson.M{
-						// 	"$map": bson.M{
-						// 		"input": "$department_doc.portal_cards",
-						// 		"as":    "card",
-						// 		"in":    "$$card.card_name",
-						// 	},
-						// },
-					},
-					"else": nil,
-				},
-			},
-			// Permission groups with nested structure
-			"permission_groups": bson.M{
-				"$map": bson.M{
-					"input": "$permission_groups_raw",
-					"as":    "pg",
-					"in": bson.M{
-						"id":         "$$pg._id",
-						"group_name": "$$pg.group_name",
-						"permission_category": bson.M{
-							"$map": bson.M{
-								"input": "$$pg.permission_category_docs",
-								"as":    "cat",
-								"in": bson.M{
-									"id":            "$$cat._id",
-									"category_name": "$$cat.category_name",
-									"access":        "$$cat.access",
-									"permissions": bson.M{
-										"$map": bson.M{
-											"input": "$$cat.permissions_docs",
-											"as":    "perm",
-											"in": bson.M{
-												"id":              "$$perm._id",
-												"permission_name": "$$perm.permission_name",
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"_id":                 0,
+			"user_code":           1,
+			"full_name":           1,
+			"job_title":           1,
+			"department":          "$department_doc",
+			"gender":              1,
+			"phone_number":        1,
+			"email":               1,
+			"realm":               1,
+			"enabled":             1,
+			"permission_category": 1,
+			"portal_cards":        "$job_role_doc.portal_cards",
+			"last_modified":       1,
+			"date_joined":         1,
 		}}},
 	}
 }

@@ -98,6 +98,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	cpsUser := core.CPSUModel(req)
+	cpsUser.JobTitle = req.JobTitle
 	payload := cpsuser.CPSUserActionPayload{
 		User:                 cpsUser,
 		PermissionCategories: populatedCategories,
@@ -115,10 +116,10 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 }
 
 func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
-		currentUser, err := s.repo.FindByID(ctx, req.UserCode)
-		if err != nil {
-			return err
-		}
+	currentUser, err := s.repo.FindByID(ctx, req.UserCode)
+	if err != nil {
+		return err
+	}
 	if req.PhoneNumber != "" {
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
@@ -322,7 +323,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error) {
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
 	if userCode == "" {
 		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
 	}
@@ -335,8 +336,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
-	detail := cpsuser.BuildCpsUserDetail(populated)
-	return detail, nil
+	// detail := cpsuser.BuildCpsUserDetail(populated)
+	return populated, nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
@@ -371,7 +372,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 
 	case string(constants.RequestCpsUserUpdate):
 		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
-		fmt.Println("////////core cps user update",cur)
+		fmt.Println("////////core cps user update", cur)
 		if err != nil {
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
