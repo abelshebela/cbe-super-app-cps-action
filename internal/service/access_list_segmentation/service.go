@@ -42,9 +42,17 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
 
-		if err := a.repo.Create(ctx, *action); err != nil {
-			a.logger.Errorf("[Authorize] failed to create access list segmentation: %v", err)
-			return nil, err
+		if action.SegmentType == "Block" {
+			if err := a.repo.CreateBlockSegment(ctx, *action); err != nil {
+				a.logger.Errorf("[Authorize] failed to create access list segmentation: %v", err)
+				return nil, err
+			}
+		} else {
+			if err := a.repo.CreateAccountSegment(ctx, *action); err != nil {
+				a.logger.Errorf("[Authorize] failed to create access list segmentation: %v", err)
+				return nil, err
+			}
+
 		}
 	case string(constants.RequestUpdateAccessListSegmentation):
 		action, err := local_util.JsonUnmarshal[access_list_segmentation_dto.UpdateAccessListSegmentationRequest](cpsAction.CurrentAction)
@@ -96,17 +104,23 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 	}
 	req.ServiceName = service.ServiceName
 
-	if als, err := a.repo.FindByIDS(ctx, req.SegmentedID, req.Type); err != nil {
-		a.logger.Errorf("[Create] failed to find access list segmentation by id: %v", err)
-		return err
-	} else if als != nil {
-		a.logger.Errorf("[Create] access list segmentation already exists with id: %s", req.SegmentedID)
-		return fmt.Errorf("access list segmentation with id: %v already exists", als.ID)
-	}
+	if req.SegmentType == "Block" {
+		if als, err := a.repo.FindByIDS(ctx, req.SegmentedID, req.Type); err != nil {
+			a.logger.Errorf("[Create] failed to find access list segmentation by id: %v", err)
+			return err
+		} else if als != nil {
+			a.logger.Errorf("[Create] access list segmentation already exists with id: %s", req.SegmentedID)
+			return fmt.Errorf("access list segmentation with id: %v already exists", als.ID)
+		}
 
-	if err := a.CheckALLIdsExist(ctx, req.Type, req.SegmentedID); err != nil {
-		a.logger.Errorf("[Create] failed to check all IDs exist: %v", err)
-		return err
+		if err := a.CheckALLIdsExist(ctx, req.Type, req.SegmentedID); err != nil {
+			a.logger.Errorf("[Create] failed to check all IDs exist: %v", err)
+			return err
+		}
+	} else {
+		// add checks for
+		// 1. if the passed segment code is valid
+		// 2. if service id and segment code combination already exists
 	}
 
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, string(constants.RequestCreateAccessListSegmentation), constants.CREATE)
@@ -221,6 +235,11 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 	}
 	if req.Type != "" {
 		updatedAccessListSegmentation.Type = req.Type
+	}
+
+	if req.SegmentCode != "" && req.SegmentName != "" {
+		updatedAccessListSegmentation.SegmentationCode = req.SegmentCode
+		updatedAccessListSegmentation.SegmentationName = req.SegmentName
 	}
 
 	if seg, err := a.repo.FindBySegmentationAndServiceID(ctx, req.NewSegmentedID, req.NewServiceID); err != nil || seg != nil {
