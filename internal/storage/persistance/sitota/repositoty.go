@@ -1,11 +1,13 @@
 package sitota
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota/sqlc"
 
@@ -17,7 +19,7 @@ type SitotaRepository struct {
 	logger shared_utils.Logger
 }
 
-func NewSitotaRepository(db *sql.DB, logger shared_utils.Logger) *SitotaRepository {
+func NewSitotaRepository(db *sql.DB, logger shared_utils.Logger) storage.SitotaRepository {
 	return &SitotaRepository{
 		db:     db,
 		logger: logger,
@@ -69,7 +71,7 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 			SitotaAmount:           t.SitotaAmount,
 			GLAccountNumber:        "",
 			Status:                 t.Status,
-			ClaimedAt:              claimedAt,
+			ClaimedAt:              &claimedAt,
 			CreatedAt:              createdAt,
 			UpdatedAt:              updatedAt,
 		})
@@ -129,7 +131,7 @@ func (r *SitotaRepository) Get(ctx context.Context, id string) (*model.SitotaTra
 		SitotaAmount:           t.SitotaAmount,
 		GLAccountNumber:        "",
 		Status:                 t.Status,
-		ClaimedAt:              claimedAt,
+		ClaimedAt:              &claimedAt,
 		CreatedAt:              createdAt,
 		UpdatedAt:              updatedAt,
 	}, nil

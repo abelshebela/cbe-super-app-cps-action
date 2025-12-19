@@ -1,6 +1,7 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
@@ -28,7 +29,7 @@ func ParseImageUpdateRequestFromMultipartForm(r *http.Request) (donation.Donatio
 		return req, errors.New("image_id is required")
 	}
 
-	_, imageHeader, err := utils.ParseMultipartFormFile(r, "donation_images", 10<<20)
+	_, imageHeader, err := utils.ParseMultipartFormFile(r, "donation_images", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			return req, errors.New("image file is required")
@@ -56,7 +57,8 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	startDateStr := r.FormValue("start_date")
 	endDateStr := r.FormValue("end_date")
 	if isFeatured := r.FormValue("is_featured"); isFeatured != "" {
-		req.IsFeatured = isFeatured == "true"
+		val := isFeatured == "true"
+		req.IsFeatured = &val
 	}
 
 	if targetStr := r.FormValue("target"); targetStr != "" {
@@ -93,7 +95,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 		req.StartDate = time.Now()
 	}
 
-	_, coverImageHeader, err := utils.ParseMultipartFormFile(r, "cover_image", 10<<20)
+	_, coverImageHeader, err := utils.ParseMultipartFormFile(r, "cover_image", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if !errors.Is(err, http.ErrMissingFile) {
 			return req, err

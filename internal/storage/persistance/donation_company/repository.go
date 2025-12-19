@@ -1,15 +1,18 @@
 package donation_company
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -18,51 +21,66 @@ import (
 )
 
 type DonationCompanyStorage struct {
-	dal    dal.MongoDal[model.DonationCompany, model.DonationCompany]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.DonationCompany, model.DonationCompany]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewDonationCompanyRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.DonationCompanyRepository {
+func NewDonationCompanyRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCompanyRepository {
 	return &DonationCompanyStorage{
-		dal:    dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, dbName, collection),
+		client:        client,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
 func (s *DonationCompanyStorage) Create(ctx context.Context, details *model.DonationCompany) error {
-	_, err := s.dal.InsertOne(ctx, *details)
+	s.logger.Infof("[Create] creating donation company")
+	newDonationCompany, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
+		s.logger.Errorf("[Create] failed to create donation company: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, newDonationCompany, string(constants.ClientOrchestrationDonationCompanyTopic), string(constants.ClientOrchestrationDonationCompanyTopic), "new donation company created")
+
+	s.logger.Infof("[Create] donation company created successfully")
 	return nil
 }
 
 func (s *DonationCompanyStorage) Update(ctx context.Context, id string, details *model.DonationCompany) error {
+	s.logger.Infof("[Update] updating donation company for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[Update] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID}
 
 	updateData := DonationCompanyMapper(*details)
-	// _, err = s.dal.UpdateOne(ctx, filter, bson.M{"$set": details})
-	_, err = s.dal.UpdateOne(ctx, filter, updateData)
+	updatedDonationCompany, err := s.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			s.logger.Errorf("[Update] donation company not found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
+		s.logger.Errorf("[Update] failed to update donation company: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
+	s.kafkaProducer.PublishMessage(ctx, updatedDonationCompany, string(constants.ClientOrchestrationDonationCompanyTopic), string(constants.ClientOrchestrationDonationCompanyTopic), "donation company updated")
+
+	s.logger.Infof("[Update] donation company updated successfully")
 	return nil
 }
 
 func (s *DonationCompanyStorage) FindByID(ctx context.Context, id string) (*donation_company.DonationCompanyListResponse, error) {
+	s.logger.Infof("[FindByID] fetching donation company by id: %s", id)
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
-		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
+		s.logger.Errorf("[FindByID] invalid object id")
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": idObj, "is_deleted": false}
@@ -70,15 +88,16 @@ func (s *DonationCompanyStorage) FindByID(ctx context.Context, id string) (*dona
 
 	result, err := s.dal.FindOne(ctx, filter, projection)
 	if err != nil {
-		s.logger.Errorf("Error finding donation company: %v", err)
+		s.logger.Errorf("[FindByID] failed to find donation company: %v", err)
 		code, _ := local_util.HandleMongoError(err)
 		return nil, errors.New(code)
 	}
-	s.logger.Infof("Successfully found donation company: %+v", result)
+	s.logger.Infof("[FindByID] donation company retrieved successfully")
 	return MapToDonationCompanyListResponse(result), nil
 }
 
 func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accountNumber string) (*model.DonationCompany, error) {
+	s.logger.Infof("[FindByAccountNumber] searching for donation company by account number")
 	filter := bson.M{
 		"account_number": accountNumber,
 		"is_deleted":     false,
@@ -86,9 +105,10 @@ func (s *DonationCompanyStorage) FindByAccountNumber(ctx context.Context, accoun
 
 	result, err := s.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
+		s.logger.Errorf("[FindByAccountNumber] failed to find donation company: %v", err)
 		return nil, err
 	}
-
+	s.logger.Infof("[FindByAccountNumber] donation company retrieved successfully")
 	return result, nil
 }
 
@@ -111,12 +131,14 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 	// 5. Fetch data
 	data, err := s.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch donation companies: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to count donation companies: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
@@ -125,6 +147,7 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 
 	// 8. Map to DTOs
 	dtoData := MapToDonationCompanyListResponses(data)
+	s.logger.Infof("[FindAllWithPagination] retrieved %d donation companies", len(dtoData))
 
 	// 9. Return standard paginated response
 	return &types.PaginatedResponse[[]donation_company.DonationCompanyListResponse]{
@@ -133,10 +156,18 @@ func (s *DonationCompanyStorage) FindAllWithPagination(ctx context.Context, filt
 	}, nil
 }
 func (s *DonationCompanyStorage) Delete(ctx context.Context, id string) error {
+	s.logger.Infof("[Delete] deleting donation company for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		s.logger.Errorf("[Delete] invalid object id: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	return s.dal.DeleteOne(ctx, filter)
+	err = s.dal.DeleteOne(ctx, filter)
+	if err != nil {
+		s.logger.Errorf("[Delete] failed to delete donation company: %v", err)
+		return err
+	}
+	s.logger.Infof("[Delete] donation company deleted successfully")
+	return nil
 }

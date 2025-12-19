@@ -4,7 +4,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/productcode"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -12,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -34,7 +35,7 @@ func NewProductCodeRepository(client *mongo.Client, dbName string, collection st
 }
 
 func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
-	r.logger.Infof("[productcode.FetchAll] Fetching product codes with filter: %+v", filterParams)
+	r.logger.Infof("[FetchAll] fetching product codes")
 
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -64,7 +65,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("[productcode.FetchAll] Failed to execute aggregation: %v", err)
+		r.logger.Errorf("[FetchAll] failed to execute aggregation: %v", err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 	defer cursor.Close(ctx)
@@ -76,7 +77,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 		} `bson:"total"`
 	}
 	if err = cursor.All(ctx, &results); err != nil {
-		r.logger.Errorf("[productcode.FetchAll] Failed to decode aggregation results: %v", err)
+		r.logger.Errorf("[FetchAll] failed to decode aggregation results: %v", err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
@@ -98,7 +99,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParams.Page, int(limit))
-	r.logger.Infof("[productcode.FetchAll] Successfully fetched %d product codes, total: %d", len(productCodes), total)
+	r.logger.Infof("[FetchAll] retrieved %d product codes", len(productCodes))
 	return &types.PaginatedResponse[[]*model.ProductCode]{
 		Data: productCodes,
 		Meta: meta,
@@ -106,7 +107,7 @@ func (r *ProductCodeStorage) FetchAll(ctx context.Context, filterParams *types.F
 }
 
 func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error) {
-
+	s.logger.Infof("[FindAllWithPagination] fetching product codes with pagination")
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"_id", "service_name", "created_at", "last_modified_at", "cbe_product_codes.prd", "cbe_ifb_product_codes.prd"}
@@ -121,6 +122,7 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 	filter, skip, limit := lib.FilterBuilder(*filterParam, searchKeys, allowedKeys)
 	data, err := s.producCodeDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to fetch product codes: %v", err)
 		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
 	}
 	pdata := []*model.ProductCode{}
@@ -129,9 +131,11 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 	}
 	total, err := s.producCodeDal.TotalCount(ctx, filter)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to count product codes: %v", err)
 		return nil, fmt.Errorf("%s", localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	s.logger.Infof("[FindAllWithPagination] retrieved %d product codes", len(pdata))
 	return &types.PaginatedResponse[[]*model.ProductCode]{
 		Data: pdata,
 		Meta: meta,
@@ -139,7 +143,7 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 }
 
 func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.ProductCode, error) {
-	p.logger.Infof("[productcode.FetchByID] Fetching product code with ID: %s", id)
+	p.logger.Infof("[FetchByID] fetching product code by id: %s", id)
 
 	objID, ok := local_util.StringToObjectID(id)
 	if !ok {
@@ -152,20 +156,20 @@ func (p *ProductCodeStorage) FetchByID(ctx context.Context, id string) (*model.P
 	services, err := p.producCodeDal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			p.logger.Errorf("[productcode.FetchByID] Product code not found for ID %s: %v", id, err)
+			p.logger.Errorf("[FetchByID] product code not found")
 			return nil, fmt.Errorf("%s", "ERROR_PRODCUT_CODE_NOT_FOUND")
 		}
-		p.logger.Errorf("[productcode.FetchByID] Database query failed for ID %s: %v", id, err)
+		p.logger.Errorf("[FetchByID] failed to fetch product code: %v", err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 	pc := productcode.ToProducCode(*services)
 
-	p.logger.Infof("[productcode.FetchByID] Successfully fetched product code with ID: %s", id)
+	p.logger.Infof("[FetchByID] product code retrieved successfully")
 	return pc, nil
 }
 
 func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.ProductCode) error {
-	p.logger.Infof("[productcode.Update] Updating product code with ID: %s", productCode.ID)
+	p.logger.Infof("[Update] updating product code for id: %s", productCode.ID)
 
 	objID, ok := local_util.StringToObjectID(productCode.ID)
 	if !ok {
@@ -180,17 +184,17 @@ func (p *ProductCodeStorage) Update(ctx context.Context, productCode *model.Prod
 	_, err := p.producCodeDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			p.logger.Errorf("[productcode.Update] Product code not found for ID %s: %v", productCode.ID, err)
+			p.logger.Errorf("[Update] product code not found")
 			return fmt.Errorf("%s", "ERROR_PRODCUT_CODE_NOT_FOUND")
 		}
-		p.logger.Errorf("[productcode.Update] Database update failed for ID %s: %v", productCode.ID, err)
+		p.logger.Errorf("[Update] failed to update product code: %v", err)
 		return fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
-
+	p.logger.Infof("[Update] product code updated successfully")
 	return nil
 }
 func (p *ProductCodeStorage) FindByName(ctx context.Context, name string) (*model.ProductCode, error) {
-	p.logger.Infof("[productcode.FindByName] Searching for product code with name: %s", name)
+	p.logger.Infof("[FindByName] searching for product code by name")
 
 	filter := bson.M{
 		"service_name": bson.M{
@@ -203,21 +207,20 @@ func (p *ProductCodeStorage) FindByName(ctx context.Context, name string) (*mode
 	result, err := p.producCodeDal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			p.logger.Infof("[productcode.FindByName] No product code found with name: %s", name)
+			p.logger.Infof("[FindByName] product code not found")
 			return nil, nil
 		}
-		p.logger.Errorf("[productcode.FindByName] Database query failed for name %s: %v", name, err)
+		p.logger.Errorf("[FindByName] failed to find product code: %v", err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
 	pc := productcode.ToProducCode(*result)
-	p.logger.Infof("[productcode.FindByName] Successfully found product code with name: %s", name)
+	p.logger.Infof("[FindByName] product code retrieved successfully")
 	return pc, nil
 }
 
-
 func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD string) ([]*model.ProductCode, error) {
-	p.logger.Infof("[productcode.FindByPRD] Searching for product codes with CBE PRD: %s or CBE IFB PRD: %s", cbePRD, cbeIFBPRD)
+	p.logger.Infof("[FindByPRD] searching for product codes by PRD")
 
 	// Build the $or query to check both PRD fields efficiently
 	orConditions := []bson.M{}
@@ -232,7 +235,7 @@ func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD st
 
 	// If both are empty, return empty result
 	if len(orConditions) == 0 {
-		p.logger.Infof("[productcode.FindByPRD] Both PRD values are empty, skipping search")
+		p.logger.Infof("[FindByPRD] both PRD values are empty, skipping search")
 		return []*model.ProductCode{}, nil
 	}
 
@@ -243,7 +246,7 @@ func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD st
 
 	results, err := p.producCodeDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
-		p.logger.Errorf("[productcode.FindByPRD] Database query failed: %v", err)
+		p.logger.Errorf("[FindByPRD] failed to find product codes: %v", err)
 		return nil, fmt.Errorf("%s", "ERROR_PRODUCT_CODE_DATABASE_QUERY_FAILED")
 	}
 
@@ -253,6 +256,6 @@ func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD st
 		productCodes = append(productCodes, productcode.ToProducCode(*result))
 	}
 
-	p.logger.Infof("[productcode.FindByPRD] Found %d product code(s) with matching PRD values", len(productCodes))
+	p.logger.Infof("[FindByPRD] retrieved %d product codes", len(productCodes))
 	return productCodes, nil
 }

@@ -2,10 +2,9 @@ package users
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
-	"errors"
 
+	"errors"
+member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -60,57 +59,35 @@ func UserDeviceUUIDAttachment(deviceUUID string) bson.M {
 	}
 }
 
-func UserBuilder(update model.User) bson.M {
+func UserBuilder(update member.User) bson.M {
 	data := bson.M{}
 	if update.FullName != "" {
 		data["full_name"] = update.FullName
 	}
-	if update.MotherName != "" {
-		data["mother_name"] = update.MotherName
-	}
-	if !update.BirthDate.IsZero() {
-		data["birth_date"] = update.BirthDate
-	}
-	if update.Nationality != "" {
-		data["nationality"] = update.Nationality
-	}
 	if update.PhoneNumber != "" {
 		data["phone_number"] = update.PhoneNumber
 	}
-
 	if update.Gender != "" {
 		data["gender"] = update.Gender
 	}
 	if update.Avatar != "" {
 		data["photo"] = update.Avatar
+		data["avatar"] = update.Avatar
 	}
 	if update.Email != "" {
 		data["email"] = update.Email
 	}
-	if update.Username != "" {
-		data["username"] = update.Username
-	}
-	if update.IsSelfRegister {
-		data["is_self_register"] = true
-	}
-	if update.IsVerified {
-		data["is_verified"] = update.IsVerified
-	}
 	if update.DeviceUUID != "" {
 		data["device_uuid"] = update.DeviceUUID
 	}
-	if update.LoginPIN != (types.LoginPIN{}) {
-		data["login_pin"] = update.LoginPIN
-	}
-	if update.ProfileThemeType != "" {
-		data["profile_theme_type"] = update.ProfileThemeType
-	}
-	if update.Avatar != "" {
-		data["avatar"] = update.Avatar
-	}
+
 	if update.IsBlocked {
 		data["is_blocked"] = update.IsBlocked
 	}
-
+		
+	if update.BranchCode != "" {
+		data["branch_code"] = update.BranchCode
+	}
+	
 	return data
 }

@@ -16,11 +16,3 @@ type ActionRole struct {
 	UpdatedAt       time.Time         `json:"updated_at" bson:"updated_at"`
 	CreatedAt       time.Time         `json:"created_at" bson:"created_at"`
 }
-
-type ActionRoleCPSAction struct {
-	ActionCode       string     `json:"action_code" bson:"action_code"`
-	ActionName       string     `json:"action_name" bson:"action_name"`
-	AssignedMakers   []string   `json:"assigned_makers" bson:"assigned_makers"`
-	AssignedCheckers [][]string `json:"assigned_checkers" bson:"assigned_checkers"`
-	Enabled          bool       `json:"enabled" bson:"enabled"`
-}

@@ -230,6 +230,12 @@ const (
 type RequestAction string
 
 const (
+	RequestCreateMiniappProductCode  string = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  string = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  string = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
+
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"
@@ -237,6 +243,11 @@ const (
 	RequestEnableActionRole      RequestAction = "ENABLE_ACTION_ROLE"
 	RequestDisableActionRole     RequestAction = "DISABLE_ACTION_ROLE"
 	RequestDeleteActionRole      RequestAction = "DELETE_ACTION_ROLE"
+	RequestCreateCpsActionRole   RequestAction = "CREATE_CPS_ACTION_ROLE"
+	RequestUpdateCpsActionRole   RequestAction = "UPDATE_CPS_ACTION_ROLE"
+	RequestEnableCpsActionRole   RequestAction = "ENABLE_CPS_ACTION_ROLE"
+	RequestDisableCpsActionRole  RequestAction = "DISABLE_CPS_ACTION_ROLE"
+	RequestDeleteCpsActionRole   RequestAction = "DELETE_CPS_ACTION_ROLE"
 	RequestCpsUserCreate         RequestAction = "CREATE_CPS_USER"
 	RequestCpsUserUpdate         RequestAction = "UPDATE_CPS_USER"
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
@@ -282,18 +293,24 @@ const (
 	RequestDeleteDeviceVersion        RequestAction = "DELETE_DEVICE_VERSION"
 	RequestEnableDisableDeviceVersion RequestAction = "ENABLE_DISABLE_DEVICE_VERSION"
 
-	RequestUpdateDepartment         RequestAction = "UPDATE_DEPARTMENT"
-	RequestDeleteDepartment         RequestAction = "DELETE_DEPARTMENT"
-	RequestEnableDepartment         RequestAction = "ENABLE_DEPARTMENT"
-	RequestDisableDepartment        RequestAction = "DISABLE_DEPARTMENT"
-	RequestEnableDisableDepartment  RequestAction = "ENABLE_DISABLE_DEPARTMENT"
-	RequestEnableDisableCustomer    RequestAction = "ENABLE_DISABLE_CUSTOMER"
-	RequestApproveFaydaCustomer     RequestAction = "APPROVE_FAYDA_CUSTOMER"
-	RequestCreateWallet             RequestAction = "CREATE_WALLET"
-	RequestUpdateWallet             RequestAction = "UPDATE_WALLET"
-	RequestDeleteWallet             RequestAction = "DELETE_WALLET"
-	RequestEnableWallet             RequestAction = "ENABLE_WALLET"
-	RequestDisableWallet            RequestAction = "DISABLE_WALLET"
+	RequestUpdateDepartment        RequestAction = "UPDATE_DEPARTMENT"
+	RequestDeleteDepartment        RequestAction = "DELETE_DEPARTMENT"
+	RequestEnableDepartment        RequestAction = "ENABLE_DEPARTMENT"
+	RequestDisableDepartment       RequestAction = "DISABLE_DEPARTMENT"
+	RequestEnableDisableDepartment RequestAction = "ENABLE_DISABLE_DEPARTMENT"
+	RequestEnableDisableCustomer   RequestAction = "ENABLE_DISABLE_CUSTOMER"
+	RequestApproveFaydaCustomer    RequestAction = "APPROVE_FAYDA_CUSTOMER"
+	RequestCreateWallet            RequestAction = "CREATE_WALLET"
+	RequestUpdateWallet            RequestAction = "UPDATE_WALLET"
+	RequestDeleteWallet            RequestAction = "DELETE_WALLET"
+	RequestEnableWallet            RequestAction = "ENABLE_WALLET"
+	RequestDisableWallet           RequestAction = "DISABLE_WALLET"
+
+	// Services catalog (model.Services)
+	RequestCreateService            RequestAction = "CREATE_SERVICE"
+	RequestUpdateService            RequestAction = "UPDATE_SERVICE"
+	RequestEnableService            RequestAction = "ENABLE_SERVICE"
+	RequestDisableService           RequestAction = "DISABLE_SERVICE"
 	RequestUpdatePasswordExpiry     RequestAction = "UPDATE_PASSWORD_EXPIRY"
 	RequestCreateValidation         RequestAction = "CREATE_VALIDATION"
 	RequestUpdateValidation         RequestAction = "UPDATE_VALIDATION"
@@ -360,6 +377,12 @@ const (
 	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
 	// for vault group category
 	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
 	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
@@ -399,9 +422,11 @@ const (
 	RequestUpdateHQBlockTime       RequestAction = "UPDATE_HQ_BLOCK_TIME"
 	RequestUpdateHQArchiveTime     RequestAction = "UPDATE_HQ_ARCHIVE_TIME"
 
-	RequestCreateBudgetCategory RequestAction = "CREATE_BUDGET_CATEGORY"
-	RequestDeleteBudgetCategory RequestAction = "DELETE_BUDGET_CATEGORY"
-	RequestUpdateBudgetCategory RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestCreateBudgetCategory  RequestAction = "CREATE_BUDGET_CATEGORY"
+	RequestDeleteBudgetCategory  RequestAction = "DELETE_BUDGET_CATEGORY"
+	RequestUpdateBudgetCategory  RequestAction = "UPDATE_BUDGET_CATEGORY"
+	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
+	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
@@ -476,6 +501,12 @@ const (
 	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
 	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
 	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 )
 
 type RegistrationType string
@@ -738,4 +769,40 @@ const (
 	Update     Type = "UPDATE"
 	Deletion   Type = "DELETION"
 	End        Type = "END"
+)
+
+type KafkaTopic string
+
+const (
+	ClientOrchestrationMemberTopic               KafkaTopic = "member.sync.cps"
+	ClientOrchestrationKycTopic                  KafkaTopic = "kyc.sync.cps"
+	ClientOrchestrationAccessControlTopic        KafkaTopic = "access_control.sync.cps"
+	ClientOrchestrationLinkedAccountTopic        KafkaTopic = "linked_account.sync.cps"
+	ClientOrchestrationAccountBlockTopic         KafkaTopic = "account_block.sync.cps"
+	ClientOrchestrationAccountValidationTopic    KafkaTopic = "account_validation.sync.cps"
+	ClientOrchestrationDeviceVersionControlTopic KafkaTopic = "device_version_control.sync.cps"
+	ClientOrchestrationDonationTopic             KafkaTopic = "donation.sync.cps"
+	ClientOrchestrationDonationCategoryTopic     KafkaTopic = "donation_category.sync.cps"
+	ClientOrchestrationDonationCompanyTopic      KafkaTopic = "donation_company.sync.cps"
+	ClientOrchestrationBudgetCategoryTopic       KafkaTopic = "budget_category.sync.cps"
+	ClientOrchestrationArticleTopic              KafkaTopic = "news_article.sync.cps"
+	ClientOrchestrationShortVideoTopic           KafkaTopic = "short_video.sync.cps"
+	ClientOrchestrationNewsCategoryTopic         KafkaTopic = "news_category.sync.cps"
+	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
+	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
+	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+)
+
+type FinancialInstitutionType string
+
+const (
+	Bank   FinancialInstitutionType = "BANK"
+	Wallet FinancialInstitutionType = "WALLET"
+	MFI    FinancialInstitutionType = "MFI"
+)
+
+type maxMemory int64
+
+const (
+	MaxMemoryForUpload maxMemory = 15 << 20 // 15 MB
 )

@@ -1,6 +1,6 @@
 package productcode
 
-import "cbe-super-app-cps-action/internal/constants/model"
+import "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 type UpdateProductCodeRequest struct {
 	ID                 string             `json:"id" form:"id"`

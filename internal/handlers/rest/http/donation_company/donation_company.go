@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type paginatedDonationCompanyListResponse types.PaginatedResponse[[]donation_company.DonationCompanyListResponse]
@@ -43,19 +44,22 @@ func InitDonationCompanyAdapter(donationCompanyApp service.DonationCompanyServic
 //	@Security		BearerAuth
 //	@Router			/donation_company [get]
 func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompany", "handler", "donationCompany")
+	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	if filterParams.Page < 0 || filterParams.PerPage < 0 {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
 	donationCompanies, err := d.donationCompanyApp.FetchDonationCompany(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("donation_company.count", len(donationCompanies.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompaniesFetched, donationCompanies)
 }
 
@@ -74,16 +78,19 @@ func (d *donationCompanyAdapter) FetchDonationCompany(w http.ResponseWriter, r *
 //	@Security		BearerAuth
 //	@Router			/donation_company/{id} [get]
 func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchDonationCompanyById", "handler", "donationCompany")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required to fetch one")
 		localization.SendErrorResponse(w, localization.ErrorDonationCompanyIdRequired, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
+	span.SetAttributes(attribute.String("donation_company.id", id))
 	donationCompany, err := d.donationCompanyApp.FetchDonationCompanyByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -107,20 +114,29 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 //	@Security		BearerAuth
 //	@Router			/donation_company [post]
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCompany", "handler", "donationCompany")
+	defer span.End()
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to parse donation company request from multipart form: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	if err := req.Validate(); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("donation company request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	formattedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	req.PhoneNumber = formattedPhone
-	if err := d.donationCompanyApp.CreateDonationCompany(r.Context(), req); err != nil {
+	span.SetAttributes(
+		attribute.String("donation_company.name", req.CompanyName),
+		attribute.String("donation_company.account_number", req.AccountNumber),
+	)
+	if err := d.donationCompanyApp.CreateDonationCompany(ctx, req); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to create donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -148,6 +164,8 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 //	@Security		BearerAuth
 //	@Router			/donation_company/{id} [patch]
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCompany", "handler", "donationCompany")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for update")
@@ -157,19 +175,26 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 
 	req, err := core.ParseRequestFromMultipartForm(r, false)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to parse donation company update request from multipart form: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
 	if err := req.ValidateForUpdate(); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("donation company update request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	updatedDonationCompany, err := d.donationCompanyApp.UpdateDonationCompany(r.Context(), id, req)
+	span.SetAttributes(
+		attribute.String("donation_company.id", id),
+		attribute.String("donation_company.name", req.CompanyName),
+	)
+	updatedDonationCompany, err := d.donationCompanyApp.UpdateDonationCompany(ctx, id, req)
 	if err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to update donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -180,16 +205,19 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 }
 
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "donationCompanyAccountLookup", "handler", "donationCompany")
+	defer span.End()
 	accountNumber := chi.URLParam(r, "account_number")
 	if accountNumber == "" {
 		d.logger.Errorf("account nmumber is required to fetch one")
 		localization.SendErrorResponse(w, localization.ErrorAccountNumberRequired, nil, nil)
 		return
 	}
-	ctx := r.Context()
 
+	span.SetAttributes(attribute.String("donation_company.account_number", accountNumber))
 	accountInfo, err := d.donationCompanyApp.AccountLookup(ctx, accountNumber)
 	if err != nil {
+		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
@@ -212,6 +240,8 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 //	@Router			/donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCompany", "handler", "donationCompany")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for diable")
@@ -219,7 +249,9 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 		return
 	}
 
-	if err := d.donationCompanyApp.EnableDonationCompany(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("donation_company.id", id))
+	if err := d.donationCompanyApp.EnableDonationCompany(ctx, id); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to enable donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -243,6 +275,8 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 //	@Router			/donation_company/enable/{id} [patch]
 
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for disable")
@@ -250,7 +284,9 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 		return
 	}
 
-	if err := d.donationCompanyApp.DisableDonationCompany(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("donation_company.id", id))
+	if err := d.donationCompanyApp.DisableDonationCompany(ctx, id); err != nil {
+		span.RecordError(err)
 		d.logger.Errorf("failed to disable donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

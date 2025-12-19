@@ -4,7 +4,6 @@ import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	dto "cbe-super-app-cps-action/internal/constants/dto/donation_company"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
@@ -12,6 +11,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -109,11 +110,12 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 		result.CompanyName = existing.CompanyName
 	}
 
-	if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
-		result.CompanyCode = "DON-COMPANY-" + donationCompany.CompanyCode
-	} else {
-		result.CompanyCode = existing.CompanyCode
-	}
+	// if donationCompany.CompanyCode != "" && donationCompany.CompanyCode != existing.CompanyCode {
+	// 	result.CompanyCode = "DON-COMPANY-" + donationCompany.CompanyCode
+	// } else {
+	// 	result.CompanyCode = existing.CompanyCode
+	// }
+	result.CompanyCode = existing.CompanyCode
 
 	if donationCompany.AccountNumber != existing.AccountNumber {
 		result.AccountNumber = donationCompany.AccountNumber
@@ -133,7 +135,7 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 		result.Email = existing.Email
 	}
 
-	if donationCompany.PhoneNumber != "" && donationCompany.Address != existing.Address {
+	if donationCompany.Address != "" && donationCompany.Address != existing.Address {
 		result.Address = donationCompany.Address
 	} else {
 		result.Address = existing.Address
@@ -154,29 +156,32 @@ func MapToDonationCompanyonUpdateCPSRequest(id string, existing dto.DonationComp
 }
 
 func IsDataSimilar(request dto.DonationCompanyRequest, existing *model.DonationCompany) bool {
-	// Check if company name is the same (if provided in request)
 	if request.CompanyName != "" && request.CompanyName != existing.CompanyName {
 		return false
 	}
 
-	// Check if the company code is the same
 	if request.CompanyCode != "" && request.CompanyCode != existing.CompanyCode {
 		return false
 	}
 
-	// Check if account number is the same (if provided in request)
-	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
-		return false
-	}
-
-	// Check if logo is being updated
 	if request.CompanyLogo != nil {
 		return false
 	}
 
-	// If no fields are provided, consider it similar
-	if request.CompanyName == "" && request.AccountNumber == "" {
-		return true
+	if request.AccountNumber != "" && request.AccountNumber != existing.AccountNumber {
+		return false
+	}
+
+	if request.Address != "" && request.Address != existing.Address {
+		return false
+	}
+
+	if request.PhoneNumber != "" && request.PhoneNumber != existing.PhoneNumber {
+		return false
+	}
+
+	if request.Email != "" && request.Email != existing.Email {
+		return false
 	}
 
 	return true
@@ -235,13 +240,12 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
 
-	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
+	donationImages := make([]shared_types.DonationImage, len(donationResponse.DonationImages))
 	for i, img := range donationResponse.DonationImages {
-		createdAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
-		donationImages[i] = types.DonationImage{
+		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: createdAt,
+			CreatedAt: img.CreatedAt,
 		}
 	}
 

@@ -13,10 +13,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"mime/multipart"
 
 	// "math/rand"
 	mathrand "math/rand"
-	"mime/multipart"
 	"net/http"
 
 	"os"
@@ -35,43 +35,15 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 const alphanumberic string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func IsWeakPin(pin string) bool {
-	// Check for repeated digits
-	if strings.Count(pin, string(pin[0])) == len(pin) {
-		return true
-	}
-	// Check for sequential patterns
-	isAscending := true
-	isDescending := true
-	for i := 1; i < len(pin); i++ {
-		if pin[i] != pin[i-1]+1 {
-			isAscending = false
-		}
-		if pin[i] != pin[i-1]-1 {
-			isDescending = false
-		}
-	}
-	return isAscending || isDescending
-}
-
-func ValidateFullName(value interface{}) error {
-	fullName := fmt.Sprintf("%s", value)
-	name := strings.Split(fullName, " ")
-
-	if len(name) != 2 {
-		return fmt.Errorf("invalid full name")
-	}
-	if len(name[0]) < 3 || len(name[1]) < 3 {
-		return fmt.Errorf("invalid full name")
-	}
-	return nil
-}
 
 func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	var allowedMIMETypes = map[string]bool{
@@ -114,70 +86,6 @@ func OTPGenerator(length uint8) string {
 	return string(result)
 }
 
-func GenerateUsername(fullName string) string {
-	fullName = strings.TrimSpace(fullName)
-	parts := strings.Fields(fullName)
-	if len(parts) < 2 {
-		return strings.ToLower(strings.ReplaceAll(fullName, " ", ""))
-	}
-	first := strings.ToLower(parts[0])
-	last := strings.ToLower(parts[len(parts)-1])
-	clean := func(s string) string {
-		var b strings.Builder
-		for _, r := range s {
-			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
-				b.WriteRune(r)
-			}
-		}
-		return b.String()
-	}
-	first = clean(first)
-	last = clean(last)
-	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
-	num := r.Intn(900) + 100 // 100-999
-	return fmt.Sprintf("%s.%s%d", first, last, num)
-}
-
-func GenerateUserCode() string {
-	const prefix = "CBEUSR-"
-
-	// Generate a random number between 0 and 999999999999
-	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
-	number := r.Int63n(1000000000000) // 12 digits
-
-	// Format with leading zeros to ensure 12 digits
-	return fmt.Sprintf("%s%012d", prefix, number)
-}
-
-func GenerateRandom(digit int) string {
-	if digit <= 0 {
-		return ""
-	}
-
-	min := intPow(10, digit-1)
-	max := intPow(10, digit) - 1
-	if digit == 1 {
-		min = 0
-	}
-
-	// Ensure the range is valid and non-negative formathrand.Intn
-	rangeSize := max - min + 1
-	if rangeSize <= 0 {
-		return ""
-	}
-
-	generatedNumber := min + mathrand.Intn(rangeSize)
-	result := strconv.Itoa(generatedNumber)
-	return result
-}
-
-func intPow(a, b int) int {
-	result := 1
-	for i := 0; i < b; i++ {
-		result *= a
-	}
-	return result
-}
 func GenerateSalt(length int) (string, error) {
 	bytes := make([]byte, length)
 	_, err := mathrand.Read(bytes)
@@ -197,30 +105,6 @@ func SignWithHS256(data string, saltHex string) (string, error) {
 	h := hmac.New(sha256.New, key)
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil)), nil
-}
-
-func CheckLoginThrottle(attempts uint8, lastAttempt time.Time) error {
-	elapsed := time.Since(lastAttempt)
-	var waitDuration time.Duration
-
-	switch {
-	case attempts >= 5:
-		waitDuration = 10 * time.Minute
-	case attempts == 4:
-		waitDuration = 5 * time.Minute
-	case attempts == 3:
-		waitDuration = 2 * time.Minute
-	default:
-		return nil
-	}
-
-	if elapsed < waitDuration {
-		// remaining := waitDuration - elapsed
-		// minutes := int(remaining.Minutes())
-		return errors.New(localization.ErrorUserTooManyLoginAttempts.Code)
-	}
-
-	return nil
 }
 
 func FilterIdFor(id string) (bson.M, error) {
@@ -269,15 +153,6 @@ func ExtractUserInfo(ctx context.Context, log utils.Logger) (*types.UserInfo, er
 	}, nil
 }
 
-func ExtractNextStep(ctx context.Context, log utils.Logger) (string, error) {
-	step, ok := ctx.Value(constants.ContextKey("next_step")).(string)
-	if !ok {
-		log.Errorf("faile to get next step from context")
-		return "", errors.New(localization.ErrorInvalidRequest.Code)
-	}
-	return step, nil
-}
-
 func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string, handler map[string]func(interface{}) interface{}) bson.M {
 	filter := bson.M{}
 
@@ -302,7 +177,7 @@ func BuildMongoFilterWithKeys(input map[string]interface{}, allowedKeys []string
 		switch v := value.(type) {
 		case string:
 			if v != "" {
-				filter[key] = bson.M{"$regex": v, "$options": "i"}
+				filter[key] = v
 			}
 		case []interface{}:
 			if len(v) > 0 {
@@ -336,12 +211,6 @@ func NonEmptyString(s, fallback string) string {
 	}
 	return fallback
 }
-func NonEmptyNotificationFor(newFor string, oldFor constants.NotificationFor) constants.NotificationFor {
-	if newFor != "" {
-		return constants.NotificationFor(newFor)
-	}
-	return oldFor
-}
 
 func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 
@@ -354,82 +223,18 @@ func ExtractID(w http.ResponseWriter, r *http.Request) (string, error) {
 }
 
 func NonEmptyBool(newVal, oldVal bool) bool {
-	// Handles updates correctly (req can explicitly override old value)
 	if newVal != oldVal {
 		return newVal
 	}
 	return oldVal
 }
 
-// MergeProductCodes merges by ProductCode value (not index)
-func MergeProductCodes(newPCs []types.ProductCode, oldPCs []types.ProductCode) []types.ProductCode {
-	if len(newPCs) == 0 {
-		return oldPCs
-	}
-
-	// Map old codes by ProductCode for quick lookup
-	oldMap := make(map[string]types.ProductCode)
-	for _, pc := range oldPCs {
-		oldMap[pc.ProductCode] = pc
-	}
-
-	updated := make([]types.ProductCode, 0, len(newPCs))
-	for _, pc := range newPCs {
-		if existing, found := oldMap[pc.ProductCode]; found {
-			updated = append(updated, types.ProductCode{
-				ID:             existing.ID,
-				BranchType:     constants.BranchType(pc.BranchType),
-				ProductCode:    NonEmptyString(pc.ProductCode, existing.ProductCode),
-				VATCode:        NonEmptyString(pc.VATCode, existing.VATCode),
-				ServiceFeeCode: NonEmptyString(pc.ServiceFeeCode, existing.ServiceFeeCode),
-			})
-		} else {
-			// New ProductCode → assign new ID
-			updated = append(updated, types.ProductCode{
-				ID:             utils.RandomGenerator(20),
-				BranchType:     constants.BranchType(pc.BranchType),
-				ProductCode:    pc.ProductCode,
-				VATCode:        pc.VATCode,
-				ServiceFeeCode: pc.ServiceFeeCode,
-			})
-		}
-	}
-
-	return updated
-}
-
-func NonZeroTime(t, fallback time.Time) time.Time {
-	if !t.IsZero() {
-		return t
-	}
-	return fallback
-}
-
-func NonZeroUint64(n, fallback uint64) uint64 {
-	if n != 0 {
-		return n
-	}
-	return fallback
-}
-
 // nonEmptyAdvertFor returns the new value if non-empty, otherwise the old value
-func NonEmptyAdvertFor(new, old constants.AdvertFor) constants.AdvertFor {
+func NonEmptyAdvertFor(new, old shared_constant.AdvertFor) shared_constant.AdvertFor {
 	if new != "" {
 		return new
 	}
 	return old
-}
-
-// nonEmptyAdvertDate returns the new date if non-zero, otherwise the old date
-func NonEmptyAdvertDate(new, old types.AdvertDate) types.AdvertDate {
-	result := old
-	if !new.StartedAt.IsZero() {
-		result.StartedAt = new.StartedAt
-	}
-	if !new.ExpiredAt.IsZero() {
-		result.ExpiredAt = new.ExpiredAt
-	}
-	return result
 }
 
 func BindAction(source any, target any) error {
@@ -478,6 +283,7 @@ func NoSpecialChars(value any) error {
 	}
 	return nil
 }
+
 func FormatPhoneNumber(phoneNumber string) string {
 	phoneNumber = strings.TrimSpace(phoneNumber)
 
@@ -535,39 +341,6 @@ func ExtraSpaceRemover(s string) string {
 	return strings.TrimSpace(strings.Join(strings.Split(s, " "), " "))
 }
 
-// --- FUNCTION 1: PARSING ---
-
-// ParseLockPeriod converts a string (e.g., "30d", "6m", "1y") into a time.Duration.
-// It uses consistent, simple approximations for 'm' (30 days) and 'y' (365 days)
-// to generate the base time duration.
-func ParseLockPeriod(s string) (time.Duration, error) {
-	if len(s) < 2 {
-		return 0, fmt.Errorf("invalid lock period format")
-	}
-
-	unit := s[len(s)-1]      // last character: 'd', 'm', 'y'
-	valueStr := s[:len(s)-1] // number part
-	value, err := strconv.Atoi(valueStr)
-	if err != nil {
-		return 0, fmt.Errorf("invalid number in lock period: %v", err)
-	}
-
-	// Constants for days
-	const daysInMonth = 30
-	const daysInYear = 365
-
-	switch strings.ToLower(string(unit)) {
-	case "d":
-		return time.Duration(value) * 24 * time.Hour, nil
-	case "m":
-		return time.Duration(value*daysInMonth) * 24 * time.Hour, nil
-	case "y":
-		return time.Duration(value*daysInYear) * 24 * time.Hour, nil
-	default:
-		return 0, fmt.Errorf("invalid unit in lock period: %s", string(unit))
-	}
-}
-
 // --- FUNCTION 2: CONVERSION ---
 
 // DurationToMonths correctly converts a time.Duration back into the number of months.
@@ -597,6 +370,34 @@ func DurationToMonths(d any) int {
 	months := int(math.Round(years * 12.0))
 
 	return months
+}
+
+func ParseToYears(s string) (float64, error) {
+	if len(strings.TrimSpace(s)) < 2 {
+		return 0, fmt.Errorf("invalid lock period format")
+	}
+
+	s = strings.TrimSpace(s)
+	unit := strings.ToLower(s[len(s)-1:])       // last character
+	valueStr := strings.TrimSpace(s[:len(s)-1]) // everything except unit
+
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid number in lock period: %v", err)
+	}
+
+	const daysPerYear = 365.0
+
+	switch unit {
+	case "d":
+		return value / daysPerYear, nil
+	case "m":
+		return value / 12.0, nil
+	case "y":
+		return value, nil
+	default:
+		return 0, fmt.Errorf("invalid unit in lock period: %s", unit)
+	}
 }
 
 func NullStringToPtrLike(ns sql.NullString) *string {
@@ -656,36 +457,6 @@ func NullBoolToBool(nb sql.NullBool) bool {
 	return nb.Valid && nb.Bool
 }
 
-type PaginatedResponse[T any] struct {
-	Items       []T   `json:"items"`
-	Page        int64 `json:"page"`
-	Limit       int64 `json:"limit"`
-	Total       int64 `json:"total"`
-	TotalPages  int64 `json:"total_pages"`
-	HasNextPage bool  `json:"has_next_page"`
-	HasPrevPage bool  `json:"has_prev_page"`
-}
-
-func NewPaginatedResponse[T any](data []T, page, limit, total int64) PaginatedResponse[T] {
-	if limit <= 0 {
-		limit = 50
-	}
-	if page <= 0 {
-		page = 1
-	}
-	totalPages := (total + limit - 1) / limit
-
-	return PaginatedResponse[T]{
-		Items:       data,
-		Page:        page,
-		Limit:       limit,
-		Total:       total,
-		TotalPages:  totalPages,
-		HasNextPage: page < totalPages,
-		HasPrevPage: page > 1,
-	}
-}
-
 func LocalEncryptPassword(password string, dataType string, userSalt string, action string, cfg *config.VaultConfig) (string, string, error) {
 
 	var signedPass, salt string
@@ -722,37 +493,6 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	return hex.EncodeToString(encrypted), salt, nil
 }
 
-func LocalDecryptPassword(encryptedHex string, cfg *config.VaultConfig) (string, error) {
-	key := []byte(cfg.Key)
-	iv := []byte(cfg.IV)
-
-	if len(key) != 32 || len(iv) != aes.BlockSize {
-		return "", localization.ErrorInvalidKey
-	}
-
-	encrypted, err := hex.DecodeString(encryptedHex)
-	if err != nil {
-		return "", err
-	}
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-	if len(encrypted)%aes.BlockSize != 0 {
-		return "", localization.ErrorInvalidEncData
-	}
-
-	mode := cipher.NewCBCDecrypter(block, iv)
-	decrypted := make([]byte, len(encrypted))
-	mode.CryptBlocks(decrypted, encrypted)
-	// Remove PKCS#7 padding
-	padLen := int(decrypted[len(decrypted)-1])
-	if padLen > aes.BlockSize || padLen == 0 {
-		return "", localization.ErrorInvalidPadding
-	}
-	return string(decrypted[:len(decrypted)-padLen]), nil
-}
-
 func NumbersOnly(value any) error {
 	str, ok := value.(string)
 	if !ok {
@@ -763,4 +503,13 @@ func NumbersOnly(value any) error {
 		return validation.NewError("validation", "contains invalid characters")
 	}
 	return nil
+}
+
+func TraceLogger(ctx context.Context, key, spanName, serviceType, serviceName string) (context.Context, trace.Span) {
+	tracer := otel.Tracer(key)
+	ctx, span := tracer.Start(ctx, spanName)
+	span.SetAttributes(attribute.String(serviceType, serviceName))
+
+	return ctx, span
+
 }

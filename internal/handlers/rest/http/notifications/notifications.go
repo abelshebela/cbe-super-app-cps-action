@@ -12,6 +12,7 @@ import (
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type notificationRequest notification.NotificationRequest
@@ -39,6 +40,8 @@ func InitNotificationHandler(svc service.NotificationService, logger utils.Logge
 //	@Security		BearerAuth
 //	@Router			/notifications [post]
 func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createNotification", "handler", "notification")
+	defer span.End()
 	req, ok := core.ParseAndValidateNotificationRequest(w, r, true)
 	if !ok {
 		return
@@ -46,16 +49,24 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 
 	maker, err := common_utils.ExtractUserInfo(r.Context(), h.logger)
 	if err != nil {
+		span.RecordError(err)
 		return
 	}
 
 	req.CreatedBy = maker.UserID
 	domainReq := core.ToDomainNotificationRequest(req)
-	_, err = h.service.CreateNotification(r.Context(), domainReq)
+	span.SetAttributes(
+		attribute.String("notification.created_by", maker.UserID),
+	)
+
+	_, err = h.service.CreateNotification(ctx, domainReq)
 	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[CreateNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 }
 
@@ -75,6 +86,8 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/{id} [patch]
 func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateNotification", "handler", "notification")
+	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
 		return
@@ -91,11 +104,15 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	domainReq := core.ToDomainNotificationRequest(req)
-	_, err = h.service.UpdateNotification(r.Context(), id, domainReq)
+	span.SetAttributes(attribute.String("notification.id", id))
+	_, err = h.service.UpdateNotification(ctx, id, domainReq)
 	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[UpdateNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[UpdateNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
 }
 
@@ -114,6 +131,8 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/{id} [delete]
 func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteNotification", "handler", "notification")
+	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
 		return
@@ -124,10 +143,14 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.DeleteNotification(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("notification.id", id))
+	if err := h.service.DeleteNotification(ctx, id); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[DeleteNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DeleteNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
 }
 
@@ -146,20 +169,28 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/enable/{id} [patch]
 func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableNotification", "handler", "notification")
+	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
+		span.RecordError(err)
 		return
 	}
 
 	_, err = common_utils.ExtractUserInfo(r.Context(), h.logger)
 	if err != nil {
+		span.RecordError(err)
 		return
 	}
 
-	if err := h.service.EnableNotification(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("notification.id", id))
+	if err := h.service.EnableNotification(ctx, id); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[EnableNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[EnableNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
 }
 
@@ -178,20 +209,28 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/disable/{id} [patch]
 func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableNotification", "handler", "notification")
+	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
+		span.RecordError(err)
 		return
 	}
 
 	_, err = common_utils.ExtractUserInfo(r.Context(), h.logger)
 	if err != nil {
+		span.RecordError(err)
 		return
 	}
 
-	if err := h.service.DisableNotification(r.Context(), id); err != nil {
+	span.SetAttributes(attribute.String("notification.id", id))
+	if err := h.service.DisableNotification(ctx, id); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[DisableNotification] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DisableNotification] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
 }
 
@@ -210,41 +249,61 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/notifications/{id} [get]
 func (h *handler) FetchNotificationByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchNotificationById", "handler", "notification")
+	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
+		span.RecordError(err)
 		return
 	}
 
-	data, err := h.service.FetchNotificationByID(r.Context(), id)
+	span.SetAttributes(attribute.String("notification.id", id))
+	data, err := h.service.FetchNotificationByID(ctx, id)
 	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[FetchNotificationByID] service error: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorNotificationFetchFailed, nil, nil)
 		return
 	}
 
+	h.logger.Infof("[FetchNotificationByID] notification retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationRetrieved, data)
 }
 
 // FetchNotifications godoc
 //
 //	@Summary		List notifications
-//	@Description	Retrieve notifications with pagination and optional search
+//	@Description	Retrieve notifications with pagination, filtering, and search. Searchable fields: title, notification_code, notification_body, notification_type.
 //	@Tags			Notification
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																	false	"Page number"		default(1)
-//	@Param			per_page	query		int																	false	"Items per page"	default(10)
-//	@Param			search		query		string																false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=paginatedNotificationResponse}	"Notifications retrieved successfully"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Param			page				query	int		false	"Page number"		default(1)
+//	@Param			per_page			query	int		false	"Items per page"	default(10)
+//	@Param			search				query	string	false	"Search term (searches title, notification_code, notification_body, notification_type)"
+//	@Param			is_public			query	bool	false	"Filter by public status"
+//	@Param			notification_type	query	string	false	"Filter by notification type"
+//	@Param			notification_code	query	string	false	"Filter by notification code"
+//	@Param			for					query	string	false	"Filter by notification for"
+//	@Param			seen				query	bool	false	"Filter by seen status"
+//	@Param			enabled				query	bool	false	"Filter by enabled status"
+//	@Param			title				query	string	false	"Filter by title"
+//	@Success		200	{object}	localization.StandardResponse{data=paginatedNotificationResponse}	"Notifications retrieved successfully"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/notifications [get]
 func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchNotifications", "handler", "notification")
+	defer span.End()
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	filterParams := common_utils.ExtractFilterParams(r)
-	data, err := h.service.FetchNotifications(r.Context(), filterParams)
+	data, err := h.service.FetchNotifications(ctx, filterParams)
 	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[FetchNotifications] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	span.SetAttributes(attribute.Int("notification.count", len(data.Data)))
+	h.logger.Infof("[FetchNotifications] retrieved %d notifications", len(data.Data))
 	localization.SendSuccessResponse(w, localization.SuccessNotificationsRetrieved, data)
 }

@@ -2,11 +2,10 @@ package fayda
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-
+member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -14,20 +13,20 @@ import (
 )
 
 type FaydaStorage struct {
-	dal    dal.MongoDal[model.User, model.User]
+	dal    dal.MongoDal[member.User, member.User]
 	client *mongo.Client
 	logger utils.Logger
 }
 
 func InitFaydaAccountPersistence(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.FaydaRepository {
 	return &FaydaStorage{
-		dal:    dal.NewMongoDal[model.User, model.User](client, dbName, collection),
+		dal:    dal.NewMongoDal[member.User, member.User](client, dbName, collection),
 		client: client,
 		logger: logger,
 	}
 }
 
-func (f *FaydaStorage) FindByUserCode(ctx context.Context, user_code string) (*model.User, error) {
+func (f *FaydaStorage) FindByUserCode(ctx context.Context, user_code string) (*member.User, error) {
 	filter := bson.M{"user_code": user_code}
 	user, err := f.dal.FindOne(ctx, filter, bson.M{})
 	if err != nil {
@@ -40,7 +39,7 @@ func (f *FaydaStorage) FindByUserCode(ctx context.Context, user_code string) (*m
 	return user, nil
 }
 
-func (p *FaydaStorage) Update(ctx context.Context, user *model.User, isEnabled bool) error {
+func (p *FaydaStorage) Update(ctx context.Context, user *member.User, isEnabled bool) error {
 	filter := bson.M{"user_code": user.UserCode}
 	update := bson.M{"$set": bson.M{"enabled": isEnabled}}
 

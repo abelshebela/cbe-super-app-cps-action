@@ -9,11 +9,13 @@ import (
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 type paginatedBankResp types.PaginatedResponse[[]*bank_dto.BankResponse]
@@ -38,6 +40,7 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Produce		json
 //	@Param			name	formData	string									true	"Bank name"	example("Commercial Bank")
 //	@Param			code	formData	string									true	"Bank code"	example("CBE")
+//	@Param			type	formData	string									true	"Bank type"	example("Commercial")
 //	@Param			bic		formData	string									true	"Bank BIC"	example("CBETETAA")
 //	@Param			logo	formData	file									true	"Bank logo (<=2MB; jpeg/png/gif/webp)"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank create request sent"
@@ -47,10 +50,13 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Security		BearerAuth
 //	@Router			/banks [post]
 func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createOneBank", "handler", "bank")
+	defer span.End()
 	var bankRequest bank_dto.CreateBankRequest
 
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), b.logger)
 	if err != nil {
+		span.RecordError(err)
 		b.logger.Errorf("error parsing file: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
 		return
@@ -60,20 +66,29 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
+	bankRequest.Type = constants.FinancialInstitutionType(r.FormValue("type"))
 	bankRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
 		b.logger.Errorf("invalid input", response_code)
+		span.SetAttributes(attribute.String("invalid input", response_code.Code))
 		localization.SendErrorResponse(w, response_code, nil, nil)
 		return
 	}
 
-	err = b.bankService.CreateOneBank(r.Context(), bankRequest)
+	span.SetAttributes(
+		attribute.String("bank.code", bankRequest.Code),
+		attribute.String("bank.name", bankRequest.Name),
+	)
+
+	err = b.bankService.CreateOneBank(ctx, bankRequest)
 	if err != nil {
-		b.logger.Errorf("bank create request failed", err)
+		span.RecordError(err)
+		b.logger.Errorf("[CreateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	b.logger.Infof("[CreateOneBank] request sent successfully for bank code: %s", bankRequest.Code)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
@@ -92,6 +107,8 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [delete]
 func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteOneBank", "handler", "bank")
+	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		b.logger.Errorf("missing or invalid parameter 'id'")
@@ -99,14 +116,18 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := b.bankService.DeleteOneBank(r.Context(), id)
+	span.SetAttributes(attribute.String("bank.id", id))
+
+	err := b.bankService.DeleteOneBank(ctx, id)
 
 	if err != nil {
-		b.logger.Errorf("bank delete request failed", err)
+		span.RecordError(err)
+		b.logger.Errorf("[DeleteOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.ErrorBankDeleteRequestFailed.Code)
 		return
 	}
 
+	b.logger.Infof("[DeleteOneBank] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessDeleteRequestCreated, nil)
 }
 
@@ -125,19 +146,24 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/disable [patch]
 func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBank", "handler", "bank")
+	defer span.End()
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
 		b.logger.Errorf("missing or invalid parameter 'id'")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	err := b.bankService.EnableOrDisableBank(r.Context(), id, false)
+	err := b.bankService.EnableOrDisableBank(ctx, id, false)
 	if err != nil {
-		b.logger.Errorf("disable request failed", err)
+		span.RecordError(err)
+		b.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	b.logger.Infof("[Disable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankDisableRequestCreated, nil)
 }
 
@@ -156,19 +182,24 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/enable [patch]
 func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBank", "handler", "bank")
+	defer span.End()
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
 		b.logger.Errorf("missing or invalid parameter 'id'")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	err := b.bankService.EnableOrDisableBank(r.Context(), id, true)
+	err := b.bankService.EnableOrDisableBank(ctx, id, true)
 	if err != nil {
-		b.logger.Errorf("enable request failed", err)
+		span.RecordError(err)
+		b.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	b.logger.Infof("[Enable] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankEnableRequestCreated, nil)
 }
 
@@ -187,15 +218,20 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks [get]
 func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBanks", "handler", "bank")
+	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
-	banks, err := b.bankService.GetAllBank(r.Context(), filterParams)
+	banks, err := b.bankService.GetAllBank(ctx, filterParams)
 	if err != nil {
-		b.logger.Errorf("get all banks failed", err)
+		span.RecordError(err)
+		b.logger.Errorf("[GetAllBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	span.SetAttributes(attribute.Int("bank.count", len(banks.Data)))
+	b.logger.Infof("[GetAllBank] retrieved %d banks", len(banks.Data))
 	localization.SendSuccessResponse(w, localization.SuccessGetAllBanks, banks)
 }
 
@@ -214,21 +250,27 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [get]
 func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getOneBank", "handler", "bank")
+	defer span.End()
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
+
 	if id == "" {
 		b.logger.Errorf("missing or invalid parameter 'id'")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
 		return
 	}
 
-	bank, err := b.bankService.GetOneBank(r.Context(), id)
+	bank, err := b.bankService.GetOneBank(ctx, id)
 
 	if err != nil {
-		b.logger.Errorf("get bank by id failed", err)
+		span.RecordError(err)
+		b.logger.Errorf("[GetOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[GetOneBank] bank retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessGetOneBank, bank)
 }
 
@@ -248,8 +290,11 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/logo [patch]
 func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateBankLogo", "handler", "bank")
+	defer span.End()
 	var uploadLogo bank_dto.UpdateLogo
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
 		b.logger.Errorf("missing or invalid parameter 'id'")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -266,14 +311,16 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 	uploadLogo.Logo = fileHeader
 	uploadLogo.ID = id
 
-	err = b.bankService.UpdateLogo(r.Context(), id, uploadLogo)
+	err = b.bankService.UpdateLogo(ctx, id, uploadLogo)
 
 	if err != nil {
-		b.logger.Errorf("Error uploading bank logo", err)
+		span.RecordError(err)
+		b.logger.Errorf("[UpdateLogo] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[UpdateLogo] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFileUploadedToMinIO, nil)
 }
 
@@ -293,7 +340,10 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [patch]
 func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateOneBank", "handler", "bank")
+	defer span.End()
 	id := chi.URLParam(r, "id")
+	span.SetAttributes(attribute.String("bank.id", id))
 	if id == "" {
 		b.logger.Errorf("missing or invalid parameter 'id'")
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -302,10 +352,9 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	var updateRequest bank_dto.UpdateBankRequest
 	file, fileHeader, err := bank_core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.Update), b.logger)
 	if err != nil {
-		// var ErrorFileNotFound = errors.New("file not found")
+		span.RecordError(err)
 		if strings.Contains(err.Error(), "file not found") {
 			b.logger.Infof("No logo uploaded; skipping logo update")
-			// return
 		} else {
 			b.logger.Errorf("error parsing file: %v", err)
 			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
@@ -322,19 +371,24 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
-	updateRequest.Logo = fileHeader
+	updateRequest.Type = constants.FinancialInstitutionType(r.FormValue("type"))
+
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
+		span.SetAttributes(attribute.String("invalid input", response_code.Code))
 		b.logger.Errorf("invalid input", response_code)
 		localization.SendErrorResponse(w, response_code, nil, nil)
 		return
 	}
 
+	span.SetAttributes(attribute.String("bank.id", id))
 
-	if err = b.bankService.UpdateOneBank(r.Context(), id, updateRequest); err != nil {
-		b.logger.Errorf("bank update request failed", err)
+	if err = b.bankService.UpdateOneBank(ctx, id, updateRequest); err != nil {
+		span.RecordError(err)
+		b.logger.Errorf("[UpdateOneBank] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	b.logger.Infof("[UpdateOneBank] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessBankUpdatedRequestSent, nil)
 }

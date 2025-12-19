@@ -2,10 +2,11 @@ package account_block
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -32,13 +33,13 @@ func AccountBlockMapperForUpdate(block model.AccountBlock) bson.M {
 	if block.Type != "" {
 		update["type"] = block.Type
 	}
-	if block.CityID != "" {
+	if block.CityID != nil {
 		update["city_id"] = block.CityID
 	}
-	if block.DistrictID != "" {
+	if block.DistrictID != nil {
 		update["district_id"] = block.DistrictID
 	}
-	if block.RegionID != "" {
+	if block.RegionID != nil {
 		update["region_id"] = block.RegionID
 	}
 	if block.ParentID != nil {
@@ -62,6 +63,7 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 ) ([]*model.AccountBlock, error) {
 	pipeline := mongo.Pipeline{
 		// 1. Match documents based on the initial filter
+
 		{{Key: "$match", Value: filter}},
 
 		// Sorting main documents
@@ -130,9 +132,9 @@ func FindAccountBlocksWithParentPopulatedRecursive(
 		Slug            string                 `bson:"slug"`
 		Type            model.AccountBlockType `bson:"type"`
 		IsEnabled       bool                   `bson:"is_enabled"`
-		CityID          string                 `bson:"city_id,omitempty"`
-		DistrictID      string                 `bson:"district_id,omitempty"`
-		RegionID        string                 `bson:"region_id,omitempty"`
+		CityID          *bson.ObjectID         `bson:"city_id,omitempty"`
+		DistrictID      *bson.ObjectID         `bson:"district_id,omitempty"`
+		RegionID        *bson.ObjectID         `bson:"region_id,omitempty"`
 		IsDeleted       bool                   `bson:"is_deleted,omitempty"`
 		CreatedAt       time.Time              `bson:"created_at"`
 		UpdatedAt       time.Time              `bson:"updated_at"`
@@ -234,4 +236,28 @@ func buildParentHierarchy(ancestors []model.AccountBlock) *model.AccountBlock {
 	}
 
 	return nil
+}
+
+// Helper to handle single or multiple IDs
+func ApplyIDFilter(filter bson.M, param map[string]interface{}, key string) {
+	if idStr, ok := param[key].(string); ok && idStr != "" {
+		if objID, err := bson.ObjectIDFromHex(idStr); err == nil {
+			filter[key] = objID
+		}
+		return
+	}
+
+	if idList, ok := param[key].([]interface{}); ok {
+		var ids []bson.ObjectID
+		for _, v := range idList {
+			if idStr, ok := v.(string); ok {
+				if objID, err := bson.ObjectIDFromHex(idStr); err == nil {
+					ids = append(ids, objID)
+				}
+			}
+		}
+		if len(ids) > 0 {
+			filter[key] = bson.M{"$in": ids}
+		}
+	}
 }

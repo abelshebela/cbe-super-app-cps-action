@@ -198,9 +198,14 @@ const (
 	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
 	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
 	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
-	// Budget Category related success messages
-	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
+	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
 
+	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
+	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
+	MsgVaultAmountTierUpdateRequestSubmitted  = "Vault amount tier update request submitted successfully"
+	MsgVaultAmountTierDeleteRequestSubmitted  = "Vault amount tier delete request submitted successfully"
+	MsgVaultAmountTierDisableRequestSubmitted = "Vault amount tier disable request submitted successfully"
+	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
@@ -315,11 +320,11 @@ const (
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
 	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
-	MsgCpsUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCpsUserDeletedSuccessfully      = "CPS user deleted request sent successfully"
 	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
 	MsgCpsUserRetrievedSuccessfully    = "CPS user retrieved successfully"
-	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
-	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
+	MsgCpsUserEnabledSuccessfully      = "CPS user enabled request sent successfully"
+	MsgCpsUserDisabledSuccessfully     = "CPS user disable request sent successfully"
 
 	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
@@ -407,8 +412,10 @@ const (
 	MsgWalletImageRequiredOrMissing          = "Required wallet image invalid or missing"
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
+	MsgServiceExists                         = "Service already exists"
 	MsgInvalidFormat                         = "Invalid format"
 	MsgInvalidInputParameter                 = "Invalid input parameter"
+	MsgActionNameIsRequired                  = "Action name is required"
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgExistEmail                            = "cps user with this email already exist"
@@ -459,6 +466,8 @@ const (
 	MsgBankNameRequired          = "Bank name is required"
 	MsgBankCodeRequired          = "Bank code is required"
 	MsgBankBICRequired           = "Bank BIC is required"
+	MsgBankAccountLengthRequired = "Bank account length is required"
+	MsgBankAccountLengthInvalid  = "Bank account length is invalid"
 	MsgInvalidBankName           = "Invalid bank name"
 	MsgBankNameTooShort          = "Bank name too short"
 	MsgBankNameTooLong           = "Bank name too long"
@@ -475,9 +484,10 @@ const (
 	MsgCompanyNameAlreadyExists          = "Company name already exists"
 	MsgCompanyCodeAlreadyExists          = "Company code already exists"
 	MsgDonationTitleAlreadyExists        = "Donation title already exists"
-	MsgAccountNumberAlreadyExists        = "Donation company with this account number already exists"
+	MsgAccountNumberAlreadyExists        = "company with this account number already exists"
 	MsgEmailAlreadyExists                = "Email already exists"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
+	MsgCodeAlreadyExists                 = "Ecommerce merchant with this code/id already exists"
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
@@ -582,8 +592,8 @@ const (
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
 	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
 	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantEnableFailed   = "mini app merchant already enabled"
-	MsgMiniAppMerchantDisableFailed  = "mini app merchant already disabled"
+	MsgMiniAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
+	MsgMiniAppMerchantEnableFailed   = "ecommerce merchant is already enabled"
 	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
 	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
 
@@ -683,10 +693,11 @@ const (
 	// General business error messages
 	MsgDuplicateKey                     = "Duplicate key error"
 	MsgDuplicateAction                  = "Duplicate action error"
-	MsgOneOrMoreInvalidCodes            = "One or more invalid codes"
+	MsgOneOrMoreInvalidCodes            = "One or more invalid ids"
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
+	MsgActionNameAlreadyExists          = "Action name already exists"
 	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
 	MsgResourceAlreadyExists            = "Resource already exists"
 	MsgResourceUpdateFailed             = "Failed to update resource"
@@ -717,6 +728,7 @@ const (
 	MsgInvalidRequestBankName           = "invalid format for Name: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankCode           = "invalid format for Code: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankBIC            = "invalid format for BIC: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankType           = "invalid format for Bank Type: only letters, numbers, and spaces are allowed"
 	MsgNoDataProvidedForBankUpdate      = "No data provided for Bank update"
 	MsgInvalidToken                     = "Invalid token"
 	MsgCustomerPermanentlyDisabled      = "Customer account is permanently disabled"
@@ -786,10 +798,12 @@ const (
 	MsgNotificationDeleteFailed    = "Failed to delete notification"
 
 	// Customer related error messages
-	MsgCustomerCountFailed     = "Failed to count customers"
-	MsgCustomerConvertIDFailed = "Failed to convert customer ID"
-	MsgCustomerNotFound        = "Customer not found"
-	MsgCustomerFetchFailed     = "Failed to get customer"
+	MsgCustomerCountFailed                         = "Failed to count customers"
+	MsgCustomerConvertIDFailed                     = "Failed to convert customer ID"
+	MsgCustomerNotFound                            = "Customer not found"
+	MsgCustomerFetchFailed                         = "Failed to get customer"
+	MsgCustomerCIFMustContainOnlyNumbers           = "CIF must contain only numbers"
+	MsgCustomerAccountNumberMustContainOnlyNumbers = "Account number must contain only numbers"
 
 	// Account Validation related error messages
 	MsgValidationRuleGetFailed                = "Failed to get validation rule"
@@ -810,6 +824,8 @@ const (
 	MsgDonationAlreadyDisabled        = "Donation already disabled"
 	MsgDonationCategoryNameDuplicated = "donation category name already exist"
 	MsgNoChangesToUpdate              = "no changes to update"
+	MsgBudgetCategoryAlreadyEnabled   = "Budget category already enabled"
+	MsgBudgetCategoryAlreadyDisable   = "Budget category already disabled"
 	MsgDonationParseStartDateFailed   = "Failed to parse start date"
 	MsgDonationParseEndDateFailed     = "Failed to parse end date"
 	MsgDonationFetchCompanyFailed     = "Failed to fetch company"
@@ -864,7 +880,8 @@ const (
 	MsgBudgetCategoryRequestSubmittedForApprovalSuccess = "Budget category creation request submitted for approval"
 	MsgBudgetCategoryUpdateSubmittedForApprovalSuccess  = "Budget category update request submitted for approval"
 	MsgBudgetCategoryDeleteSubmittedForApprovalSuccess  = "Budget category deletion request submitted for approval"
-	MsgBudgetCategoryToggleSubmittedForApprovalSuccess  = "Budget category enable/disable request submitted for approval"
+	MsgBudgetCategoryEnableSubmittedForApprovalSuccess  = "Budget category enable request submitted for approval"
+	MsgBudgetCategoryDisableSubmittedForApprovalSuccess = "Budget category disable request submitted for approval"
 	MsgDonationCompanyLogoUpdateSuccess                 = "Successfully uploaded updated donation company logo"
 	MsgDonationImageUploadSuccess                       = "Successfully uploaded donation image"
 	MsgDonationImagesUpdateSuccess                      = "Successfully uploaded updated donation images"
@@ -949,17 +966,17 @@ const (
 
 	MsgInvalidDistrict                   = "Invalid district"
 	MsgInvalidRegion                     = "Invalid region"
-	MsgInvalidDistrictOrRegionCodeLength = "Region and District codes must be at least 3 characters long"
-	MsgBranchCodeRequired                = "Branch code is required"
+	MsgInvalidDistrictOrRegionCodeLength = "Region and District id must be at least 3 characters long"
+	MsgBranchCodeRequired                = "Branch id is required"
 	MsgBranchAlreadyEnabled              = "Branch already enabled"
 	MsgBranchAlreadyDisabled             = "Branch already disabled"
-	MsgDistrictCodeRequired              = "District code is required"
+	MsgDistrictCodeRequired              = "District id is required"
 	MsgDistrictAlreadyEnabled            = "District already enabled"
 	MsgDistrictAlreadyDisabled           = "District already disabled"
-	MsgRegionCodeRequired                = "Region code is required"
+	MsgRegionCodeRequired                = "Region id is required"
 	MsgRegionAlreadyEnabled              = "Region already enabled"
 	MsgRegionAlreadyDisabled             = "Region already disabled"
-	MsgCityCodeRequired                  = "City code is required"
+	MsgCityCodeRequired                  = "City id is required"
 	MsgCityAlreadyEnabled                = "City already enabled"
 	MsgCityAlreadyDisabled               = "City already disabled"
 
@@ -969,6 +986,9 @@ const (
 	MsgCityNotFound           = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
+	MsgCannotEnableDistrict   = "Cannot enable district, its region is blocked"
+	MsgCannotEnableCity       = "Cannot enable city, its district is blocked"
+	MsgCannotEnableBranch     = "Cannot enable branch, its city is already blocked"
 
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
@@ -990,8 +1010,8 @@ const (
 	MsgUserFaydaAccountAlreadyDisabled        = "Fayda user account already disabled"
 	MsgNotFaydaUser                           = "This user is not fayda user"
 
-	MsgAlreadyEnabled  = "Donation company already enabled"
-	MsgAlreadyDisabled = "Donation comapany already disabled"
+	MsgAlreadyEnabled  = "Already enabled"
+	MsgAlreadyDisabled = "Already disabled"
 
 	MsgBucketNotFound = "bucket not found"
 
@@ -1028,4 +1048,28 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
+
+	// transaction related messages
+	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess   = "Transaction retrieved successfully"
+	MsgTransactionIDRequired         = "Transaction ID is required"
+	MsgTransactionIdentifierRequired = "Transaction Identifier is required"
+
+	// event merchant message
+	MsgEventMerchantCreatedSuccessfully  = "Event merchant created successfully"
+	MsgEventMerchantInvalidID            = "merchant id invalid or empty"
+	MsgEventMerchantInvalidType          = "merchant type invalid or empty"
+	MsgEventMerchantInvalidMethod        = "merchant method invalid or empty"
+	MsgEventMerchantInvalidName          = "merchant name invalid or empty"
+	MsgEventMerchantInvalidAccountNumber = "merchant account number invalid or empty"
+	MsgEventMerchantInvalidEmail         = "merchant email invalid or empty"
+	MsgEventMerchantInvalidPhoneNumber   = "merchant phone number invalid or empty"
+	MsgEventMerchantEnableFailed         = "event merchant already enabled"
+	MsgEventMerchantDisableFailed        = "event merchant already disabled"
+	MsgEventMerchantNotFound             = "event merchant not found"
+	MsgEventMerchantDisabledSuccessfully = "event merchant disabled successfully"
+	MsgEventMerchantEnabledSuccessfully  = "event merchant enabled successfully"
+	MsgEventMerchantUpdatedSuccessfully  = "event merchant updated successfully"
+	MsgEventMerchantDeletedSuccessfully  = "event merchant deleted successfully"
+	MsgEventMerchantFetchedSuccessfully  = "event merchant fetched successfully"
 )

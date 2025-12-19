@@ -3,8 +3,9 @@ package bulk_service
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/bulk_service"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	// "fmt"
 
@@ -14,6 +15,8 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	util "cbe-super-app-cps-action/pkgs/utils"
+
+	"go.opentelemetry.io/otel/attribute"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -41,20 +44,27 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 //	@Produce		json
 //	@Param			page		query		int																	false	"Page number"		default(1)
 //	@Param			per_page	query		int																	false	"Items per page"	default(10)
-//	@Param			search		query		string																false	"Search term"
+//	@Param			search		query		string																false	"Search term access_list_name and key"
+//	@Param			ussd_enabled		query		string														false	"Search term"
+//	@Param			enabled		query		string																false	"Search term"
 //	@Success		200			{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/bulk_services [get]
 func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
+	defer span.End()
 	filter_params := util.ExtractFilterParams(r)
-	bulk_services, err := h.bulkService.GetAllBulkServices(r.Context(), filter_params)
+	bulk_services, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
 	if err != nil {
-		h.logger.Errorf("Error while fetch all bulk services: %v\n", err)
+		span.RecordError(err)
+		h.logger.Errorf("[GetAllBulkServices] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, localization.UnableToFetchBulkService.Code)
 		return
 	}
+	span.SetAttributes(attribute.Int("bulk_service.count", len(bulk_services.Data)))
+	h.logger.Infof("[GetAllBulkServices] retrieved %d bulk services", len(bulk_services.Data))
 	localization.SendSuccessResponse(w, localization.BulkServiceFetchSuccessfully, bulk_services)
 
 }
@@ -73,19 +83,27 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/bulk_services/enable [post]
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
+	defer span.End()
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to decode payload")
+		span.RecordError(err)
+		h.logger.Errorf("[EnableBulkService] failed to decode request: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
-	err := h.bulkService.EnableBulkService(r.Context(), req.Keys)
+	span.SetAttributes(attribute.Int("bulk_service.keys_count", len(req.Keys)))
+	err := h.bulkService.EnableBulkService(ctx, req.Keys)
 	if err != nil {
-		h.logger.Errorf("Enable bulk service request failed: %v\n", err)
+		span.RecordError(err)
+		h.logger.Errorf("[EnableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
+	h.logger.Infof("[EnableBulkService] request sent successfully for %d service keys", len(req.Keys))
 	localization.SendSuccessResponse(w, localization.BulkServiceEnableRequestSuccess, nil)
 }
 
@@ -103,17 +121,25 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 //	@Security		BearerAuth
 //	@Router			/bulk_services/disable [post]
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
+	defer span.End()
 	var req dto.BulkServiceDTO
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Errorf("failed to decode payload")
+		span.RecordError(err)
+		h.logger.Errorf("[DisableBulkService] failed to decode request: %v", err)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidRequestBody.Code)
+		return
 	}
 
-	err := h.bulkService.DisableBulkService(r.Context(), req.Keys)
+	span.SetAttributes(attribute.Int("bulk_service.keys_count", len(req.Keys)))
+	err := h.bulkService.DisableBulkService(ctx, req.Keys)
 	if err != nil {
-		h.logger.Errorf("Disable bulk service request failed: %v\n", err)
+		span.RecordError(err)
+		h.logger.Errorf("[DisableBulkService] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	h.logger.Infof("[DisableBulkService] request sent successfully for %d service keys", len(req.Keys))
 	localization.SendSuccessResponse(w, localization.BulkServiceDisableRequestSuccess, nil)
 }

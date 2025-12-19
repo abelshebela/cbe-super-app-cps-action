@@ -9,6 +9,8 @@ pipeline {
     
 
     environment {
+        TELEGRAM_TOKEN = credentials('TELEGRAM_TOKEN')
+        TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
         SERVICE_NAME = "cps-action"
         FILE_PATH = "scripts/docker-compose.yml"
         DOCKER_FILE_PATH = "scripts/Dockerfile"
@@ -59,6 +61,11 @@ pipeline {
                         env.ENV_TYPE = 'DEV'
                         env.IMAGE_NAME = 'cps-action-dev'
                         env.SSH_KEY = 'DEV_SSH_KEY'
+                    }
+                    else if (env.BRANCH_NAME == 'uat') {
+                        env.ENV_TYPE = 'UAT'
+                        env.IMAGE_NAME = 'cps-action-uat'
+                        env.SSH_KEY = 'UAT_SSH_KEY'
                     }
                     else {
                         error "Unsupported branch: ${env.BRANCH_NAME}"
@@ -165,5 +172,23 @@ pipeline {
                 }
             }
         }        
+    }
+    post {
+        success {
+            sh """
+            curl -X POST \
+            https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+            -d chat_id=${TELEGRAM_CHAT_ID}  \
+            -d text="Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            """
+        }
+        failure {
+            sh """
+            curl -X POST \
+            https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+            -d chat_id=${TELEGRAM_CHAT_ID}  \
+            -d text="Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            """
+        }
     }
 }

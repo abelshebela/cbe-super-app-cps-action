@@ -3,7 +3,6 @@ package fayda
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	cps_const "cbe-super-app-cps-action/internal/service/cps_action"
 	"cbe-super-app-cps-action/internal/service/fayda/core"
@@ -13,7 +12,11 @@ import (
 	"errors"
 	"time"
 
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type faydaService struct {
@@ -31,26 +34,36 @@ func NewFaydaService(faydaRepo storage.FaydaRepository, cpsService service.CPSAc
 }
 
 func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code string, isEnabled bool) error {
-	f.logger.Infof("Enabling fayda, user_code: %s", user_code)
+	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisableFayda", "Fayda", "EnableOrDisableFayda")
+	defer span.End()
+
+	f.logger.Infof("[EnableOrDisableFayda] processing fayda account, enabled: %v", isEnabled)
 
 	existingUser, err := f.faydaRepo.FindByUserCode(ctx, user_code)
 	if err != nil {
-		f.logger.Errorf("Failed to fetch fayda user by user_code: %s | Error: $%v", user_code, err)
+		f.logger.Errorf("[EnableOrDisableFayda] failed to fetch fayda user: %v", err)
+		span.AddEvent("Failed to fetch fayda user", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", user_code),
+		))
 		return err
 	}
 
-	if existingUser.KYCLevel != 1 {
-		f.logger.Errorf("User with user_code: %s is not a fayda account user | Error: %v", user_code, err)
-		return errors.New(localization.ErrorNotFaydaUser.Code)
-	}
-
 	if isEnabled && existingUser.Enabled {
-		f.logger.Errorf("Fayda user acccount already enabled | user_code: %s", user_code)
+		f.logger.Errorf("[EnableOrDisableFayda] fayda user account already enabled")
+		span.AddEvent("Fayda user account already enabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFaydaUserAccountEnabled.Code),
+			attribute.String("user_code", user_code),
+		))
 		return errors.New(localization.ErrorFaydaUserAccountEnabled.Code)
 	}
 
 	if !isEnabled && !existingUser.Enabled {
-		f.logger.Errorf("Fayda user acccount already disabled | user_code: %s", user_code)
+		f.logger.Errorf("[EnableOrDisableFayda] fayda user account already disabled")
+		span.AddEvent("Fayda user account already disabled", trace.WithAttributes(
+			attribute.String("error", localization.ErrorFaydaUserAccountDisabled.Code),
+			attribute.String("user_code", user_code),
+		))
 		return errors.New(localization.ErrorFaydaUserAccountDisabled.Code)
 	}
 
@@ -67,46 +80,67 @@ func (f *faydaService) EnableOrDisableFayda(ctx context.Context, user_code strin
 
 	err = core.HandleCPSAction(ctx, f.cpsService, existingUser.ID.Hex(), requestAction, currUser, existingUser, constants.ActionUpdate)
 	if err != nil {
-		f.logger.Errorf("Failed to create CPS action for fayda account enable/disable | user_code: %s and Error: %v", user_code, err)
+		f.logger.Errorf("[EnableOrDisableFayda] failed to create CPS action: %v", err)
+		span.AddEvent("Failed to create CPS action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("user_code", user_code),
+		))
 		return err
 	}
 
-	f.logger.Infof("Fayda Account with user_code: %s submitted to be enable/disable", user_code)
+	f.logger.Infof("[EnableOrDisableFayda] fayda account enable/disable request created successfully")
 	return nil
 }
 
 func (f *faydaService) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
-	f.logger.Infof("Fayda service authorizing action: %s", cpsAction.ActionCode)
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Fayda", "Authorize")
+	defer span.End()
 
-	var faydaUser *model.User
+	f.logger.Infof("[Authorize] authorizing fayda action: %s", cpsAction.RequestAction)
+
+	var faydaUser *member.User
 	if err := local_util.BindAction(cpsAction.CurrentAction, &faydaUser); err != nil {
-		f.logger.Errorf("Failed to bind current action to fayda: %v", err)
+		f.logger.Errorf("[Authorize] failed to bind current action to fayda: %v", err)
+		span.AddEvent("Failed to bind current action", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("unique_id", cpsAction.UniqueId),
+		))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
-	var err error
 	switch cpsAction.RequestAction {
 	case string(cps_const.RequestEnableFaydaAccount):
 		err := f.faydaRepo.Update(ctx, faydaUser, true)
 		if err != nil {
+			f.logger.Errorf("[Authorize] failed to enable fayda account: %v", err)
+			span.AddEvent("Failed to enable fayda account", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
 			return nil, err
 		}
+		f.logger.Infof("[Authorize] fayda account enabled successfully")
 	case string(cps_const.RequestDisableFaydaAccount):
 		err := f.faydaRepo.Update(ctx, faydaUser, false)
 		if err != nil {
+			f.logger.Errorf("[Authorize] failed to disable fayda account: %v", err)
+			span.AddEvent("Failed to disable fayda account", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
 			return nil, err
 		}
+		f.logger.Infof("[Authorize] fayda account disabled successfully")
 	default:
-		f.logger.Errorf("Unsupported action request: %s", cpsAction.RequestAction)
+		f.logger.Errorf("[Authorize] unsupported action: %s", cpsAction.RequestAction)
+		span.AddEvent("Unsupported action", trace.WithAttributes(
+			attribute.String("error", localization.ErrorUnsupportedAction.Code),
+			attribute.String("request_action", string(cpsAction.RequestAction)),
+		))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 
-	if err != nil {
-		f.logger.Errorf("Failed to process fayda service with request action: %s and error: %v", cpsAction.RequestAction, err)
-		return nil, err
-	}
-
 	cpsAction.CurrentAction = faydaUser
-	f.logger.Infof("Fayda account authorization completed for request action: %s and user: %v", cpsAction.RequestAction, faydaUser.ID)
+	f.logger.Infof("[Authorize] fayda account action authorized successfully: %s", cpsAction.RequestAction)
 	return cpsAction, nil
 }

@@ -51,6 +51,11 @@ pipeline {
                         env.IMAGE_NAME = 'cbe-supperapp-cps-action-dev'
                         env.SSH_KEY = 'DEV_SSH_KEY'
                     }
+                    else if (env.BRANCH_NAME == 'uat') {
+                        env.ENV_TYPE = 'UAT'
+                        env.IMAGE_NAME = 'cbe-supperapp-cps-action-uat'
+                        env.SSH_KEY = 'UAT_SSH_KEY'
+                    }
                     else {
                         error "Unsupported branch: ${env.BRANCH_NAME}"
                     }

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
@@ -11,25 +10,23 @@ import (
 type MiniApp struct {
 	ID                  bson.ObjectID               `bson:"_id" json:"id"`
 	CategoryID          bson.ObjectID               `bson:"category_id" json:"category_id"`
+	ProductCodeID       bson.ObjectID               `bson:"product_code_id" json:"product_code_id"`
+	MerchantID          bson.ObjectID               `bson:"merchant_id" json:"merchant_id"`
+	AppCode             string                      `bson:"app_code" json:"app_code"`
 	AppName             string                      `bson:"app_name" json:"app_name"`
 	AppIcon             string                      `bson:"app_icon" json:"app_icon"`
-	AppCode             string                      `bson:"app_code" json:"app_code"`
+	AppType             string                      `bson:"app_type" json:"app_type"`
 	BannerImage         string                      `bson:"banner_image" json:"banner_image"`
-	CommissionGLAccount string                      `bson:"commison_gl_account" json:"commison_gl_account,omitempty"`
-	AppType             constants.AppType           `bson:"app_type" json:"app_type"`
-	MerchantID          string                      `bson:"merchant_id" json:"merchant_id"`
-	ProductCode         []types.ProductCode         `bson:"product_code" json:"product_code"`
-	Credential          types.CredentialInformation `bson:"credential" json:"credential,omitempty"`
-	URL                 string                      `bson:"url" json:"url,omitempty"`
-	AppViewType         constants.AppViewType       `bson:"app_view_type" json:"app_view_type"`
-	Stage               constants.Stage             `bson:"stage" json:"stage"`
-	IsEventMiniApp      bool                        `bson:"is_event_mini_app" json:"is_event_mini_app"`
-	IsThreeClick        bool                        `bson:"is_three_click" json:"is_three_click"`
+	URL                 string                      `bson:"url" json:"url"`
+	AppViewType         string                      `bson:"app_view_type" json:"app_view_type"`
+	CommissionGLAccount string                      `bson:"commission_gl_account" json:"commission_gl_account"`
+	IsFeatured          bool                        `bson:"is_featured" json:"is_featured"`
 	Enabled             bool                        `bson:"enabled" json:"enabled"`
 	IsDeleted           bool                        `bson:"is_deleted" json:"is_deleted"`
 	CreatedAt           time.Time                   `bson:"created_at" json:"created_at"`
-	LastModifiedAt      time.Time                   `bson:"last_modified_at" json:"last_modified_at"`
-	DeletedAt           time.Time                   `bson:"deleted_at" json:"deleted_at"`
+	UpdatedAt           time.Time                   `bson:"last_modified_at" json:"last_modified_at"`
+	DeletedAt           *time.Time                  `bson:"deleted_at" json:"deleted_at"`
+	Credential          types.CredentialInformation `bson:"credential" json:"credential"`
 }
 
 type MiniAppCategory struct {

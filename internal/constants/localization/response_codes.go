@@ -154,6 +154,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleEnableRequestCreated,
 	SuccessActionRoleDisableRequestCreated,
 
+	// event merchant success response codes
+	SuccessEventMerchantCreated,
+	SuccessEventMerchantDisabled,
+	SuccessEventMerchantEnabled,
+	SuccessEventMerchantUpdated,
+	SuccessEventMerchantDeleted,
+	SuccessEventMerchantFetched,
+
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -271,8 +279,10 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorActionNameAlreadyExists,
 	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
+	ErrorActionNameIsRequired,
 	ErrorInvalidInputParameters,
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
@@ -295,6 +305,7 @@ var ResponseCodesList = []ResponseCode{
 	//wallet related error codes
 	ErrorWalletNameRequired,
 	ErrorWalletCodeRequired,
+	ErrorWalletTypeRequired,
 	ErrorWalletAvatarRequired,
 	ErrorWalletAvatarInvalid,
 	ErrorWalletAvatarTooLarge,
@@ -308,6 +319,9 @@ var ResponseCodesList = []ResponseCode{
 	ErrorWalletIDRequired,
 	ErrorWalletNotFound,
 	ErrorWalletUpdateEmptyPayload,
+	ErrorInvalidWalletCode,
+	ErrorInvalidWalletType,
+	ErrorInvalidWalletName,
 
 	//topup related error codes
 	ErrorTopupNameRequired,
@@ -341,6 +355,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorBranchNotFound,
 	ErrorDistrictNotFound,
+	ErrorCannotEnableDistrict,
+	ErrorCannotEnableBranch,
 	ErrorRegionNotFound,
 	ErrorCityNotFound,
 
@@ -424,6 +440,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAvatarNotExist,
 	ErrorBulkServiceAlreadyEnabled,
 	ErrorDuplicateCBEIFBProductCode,
+	ErrorCustomerAccountNumberMustContainOnlyNumbers,
+	ErrorCustomerCIFMustContainOnlyNumbers,
 	//service details
 	ErrorSingleMaxTransferCannotBeLessOrEqualToMinAmount,
 	ErrorTotalMaxTransferCannotBeLessExistTransfers,
@@ -444,6 +462,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorNoChangesDetected,
 	ErrorDonationCategoryLookupFailed,
 	ErrorNoChangesToUpdate,
+	ErrorBudgetCategoryAlreadyEnabled,
+	ErrorBudgetCategoryAlreadyDisabled,
 	ErrorDonationParseStartDateFailed,
 	ErrorDonationParseEndDateFailed,
 	ErrorDonationFetchCompanyFailed,
@@ -467,6 +487,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
+	ErrorCodeAlreadyExist,
 	ErrorLogoIsRequired,
 	ErrorAccountNumberValidationFailed,
 	ErrorAccountNumberNotActive,
@@ -522,9 +543,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessVaultGroupCategoryDeleteRequestSubmitted,
 	SuccessVaultGroupCategoryEnableRequestSubmitted,
 	SuccessVaultGroupCategoryDisableRequestSubmitted,
+	SuccessVaultAmountTierCreationRequestSubmitted,
+	SuccessVaultAmountTierFetchedSuccessfully,
+	SuccessVaultAmountTierUpdateRequestSubmitted,
+	SuccessVaultAmountTierDeleteRequestSubmitted,
+	SuccessVaultAmountTierDisableRequestSubmitted,
 	ErrorFailedToBeingTransaction,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
+	ErrorCannotDeleteActiveVaultGroupCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
 	ErrorCannotEnableOrDisable,
@@ -542,6 +569,27 @@ var ResponseCodesList = []ResponseCode{
 
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
+
+	// transaction related responses
+	SuccessTransactionRetrieved,
+	ErrorTransactionIDRequired,
+	ErrorTransactionIdentifierRequired,
+
+	// bank related errors
+	ErrorInvalidAccountNumberFormat,
+	ErrorInvalidFormatForBIC,
+	ErrorInvalidFormatForType,
+	ErrorInvalidFormatForCode,
+	ErrorInvalidFormatForName,
+
+	// event mercahnt error
+	ErrorEventMerchantInvalidMerchantID,
+	ErrorEventMerchantInvalidMerchantType,
+	ErrorEventMerchantInvalidSettlementMethod,
+	ErrorEventMerchantInvalidMerchantName,
+	ErrorEventMerchantInvalidBankAccountNumber,
+	ErrorEventMerchantInvalidEmail,
+	ErrorEventMerchantInvalidPhoneNumber,
 }
 
 // Success Response Codes
@@ -1301,6 +1349,43 @@ var (
 		Message:    MsgVaultGroupCategoryDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessVaultAmountTierCreationRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierCreated,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_VAULT_RETRIEVED_SUCCEFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierFetchedSuccessfully,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierUpdateRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierDeleteRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierDeleteRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierDisableRequestSubmitted,
+		Type:       "success",
+	}
+	SuccessVaultAmountTierEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_VAULT_AMOUNT_TIER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgVaultAmountTierEnableRequestSubmitted,
+		Type:       "success",
+	}
+
 	// Event related error response codes for bankvault
 	ErrorEventNameRequired = ResponseCode{
 		Code:       "ERROR_EVENT_NAME_REQUIRED",
@@ -1561,11 +1646,19 @@ var (
 
 	//
 	ErrorTopupNameAlreadyExists = ResponseCode{
-		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
+		Code:       "ERROR_TOPUP_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Topup with the given name and code already exists",
+		Message:    "Topup with the given name already exists",
 		Type:       "error",
 	}
+
+	ErrorTopupcoDEAlreadyExists = ResponseCode{
+		Code:       "ERROR_TOPUP_WITH_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Topup with the given code already exists",
+		Type:       "error",
+	}
+
 	ErrorTopupCodeAlreadyExists = ResponseCode{
 		Code:       "ERROR_TOPUP_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
@@ -1660,10 +1753,36 @@ var (
 		Type:       "error",
 	}
 
+	ErrorInvalidWalletName = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_NAME",
+		StatusCode: 400,
+		Message:    "Invalid wallet name, special characters are not allowed",
+		Type:       "error",
+	}
+
+	ErrorInvalidWalletCode = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_CODE",
+		StatusCode: 400,
+		Message:    "Invalid wallet code, special characters are not allowed",
+		Type:       "error",
+	}
+	ErrorInvalidWalletType = ResponseCode{
+		Code:       "ERROR_INVALID_WALLET_TYPE",
+		StatusCode: 400,
+		Message:    "Invalid wallet type, special characters are not allowed",
+		Type:       "error",
+	}
+
 	ErrorWalletCodeRequired = ResponseCode{
 		Code:       "ERROR_WALLET_CODE_REQUIRED",
 		StatusCode: 400,
 		Message:    "Wallet code is required",
+		Type:       "error",
+	}
+	ErrorWalletTypeRequired = ResponseCode{
+		Code:       "ERROR_WALLET_TYPE_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet type is required",
 		Type:       "error",
 	}
 
@@ -2775,10 +2894,16 @@ var (
 		Type:       "success",
 	}
 
-	SuccessBudgetCategoryToggleSubmittedForApproval = ResponseCode{
-		Code:       "BUDGET_CATEGORY_TOGGLE_SUBMITTED_FOR_APPROVAL",
+	SuccessBudgetCategoryEnableSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_ENABLE_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusOK,
-		Message:    MsgBudgetCategoryToggleSubmittedForApprovalSuccess,
+		Message:    MsgBudgetCategoryEnableSubmittedForApprovalSuccess,
+		Type:       "success",
+	}
+	SuccessBudgetCategoryDisableSubmittedForApproval = ResponseCode{
+		Code:       "BUDGET_CATEGORY_DISABLE_SUBMITTED_FOR_APPROVAL",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryDisableSubmittedForApprovalSuccess,
 		Type:       "success",
 	}
 
@@ -3057,6 +3182,43 @@ var (
 		Code:       "SUCCESS_ACTION_ROLE_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgActionRoleDisableRequestCreated,
+		Type:       "success",
+	}
+
+	SuccessEventMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgEventMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDeleted = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantUpdated = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantUpdatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantEnabled = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantDisabled = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessEventMerchantFetched = ResponseCode{
+		Code:       "SUCCESS_EVENT_MERCHANT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEventMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
 )
@@ -3375,7 +3537,18 @@ var (
 		Message:    MsgInvalidRequestBankBIC,
 		Type:       "error",
 	}
-
+	ErrorInvalidFormatForType = ResponseCode{
+		Code:       "ERROR_INVALID_FORMAT_FOR_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgInvalidRequestBankType,
+		Type:       "error",
+	}
+	ErrorInvalidAccountNumberFormat = ResponseCode{
+		Code:       "ERROR_INVALID_ACCOUNT_NUMBER_FORMAT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBankAccountLengthInvalid,
+		Type:       "error",
+	}
 	ErrorNoDataProvidedForCreate = ResponseCode{
 		Code:       "ERROR_NO_DATA_PROVIDED_FOR_CREATE",
 		StatusCode: StatusBadRequest,
@@ -3598,6 +3771,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorServiceExists = ResponseCode{
+		Code:       "ERROR_SERVICE_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgServiceExists,
+		Type:       "error",
+	}
+
 	ErrorGetAllBanksFailed = ResponseCode{
 		Code:       "ERROR_GET_ALL_BANKS_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -3637,6 +3817,12 @@ var (
 		Code:       "ERROR_INVALID_INPUT_PARAMETER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgInvalidInputParameter,
+		Type:       "error",
+	}
+	ErrorActionNameIsRequired = ResponseCode{
+		Code:       "ERROR_INVALID_ACTION_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionNameIsRequired,
 		Type:       "error",
 	}
 
@@ -3804,6 +3990,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorTransactionIdentifierRequired = ResponseCode{
+		Code:       "ERROR_TRANSACTION_IDENTIFIER_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTransactionIdentifierRequired,
+		Type:       "error",
+	}
+
 	ErrorFailedToBeingTransaction = ResponseCode{
 		Code:       "ERROR_FAILED_TO_BE_TRANSACTION",
 		StatusCode: StatusInternalServerError,
@@ -3836,6 +4029,12 @@ var (
 		Code:       "ERROR_RESOURCE_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgResourceNotFound,
+		Type:       "error",
+	}
+	ErrorActionNameAlreadyExists = ResponseCode{
+		Code:       "ERROR_ACTION_NAME_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgActionNameAlreadyExists,
 		Type:       "error",
 	}
 	ErrorOnDisablingExistingDeviceControl = ResponseCode{
@@ -4343,7 +4542,7 @@ var (
 		Type:       "error",
 	}
 	ErrorDonationAlreadyDisabled = ResponseCode{
-		Code:       "ERROR_DONATION_ALREADY_ENABLED",
+		Code:       "ERROR_DONATION_ALREADY_DISABLED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgDonationAlreadyDisabled,
 		Type:       "error",
@@ -4378,6 +4577,12 @@ var (
 		Code:       "ERROR_PHONENUMBER_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
 		Message:    MsgPhonenumberAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCodeAlreadyExist = ResponseCode{
+		Code:       "ERROR_CODE_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCodeAlreadyExists,
 		Type:       "error",
 	}
 
@@ -4425,6 +4630,19 @@ var (
 		Code:       "ERROR_NO_CHANGES_TO_UPDATE",
 		StatusCode: StatusBadRequest,
 		Message:    MsgNoChangesToUpdate,
+		Type:       "error",
+	}
+
+	ErrorBudgetCategoryAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_ALREADY_ENABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBudgetCategoryAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorBudgetCategoryAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_BUDGET_CATEGORY_ALREADY_DISABLED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBudgetCategoryAlreadyDisable,
 		Type:       "error",
 	}
 
@@ -5009,6 +5227,25 @@ var (
 		Code:       "ERROR_DISTRICT_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    MsgDistrictNotFound,
+		Type:       "error",
+	}
+	ErrorCannotEnableDistrict = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_DISTRICT",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableDistrict,
+		Type:       "error",
+	}
+	ErrorCannotEnablCity = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_CITY",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableCity,
+		Type:       "error",
+	}
+
+	ErrorCannotEnableBranch = ResponseCode{
+		Code:       "ERROR_CANNOT_ENABLE_BRANCH",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotEnableBranch,
 		Type:       "error",
 	}
 
@@ -5609,6 +5846,95 @@ var (
 		Code:       "ERROR_BPS_ACTION_ROLE_NOT_FOUND",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBpsActionRoleNotFound,
+		Type:       "error",
+	}
+
+	// Transaction Service Related Responses
+	ErrorTransactionIDRequired = ResponseCode{
+		Code:       "ERROR_TRANSACTION_ID_REQUIRED",
+		StatusCode: StatusBadRequest,
+		Message:    MsgTransactionIDRequired,
+		Type:       "error",
+	}
+	SuccessTransactionRetrieved = ResponseCode{
+		Code:       "SUCCESS_TRANSACTION_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    MsgTransactionRetrievedSuccess,
+		Type:       "success",
+	}
+
+	ErrorEventMerchantInvalidMerchantID = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidID,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidMerchantType = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidType,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidSettlementMethod = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_SETTLEMENT_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidMethod,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidMerchantName = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_MERCHANT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidName,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidBankAccountNumber = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidEmail = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidEmail,
+		Type:       "error",
+	}
+	ErrorEventMerchantInvalidPhoneNumber = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_INVALID_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgEventMerchantInvalidPhoneNumber,
+		Type:       "error",
+	}
+
+	ErrorEventMerchantNotFound = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgEventMerchantNotFound,
+		Type:       "error",
+	}
+	ErrorEventMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgEventMerchantDisableFailed,
+		Type:       "error",
+	}
+	ErrorEventMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_EVENT_MERCHANT_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgEventMerchantEnableFailed,
+		Type:       "error",
+	}
+
+	ErrorCustomerAccountNumberMustContainOnlyNumbers = ResponseCode{
+		Code:       "ERROR_CUSTOMER_ACCOUNT_NUMBER_MUST_CONTAIN_ONLY_NUMBERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerAccountNumberMustContainOnlyNumbers,
+		Type:       "error",
+	}
+	ErrorCustomerCIFMustContainOnlyNumbers = ResponseCode{
+		Code:       "ERROR_CUSTOMER_CIF_MUST_CONTAIN_ONLY_NUMBERS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCustomerCIFMustContainOnlyNumbers,
 		Type:       "error",
 	}
 )

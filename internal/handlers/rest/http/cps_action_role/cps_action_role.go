@@ -1,0 +1,197 @@
+package cps_actionrole_handler
+
+import (
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	cps_actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/service"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"encoding/json"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+)
+
+type CPSActionRoleHandler struct {
+	service service.CPSActionRoleService
+	logger  utils.Logger
+}
+
+func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logger) cps_actionrole_inbound.CPSActionRoleHandler {
+	return &CPSActionRoleHandler{service: svc, logger: logger}
+}
+
+// GetAll godoc
+// @Summary      List action roles
+// @Tags         ActionRole
+// @Accept       json
+// @Produce      json
+// @Param        page     query  int  false  "Page"
+// @Param        per_page query  int  false  "Per Page"
+// @Param        search   query  string false "Search"
+// @Success      200 {object} localization.StandardResponse
+// @Security     BearerAuth
+// @Router       /action-roles [get]
+func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
+	defer span.End()
+	filter := *local_util.ExtractFilterParams(r)
+	res, err := h.service.FindAllWithPagination(ctx, filter)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("list action roles error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("cps_action_role.count", len(res.Data)))
+	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
+}
+
+// GetByActionCode godoc
+// @Summary      Get action role by code
+// @Tags         ActionRole
+// @Produce      json
+// @Param        code  path string true "Action Code"
+// @Success      200 {object} localization.StandardResponse
+// @Security     BearerAuth
+// @Router       /action-roles/{code} [get]
+func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
+	defer span.End()
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	res, err := h.service.GetByActionCode(ctx, code)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("get action role error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
+}
+
+// Create godoc
+// @Summary      Create action role (maker)
+// @Tags         ActionRole
+// @Accept       json
+// @Produce      json
+// @Param        body body actionrole_dto.CreateActionRoleRequest true "Create"
+// @Success      201 {object} localization.StandardResponse
+// @Security     BearerAuth
+// @Router       /action-roles [post]
+func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
+	var req actionrole_dto.CreateActionRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		return
+	}
+	if req.ActionName == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.code", req.ActionCode))
+	err := h.service.Create(ctx, actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles})
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("create action role failed: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
+}
+
+// Update godoc
+// @Summary      Update action role (maker)
+// @Tags         ActionRole
+// @Accept       json
+// @Produce      json
+// @Param        code path string true "Action Code"
+// @Param        body body actionrole_dto.UpdateActionRoleRequest true "Update"
+// @Success      201 {object} localization.StandardResponse
+// @Security     BearerAuth
+// @Router       /action-roles/{code} [patch]
+func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	var req actionrole_dto.UpdateActionRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		span.RecordError(err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	err := h.service.Update(ctx, code, req)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("update action role failed: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
+}
+
+// Enable godoc
+// @Summary      Enable action role (maker)
+// @Tags         ActionRole
+// @Produce      json
+// @Param        code path string true "Action Code"
+// @Success      201 {object} localization.StandardResponse
+// @Security     BearerAuth
+// @Router       /action-roles/{code}/enable [patch]
+func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	if err := h.service.Enable(ctx, code); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("enable action role failed: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
+}
+
+// Disable godoc
+// @Summary      Disable action role (maker)
+// @Tags         ActionRole
+// @Produce      json
+// @Param        code path string true "Action Code"
+// @Success      201 {object} localization.StandardResponse
+// @Security     BearerAuth
+// @Router       /action-roles/{code}/disable [patch]
+func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
+	defer span.End()
+	code := chi.URLParam(r, "code")
+	if code == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
+		return
+	}
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
+	if err := h.service.Disable(ctx, code); err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("disable action role failed: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
+}

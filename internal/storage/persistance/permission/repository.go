@@ -4,7 +4,6 @@ import (
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -13,6 +12,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -70,8 +71,10 @@ func (r *PermissionPersistence) Create(ctx context.Context, permissionGroup *mod
 }
 
 func (r *PermissionPersistence) Update(ctx context.Context, id string, permissionGroup *model.PermissionGroup) error {
+	r.logger.Infof("[Update] updating permission group for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[Update] invalid object id: %v", err)
 		return err
 	}
 
@@ -80,12 +83,19 @@ func (r *PermissionPersistence) Update(ctx context.Context, id string, permissio
 	update = bson.M{"$set": update}
 
 	_, err = r.collections[0].UpdateOne(ctx, filter, update)
-	return err
+	if err != nil {
+		r.logger.Errorf("[Update] failed to update permission group: %v", err)
+		return err
+	}
+	r.logger.Infof("[Update] permission group updated successfully")
+	return nil
 }
 
 func (r *PermissionPersistence) Delete(ctx context.Context, id string) error {
+	r.logger.Infof("[Delete] deleting permission group for id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
+		r.logger.Errorf("[Delete] invalid object id: %v", err)
 		return err
 	}
 
@@ -93,13 +103,19 @@ func (r *PermissionPersistence) Delete(ctx context.Context, id string) error {
 	update := bson.M{"$set": bson.M{"is_deleted": true}}
 
 	_, err = r.collections[0].UpdateOne(ctx, filter, update)
-	return err
+	if err != nil {
+		r.logger.Errorf("[Delete] failed to delete permission group: %v", err)
+		return err
+	}
+	r.logger.Infof("[Delete] permission group deleted successfully")
+	return nil
 }
 
 func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model.PermissionGroup, error) {
+	r.logger.Infof("[FindByID] fetching permission group by id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		r.logger.Errorf("[FindByID] invalid object id: %v", err)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -109,18 +125,20 @@ func (r *PermissionPersistence) FindByID(ctx context.Context, id string) (*model
 	err = r.collections[0].FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			r.logger.Warnf("Permission group not found, id: %s", id)
+			r.logger.Errorf("[FindByID] permission group not found")
 			return nil, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 		}
-		r.logger.Errorf("Failed to find Permission Group, id: %s, error: %v", id, err)
+		r.logger.Errorf("[FindByID] failed to find permission group: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	r.logger.Infof("[FindByID] permission group retrieved successfully")
 	return &result, nil
 }
 func (r *PermissionPersistence) FindByIDPopulated(ctx context.Context, id string) (cps_user_dto.PermissionGroupResponse, error) {
+	r.logger.Infof("[FindByIDPopulated] fetching populated permission group by id: %s", id)
 	objectID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		r.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
+		r.logger.Errorf("[FindByIDPopulated] invalid object id: %v", err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorInvalidID.Code)
 	}
 
@@ -170,22 +188,22 @@ func (r *PermissionPersistence) FindByIDPopulated(ctx context.Context, id string
 
 	cursor, err := r.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
-		r.logger.Errorf("Failed to aggregate Permission Group, id: %s, error: %v", id, err)
+		r.logger.Errorf("[FindByIDPopulated] failed to aggregate permission group: %v", err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	defer cursor.Close(ctx)
 
 	var groups []cps_user_dto.PermissionGroupResponse
 	if err := cursor.All(ctx, &groups); err != nil {
-		r.logger.Errorf("Failed to decode Permission Group aggregation, error: %v", err)
+		r.logger.Errorf("[FindByIDPopulated] failed to decode aggregation results: %v", err)
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	if len(groups) == 0 {
-		r.logger.Warnf("Permission group not found, id: %s", id)
+		r.logger.Errorf("[FindByIDPopulated] permission group not found")
 		return cps_user_dto.PermissionGroupResponse{}, errors.New(localization.ErrorPermissionGroupNotFound.Code)
 	}
-
+	r.logger.Infof("[FindByIDPopulated] populated permission group retrieved successfully")
 	return groups[0], nil
 }
 
@@ -209,25 +227,30 @@ func (s *PermissionPersistence) FindAllWithPagination(ctx context.Context, filte
 	// 5. Fetch data
 	pipeline := PermissionGroupsPipeline(filter, skip, limit)
 
+	s.logger.Infof("[FindAllWithPagination] fetching permission groups with pagination")
 	cursor, err := s.collections[0].Aggregate(ctx, pipeline)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to aggregate permission groups: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	defer cursor.Close(ctx)
 
 	var data []*model.PermissionGroup
 	if err := cursor.All(ctx, &data); err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to decode aggregation results: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 6. Count total
 	total, err := s.collections[0].CountDocuments(ctx, filter)
 	if err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to count permission groups: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	s.logger.Infof("[FindAllWithPagination] retrieved %d permission groups", len(data))
 
 	// 8. Return standard paginated response
 	return &types.PaginatedResponse[[]*model.PermissionGroup]{

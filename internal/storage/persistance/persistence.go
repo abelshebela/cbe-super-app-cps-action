@@ -5,11 +5,13 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
+	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
+	Account_lookup_external         account_lookup.Account
 	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
 	AccountLookup                   core.CBECoreAPIInterface
 	MerchantLookup                  merchant_lookup.MerchantLookupAdapter
@@ -52,10 +54,11 @@ type Persistence struct {
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
-	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
+	EcommerceMerchantPersistence     storage.MiniAppMerchantRepository
 	NotificationPersistence          storage.NotificationRepository
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
+	ServicesPersistence              storage.ServicesRepository
 	ValidationRulePersistence        storage.ValidationRuleRepository
 	PasswordRulePersistent           storage.PasswordRuleRepository
 	WalletPersistence                storage.WalletRepository
@@ -72,5 +75,11 @@ type Persistence struct {
 	NewsCategoryPersistence          storage.NewsCategoryRepository
 	NewsTagsServiceContainer         storage.NewsTagsRepository
 	BPSActionRolePersistence         storage.BPSActionRoleRepository
+	BPSActionApproveIndexPersistence storage.BPSActionApproveIndexRepository
+	RolePersistence                  storage.RoleRepository
 	MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
+	CPSActionRolePersistence         storage.CPSActionRoleRepository
+	CPSActionApproveIndexPersistence storage.CPSActionApproveIndexRepository
+	EventMerchantPersistence         storage.EventMerchantRepository
+	MiniAppProductCodePersistence    storage.MiniAppProductCodeRepository
 }

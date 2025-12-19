@@ -84,13 +84,14 @@ func Init(ctx context.Context) {
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("initializing kafka")
-	kafkaInit := InitKafkaService(cfg, logger)
+	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger)
 	logger.Infof("kafka initialized")
 
 	logger.Infof("Initializing persistence...")
-	notificationApi := cfg.SMSBaseURL
-	merchantApi := "https://ce-erp.starpayethiopia.com/api/v1/merchant"
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, notificationApi, *kafkaInit, cfg, logger)
+	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
+	merchantApi := "https://ce-erp.starpayethiopia.com/api/v1/merchant/"
+	merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, merchantXAPIKey, notificationApi, *notificationProducer, *clientOrchestrationProducer, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	redis := InitRedis(cfg, logger)
@@ -108,7 +109,7 @@ func Init(ctx context.Context) {
 	logger.Infof("Oracle DB client initialized")
 
 	logger.Infof("Initializing SMS service...")
-	smsService := lib.InitNotificationStore(logger, cfg, kafkaInit)
+	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)
 	logger.Infof("SMS service initialized")
 
 	sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
@@ -153,10 +154,10 @@ func Init(ctx context.Context) {
 
 	r := chi.NewRouter()
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
-	InitRoute(ctx, r, handlerLayer, auth_client.Client, logger, cfg)
+	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
 	// wrap the router with OpenTelemetry instrumentation handler
-	otlr := telemetry.WrapHandler(r, "http-server")
+	otlr := telemetry.WrapHandler(r, "cps-action")
 
 	go func() {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())

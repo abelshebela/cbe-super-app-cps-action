@@ -4,13 +4,14 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"math"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -37,10 +38,13 @@ func NewFeedbackRepository(client *mongo.Client, dbName string, collectionName s
 }
 
 func (f *FeedbackStorage) Create(ctx context.Context, feedback *model.Feedback) error {
+	f.logger.Infof("[Create] creating feedback")
 	_, err := f.dal.InsertOne(ctx, *feedback)
 	if err != nil {
+		f.logger.Errorf("[Create] failed to create feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	f.logger.Infof("[Create] feedback created successfully")
 	return nil
 }
 
@@ -78,31 +82,33 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 		}}},
 	}
 
+	f.logger.Infof("[FindByID] fetching feedback by id: %s", id)
 	cursor, err := f.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		f.logger.Errorf("aggregate feedback by id: %v", err)
+		f.logger.Errorf("[FindByID] failed to aggregate feedback: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	defer cursor.Close(ctx)
 
 	if !cursor.Next(ctx) {
+		f.logger.Errorf("[FindByID] feedback not found")
 		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
 	var resp feedback.FeedbackResponse
 	if err := cursor.Decode(&resp); err != nil {
-		f.logger.Errorf("decode feedback response: %v", err)
+		f.logger.Errorf("[FindByID] failed to decode feedback response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
-
+	f.logger.Infof("[FindByID] feedback retrieved successfully")
 	return &resp, nil
 }
 
 func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error) {
 	filter := bson.M{}
 	searchKeys := bson.M{}
-	allowedKeys := []string{"created_at", "user_id","responses"}
-if filterParam.Search != "" {
+	allowedKeys := []string{"created_at", "user_id", "responses"}
+	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["responses"] = searchRegex
 	}
@@ -167,14 +173,16 @@ if filterParam.Search != "" {
 		}}},
 	}
 
+	f.logger.Infof("[FindAllWithPagination] fetching feedbacks with pagination")
 	cursor, err := f.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		f.logger.Errorf("aggregate feedbacks: %v", err)
+		f.logger.Errorf("[FindAllWithPagination] failed to aggregate feedbacks: %v", err)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
 	if !cursor.Next(ctx) {
+		f.logger.Infof("[FindAllWithPagination] no feedbacks found")
 		return nil, nil
 	}
 
@@ -190,7 +198,7 @@ if filterParam.Search != "" {
 	}
 
 	if err := cursor.Decode(&result); err != nil {
-		f.logger.Errorf("decode aggregated result: %v", err)
+		f.logger.Errorf("[FindAllWithPagination] failed to decode aggregated result: %v", err)
 		return nil, err
 	}
 
@@ -205,6 +213,7 @@ if filterParam.Search != "" {
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	f.logger.Infof("[FindAllWithPagination] retrieved %d feedbacks", len(result.Docs))
 
 	return &types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse]{
 		Data:           result.Docs,

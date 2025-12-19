@@ -2,11 +2,12 @@ package core
 
 import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"encoding/json"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // UsernameExists checks if a username already exists in the database

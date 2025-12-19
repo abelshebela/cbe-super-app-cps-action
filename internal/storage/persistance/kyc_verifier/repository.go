@@ -1,14 +1,17 @@
 package kyc_verifier
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -19,10 +22,11 @@ import (
 )
 
 type KYCVerifierStorage struct {
-	dal    dal.MongoDal[model.CustomerKYC, model.CustomerKYC]
-	client *mongo.Client
-	logger utils.Logger
-	coll   *mongo.Collection
+	dal           dal.MongoDal[model.CustomerKYC, model.CustomerKYC]
+	client        *mongo.Client
+	logger        utils.Logger
+	coll          *mongo.Collection
+	kafkaProducer kafka.ClientOrchestrationProducer
 }
 
 // FindByIDPopulated returns a populated response with user details
@@ -180,12 +184,13 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 	}, nil
 }
 
-func NewKYCVerifierRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.KYCVerifierRepository {
+func NewKYCVerifierRepository(client *mongo.Client, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.KYCVerifierRepository {
 	return &KYCVerifierStorage{
-		dal:    dal.NewMongoDal[model.CustomerKYC, model.CustomerKYC](client, dbName, collection),
-		client: client,
-		logger: logger,
-		coll:   client.Database(dbName).Collection(collection),
+		dal:           dal.NewMongoDal[model.CustomerKYC, model.CustomerKYC](client, dbName, collection),
+		client:        client,
+		logger:        logger,
+		coll:          client.Database(dbName).Collection(collection),
+		kafkaProducer: clientOrchestrationProducer,
 	}
 }
 
@@ -194,19 +199,22 @@ func (s *KYCVerifierStorage) Update(ctx context.Context, id string, kyc *model.C
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID, "is_deleted": false, "kyc_status": "PENDING"}
 	data, err := local_util.JsonUnmarshal[bson.M](kyc)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	update := data
-	_, err = s.dal.UpdateOne(ctx, filter, *update)
+	updatedKycVerifier, err := s.dal.UpdateOne(ctx, filter, *update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, updatedKycVerifier, string(constants.ClientOrchestrationKycTopic), string(constants.ClientOrchestrationKycTopic), "update kyc-verifier")
+
 	return nil
 }
 
@@ -215,15 +223,18 @@ func (s *KYCVerifierStorage) EnableOrDisable(ctx context.Context, id string, ena
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+	filter := bson.M{"_id": objID, "is_deleted": false, "kyc_status": "PENDING"}
 	update := bson.M{"$set": bson.M{"enabled": enable}}
-	_, err = s.dal.UpdateOne(ctx, filter, update)
+	updatedKycVerifier, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	s.kafkaProducer.PublishMessage(ctx, updatedKycVerifier, string(constants.ClientOrchestrationKycTopic), string(constants.ClientOrchestrationKycTopic), "enable/disable kyc-verifier")
+
 	return nil
 }
 
@@ -233,7 +244,7 @@ func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.Cu
 		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
 		return nil, errors.New(localization.ErrorInvalidID.Code)
 	}
-	filter := bson.M{"_id": idObj, "is_deleted": false}
+	filter := bson.M{"_id": idObj, "is_deleted": false, "kyc_status": "PENDING"}
 	result, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		s.logger.Errorf("Error finding kyc verifier: %v", err)
@@ -244,7 +255,7 @@ func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.Cu
 }
 
 func (s *KYCVerifierStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerKYC], error) {
-	filter := bson.M{"is_deleted": false}
+	filter := bson.M{"is_deleted": false, "kyc_status": "PENDING"}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"kyc_status", "kyc_level", "kyc_approved", "enabled"}
 	if filterParam.Search != "" {
