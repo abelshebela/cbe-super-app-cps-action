@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
+	access_list_segmentation "cbe-super-app-cps-action/internal/glue/routing/access_list_segmentaion"
 	accountblock "cbe-super-app-cps-action/internal/glue/routing/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/glue/routing/account_validation"
 	advert "cbe-super-app-cps-action/internal/glue/routing/ad"
@@ -148,6 +149,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	vaultAmountTier.Init(r, handlerLayer.AmountTierHandler, authMiddleware)
 
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
+	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// router.Use(customeMiddleware.ChiCORS())

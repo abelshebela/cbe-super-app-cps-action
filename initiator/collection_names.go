@@ -54,10 +54,11 @@ var (
 
 	MiniAppCategoryCollection = "mini_app_categories"
 
-	CPSActionRolesCollection        = "cps_action_roles"
-	CPSActionApproveIndexCollection = "cps_action_approver_index"
-	EventMerchantsCollection        = "event_merchants"
-	MiniAppProductCodes             = "mini_app_product_codes"
+	CPSActionRolesCollection         = "cps_action_roles"
+	CPSActionApproveIndexCollection  = "cps_action_approver_index"
+	EventMerchantsCollection         = "event_merchants"
+	MiniAppProductCodes              = "mini_app_product_codes"
+	AccessListSegmentationCollection = "access_list_segmentation"
 )
 
 // Minio Bucket Names

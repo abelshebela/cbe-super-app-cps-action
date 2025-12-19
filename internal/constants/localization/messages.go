@@ -728,7 +728,8 @@ const (
 	MsgInvalidRequestBankName           = "invalid format for Name: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankCode           = "invalid format for Code: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankBIC            = "invalid format for BIC: only letters, numbers, and spaces are allowed"
-	MsgInvalidRequestBankType           = "invalid format for Bank Type: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankType           = "invalid format for Bank Type: only WALLET,BANK OR MFI allowed"
+	MsgBankTypeRequired                 = "Bank type is required"
 	MsgNoDataProvidedForBankUpdate      = "No data provided for Bank update"
 	MsgInvalidToken                     = "Invalid token"
 	MsgCustomerPermanentlyDisabled      = "Customer account is permanently disabled"
@@ -1072,4 +1073,20 @@ const (
 	MsgEventMerchantUpdatedSuccessfully  = "event merchant updated successfully"
 	MsgEventMerchantDeletedSuccessfully  = "event merchant deleted successfully"
 	MsgEventMerchantFetchedSuccessfully  = "event merchant fetched successfully"
+
+	// access list segmentation related messages
+	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation created successfully"
+	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation updated successfully"
+	MsgAccessListSegmentationEnabledSuccessfully    = "Access list segmentation enabled successfully"
+	MsgAccessListSegmentationDisabledSuccessfully   = "Access list segmentation disabled successfully"
+	MsgAccessListSegmentationsRetrievedSuccessfully = "Access list segmentations retrieved successfully"
+
+	MsgAccessListSegmentationRetrievedSuccessfully = "Access list segmentation retrieved successfully"
+	MsgAccessListSegmentationNotFound              = "Access list segmentation not found"
+	MsgAccessListSegmentationAlreadyEnabled        = "Access list segmentation is already enabled"
+	MsgAccessListSegmentationAlreadyDisabled       = "Access list segmentation is already disabled"
+	MsgAccessListSegmentationInvalidID             = "Invalid access list segmentation ID"
+	MsgAccessListSegmentationIDsRequired           = "Access list segmentation IDs are required"
+	MsgAccessListSegmentationNameAlreadyExists     = "Access list segmentation name already exists"
+	MsgServiceIdRequired                           = "Service ID is required"
 )
