@@ -49,7 +49,6 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 	for _, t := range rows {
 		var createdAt time.Time
 		var updatedAt time.Time
-		// var claimedAt time.Time
 
 		if t.CreatedAt.Valid {
 			createdAt = t.CreatedAt.Time
@@ -57,9 +56,6 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 		if t.UpdatedAt.Valid {
 			updatedAt = t.UpdatedAt.Time
 		}
-		// if t.PaidAt.Valid {
-		// 	claimedAt = t.PaidAt.Time
-		// }
 
 		sitotas = append(sitotas, &model.SitotaTransaction{
 			ID:                     t.ID,
@@ -68,7 +64,6 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 			RecipientName:          t.RecipientName,
 			RecipientAccountNumber: t.RecipientAccountNumber,
 			SitotaAmount:           t.SitotaAmount,
-			GLAccountNumber:        t.GLAccountNumber,
 			Status:                 t.Status,
 			CreatedAt:              createdAt,
 			UpdatedAt:              updatedAt,
@@ -106,7 +101,6 @@ func (r *SitotaRepository) Get(ctx context.Context, id string) (*model.SitotaTra
 
 	var createdAt time.Time
 	var updatedAt time.Time
-	// var claimedAt time.Time
 
 	if t.CreatedAt.Valid {
 		createdAt = t.CreatedAt.Time
@@ -114,9 +108,6 @@ func (r *SitotaRepository) Get(ctx context.Context, id string) (*model.SitotaTra
 	if t.UpdatedAt.Valid {
 		updatedAt = t.UpdatedAt.Time
 	}
-	// if t.PaidAt.Valid {
-	// 	claimedAt = t.PaidAt.Time
-	// }
 
 	return &model.SitotaTransaction{
 		ID:                     t.ID,
@@ -125,7 +116,6 @@ func (r *SitotaRepository) Get(ctx context.Context, id string) (*model.SitotaTra
 		RecipientName:          t.RecipientName,
 		RecipientAccountNumber: t.RecipientAccountNumber,
 		SitotaAmount:           t.SitotaAmount,
-		GLAccountNumber:        t.GLAccountNumber,
 		Status:                 t.Status,
 		CreatedAt:              createdAt,
 		UpdatedAt:              updatedAt,

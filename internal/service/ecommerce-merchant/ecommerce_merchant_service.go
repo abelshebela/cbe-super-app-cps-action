@@ -49,7 +49,7 @@ func NewEcommerceMerchantService(
 	}
 }
 
-func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, error) {
+func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "MiniAppMerchant", "Create")
 	defer span.End()
 
@@ -119,7 +119,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Mi
 	return data, nil
 }
 
-func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.MiniAppMerchantDTO) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
+func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "MiniAppMerchant", "Update")
 	defer span.End()
 
@@ -142,12 +142,6 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *mer
 	if updated.BankAccountNumber != old.BankAccountNumber {
 		check.BankAccountNumber = updated.BankAccountNumber
 	}
-	// if updated.KYC.Representative.Email != old.KYC.Representative.Email {
-	// 	check.Email = updated.KYC.Representative.Email
-	// }
-	// if updated.KYC.Representative.Phone != old.KYC.Representative.Phone {
-	// 	check.PhoneNumber = updated.KYC.Representative.Phone
-	// }
 
 	if check.BankAccountNumber != "" || check.Email != "" || check.PhoneNumber != "" {
 		exist, err := core.CheckMerchantExists(ctx, m.repo, &check, &types.MiniAppMerchantExistOptions{ExcludeID: id})
@@ -417,11 +411,11 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 	return result, nil
 }
 
-func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
+func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
-	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID)
+	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, token)
 	if err != nil {
 		m.logger.Errorf("Merchant lookup error : %v", err)
 		span.AddEvent("Merchant lookup failed", trace.WithAttributes(

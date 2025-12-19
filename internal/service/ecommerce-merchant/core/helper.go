@@ -223,7 +223,7 @@ func ToMiniAppMerchantResponseDTO(domain *model.EcommerceMerchant) *merchantDto.
 }
 
 // Convert DTO to Domain model for service layer
-func ToMiniAppMerchantDomainFromUpdateDTO(d *merchantDto.MiniAppMerchantDTO) *model.EcommerceMerchant {
+func ToMiniAppMerchantDomainFromUpdateDTO(d *merchantDto.EcommerceMerchant) *model.EcommerceMerchant {
 	return &model.EcommerceMerchant{
 		ID:                bson.NewObjectID(),
 		Code:              d.MerchantCode,

@@ -17,6 +17,7 @@ import (
 	bps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/bps_action_role"
 	cps_actionrole_routing "cbe-super-app-cps-action/internal/glue/routing/cps_action_role"
 	device_version "cbe-super-app-cps-action/internal/glue/routing/device_version"
+	ecommerce_merchant "cbe-super-app-cps-action/internal/glue/routing/ecommerce-merchant"
 	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
@@ -146,8 +147,8 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	encryption.Init(r, handlerLayer.EncryptionHandler, authMiddleware)
 	transaction.Init(r, handlerLayer.TransactionHandler, authMiddleware)
 	vaultAmountTier.Init(r, handlerLayer.AmountTierHandler, authMiddleware)
-
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
+	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
 
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 	// router.Use(customeMiddleware.ChiCORS())

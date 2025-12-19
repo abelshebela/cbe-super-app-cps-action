@@ -2,7 +2,7 @@ package ecommercemerchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	miniappmerchat "cbe-super-app-cps-action/internal/constants/interfaces/mini_app_merchant"
+	miniappmerchat "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
