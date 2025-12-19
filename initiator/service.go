@@ -189,6 +189,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		ServiceContainer:              servicesService,
 		VaultAmountTierContainer:      vaultAmountTierSrv,
 		MiniAppProductCodeContainer:   miniAppProductCodeContainer,
+
+
 	}
 
 	// CPSActionService Appended
@@ -333,5 +335,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		EventMerchantService:   eventMerchantService,
 		VaultAmountTierService: vaultAmountTierSrv,
 		MiniappProductCode:     miniAppProductCodeContainer,
+		
 	}
 }
