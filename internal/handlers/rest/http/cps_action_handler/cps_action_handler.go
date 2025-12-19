@@ -148,19 +148,14 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Derive next expected checker index and attach into request context
-	// idx32 := int32(action.CurrentCheckerIndex) + 1
-	// r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
-	// ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
-
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
 		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
 		return
 	}
 
-	checkerCount := action.CheckerCount
-	currentIndex := int32(action.CurrentCheckerIndex)
+	TotalCheckerCount := action.CheckerCount
+	currentIndex := action.CurrentCheckerIndex
 
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
@@ -182,26 +177,28 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
 		if idxDoc == nil || idxDoc.CheckerIndex == nil {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
-		expected := int32(*idxDoc.CheckerIndex)
-		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+		Current_role_level := *idxDoc.CheckerIndex + 1
+		// expected := int32(*idxDoc.CheckerIndex)
+		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
-		if currentIndex == int32(*idxDoc.CheckerIndex) {
+		if currentIndex == float32(Current_role_level) {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
 			return
 		}
 
-		if expected != int32(*idxDoc.CheckerIndex) || expected != currentIndex+1 || expected > checkerCount {
+		if currentIndex+1 < float32(Current_role_level) {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 			return
 		}
 
 		for _, cu := range action.CheckerUsers {
-			if cu.RoleID == roleID || cu.CheckerID == userData.UserID || cu.CheckerIndex == expected {
+			if cu.RoleID == roleID || cu.CheckerID == userData.UserID {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
@@ -209,14 +206,14 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Enforce ordering: must approve in sequence
-	if int32(*idxDoc.CheckerIndex) != currentIndex+1 || int32(*idxDoc.CheckerIndex) > checkerCount {
-		span.RecordError(fmt.Errorf("out of order checker approval"))
-		localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
-		return
-	}
+	// if int32(*idxDoc.CheckerIndex) != currentIndex+1 || int32(*idxDoc.CheckerIndex) > checkerCount {
+	// 	span.RecordError(fmt.Errorf("out of order checker approval"))
+	// 	localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+	// 	return
+	// }
 	// Build approval update inline (only mark Approved on final checker)
 	finalStatus := string(constants.Pending)
-	if int32(*idxDoc.CheckerIndex) == checkerCount {
+	if int32(currentIndex+1) == TotalCheckerCount {
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := types.Checker{

@@ -169,36 +169,6 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 	return results[0], nil
 }
 
-// func (r *CPSActionRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error) {
-// 	searchKeys := bson.M{}
-// 	allowedKeys := []string{"action_code", "action_name", "enabled"}
-
-// 	if filterParam.Search != "" {
-// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-// 		searchKeys["$or"] = []bson.M{
-// 			{"action_code": searchRegex},
-// 			{"action_name": searchRegex},
-// 		}
-// 	}
-// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
-// 	data, err := r.mongoDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
-// 	if err != nil {
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	total, err := r.mongoDal.TotalCount(ctx, filter)
-// 	if err != nil {
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-
-//		return &types.PaginatedResponse[[]*model.CPSActionRole]{
-//			Data: data,
-//			Meta: meta,
-//		}, nil
-//	}
 func (r *CPSActionRoleRepository) FindAllWithPagination(
 	ctx context.Context,
 	filterParam types.Filter,
