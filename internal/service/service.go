@@ -406,6 +406,12 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type MiniAppMerchant interface {
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
+	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+}
+
 type ServiceLayer struct {
 	EventService           EventService
 	BulkService            BulkService
