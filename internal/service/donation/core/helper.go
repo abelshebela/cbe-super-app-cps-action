@@ -174,10 +174,9 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request donation_dto.
 	if IsDataSimilar(request, existing) {
 		return errors.New(localization.ErrorNoChangesToUpdate.Code)
 	}
-
 	if request.Title != "" && request.Title != existing.Title {
 		ok, err := DonationTitleExists(ctx, request.Title, donationRepo)
-		if err != nil {
+		if err != nil && err != mongo.ErrNoDocuments {
 			return err
 		}
 		if ok {
