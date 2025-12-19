@@ -27,6 +27,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	// Only apply policy for CREATE/UPDATE/ENABLE/DISABLE flows
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
+
 	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) ||
 		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
 
@@ -34,12 +35,14 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 		if cpsAction.CheckerUsers == nil {
 			cpsAction.CheckerUsers = []types.Checker{}
 		}
+
 		cpsAction.CurrentCheckerIndex = 0.0
 
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
 			// Attempt case-insensitive role lookup to avoid ActionName casing mismatches
 			var role *model.CPSActionRole
+
 			if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod)); err == nil && r != nil {
 				role = r
 			}
@@ -54,9 +57,17 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 					cpsAction.CheckerCount = 0
 				}
 			}
+			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
+				return err
+			}
+			if role.IsMakerOnly {
+				s.base.ApproveCPSAction(ctx, cpsAction)
+			}
+
 		}
 	}
-	return s.base.CreateCPSAction(ctx, cpsAction)
+
+	return nil
 }
 
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
@@ -86,4 +97,9 @@ func (s *cpsActionServiceWithRoles) GetCPSActionByUniqueID(ctx context.Context, 
 
 func (s *cpsActionServiceWithRoles) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	return s.base.GetCPSActionByActionCode(ctx, uniqueID, department)
+}
+
+// ReverseCPSAction delegates to the base implementation to satisfy service.CPSActionService
+func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
+	return s.base.ReverseCPSAction(ctx, actionCode)
 }

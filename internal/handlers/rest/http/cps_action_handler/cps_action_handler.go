@@ -59,6 +59,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	if action.ActionStatus != string(constants.Approved) {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
@@ -70,6 +71,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
+
 	actionName := ""
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
@@ -81,6 +83,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
 		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
 		if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)

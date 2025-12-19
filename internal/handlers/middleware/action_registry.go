@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -54,11 +55,11 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /amount_based_auth/reject/{id}":          "AmountBasedAuth",
 
 	// Avatar
-	"POST /avatar":               "Avatar",
-	"DELETE /avatar/{id}":        "Avatar",
-	"PATCH /avatar/disable/{id}": "Avatar",
-	"PATCH /avatar/enable/{id}":  "Avatar",
-	"PATCH /avatar/{id}":         "Avatar",
+	"POST /avatar":            "Avatar",
+	"DELETE /avatar/{id}":     "Avatar",
+	"PATCH /avatar/disable/*": "Avatar",
+	"PATCH /avatar/enable/*":  "Avatar",
+	"PATCH /avatar/{id}":      "Avatar",
 
 	// Bank
 	"POST /banks":               "Bank",
@@ -225,12 +226,15 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /wallets/{id}":        "Wallet",
 	"PATCH /wallets/{id}/enable":  "Wallet",
 	"PATCH /wallets/{id}/disable": "Wallet",
+
+	// 	ROLE
+	"POST /job_role":               "JOBROLE",
+	"PATCH /job_role/{id}":         "JOBROLE",
+	"DELETE /job_role/{id}":        "JOBROLE",
+	"PATCH /job_role/{id}/enable":  "JOBROLE",
+	"PATCH /job_role/{id}/disable": "JOBROLE",
 }
 
-// CPSActionRouteGuard is a central controller middleware that:
-// - skips paths whose route pattern starts with any whitelist prefix (e.g., /actions for CPSAction module)
-// - if a route is mapped in cpsActionRegistry, checks role_id + action_name in cps_action_approver_index
-// - caches allow/deny decisions using the guard cache defined in action_guard.go
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -252,39 +256,54 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			rel := pattern
-			if strings.Contains(rel, "/") {
-				rel = r.URL.Path
+			// Normalize pattern-relative route (keeps placeholders like {id})
+			relPattern := pattern
+			if strings.HasPrefix(relPattern, "/api/v1/cbesuperapp/cps_action") {
+				relPattern = strings.TrimPrefix(relPattern, "/api/v1/cbesuperapp/cps_action")
+				if relPattern == "" {
+					relPattern = "/"
+				}
 			}
-			if strings.HasPrefix(rel, "/api/v1/cbesuperapp/cps_action") {
-				rel = strings.TrimPrefix(rel, "/api/v1/cbesuperapp/cps_action")
-				if rel == "" {
-					rel = "/"
+
+			// Normalize actual path route (concrete values like /banks/567...)
+			relPath := r.URL.Path
+			if strings.HasPrefix(relPath, "/api/v1/cbesuperapp/cps_action") {
+				relPath = strings.TrimPrefix(relPath, "/api/v1/cbesuperapp/cps_action")
+				if relPath == "" {
+					relPath = "/"
 				}
 			}
 
 			// Allowlist (e.g., CPSAction endpoints)
 			for _, p := range whitelist {
-				if strings.HasPrefix(rel, p) {
+				if strings.HasPrefix(relPath, p) {
 					next.ServeHTTP(w, r)
 					return
 				}
 			}
 
-			key := strings.ToUpper(r.Method) + " " + rel
-			actionName, ok := cpsActionRegistry[key]
-			if !ok {
-				switch r.Method {
-				case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
-					actionName = deriveModuleFromPattern(pattern)
-					if actionName == "" {
-						next.ServeHTTP(w, r)
-						return
-					}
-				default:
-					next.ServeHTTP(w, r)
-					return
+			method := strings.ToUpper(r.Method)
+
+			if method == "GET" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// keyPattern := method + " " + relPattern
+			// actionName, ok := cpsActionRegistry[keyPattern]
+			actionName := ""
+
+			for _, v := range cpsActionRegistry {
+				path := strings.ReplaceAll(relPath, "_", "")
+				if v == "JOBROLE" {
+					fmt.Printf(" path: %v,-- value: %v, is sub: %v", path, strings.ToLower(v), strings.Contains(relPath, strings.ToLower(v)))
 				}
+
+				if strings.Contains(relPath, strings.ToLower(v)) {
+					actionName = path
+					break
+				}
+
 			}
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
@@ -309,6 +328,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
+
 			if allowed {
 				cpsGuardCache.set(cacheKey, allowEntry{allow: true, exp: nowPlus(cpsGuardCache.ttl)})
 			}
@@ -319,6 +339,62 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func ResolveActionKey(request string) string {
+	request = strings.TrimSpace(request)
+
+	for key := range cpsActionRegistry {
+		if strictAvatarMatch(key, request) {
+			return key
+		}
+	}
+	return ""
+}
+
+func strictAvatarMatch(template, request string) bool {
+	tpl := strings.SplitN(template, " ", 2)
+	req := strings.SplitN(request, " ", 2)
+
+	if len(tpl) != 2 || len(req) != 2 {
+		return false
+	}
+
+	// 1. METHOD must match
+	if tpl[0] != req[0] {
+		return false
+	}
+
+	tplParts := strings.Split(strings.Trim(tpl[1], "/"), "/")
+	reqParts := strings.Split(strings.Trim(req[1], "/"), "/")
+
+	// 2. root resource must match (avatar)
+	if tplParts[0] != reqParts[0] {
+		return false
+	}
+
+	// 3. template length must match request length
+	if len(tplParts) != len(reqParts) {
+		return false
+	}
+
+	// 4. strict ordered matching
+	for i := range tplParts {
+		tplSeg := tplParts[i]
+		reqSeg := reqParts[i]
+
+		// dynamic segment
+		if strings.HasPrefix(tplSeg, "{") &&
+			strings.HasSuffix(tplSeg, "}") {
+			continue
+		}
+
+		if tplSeg != reqSeg {
+			return false
+		}
+	}
+
+	return true
 }
 
 func nowPlus(dur time.Duration) time.Time {

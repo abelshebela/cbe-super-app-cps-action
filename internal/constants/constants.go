@@ -63,6 +63,7 @@ const (
 	IncompleteUserInfo                = "incomplete user info"
 	Approved                          = "APPROVED"
 	Rejected                          = "REJECTED"
+	Reversed                          = "REVERSED"
 )
 
 const (

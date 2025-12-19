@@ -1,5 +1,10 @@
 package cpsaction
 
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/lib"
+)
+
 // ActionGroupManager provides requestAction -> parent module resolution
 // without touching the dispatcher. It mirrors the dispatcher's priority
 // so that resolution remains consistent across the codebase.
@@ -45,20 +50,20 @@ var modulePriority = []string{
 	"ProductCode",
 	"BPSUser",
 	"Avatar",
-	"donationCategory",
-	"donationCompany",
+	"DonationCategory",
+	"DonationCompany",
 	"Donation",
 	"Department",
 	"CPSUser",
 	"BankVault",
 	"VaultGroupCategory",
-	"article",
-	"articleCategory",
-	"short_video",
-	"customer",
-	"news_tag",
+	"Article",
+	"ArticleCategory",
+	"ShortVideo",
+	"Customer",
+	"NewsTag",
 	"ActionRole",
-	"news_category",
+	"NewsCategory",
 	"BudgetCategory",
 	"MiniAppCategory",
 	"CpsActionRole",
@@ -102,6 +107,10 @@ func ResolveModuleForRA(action RequestAction) (string, bool) {
 			return mod, true
 		}
 	}
+	// Fallback: infer module from request action string patterns
+	if mod, ok := lib.FallbackModuleForRA(constants.RequestAction(action)); ok {
+		return mod, true
+	}
 	return "", false
 }
 
@@ -110,6 +119,7 @@ func ResolveModuleForRA(action RequestAction) (string, bool) {
 func ListModules() []string {
 	out := make([]string, 0, len(RequestActionGroups))
 	seen := map[string]struct{}{}
+
 	for _, mod := range modulePriority {
 		if _, ok := RequestActionGroups[mod]; ok {
 			out = append(out, mod)
