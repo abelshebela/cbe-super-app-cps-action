@@ -72,6 +72,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Assign variable for minio public url
 	minioPubUrl := cfg.MinioPublicEndPoint
 
+	// MerchantLookup := *merchantlookup.NewMerchantLookupAdapter(merchantApi, *cfg, merchantXAPIKey, logger)
+
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout))
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
@@ -89,7 +91,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	passwordRule := password.NewPasswordRuleService(persistence.PasswordRulePersistent, nil, logger)
 	hqService := hq.NewHQService(persistence.HQPersistence, nil, logger)
 	miniAppMerchantService := ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, nil, persistence.MerchantLookup, logger, persistence.Account_lookup_external)
-	miniMerchant := miniapp.NewMiniAppMerchantService(persistence.MiniAppMerchant, persistence.MiniAppPersistence,)
+	miniMerchant := miniapp.NewMiniAppMerchantService(persistence.MiniAppMerchant, persistence.MiniAppPersistence, accountLookupAdapter, logger)
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, nil, miniAppMerchantService, logger)
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)
 
