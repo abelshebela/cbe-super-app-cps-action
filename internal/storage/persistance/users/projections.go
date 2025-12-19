@@ -4,7 +4,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 
 	"errors"
-member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
+
+	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -84,10 +85,10 @@ func UserBuilder(update member.User) bson.M {
 	if update.IsBlocked {
 		data["is_blocked"] = update.IsBlocked
 	}
-		
+
 	if update.BranchCode != "" {
 		data["branch_code"] = update.BranchCode
 	}
-	
+
 	return data
 }

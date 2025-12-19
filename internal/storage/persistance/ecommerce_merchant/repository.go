@@ -3,14 +3,16 @@ package mini_app_merchant
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -29,7 +31,7 @@ type MiniAppMerchantStorage struct {
 	collection string
 }
 
-func NewEcommerceMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppMerchantRepository {
+func NewEcommerceMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.EcommerceMerchantRepository {
 	return &MiniAppMerchantStorage{
 		dal:        dal.NewMongoDal[model.EcommerceMerchant, model.EcommerceMerchant](client, dbName, collection),
 		client:     client,

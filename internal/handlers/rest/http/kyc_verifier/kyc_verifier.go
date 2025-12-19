@@ -32,16 +32,16 @@ func InitKYCAdapter(app service.KYCVerifierService, logger utils.Logger) inbound
 //	@Tags			KYC Verifier
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number (default 1)"
-//	@Param			per_page	query	int		false	"Items per page (default 10, max 100)"
-//	@Param			kyc_status	query	string	false	"Filter by KYC status"
-//	@Param			kyc_level	query	string	false	"Filter by KYC level"
-//	@Param			kyc_approved	query	bool	false	"Filter by KYC approved"
-//	@Param			enabled		query	bool	false	"Filter by enabled status"
-//	@Param			search		query	string	false	"Search term (searches kyc_status)"
-//	@Success		200	{object}	localization.StandardResponse{data=[]kyc_verifier.KYCVerifierResponse}	"KYC records fetched successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid query params"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			page			query		int																		false	"Page number (default 1)"
+//	@Param			per_page		query		int																		false	"Items per page (default 10, max 100)"
+//	@Param			kyc_status		query		string																	false	"Filter by KYC status"
+//	@Param			kyc_level		query		string																	false	"Filter by KYC level"
+//	@Param			kyc_approved	query		bool																	false	"Filter by KYC approved"
+//	@Param			enabled			query		bool																	false	"Filter by enabled status"
+//	@Param			search			query		string																	false	"Search term (searches kyc_status)"
+//	@Success		200				{object}	localization.StandardResponse{data=[]kyc_verifier.KYCVerifierResponse}	"KYC records fetched successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}									"Invalid query params"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}									"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier [get]
 func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
@@ -69,11 +69,11 @@ func (h *kycAdapter) GetKYCList(w http.ResponseWriter, r *http.Request) {
 //	@Tags			KYC Verifier
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"KYC record ID"
+//	@Param			id	path		string																	true	"KYC record ID"
 //	@Success		200	{object}	localization.StandardResponse{data=kyc_verifier.KYCVerifierResponse}	"KYC record retrieved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID"
-//	@Failure		404	{object}	localization.StandardResponse{data=nil}	"KYC record not found"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Failure		400	{object}	localization.StandardResponse{data=nil}									"Invalid ID"
+//	@Failure		404	{object}	localization.StandardResponse{data=nil}									"KYC record not found"
+//	@Failure		500	{object}	localization.StandardResponse{data=nil}									"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/{id} [get]
 func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
@@ -101,11 +101,11 @@ func (h *kycAdapter) GetKYCByID(w http.ResponseWriter, r *http.Request) {
 //	@Tags			KYC Verifier
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path	string							true	"KYC record ID"
-//	@Param			body	body	kyc_verifier.UpdateKYCRequest	true	"Update KYC request body"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"KYC record updated successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID or request body"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			id		path		string									true	"KYC record ID"
+//	@Param			body	body		kyc_verifier.UpdateKYCRequest			true	"Update KYC request body"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"KYC record updated successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid ID or request body"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/update/{id} [patch]
 func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
@@ -140,11 +140,11 @@ func (h *kycAdapter) UpdateKYC(w http.ResponseWriter, r *http.Request) {
 //	@Tags			KYC Verifier
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path	string							true	"KYC record ID"
-//	@Param			body	body	kyc_verifier.ApproveKYCRequest	true	"Approve KYC request body"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"KYC record approved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Invalid ID or request body"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			id		path		string									true	"KYC record ID"
+//	@Param			body	body		kyc_verifier.ApproveKYCRequest			true	"Approve KYC request body"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}	"KYC record approved successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}	"Invalid ID or request body"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/kyc_verifier/approve/{id} [patch]
 func (h *kycAdapter) ApproveKYC(w http.ResponseWriter, r *http.Request) {

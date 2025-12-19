@@ -4,8 +4,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"errors"
 
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-		shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 )
 
 func ApplyOpenUpdate(openTier *model.AuthTier, pinTier *model.AuthTier) error {

@@ -386,7 +386,7 @@ type LinkedAccountRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error)
 }
 
-type MiniAppMerchantRepository interface {
+type EcommerceMerchantRepository interface {
 	Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error)
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
