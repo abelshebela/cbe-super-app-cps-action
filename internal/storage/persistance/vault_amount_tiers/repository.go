@@ -1,11 +1,13 @@
 package vaultamounttiers
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/vault_amount_tiers/gen/sqlc"
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -55,7 +57,10 @@ func (r *VaultAmountTierRepository) FindAllWithPagination(ctx context.Context, f
 
 	tiers, err := r.queries.FindAmountTier(ctx, params)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
 	}
 
 	var result []*model.VaultAmountTier
@@ -86,7 +91,10 @@ func (r *VaultAmountTierRepository) FindAllWithPagination(ctx context.Context, f
 func (r *VaultAmountTierRepository) FindByID(ctx context.Context, id string) (*model.VaultAmountTier, error) {
 	t, err := r.queries.FindAmountTierById(ctx, id)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
 	}
 	m := &model.VaultAmountTier{
 		ID:              t.ID,

@@ -453,7 +453,7 @@ SELECT
   created_at,
   updated_at,
   deleted_at
-FROM locked_vaults
+FROM vaults
 WHERE product_id = :1 AND deleted_at IS NULL
 `
 
@@ -472,7 +472,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 
 	rows, err := q.db.QueryContext(ctx, findLocksByProductID, id)
 	if err != nil {
-		fmt.Println("failed to query locked vaults from locked_vaults table: %v", err)
+		fmt.Println("failed to query locked vaults from vaults table: %v", err)
 		return BankVaultProductWithLocks{}, fmt.Errorf("failed to query locks: %w", err)
 	}
 	defer rows.Close()
@@ -665,22 +665,15 @@ SELECT
   id,
   vault_name,
   vault_category,
-  purpose,
   target_amount,
-  status,
-  admin_user_id,
-  frequency,
-  next_run,
-  end_date,
   vault_type,
-  reminder,
-  tc_version,
+  status,
   created_at,
   updated_at,
   deleted_at,
   COUNT(*) OVER() AS total_count
-FROM group_vaults
-WHERE deleted_at IS NULL
+FROM vaults
+WHERE vault_type = 'GROUP' AND deleted_at IS NULL
 ORDER BY created_at DESC
 OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY
@@ -691,7 +684,7 @@ type GetAllGroupVaultsParams struct {
 	Limit sql.NullInt64 `json:"limit_count"`
 }
 
-func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsParams) ([]model.GroupVault, error) {
+func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsParams) ([]Vault, error) {
 	offset := (arg.Page.Int64 - 1) * arg.Limit.Int64
 
 	rows, err := q.db.QueryContext(ctx, getAllGroupVaults,
@@ -703,27 +696,21 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 	}
 	defer rows.Close()
 
-	items := []model.GroupVault{}
+	items := []Vault{}
 	for rows.Next() {
-		var i model.GroupVault
+		var i Vault
 
 		var targetAmountNum godror.Number
-		var reminder sql.NullBool
 
 		if err := rows.Scan(
 			&i.ID,
 			&i.VaultName,
 			&i.VaultCategory,
-			&i.Purpose,
 			&targetAmountNum,
-			&i.Status,
-			&i.AdminUserID,
-			&i.Recurrence,
-			&i.NextRun,
-			&i.EndDate,
+			// &i.IsDeadlock,
 			&i.VaultType,
-			&reminder,
-			&i.TCVersion,
+			// &i.InterestRate,
+			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -733,11 +720,6 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 		}
 
 		i.TargetAmount, _ = decimal.NewFromString(targetAmountNum.String())
-		if reminder.Valid {
-			i.Reminder = &reminder.Bool
-		} else {
-			i.Reminder = nil
-		}
 
 		items = append(items, i)
 	}

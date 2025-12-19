@@ -307,7 +307,7 @@ type UnlinkService interface {
 
 type WalletService interface {
 	CreateWallet(ctx context.Context, req walletDto.WalletRequest) error
-	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error
+	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*model.Wallet, error)

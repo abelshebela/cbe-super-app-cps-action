@@ -454,6 +454,7 @@ const (
 	MsgMaintenanceMode     = "System is in maintenance mode"
 
 	// Bank related error messages
+	MsgAmountTierNotFound        = "Vault's amount tier not found"
 	MsgBankNotFound              = "Bank not found"
 	MsgBankAlreadyExists         = "Bank already exists"
 	MsgBankAlreadyEnabled        = "Bank already enabled"

@@ -125,8 +125,10 @@ func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) 
 	q := sqlc.New(r.db)
 	rrow, err := q.FindVaultGroupCategoryById(ctx, id)
 	if err != nil {
-		fmt.Println("===========", err)
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	e := &model.VaultCategory{
 		ID:         rrow.ID,
@@ -151,7 +153,10 @@ func (r *VaultGroupCategoryRepository) GetGroupcategoryByName(ctx context.Contex
 	q := sqlc.New(r.db)
 	category, err := q.FindVaultGroupCategoryByName(ctx, groupName)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	vc := &model.VaultCategory{

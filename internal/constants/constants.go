@@ -618,14 +618,6 @@ const (
 	DeleteAction ActionType = "DELETE"
 )
 
-// / bank vault constants
-type AccrualMethod string
-
-const (
-	AccrualMethodCompound AccrualMethod = "COMPOUND"
-	AccrualMethodSimple   AccrualMethod = "SIMPLE"
-)
-
 type VaultStatus string
 
 const (

@@ -187,6 +187,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorProductCodeDatabaseQueryFailed,
 	ErrorProductCodeCountFailed,
 	ErrorProductCodeDatabaseUpdateFailed,
+	ErrorProductCodeNotFound,
 	ErrorMiniAppMerchantCheckPendingFailed,
 	ErrorMiniAppMerchantExistsCheckFailed,
 	ErrorMiniAppMerchantFetchCategoriesFailed,
@@ -262,6 +263,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventDescriptionRequired,
 	ErrorTicketsRequired,
 	ErrorBankAlreadyEnabled,
+	ErrorAmountTierNotFound,
 	ErrorBankAlreadyDisabled,
 	ErrorHealthCheck,
 	ErrorActionAlreadyExists,
@@ -551,6 +553,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorFailedToBeingTransaction,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
+	ErrorGroupVaultNotFound,
 	ErrorCannotDeleteActiveVaultGroupCategory,
 	ErrorNoBankProductFound,
 	ErrorCannotDeletedBankProduct,
@@ -3444,9 +3447,15 @@ var (
 	}
 
 	ErrorBankAlreadyEnabled = ResponseCode{
-		Code:       "ERROR_Bank_ALREADY_ENABLED",
+		Code:       "ERROR_BANK_ALREADY_ENABLED",
 		StatusCode: StatusConflict,
 		Message:    MsgBankAlreadyEnabled,
+		Type:       "error",
+	}
+	ErrorAmountTierNotFound = ResponseCode{
+		Code:       "ERROR_AMOUNT_TIER_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAmountTierNotFound,
 		Type:       "error",
 	}
 
@@ -5628,6 +5637,12 @@ var (
 		Code:       "ERROR_VAULT_GROUP_CATEGORY_NOT_FOUND",
 		StatusCode: StatusNotFound,
 		Message:    "Vault group category not found.",
+		Type:       "error",
+	}
+	ErrorGroupVaultNotFound = ResponseCode{
+		Code:       "ERROR_GROUP_VAULT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    "Group vault not found",
 		Type:       "error",
 	}
 	ErrorCannotDeleteActiveVaultGroupCategory = ResponseCode{
