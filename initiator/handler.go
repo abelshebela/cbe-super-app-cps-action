@@ -16,6 +16,7 @@ import (
 	actionInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	cpsUserInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 	customerInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer"
+	customer_seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	eventInbound "cbe-super-app-cps-action/internal/constants/interfaces/event"
@@ -48,6 +49,7 @@ import (
 	cps_actionrole_iface "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	accesslistsegmentaion "cbe-super-app-cps-action/internal/handlers/rest/http/access_list_segmentaion"
 	cps_actionrole_handler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_role"
+	customer_hand "cbe-super-app-cps-action/internal/handlers/rest/http/customer_segmentation"
 	event_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/event_merchant"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/roles"
 
@@ -151,6 +153,7 @@ type Handler struct {
 	AmountTierHandler             vaultAmountTierInbound.VaultAmountTierHandler
 	EcommerceMerchantHandler      ecommerce_merchant.EcommerceMerchant
 	AccessLostSegmentationHandler accesslistsegmentation.AccessListSegmentationHandler
+	CustomerSegmentationHandler   customer_seg.CustomerSegmentation
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -204,5 +207,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		EcommerceMerchantHandler:  ecommerce_handler.NewEcommerceMerchantdapter(serviceLayer.EcommerceMerchant, logger),
 
 		AccessLostSegmentationHandler: accesslistsegmentaion.InitAccessListSegmentationAdapter(serviceLayer.AccessListSegmentationService, logger),
+		CustomerSegmentationHandler:   customer_hand.NewCustomerSegmentation(serviceLayer.CustomerSegmentation, logger),
 	}
 }

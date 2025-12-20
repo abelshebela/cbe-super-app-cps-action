@@ -638,3 +638,7 @@ type MiniAppMerchant interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error)
 }
+
+type CustomerSegmentationRepository interface {
+	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
+}

@@ -41,6 +41,7 @@ import (
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
@@ -439,6 +440,11 @@ type RoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type CustomerSegmentationService interface {
+	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
 	RoleService                   RoleService
 	EventService                  EventService
@@ -495,6 +501,7 @@ type ServiceLayer struct {
 	JobRoleService                JobRoleService
 	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
+	CustomerSegmentation          CustomerSegmentationService
 }
 
 type ServiceContainer struct {
@@ -559,6 +566,7 @@ type ServiceContainer struct {
 	VaultAmountTierContainer           VaultAmountBasedTierService
 	MiniAppProductCodeContainer        MiniappProductCodeService
 	AccessListSegmentationContainer    AccessListSegmentationService
+	CustomerSegmentationContainer      CustomerSegmentationService
 }
 
 type BPSActionRoleService interface {

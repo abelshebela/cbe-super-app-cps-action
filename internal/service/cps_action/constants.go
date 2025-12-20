@@ -39,6 +39,8 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
@@ -979,6 +981,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAccessListSegmentation,
 		RequestUpdateAccessListSegmentation,
 		RequestEnableDisableAccessListSegmentation,
+	},
+	"CustomerSegmentation": {
+		RequestCreateCustomerSegmentation,
 	},
 }
 

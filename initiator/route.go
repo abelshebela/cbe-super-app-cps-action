@@ -41,22 +41,22 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
-	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
-	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
-	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
-	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
-	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
-	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
-	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
-	service "cbe-super-app-cps-action/internal/glue/routing/services"
-
+	customer_seg "cbe-super-app-cps-action/internal/glue/routing/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
 	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
+	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
+	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
+	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
+	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
+	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	roles "cbe-super-app-cps-action/internal/glue/routing/roles"
+	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+	service "cbe-super-app-cps-action/internal/glue/routing/services"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	vaultAmountTier "cbe-super-app-cps-action/internal/glue/routing/vault_amount_tier"
@@ -153,6 +153,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
+	customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
