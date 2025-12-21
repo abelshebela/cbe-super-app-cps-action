@@ -23,19 +23,42 @@ type TransactionHandler struct {
 	logger  utils.Logger
 }
 
+// FindTransactionByCifOrAccountNumberOrFT implements transaction.TransactionInterface.
+func (t *TransactionHandler) FindTransactionByCifOrAccountNumberOrFT(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FindTransactionByCifOrAccountNumberOrFT")
+	defer span.End()
+
+	identifier := chi.URLParam(r, "identifier")
+	if identifier == "" {
+		span.AddEvent("Missing identifier", trace.WithAttributes(attribute.String("error", "identifier required")))
+		localization.SendErrorByCodeResponse(w, localization.ErrorTransactionIdentifierRequired.Code)
+		return
+	}
+	transaction, err := t.service.FindTransactionByCifOrAccountNumberOrFT(ctx, identifier)
+	if err != nil {
+		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("identifier", identifier)))
+		t.logger.Errorf("FindTransactionByCifOrAccountNumberOrFT failed: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessTransactionRetrieved, transaction)
+}
+
 // FetchAllTransactions godoc
-// @Summary      Get all transactions
-// @Description  Returns a paginated list of transactions. Supports filtering by status and type.
-// @Tags         transactions
-// @Accept       json
-// @Produce      json
-// @Param        status     query   string  false  "Transaction status (failed, pending, paid)"
-// @Param        type       query   string  false  "Transaction type (cbe, topup, money_request)"
-// @Param        page       query   int     false  "Page number"
-// @Param        per_page   query   int     false  "Items per page"
-// @Success      200        {object}  paginated_transaction_resp
-// @Failure      400,404,500  {object}  localization.ResponseCode
-// @Router       /transactions [get]
+//
+//	@Summary		Get all transactions
+//	@Description	Returns a paginated list of transactions. Supports filtering by status and type.
+//	@Tags			transactions
+//	@Accept			json
+//	@Produce		json
+//	@Param			status		query		string	false	"Transaction status (failed, pending, paid)"
+//	@Param			type		query		string	false	"Transaction type (cbe, topup, money_request)"
+//	@Param			page		query		int		false	"Page number"
+//	@Param			per_page	query		int		false	"Items per page"
+//	@Success		200			{object}	paginated_transaction_resp
+//	@Failure		400,404,500	{object}	localization.ResponseCode
+//	@Router			/transactions [get]
+//
 // FetchAllTransactions implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchAllTransactions")
@@ -54,15 +77,17 @@ func (t *TransactionHandler) FetchAllTransactions(w http.ResponseWriter, r *http
 }
 
 // FetchTransactionByID godoc
-// @Summary      Get transaction by ID
-// @Description  Returns a single transaction by its ID.
-// @Tags         transactions
-// @Accept       json
-// @Produce      json
-// @Param        id   path   string  true  "Transaction ID"
-// @Success      200  {object}  transaction_by_id
-// @Failure      400,404,500  {object}  localization.ResponseCode
-// @Router       /transactions/{id} [get]
+//
+//	@Summary		Get transaction by ID
+//	@Description	Returns a single transaction by its ID.
+//	@Tags			transactions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id			path		string	true	"Transaction ID"
+//	@Success		200			{object}	transaction_by_id
+//	@Failure		400,404,500	{object}	localization.ResponseCode
+//	@Router			/transactions/{id} [get]
+//
 // FetchTransactionByID implements transaction.TransactionInterface.
 func (t *TransactionHandler) FetchTransactionByID(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_utils.TraceLogger(r.Context(), "handler", "transaction", "TransactionHandler", "FetchTransactionByID")

@@ -8,24 +8,25 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
-func ToDomainCreateVaultGroupCategoryRequest(req helper.CreateVaultGroupCategoryRequest) *model.VaultGroupCategory {
-	return &model.VaultGroupCategory{
+func ToDomainCreateVaultGroupCategoryRequest(req helper.CreateVaultGroupCategoryRequest) *model.VaultCategory {
+	return &model.VaultCategory{
 		Name:     req.Name,
 		IsActive: false,
 	}
 }
 
-func ToDomainUpdateVaultGroupCategoryRequest(req helper.UpdateVaultGroupCategoryRequest) *model.VaultGroupCategory {
-	return &model.VaultGroupCategory{
+func ToDomainUpdateVaultGroupCategoryRequest(req helper.UpdateVaultGroupCategoryRequest) *model.VaultCategory {
+	return &model.VaultCategory{
 		Name: func() string {
-			if req.Name != nil {
-				return *req.Name
+			if req.Name != "" {
+				return req.Name
 			}
 			return ""
 		}(),

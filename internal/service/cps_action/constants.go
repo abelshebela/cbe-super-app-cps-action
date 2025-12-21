@@ -39,6 +39,24 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+
+	RequestCreateJobRole  RequestAction = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  RequestAction = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  RequestAction = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  RequestAction = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole RequestAction = "DISABLE_JOB_ROLE"
+
+	RequestCreateRole  RequestAction = "CREATE_ROLE"
+	RequestUpdateRole  RequestAction = "UPDATE_ROLE"
+	RequestDeleteRole  RequestAction = "DELETE_ROLE"
+	RequestEnableRole  RequestAction = "ENABLE_ROLE"
+	RequestDisableRole RequestAction = "DISABLE_ROLE"
+
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
 	RequestUpdateAmountBasedAuth RequestAction = "UPDATE_AMOUNT_BASED_AUTH"
@@ -255,6 +273,12 @@ const (
 	RequestEnableVaultGroupCategory  RequestAction = "ENABLE_VAULT_GROUP_CATEGORY"
 	RequestDisAbleVaultGroupCategory RequestAction = "DISABLE_VAULT_GROUP_CATEGORY"
 
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
 	RequestUpdateKYCVerifier RequestAction = "UPDATE_KYC"
 	RequestApproveKYC        RequestAction = "APPROVE_KYC"
 	// for article
@@ -304,14 +328,25 @@ const (
 	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
 	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
 	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
-	RequestCreateBankVault:  {},
-	RequestUpdateBankVault:  {},
-	RequestDeleteBankVault:  {},
-	RequestEnableBankVault:  {},
-	RequestDisAbleBankVault: {},
+	RequestCreateMiniappProductCode:  {},
+	RequestUpdateMiniappProductCode:  {},
+	RequestDeleteMiniappProductCode:  {},
+	RequestEnableMiniappProductCode:  {},
+	RequestDisableMiniappProductCode: {},
+	RequestCreateBankVault:           {},
+	RequestUpdateBankVault:           {},
+	RequestDeleteBankVault:           {},
+	RequestEnableBankVault:           {},
+	RequestDisAbleBankVault:          {},
 
 	// for vault group category
 	RequestCreateVaultGroupCategory:  {},
@@ -456,6 +491,18 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableTopup:  {},
 	RequestDisableTopup: {},
 
+	RequestCreateJobRole:  {},
+	RequestUpdateJobRole:  {},
+	RequestDeleteJobRole:  {},
+	RequestEnableJobRole:  {},
+	RequestDisableJobRole: {},
+
+	RequestCreateRole:  {},
+	RequestUpdateRole:  {},
+	RequestDeleteRole:  {},
+	RequestEnableRole:  {},
+	RequestDisableRole: {},
+
 	// RequestCreateNotification:      {},
 	// RequestUpdateNotification:      {},
 	// RequestDeleteNotification:      {},
@@ -513,6 +560,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteMiniAppCategory:  {},
 	RequestEnableMiniAppCategory:  {},
 	RequestDisableMiniAppCategory: {},
+
+	RequestCreateEventMerchant:  {},
+	RequestUpdateEventMerchant:  {},
+	RequestDeleteEventMerchant:  {},
+	RequestEnableEventMerchant:  {},
+	RequestDisableEventMerchant: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -697,6 +750,20 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateValidation,
 		RequestDeleteValidation,
 	},
+	"JobRole": {
+		RequestCreateJobRole,
+		RequestUpdateJobRole,
+		RequestDeleteJobRole,
+		RequestEnableJobRole,
+		RequestDisableJobRole,
+	},
+	"Role": {
+		RequestCreateRole,
+		RequestUpdateRole,
+		RequestDeleteRole,
+		RequestEnableRole,
+		RequestDisableRole,
+	},
 	"Block": {
 		RequestBlockUser,
 		RequestDisableSingleBranch,
@@ -875,6 +942,29 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteMiniAppCategory,
 		RequestEnableMiniAppCategory,
 		RequestDisableMiniAppCategory,
+	},
+
+	"eventMerchant": {
+		RequestCreateEventMerchant,
+		RequestUpdateEventMerchant,
+		RequestDeleteEventMerchant,
+		RequestEnableEventMerchant,
+		RequestDisableEventMerchant,
+	},
+
+	"VaultAmountTier": {
+		RequestCreateVaultAmountTier,
+		RequestUpdateVaultAmountTier,
+		RequestDeleteVaultAmountTier,
+		RequestEnableVaultAmountTier,
+		RequestDisAbleVaultAmountTier,
+	},
+	"MiniAppProductCode": {
+		RequestCreateMiniappProductCode,
+		RequestUpdateMiniappProductCode,
+		RequestDeleteMiniappProductCode,
+		RequestEnableMiniappProductCode,
+		RequestDisableMiniappProductCode,
 	},
 }
 

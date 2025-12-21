@@ -84,6 +84,15 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/search",
+			Handler: handler.SearchCustomerByCIForAccountNumber,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

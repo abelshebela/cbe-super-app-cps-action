@@ -3,12 +3,13 @@ package avatar
 import (
 	avatarInbound "cbe-super-app-cps-action/internal/constants/interfaces/avatar"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"mime/multipart"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -43,7 +44,7 @@ func InitAvatarAdapter(avatarApplication service.AvatarService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/avatar [post]
 func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createAvatar", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAvatar", "handler", "avatar")
 	defer span.End()
 	req, err := ReqFileParse(r)
 	if err != nil {
@@ -87,7 +88,7 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/{id} [delete]
 func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteAvatar", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAvatar", "handler", "avatar")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -123,7 +124,7 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/enable/{id} [patch]
 func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableAvatar", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAvatar", "handler", "avatar")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -159,7 +160,7 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/disable/{id} [patch]
 func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableAvatar", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAvatar", "handler", "avatar")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -195,7 +196,7 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/{id} [get]
 func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAvatar", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAvatar", "handler", "avatar")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -232,7 +233,7 @@ func (a *avatarAdapter) FetchAvatar(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar [get]
 func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAvatars", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAvatars", "handler", "avatar")
 	defer span.End()
 	filterParam := local_util.ExtractFilterParams(r)
 
@@ -266,7 +267,7 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/avatar/{id} [patch]
 func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAvatar", "handler", "avatar")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAvatar", "handler", "avatar")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	var inputData *multipart.FileHeader

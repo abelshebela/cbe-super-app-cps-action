@@ -2,7 +2,6 @@ package vaultgroupcategory
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/vaultgroup_category/gen/sqlc"
@@ -11,6 +10,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -28,8 +29,7 @@ func NewVaultGroupCategoryRepository(db *sql.DB, logger shared_utils.Logger) sto
 }
 
 // Create creates a new vault group category in Oracle and returns its ID
-func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model.VaultGroupCategory) (string, error) {
-	// Duplicate name check via generated query
+func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model.VaultCategory) (string, error) {
 	q := sqlc.New(r.db)
 	if _, err := q.FindVaultGroupCategoryByName(ctx, entity.Name); err == nil {
 		return "", errors.New(localization.ErrorDuplicateGroupVaultCategory.Code)
@@ -38,9 +38,10 @@ func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model
 	}
 
 	params := sqlc.SaveVaultGroupCategoryParams{
-		Name:       strings.ToUpper(entity.Name),
-		CoverImage: entity.CoverImage,
-		IsActive:   sql.NullBool{Bool: entity.IsActive, Valid: true},
+		Name:         strings.ToUpper(entity.Name),
+		CategoryType: entity.CategoryType,
+		CoverImage:   entity.CoverImage,
+		IsActive:     sql.NullBool{Bool: entity.IsActive, Valid: true},
 	}
 	id, err := q.SaveVaultGroupCategory(ctx, params)
 	if err != nil {
@@ -50,7 +51,7 @@ func (r *VaultGroupCategoryRepository) Create(ctx context.Context, entity *model
 }
 
 // FindAllWithPagination lists categories with filters and pagination, including deleted ones
-func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultGroupCategory], error) {
+func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultCategory], error) {
 	q := sqlc.New(r.db)
 	params := sqlc.FindVaultGroupCategoryParams{}
 	if v, ok := filterParam.Filters["is_active"].(bool); ok {
@@ -75,10 +76,10 @@ func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	list := make([]*model.VaultGroupCategory, 0, len(rows))
+	list := make([]*model.VaultCategory, 0, len(rows))
 	var total int64
 	for _, rrow := range rows {
-		e := &model.VaultGroupCategory{
+		e := &model.VaultCategory{
 			ID:         rrow.ID,
 			Name:       rrow.Name,
 			CoverImage: rrow.CoverImage,
@@ -107,7 +108,7 @@ func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context
 		page = 1
 	}
 
-	resp := types.PaginatedResponse[[]*model.VaultGroupCategory]{
+	resp := types.PaginatedResponse[[]*model.VaultCategory]{
 		Data: list,
 		Meta: types.PaginationMeta{
 			TotalDocs:  total,
@@ -120,13 +121,16 @@ func (r *VaultGroupCategoryRepository) FindAllWithPagination(ctx context.Context
 }
 
 // FindByID fetches a single category by id, including deleted ones
-func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) (*model.VaultGroupCategory, error) {
+func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) (*model.VaultCategory, error) {
 	q := sqlc.New(r.db)
 	rrow, err := q.FindVaultGroupCategoryById(ctx, id)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	e := &model.VaultGroupCategory{
+	e := &model.VaultCategory{
 		ID:         rrow.ID,
 		Name:       rrow.Name,
 		CoverImage: rrow.CoverImage,
@@ -145,14 +149,17 @@ func (r *VaultGroupCategoryRepository) FindByID(ctx context.Context, id string) 
 	return e, nil
 }
 
-func (r *VaultGroupCategoryRepository) GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultGroupCategory, error) {
+func (r *VaultGroupCategoryRepository) GetGroupcategoryByName(ctx context.Context, groupName string) (*model.VaultCategory, error) {
 	q := sqlc.New(r.db)
 	category, err := q.FindVaultGroupCategoryByName(ctx, groupName)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	vc := &model.VaultGroupCategory{
+	vc := &model.VaultCategory{
 		ID:         category.ID,
 		Name:       category.Name,
 		CoverImage: category.CoverImage,
@@ -173,7 +180,7 @@ func (r *VaultGroupCategoryRepository) GetGroupcategoryByName(ctx context.Contex
 }
 
 // Update updates name/description; prevents updates on deleted records
-func (r *VaultGroupCategoryRepository) Update(ctx context.Context, id string, entity *model.VaultGroupCategory) error {
+func (r *VaultGroupCategoryRepository) Update(ctx context.Context, id string, entity *model.VaultCategory) error {
 	// Ensure not deleted
 	current, err := r.FindByID(ctx, id)
 	if err != nil {

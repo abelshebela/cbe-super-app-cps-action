@@ -1,13 +1,16 @@
 package newstag_repo
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -16,17 +19,19 @@ import (
 )
 
 type NewsTagRepository struct {
-	client   *mongo.Client
-	mongoDal dal.MongoDal[model.NewsTag, model.NewsTag]
-	logger   utils.Logger
+	client        *mongo.Client
+	mongoDal      dal.MongoDal[model.NewsTag, model.NewsTag]
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewNewsTagRepository(client *mongo.Client, database string, collection string, logger utils.Logger) storage.NewsTagRepository {
+func NewNewsTagRepository(client *mongo.Client, database string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NewsTagRepository {
 	mongoDal := dal.NewMongoDal[model.NewsTag, model.NewsTag](client, database, collection)
 	return &NewsTagRepository{
-		client:   client,
-		mongoDal: mongoDal,
-		logger:   logger,
+		client:        client,
+		mongoDal:      mongoDal,
+		kafkaProducer: kafkaProducer,
+		logger:        logger,
 	}
 }
 
@@ -59,6 +64,7 @@ func (n *NewsTagRepository) Create(ctx context.Context, tagName []string) error 
 		if err := session.CommitTransaction(sc); err != nil {
 			return err
 		}
+		n.kafkaProducer.PublishMessage(ctx, tagName, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "new news tags created")
 		return nil
 	})
 	return err
@@ -201,9 +207,10 @@ func (n *NewsTagRepository) Update(ctx context.Context, id string, tagName strin
 		return localization.ErrorNewsCategoryInvalidID
 	}
 
-	_, err = n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"tag_name": tagName})
+	updatedNewsCategory, err := n.mongoDal.UpdateOne(ctx, bson.M{"_id": objID}, bson.M{"tag_name": tagName})
 	if err != nil {
 		return err
 	}
+	n.kafkaProducer.PublishMessage(ctx, updatedNewsCategory, string(constants.ClientOrchestrationNewsTagTopic), string(constants.ClientOrchestrationNewsTagTopic), "news tag updated")
 	return nil
 }

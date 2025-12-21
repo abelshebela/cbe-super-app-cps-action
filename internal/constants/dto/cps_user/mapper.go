@@ -1,6 +1,6 @@
 package cpsuser
 
-import "cbe-super-app-cps-action/internal/constants/model"
+import "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {
 	return CPSUserDTO{

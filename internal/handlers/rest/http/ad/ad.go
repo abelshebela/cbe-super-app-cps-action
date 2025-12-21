@@ -48,7 +48,7 @@ func InitAdvertAdapter(advertApplication service.AdvertService, logger utils.Log
 //	@Security		BearerAuth
 //	@Router			/adverts [post]
 func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAdvert", "handler", "advert")
 	defer span.End()
 
 	req, err := core.ParseBannerImage(r, true)
@@ -96,21 +96,19 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Adverts
 //	@Accept			json
 //	@Produce		json
-//	@Param			page			query		int			false	"Page number"					minimum(1)	default(1)	example(1)
-//	@Param			per_page		query		int			false	"Items per page"				minimum(1)	maximum(100)	default(10)	example(10)
-//	//  SEARCH PARAM
-//	@Param			search			query		string		false	"Text search on title & description (case-insensitive partial match)"	example("promo")
-//	//  FILTER PARAMS
-//	@Param			title			query		string		false	"Filter by exact title match"			example("Summer Promo")
-//	@Param			description		query		string		false	"Filter by exact description match"		example("Discount event")
-//	@Param			enabled			query		bool		false	"Filter by enabled flag"				example(true)
-//	@Success		200				{object}	localization.StandardResponse{data=paginated_advert_response}	"Adverts fetched successfully"
-//	@Failure		400				{object}	localization.StandardResponse{data=nil}							"Invalid pagination params"
-//	@Failure		500				{object}	localization.StandardResponse{data=nil}							"Server error"
+//	@Param			page		query		int																false	"Page number"															minimum(1)	default(1)		example(1)
+//	@Param			per_page	query		int																false	"Items per page"														minimum(1)	maximum(100)	default(10)	example(10)
+//	@Param			search		query		string															false	"Text search on title & description (case-insensitive partial match)"	example("promo")
+//	@Param			title		query		string															false	"Filter by exact title match"											example("Summer Promo")
+//	@Param			description	query		string															false	"Filter by exact description match"										example("Discount event")
+//	@Param			enabled		query		bool															false	"Filter by enabled flag"												example(true)
+//	@Success		200			{object}	localization.StandardResponse{data=paginated_advert_response}	"Adverts fetched successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}							"Invalid pagination params"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}							"Server error"
 //	@Security		BearerAuth
 //	@Router			/adverts [get]
 func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAdverts", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdverts", "handler", "advert")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 	list, err := a.advertApplication.FetchAdverts(ctx, *filterParams)
@@ -145,7 +143,7 @@ func (a *advertAdapter) FetchAdverts(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id} [get]
 func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "fetchAdvertById", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchAdvertById", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -188,7 +186,7 @@ func (a *advertAdapter) FetchAdvertByID(w http.ResponseWriter, r *http.Request) 
 //	@Security		BearerAuth
 //	@Router			/adverts/{id} [patch]
 func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "updateAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -250,7 +248,7 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/advert/{id} [delete]
 func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -287,7 +285,7 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id}/enable [patch]
 func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {
@@ -325,7 +323,7 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/adverts/{id}/disable [patch]
 func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableAdvert", "handler", "advert")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAdvert", "handler", "advert")
 	defer span.End()
 	id, err := core.ExtractID(r, a.logger)
 	if err != nil {

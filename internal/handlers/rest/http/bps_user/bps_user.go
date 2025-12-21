@@ -3,10 +3,11 @@ package bpsmakerhandler
 import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
@@ -46,7 +47,7 @@ func InitBPSUserMakerHandler(service service.BPSUserService, logger utils.Logger
 //	@Security		BearerAuth
 //	@Router			/bps_users/{user_code} [get]
 func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "fetchBpsUserByCode", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "fetchBpsUserByCode", "handler", "bpsUser")
 	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
@@ -75,26 +76,26 @@ func (h BPSUserHandler) FetchUserByUserCode(w http.ResponseWriter, r *http.Reque
 //	@Tags			BPS Users
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int													false	"Page number"		default(1)
-//	@Param			per_page	query		int													false	"Items per page"	default(10)
+//	@Param			page		query	int	false	"Page number"		default(1)
+//	@Param			per_page	query	int	false	"Items per page"	default(10)
 
-// @Param			branch_code			query	string	false	"Branch code filter"
-// @Param			branch_name			query	string	false	"Branch name filter"
-// @Param			enabled				query	bool	false	"Enabled status filter"
-// @Param			role				query	string	false	"Role filter"
-// @Param			first_password_set	query	bool	false	"First password set filter"
-// @Param			full_name			query	string	false	"Full name filter"
-// @Param			user_code			query	string	false	"User code filter"
-// @Param			phone_number		query	string	false	"Phone number filter"
-// @Param			username			query	string	false	"Username filter"
-// @Param			search			query	string	false	"searchable fieldes (full_name,username,user_code,phone_number)"
-// @Success		200			{object}	localization.StandardResponse{data=paginated_resp}	"BPS users retrieved successfully"
-// @Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request"
-// @Failure		500			{object}	localization.StandardResponse{data=nil}				"Internal server error"
+// @Param		branch_code			query		string												false	"Branch code filter"
+// @Param		branch_name			query		string												false	"Branch name filter"
+// @Param		enabled				query		bool												false	"Enabled status filter"
+// @Param		role				query		string												false	"Role filter"
+// @Param		first_password_set	query		bool												false	"First password set filter"
+// @Param		full_name			query		string												false	"Full name filter"
+// @Param		user_code			query		string												false	"User code filter"
+// @Param		phone_number		query		string												false	"Phone number filter"
+// @Param		username			query		string												false	"Username filter"
+// @Param		search				query		string												false	"searchable fieldes (full_name,username,user_code,phone_number)"
+// @Success	200					{object}	localization.StandardResponse{data=paginated_resp}	"BPS users retrieved successfully"
+// @Failure	400					{object}	localization.StandardResponse{data=nil}				"Bad request"
+// @Failure	500					{object}	localization.StandardResponse{data=nil}				"Internal server error"
 // @Security	BearerAuth
 // @Router		/bps_users/ [get]
 func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllBpsUsers", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBpsUsers", "handler", "bpsUser")
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -126,7 +127,7 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/disable/{user_code} [post]
 func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableBpsUser", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBpsUser", "handler", "bpsUser")
 	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
@@ -162,7 +163,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/enable/{user_code} [post]
 func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableBpsUser", "handler", "bpsUser")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBpsUser", "handler", "bpsUser")
 	defer span.End()
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {

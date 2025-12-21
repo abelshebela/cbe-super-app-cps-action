@@ -2,7 +2,7 @@ package mini_app
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -11,6 +11,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )

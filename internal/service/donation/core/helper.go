@@ -3,7 +3,6 @@ package core
 import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/pkgs/utils"
@@ -12,6 +11,9 @@ import (
 	"time"
 
 	"encoding/json"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -102,13 +104,13 @@ func MapToDonation(donationCode, companyID, categoryID, title, donationDescripti
 	}
 }
 
-func ConvertToDonationImages(images []types.DonationImage) []donation_dto.DonationImage {
-	result := make([]donation_dto.DonationImage, len(images))
+func ConvertToDonationImages(images []shared_types.DonationImage) []shared_types.DonationImage {
+	result := make([]shared_types.DonationImage, len(images))
 	for i, img := range images {
-		result[i] = donation_dto.DonationImage{
+		result[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: img.CreatedAt.Format(time.RFC3339),
+			CreatedAt: img.CreatedAt,
 		}
 	}
 	return result
@@ -193,13 +195,12 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *model.Dona
 	endTime, _ := time.Parse(time.RFC3339, cpsRequest.EndDate)
 	startTime, _ := time.Parse(time.RFC3339, cpsRequest.StartDate)
 
-	donationImages := make([]types.DonationImage, len(cpsRequest.DonationImages))
+	donationImages := make([]shared_types.DonationImage, len(cpsRequest.DonationImages))
 	for i, img := range cpsRequest.DonationImages {
-		createdAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
-		donationImages[i] = types.DonationImage{
+		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: createdAt,
+			CreatedAt: img.CreatedAt,
 		}
 	}
 
@@ -245,6 +246,7 @@ func GetIntValueOrDefault(value, defaultValue int32) int32 {
 	}
 	return value
 }
+
 func GetTimeValueOrDefault(value, defaultValue time.Time) time.Time {
 	if value.IsZero() {
 		return defaultValue
@@ -256,13 +258,12 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
 
-	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
+	donationImages := make([]shared_types.DonationImage, len(donationResponse.DonationImages))
 	for i, img := range donationResponse.DonationImages {
-		createdAt, _ := time.Parse(time.RFC3339, img.CreatedAt)
-		donationImages[i] = types.DonationImage{
+		donationImages[i] = shared_types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
-			CreatedAt: createdAt,
+			CreatedAt: img.CreatedAt,
 		}
 	}
 
@@ -311,7 +312,7 @@ func MapDonationUpdate(
 	existing *model.Donation,
 	update donation_dto.DonationRequest,
 	coverImageURL string,
-	donationImages []donation_dto.DonationImage,
+	donationImages []shared_types.DonationImage,
 	company donation_dto.Company,
 	category donation_dto.Category,
 ) donation_dto.DonationCPSRequest {

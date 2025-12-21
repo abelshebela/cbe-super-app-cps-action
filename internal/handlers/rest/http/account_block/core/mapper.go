@@ -1,7 +1,7 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	ab_dto "cbe-super-app-cps-action/internal/constants/dto/account_block"
 )

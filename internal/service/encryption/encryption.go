@@ -14,8 +14,13 @@ import (
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type EncryptionService struct {
@@ -52,8 +57,15 @@ func SignWithHS256(data string, saltHex string) (string, error) {
 }
 
 func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionRequest, dataType, userSalt, action string) (dtoEncryption.EncryptionResponse, string, error) {
+	ctx := context.Background()
+	ctx, span := local_util.TraceLogger(ctx, "service", "LocalEncryptPassword", "Encryption", "LocalEncryptPassword")
+	defer span.End()
+
 	if e.cfg == nil {
 		e.logger.Errorf("[LocalEncryptPassword] config is empty")
+		span.AddEvent("Config is empty", trace.WithAttributes(
+			attribute.String("error", localization.ErrConfigIsEmpty.Code),
+		))
 		return dtoEncryption.EncryptionResponse{}, "", errors.New(localization.ErrConfigIsEmpty.Code)
 	}
 
@@ -67,6 +79,9 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
 		e.logger.Errorf("[LocalEncryptPassword] failed to marshal data: %v", err)
+		span.AddEvent("Failed to marshal data", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return dtoEncryption.EncryptionResponse{}, "", errors.New(localization.ErrMarshalingData.Code)
 	}
 	dataStr := string(dataBytes)
@@ -86,12 +101,18 @@ func (e *EncryptionService) LocalEncryptPassword(req dtoEncryption.EncryptionReq
 
 	if len(key) != 32 || len(iv) != aes.BlockSize {
 		e.logger.Errorf("[LocalEncryptPassword] invalid key or IV length")
+		span.AddEvent("Invalid key or IV length", trace.WithAttributes(
+			attribute.String("error", localization.ErrInvalidKeyOrIv.Code),
+		))
 		return dtoEncryption.EncryptionResponse{}, salt, errors.New(localization.ErrInvalidKeyOrIv.Code)
 	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		e.logger.Errorf("[LocalEncryptPassword] failed to create cipher: %v", err)
+		span.AddEvent("Failed to create cipher", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+		))
 		return dtoEncryption.EncryptionResponse{}, salt, err
 	}
 

@@ -35,13 +35,14 @@ type Tier struct {
 }
 
 type Services struct {
-	ID             bson.ObjectID `bson:"_id" json:"_id"`
-	ServiceCode    string        `bson:"service_code" json:"service_code"`
-	ServiceName    string        `bson:"service_name" json:"service_name"`
-	ServiceType    string        `bson:"service_type" json:"service_type"`
-	Key            string        `bson:"key" json:"key"`
-	ChargeCode     string        `bson:"charge_code" json:"charge_code"`
-	CommissionCode string        `bson:"commission_code" json:"commission_code"`
+	ID          bson.ObjectID `bson:"_id" json:"_id"`
+	ServiceCode string        `bson:"service_code" json:"service_code"`
+	// ProductAccount string        `bson:"product_account" json:"product_account"`
+	ServiceName    string `bson:"service_name" json:"service_name"`
+	ServiceType    string `bson:"service_type" json:"service_type"`
+	Key            string `bson:"key" json:"key"`
+	ChargeCode     string `bson:"charge_code" json:"charge_code"`
+	CommissionCode string `bson:"commission_code" json:"commission_code"`
 	// SingleCap int64  `bson:"single_cap" json:"single_cap"`
 	Cap                  Cap          `bson:"cap" json:"cap"`
 	CbeProductCodes      ProductCodes `bson:"cbe_product_codes" json:"cbe_product_codes"`

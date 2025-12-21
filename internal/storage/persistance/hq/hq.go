@@ -3,12 +3,13 @@ package hq
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -19,17 +20,17 @@ import (
 )
 
 type HQStorage struct {
-	dal    dal.MongoDal[model.HQ, model.HQ]
-	client *mongo.Client
+	dal        dal.MongoDal[model.HQ, model.HQ]
+	client     *mongo.Client
 	collection *mongo.Collection
-	logger utils.Logger
+	logger     utils.Logger
 }
 
 func NewHQRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.HQRepository {
 	return &HQStorage{
-		dal:    dal.NewMongoDal[model.HQ, model.HQ](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[model.HQ, model.HQ](client, dbName, collection),
+		client:     client,
+		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
 	}
 }

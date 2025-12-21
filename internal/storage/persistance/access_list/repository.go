@@ -1,13 +1,16 @@
 package access_list
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -18,25 +21,30 @@ import (
 )
 
 type AccessListStorage struct {
-	dal    dal.MongoDal[model.APPAccessList, model.APPAccessList]
-	client *mongo.Client
-	logger utils.Logger
+	dal           dal.MongoDal[model.APPAccessList, model.APPAccessList]
+	client        *mongo.Client
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
-func NewAccessListRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AppAccessListRepository {
+func NewAccessListRepository(client *mongo.Client, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AppAccessListRepository {
 	return &AccessListStorage{
-		dal:    dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:           dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, dbName, collection),
+		client:        client,
+		kafkaProducer: clientOrchestrationProducer,
+		logger:        logger,
 	}
 }
 
 func (a *AccessListStorage) Create(ctx context.Context, accessList *model.APPAccessList) error {
 
-	_, err := a.dal.InsertOne(ctx, *accessList)
+	newAccessControl, err := a.dal.InsertOne(ctx, *accessList)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, newAccessControl, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "create access-list")
+
 	return nil
 }
 
@@ -50,7 +58,7 @@ func (a *AccessListStorage) Update(ctx context.Context, id string, accessList *m
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := AccessListMapper(*accessList)
 
-	_, err = a.dal.UpdateOne(ctx, filter, updateData)
+	updateAccessList, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			a.logger.Errorf("[Update] access list not found")
@@ -59,6 +67,9 @@ func (a *AccessListStorage) Update(ctx context.Context, id string, accessList *m
 		a.logger.Errorf("[Update] failed to update access list: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, updateAccessList, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "update access-list")
+
 	a.logger.Infof("[Update] access list updated successfully")
 	return nil
 }
@@ -89,7 +100,7 @@ func (a *AccessListStorage) EnableOrDisable(ctx context.Context, id string, enab
 	}
 	filter := bson.M{"_id": objID}
 	update := bson.M{"$set": bson.M{"enabled": enable}}
-	_, err = a.dal.UpdateOne(ctx, filter, update)
+	updateAccessList, err := a.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			a.logger.Errorf("[EnableOrDisable] access list not found")
@@ -98,6 +109,9 @@ func (a *AccessListStorage) EnableOrDisable(ctx context.Context, id string, enab
 		a.logger.Errorf("[EnableOrDisable] failed to enable/disable access list: %v", err)
 		return err
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, updateAccessList, string(constants.ClientOrchestrationAccessControlTopic), string(constants.ClientOrchestrationAccessControlTopic), "enable/disable access-list")
+
 	a.logger.Infof("[EnableOrDisable] access list enable/disable completed successfully")
 	return nil
 }

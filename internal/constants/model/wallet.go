@@ -12,6 +12,7 @@ type Wallet struct {
 	Name           string         `json:"name" bson:"name"`
 	Code           string         `json:"code" bson:"code"`
 	Avatar         string         `json:"avatar" bson:"avatar"`
+	Type           string         `json:"type" bson:"type"`
 	Enabled        bool           `json:"enabled" bson:"enabled"`
 	Services       types.Services `json:"services" bson:"services"`
 	IsDeleted      bool           `json:"is_deleted" bson:"is_deleted"`

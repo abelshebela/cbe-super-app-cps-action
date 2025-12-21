@@ -2,11 +2,14 @@ package sqlc
 
 import (
 	transaction_dto "cbe-super-app-cps-action/internal/constants/dto/transaction"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	transaction_core "cbe-super-app-cps-action/internal/storage/persistance/transaction/core"
 	"context"
 	"fmt"
+
+	// members "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 const findTransactionByID = `SELECT 
@@ -82,6 +85,47 @@ var findTransactionWithParam = `SELECT
 func (q *Queries) FindTransactionByID(ctx context.Context, id string) (model.TransactionModel, error) {
 	query := findTransactionByID + " WHERE transaction_id = :1"
 	row := q.db.QueryRowContext(ctx, query, id)
+	var transaction model.TransactionModel
+	err := row.Scan(
+		&transaction.ID,
+		&transaction.TransactionID,
+		&transaction.FTNumber,
+		&transaction.DebitBranchCode,
+		&transaction.DebitDistrictCode,
+		&transaction.DebitUserID,
+		&transaction.DebitAccountNumber,
+		&transaction.DebitAccountHolderName,
+		&transaction.CreditUserID,
+		&transaction.CreditAccountNumber,
+		&transaction.CreditAccountHolderName,
+		&transaction.InstitutionCode,
+		&transaction.InstitutionName,
+		&transaction.Currency,
+		&transaction.ServiceFee,
+		&transaction.TipAmount,
+		&transaction.PaidAmount,
+		&transaction.VAT,
+		&transaction.Amount,
+		&transaction.TotalAmount,
+		&transaction.ExternalReference,
+		&transaction.TransactionReason,
+		&transaction.TransactionType,
+		&transaction.TransactionStatus,
+		&transaction.IsIFB,
+		&transaction.PaidAt,
+		&transaction.ReversedAt,
+		&transaction.Metadata,
+		&transaction.CreatedAt,
+		&transaction.LastModifiedAt,
+	)
+	if err != nil {
+		return model.TransactionModel{}, err
+	}
+	return transaction, nil
+}
+func (q *Queries) FindTransactionByCifOrAccountNumberOrFT(ctx context.Context, identifier string) (model.TransactionModel, error) {
+	query := findTransactionByID + " WHERE debit_account_number = :1 OR credit_account_number = :1 OR ft_number = :1"
+	row := q.db.QueryRowContext(ctx, query, identifier, identifier, identifier)
 	var transaction model.TransactionModel
 	err := row.Scan(
 		&transaction.ID,

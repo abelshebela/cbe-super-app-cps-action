@@ -1,8 +1,9 @@
 package accountblock
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // AccountBlockResponse represents any region, district, city, or branch

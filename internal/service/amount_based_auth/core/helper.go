@@ -1,15 +1,16 @@
 package core
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"errors"
+
+	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func ApplyOpenUpdate(openTier *model.AuthTier, pinTier *model.AuthTier) error {
 
-	if openTier.Method != constants.OPEN || pinTier.Method != constants.PIN {
+	if openTier.Method != shared_constant.OPEN || pinTier.Method != shared_constant.PIN {
 		return errors.New(localization.ErrorInvalidMethod.Code)
 	}
 
@@ -24,7 +25,7 @@ func ApplyOpenUpdate(openTier *model.AuthTier, pinTier *model.AuthTier) error {
 // ApplyPinUpdate validates PIN tier values against OPEN and OTP_PIN constraints
 // but does NOT force PIN values - it validates user input is within valid ranges
 func ApplyPinUpdate(pinTier *model.AuthTier, openTier *model.AuthTier, otpPinTier *model.AuthTier) error {
-	if pinTier.Method != constants.PIN || openTier.Method != constants.OPEN || otpPinTier.Method != constants.OTPANDPIN {
+	if pinTier.Method != shared_constant.PIN || openTier.Method != shared_constant.OPEN || otpPinTier.Method != shared_constant.OTPANDPIN {
 		return errors.New(localization.ErrorInvalidMethod.Code)
 	}
 
@@ -45,7 +46,7 @@ func ApplyPinUpdate(pinTier *model.AuthTier, openTier *model.AuthTier, otpPinTie
 }
 
 func ApplyOtpPinUpdate(otpPinTier *model.AuthTier, pinTier *model.AuthTier) error {
-	if otpPinTier.Method != constants.OTPANDPIN || pinTier.Method != constants.PIN {
+	if otpPinTier.Method != shared_constant.OTPANDPIN || pinTier.Method != shared_constant.PIN {
 		return errors.New(localization.ErrorInvalidMethod.Code)
 	}
 

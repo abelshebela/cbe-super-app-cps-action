@@ -4,12 +4,13 @@ import (
 	newstag_dto "cbe-super-app-cps-action/internal/constants/dto/news_tag"
 	newstag_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/news_tag"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	_ "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/news_tag/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+
+	_ "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -105,7 +106,7 @@ func (n NewsTagHandler) DeleteNewsTag(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Param			page		query		int													false	"Page number"
 //	@Param			per_page	query		int													false	"Items per page"
-//	@Param			search	query		string													false	"search field tag_name"
+//	@Param			search		query		string												false	"search field tag_name"
 //	@Param			tag_name	query		string												false	"filter key list tag_name"
 //	@Success		200			{object}	localization.StandardResponse{data=[]model.NewsTag}	"List of news tags"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}				"Bad request - Invalid pagination params"

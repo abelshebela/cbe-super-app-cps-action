@@ -4,7 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"cbe-super-app-cps-action/internal/constants/model"
+	// "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"

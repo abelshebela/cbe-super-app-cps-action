@@ -47,7 +47,7 @@ func InitAccountBlockAdapter(accountBlockApplication service.AccountBlockService
 //	@Security		BearerAuth
 //	@Router			/account_block/branches/{branch_code} [get]
 func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getBranchById", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getBranchById", "handler", "accountBlock")
 	defer span.End()
 	branchId, ok := local_util.GetParam(r, "branch_id")
 	if !ok {
@@ -89,7 +89,7 @@ func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_block/branches [get]
 func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllBranches", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBranches", "handler", "accountBlock")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -121,7 +121,7 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/account_block/regions/{region_code} [get]
 func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getRegionById", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getRegionById", "handler", "accountBlock")
 	defer span.End()
 
 	regionId, ok := local_util.GetParam(r, "region_id")
@@ -162,7 +162,7 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_block/regions [get]
 func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllRegions", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllRegions", "handler", "accountBlock")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -194,7 +194,7 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_block/districts/{district_code} [get]
 func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getDistrictById", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getDistrictById", "handler", "accountBlock")
 	defer span.End()
 
 	districtId, ok := local_util.GetParam(r, "district_id")
@@ -234,7 +234,7 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/account_block/districts [get]
 func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllDistricts", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllDistricts", "handler", "accountBlock")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -266,7 +266,7 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/account_block/cities/{city_code} [get]
 func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getCityById", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCityById", "handler", "accountBlock")
 	defer span.End()
 
 	cityId, ok := local_util.GetParam(r, "city_id")
@@ -306,7 +306,7 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 //	@Security		BearerAuth
 //	@Router			/account_block/cities [get]
 func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllCities", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCities", "handler", "accountBlock")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -337,7 +337,7 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/account_block/branches/enable [post]
 func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableBranches", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBranches", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -395,7 +395,7 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/account_block/branches/disable [post]
 func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableBranches", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBranches", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -453,7 +453,7 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/account_block/regions/enable [post]
 func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableRegions", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableRegions", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -511,7 +511,7 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/account_block/regions/disable [post]
 func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableRegions", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableRegions", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -569,7 +569,7 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 //	@Security		BearerAuth
 //	@Router			/account_block/districts/enable [post]
 func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableDistricts", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDistricts", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -626,7 +626,7 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/account_block/districts/disable [post]
 func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableDistricts", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDistricts", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -679,7 +679,7 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 //	@Security		BearerAuth
 //	@Router			/account_block/cities/enable [post]
 func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "enableCities", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCities", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -732,7 +732,7 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/account_block/cities/disable [post]
 func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "disableCities", "handler", "accountBlock")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCities", "handler", "accountBlock")
 	defer span.End()
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

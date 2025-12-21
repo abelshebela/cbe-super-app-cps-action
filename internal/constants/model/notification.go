@@ -20,15 +20,16 @@ type Notification struct {
 	Seen              bool                         `json:"seen" bson:"seen"`
 	Enabled           bool                         `json:"enabled" bson:"enabled"`
 	Status            constants.NotificationStatus `json:"status" bson:"status"`
+	IsFromCPS         bool                         `json:"is_from_cps" bson:"is_from_cps"`
 	IsDeleted         bool                         `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt         time.Time                    `json:"created_at" bson:"created_at"`
 	LastModified      time.Time                    `json:"last_modified" bson:"last_modified"`
 	DeletedAt         time.Time                    `json:"deleted_at" bson:"deleted_at"`
 }
+
 type NotificationDocument struct {
 	ID                bson.ObjectID `bson:"_id,omitempty" json:"id"`
 	Title             string        `bson:"title,omitempty" json:"title"`
-	NotificationCode  string        `bson:"notification_code" json:"notification_code"`
 	NotificationType  string        `bson:"notification_type" json:"notification_type"`
 	NotificationBody  string        `bson:"notification_body" json:"notification_body"`
 	IsPublic          bool          `bson:"is_public" json:"is_public"`

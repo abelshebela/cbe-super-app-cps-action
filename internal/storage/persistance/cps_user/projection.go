@@ -1,14 +1,14 @@
 package cps_user
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
+func CPSUserUpdateMapper(u *cpsuser.UpdateUserRequest) bson.M {
 	set := bson.M{}
 	if u.FullName != "" {
 		set["full_name"] = u.FullName
@@ -30,12 +30,6 @@ func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
 	}
 	if u.UserName != "" {
 		set["username"] = u.UserName
-	}
-	if u.PermissionCategory != nil {
-		set["permission_category"] = u.PermissionCategory
-	}
-	if u.PermissionGroup != nil {
-		set["permission_group"] = u.PermissionGroup
 	}
 
 	set["last_modified"] = time.Now()
