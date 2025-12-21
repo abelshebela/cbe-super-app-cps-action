@@ -65,7 +65,31 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 	return als, nil
 }
 
-func (a *AccessListSegmentation) Create(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
+	serviceObjID, err := bson.ObjectIDFromHex(accessListSegmentation.ServiceID)
+	if err != nil {
+		a.logger.Errorf("invalid ServiceID ObjectID: %s", accessListSegmentation.ServiceID)
+		return errors.New(localization.ErrorInvalidID.Code)
+	}
+	doc := local_model.AccessListSegmentation{
+		ID:               bson.NewObjectID(),
+		Type:             accessListSegmentation.Type,
+		ServiceID:        serviceObjID,
+		ServiceName:      accessListSegmentation.ServiceName,
+		SegmentationCode: accessListSegmentation.SegmentCode,
+		SegmentationName: accessListSegmentation.SegmentName,
+		SegmentationType: accessListSegmentation.SegmentType,
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
+	}
+	if _, err := a.repo.InsertOne(ctx, doc); err != nil {
+		a.logger.Errorf("[CreateAccountSegment] failed to insert document: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
 	if len(accessListSegmentation.SegmentedID) == 0 {
 		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
 	}
@@ -82,13 +106,14 @@ func (a *AccessListSegmentation) Create(ctx context.Context, accessListSegmentat
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		doc := local_model.AccessListSegmentation{
-			ID:          bson.NewObjectID(),
-			Type:        accessListSegmentation.Type,
-			ServiceID:   serviceObjID,
-			ServiceName: accessListSegmentation.ServiceName,
-			SegmentedID: objID,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			ID:               bson.NewObjectID(),
+			Type:             accessListSegmentation.Type,
+			ServiceID:        serviceObjID,
+			ServiceName:      accessListSegmentation.ServiceName,
+			SegmentationType: accessListSegmentation.SegmentType,
+			SegmentedID:      objID,
+			CreatedAt:        time.Now(),
+			UpdatedAt:        time.Now(),
 		}
 		docs = append(docs, doc)
 	}

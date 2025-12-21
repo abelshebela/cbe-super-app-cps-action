@@ -30,10 +30,9 @@ type Wallet struct {
 	Name      string    `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Code      string    `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	Avatar    string    `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Type      string    `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
-	Enabled   bool      `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	IsDeleted bool      `protobuf:"varint,7,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
-	Services  *Services `protobuf:"bytes,8,opt,name=services,proto3" json:"services,omitempty"`
+	Enabled   bool      `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	IsDeleted bool      `protobuf:"varint,6,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
+	Services  *Services `protobuf:"bytes,7,opt,name=services,proto3" json:"services,omitempty"`
 }
 
 func (x *Wallet) Reset() {
@@ -92,13 +91,6 @@ func (x *Wallet) GetCode() string {
 func (x *Wallet) GetAvatar() string {
 	if x != nil {
 		return x.Avatar
-	}
-	return ""
-}
-
-func (x *Wallet) GetType() string {
-	if x != nil {
-		return x.Type
 	}
 	return ""
 }

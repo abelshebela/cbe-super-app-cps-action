@@ -24,6 +24,9 @@ func MapModelToDTO(model local_model.AccessListSegmentation) access_list_segment
 	return access_list_segmentation_dto.AccessListSegmentationResponse{
 		ID:          model.ID.Hex(),
 		Type:        model.Type,
+		SegmentType: model.SegmentationType,
+		SegmentCode: model.SegmentationCode,
+		SegmentName: model.SegmentationName,
 		SegmentedID: model.SegmentedID.Hex(),
 		ServiceID:   model.ServiceID.Hex(),
 		ServiceName: model.ServiceName,
