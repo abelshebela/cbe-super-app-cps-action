@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"time"
 
 	"cbe-super-app-cps-action/cmd/client"
 	"cbe-super-app-cps-action/cmd/server"
@@ -12,6 +13,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/storage/api"
 
+	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/platform/telemetry"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -94,6 +96,9 @@ func Init(ctx context.Context) {
 	merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, merchantXAPIKey, notificationApi, *notificationProducer, *clientOrchestrationProducer, cfg, logger)
 	logger.Infof("Persistence initialized")
+
+	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
+	mid.InitCPSActionGuard(persitence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
 
 	redis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")

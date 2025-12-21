@@ -9,7 +9,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -31,9 +30,9 @@ func NewVaultAmountTierRepository(db *sql.DB, logger shared_utils.Logger) storag
 func (r *VaultAmountTierRepository) Create(ctx context.Context, vaultAmountTier *model.VaultAmountTier) (string, error) {
 	arg := sqlc.VaultAmountTier{
 		VaultCategoryID: vaultAmountTier.VaultCategoryID,
-		MinAmount:       decimal.NewFromFloat(vaultAmountTier.MinAmount),
-		MaxAmount:       decimal.NewFromFloat(vaultAmountTier.MaxAmount),
-		Interest:        decimal.NewFromFloat(vaultAmountTier.Interest),
+		MinAmount:       vaultAmountTier.MinAmount,
+		MaxAmount:       vaultAmountTier.MaxAmount,
+		Interest:        vaultAmountTier.Interest,
 		IsActive:        sql.NullBool{Bool: vaultAmountTier.IsActive, Valid: true},
 	}
 	return r.queries.SaveAmountTier(ctx, arg)
@@ -68,12 +67,12 @@ func (r *VaultAmountTierRepository) FindAllWithPagination(ctx context.Context, f
 		m := &model.VaultAmountTier{
 			ID:              t.ID,
 			VaultCategoryID: t.VaultCategoryID,
-			MinAmount:       func() float64 { f, _ := t.MinAmount.Float64(); return f }(),
-			MaxAmount:       func() float64 { f, _ := t.MaxAmount.Float64(); return f }(),
-			Interest:        func() float64 { f, _ := t.Interest.Float64(); return f }(),
+			MinAmount:       t.MinAmount,
+			MaxAmount:       t.MaxAmount,
+			Interest:        t.Interest,
 			IsActive:        t.IsActive.Bool,
-			CreatedAt:       t.CreatedAt,
-			UpdatedAt:       t.UpdatedAt,
+			CreatedAt:       t.CreatedAt.GoString(),
+			UpdatedAt:       t.UpdatedAt.GoString(),
 		}
 		result = append(result, m)
 	}
@@ -99,12 +98,12 @@ func (r *VaultAmountTierRepository) FindByID(ctx context.Context, id string) (*m
 	m := &model.VaultAmountTier{
 		ID:              t.ID,
 		VaultCategoryID: t.VaultCategoryID,
-		MinAmount:       func() float64 { f, _ := t.MinAmount.Float64(); return f }(),
-		MaxAmount:       func() float64 { f, _ := t.MaxAmount.Float64(); return f }(),
-		Interest:        func() float64 { f, _ := t.Interest.Float64(); return f }(),
+		MinAmount:       t.MinAmount,
+		MaxAmount:       t.MaxAmount,
+		Interest:        t.Interest,
 		IsActive:        t.IsActive.Bool,
-		CreatedAt:       t.CreatedAt,
-		UpdatedAt:       t.UpdatedAt,
+		CreatedAt:       t.CreatedAt.GoString(),
+		UpdatedAt:       t.UpdatedAt.GoString(),
 	}
 	return m, nil
 }
@@ -112,9 +111,9 @@ func (r *VaultAmountTierRepository) FindByID(ctx context.Context, id string) (*m
 func (r *VaultAmountTierRepository) Update(ctx context.Context, id string, vaultAmountTier *model.VaultAmountTier) error {
 	arg := sqlc.VaultAmountTier{
 		ID:        id,
-		MinAmount: decimal.NewFromFloat(vaultAmountTier.MinAmount),
-		MaxAmount: decimal.NewFromFloat(vaultAmountTier.MaxAmount),
-		Interest:  decimal.NewFromFloat(vaultAmountTier.Interest),
+		MinAmount: vaultAmountTier.MinAmount,
+		MaxAmount: vaultAmountTier.MaxAmount,
+		Interest:  vaultAmountTier.Interest,
 	}
 	_, err := r.queries.UpdateAmountTier(ctx, arg)
 	return err

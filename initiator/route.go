@@ -155,6 +155,37 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	router.Mount("/api/v1/cbesuperapp/cps_action", r)
 
+	// // Mini App Proxy Routes
+	// miniAppProxyHandler := miniapp.CreateMiniAppProxyHandler(logger, cfg)
+	// if miniAppProxyHandler == nil {
+	// 	logger.Fatalf("Failed to create mini-app proxy handler")
+	// }
+
+	// r.Route("/mini-apps", func(r chi.Router) {
+	// 	r.Use(authMiddleware.AuthenticateToken)
+	// 	r.Handle("/*", miniAppProxyHandler)
+	// })
+
+	// Mini App Category Proxy Routes
+	// miniAppCategoryProxyHandler := miniapp.CreateMiniAppCategoryProxyHandler(logger, cfg)
+	// if miniAppProxyHandler == nil {
+	// 	logger.Fatalf("Failed to create mini-app proxy handler")
+	// }
+
+	// r.Route("/mini-apps/categories", func(r chi.Router) {
+	// 	r.Use(authMiddleware.AuthenticateToken)
+	// 	r.Handle("/*", miniAppCategoryProxyHandler)
+	// })
+
+	// Wrap all CPS routes in a secured router that authenticates first, then applies the central guard
+	secured := chi.NewRouter()
+	secured.Use(authMiddleware.AuthenticateToken)
+	// Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
+	// Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
+	secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
+	secured.Mount("/", r)
+
+	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes
