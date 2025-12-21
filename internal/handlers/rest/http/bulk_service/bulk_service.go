@@ -3,8 +3,9 @@ package bulk_service
 import (
 	dto "cbe-super-app-cps-action/internal/constants/dto/bulk_service"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	// "fmt"
 
@@ -41,18 +42,18 @@ func InitBulkServiceAdapter(bulk_service service.BulkService, logger utils.Logge
 //	@Tags			Bulk Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query		int																	false	"Page number"		default(1)
-//	@Param			per_page	query		int																	false	"Items per page"	default(10)
-//	@Param			search		query		string																false	"Search term access_list_name and key"
-//	@Param			ussd_enabled		query		string														false	"Search term"
-//	@Param			enabled		query		string																false	"Search term"
-//	@Success		200			{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
-//	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
-//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
+//	@Param			page			query		int																	false	"Page number"		default(1)
+//	@Param			per_page		query		int																	false	"Items per page"	default(10)
+//	@Param			search			query		string																false	"Search term access_list_name and key"
+//	@Param			ussd_enabled	query		string																false	"Search term"
+//	@Param			enabled			query		string																false	"Search term"
+//	@Success		200				{object}	localization.StandardResponse{data=bulk_services_paginated_resp}	"Bulk services retrieved successfully"
+//	@Failure		400				{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}								"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/bulk_services [get]
 func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "getAllBulkServices", "handler", "bulkService")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getAllBulkServices", "handler", "bulkService")
 	defer span.End()
 	filter_params := util.ExtractFilterParams(r)
 	bulk_services, err := h.bulkService.GetAllBulkServices(ctx, filter_params)
@@ -82,7 +83,7 @@ func (h *bulk_serviceAdapter) GetAllBulkServices(w http.ResponseWriter, r *http.
 //	@Security		BearerAuth
 //	@Router			/bulk_services/enable [post]
 func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "enableBulkService", "handler", "bulkService")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "enableBulkService", "handler", "bulkService")
 	defer span.End()
 	var req dto.BulkServiceDTO
 
@@ -120,7 +121,7 @@ func (h *bulk_serviceAdapter) EnableBulkService(w http.ResponseWriter, r *http.R
 //	@Security		BearerAuth
 //	@Router			/bulk_services/disable [post]
 func (h *bulk_serviceAdapter) DisableBulkService(w http.ResponseWriter, r *http.Request) {
-	ctx, span := util.TraceLogger(r.Context(), "", "disableBulkService", "handler", "bulkService")
+	ctx, span := util.TraceLogger(r.Context(), "handler", "disableBulkService", "handler", "bulkService")
 	defer span.End()
 	var req dto.BulkServiceDTO
 

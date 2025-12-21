@@ -3,9 +3,10 @@ package topup
 import (
 	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
 	topupInbound "cbe-super-app-cps-action/internal/constants/interfaces/topup"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"net/http"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	topupcore "cbe-super-app-cps-action/internal/handlers/rest/http/topup/core"

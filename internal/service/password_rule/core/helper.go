@@ -2,6 +2,7 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -9,6 +10,8 @@ import (
 	"context"
 	"errors"
 	"log"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -26,4 +29,35 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 		return err
 	}
 	return nil
+}
+
+func PasswordRuleDtoToModel(
+	existing model.PasswordRule,
+	dto passwordrule.PasswordRuleUpdate,
+) model.PasswordRule {
+
+	if dto.Rule.Name != "" {
+		existing.Name = dto.Rule.Name
+	}
+	if dto.Rule.MinLength != 0 {
+		existing.MinLength = dto.Rule.MinLength
+	}
+	if dto.Rule.MaxLength != 0 {
+		existing.MaxLength = dto.Rule.MaxLength
+	}
+
+	if dto.Rule.Numbers != nil {
+		existing.Numbers = *dto.Rule.Numbers
+	}
+	if dto.Rule.CapitalLetters != nil {
+		existing.CapitalLetters = *dto.Rule.CapitalLetters
+	}
+	if dto.Rule.SmallLetters != nil {
+		existing.SmallLetters = *dto.Rule.SmallLetters
+	}
+	if dto.Rule.Characters != nil {
+		existing.Characters = *dto.Rule.Characters
+	}
+
+	return existing
 }

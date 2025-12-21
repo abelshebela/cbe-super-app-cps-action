@@ -3,13 +3,14 @@ package cps_action
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	cps_action_core "cbe-super-app-cps-action/internal/storage/persistance/cps_action/core"
 	"context"
 	"errors"
 	"fmt"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
@@ -118,9 +119,9 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 
 func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
 	r.logger.Infof("[Update] updating CPS action for action code: %s", actionCode)
-	filterMap := BuildCPSActionFilter(update)
+	// filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
-
+	filterMap := bson.M{}
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("[Update] failed to update CPS action: %v", err)

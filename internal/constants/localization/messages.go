@@ -66,6 +66,11 @@ const (
 	MsgBankEnableRequestSent      = "Bank enable request sent successfully"
 	MsgBankLogoUpdatedRequestSent = "Bank logo updated request sent successfully"
 
+	MsgJobRoleCreatedRequestSent = "Job role created request sent successfully"
+	MsgJobRoleUpdateRequestSent  = "Job role updated request sent successfully"
+	MsgRoleCreatedRequestSent    = "Rule created    request sent successfully"
+	MsgRoleUpdatedRequestSent    = "Rule updated request sent successfully"
+
 	// Donation related success messages
 	MsgDonationCategoryCreateRequestSent     = "Donation category create request submitted successfully"
 	MsgDonationCategoriesFetched             = "Donation categories fetched successfully"
@@ -198,9 +203,14 @@ const (
 	MsgVaultGroupCategoryDeleteRequestSubmitted   = "Vault group category deleted  request submitted successfully"
 	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
 	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
-	// Budget Category related success messages
-	MsgBudgetCategoryUpdatedSuccessfully = "Budget category updated successfully"
+	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
 
+	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
+	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
+	MsgVaultAmountTierUpdateRequestSubmitted  = "Vault amount tier update request submitted successfully"
+	MsgVaultAmountTierDeleteRequestSubmitted  = "Vault amount tier delete request submitted successfully"
+	MsgVaultAmountTierDisableRequestSubmitted = "Vault amount tier disable request submitted successfully"
+	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 
@@ -315,11 +325,11 @@ const (
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
 	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
-	MsgCpsUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCpsUserDeletedSuccessfully      = "CPS user deleted request sent successfully"
 	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
 	MsgCpsUserRetrievedSuccessfully    = "CPS user retrieved successfully"
-	MsgCpsUserEnabledSuccessfully      = "CPS user enabled successfully"
-	MsgCpsUserDisabledSuccessfully     = "CPS user disabled successfully"
+	MsgCpsUserEnabledSuccessfully      = "CPS user enabled request sent successfully"
+	MsgCpsUserDisabledSuccessfully     = "CPS user disable request sent successfully"
 
 	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
@@ -451,6 +461,7 @@ const (
 	MsgMaintenanceMode     = "System is in maintenance mode"
 
 	// Bank related error messages
+	MsgAmountTierNotFound        = "Vault's amount tier not found"
 	MsgBankNotFound              = "Bank not found"
 	MsgBankAlreadyExists         = "Bank already exists"
 	MsgBankAlreadyEnabled        = "Bank already enabled"
@@ -481,9 +492,10 @@ const (
 	MsgCompanyNameAlreadyExists          = "Company name already exists"
 	MsgCompanyCodeAlreadyExists          = "Company code already exists"
 	MsgDonationTitleAlreadyExists        = "Donation title already exists"
-	MsgAccountNumberAlreadyExists        = "Donation company with this account number already exists"
+	MsgAccountNumberAlreadyExists        = "company with this account number already exists"
 	MsgEmailAlreadyExists                = "Email already exists"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
+	MsgCodeAlreadyExists                 = "Ecommerce merchant with this code/id already exists"
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
 	MsgAccountNotFound                   = "Account number not found"
@@ -588,8 +600,8 @@ const (
 	MsgMiniAppMerchantNotFound       = "Mini app merchant not found"
 	MsgMiniAppMerchantCreationFailed = "Failed to create mini app merchant"
 	MsgMiniAppMerchantDeletionFailed = "Failed to delete mini app merchant"
-	MsgMiniAppMerchantEnableFailed   = "mini app merchant already enabled"
-	MsgMiniAppMerchantDisableFailed  = "mini app merchant already disabled"
+	MsgMiniAppMerchantDisableFailed  = "ecommerce merchant is already disabled"
+	MsgMiniAppMerchantEnableFailed   = "ecommerce merchant is already enabled"
 	MsgMiniAppMerchantInvalidFormat  = "Invalid mini app merchant format"
 	MsgMiniAppMerchantRequired       = "Mini app merchant is required"
 
@@ -724,6 +736,7 @@ const (
 	MsgInvalidRequestBankName           = "invalid format for Name: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankCode           = "invalid format for Code: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankBIC            = "invalid format for BIC: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankType           = "invalid format for Bank Type: only letters, numbers, and spaces are allowed"
 	MsgNoDataProvidedForBankUpdate      = "No data provided for Bank update"
 	MsgInvalidToken                     = "Invalid token"
 	MsgCustomerPermanentlyDisabled      = "Customer account is permanently disabled"
@@ -793,10 +806,12 @@ const (
 	MsgNotificationDeleteFailed    = "Failed to delete notification"
 
 	// Customer related error messages
-	MsgCustomerCountFailed     = "Failed to count customers"
-	MsgCustomerConvertIDFailed = "Failed to convert customer ID"
-	MsgCustomerNotFound        = "Customer not found"
-	MsgCustomerFetchFailed     = "Failed to get customer"
+	MsgCustomerCountFailed                         = "Failed to count customers"
+	MsgCustomerConvertIDFailed                     = "Failed to convert customer ID"
+	MsgCustomerNotFound                            = "Customer not found"
+	MsgCustomerFetchFailed                         = "Failed to get customer"
+	MsgCustomerCIFMustContainOnlyNumbers           = "CIF must contain only numbers"
+	MsgCustomerAccountNumberMustContainOnlyNumbers = "Account number must contain only numbers"
 
 	// Account Validation related error messages
 	MsgValidationRuleGetFailed                = "Failed to get validation rule"
@@ -1041,9 +1056,28 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
-
+	MsgRoleNotFound          = "Role not found"
 	// transaction related messages
-	MsgTransactionsRetrievedSuccess = "Transactions retrieved successfully"
-	MsgTransactionRetrievedSuccess  = "Transaction retrieved successfully"
-	MsgTransactionIDRequired        = "Transaction ID is required"
+	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
+	MsgTransactionRetrievedSuccess   = "Transaction retrieved successfully"
+	MsgTransactionIDRequired         = "Transaction ID is required"
+	MsgTransactionIdentifierRequired = "Transaction Identifier is required"
+
+	// event merchant message
+	MsgEventMerchantCreatedSuccessfully  = "Event merchant created successfully"
+	MsgEventMerchantInvalidID            = "merchant id invalid or empty"
+	MsgEventMerchantInvalidType          = "merchant type invalid or empty"
+	MsgEventMerchantInvalidMethod        = "merchant method invalid or empty"
+	MsgEventMerchantInvalidName          = "merchant name invalid or empty"
+	MsgEventMerchantInvalidAccountNumber = "merchant account number invalid or empty"
+	MsgEventMerchantInvalidEmail         = "merchant email invalid or empty"
+	MsgEventMerchantInvalidPhoneNumber   = "merchant phone number invalid or empty"
+	MsgEventMerchantEnableFailed         = "event merchant already enabled"
+	MsgEventMerchantDisableFailed        = "event merchant already disabled"
+	MsgEventMerchantNotFound             = "event merchant not found"
+	MsgEventMerchantDisabledSuccessfully = "event merchant disabled successfully"
+	MsgEventMerchantEnabledSuccessfully  = "event merchant enabled successfully"
+	MsgEventMerchantUpdatedSuccessfully  = "event merchant updated successfully"
+	MsgEventMerchantDeletedSuccessfully  = "event merchant deleted successfully"
+	MsgEventMerchantFetchedSuccessfully  = "event merchant fetched successfully"
 )

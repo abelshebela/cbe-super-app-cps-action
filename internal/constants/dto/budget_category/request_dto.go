@@ -11,7 +11,7 @@ type CreateBudgetRequest struct {
 }
 
 type UpdateBudgetRequest struct {
-	Name  string               `form:"name,omitempty" example:"Monthly Groceries"`
-	Color string               `form:"color,omitempty" example:"#FF5733"`
+	Name  string                `form:"name,omitempty" example:"Monthly Groceries"`
+	Color string                `form:"color,omitempty" example:"#FF5733"`
 	Icon  *multipart.FileHeader `form:"icon,omitempty"`
 }

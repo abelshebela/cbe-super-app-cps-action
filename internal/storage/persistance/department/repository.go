@@ -3,13 +3,14 @@ package department
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
 	"strings"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -136,17 +137,18 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 	return result, nil
 }
 
-func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.Department], error) {
+func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]*model.Department], error) {
 
 	searchKeys := bson.M{}
 
 	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"department_code", "department", "enabled", "is_deleted", "created_at", "last_modified"}
+	allowedKeys := []string{"search", "department_code", "department", "enabled", "is_deleted", "created_at", "last_modified"}
 
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
+			{"search": searchRegex},
 			{"department_code": searchRegex},
 			{"department": searchRegex},
 			{"created_at": searchRegex},
@@ -154,32 +156,36 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 		}
 
 	}
-	filter, _, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	Filter := dal.FilterOp{
-		Filter: filter,
-		Limit:  limit,
-	}
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	// Filter := dal.FilterOp{
+	// 	Filter: filter,
+	// 	Limit:  limit,
+	// }
 
-	data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
+	// data, err := s.dal.FindAllWithCursorBasedPagination(ctx, Filter)
+	// if err != nil {
+	// 	s.logger.Errorf("[FindAllWithPagination] failed to fetch departments: %v", err)
+	// 	return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
+	// }
+	results, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to fetch departments: %v", err)
-		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]*model.Department]{}, err
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count departments: %v", err)
-		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]*model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[FindAllWithPagination] retrieved %d departments", len(data))
+	s.logger.Infof("[FindAllWithPagination] retrieved %d departments", len(results))
 
 	// 8. Return standard paginated response
-	return types.PaginatedResponse[[]model.Department]{
-		Data: data,
+	return types.PaginatedResponse[[]*model.Department]{
+		Data: results,
 		Meta: meta,
 	}, nil
 }

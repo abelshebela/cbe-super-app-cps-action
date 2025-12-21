@@ -38,7 +38,7 @@ func InitVaultGroupCategoryHandler(svc service.VaultGroupCategoryService, logger
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/create [post]
 func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	var req vaultgroup_category.CreateVaultGroupCategoryRequest
 
@@ -52,6 +52,7 @@ func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 	defer file.Close()
 
 	req.Name = r.FormValue("name")
+	req.CategoryType = r.FormValue("category_type")
 	req.CoverImage = fileHeader
 
 	if err := req.Validate(); err != nil {
@@ -87,7 +88,7 @@ func (h *handler) CreateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory [get]
 func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllVaultGroupCategories", "handler", "vaultGroupCategory")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
 	result, err := h.service.FindAllVaultGroupCategories(ctx, params)
@@ -115,7 +116,7 @@ func (h *handler) FindAllVaultGroupCategories(w http.ResponseWriter, r *http.Req
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/{id} [get]
 func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -150,16 +151,16 @@ func (h *handler) GetVaultGroupCategory(w http.ResponseWriter, r *http.Request) 
 //	@Tags			Vault Group Category
 //	@Accept			multipart/form-data
 //	@Produce		json
-//	@Param			id			path		string	true	"Vault group category ID"
-//	@Param			cover_image	formData	 file	false	"Cover image file"
-//	@Param			name		formData	 string	false	"Name"
+//	@Param			id			path		string									true	"Vault group category ID"
+//	@Param			cover_image	formData	file									false	"Cover image file"
+//	@Param			name		formData	string									false	"Name"
 //	@Success		200			{object}	localization.StandardResponse{data=nil}	"Vault group category update request submitted successfully"
 //	@Failure		400			{object}	localization.StandardResponse{data=nil}	"Bad request"
 //	@Failure		500			{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/update/{id} [patch]
 func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -189,8 +190,10 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 	}
 
 	if name := r.FormValue("name"); name != "" {
-		req.Name = &name
+		req.Name = name
 	}
+
+	req.CategoryType = r.FormValue("category_type")
 
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
@@ -225,7 +228,7 @@ func (h *handler) UpdateVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/delete/{id} [delete]
 func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -266,7 +269,7 @@ func (h *handler) DeleteVaultGroupCategory(w http.ResponseWriter, r *http.Reques
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/disable/{id} [patch]
 func (h *handler) DisableVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {
@@ -309,7 +312,7 @@ func (h *handler) DisableVaultGroupCategory(w http.ResponseWriter, r *http.Reque
 //	@Security		BearerAuth
 //	@Router			/vaultgroupcategory/enable/{id} [patch]
 func (h *handler) EnableVaultGroupCategory(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableVaultGroupCategory", "handler", "vaultGroupCategory")
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if id == "" {

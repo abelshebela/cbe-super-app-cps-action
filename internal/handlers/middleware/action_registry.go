@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -295,12 +294,9 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			for _, v := range cpsActionRegistry {
 				path := strings.ReplaceAll(relPath, "_", "")
-				if v == "JOBROLE" {
-					fmt.Printf(" path: %v,-- value: %v, is sub: %v", path, strings.ToLower(v), strings.Contains(relPath, strings.ToLower(v)))
-				}
 
-				if strings.Contains(relPath, strings.ToLower(v)) {
-					actionName = path
+				if strings.Contains(path, strings.ToLower(v)) {
+					actionName = v
 					break
 				}
 

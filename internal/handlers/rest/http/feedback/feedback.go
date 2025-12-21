@@ -27,7 +27,7 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 }
 
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "createFeedback", "handler", "feedback")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
 	defer span.End()
 	var req feedback.FeedbackRequest
 
@@ -75,21 +75,21 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 //	@Tags			Feedback
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number (default 1)"
-//	@Param			per_page	query	int		false	"Items per page (default 10, max 100)"
-//	@Param			sort		query	string	false	"Sort field"
-//	@Param			order		query	string	false	"Sort order (asc/desc)"
-//	@Param			created_at	query	string	false	"Filter by created_at"
-//	@Param			user_id		query	string	false	"Filter by user_id"
-//	@Param			responses	query	string	false	"Filter by responses"
-//	@Param			search		query	string	false	"Search term (searches responses)"
-//	@Success		200	{object}	localization.ResponseCode	"Feedbacks fetched successfully"
-//	@Failure		400	{object}	localization.ResponseCode	"Invalid query params"
-//	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
+//	@Param			page		query		int							false	"Page number (default 1)"
+//	@Param			per_page	query		int							false	"Items per page (default 10, max 100)"
+//	@Param			sort		query		string						false	"Sort field"
+//	@Param			order		query		string						false	"Sort order (asc/desc)"
+//	@Param			created_at	query		string						false	"Filter by created_at"
+//	@Param			user_id		query		string						false	"Filter by user_id"
+//	@Param			responses	query		string						false	"Filter by responses"
+//	@Param			search		query		string						false	"Search term (searches responses)"
+//	@Success		200			{object}	localization.ResponseCode	"Feedbacks fetched successfully"
+//	@Failure		400			{object}	localization.ResponseCode	"Invalid query params"
+//	@Failure		500			{object}	localization.ResponseCode	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/feedback [get]
 func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getFeedbacks", "handler", "feedback")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbacks", "handler", "feedback")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
@@ -131,7 +131,7 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/feedback/{id} [get]
 func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getFeedbackById", "handler", "feedback")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getFeedbackById", "handler", "feedback")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 

@@ -9,8 +9,8 @@ import (
 	bank_core "cbe-super-app-cps-action/internal/handlers/rest/http/bank/core"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -40,6 +40,7 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Produce		json
 //	@Param			name	formData	string									true	"Bank name"	example("Commercial Bank")
 //	@Param			code	formData	string									true	"Bank code"	example("CBE")
+//	@Param			type	formData	string									true	"Bank type"	example("Commercial")
 //	@Param			bic		formData	string									true	"Bank BIC"	example("CBETETAA")
 //	@Param			logo	formData	file									true	"Bank logo (<=2MB; jpeg/png/gif/webp)"
 //	@Success		200		{object}	localization.StandardResponse{data=nil}	"Bank create request sent"
@@ -49,7 +50,7 @@ func InitBankAdapter(bankApplication service.BankService, logger utils.Logger) b
 //	@Security		BearerAuth
 //	@Router			/banks [post]
 func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "createOneBank", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createOneBank", "handler", "bank")
 	defer span.End()
 	var bankRequest bank_dto.CreateBankRequest
 
@@ -65,9 +66,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	bankRequest.Name = r.FormValue("name")
 	bankRequest.Code = r.FormValue("code")
 	bankRequest.BIC = r.FormValue("bic")
-	accountLengthStr := r.FormValue("account_length")
-	accountLength, _ := strconv.Atoi(accountLengthStr)
-	bankRequest.AccountLength = &accountLength
+	bankRequest.Type = constants.FinancialInstitutionType(r.FormValue("type"))
 	bankRequest.Logo = fileHeader
 
 	if response_code := bank_core.ValidateBankRequest(r, &bankRequest); response_code.Code != "" {
@@ -108,7 +107,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [delete]
 func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "deleteOneBank", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteOneBank", "handler", "bank")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	if id == "" {
@@ -147,7 +146,7 @@ func (b *bankAdapter) DeleteOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/disable [patch]
 func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "disableBank", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBank", "handler", "bank")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -183,7 +182,7 @@ func (b *bankAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/enable [patch]
 func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "enableBank", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBank", "handler", "bank")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -219,7 +218,7 @@ func (b *bankAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks [get]
 func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getAllBanks", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllBanks", "handler", "bank")
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
@@ -251,7 +250,7 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [get]
 func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "getOneBank", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getOneBank", "handler", "bank")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -291,7 +290,7 @@ func (b *bankAdapter) GetOneBank(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id}/logo [patch]
 func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateBankLogo", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateBankLogo", "handler", "bank")
 	defer span.End()
 	var uploadLogo bank_dto.UpdateLogo
 	id := chi.URLParam(r, "id")
@@ -341,7 +340,7 @@ func (b *bankAdapter) UpdateLogo(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/banks/{id} [patch]
 func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
-	ctx, span := common_utils.TraceLogger(r.Context(), "", "updateOneBank", "handler", "bank")
+	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateOneBank", "handler", "bank")
 	defer span.End()
 	id := chi.URLParam(r, "id")
 	span.SetAttributes(attribute.String("bank.id", id))
@@ -372,10 +371,8 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	updateRequest.Name = r.FormValue("name")
 	updateRequest.Code = r.FormValue("code")
 	updateRequest.BIC = r.FormValue("bic")
-	accountLengthStr := r.FormValue("account_length")
-	accountLength, _ := strconv.Atoi(accountLengthStr)
-	updateRequest.AccountLength = &accountLength
-	updateRequest.Logo = fileHeader
+	updateRequest.Type = constants.FinancialInstitutionType(r.FormValue("type"))
+
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
 		span.SetAttributes(attribute.String("invalid input", response_code.Code))
 		b.logger.Errorf("invalid input", response_code)

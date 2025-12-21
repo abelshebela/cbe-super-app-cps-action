@@ -1,25 +1,42 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
-	"fmt"
 	"log"
-	"mime/multipart"
 	"net/http"
-	"strings"
+	"strconv"
 )
+
+func toBoolPtr(s string) (*bool, error) {
+	if s == "" {
+		return nil, nil // treat empty as null
+	}
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
 
 func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (walletDto.WalletRequest, error) {
 	var req walletDto.WalletRequest
 	req.Name = r.FormValue("name")
 	req.Code = r.FormValue("code")
-	req.Self = r.FormValue("self") == "true"
-	req.Other = r.FormValue("other") == "true"
-	req.Agent = r.FormValue("agent") == "true"
-	_, fileHeader, err := utils.ParseMultipartFormFile(r, "avatar", 5<<20)
+	req.Self, _ = toBoolPtr(r.FormValue("self"))
+	req.Other, _ = toBoolPtr(r.FormValue("other"))
+	req.Agent, _ = toBoolPtr(r.FormValue("agent"))
+	req.Type = constants.FinancialInstitutionType(r.FormValue("type"))
+	// switch req.Type {
+	// case constants.Bank, constants.Wallet, constants.MFI:
+	// 	// valid type
+	// default:
+	// 	return req, localization.ErrorInvalidWalletCode
+	// }
+	_, fileHeader, err := utils.ParseMultipartFormFile(r, "avatar", int64(constants.MaxMemoryForUpload))
 	if err != nil {
 		if isCreate {
 			if err.Error() != localization.ErrorMissingFile.Code {
@@ -33,23 +50,4 @@ func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (wallet
 	req.Avatar = fileHeader
 
 	return req, nil
-}
-
-func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
-	if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
-	}
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
-	}
-
-	file, fileHeader, err := r.FormFile(key)
-	if err != nil {
-		if err == http.ErrMissingFile {
-			return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
-		}
-		return nil, nil, fmt.Errorf("missing or invalid file for key '%s': %w", key, err)
-	}
-
-	return file, fileHeader, nil
 }

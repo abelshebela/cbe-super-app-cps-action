@@ -25,6 +25,7 @@ import (
 	cps_auth "cbe-super-app-cps-action/grpc/auth/proto"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/storage"
 )
 
 func CORS() func(http.Handler) http.Handler {
@@ -73,18 +74,20 @@ type UserPayload struct {
 	Department  string   `json:"department,omitempty"`
 	NextStep    string   `json:"next_step,omitempty"`
 	Action      string   `json:"action"`
+	DeviceID    string   `json:"device_id,omitempty"`
 	SessionExp  int64    `json:"session_expiry,omitempty"`
 	Environment string   `json:"environment"`
 	Permission  []string `json:"permission_group"`
 }
 
 type authMiddleware struct {
-	client       cps_auth.CpsAuthServiceClient
-	logger       utils.Logger
-	JWTSecretKey string
-	Key          string
-	IV           string
-	cfg          config.VaultConfig
+	client          cps_auth.CpsAuthServiceClient
+	logger          utils.Logger
+	JWTSecretKey    string
+	Key             string
+	IV              string
+	cfg             config.VaultConfig
+	redisRepository storage.RedisRepository
 }
 
 type AuthMiddleware interface {
@@ -94,14 +97,15 @@ type AuthMiddleware interface {
 	RequireFormContentType() func(http.Handler) http.Handler
 }
 
-func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
+func InitAuthMiddleware(client cps_auth.CpsAuthServiceClient, redisRepository storage.RedisRepository, secretKey, key, iv string, cfg config.VaultConfig, logger utils.Logger) AuthMiddleware {
 	return &authMiddleware{
-		client:       client,
-		JWTSecretKey: secretKey,
-		Key:          key,
-		IV:           iv,
-		cfg:          cfg,
-		logger:       logger,
+		client:          client,
+		redisRepository: redisRepository,
+		JWTSecretKey:    secretKey,
+		Key:             key,
+		IV:              iv,
+		cfg:             cfg,
+		logger:          logger,
 	}
 }
 
@@ -165,16 +169,13 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
 			if !ok || role == "" {
-
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 
 				return
 			}
 
 			if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
-
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-
 				return
 			}
 
@@ -224,7 +225,15 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			remainTime *= 60
 		}
-		if userPayload.SessionExp != 0 {
+		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("cps:auth:device:%s", userPayload.UserID))
+		if err != nil {
+			a.logger.Warnf("failed to get device id from redis: %v", err)
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
+		}
+
+		deviceID = strings.Trim(deviceID, "\"")
+		if userPayload.SessionExp != 0 && userPayload.DeviceID == deviceID {
 			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
 			if userPayload.SessionExp < now {
 				a.logger.Warnf("session has expired")
@@ -255,6 +264,10 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 				}
 			}
 
+		} else {
+			a.logger.Warnf("session has expired")
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
 		}
 
 		r = r.WithContext(ctx)

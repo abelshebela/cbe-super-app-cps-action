@@ -5,11 +5,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
+	account_lookup "cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
+
 	"github.com/hugokessem/coreio/core"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type Persistence struct {
+	Account_lookup_external         account_lookup.Account
 	DeviceVersionControlPersistence storage.DeviceVersionControlRepository
 	AccountLookup                   core.CBECoreAPIInterface
 	MerchantLookup                  merchant_lookup.MerchantLookupAdapter
@@ -27,10 +30,6 @@ type Persistence struct {
 	AccountBlockPersistence         storage.AccountBlockRepository
 	PortalCardPersistence           storage.PortalCardRepository
 	MiniAppPersistence              storage.MiniAppRepository
-	CityPersistence                 storage.CityRepository
-	RegionPersistence               storage.RegionRepository
-	DistrictPersistence             storage.DistrictRepository
-	BranchPersistence               storage.BranchRepository
 	EventPersistence                storage.EventRepository
 	CustomerService                 storage.CustomerRepository
 	BulkService                     storage.BulkServiceRepository
@@ -52,7 +51,7 @@ type Persistence struct {
 	DonationCompanyPersistence       storage.DonationCompanyRepository
 	FeedbackPersistence              storage.FeedbackRepository
 	LinkedAccountPersistence         storage.LinkedAccountRepository
-	MiniAppMerchantPersistence       storage.MiniAppMerchantRepository
+	EcommerceMerchantPersistence     storage.EcommerceMerchantRepository
 	NotificationPersistence          storage.NotificationRepository
 	PasswordRulePersistence          storage.PasswordRuleRepository
 	ServiceDetailsPersistence        storage.ServiceDetailsRepository
@@ -63,6 +62,7 @@ type Persistence struct {
 	TopupPersistence                 storage.TopupRepository
 	ProductCodePersistence           storage.ProductCodeRepository
 	DepartmentPersistence            storage.DepartmentRepository
+	JobRolePersistence               storage.JobRoleRepository
 	FaydaPersistence                 storage.FaydaRepository
 	PermissionPersistence            storage.PermissionRepository
 	ArticlePersistence               storage.ArticleRepository
@@ -78,4 +78,6 @@ type Persistence struct {
 	MiniAppCategoryPersistence       storage.MiniAppCategoryRepository
 	CPSActionRolePersistence         storage.CPSActionRoleRepository
 	CPSActionApproveIndexPersistence storage.CPSActionApproveIndexRepository
+	EventMerchantPersistence         storage.EventMerchantRepository
+	MiniAppProductCodePersistence    storage.MiniAppProductCodeRepository
 }

@@ -2,14 +2,15 @@ package cpsactionhandler
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.UserContext, prevChecker []types.Checker) *model.CPSAction {
-	usersData := make([]types.Checker, 0)
+func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.UserContext, prevChecker []model.Checker) *model.CPSAction {
+	usersData := make([]model.Checker, 0)
 
-	CheckerUser := types.Checker{
+	CheckerUser := model.Checker{
 		CheckerID:          userData.UserID,
 		CheckerName:        userData.FullName,
 		CheckerPhoneNumber: userData.PhoneNumber,

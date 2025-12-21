@@ -23,7 +23,7 @@ func Init(
 				Handler: handler.GetAllBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -32,7 +32,7 @@ func Init(
 				Handler: handler.GetBranchById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{

@@ -4,23 +4,26 @@ import (
 	"context"
 	"strings"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"cbe-super-app-cps-action/internal/constants"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
-	"cbe-super-app-cps-action/internal/constants/model"
+
+	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 )
 
+type cpsActionServiceWithRoles struct {
+	base  service.CPSActionService
+	roles storage.CPSActionRoleRepository
+}
+
 // WithActionRolePolicy wraps a base CPSActionService and injects CPSActionRole
 // policy on CPSAction creation (checker_count and action_status).
 func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSActionRoleRepository) service.CPSActionService {
 	return &cpsActionServiceWithRoles{base: base, roles: roles}
-}
-
-type cpsActionServiceWithRoles struct {
-	base  service.CPSActionService
-	roles storage.CPSActionRoleRepository
 }
 
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
@@ -33,7 +36,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 		// Always ensure multi-checker shape on these flows, even when count is 0
 		if cpsAction.CheckerUsers == nil {
-			cpsAction.CheckerUsers = []types.Checker{}
+			cpsAction.CheckerUsers = []model.Checker{}
 		}
 
 		cpsAction.CurrentCheckerIndex = 0.0
@@ -60,6 +63,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
 			}
+
 			if role.IsMakerOnly {
 				s.base.ApproveCPSAction(ctx, cpsAction)
 			}

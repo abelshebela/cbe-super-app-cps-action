@@ -1,8 +1,9 @@
 package productcode
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // ProductCodeResponse represents the response format for a product code

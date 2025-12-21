@@ -38,9 +38,9 @@ func NewVaultAmountTierService(repo storage.VaultAmountTierRepository, cpsServic
 func (s *VaultAmountTierService) CreateAmountTier(ctx context.Context, req *vault_amount_dto.VaultAmountTierRequest) (string, error) {
 	current := &model.VaultAmountTier{
 		VaultCategoryID: req.VaultCategoryID,
-		MinAmount:       func() float64 { f, _ := req.MinAmount.Float64(); return f }(),
-		MaxAmount:       func() float64 { f, _ := req.MaxAmount.Float64(); return f }(),
-		Interest:        func() float64 { f, _ := req.Interest.Float64(); return f }(),
+		MinAmount:       req.MinAmount,
+		MaxAmount:       req.MaxAmount,
+		Interest:        req.Interest,
 		IsActive:        true,
 	}
 
@@ -69,9 +69,9 @@ func (s *VaultAmountTierService) GetAmountTier(ctx context.Context, id string) (
 func (s *VaultAmountTierService) UpdateAmountTier(ctx context.Context, id string, req *vault_amount_dto.UpdateVaultAmountTierRequest) (string, error) {
 	current := &model.VaultAmountTier{
 		ID:        id,
-		MinAmount: func() float64 { f, _ := req.MinAmount.Float64(); return f }(),
-		MaxAmount: func() float64 { f, _ := req.MaxAmount.Float64(); return f }(),
-		Interest:  func() float64 { f, _ := req.Interest.Float64(); return f }(),
+		MinAmount: req.MinAmount,
+		MaxAmount: req.MaxAmount,
+		Interest:  req.Interest,
 	}
 
 	makerData := utils.ExtractUserFromContext(ctx)

@@ -21,6 +21,7 @@ type TierRequest struct {
 type CreateServiceRequest struct {
 	ServiceCode          string        `json:"service_code" example:"JKSJBDJB"`
 	ServiceName          string        `json:"service_name" example:"Transfer To Other bank"`
+	ProductAccount       string        `json:"product_account" example:"234353354"`
 	ServiceType          string        `json:"service_type" example:"TRANSFER"`
 	Key                  string        `json:"key" example:"transfer_to_other_bank"`
 	ChargeCode           string        `json:"charge_code" example:"JKSJBDJB"`

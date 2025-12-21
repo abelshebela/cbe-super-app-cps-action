@@ -5,8 +5,13 @@ import (
 	"errors"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 type CPSActionModule interface {
@@ -24,7 +29,11 @@ func NewDispatcher(app service.ServiceContainer) *Dispatcher {
 }
 
 func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "Dispatcher", "Authorize")
+	defer span.End()
+
 	action := cpsAction.RequestAction
+	span.SetAttributes(attribute.String("action", action))
 
 	switch {
 	case IsActionInGroup(RequestAction(action), "Bank"):
@@ -46,7 +55,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.ServiceCheckContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
-		return d.app.ServicesContainer.Authorize(ctx, cpsAction)
+		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "DeviceVersion"):
 		return d.app.DeviceVersionContainer.Authorize(ctx, cpsAction)
@@ -55,7 +64,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.FaydaContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniAppMerchant"):
-		return d.app.MiniAppMerchantContainer.Authorize(ctx, cpsAction)
+		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "MiniApp"):
 		return d.app.MiniAppContainer.Authorize(ctx, cpsAction)
@@ -132,8 +141,19 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CpsActionRole"):
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "eventMerchant"):
+		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "VaultAmountTier"):
+		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "MiniAppProductCode"):
+		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "JobRole"):
+		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "Role"):
+		return d.app.RoleContainer.Authorize(ctx, cpsAction)
 
 	default:
+		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
 }

@@ -4,8 +4,9 @@ import (
 	"strings"
 
 	"cbe-super-app-cps-action/internal/constants/dto/permission"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"encoding/json"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 // PermissionGroupModel builds model.PermissionGroup from request

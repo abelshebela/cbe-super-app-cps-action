@@ -1,8 +1,6 @@
 package sqlc
 
 import (
-	constants "cbe-super-app-cps-action/internal/constants"
-	"cbe-super-app-cps-action/internal/constants/model"
 	utils "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"database/sql"
@@ -10,6 +8,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/godror/godror"
 	"github.com/google/uuid"
@@ -355,17 +356,17 @@ RETURNING id INTO :13
 `
 
 type SaveBankVaultParams struct {
-	ID                         string                  `json:"id"`
-	Name                       string                  `json:"name"`
-	Currency                   string                  `json:"currency"`
-	Interest                   decimal.Decimal         `json:"interest"`
-	Method                     constants.AccrualMethod `json:"method"`
-	Frequency                  int64                   `json:"frequency"`
-	LockPeriod                 float64                 `json:"lock_period"`
-	MinAmount                  decimal.Decimal         `json:"min_amount"`
-	MaxAmount                  decimal.Decimal         `json:"max_amount"`
-	ApplyInterestOnEarlyUnlock sql.NullBool            `json:"apply_interest_on_early_unlock"`
-	IsActive                   sql.NullBool            `json:"is_active"`
+	ID                         string          `json:"id"`
+	Name                       string          `json:"name"`
+	Currency                   string          `json:"currency"`
+	Interest                   decimal.Decimal `json:"interest"`
+	Method                     string          `json:"method"`
+	Frequency                  int64           `json:"frequency"`
+	LockPeriod                 float64         `json:"lock_period"`
+	MinAmount                  decimal.Decimal `json:"min_amount"`
+	MaxAmount                  decimal.Decimal `json:"max_amount"`
+	ApplyInterestOnEarlyUnlock sql.NullBool    `json:"apply_interest_on_early_unlock"`
+	IsActive                   sql.NullBool    `json:"is_active"`
 }
 
 func (q *Queries) SaveBankVault(ctx context.Context, arg SaveBankVaultParams) (string, error) {
@@ -452,7 +453,7 @@ SELECT
   created_at,
   updated_at,
   deleted_at
-FROM locked_vaults
+FROM vaults
 WHERE product_id = :1 AND deleted_at IS NULL
 `
 
@@ -471,6 +472,7 @@ func (q *Queries) FindBankVaultAndLocks(ctx context.Context, id string) (BankVau
 
 	rows, err := q.db.QueryContext(ctx, findLocksByProductID, id)
 	if err != nil {
+		fmt.Println("failed to query locked vaults from vaults table: %v", err)
 		return BankVaultProductWithLocks{}, fmt.Errorf("failed to query locks: %w", err)
 	}
 	defer rows.Close()
@@ -529,7 +531,6 @@ SELECT
   customer_id,
   linked_account,
   account_holder_name,
-  transaction_reference,
   product_id,
   principal,
   start_date,
@@ -664,22 +665,15 @@ SELECT
   id,
   vault_name,
   vault_category,
-  purpose,
   target_amount,
-  status,
-  admin_user_id,
-  frequency,
-  next_run,
-  end_date,
   vault_type,
-  reminder,
-  tc_version,
+  status,
   created_at,
   updated_at,
   deleted_at,
   COUNT(*) OVER() AS total_count
-FROM group_vaults
-WHERE deleted_at IS NULL
+FROM vaults
+WHERE vault_type = 'GROUP' AND deleted_at IS NULL
 ORDER BY created_at DESC
 OFFSET NVL(:offset, 0) ROWS
 FETCH NEXT NVL(:limit, 50) ROWS ONLY
@@ -690,7 +684,7 @@ type GetAllGroupVaultsParams struct {
 	Limit sql.NullInt64 `json:"limit_count"`
 }
 
-func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsParams) ([]model.GroupVault, error) {
+func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsParams) ([]Vault, error) {
 	offset := (arg.Page.Int64 - 1) * arg.Limit.Int64
 
 	rows, err := q.db.QueryContext(ctx, getAllGroupVaults,
@@ -702,27 +696,21 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 	}
 	defer rows.Close()
 
-	items := []model.GroupVault{}
+	items := []Vault{}
 	for rows.Next() {
-		var i model.GroupVault
+		var i Vault
 
 		var targetAmountNum godror.Number
-		var reminder sql.NullBool
 
 		if err := rows.Scan(
 			&i.ID,
 			&i.VaultName,
 			&i.VaultCategory,
-			&i.Purpose,
 			&targetAmountNum,
-			&i.Status,
-			&i.AdminUserID,
-			&i.Recurrence,
-			&i.NextRun,
-			&i.EndDate,
+			// &i.IsDeadlock,
 			&i.VaultType,
-			&reminder,
-			&i.TCVersion,
+			// &i.InterestRate,
+			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -732,11 +720,6 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 		}
 
 		i.TargetAmount, _ = decimal.NewFromString(targetAmountNum.String())
-		if reminder.Valid {
-			i.Reminder = &reminder.Bool
-		} else {
-			i.Reminder = nil
-		}
 
 		items = append(items, i)
 	}
@@ -744,8 +727,6 @@ func (q *Queries) GetAllGroupVaults(ctx context.Context, arg GetAllGroupVaultsPa
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	utils.PrintRecord("Items", items)
 
 	return items, nil
 }
@@ -877,8 +858,6 @@ func (q *Queries) GetAllTransactions(ctx context.Context, arg GetAllTransactions
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	utils.PrintRecord("Transactions", items)
 
 	return items, nil
 }

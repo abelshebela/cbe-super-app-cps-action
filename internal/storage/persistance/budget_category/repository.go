@@ -7,12 +7,15 @@ import (
 	"regexp"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,25 +26,28 @@ import (
 type BudgetCategoryStorage struct {
 	budgetCategoryDal dal.MongoDal[model.BudgetCategory, model.BudgetCategory]
 	client            *mongo.Client
+	kafkaProducer     kafka.ClientOrchestrationProducer
 	logger            utils.Logger
 }
 
 var _ storage.BudgetCategoryRepository = (*BudgetCategoryStorage)(nil)
 
-func NewBudgetCategoryRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.BudgetCategoryRepository {
+func NewBudgetCategoryRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.BudgetCategoryRepository {
 	return &BudgetCategoryStorage{
 		budgetCategoryDal: dal.NewMongoDal[model.BudgetCategory, model.BudgetCategory](client, dbName, collection),
 		client:            client,
+		kafkaProducer:     kafkaProducer,
 		logger:            logger,
 	}
 }
 
 func (b *BudgetCategoryStorage) CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error {
-	_, err := b.budgetCategoryDal.InsertOne(ctx, *budgetCategory)
+	newBudgetCategory, err := b.budgetCategoryDal.InsertOne(ctx, *budgetCategory)
 	if err != nil {
 		b.logger.Errorf("failed to create budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	b.kafkaProducer.PublishMessage(ctx, newBudgetCategory, string(constants.ClientOrchestrationBudgetCategoryTopic), string(constants.ClientOrchestrationBudgetCategoryTopic), "new budget category created")
 	return nil
 }
 
@@ -55,11 +61,14 @@ func (b *BudgetCategoryStorage) UpdateBudgetCategory(ctx context.Context, id str
 
 	filter := bson.M{"_id": objectID, "is_deleted": false}
 	updateData := BudgetCategoryMapper(*budgetCategory)
-	_, err = b.budgetCategoryDal.UpdateOne(ctx, filter, updateData)
+	updatedBudgetCategory, err := b.budgetCategoryDal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		b.logger.Errorf("[UpdateBudgetCategory] failed to update budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	b.kafkaProducer.PublishMessage(ctx, updatedBudgetCategory, string(constants.ClientOrchestrationBudgetCategoryTopic), string(constants.ClientOrchestrationBudgetCategoryTopic), "budget category updated")
+
 	b.logger.Infof("[UpdateBudgetCategory] budget category updated successfully")
 	return nil
 }
@@ -144,11 +153,14 @@ func (b *BudgetCategoryStorage) EnableOrDisableBudgetCategory(ctx context.Contex
 
 	filter := bson.M{"_id": objectID, "is_deleted": false}
 	update := bson.M{"enabled": enable, "updated_at": time.Now()}
-	_, err = b.budgetCategoryDal.UpdateOne(ctx, filter, update)
+	updatedBudgetCategory, err := b.budgetCategoryDal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		b.logger.Errorf("[EnableOrDisableBudgetCategory] failed to enable/disable budget category: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	b.kafkaProducer.PublishMessage(ctx, updatedBudgetCategory, string(constants.ClientOrchestrationBudgetCategoryTopic), string(constants.ClientOrchestrationBudgetCategoryTopic), "budget category enable/disable updated")
+
 	b.logger.Infof("[EnableOrDisableBudgetCategory] budget category enable/disable completed successfully")
 	return nil
 }

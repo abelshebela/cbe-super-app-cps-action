@@ -1,11 +1,13 @@
 package sitota
 
 import (
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"database/sql"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/sitota/sqlc"
 
@@ -17,7 +19,7 @@ type SitotaRepository struct {
 	logger shared_utils.Logger
 }
 
-func NewSitotaRepository(db *sql.DB, logger shared_utils.Logger) *SitotaRepository {
+func NewSitotaRepository(db *sql.DB, logger shared_utils.Logger) storage.SitotaRepository {
 	return &SitotaRepository{
 		db:     db,
 		logger: logger,
@@ -28,6 +30,7 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 	q := sqlc.New(r.db)
 
 	params := sqlc.FindSitotaTransactionsParams{}
+	params.Search = filterParam.Search
 	if filterParam.Page > 0 && filterParam.PerPage > 0 {
 		params.Page = sql.NullInt64{Int64: int64(filterParam.Page), Valid: true}
 		params.Limit = sql.NullInt64{Int64: int64(filterParam.PerPage), Valid: true}
@@ -46,7 +49,6 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 	for _, t := range rows {
 		var createdAt time.Time
 		var updatedAt time.Time
-		var claimedAt time.Time
 
 		if t.CreatedAt.Valid {
 			createdAt = t.CreatedAt.Time
@@ -54,22 +56,15 @@ func (r *SitotaRepository) FindAllWithPagination(ctx context.Context, filterPara
 		if t.UpdatedAt.Valid {
 			updatedAt = t.UpdatedAt.Time
 		}
-		if t.PaidAt.Valid {
-			claimedAt = t.PaidAt.Time
-		}
 
 		sitotas = append(sitotas, &model.SitotaTransaction{
 			ID:                     t.ID,
 			SenderName:             t.SenderName,
 			SenderAccountNumber:    t.SenderAccountNumber,
-			SenderPhoneNumber:      "",
 			RecipientName:          t.RecipientName,
 			RecipientAccountNumber: t.RecipientAccountNumber,
-			RecipientPhoneNumber:   "",
 			SitotaAmount:           t.SitotaAmount,
-			GLAccountNumber:        "",
 			Status:                 t.Status,
-			ClaimedAt:              claimedAt,
 			CreatedAt:              createdAt,
 			UpdatedAt:              updatedAt,
 		})
@@ -106,7 +101,6 @@ func (r *SitotaRepository) Get(ctx context.Context, id string) (*model.SitotaTra
 
 	var createdAt time.Time
 	var updatedAt time.Time
-	var claimedAt time.Time
 
 	if t.CreatedAt.Valid {
 		createdAt = t.CreatedAt.Time
@@ -114,22 +108,15 @@ func (r *SitotaRepository) Get(ctx context.Context, id string) (*model.SitotaTra
 	if t.UpdatedAt.Valid {
 		updatedAt = t.UpdatedAt.Time
 	}
-	if t.PaidAt.Valid {
-		claimedAt = t.PaidAt.Time
-	}
 
 	return &model.SitotaTransaction{
 		ID:                     t.ID,
 		SenderName:             t.SenderName,
 		SenderAccountNumber:    t.SenderAccountNumber,
-		SenderPhoneNumber:      "",
 		RecipientName:          t.RecipientName,
 		RecipientAccountNumber: t.RecipientAccountNumber,
-		RecipientPhoneNumber:   "",
 		SitotaAmount:           t.SitotaAmount,
-		GLAccountNumber:        "",
 		Status:                 t.Status,
-		ClaimedAt:              claimedAt,
 		CreatedAt:              createdAt,
 		UpdatedAt:              updatedAt,
 	}, nil

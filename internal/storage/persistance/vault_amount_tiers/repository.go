@@ -1,13 +1,14 @@
 package vaultamounttiers
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"cbe-super-app-cps-action/internal/storage/persistance/vault_amount_tiers/gen/sqlc"
 	"context"
 	"database/sql"
+	"errors"
 
-	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -29,9 +30,9 @@ func NewVaultAmountTierRepository(db *sql.DB, logger shared_utils.Logger) storag
 func (r *VaultAmountTierRepository) Create(ctx context.Context, vaultAmountTier *model.VaultAmountTier) (string, error) {
 	arg := sqlc.VaultAmountTier{
 		VaultCategoryID: vaultAmountTier.VaultCategoryID,
-		MinAmount:       decimal.NewFromFloat(vaultAmountTier.MinAmount),
-		MaxAmount:       decimal.NewFromFloat(vaultAmountTier.MaxAmount),
-		Interest:        decimal.NewFromFloat(vaultAmountTier.Interest),
+		MinAmount:       vaultAmountTier.MinAmount,
+		MaxAmount:       vaultAmountTier.MaxAmount,
+		Interest:        vaultAmountTier.Interest,
 		IsActive:        sql.NullBool{Bool: vaultAmountTier.IsActive, Valid: true},
 	}
 	return r.queries.SaveAmountTier(ctx, arg)
@@ -55,7 +56,10 @@ func (r *VaultAmountTierRepository) FindAllWithPagination(ctx context.Context, f
 
 	tiers, err := r.queries.FindAmountTier(ctx, params)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
 	}
 
 	var result []*model.VaultAmountTier
@@ -63,12 +67,12 @@ func (r *VaultAmountTierRepository) FindAllWithPagination(ctx context.Context, f
 		m := &model.VaultAmountTier{
 			ID:              t.ID,
 			VaultCategoryID: t.VaultCategoryID,
-			MinAmount:       func() float64 { f, _ := t.MinAmount.Float64(); return f }(),
-			MaxAmount:       func() float64 { f, _ := t.MaxAmount.Float64(); return f }(),
-			Interest:        func() float64 { f, _ := t.Interest.Float64(); return f }(),
+			MinAmount:       t.MinAmount,
+			MaxAmount:       t.MaxAmount,
+			Interest:        t.Interest,
 			IsActive:        t.IsActive.Bool,
-			CreatedAt:       t.CreatedAt,
-			UpdatedAt:       t.UpdatedAt,
+			CreatedAt:       t.CreatedAt.GoString(),
+			UpdatedAt:       t.UpdatedAt.GoString(),
 		}
 		result = append(result, m)
 	}
@@ -86,17 +90,20 @@ func (r *VaultAmountTierRepository) FindAllWithPagination(ctx context.Context, f
 func (r *VaultAmountTierRepository) FindByID(ctx context.Context, id string) (*model.VaultAmountTier, error) {
 	t, err := r.queries.FindAmountTierById(ctx, id)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
+		}
+		return nil, errors.New(localization.ErrorAmountTierNotFound.Code)
 	}
 	m := &model.VaultAmountTier{
 		ID:              t.ID,
 		VaultCategoryID: t.VaultCategoryID,
-		MinAmount:       func() float64 { f, _ := t.MinAmount.Float64(); return f }(),
-		MaxAmount:       func() float64 { f, _ := t.MaxAmount.Float64(); return f }(),
-		Interest:        func() float64 { f, _ := t.Interest.Float64(); return f }(),
+		MinAmount:       t.MinAmount,
+		MaxAmount:       t.MaxAmount,
+		Interest:        t.Interest,
 		IsActive:        t.IsActive.Bool,
-		CreatedAt:       t.CreatedAt,
-		UpdatedAt:       t.UpdatedAt,
+		CreatedAt:       t.CreatedAt.GoString(),
+		UpdatedAt:       t.UpdatedAt.GoString(),
 	}
 	return m, nil
 }
@@ -104,9 +111,9 @@ func (r *VaultAmountTierRepository) FindByID(ctx context.Context, id string) (*m
 func (r *VaultAmountTierRepository) Update(ctx context.Context, id string, vaultAmountTier *model.VaultAmountTier) error {
 	arg := sqlc.VaultAmountTier{
 		ID:        id,
-		MinAmount: decimal.NewFromFloat(vaultAmountTier.MinAmount),
-		MaxAmount: decimal.NewFromFloat(vaultAmountTier.MaxAmount),
-		Interest:  decimal.NewFromFloat(vaultAmountTier.Interest),
+		MinAmount: vaultAmountTier.MinAmount,
+		MaxAmount: vaultAmountTier.MaxAmount,
+		Interest:  vaultAmountTier.Interest,
 	}
 	_, err := r.queries.UpdateAmountTier(ctx, arg)
 	return err

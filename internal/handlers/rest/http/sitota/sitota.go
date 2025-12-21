@@ -37,9 +37,10 @@ func InitSitotaHandler(svc service.SitotaService, logger utils.Logger) *handler 
 //	@Security		BearerAuth
 //	@Router			/sitotas [get]
 func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllSitotas", "handler", "sitota")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllSitotas", "handler", "sitota")
 	defer span.End()
 	params := local_util.ExtractFilterParams(r)
+
 	sitotas, err := h.svc.GetAllSitotas(ctx, params)
 	if err != nil {
 		span.RecordError(err)
@@ -67,7 +68,7 @@ func (h *handler) GetAllSitotas(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/sitotas/{id} [get]
 func (h *handler) GetSitota(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "", "getSitota", "handler", "sitota")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getSitota", "handler", "sitota")
 	defer span.End()
 	id := strings.TrimSpace(chi.URLParam(r, "id"))
 	if id == "" {

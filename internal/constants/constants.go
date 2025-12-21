@@ -231,6 +231,24 @@ const (
 type RequestAction string
 
 const (
+	RequestCreateMiniappProductCode  string = "CREATE_MINI_APP_PRODUCT_CODE"
+	RequestUpdateMiniappProductCode  string = "UPDATE_MINI_APP_PRODUCT_CODE"
+	RequestDeleteMiniappProductCode  string = "DELETE_MINI_APP_PRODUCT_CODE"
+	RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE"
+	RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
+
+	RequestCreateJobRole  string = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  string = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  string = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  string = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole string = "DISABLE_JOB_ROLE"
+
+	RequestCreateRole  string = "CREATE_ROLE"
+	RequestUpdateRole  string = "UPDATE_ROLE"
+	RequestDeleteRole  string = "DELETE_ROLE"
+	RequestEnableRole  string = "ENABLE_ROLE"
+	RequestDisableRole string = "DISABLE_ROLE"
+
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
 	RequestCreateActionRole      RequestAction = "CREATE_ACTION_ROLE"
@@ -372,6 +390,12 @@ const (
 	RequestEnableBankVault  RequestAction = "ENABLE_VAULT_BANK"
 	RequestDisAbleBankVault RequestAction = "DISABLE_VAULT_BANK"
 
+	RequestCreateVaultAmountTier  RequestAction = "CREATE_VAULT_AMOUNT_TIER"
+	RequestUpdateVaultAmountTier  RequestAction = "UPDATE_VAULT_AMOUNT_TIER"
+	RequestDeleteVaultAmountTier  RequestAction = "DELETE_VAULT_AMOUNT_TIER"
+	RequestEnableVaultAmountTier  RequestAction = "ENABLE_VAULT_AMOUNT_TIER"
+	RequestDisAbleVaultAmountTier RequestAction = "DISABLE_VAULT_AMOUNT_TIER"
+
 	// for vault group category
 	RequestCreateVaultGroupCategory  RequestAction = "CREATE_VAULT_GROUP_CATEGORY"
 	RequestUpdateVaultGroupCategory  RequestAction = "UPDATE_VAULT_GROUP_CATEGORY"
@@ -490,6 +514,12 @@ const (
 	RequestDeleteMiniAppCategory  RequestAction = "DELETE_MINI_APP_CATEGORY"
 	RequestEnableMiniAppCategory  RequestAction = "ENABLE_MINI_APP_CATEGORY"
 	RequestDisableMiniAppCategory RequestAction = "DISABLE_MINI_APP_CATEGORY"
+
+	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
+	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
+	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
+	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
+	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 )
 
 type RegistrationType string
@@ -601,14 +631,6 @@ const (
 	DeleteAction ActionType = "DELETE"
 )
 
-// / bank vault constants
-type AccrualMethod string
-
-const (
-	AccrualMethodCompound AccrualMethod = "COMPOUND"
-	AccrualMethodSimple   AccrualMethod = "SIMPLE"
-)
-
 type VaultStatus string
 
 const (
@@ -616,17 +638,14 @@ const (
 	VaultStatusMatured       VaultStatus = "MATURED"
 	VaultStatusUnlockedEarly VaultStatus = "UNLOCKED_EARLY"
 	VaultStatusPaidOut       VaultStatus = "PAID_OUT"
-)
-
-const (
-	StatusOpen       VaultStatus = "OPEN"
-	StatusClosed     VaultStatus = "CLOSED"
-	StatusLocked     VaultStatus = "LOCKED"
-	StatusActive     VaultStatus = "ACTIVE"
-	StatusMatured    VaultStatus = "MATURED"
-	StatusWithdrawn  VaultStatus = "WITHDRAWN"
-	StatusEndedEarly VaultStatus = "ENDED_EARLY"
-	StatusDeleted    VaultStatus = "DELETED"
+	StatusOpen               VaultStatus = "OPEN"
+	StatusClosed             VaultStatus = "CLOSED"
+	StatusLocked             VaultStatus = "LOCKED"
+	StatusActive             VaultStatus = "ACTIVE"
+	StatusMatured            VaultStatus = "MATURED"
+	StatusWithdrawn          VaultStatus = "WITHDRAWN"
+	StatusEndedEarly         VaultStatus = "ENDED_EARLY"
+	StatusDeleted            VaultStatus = "DELETED"
 )
 
 func ParseVaultStatus(input string) (VaultStatus, error) {
@@ -752,4 +771,40 @@ const (
 	Update     Type = "UPDATE"
 	Deletion   Type = "DELETION"
 	End        Type = "END"
+)
+
+type KafkaTopic string
+
+const (
+	ClientOrchestrationMemberTopic               KafkaTopic = "member.sync.cps"
+	ClientOrchestrationKycTopic                  KafkaTopic = "kyc.sync.cps"
+	ClientOrchestrationAccessControlTopic        KafkaTopic = "access_control.sync.cps"
+	ClientOrchestrationLinkedAccountTopic        KafkaTopic = "linked_account.sync.cps"
+	ClientOrchestrationAccountBlockTopic         KafkaTopic = "account_block.sync.cps"
+	ClientOrchestrationAccountValidationTopic    KafkaTopic = "account_validation.sync.cps"
+	ClientOrchestrationDeviceVersionControlTopic KafkaTopic = "device_version_control.sync.cps"
+	ClientOrchestrationDonationTopic             KafkaTopic = "donation.sync.cps"
+	ClientOrchestrationDonationCategoryTopic     KafkaTopic = "donation_category.sync.cps"
+	ClientOrchestrationDonationCompanyTopic      KafkaTopic = "donation_company.sync.cps"
+	ClientOrchestrationBudgetCategoryTopic       KafkaTopic = "budget_category.sync.cps"
+	ClientOrchestrationArticleTopic              KafkaTopic = "news_article.sync.cps"
+	ClientOrchestrationShortVideoTopic           KafkaTopic = "short_video.sync.cps"
+	ClientOrchestrationNewsCategoryTopic         KafkaTopic = "news_category.sync.cps"
+	ClientOrchestrationNewsTagTopic              KafkaTopic = "news_tag.sync.cps"
+	ClientOrchestrationNotificationTopic         KafkaTopic = "notification.sync.cps"
+	ClientOrchestrationServicesTopic             KafkaTopic = "services.sync.cps"
+)
+
+type FinancialInstitutionType string
+
+const (
+	Bank   FinancialInstitutionType = "BANK"
+	Wallet FinancialInstitutionType = "WALLET"
+	MFI    FinancialInstitutionType = "MFI"
+)
+
+type maxMemory int64
+
+const (
+	MaxMemoryForUpload maxMemory = 15 << 20 // 15 MB
 )

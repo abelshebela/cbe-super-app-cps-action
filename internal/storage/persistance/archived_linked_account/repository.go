@@ -2,12 +2,13 @@ package archived_linked_account
 
 import (
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,7 +24,7 @@ type ArchivedLinkedAccountStorage struct {
 
 type ArchivedLinkedAccountRepository interface {
 	Create(ctx context.Context, user *model.LinkedAccount) error
-	FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error)
+	FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
 }
 
@@ -67,12 +68,18 @@ func (l *ArchivedLinkedAccountStorage) Delete(ctx context.Context, id string) er
 	return l.dal.DeleteOne(ctx, filter)
 }
 
-func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string) (*model.ArchivedLinkedAccount, error) {
+func (l *ArchivedLinkedAccountStorage) FindByID(ctx context.Context, id string, isUserId bool) (*model.ArchivedLinkedAccount, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	filter := bson.M{"_id": objID, "is_deleted": false}
+
+	var filter bson.M
+	if isUserId {
+		filter = bson.M{"user_id": objID}
+	} else {
+		filter = bson.M{"_id": objID}
+	}
 
 	result, err := l.dal.FindOne(ctx, filter, nil)
 

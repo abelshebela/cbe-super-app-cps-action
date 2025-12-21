@@ -1,14 +1,17 @@
 package accountvalidation
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
+	"cbe-super-app-cps-action/internal/storage/kafka"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -17,19 +20,21 @@ import (
 )
 
 type AccountValidationStore struct {
-	dal        dal.MongoDal[model.ValidationRule, model.ValidationRule]
-	client     *mongo.Client
-	collection *mongo.Collection
-	logger     utils.Logger
+	dal           dal.MongoDal[model.ValidationRule, model.ValidationRule]
+	client        *mongo.Client
+	collection    *mongo.Collection
+	kafkaProducer kafka.ClientOrchestrationProducer
+	logger        utils.Logger
 }
 
 // NewAccountValidationStore returns a ValidationRuleRepository
-func NewAccountValidationStore(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ValidationRuleRepository {
+func NewAccountValidationStore(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ValidationRuleRepository {
 	return &AccountValidationStore{
-		dal:        dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collection),
-		client:     client,
-		logger:     logger,
-		collection: client.Database(dbName).Collection(collection),
+		dal:           dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collection),
+		client:        client,
+		logger:        logger,
+		kafkaProducer: kafkaProducer,
+		collection:    client.Database(dbName).Collection(collection),
 	}
 }
 
@@ -67,7 +72,7 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *mo
 	filter := bson.M{"_id": objID, "is_deleted": false}
 	updateData := AccountValidationMapper(*rule)
 
-	_, err = a.dal.UpdateOne(ctx, filter, updateData)
+	updateAccountValidation, err := a.dal.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			a.logger.Errorf("[Update] account validation rule not found")
@@ -76,6 +81,9 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *mo
 		a.logger.Errorf("[Update] failed to update account validation rule: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	a.kafkaProducer.PublishMessage(ctx, updateAccountValidation, string(constants.ClientOrchestrationAccountValidationTopic), string(constants.ClientOrchestrationAccountValidationTopic), "update account validation rule")
+
 	a.logger.Infof("[Update] account validation rule updated successfully")
 	return nil
 }

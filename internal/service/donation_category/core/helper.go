@@ -3,12 +3,13 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"encoding/json"
 	"errors"
 	"time"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func DonationNameExists(ctx context.Context, categoryName string, donationCategoryRepo storage.DonationCategoryRepository) (bool, error) {
