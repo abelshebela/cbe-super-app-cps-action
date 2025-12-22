@@ -19,8 +19,11 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	cps_actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/cps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
+	customer_segmentation_repo "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
+	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
+	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
@@ -30,9 +33,6 @@ import (
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
 	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
 	"time"
-
-	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
-	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
@@ -138,6 +138,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodes),
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, dbName, AccessListSegmentationCollection, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
+		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, dbName, CustomerSegmentationCollection, logger),
 	}
 
 	return data

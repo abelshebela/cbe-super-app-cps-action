@@ -441,6 +441,8 @@ const (
 	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
 	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
+	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
 	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"

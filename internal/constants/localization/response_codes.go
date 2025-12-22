@@ -4567,6 +4567,13 @@ var (
 		Type:       "error",
 	}
 
+	CustomerSegmentationCreationSubmittedSuccessfully = ResponseCode{
+		Code:       "ERROR_CUSTOMER_SEGMENTATION_CREATION_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation creation submitted successfully",
+		Type:       "error",
+	}
+
 	// Donation related error response codes
 	ErrorDonationCategoryLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_CATEGORY_LOOKUP_FAILED",
