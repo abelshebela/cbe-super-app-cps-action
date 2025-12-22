@@ -3,6 +3,7 @@ package cpsuser
 import (
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -19,10 +20,10 @@ type CPSUserDTO struct {
 	Realm              string          `json:"realm" example:"cps"`
 	PermissionCategory []bson.ObjectID `json:"permission_category" example:"[\"507f1f77bcf86cd799439011\"]"`
 	PermissionGroup    []bson.ObjectID `json:"permission_group" example:"[\"507f1f77bcf86cd799439011\"]"`
-
-	Enabled      bool       `json:"enabled" example:"true"`
-	DateJoined   *time.Time `json:"date_joined" example:"2024-01-15T10:30:00Z"`
-	LastModified *time.Time `json:"last_modified" example:"2024-01-15T10:30:00Z"`
+	JobTitle           string          `json:"job_title" example:"Branch Manager"`
+	Enabled            bool            `json:"enabled" example:"true"`
+	DateJoined         *time.Time      `json:"date_joined" example:"2024-01-15T10:30:00Z"`
+	LastModified       *time.Time      `json:"last_modified" example:"2024-01-15T10:30:00Z"`
 
 	Country string `json:"country" example:"Ethiopia"`
 	Region  string `json:"region" example:"Addis Ababa"`
@@ -53,23 +54,45 @@ type DepartmentResponse struct {
 }
 
 type CpsUserResponse struct {
-	ID               bson.ObjectID             `json:"id" bson:"_id"`
-	UserCode         string                    `json:"user_code" bson:"user_code"`
-	FullName         string                    `json:"full_name" bson:"full_name"`
-	Role             string                    `json:"role" bson:"role"`
-	Department       *DepartmentResponse       `json:"department" bson:"department"`
-	Gender           string                    `json:"gender" bson:"gender"`
-	PhoneNumber      string                    `json:"phone_number" bson:"phone_number"`
-	Email            string                    `json:"email" bson:"email"`
-	UserName         string                    `json:"username" bson:"username"`
-	Realm            string                    `json:"realm" bson:"realm"`
-	Enabled          bool                      `json:"enabled" bson:"enabled"`
-	DateJoined       time.Time                 `json:"date_joined" bson:"date_joined"`
-	LastModified     time.Time                 `json:"last_modified" bson:"last_modified"`
-	Country          string                    `json:"country" bson:"country"`
-	Region           string                    `json:"region" bson:"region"`
-	PermissionGroups []PermissionGroupResponse `json:"permission_groups" bson:"permission_groups"`
+	ID                 primitive.ObjectID        `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
+	UserCode           string                    `json:"user_code" bson:"user_code"`
+	FullName           string                    `json:"full_name" bson:"full_name"`
+	Role               string                    `json:"role,omitempty" bson:"role"`   // optional, can keep empty
+	Department         *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
+	JobTitle           string                    `json:"job_title" bson:"job_title"`
+	Gender             string                    `json:"gender" bson:"gender"`
+	PhoneNumber        string                    `json:"phone_number" bson:"phone_number"`
+	Email              string                    `json:"email" bson:"email"`
+	UserName           string                    `json:"username,omitempty" bson:"username"` // optional
+	Realm              string                    `json:"realm" bson:"realm"`
+	Enabled            bool                      `json:"enabled" bson:"enabled"`
+	DateJoined         time.Time                 `json:"date_joined" bson:"date_joined"`
+	LastModified       time.Time                 `json:"last_modified" bson:"last_modified"`
+	Country            string                    `json:"country,omitempty" bson:"country"`                     // optional
+	Region             string                    `json:"region,omitempty" bson:"region"`                       // optional
+	PortalCards        []string                  `json:"portal_cards" bson:"portal_cards"`                     // top-level from job_roles
+	PermissionGroups   []PermissionGroupResponse `json:"permission_groups,omitempty" bson:"permission_groups"` // optional
+	PermissionCategory any                       `json:"permission_category,omitempty" bson:"permission_category"`
 }
+
+// type CpsUserResponse struct {
+// 	ID               bson.ObjectID             `json:"id" bson:"_id"`
+// 	UserCode         string                    `json:"user_code" bson:"user_code"`
+// 	FullName         string                    `json:"full_name" bson:"full_name"`
+// 	Role             string                    `json:"role" bson:"role"`
+// 	Department       *DepartmentResponse       `json:"department" bson:"department"`
+// 	Gender           string                    `json:"gender" bson:"gender"`
+// 	PhoneNumber      string                    `json:"phone_number" bson:"phone_number"`
+// 	Email            string                    `json:"email" bson:"email"`
+// 	UserName         string                    `json:"username" bson:"username"`
+// 	Realm            string                    `json:"realm" bson:"realm"`
+// 	Enabled          bool                      `json:"enabled" bson:"enabled"`
+// 	DateJoined       time.Time                 `json:"date_joined" bson:"date_joined"`
+// 	LastModified     time.Time                 `json:"last_modified" bson:"last_modified"`
+// 	Country          string                    `json:"country" bson:"country"`
+// 	Region           string                    `json:"region" bson:"region"`
+// 	PermissionGroups []PermissionGroupResponse `json:"permission_groups" bson:"permission_groups"`
+// }
 
 type Department struct {
 	ID   bson.ObjectID `json:"id,omitempty" bson:"id,omitempty"`

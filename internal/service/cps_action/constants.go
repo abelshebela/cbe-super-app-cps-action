@@ -39,6 +39,8 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
@@ -448,6 +450,27 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableMultiUsers:  {},
 	RequestDisableMultiUsers: {},
 
+	RequestBlockUser: {},
+
+	RequestDisableMultiBranches: {},
+	RequestEnableMultiBranches:  {},
+
+	// Branch
+	RequestEnableBranches:  {},
+	RequestDisableBranches: {},
+
+	// Region
+	RequestEnableRegions:  {},
+	RequestDisableRegions: {},
+
+	// District
+	RequestEnableDistricts:  {},
+	RequestDisableDistricts: {},
+
+	// City
+	RequestEnableCities:  {},
+	RequestDisableCities: {},
+
 	RequestCreateBusiness:         {},
 	RequestUpdateBusiness:         {},
 	RequestCreateEvent:            {},
@@ -515,9 +538,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	// RequestMarkNotificationAsSeen:  {},
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
-	RequestEnableBranches:          {},
-	RequestCpsUserEnable:           {},
-	RequestCpsUserDisable:          {},
+	// RequestEnableBranches:          {},
+	RequestCpsUserEnable:  {},
+	RequestCpsUserDisable: {},
 	// RequestCpsUserDelete:{},
 	// RequestCpsUserCreate:{},
 
@@ -979,6 +1002,9 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateAccessListSegmentation,
 		RequestUpdateAccessListSegmentation,
 		RequestEnableDisableAccessListSegmentation,
+	},
+	"CustomerSegmentation": {
+		RequestCreateCustomerSegmentation,
 	},
 }
 

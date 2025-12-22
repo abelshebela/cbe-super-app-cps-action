@@ -45,38 +45,38 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent bool, walletType string) *model.Wallet {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool, walletType string) *model.Wallet {
 	return &model.Wallet{
 		Name:   name,
 		Code:   code,
 		Avatar: URL,
 		Services: shared_type.Services{
-			Self:  self,
-			Other: other,
-			Agent: agent,
+			Self:  *self,
+			Other: *other,
+			Agent: *agent,
 		},
 		Type: walletType,
 	}
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, fieldsProvided map[string]bool) (*model.Wallet, int) {
+func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet, int) {
 	wallet := existing
 	changeCount := 0
 
-	if fieldsProvided["self"] && req.Self != existing.Services.Self {
+	if req.Self != nil && *req.Self != existing.Services.Self {
 		changeCount++
-		wallet.Services.Self = req.Self
+		wallet.Services.Self = *req.Self
 	}
 
-	if fieldsProvided["other"] && req.Other != existing.Services.Other {
+	if req.Other != nil && existing.Services.Other {
 		changeCount++
-		wallet.Services.Other = req.Other
+		wallet.Services.Other = *req.Other
 	}
 
-	if fieldsProvided["agent"] && req.Agent != existing.Services.Agent {
+	if req.Agent != nil && existing.Services.Agent {
 		changeCount++
-		wallet.Services.Agent = req.Agent
+		wallet.Services.Agent = *req.Agent
 	}
 
 	if req.Name != "" && req.Name != existing.Name {
@@ -95,6 +95,7 @@ func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest, field
 
 	return &wallet, changeCount
 }
+
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 	if incomplet := local_util.IsIncomplete(userData); incomplet {

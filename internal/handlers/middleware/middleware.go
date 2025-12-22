@@ -67,8 +67,8 @@ func WriteJSONResponse(w http.ResponseWriter, status int, message string, data i
 type UserPayload struct {
 	PhoneNumber string   `json:"phone_number,omitempty"`
 	UserRole    string   `json:"user_role,omitempty"`
+	RoleId      string   `json:"role_id,omitempty"`
 	UserID      string   `json:"user_id,omitempty"`
-	RoleID      string   `json:"role_id,omitempty"`
 	UserCode    string   `json:"user_code,omitempty"`
 	FullName    string   `json:"full_name,omitempty"`
 	Department  string   `json:"department,omitempty"`
@@ -392,6 +392,9 @@ func (a *authMiddleware) extractUserPayload(ctx context.Context, data string) (U
 
 func (a *authMiddleware) setUserPayload(ctx context.Context, userPayload UserPayload) context.Context {
 	ctx = context.WithValue(ctx, constants.ContextKey("user_role"), userPayload.UserRole)
+	if userPayload.RoleId != "" {
+		ctx = context.WithValue(ctx, constants.ContextKey("role_id"), userPayload.RoleId)
+	}
 	ctx = context.WithValue(ctx, constants.ContextKey("user_id"), userPayload.UserID)
 	ctx = context.WithValue(ctx, constants.ContextKey("phone_number"), userPayload.PhoneNumber)
 	ctx = context.WithValue(ctx, constants.ContextKey("user_code"), userPayload.UserCode)

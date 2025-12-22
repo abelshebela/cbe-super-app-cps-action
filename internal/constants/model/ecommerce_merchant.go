@@ -7,7 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type MiniAppMerchant struct {
+type EcommerceMerchant struct {
 	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Code         string        `json:"merchant_code" bson:"merchant_code"`
 	MerchantName string        `json:"merchant_name" bson:"merchant_name"`

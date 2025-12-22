@@ -45,6 +45,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 
 	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
+	customer_segmentation "cbe-super-app-cps-action/internal/service/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/service/donation"
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/service/donation_company"
@@ -74,6 +75,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// Assign variable for minio public url
 	minioPubUrl := cfg.MinioPublicEndPoint
 
+	mediaProducer := media.CreateKafkaProducer(logger, cfg)
 	accountLookupAdapter := account_lookup.NewCoreAccountLookupAdapter(persistence.AccountLookup, cfg.CbeCoreUrl, time.Duration(cfg.ServerTimeout))
 	feedbackService := feedback.NewFeedbackService(persistence.FeedbackPersistence, logger)
 	portalCardService := portalcard.NewportalCardService(persistence.PortalCardPersistence, logger)
@@ -105,13 +107,13 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	permissionService := permission.InitPermissionService(persistence.PermissionPersistence, persistence.DepartmentPersistence, nil, logger)
 	budgetCategoryService := budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	cpsUserService := cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, nil, logger)
-	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil)
+	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil, smsService)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, nil, logger)
 	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, nil, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
-	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
+	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
 	newsTagService := newstag_service.NewNewsTagService(persistence.NewsTagPersistence, nil, logger)
 	newsCategoryService := newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, nil, logger)
 	newsTagsService := media.NewMediaTagsService(persistence.NewsTagsServiceContainer, logger)
@@ -130,6 +132,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	vaultAmountTierSrv := vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, nil, logger)
 	miniAppProductCodeContainer := miniapp.NewMiniAppProductCodeService(persistence.MiniAppProductCodePersistence, logger)
 	accessListSegmentationService := access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, nil, persistence.ServicesPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, logger)
+	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, nil, *cfg, logger)
 
@@ -188,12 +191,16 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultAmountTierContainer:        vaultAmountTierSrv,
 		MiniAppProductCodeContainer:     miniAppProductCodeContainer,
 		AccessListSegmentationContainer: accessListSegmentationService,
+		CustomerSegmentationContainer:   customerSegmentationService,
 		MiniAppMerchantContainer:        miniMerchant,
 	}
 
 	// CPSActionService Appended
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, logger, *dispatcher)
+	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence)
+	// eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
+	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
@@ -219,7 +226,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.AccountContainer = accountValidationService
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	serviceContainer.CPSUserContainer = cpsUserService
-	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService)
+	notificationsvc = notification.InitNotificationService(persistence.NotificationPersistence, logger, cpsActionService, smsService)
 	deviceVersionService = deviceversion.NewDeviceVersionService(persistence.DeviceVersionControlPersistence, cpsActionService, logger)
 	serviceContainer.DeviceVersionContainer = deviceVersionService
 	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
@@ -239,7 +246,8 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.CPSActionRoleContainer = cpsActionRoleService
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
+	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, logger, *dispatcher)
+	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence)
 	serviceContainer.CPSActionContainer = cpsActionService
 
 	// Services catalog service (uses CPSAction for maker-checker)
@@ -256,7 +264,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ArticleContainer = articleService
 	articleCategoryService = media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
-	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
+	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
 
@@ -266,7 +274,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	newsTagService = newstag_service.NewNewsTagService(persistence.NewsTagPersistence, cpsActionService, logger)
 	encryptionService = encryption_service.NewEncryptionService(cfg, logger)
 	newsCategoryService = newscategory_service.NewNewsCategoryService(persistence.NewsCategoryPersistence, cpsActionService, logger)
-	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, logger)
+	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
 	articleService = media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
 	bankVaultProductService = bankvault.NewBankVaultService(oracle.BankVault, cpsActionService, logger)
@@ -276,7 +284,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.EventMerchantServiceContainer = eventMerchantService
 	vaultAmountTierSrv = vault_amount_tier.NewVaultAmountTierService(oracle.VaultAmountTier, cpsActionService, logger)
 	accessListSegmentationService = access_list_segmentation_service.NewAccessListSegmentationService(persistence.AccessListSegmentationPersistence, cpsActionService, persistence.ServicesPersistence, persistence.AccountBlockPersistence, persistence.CustomerService, logger)
-
+	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, cpsActionService, *cfg, logger)
 
@@ -335,5 +343,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		VaultAmountTierService:        vaultAmountTierSrv,
 		MiniappProductCode:            miniAppProductCodeContainer,
 		AccessListSegmentationService: accessListSegmentationService,
+		CustomerSegmentation:          customerSegmentationService,
 	}
 }

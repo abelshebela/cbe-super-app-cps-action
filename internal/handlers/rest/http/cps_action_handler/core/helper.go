@@ -7,7 +7,17 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.UserContext) *model.CPSAction {
+func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.UserContext, prevChecker []model.Checker) *model.CPSAction {
+	usersData := make([]model.Checker, 0)
+
+	CheckerUser := model.Checker{
+		CheckerID:          userData.UserID,
+		CheckerName:        userData.FullName,
+		CheckerPhoneNumber: userData.PhoneNumber,
+	}
+
+	usersData = append(prevChecker, CheckerUser)
+
 	return &model.CPSAction{
 		// Preserve all original data
 		ID:               existingAction.ID,
@@ -26,9 +36,7 @@ func MapCPSActionToApproval(existingAction *model.CPSAction, userData *types.Use
 		MakerActionTime:  existingAction.MakerActionTime,
 
 		// Add approval information
-		ActionStatus:       constants.Approved,
-		CheckerID:          userData.UserID,
-		CheckerName:        userData.FullName,
-		CheckerPhoneNumber: userData.PhoneNumber,
+		ActionStatus: constants.Approved,
+		CheckerUsers: usersData,
 	}
 }

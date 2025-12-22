@@ -114,6 +114,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	cpsUser := core.CPSUModel(req)
+	cpsUser.JobTitle = req.JobTitle
 	payload := cpsuser.CPSUserActionPayload{
 		User:                 cpsUser,
 		PermissionCategories: populatedCategories,
@@ -398,7 +399,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserDetail, error) {
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
 	defer span.End()
 
@@ -417,8 +418,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
-	detail := cpsuser.BuildCpsUserDetail(populated)
-	return detail, nil
+	// detail := cpsuser.BuildCpsUserDetail(populated)
+	return populated, nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
@@ -461,7 +462,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserUpdate):
-		cur, err := core.BindCPSUserFromAction(action.CurrentAction)
+		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)

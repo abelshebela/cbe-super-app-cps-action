@@ -41,22 +41,22 @@ import (
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
-	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
-	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
-	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
-	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
-	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
-	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
-	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
-	service "cbe-super-app-cps-action/internal/glue/routing/services"
-
+	customer_seg "cbe-super-app-cps-action/internal/glue/routing/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
 	donation_category "cbe-super-app-cps-action/internal/glue/routing/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/glue/routing/donation_company"
 	encryption "cbe-super-app-cps-action/internal/glue/routing/encryption"
+	fayda "cbe-super-app-cps-action/internal/glue/routing/fayda"
+	feedback "cbe-super-app-cps-action/internal/glue/routing/feedback"
+	hqRoute "cbe-super-app-cps-action/internal/glue/routing/hq"
 	jobRole "cbe-super-app-cps-action/internal/glue/routing/job_roles"
+	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
+	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
+	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
 	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	roles "cbe-super-app-cps-action/internal/glue/routing/roles"
+	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
+	service "cbe-super-app-cps-action/internal/glue/routing/services"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
 	vaultAmountTier "cbe-super-app-cps-action/internal/glue/routing/vault_amount_tier"
@@ -153,10 +153,43 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	event_merchant_routing.Init(r, handlerLayer.EventMerchantHandler, authMiddleware)
 	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
+	customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
-	router.Mount("/api/v1/cbesuperapp/cps_action", r)
+	// router.Mount("/api/v1/cbesuperapp/cps_action", r)
 
+	// // Mini App Proxy Routes
+	// miniAppProxyHandler := miniapp.CreateMiniAppProxyHandler(logger, cfg)
+	// if miniAppProxyHandler == nil {
+	// 	logger.Fatalf("Failed to create mini-app proxy handler")
+	// }
+
+	// r.Route("/mini-apps", func(r chi.Router) {
+	// 	r.Use(authMiddleware.AuthenticateToken)
+	// 	r.Handle("/*", miniAppProxyHandler)
+	// })
+
+	// Mini App Category Proxy Routes
+	// miniAppCategoryProxyHandler := miniapp.CreateMiniAppCategoryProxyHandler(logger, cfg)
+	// if miniAppProxyHandler == nil {
+	// 	logger.Fatalf("Failed to create mini-app proxy handler")
+	// }
+
+	// r.Route("/mini-apps/categories", func(r chi.Router) {
+	// 	r.Use(authMiddleware.AuthenticateToken)
+	// 	r.Handle("/*", miniAppCategoryProxyHandler)
+	// })
+
+	// Wrap all CPS routes in a secured router that authenticates first, then applies the central guard
+	secured := chi.NewRouter()
+	secured.Use(authMiddleware.AuthenticateToken)
+	// Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
+	// Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
+	secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
+	secured.Mount("/", r)
+
+	// router.Mount("/", secured)
+	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes
