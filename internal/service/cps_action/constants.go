@@ -40,6 +40,8 @@ type RequestAction string
 
 const (
 	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
@@ -984,6 +986,8 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"CustomerSegmentation": {
 		RequestCreateCustomerSegmentation,
+		RequestUpdateCustomerSegmentation,
+		RequestDeleteCustomerSegmentation,
 	},
 }
 

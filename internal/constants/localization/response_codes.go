@@ -623,6 +623,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAccessListSegmentationUpdated,
 	SuccessAccessListSegmentationCreated,
 	AccessListSegmentationCreatedSuccessfully,
+
+	// Customer segmentations
+	CustomerSegmentationCreationSubmittedSuccessfully,
+	CustomerSegmentationUpdateSubmittedSuccessfully,
+	CustomerSegmentationFetchedSuccessfully,
+	CustomerSegmentationDeleteddSuccessfully,
 }
 
 // Success Response Codes
@@ -4570,7 +4576,25 @@ var (
 	CustomerSegmentationCreationSubmittedSuccessfully = ResponseCode{
 		Code:       "ERROR_CUSTOMER_SEGMENTATION_CREATION_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Customer segmentation creation submitted successfully",
+		Message:    "Customer segmentation creation request submitted successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationUpdateSubmittedSuccessfully = ResponseCode{
+		Code:       "ERROR_CUSTOMER_SEGMENTATION_UPDATE_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation update request submitted successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationFetchedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATIONS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentations fetched successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationDeleteddSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentations deleted request submitted successfully",
 		Type:       "error",
 	}
 
