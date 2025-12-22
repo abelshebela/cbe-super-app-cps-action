@@ -82,4 +82,5 @@ type Persistence struct {
 	MiniAppProductCodePersistence     storage.MiniAppProductCodeRepository
 	AccessListSegmentationPersistence storage.AccessListSegmentationRepository
 	MiniAppMerchant                   storage.MiniAppMerchant
+	CustomerSegmentation              storage.CustomerSegmentationRepository
 }
