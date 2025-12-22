@@ -11,6 +11,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -146,8 +147,12 @@ func (r *bankVaultRepositary) FindAllBankLockedVaultsWithPagination(ctx context.
 
 	rows, err := r.queries.GetAllLockedVaults(ctx, params)
 	if err != nil {
+		if err == sql.ErrNoRows {
+
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
 		r.logger.Errorf("failed to get locked vaults: %v", err)
-		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	lockedVaults := make([]*model.LockedVault, 0, len(rows))
@@ -214,37 +219,58 @@ func (r *bankVaultRepositary) FindAllGroupVaultWithPagination(ctx context.Contex
 
 	rows, err := r.queries.GetAllGroupVaults(ctx, params)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New(localization.ErrorVaultGroupCategoryNotFound.Code)
+		}
 		r.logger.Errorf("failed to get group vaults: %v", err)
-		return nil, err
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	groupVaults := make([]*model.GroupVault, 0, len(rows))
 	var total int64
 
 	for _, row := range rows {
-		memberCount := row.MemberCount
-		occVersion := row.OccVersion
-
 		gv := &model.GroupVault{
-			ID:              row.ID,
-			VaultName:       row.VaultName,
-			VaultCategory:   row.VaultCategory,
-			Purpose:         row.Purpose,
-			TargetAmount:    row.TargetAmount,
-			CollectedAmount: row.CollectedAmount,
-			MemberCount:     memberCount,
-			EndDate:         row.EndDate,
-			VaultType:       row.VaultType,
-			Status:          row.Status,
-			AdminUserID:     row.AdminUserID,
-			Recurrence:      row.Recurrence,
-			NextRun:         row.NextRun,
-			Reminder:        row.Reminder,
-			TCVersion:       row.TCVersion,
-			OccVersion:      occVersion,
-			CreatedAt:       row.CreatedAt,
-			UpdatedAt:       row.UpdatedAt,
-			DeletedAt:       row.DeletedAt,
+			ID:            row.ID,
+			VaultName:     row.VaultName,
+			VaultCategory: row.VaultCategory,
+			TargetAmount:  row.TargetAmount,
+			// IsDeadlock: row.IsDeadlock,
+			VaultType: row.VaultType,
+			// InterestRate: row.InterestRate,
+			Status: row.Status,
+			// CreatedAt:  row.CreatedAt,
+			// UpdatedAt:  row.UpdatedAt,
+			// DeletedAt:  row.DeletedAt,
+		}
+
+		if row.CreatedAt.Valid {
+			t, err := time.Parse(time.RFC3339, row.CreatedAt.String)
+			if err == nil {
+				gv.CreatedAt = t
+			} else {
+				// Try another common format if RFC3339 fails, or log it
+				// For now assuming RFC3339 based on codebase convention, but catching error
+				r.logger.Errorf("failed to parse CreatedAt: %v", err)
+			}
+		}
+
+		if row.UpdatedAt.Valid {
+			t, err := time.Parse(time.RFC3339, row.UpdatedAt.String)
+			if err == nil {
+				gv.UpdatedAt = t
+			} else {
+				r.logger.Errorf("failed to parse UpdatedAt: %v", err)
+			}
+		}
+
+		if row.DeletedAt.Valid {
+			t, err := time.Parse(time.RFC3339, row.DeletedAt.String)
+			if err == nil {
+				gv.DeletedAt = &t
+			} else {
+				r.logger.Errorf("failed to parse DeletedAt: %v", err)
+			}
 		}
 
 		groupVaults = append(groupVaults, gv)

@@ -63,6 +63,7 @@ const (
 	IncompleteUserInfo                = "incomplete user info"
 	Approved                          = "APPROVED"
 	Rejected                          = "REJECTED"
+	Reversed                          = "REVERSED"
 )
 
 const (
@@ -632,14 +633,6 @@ const (
 	UpdateAction ActionType = "UPDATE"
 	CreateAction ActionType = "CREATE"
 	DeleteAction ActionType = "DELETE"
-)
-
-// / bank vault constants
-type AccrualMethod string
-
-const (
-	AccrualMethodCompound AccrualMethod = "COMPOUND"
-	AccrualMethodSimple   AccrualMethod = "SIMPLE"
 )
 
 type VaultStatus string

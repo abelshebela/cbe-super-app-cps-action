@@ -47,8 +47,6 @@ func UserToArchivedUser(user *member.User) *model.ArchivedUser {
 		PushToken:           user.PushToken,
 		MemberType:          user.MemberType,
 		IsBlocked:           user.IsBlocked,
-		LoginAttemptCount:   user.LoginAttemptCount,
-		LastLoginAttempt:    user.LastLoginAttempt,
 		LastLogin:           user.LastLogin,
 		LoginPIN:            user.LoginPIN,
 		DeviceUUID:          user.DeviceUUID,

@@ -19,6 +19,7 @@ type CreateUserRequest struct {
 	Email              string          `json:"email,omitempty" bson:"email,omitempty" example:"john.doe@example.com"`
 	PermissionCategory []bson.ObjectID `json:"permission_category" bson:"permission_category,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
 	PermissionGroups   []bson.ObjectID `json:"permission_groups" bson:"permission_groups,omitempty" example:"[\"507f1f77bcf86cd799439011\"]"`
+	JobTitle           string          `json:"job_title" bson:"job_title"`
 }
 
 type UpdateUserRequest struct {

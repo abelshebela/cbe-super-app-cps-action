@@ -1,6 +1,8 @@
 package storage
 
 import (
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	// "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
@@ -138,7 +140,7 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
 }
@@ -284,7 +286,7 @@ type PortalCardRepository interface {
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
+	Update(ctx context.Context, id string, cpsUser *cpsuser.UpdateUserRequest) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
@@ -319,11 +321,11 @@ type VaultGroupCategoryRepository interface {
 
 type VaultAmountTierRepository interface {
 	Create(ctx context.Context, vaultAmountTier *model.VaultAmountTier) (string, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
 	FindByID(ctx context.Context, id string) (*model.VaultAmountTier, error)
 	Update(ctx context.Context, id string, vaultAmountTier *model.VaultAmountTier) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
 }
 
 type DonationRepository interface {
@@ -580,9 +582,12 @@ type BPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.BPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.BPSActionApproveIndex) error
 }
+
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
+	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
+	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
 }
 
 type SitotaRepository interface {

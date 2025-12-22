@@ -448,6 +448,27 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableMultiUsers:  {},
 	RequestDisableMultiUsers: {},
 
+	RequestBlockUser: {},
+
+	RequestDisableMultiBranches: {},
+	RequestEnableMultiBranches:  {},
+
+	// Branch
+	RequestEnableBranches:  {},
+	RequestDisableBranches: {},
+
+	// Region
+	RequestEnableRegions:  {},
+	RequestDisableRegions: {},
+
+	// District
+	RequestEnableDistricts:  {},
+	RequestDisableDistricts: {},
+
+	// City
+	RequestEnableCities:  {},
+	RequestDisableCities: {},
+
 	RequestCreateBusiness:         {},
 	RequestUpdateBusiness:         {},
 	RequestCreateEvent:            {},
@@ -515,9 +536,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	// RequestMarkNotificationAsSeen:  {},
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
-	RequestEnableBranches:          {},
-	RequestCpsUserEnable:           {},
-	RequestCpsUserDisable:          {},
+	// RequestEnableBranches:          {},
+	RequestCpsUserEnable:  {},
+	RequestCpsUserDisable: {},
 	// RequestCpsUserDelete:{},
 	// RequestCpsUserCreate:{},
 

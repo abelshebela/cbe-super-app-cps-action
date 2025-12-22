@@ -49,7 +49,7 @@ func NewCPSActionRoleService(
 }
 
 // FindAllWithPagination implements service.bpsActionRoleService.
-func (s *cpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error) {
+func (s *cpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CPSActionRole", "FindAllWithPagination")
 	defer span.End()
 	result, err := s.repo.FindAllWithPagination(ctx, filter)
@@ -183,6 +183,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
+
 	old, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -219,6 +220,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		Enabled:     old.Enabled,
 		IsMakerOnly: req.IsMakerOnly,
 	}
+
 	if req.AssignedMakersRoles != nil {
 		makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
 		for _, id := range req.AssignedMakersRoles {
@@ -301,6 +303,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		string(constants.RequestUpdateCpsActionRole),
 		constants.UPDATE,
 	)
+
 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -502,13 +505,11 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
 	indices := s.generateIndices(role)
 	s.logger.Infof("syncIndices: Generated %d indices for action %s (oldName: %s)", len(indices), role.ActionName, oldActionName)
+
 	if oldActionName == "" {
-		err := s.indexRepo.SaveIndices(ctx, indices)
-		if err != nil {
-			span.AddEvent("failed to save indices", trace.WithAttributes(attribute.String("error", err.Error())))
-		}
-		return err
+		return s.indexRepo.SaveIndices(ctx, indices)
 	}
+
 	err := s.indexRepo.SyncIndices(ctx, oldActionName, indices)
 	if err != nil {
 		span.AddEvent("failed to sync indices", trace.WithAttributes(attribute.String("error", err.Error())))
