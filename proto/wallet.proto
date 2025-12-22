@@ -14,7 +14,6 @@ message Wallet {
   bool enabled = 5;
   bool is_deleted = 6;
   Services services = 7;
-  string type = 8;
 }
 
 message Services {

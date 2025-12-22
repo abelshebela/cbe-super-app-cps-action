@@ -2,6 +2,8 @@ package mini_app
 
 import (
 	// "cbe-super-app-cps-action/internal/constants/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"time"
@@ -70,4 +72,54 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 	}
 
 	return update
+}
+
+func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
+	result := bson.M{}
+
+	if data.MerchantCode != "" {
+		result["merchant_code"] = data.MerchantCode
+	}
+	if data.MerchantName != "" {
+		result["merchant_name"] = data.MerchantName
+	}
+	if data.KYC != (types.KYC{}) {
+		result["kyc"] = data.KYC
+	}
+	if data.BankAccountNumber != "" {
+		result["bank_account_number"] = data.BankAccountNumber
+	}
+
+	if data.SettlementMethod != "" {
+		result["settlement_method"] = data.SettlementMethod
+	}
+
+	result["enabled"] = data.Enabled
+	result["is_deleted"] = data.IsDeleted
+
+	return result
+}
+
+func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.MiniAppMerchant {
+
+	return &model.MiniAppMerchant{
+		ID:           miniAppMerchant.ID,
+		MerchantCode: miniAppMerchant.MerchantCode,
+		MerchantName: miniAppMerchant.MerchantName,
+		KYC: types.KYC{
+			Status: miniAppMerchant.KYC.Status,
+			Representative: types.KYCInformation{
+				Name:  miniAppMerchant.KYC.Representative.Name,
+				Email: miniAppMerchant.KYC.Representative.Email,
+				Phone: miniAppMerchant.KYC.Representative.Phone,
+			},
+		},
+		BankAccountNumber: miniAppMerchant.BankAccountNumber,
+
+		Enabled:   miniAppMerchant.Enabled,
+		IsDeleted: miniAppMerchant.IsDeleted,
+		CreatedAt: miniAppMerchant.CreatedAt,
+		UpdatedAt: miniAppMerchant.UpdatedAt,
+		DeletedAt: miniAppMerchant.DeletedAt,
+	}
 }
