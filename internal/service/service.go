@@ -46,6 +46,8 @@ import (
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+
 
 	"context"
 	"mime/multipart"
@@ -423,7 +425,7 @@ type EventMerchantService interface {
 
 type MiniAppMerchant interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
+	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
 }
 type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
