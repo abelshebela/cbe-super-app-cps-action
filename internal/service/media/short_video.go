@@ -18,16 +18,18 @@ import (
 )
 
 type shortVideoService struct {
-	repo   storage.ShortVideoRepository
-	cache  storage.RedisRepository
-	logger utils.Logger
+	repo     storage.ShortVideoRepository
+	cache    storage.RedisRepository
+	producer KafkaProducerService
+	logger   utils.Logger
 }
 
-func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.RedisRepository, logger utils.Logger) service.ShortVideoService {
+func NewShortVideoService(repo storage.ShortVideoRepository, cache storage.RedisRepository, producer KafkaProducerService, logger utils.Logger) service.ShortVideoService {
 	return &shortVideoService{
-		repo:   repo,
-		cache:  cache,
-		logger: logger,
+		repo:     repo,
+		cache:    cache,
+		producer: producer,
+		logger:   logger,
 	}
 }
 
@@ -61,6 +63,12 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 			))
 			return nil, err
 		}
+
+		if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideo.ID.Hex()); err != nil {
+			m.logger.Errorf("Failed to publish short video event for short video %s: %v", shortVideo.ID, err)
+		} else {
+			m.logger.Infof("Successfully published short video event for short video %s", shortVideo.ID)
+		}
 	case string(constants.RequestUpdateShortVideo):
 		err = m.repo.Update(ctx, shortVideo.ToShortVideo(), cpsAction.UniqueId)
 		if err != nil {
@@ -69,6 +77,23 @@ func (m *shortVideoService) Authorize(ctx context.Context, cpsAction *model.CPSA
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
+		}
+
+		prevVideo, err := local_util.JsonUnmarshal[model.ShortVideoDetail](cpsAction.PreviousAction)
+		if err != nil {
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, errors.New(localization.ErrorInvalidRequest.Code)
+		}
+
+		if shortVideo.VideoURL != prevVideo.VideoURL {
+			if err := m.producer.PublishShortVideoEvent(shortVideo.VideoURL, shortVideo.ID.Hex()); err != nil {
+				m.logger.Errorf("Failed to publish short video event for short video %s: %v", shortVideo.ID, err)
+			} else {
+				m.logger.Infof("Successfully published short video event for short video %s", shortVideo.ID)
+			}
 		}
 
 		cacheKey := fmt.Sprintf(NewsShortVideoCacheKeyPattern, cpsAction.UniqueId)
