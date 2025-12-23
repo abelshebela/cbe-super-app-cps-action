@@ -4,14 +4,14 @@ import (
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MiniAppDocumentMapper(miniApp model.MiniApp) *model.MiniApp {
+func MiniAppDocumentMapper(miniApp mini_model.MiniApp) *mini_model.MiniApp {
 	if miniApp.ID == bson.NilObjectID {
 		miniApp.ID = bson.NewObjectID()
 	}
@@ -30,7 +30,7 @@ func MiniAppDocumentMapper(miniApp model.MiniApp) *model.MiniApp {
 	return &miniApp
 }
 
-func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
+func MiniAppDocumentToBsonM(miniApp mini_model.MiniApp) bson.M {
 	update := bson.M{
 		"last_modified_at": time.Now(),
 	}
@@ -74,7 +74,7 @@ func MiniAppDocumentToBsonM(miniApp model.MiniApp) bson.M {
 	return update
 }
 
-func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
+func MiniAppMerchantMapper(data mini_model.MiniAppMerchant) bson.M {
 	result := bson.M{}
 
 	if data.MerchantCode != "" {
@@ -100,9 +100,9 @@ func MiniAppMerchantMapper(data model.MiniAppMerchant) bson.M {
 	return result
 }
 
-func ToMiniAppMerchantDomain(miniAppMerchant *model.MiniAppMerchant) *model.MiniAppMerchant {
+func ToMiniAppMerchantDomain(miniAppMerchant *mini_model.MiniAppMerchant) *mini_model.MiniAppMerchant {
 
-	return &model.MiniAppMerchant{
+	return &mini_model.MiniAppMerchant{
 		ID:           miniAppMerchant.ID,
 		MerchantCode: miniAppMerchant.MerchantCode,
 		MerchantName: miniAppMerchant.MerchantName,

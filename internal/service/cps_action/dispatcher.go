@@ -3,6 +3,7 @@ package cpsaction
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -52,7 +53,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AdContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Service"):
-		return d.app.ServiceCheckContainer.Authorize(ctx, cpsAction)
+		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)

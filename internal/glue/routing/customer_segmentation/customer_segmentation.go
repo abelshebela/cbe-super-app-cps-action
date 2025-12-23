@@ -2,7 +2,7 @@ package customersegmentation
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	segmentations "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
+	segmentation "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"

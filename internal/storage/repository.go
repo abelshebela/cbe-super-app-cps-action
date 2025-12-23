@@ -29,7 +29,9 @@ import (
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -355,8 +357,8 @@ type DonationCompanyRepository interface {
 }
 
 type MiniAppRepository interface {
-	Create(ctx context.Context, miniApp *model.MiniApp) error
-	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
+	Create(ctx context.Context, miniApp *mini_model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *mini_model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
@@ -636,13 +638,17 @@ type AccessListSegmentationRepository interface {
 }
 
 type MiniAppMerchant interface {
-	Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error)
-	Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error
+	Create(ctx context.Context, merchant *mini_model.MiniAppMerchant) (*mini_model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *mini_model.MiniAppMerchant) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error)
-	FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error)
+	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*mini_model.MiniAppMerchant], error)
+	FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error)
+}
+
+type CustomerSegmentationRepository interface {
+	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
 }
 
 type CustomerSegmentationRepository interface {

@@ -4595,6 +4595,7 @@ var (
 		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentations deleted request submitted successfully",
+		Message:    "Customer segmentation creation submitted successfully",
 		Type:       "error",
 	}
 

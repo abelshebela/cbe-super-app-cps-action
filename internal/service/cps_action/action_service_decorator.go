@@ -53,7 +53,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if role != nil {
 				if role.IsMakerOnly {
 					cpsAction.CheckerCount = 0
-					cpsAction.ActionStatus = string(constants.Approved)
+					// cpsAction.ActionStatus = string(constants.Approved)
 				} else if role.ApproverCount > 0 {
 					cpsAction.CheckerCount = int32(role.ApproverCount)
 				} else {

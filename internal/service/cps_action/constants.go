@@ -607,18 +607,18 @@ func IsValidRequestAction(requestAction string) bool {
 }
 
 var RequestActionGroups = map[string][]RequestAction{
+	// "Service": {
+	// 	RequestUpdateServiceSingle,
+	// 	RequestUpdateServiceTotal,
+	// 	RequestUpdateServiceMinCap,
+	// 	RequestCreateServiceFee,
+	// 	RequestUpdateServiceFee,
+	// 	RequestDeleteServiceFee,
+	// 	RequestCreateDailyLimit,
+	// 	RequestUpdateDailyLimit,
+	// 	RequestDeleteDailyLimit,
+	// },
 	"Service": {
-		RequestUpdateServiceSingle,
-		RequestUpdateServiceTotal,
-		RequestUpdateServiceMinCap,
-		RequestCreateServiceFee,
-		RequestUpdateServiceFee,
-		RequestDeleteServiceFee,
-		RequestCreateDailyLimit,
-		RequestUpdateDailyLimit,
-		RequestDeleteDailyLimit,
-	},
-	"ServicesCatalog": {
 		RequestCreateService,
 		RequestUpdateService,
 		RequestEnableService,
