@@ -12,7 +12,7 @@ type CustomerSegmentation struct {
 	CustomerSegment    string        `json:"customer_segment" bson:"customer_segment"`
 	CustomerSubSegment string        `json:"customer_sub_segment" bson:"customer_sub_segment"`
 	CustomerGroup      string        `json:"customer_group" bson:"customer_group"`
-	IsDeleted          bool          `json:"is_deleted" bson:"is_deleted"`
+	IsDeleted          *bool         `json:"is_deleted" bson:"is_deleted"`
 	CreatedAt          time.Time     `json:"created_at" bson:"created_at"`
 	UpdatedAt          time.Time     `json:"updated_at" bson:"updated_at"`
 }

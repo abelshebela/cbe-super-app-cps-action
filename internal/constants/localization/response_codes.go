@@ -4625,6 +4625,12 @@ var (
 		Message:    MsgAccountNumberRequired,
 		Type:       "error",
 	}
+	ErrorCannotGetRole = ResponseCode{
+		Code:       "ERROR_CANNOT_APPROVE_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotGetRole,
+		Type:       "error",
+	}
 
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",

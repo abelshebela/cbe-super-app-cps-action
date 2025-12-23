@@ -234,11 +234,41 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /job_role/{id}/disable": "JOBROLE",
 
 	// Customer Segmentation
-	"POST /customer-segmentations":              "CUSTOMERSEGMENTATION",
-	"PATCH /customer-segmentations/{id}/update": "CUSTOMERSEGMENTATION",
-	"GET /customer-segmentations":               "CUSTOMERSEGMENTATION",
-	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATION",
-	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATION",
+	"POST /customer-segmentations":              "CUSTOMERSEGMENTATIONS",
+	"PATCH /customer-segmentations/{id}/update": "CUSTOMERSEGMENTATIONS",
+	"GET /customer-segmentations":               "CUSTOMERSEGMENTATIONS",
+	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATIONS",
+	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATIONS",
+}
+
+func extractResource(path string) string {
+	path = strings.Trim(path, "/")
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	return parts[0]
+}
+
+func normalize(s string) string {
+	s = strings.ToUpper(s)
+	replacer := strings.NewReplacer(
+		"-", "",
+		"_", "",
+	)
+	return replacer.Replace(s)
+}
+
+func resolveActionName(relPath string, registry map[string]string) string {
+	resource := extractResource(relPath)
+	normalizedResource := normalize(resource)
+
+	for _, action := range registry {
+		if normalize(action) == normalizedResource {
+			return action
+		}
+	}
+	return ""
 }
 
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
@@ -295,17 +325,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			// keyPattern := method + " " + relPattern
-			// actionName, ok := cpsActionRegistry[keyPattern]
-			actionName := ""
-
-			path := method + " " + relPath
-			for k, v := range cpsActionRegistry {
-				if strings.EqualFold(path, strings.ToLower(k)) {
-					actionName = v
-					break
-				}
-			}
+			actionName := resolveActionName(relPath, cpsActionRegistry)
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
