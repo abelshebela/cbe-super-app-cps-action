@@ -238,7 +238,6 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(ctx, update); err != nil {
-		fmt.Printf("Errors : %v\n", err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
