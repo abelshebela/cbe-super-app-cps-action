@@ -191,12 +191,12 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
 		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
-		if currentIndex == float32(Current_role_level) {
+		if currentIndex == Current_role_level {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
 			return
 		}
 
-		if currentIndex+1 < float32(Current_role_level) {
+		if currentIndex+1 < Current_role_level {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 			return
 		}
@@ -231,7 +231,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	update := &model.CPSAction{
 		ActionCode:          action.ActionCode,
 		ActionStatus:        finalStatus,
-		CurrentCheckerIndex: float32(*idxDoc.CheckerIndex),
+		CurrentCheckerIndex: *idxDoc.CheckerIndex,
 		CheckerUsers:        append(action.CheckerUsers, checkerUser),
 		Department:          userData.Department,
 	}
@@ -369,7 +369,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		ActionStatus:        constants.Rejected,
 		RejectionReason:     req.RejectionReason,
 		CheckerUsers:        append(action.CheckerUsers, CheckerUser),
-		CurrentCheckerIndex: float32(idx32),
+		CurrentCheckerIndex: float64(idx32),
 		Department:          userData.Department,
 	}); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
