@@ -232,7 +232,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		// 	r.Post("/{action_code}/reject", handlerLayer.CpsActionHandler.RejectCPSAction)
 		// })
 	})
-	secured.Mount("/", r)
+	// secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 
