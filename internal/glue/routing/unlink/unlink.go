@@ -3,7 +3,6 @@ package unlink
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	unlink "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler unlink.UnlinkAdapter, authMiddleware middle
 			Handler: handler.GetArchivedUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, handler unlink.UnlinkAdapter, authMiddleware middle
 			Handler: handler.GetUserByAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Maker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -38,7 +35,6 @@ func Init(router chi.Router, handler unlink.UnlinkAdapter, authMiddleware middle
 			Handler: handler.UnlinkUserCif,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Maker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 	}

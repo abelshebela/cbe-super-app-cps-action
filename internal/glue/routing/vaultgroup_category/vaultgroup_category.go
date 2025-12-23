@@ -1,7 +1,6 @@
 package vaultgroupcategory
 
 import (
-	role "cbe-super-app-cps-action/internal/constants"
 	bankgroupcategory "cbe-super-app-cps-action/internal/constants/interfaces/vaultgroup_category"
 
 	"cbe-super-app-cps-action/internal/glue"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.CreateVaultGroupCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.FindAllVaultGroupCategories,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.GetVaultGroupCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.UpdateVaultGroupCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -55,7 +50,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.DeleteVaultGroupCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -64,7 +58,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.EnableVaultGroupCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -73,7 +66,6 @@ func Init(router chi.Router, handler bankgroupcategory.VaultGroupCategoryHandler
 			Handler: handler.DisableVaultGroupCategory,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}
