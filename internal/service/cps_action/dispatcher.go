@@ -155,7 +155,6 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Role"):
 		return d.app.RoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CustomerSegmentations"):
-		fmt.Println("=====================Got here")
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 
 	default:
