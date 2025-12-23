@@ -1,5 +1,4 @@
 module cbe-super-app-cps-action
-
 go 1.25.0
 
 require (

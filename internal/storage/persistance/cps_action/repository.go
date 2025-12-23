@@ -119,9 +119,9 @@ func (r *CPSActionStorage) FindOne(ctx context.Context, filter bson.M) (*model.C
 
 func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
 	r.logger.Infof("[Update] updating CPS action for action code: %s", actionCode)
-	// filterMap := BuildCPSActionFilter(update)
+	filterMap := BuildCPSActionFilter(update)
 	updateMap := BuildCPSActionUpdateMap(update)
-	filterMap := bson.M{}
+	// filterMap := bson.M{}
 	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
 	if err != nil {
 		r.logger.Errorf("[Update] failed to update CPS action: %v", err)

@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 
 	"time"
 
@@ -23,7 +23,7 @@ import (
 )
 
 type MiniAppMerchantStorage struct {
-	dal        dal.MongoDal[model.MiniAppMerchant, model.MiniAppMerchant]
+	dal        dal.MongoDal[mini_model.MiniAppMerchant, mini_model.MiniAppMerchant]
 	client     *mongo.Client
 	logger     utils.Logger
 	dbName     string
@@ -32,7 +32,7 @@ type MiniAppMerchantStorage struct {
 
 func NewMiniAppMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppMerchant {
 	return &MiniAppMerchantStorage{
-		dal:        dal.NewMongoDal[model.MiniAppMerchant, model.MiniAppMerchant](client, dbName, collection),
+		dal:        dal.NewMongoDal[mini_model.MiniAppMerchant, mini_model.MiniAppMerchant](client, dbName, collection),
 		client:     client,
 		logger:     logger,
 		dbName:     dbName,
@@ -40,7 +40,7 @@ func NewMiniAppMerchantRepository(client *mongo.Client, dbName string, collectio
 	}
 }
 
-func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.MiniAppMerchant) (*model.MiniAppMerchant, error) {
+func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *mini_model.MiniAppMerchant) (*mini_model.MiniAppMerchant, error) {
 	if merchant.ID.IsZero() {
 		merchant.ID = bson.ObjectID(primitive.NewObjectID())
 	}
@@ -52,7 +52,7 @@ func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.Min
 	return &createdMerchant, nil
 }
 
-func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *model.MiniAppMerchant) error {
+func (m *MiniAppMerchantStorage) Update(ctx context.Context, id string, merchant *mini_model.MiniAppMerchant) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)
@@ -124,7 +124,7 @@ func (m *MiniAppMerchantStorage) EnableOrDisable(ctx context.Context, id string,
 	return nil
 }
 
-func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*model.MiniAppMerchant, error) {
+func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error) {
 	fmt.Println("=============I ahvwbfkjsBDFKBFRKDBSSFSHF", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -145,7 +145,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mode
 	return result, nil
 }
 
-func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.MiniAppMerchant], error) {
+func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*mini_model.MiniAppMerchant], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -178,13 +178,13 @@ func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.MiniAppMerchant]{
+	return &types.PaginatedResponse[[]*mini_model.MiniAppMerchant]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (m *MiniAppMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*model.MiniAppMerchant, error) {
+func (m *MiniAppMerchantStorage) FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error) {
 	result, err := m.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

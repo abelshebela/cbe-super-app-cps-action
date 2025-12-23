@@ -11,6 +11,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -35,7 +37,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
 	defer span.End()
 
-	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
+	miniApp, err := local_util.JsonUnmarshal[mini_model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
