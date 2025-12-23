@@ -29,7 +29,7 @@ func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (wallet
 	req.Self, _ = toBoolPtr(r.FormValue("self"))
 	req.Other, _ = toBoolPtr(r.FormValue("other"))
 	req.Agent, _ = toBoolPtr(r.FormValue("agent"))
-	req.Type = constants.FinancialInstitutionType(r.FormValue("type"))
+	req.Type = r.FormValue("type")
 	// switch req.Type {
 	// case constants.Bank, constants.Wallet, constants.MFI:
 	// 	// valid type
