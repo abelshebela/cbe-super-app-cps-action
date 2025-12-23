@@ -198,6 +198,11 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	// // router.Use(customeMiddleware.ChiCORS())
 
 	secured := chi.NewRouter()
+	secured.Use(authMiddleware.AuthenticateToken)
+	// Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
+	// Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
+	// secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/password_rule/", "/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
+	secured.Mount("/", r)
 
 	// --------------------
 	// Public (no auth)

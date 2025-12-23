@@ -19,11 +19,11 @@ type TierRequest struct {
 // Includes charge_code, commission_code, and cap.minimum_transfer_cap
 // and uses cbe_gl_product_account for Product Account
 type CreateServiceRequest struct {
-	ServiceCode          string        `json:"service_code" example:"JKSJBDJB"`
-	ServiceName          string        `json:"service_name" example:"Transfer To Other bank"`
-	ProductAccount       string        `json:"product_account" example:"234353354"`
-	ServiceType          string        `json:"service_type" example:"TRANSFER"`
-	Key                  string        `json:"key" example:"transfer_to_other_bank"`
+	ServiceCode    string `json:"service_code" example:"JKSJBDJB"`
+	ServiceName    string `json:"service_name" example:"Transfer To Other bank"`
+	ProductAccount string `json:"product_account" example:"234353354"`
+	// ServiceType          string        `json:"service_type" example:"TRANSFER"`
+	// Key                  string        `json:"key" example:"transfer_to_other_bank"`
 	ChargeCode           string        `json:"charge_code" example:"JKSJBDJB"`
 	CommissionCode       string        `json:"commission_code" example:"DSFDDHJS"`
 	Cap                  CapRequest    `json:"cap"`

@@ -70,15 +70,18 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mapped := model.Services{
-		ServiceCode:         req.ServiceCode,
-		ServiceName:         req.ServiceName,
-		CbeGLProductAccount: req.ProductAccount,
-		Cap: model.Cap{
-			KYCLevel:  req.Cap.KYCLevel,
-			SingleCap: req.Cap.SingleCap,
-		},
+		ServiceCode:          req.ServiceCode,
+		ServiceName:          req.ServiceName,
+		ChargeCode:           req.ChargeCode,
+		CommissionCode:       req.CommissionCode,
+		CbeGLProductAccount:  req.CbeGLProductAccount,
 		CbeIFBProductAccount: req.CbeIFBProductAccount,
 		PaymentType:          req.PaymentType,
+		Cap: model.Cap{
+			KYCLevel:           req.Cap.KYCLevel,
+			SingleCap:          req.Cap.SingleCap,
+			MinimumTransferCap: req.Cap.MinimumTransferCap,
+		},
 		Tiers: func() []model.Tier {
 			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
@@ -140,18 +143,18 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("service.id", id))
 	mapped := model.Services{
-		ServiceCode:    req.ServiceCode,
-		ServiceName:    req.ServiceName,
-		ChargeCode:     req.ChargeCode,
-		CommissionCode: req.CommissionCode,
+		ServiceCode:          req.ServiceCode,
+		ServiceName:          req.ServiceName,
+		ChargeCode:           req.ChargeCode,
+		CommissionCode:       req.CommissionCode,
+		CbeGLProductAccount:  req.CbeGLProductAccount,
+		CbeIFBProductAccount: req.CbeIFBProductAccount,
+		PaymentType:          req.PaymentType,
 		Cap: model.Cap{
 			KYCLevel:           req.Cap.KYCLevel,
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},
-		CbeGLProductAccount:  req.CbeGLProductAccount,
-		CbeIFBProductAccount: req.CbeIFBProductAccount,
-		PaymentType:          req.PaymentType,
 		Tiers: func() []model.Tier {
 			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
