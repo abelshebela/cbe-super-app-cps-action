@@ -1829,7 +1829,7 @@ var (
 	ErrorInvalidWalletCode = ResponseCode{
 		Code:       "ERROR_INVALID_WALLET_CODE",
 		StatusCode: 400,
-		Message:    "Invalid wallet code, special characters are not allowed",
+		Message:    "Invalid wallet code, wallet should be only characters and exactly 6 characters long",
 		Type:       "error",
 	}
 	ErrorInvalidWalletType = ResponseCode{

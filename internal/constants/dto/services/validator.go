@@ -32,7 +32,7 @@ func (c *CapRequest) Validate() error {
 	return nil
 }
 
-func (t *TierRequest) Validate() error {
+func (t *TierRequest) Validate(prev *TierRequest) error {
 	if t == nil {
 		return nil
 	}
@@ -56,6 +56,11 @@ func (t *TierRequest) Validate() error {
 	if t.Min >= t.Max {
 		return fmt.Errorf("tiers.min (%d) must be less than tiers.max (%d)", t.Min, t.Max)
 	}
+	if prev != nil {
+		if t.Min <= prev.Max {
+			return fmt.Errorf("tiers.min (%d) cannot be less than previous tier max (%d)", t.Min, prev.Max)
+		}
+	}
 	if strings.EqualFold(t.FeeType, "PERCENT") && t.FeeAmount > 100 {
 		return fmt.Errorf("tiers.fee_amount cannot exceed 100 when fee_type is PERCENT")
 	}
@@ -71,13 +76,6 @@ func (r *CreateServiceRequest) Validate() error {
 		),
 		validation.Field(&r.ServiceName,
 			validation.Required.Error("service_name is required"),
-		),
-		validation.Field(&r.ServiceType,
-			validation.Required.Error("service_type is required"),
-			validation.By(local_utils.NoSpecialChars),
-		),
-		validation.Field(&r.Key,
-			validation.Required.Error("key is required"),
 		),
 		validation.Field(&r.ChargeCode,
 			validation.Required.Error("charge_code is required"),
@@ -102,7 +100,7 @@ func (r *CreateServiceRequest) Validate() error {
 		return err
 	}
 	for i := range r.Tiers {
-		if err := r.Tiers[i].Validate(); err != nil {
+		if err := r.Tiers[i].Validate(&r.Tiers[i-1]); err != nil {
 			return fmt.Errorf("tier %d validation failed: %w", i+1, err)
 		}
 	}
@@ -140,7 +138,7 @@ func (r *UpdateServiceRequest) Validate() error {
 	// Validate tiers if provided
 	if len(r.Tiers) > 0 {
 		for i := range r.Tiers {
-			if err := r.Tiers[i].Validate(); err != nil {
+			if err := r.Tiers[i].Validate(&r.Tiers[i-1]); err != nil {
 				return fmt.Errorf("tier %d validation failed: %w", i+1, err)
 			}
 		}

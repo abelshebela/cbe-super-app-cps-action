@@ -1,7 +1,6 @@
 package accountblock
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	account_block "cbe-super-app-cps-action/internal/constants/interfaces/account_block"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -23,7 +22,6 @@ func Init(
 				Handler: handler.GetAllBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -32,7 +30,6 @@ func Init(
 				Handler: handler.GetBranchById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -41,7 +38,6 @@ func Init(
 				Handler: handler.GetAllRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -50,7 +46,6 @@ func Init(
 				Handler: handler.GetRegionById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -59,7 +54,6 @@ func Init(
 				Handler: handler.GetAllDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -68,7 +62,6 @@ func Init(
 				Handler: handler.GetDistrictById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -77,7 +70,6 @@ func Init(
 				Handler: handler.GetAllCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -86,7 +78,6 @@ func Init(
 				Handler: handler.GetCityById,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 				},
 			},
 			{
@@ -95,7 +86,6 @@ func Init(
 				Handler: handler.EnableBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -104,7 +94,6 @@ func Init(
 				Handler: handler.DisableBranches,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -113,7 +102,6 @@ func Init(
 				Handler: handler.EnableRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -122,7 +110,6 @@ func Init(
 				Handler: handler.DisableRegions,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -131,7 +118,6 @@ func Init(
 				Handler: handler.EnableDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -140,7 +126,6 @@ func Init(
 				Handler: handler.DisableDistricts,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -149,7 +134,6 @@ func Init(
 				Handler: handler.EnableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 			{
@@ -158,7 +142,6 @@ func Init(
 				Handler: handler.DisableCities,
 				Middlewares: []func(http.Handler) http.Handler{
 					authMiddleware.AuthenticateToken,
-					authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 				},
 			},
 		}

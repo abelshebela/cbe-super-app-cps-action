@@ -7,9 +7,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	// "cbe-super-app-cps-action/internal/constants/model"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	mini_app "cbe-super-app-cps-action/internal/constants/dto/mini_app"
+
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+
 	"cbe-super-app-cps-action/internal/storage"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -19,7 +21,7 @@ import (
 )
 
 type MiniAppStorage struct {
-	dal        dal.MongoDal[model.MiniApp, model.MiniApp]
+	dal        dal.MongoDal[mini_model.MiniApp, mini_model.MiniApp]
 	client     *mongo.Client
 	collection *mongo.Collection
 	logger     utils.Logger
@@ -27,14 +29,14 @@ type MiniAppStorage struct {
 
 func NewMiniAppRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppRepository {
 	return &MiniAppStorage{
-		dal:        dal.NewMongoDal[model.MiniApp, model.MiniApp](client, dbName, collection),
+		dal:        dal.NewMongoDal[mini_model.MiniApp, mini_model.MiniApp](client, dbName, collection),
 		client:     client,
 		collection: client.Database(dbName).Collection(collection),
 		logger:     logger,
 	}
 }
 
-func (m *MiniAppStorage) Create(ctx context.Context, miniApp *model.MiniApp) error {
+func (m *MiniAppStorage) Create(ctx context.Context, miniApp *mini_model.MiniApp) error {
 
 	miniAppDoc := MiniAppDocumentMapper(*miniApp)
 
@@ -46,7 +48,7 @@ func (m *MiniAppStorage) Create(ctx context.Context, miniApp *model.MiniApp) err
 	return nil
 }
 
-func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *model.MiniApp) error {
+func (m *MiniAppStorage) Update(ctx context.Context, id string, miniApp *mini_model.MiniApp) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		m.logger.Errorf("Invalid ID format: %s, error: %v", id, err)

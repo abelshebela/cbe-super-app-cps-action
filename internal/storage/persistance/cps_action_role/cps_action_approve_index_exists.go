@@ -12,7 +12,7 @@ func (r *CPSActionApproveIndexRepository) ExistsByRoleAndAction(ctx context.Cont
 	filter := bson.M{
 		"role_id":     roleID,
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
-		"maker_index": bson.M{"$exists": true, "$ne": nil},
+		// "maker_index": bson.M{"$exists": true, "$ne": nil},
 	}
 
 	count, err := r.collection.CountDocuments(ctx, filter)
