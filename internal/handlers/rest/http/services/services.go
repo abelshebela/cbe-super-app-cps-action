@@ -70,16 +70,13 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mapped := model.Services{
-		ServiceCode: req.ServiceCode,
-		ServiceName: req.ServiceName,
-		// ProductAccount: req.ProductAccount,
-		ServiceType: req.ServiceType,
-		Key:         req.Key,
+		ServiceCode:         req.ServiceCode,
+		ServiceName:         req.ServiceName,
+		CbeGLProductAccount: req.ProductAccount,
 		Cap: model.Cap{
 			KYCLevel:  req.Cap.KYCLevel,
 			SingleCap: req.Cap.SingleCap,
 		},
-		CbeGLProductAccount:  req.CbeGLProductAccount,
 		CbeIFBProductAccount: req.CbeIFBProductAccount,
 		PaymentType:          req.PaymentType,
 		Tiers: func() []model.Tier {
@@ -145,8 +142,6 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	mapped := model.Services{
 		ServiceCode:    req.ServiceCode,
 		ServiceName:    req.ServiceName,
-		ServiceType:    req.ServiceType,
-		Key:            req.Key,
 		ChargeCode:     req.ChargeCode,
 		CommissionCode: req.CommissionCode,
 		Cap: model.Cap{
