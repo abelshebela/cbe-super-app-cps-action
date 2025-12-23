@@ -87,7 +87,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 			for _, t := range req.Tiers {
 				tiers = append(tiers, model.Tier{
 					FeeType:   constants.FeeType(t.FeeType),
-					FeeAmount: uint64(t.FeeAmount),
+					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
 				})
@@ -162,7 +162,7 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 			for _, t := range req.Tiers {
 				tiers = append(tiers, model.Tier{
 					FeeType:   constants.FeeType(t.FeeType),
-					FeeAmount: uint64(t.FeeAmount),
+					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
 				})
