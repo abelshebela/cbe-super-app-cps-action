@@ -1,7 +1,6 @@
 package access_list_segmentation
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 			Handler: handler.CreateAccessListSegmentation,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -27,7 +25,6 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 			Handler: handler.GetAllAccessListSegmentation,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -36,7 +33,6 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 			Handler: handler.UpdateAccessListSegmentation,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -45,7 +41,6 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 			Handler: handler.GetAccessListSegmentationByID,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -54,7 +49,6 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 			Handler: handler.EnableAccessListSegmentation,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -63,7 +57,6 @@ func Init(router chi.Router, handler accesslistsegmentation.AccessListSegmentati
 			Handler: handler.DisableAccessListSegmentation,
 			Middlewares: []func(http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 	}

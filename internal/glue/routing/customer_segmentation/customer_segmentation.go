@@ -1,7 +1,6 @@
 package customersegmentation
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	segmentation "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, handler segmentation.CustomerSegmentation, authMidd
 			Handler: handler.CreateCustomerSegmentation,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 	}
