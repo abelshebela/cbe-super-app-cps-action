@@ -90,7 +90,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	return nil
 }
 
-func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest, fieldsProvided map[string]bool) error {
+func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateWallet", "walletService", "walletService")
 	defer span.End()
 	s.logger.Infof("UpdateWallet called", "wallet_id", id)
@@ -127,7 +127,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
-	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req, fieldsProvided)
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req)
 	if avatarURL != prevWallet.Avatar {
 		change_count++
 	}

@@ -49,7 +49,7 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}, log
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		servicesdto.CreateServiceRequest	true	"Service payload"
+//	@Param			request	body		servicesdto.CreateServiceRequest		true	"Service payload"
 //	@Success		201		{object}	localization.StandardResponse{data=nil}	"CPS action created"
 //	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
@@ -70,15 +70,13 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mapped := model.Services{
-		ServiceCode: req.ServiceCode,
-		ServiceName: req.ServiceName,
-		ServiceType: req.ServiceType,
-		Key:         req.Key,
+		ServiceCode:         req.ServiceCode,
+		ServiceName:         req.ServiceName,
+		CbeGLProductAccount: req.ProductAccount,
 		Cap: model.Cap{
 			KYCLevel:  req.Cap.KYCLevel,
 			SingleCap: req.Cap.SingleCap,
 		},
-		CbeGLProductAccount:  req.CbeGLProductAccount,
 		CbeIFBProductAccount: req.CbeIFBProductAccount,
 		PaymentType:          req.PaymentType,
 		Tiers: func() []model.Tier {
@@ -113,9 +111,9 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path	string						true	"Service ID"
-//	@Param			request	body	servicesdto.UpdateServiceRequest	true	"Service update payload"
-//	@Success		200		{object}	localization.StandardResponse{data=nil}	"CPS action created"
+//	@Param			id			path		string									true	"Service ID"
+//	@Param			request		body		servicesdto.UpdateServiceRequest		true	"Service update payload"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}	"CPS action created"
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services/{id} [patch]
@@ -144,8 +142,6 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	mapped := model.Services{
 		ServiceCode:    req.ServiceCode,
 		ServiceName:    req.ServiceName,
-		ServiceType:    req.ServiceType,
-		Key:            req.Key,
 		ChargeCode:     req.ChargeCode,
 		CommissionCode: req.CommissionCode,
 		Cap: model.Cap{
@@ -188,8 +184,8 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"Service ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"CPS action created"
+//	@Param			id				path		string									true	"Service ID"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"CPS action created"
 //	@Failure		400,404,409,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services/{id}/enable [patch]
@@ -225,8 +221,8 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"Service ID"
-//	@Success		200	{object}	localization.StandardResponse{data=nil}	"CPS action created"
+//	@Param			id				path		string									true	"Service ID"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}	"CPS action created"
 //	@Failure		400,404,409,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services/{id}/disable [patch]
@@ -262,15 +258,15 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number"        default(1)
-//	@Param			per_page	query	int		false	"Items per page"     default(10)
-//	@Param			service_name	query	string	false	"Filter by service_name"
-//	@Param			service_code	query	string	false	"Filter by service_code"
-//	@Param			service_type	query	string	false	"Filter by service_type"
-//	@Param			enabled		query	bool	false	"Filter by enabled status"
-//	@Param			search		query	string	false	"Search term (service_name, service_code, service_type)"
-//	@Success		200	{object}	localization.StandardResponse{data=types.PaginatedResponse}
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}
+//	@Param			page			query		int		false	"Page number"		default(1)
+//	@Param			per_page		query		int		false	"Items per page"	default(10)
+//	@Param			service_name	query		string	false	"Filter by service_name"
+//	@Param			service_code	query		string	false	"Filter by service_code"
+//	@Param			service_type	query		string	false	"Filter by service_type"
+//	@Param			enabled			query		bool	false	"Filter by enabled status"
+//	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
+//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services [get]
 func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
@@ -295,8 +291,8 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 //	@Tags			Services
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path	string	true	"Service ID"
-//	@Success		200	{object}	localization.StandardResponse{data=entities.Services}
+//	@Param			id			path		string	true	"Service ID"
+//	@Success		200			{object}	localization.StandardResponse{data=entities.Services}
 //	@Failure		400,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Security		BearerAuth
 //	@Router			/services/{id} [get]

@@ -39,11 +39,25 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
 	RequestDeleteMiniappProductCode  RequestAction = "DELETE_MINI_APP_PRODUCT_CODE"
 	RequestEnableMiniappProductCode  RequestAction = "ENABLE_MINI_APP_PRODUCT_CODE"
 	RequestDisableMiniappProductCode RequestAction = "DISABLE_MINI_APP_PRODUCT_CODE"
+
+	RequestCreateJobRole  RequestAction = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  RequestAction = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  RequestAction = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  RequestAction = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole RequestAction = "DISABLE_JOB_ROLE"
+
+	RequestCreateRole  RequestAction = "CREATE_ROLE"
+	RequestUpdateRole  RequestAction = "UPDATE_ROLE"
+	RequestDeleteRole  RequestAction = "DELETE_ROLE"
+	RequestEnableRole  RequestAction = "ENABLE_ROLE"
+	RequestDisableRole RequestAction = "DISABLE_ROLE"
 
 	RequestDeleteAmountBasedAuth RequestAction = "DELETE_AMOUNT_BASED_AUTH"
 	RequestCreateAmountBasedAuth RequestAction = "CREATE_AMOUNT_BASED_AUTH"
@@ -322,6 +336,10 @@ const (
 	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
 	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
+
+	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
+	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
 )
 
 var validRequestActions = map[RequestAction]struct{}{
@@ -432,6 +450,27 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableMultiUsers:  {},
 	RequestDisableMultiUsers: {},
 
+	RequestBlockUser: {},
+
+	RequestDisableMultiBranches: {},
+	RequestEnableMultiBranches:  {},
+
+	// Branch
+	RequestEnableBranches:  {},
+	RequestDisableBranches: {},
+
+	// Region
+	RequestEnableRegions:  {},
+	RequestDisableRegions: {},
+
+	// District
+	RequestEnableDistricts:  {},
+	RequestDisableDistricts: {},
+
+	// City
+	RequestEnableCities:  {},
+	RequestDisableCities: {},
+
 	RequestCreateBusiness:         {},
 	RequestUpdateBusiness:         {},
 	RequestCreateEvent:            {},
@@ -479,6 +518,18 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableTopup:  {},
 	RequestDisableTopup: {},
 
+	RequestCreateJobRole:  {},
+	RequestUpdateJobRole:  {},
+	RequestDeleteJobRole:  {},
+	RequestEnableJobRole:  {},
+	RequestDisableJobRole: {},
+
+	RequestCreateRole:  {},
+	RequestUpdateRole:  {},
+	RequestDeleteRole:  {},
+	RequestEnableRole:  {},
+	RequestDisableRole: {},
+
 	// RequestCreateNotification:      {},
 	// RequestUpdateNotification:      {},
 	// RequestDeleteNotification:      {},
@@ -487,9 +538,9 @@ var validRequestActions = map[RequestAction]struct{}{
 	// RequestMarkNotificationAsSeen:  {},
 	RequestUpdateProductCode:       {},
 	RequestEnableDisableDepartment: {},
-	RequestEnableBranches:          {},
-	RequestCpsUserEnable:           {},
-	RequestCpsUserDisable:          {},
+	// RequestEnableBranches:          {},
+	RequestCpsUserEnable:  {},
+	RequestCpsUserDisable: {},
 	// RequestCpsUserDelete:{},
 	// RequestCpsUserCreate:{},
 
@@ -542,6 +593,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteEventMerchant:  {},
 	RequestEnableEventMerchant:  {},
 	RequestDisableEventMerchant: {},
+
+	RequestCreateAccessListSegmentation:        {},
+	RequestUpdateAccessListSegmentation:        {},
+	RequestEnableDisableAccessListSegmentation: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -550,18 +605,18 @@ func IsValidRequestAction(requestAction string) bool {
 }
 
 var RequestActionGroups = map[string][]RequestAction{
+	// "Service": {
+	// 	RequestUpdateServiceSingle,
+	// 	RequestUpdateServiceTotal,
+	// 	RequestUpdateServiceMinCap,
+	// 	RequestCreateServiceFee,
+	// 	RequestUpdateServiceFee,
+	// 	RequestDeleteServiceFee,
+	// 	RequestCreateDailyLimit,
+	// 	RequestUpdateDailyLimit,
+	// 	RequestDeleteDailyLimit,
+	// },
 	"Service": {
-		RequestUpdateServiceSingle,
-		RequestUpdateServiceTotal,
-		RequestUpdateServiceMinCap,
-		RequestCreateServiceFee,
-		RequestUpdateServiceFee,
-		RequestDeleteServiceFee,
-		RequestCreateDailyLimit,
-		RequestUpdateDailyLimit,
-		RequestDeleteDailyLimit,
-	},
-	"ServicesCatalog": {
 		RequestCreateService,
 		RequestUpdateService,
 		RequestEnableService,
@@ -725,6 +780,20 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCreateValidation,
 		RequestUpdateValidation,
 		RequestDeleteValidation,
+	},
+	"JobRole": {
+		RequestCreateJobRole,
+		RequestUpdateJobRole,
+		RequestDeleteJobRole,
+		RequestEnableJobRole,
+		RequestDisableJobRole,
+	},
+	"Role": {
+		RequestCreateRole,
+		RequestUpdateRole,
+		RequestDeleteRole,
+		RequestEnableRole,
+		RequestDisableRole,
 	},
 	"Block": {
 		RequestBlockUser,
@@ -927,6 +996,15 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteMiniappProductCode,
 		RequestEnableMiniappProductCode,
 		RequestDisableMiniappProductCode,
+	},
+
+	"AccessListSegmentation": {
+		RequestCreateAccessListSegmentation,
+		RequestUpdateAccessListSegmentation,
+		RequestEnableDisableAccessListSegmentation,
+	},
+	"CustomerSegmentation": {
+		RequestCreateCustomerSegmentation,
 	},
 }
 

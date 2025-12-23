@@ -1,7 +1,6 @@
 package customer
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/customer"
 	"cbe-super-app-cps-action/internal/glue"
 	middleware "cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.GetCustomerDetail,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -27,7 +25,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.GetCustomerByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -36,7 +33,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.GetBlockedCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -45,7 +41,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.SetEnableCustomerSession,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -54,7 +49,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.EnableCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -63,7 +57,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.DisableCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -72,7 +65,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.ApproveFaydaCustomer,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Maker}),
 			},
 		},
 		{
@@ -81,7 +73,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.GetLinkedAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -90,7 +81,6 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 			Handler: handler.SearchCustomerByCIForAccountNumber,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 	}

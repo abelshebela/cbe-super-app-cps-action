@@ -6,6 +6,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/storage/persistance"
 	"cbe-super-app-cps-action/internal/storage/persistance/access_list"
+	access_list_segmentation_repository "cbe-super-app-cps-action/internal/storage/persistance/access_list_segmentation"
 	"cbe-super-app-cps-action/internal/storage/persistance/account_block"
 	accountvalidation "cbe-super-app-cps-action/internal/storage/persistance/account_validation"
 	"cbe-super-app-cps-action/internal/storage/persistance/advert"
@@ -15,13 +16,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
 	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/bps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
-	"cbe-super-app-cps-action/internal/storage/persistance/branch"
-	"cbe-super-app-cps-action/internal/storage/persistance/city"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
 	cps_actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/cps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_user"
+	customer_segmentation_repo "cbe-super-app-cps-action/internal/storage/persistance/customer_segmentaion"
 	"cbe-super-app-cps-action/internal/storage/persistance/department"
+	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
 	deviceversioncontrol "cbe-super-app-cps-action/internal/storage/persistance/device_version_control"
+	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 	"cbe-super-app-cps-action/internal/storage/persistance/donation_category"
 	"cbe-super-app-cps-action/internal/storage/persistance/event"
 	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
@@ -30,12 +32,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
 	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
-	"cbe-super-app-cps-action/internal/storage/persistance/region"
 	"time"
-
-	"cbe-super-app-cps-action/internal/storage/persistance/device_history"
-	"cbe-super-app-cps-action/internal/storage/persistance/district"
-	"cbe-super-app-cps-action/internal/storage/persistance/donation"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_linked_account"
 	"cbe-super-app-cps-action/internal/storage/persistance/archived_user"
@@ -50,6 +47,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/notification"
 	"cbe-super-app-cps-action/internal/storage/persistance/otp"
 
+	job_repo "cbe-super-app-cps-action/internal/storage/persistance/job_role"
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
@@ -75,6 +73,7 @@ import (
 func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi, merchantXAPIKey string, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
+		JobRolePersistence:              job_repo.NewJobRoleRepository(client, dbName, JobRolesCollection, logger),
 		DeviceVersionControlPersistence: deviceversioncontrol.NewDeviceVersionControlRepository(client, dbName, DeviceVersionControllCollection, clientOrchestrationProducer, logger),
 		AccountLookup:                   core.NewCBECoreAPI(coreConfig),
 		UserPersistence:                 users.NewUserRepository(client, dbName, MembersCollection, clientOrchestrationProducer, logger),
@@ -89,58 +88,57 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
 		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, merchantXAPIKey, logger),
 		SMSSenderApi:                    notificationProducer,
-		CityPersistence:                 city.NewCityRepository(client, dbName, "cities", logger),
-		RegionPersistence:               region.NewRegionRepository(client, dbName, "regions", logger),
-		DistrictPersistence:             district.NewDistrictRepository(client, dbName, "districts", logger),
-		BranchPersistence:               branch.NewBranchRepository(client, dbName, "branches", logger),
 		// Additional repositories
-		AccessListPersistence:            access_list.NewAccessListRepository(client, dbName, AccessListCollection, clientOrchestrationProducer, logger),
-		AvatarPersistence:                avatar.NewAvatarRepository(client, dbName, AvatarsCollection, logger),
-		BPSUserPersistence:               bps_user.NewBPSUserRepository(client, dbName, BranchUserCollection, logger),
-		AdvertRepositoryPersistence:      advert.NewAdvertRepository(client, dbName, AdvertsCollection, logger),
-		ArchivedLinkedAccountPersistence: archived_linked_account.NewArchivedLinkedAccountRepository(client, dbName, ArchievedLinkedAccountCollection, logger),
-		AuthTierPersistence:              auth_tier.NewAuthTierRepository(client, dbName, AuthTierCollection, logger),
-		BankPersistence:                  bank.NewBankRepository(client, dbName, BanksCollection, logger),
-		BudgetCategoryPersistence:        budget_category.NewBudgetCategoryRepository(client, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
-		BulkService:                      bulk_service.InitBulkServicePersistence(client, dbName, []string{CPSActionsCollection, AccessListCollection}, logger),
-		CustomerService:                  customer.InitCustomerDetail(client, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
-		CpsUserPersistence:               cps_user.NewCPSUserRepository(client, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection}, logger),
-		DonationPersistence:              donation.NewDonationRepository(client, dbName, DonationsCollection, clientOrchestrationProducer, logger),
-		DonationCategoryPersistence:      donation_category.NewDonationCategoryRepository(client, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
-		ArchivedUserPersistence:          archived_user.NewArchivedUserRepository(client, dbName, ArchievedUsersCollection, logger),
-		DonationCompanyPersistence:       donation_company.NewDonationCompanyRepository(client, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
-		EventPersistence:                 event.NewEventRepository(client, dbName, EventsCollection, logger),
-		PasswordRulePersistent:           password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
-		FeedbackPersistence:              feedback.NewFeedbackRepository(client, dbName, FeedbackCollection, logger),
-		IconPersistence:                  icon.NewIconRepository(client, dbName, IconsCollection, logger),
-		LinkedAccountPersistence:         linked_account.NewLinkedAccountRepository(client, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
-		EcommerceMerchantPersistence:     ecommerce_merchant.NewEcommerceMerchantRepository(client, dbName, EcommerceMerchantCollection, logger),
-		NotificationPersistence:          notification.NewNotificationRepository(client, dbName, NotificationsCollection, clientOrchestrationProducer, logger),
-		PasswordRulePersistence:          password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
-		ServiceDetailsPersistence:        service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),
-		ServicesPersistence:              services_repo.NewServicesRepository(client, dbName, ServicesCollection, clientOrchestrationProducer, logger),
-		ValidationRulePersistence:        accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
-		WalletPersistence:                wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),
-		TopupPersistence:                 Topup.NewTopupRepository(client, dbName, TopUpsCollection, logger),
-		ProductCodePersistence:           productcode.NewProductCodeRepository(client, dbName, ServicesCollection, logger),
-		DepartmentPersistence:            department.NewDepartmentRepository(client, dbName, DepartmentsCollection, logger),
-		FaydaPersistence:                 fayda.InitFaydaAccountPersistence(client, dbName, MembersCollection, logger),
-		PermissionPersistence:            permission.InitPermission(client, dbName, []string{PermissionGroupsCollection, PermissionCategoryCollection, PermissionCollection, CPSActionsCollection}, 30*time.Second, logger),
-		ArticlePersistence:               media.NewsArticleRepository(logger, client, dbName, NewsArticlesCollection, clientOrchestrationProducer),
-		ArticleCategoryPersistence:       media.NewArticleCategoryRepository(logger, client, dbName, NewsCategoriesCollection),
-		ShortVideoPersistence:            media.NewShortVideoRepository(logger, client, dbName, NewsShortVideosCollection, clientOrchestrationProducer),
-		NewsTagPersistence:               newstag_repo.NewNewsTagRepository(client, dbName, NewsTagsCollection, clientOrchestrationProducer, logger),
-		NewsCategoryPersistence:          newscategory_repo.NewNewsCategoryRepository(client, dbName, NewsCategoryCollection, clientOrchestrationProducer, logger),
-		KYCVerifierPersistence:           kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
-		NewsTagsServiceContainer:         media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
-		BPSActionRolePersistence:         actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
-		BPSActionApproveIndexPersistence: actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
-		RolePersistence:                  role_repo.NewRoleRepository(client, dbName, RolesCollection, logger),
-		MiniAppCategoryPersistence:       mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
-		CPSActionRolePersistence:         cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
-		CPSActionApproveIndexPersistence: cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
-		EventMerchantPersistence:         event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
-		MiniAppProductCodePersistence:    mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodes),
+		AccessListPersistence:             access_list.NewAccessListRepository(client, dbName, AccessListCollection, clientOrchestrationProducer, logger),
+		AvatarPersistence:                 avatar.NewAvatarRepository(client, dbName, AvatarsCollection, logger),
+		BPSUserPersistence:                bps_user.NewBPSUserRepository(client, dbName, BranchUserCollection, logger),
+		AdvertRepositoryPersistence:       advert.NewAdvertRepository(client, dbName, AdvertsCollection, logger),
+		ArchivedLinkedAccountPersistence:  archived_linked_account.NewArchivedLinkedAccountRepository(client, dbName, ArchievedLinkedAccountCollection, logger),
+		AuthTierPersistence:               auth_tier.NewAuthTierRepository(client, dbName, AuthTierCollection, logger),
+		BankPersistence:                   bank.NewBankRepository(client, dbName, BanksCollection, logger),
+		BudgetCategoryPersistence:         budget_category.NewBudgetCategoryRepository(client, dbName, BudgetCategoryCollection, clientOrchestrationProducer, logger),
+		BulkService:                       bulk_service.InitBulkServicePersistence(client, dbName, []string{CPSActionsCollection, AccessListCollection}, logger),
+		CustomerService:                   customer.InitCustomerDetail(client, dbName, []string{MembersCollection, LinkedAccountsCollection}, clientOrchestrationProducer, logger),
+		CpsUserPersistence:                cps_user.NewCPSUserRepository(client, dbName, CPSUsersCollection, []string{DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection}, logger),
+		DonationPersistence:               donation.NewDonationRepository(client, dbName, DonationsCollection, clientOrchestrationProducer, logger),
+		DonationCategoryPersistence:       donation_category.NewDonationCategoryRepository(client, dbName, DonationCategoriesCollection, clientOrchestrationProducer, logger),
+		ArchivedUserPersistence:           archived_user.NewArchivedUserRepository(client, dbName, ArchievedUsersCollection, logger),
+		DonationCompanyPersistence:        donation_company.NewDonationCompanyRepository(client, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
+		EventPersistence:                  event.NewEventRepository(client, dbName, EventsCollection, logger),
+		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
+		FeedbackPersistence:               feedback.NewFeedbackRepository(client, dbName, FeedbackCollection, logger),
+		IconPersistence:                   icon.NewIconRepository(client, dbName, IconsCollection, logger),
+		LinkedAccountPersistence:          linked_account.NewLinkedAccountRepository(client, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
+		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, dbName, EcommerceMerchantCollection, logger),
+		NotificationPersistence:           notification.NewNotificationRepository(client, dbName, NotificationsCollection, clientOrchestrationProducer, logger),
+		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
+		ServiceDetailsPersistence:         service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),
+		ServicesPersistence:               services_repo.NewServicesRepository(client, dbName, ServicesCollection, clientOrchestrationProducer, logger),
+		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
+		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),
+		TopupPersistence:                  Topup.NewTopupRepository(client, dbName, TopUpsCollection, logger),
+		ProductCodePersistence:            productcode.NewProductCodeRepository(client, dbName, ServicesCollection, logger),
+		DepartmentPersistence:             department.NewDepartmentRepository(client, dbName, DepartmentsCollection, logger),
+		FaydaPersistence:                  fayda.InitFaydaAccountPersistence(client, dbName, MembersCollection, logger),
+		PermissionPersistence:             permission.InitPermission(client, dbName, []string{PermissionGroupsCollection, PermissionCategoryCollection, PermissionCollection, CPSActionsCollection}, 30*time.Second, logger),
+		ArticlePersistence:                media.NewsArticleRepository(logger, client, dbName, NewsArticlesCollection, clientOrchestrationProducer),
+		ArticleCategoryPersistence:        media.NewArticleCategoryRepository(logger, client, dbName, NewsCategoriesCollection),
+		ShortVideoPersistence:             media.NewShortVideoRepository(logger, client, dbName, NewsShortVideosCollection, clientOrchestrationProducer),
+		NewsTagPersistence:                newstag_repo.NewNewsTagRepository(client, dbName, NewsTagsCollection, clientOrchestrationProducer, logger),
+		NewsCategoryPersistence:           newscategory_repo.NewNewsCategoryRepository(client, dbName, NewsCategoryCollection, clientOrchestrationProducer, logger),
+		KYCVerifierPersistence:            kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
+		NewsTagsServiceContainer:          media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
+		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
+		BPSActionApproveIndexPersistence:  actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
+		RolePersistence:                   role_repo.NewRoleRepository(client, dbName, RolesCollection, logger),
+		MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
+		CPSActionRolePersistence:          cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
+		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
+		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
+		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodes),
+		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, dbName, AccessListSegmentationCollection, logger),
+		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
+		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, dbName, CustomerSegmentationCollection, logger),
 	}
 
 	return data

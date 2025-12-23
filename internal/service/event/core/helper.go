@@ -19,9 +19,9 @@ import (
 	"strings"
 	"time"
 
+	shared_contant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-		shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-shared_contant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -120,7 +120,7 @@ func GenerateEvent(event model.Event) *model.Event {
 	}
 }
 
-func SetMerchantDetails(ctx context.Context, merchantService service.MiniAppMerchantService, event *eventdto.EventRequest) error {
+func SetMerchantDetails(ctx context.Context, merchantService service.EcommerceMerchantService, event *eventdto.EventRequest) error {
 	if event.MerchantID == "" {
 		return nil
 	}

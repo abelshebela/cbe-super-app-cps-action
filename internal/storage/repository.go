@@ -1,11 +1,15 @@
 package storage
 
 import (
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	// "cbe-super-app-cps-action/internal/constants/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
 
 	session "cbe-super-app-cps-action/grpc"
 	"cbe-super-app-cps-action/internal/constants"
+	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
@@ -23,11 +27,32 @@ import (
 	member "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 
 	unlink_dto "cbe-super-app-cps-action/internal/constants/dto/unlink"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
+
+type RoleRepository interface {
+	Exists(ctx context.Context, id string) (bool, error)
+	ExistsMany(ctx context.Context, ids []string) (bool, error)
+	Create(ctx context.Context, role *model.Role) error
+	Update(ctx context.Context, id string, role *model.Role) error
+	FindByID(ctx context.Context, id string) (*model.Role, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+}
+
+type JobRoleRepository interface {
+	Create(ctx context.Context, role *imodel.JobRole) error
+	Update(ctx context.Context, id string, role *imodel.JobRole) error
+	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
+	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+}
 
 type UnlinkAccount interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*model.ArchivedUser, error)
@@ -117,7 +142,7 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRole], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
 }
@@ -263,7 +288,7 @@ type PortalCardRepository interface {
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
+	Update(ctx context.Context, id string, cpsUser *cpsuser.UpdateUserRequest) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
@@ -298,11 +323,11 @@ type VaultGroupCategoryRepository interface {
 
 type VaultAmountTierRepository interface {
 	Create(ctx context.Context, vaultAmountTier *model.VaultAmountTier) (string, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
 	FindByID(ctx context.Context, id string) (*model.VaultAmountTier, error)
 	Update(ctx context.Context, id string, vaultAmountTier *model.VaultAmountTier) error
 	Delete(ctx context.Context, id string) (string, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.VaultAmountTier], error)
 }
 
 type DonationRepository interface {
@@ -332,8 +357,8 @@ type DonationCompanyRepository interface {
 }
 
 type MiniAppRepository interface {
-	Create(ctx context.Context, miniApp *model.MiniApp) error
-	Update(ctx context.Context, id string, miniApp *model.MiniApp) error
+	Create(ctx context.Context, miniApp *mini_model.MiniApp) error
+	Update(ctx context.Context, id string, miniApp *mini_model.MiniApp) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	DisableManyByMerchantIDs(ctx context.Context, merchantID string) error
@@ -367,43 +392,7 @@ type LinkedAccountRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.LinkedAccount], error)
 }
 
-type CityRepository interface {
-	Create(ctx context.Context, city *model.City) error
-	Update(ctx context.Context, id string, city *model.City) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.City, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.City], error)
-}
-
-type RegionRepository interface {
-	Create(ctx context.Context, region *model.Region) error
-	Update(ctx context.Context, id string, region *model.Region) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Region, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Region], error)
-}
-
-type DistrictRepository interface {
-	Create(ctx context.Context, district *model.District) error
-	Update(ctx context.Context, id string, district *model.District) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.District, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.District], error)
-}
-
-type BranchRepository interface {
-	Create(ctx context.Context, branch *model.Branch) error
-	Update(ctx context.Context, id string, branch *model.Branch) error
-	Delete(ctx context.Context, id string) error
-	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.Branch, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Branch], error)
-}
-
-type MiniAppMerchantRepository interface {
+type EcommerceMerchantRepository interface {
 	Create(ctx context.Context, merchant *model.EcommerceMerchant) (*model.EcommerceMerchant, error)
 	Update(ctx context.Context, id string, merchant *model.EcommerceMerchant) error
 	Delete(ctx context.Context, id string) error
@@ -499,6 +488,7 @@ type CustomerRepository interface {
 	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error)
+	FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error)
 }
 
 type BulkServiceRepository interface {
@@ -594,9 +584,12 @@ type BPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.BPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.BPSActionApproveIndex) error
 }
+
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
+	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
+	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
 }
 
 type SitotaRepository interface {
@@ -631,4 +624,29 @@ type EventMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+}
+
+type AccessListSegmentationRepository interface {
+	CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	CreateBlockSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccessListSegmentation], error)
+	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
+	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
+	Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type MiniAppMerchant interface {
+	Create(ctx context.Context, merchant *mini_model.MiniAppMerchant) (*mini_model.MiniAppMerchant, error)
+	Update(ctx context.Context, id string, merchant *mini_model.MiniAppMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*mini_model.MiniAppMerchant], error)
+	FindOne(ctx context.Context, filter bson.M) (*mini_model.MiniAppMerchant, error)
+}
+
+type CustomerSegmentationRepository interface {
+	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
 }

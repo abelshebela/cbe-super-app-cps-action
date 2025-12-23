@@ -1,7 +1,6 @@
 package bank
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bank"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.CreateOneBank,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -27,7 +25,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.UpdateOneBank,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -36,7 +33,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.DeleteOneBank,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -45,7 +41,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.GetOneBank,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -54,7 +49,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.GetAllBank,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -63,7 +57,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -72,7 +65,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -81,7 +73,6 @@ func Init(router chi.Router, bank bank.BankHandler, authMiddleware middleware.Au
 			Handler: bank.UpdateLogo,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

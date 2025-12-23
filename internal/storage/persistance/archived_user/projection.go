@@ -1,8 +1,8 @@
 package archived_user
 
 import (
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -47,8 +47,6 @@ func UserToArchivedUser(user *member.User) *model.ArchivedUser {
 		PushToken:           user.PushToken,
 		MemberType:          user.MemberType,
 		IsBlocked:           user.IsBlocked,
-		LoginAttemptCount:   user.LoginAttemptCount,
-		LastLoginAttempt:    user.LastLoginAttempt,
 		LastLogin:           user.LastLogin,
 		LoginPIN:            user.LoginPIN,
 		DeviceUUID:          user.DeviceUUID,

@@ -63,6 +63,7 @@ const (
 	IncompleteUserInfo                = "incomplete user info"
 	Approved                          = "APPROVED"
 	Rejected                          = "REJECTED"
+	Reversed                          = "REVERSED"
 )
 
 const (
@@ -235,6 +236,18 @@ const (
 	RequestDeleteMiniappProductCode  string = "DELETE_MINI_APP_PRODUCT_CODE"
 	RequestEnableMiniappProductCode  string = "ENABLE_MINI_APP_PRODUCT_CODE"
 	RequestDisableMiniappProductCode string = "DISABLE_MINI_APP_PRODUCT_CODE"
+
+	RequestCreateJobRole  string = "CREATE_JOB_ROLE"
+	RequestUpdateJobRole  string = "UPDATE_JOB_ROLE"
+	RequestDeleteJobRole  string = "DELETE_JOB_ROLE"
+	RequestEnableJobRole  string = "ENABLE_JOB_ROLE"
+	RequestDisableJobRole string = "DISABLE_JOB_ROLE"
+
+	RequestCreateRole  string = "CREATE_ROLE"
+	RequestUpdateRole  string = "UPDATE_ROLE"
+	RequestDeleteRole  string = "DELETE_ROLE"
+	RequestEnableRole  string = "ENABLE_ROLE"
+	RequestDisableRole string = "DISABLE_ROLE"
 
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
@@ -428,6 +441,8 @@ const (
 	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
 	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
+	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
 	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
@@ -507,6 +522,10 @@ const (
 	RequestCreateEventMerchant  RequestAction = "CREATE_EVENT_MERCHANT"
 	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
 	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
+
+	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
+	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
+	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
 )
 
 type RegistrationType string
@@ -618,14 +637,6 @@ const (
 	DeleteAction ActionType = "DELETE"
 )
 
-// / bank vault constants
-type AccrualMethod string
-
-const (
-	AccrualMethodCompound AccrualMethod = "COMPOUND"
-	AccrualMethodSimple   AccrualMethod = "SIMPLE"
-)
-
 type VaultStatus string
 
 const (
@@ -633,17 +644,14 @@ const (
 	VaultStatusMatured       VaultStatus = "MATURED"
 	VaultStatusUnlockedEarly VaultStatus = "UNLOCKED_EARLY"
 	VaultStatusPaidOut       VaultStatus = "PAID_OUT"
-)
-
-const (
-	StatusOpen       VaultStatus = "OPEN"
-	StatusClosed     VaultStatus = "CLOSED"
-	StatusLocked     VaultStatus = "LOCKED"
-	StatusActive     VaultStatus = "ACTIVE"
-	StatusMatured    VaultStatus = "MATURED"
-	StatusWithdrawn  VaultStatus = "WITHDRAWN"
-	StatusEndedEarly VaultStatus = "ENDED_EARLY"
-	StatusDeleted    VaultStatus = "DELETED"
+	StatusOpen               VaultStatus = "OPEN"
+	StatusClosed             VaultStatus = "CLOSED"
+	StatusLocked             VaultStatus = "LOCKED"
+	StatusActive             VaultStatus = "ACTIVE"
+	StatusMatured            VaultStatus = "MATURED"
+	StatusWithdrawn          VaultStatus = "WITHDRAWN"
+	StatusEndedEarly         VaultStatus = "ENDED_EARLY"
+	StatusDeleted            VaultStatus = "DELETED"
 )
 
 func ParseVaultStatus(input string) (VaultStatus, error) {

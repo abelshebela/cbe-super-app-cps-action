@@ -450,3 +450,24 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 
 	return response, nil
 }
+
+func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error) {
+	p.logger.Infof("[FindCustomerByIDs] fetching customers by ids")
+	var objIDs []bson.ObjectID
+	for _, idStr := range ids {
+		objID, err := bson.ObjectIDFromHex(idStr)
+		if err != nil {
+			p.logger.Errorf("[FindCustomerByIDs] invalid ObjectID: %s", idStr)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+		objIDs = append(objIDs, objID)
+	}
+	filter := bson.M{"_id": bson.M{"$in": objIDs}}
+
+	customers, err := p.mongoDal.FindAll(ctx, filter, nil)
+	if err != nil {
+		p.logger.Errorf("[FindCustomerByIDs] failed to find customers by ids: %v", err)
+		return nil, err
+	}
+	return customers, nil
+}

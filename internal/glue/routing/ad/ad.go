@@ -3,7 +3,6 @@ package ad
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	ad "cbe-super-app-cps-action/internal/constants/interfaces/ad"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.CreateAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.UpdateAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -38,7 +35,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.DeleteAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -47,7 +43,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.FetchAdvertByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -56,7 +51,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.FetchAdverts,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -65,7 +59,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.EnableAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -74,7 +67,6 @@ func Init(router chi.Router, handler ad.ADAdapter, authMiddleware middleware.Aut
 			Handler: handler.DisableAdvert,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

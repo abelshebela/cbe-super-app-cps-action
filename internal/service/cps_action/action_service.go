@@ -10,7 +10,6 @@ import (
 
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
-	"cbe-super-app-cps-action/internal/storage/persistance"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
@@ -27,7 +26,7 @@ type cpsActionService struct {
 	dispatcher Dispatcher
 }
 
-func NewCPSActionService(repo storage.CPSActionRepository, persistence persistance.Persistence, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
+func NewCPSActionService(repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
 	return &cpsActionService{
 		repo:       repo,
 		logger:     logger,
@@ -50,6 +49,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		span.AddEvent("pending cps action exists", trace.WithAttributes(attribute.String("error", "pending cps action exists")))
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}
+
 	err = ca.repo.Save(ctx, cpsAction)
 	if err != nil {
 		span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -63,7 +63,7 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	defer span.End()
 
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
-	if err != nil || data == nil {
+	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -132,6 +132,7 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 	}
 	return action, nil
 }
+
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByActionCode", "CPSAction", "GetCPSActionByActionCode")
 	defer span.End()
@@ -152,6 +153,7 @@ func (ca *cpsActionService) RollBack(ctx context.Context, action *model.CPSActio
 		return err
 	}
 	return nil
+	return ca.repo.UpdateCustome(ctx, bson.M{"action_code": action.ActionCode}, bson.M{"action_status": string(constants.Pending), "checker_users": []types.Checker{}, "current_checker_index": float32(0)})
 }
 
 func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error) {

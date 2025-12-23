@@ -11,6 +11,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
+
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -19,15 +21,13 @@ import (
 
 type miniAppService struct {
 	repo            storage.MiniAppRepository
-	cpsService      service.CPSActionService
-	merchantService service.MiniAppMerchantService
+	merchantService service.MiniAppMerchant
 	logger          utils.Logger
 }
 
-func NewMiniAppService(repo storage.MiniAppRepository, cpsService service.CPSActionService, merchantService service.MiniAppMerchantService, logger utils.Logger) service.MiniAppService {
+func NewMiniAppService(repo storage.MiniAppRepository, merchantService service.MiniAppMerchant, logger utils.Logger) service.MiniAppService {
 	return &miniAppService{
 		repo:            repo,
-		cpsService:      cpsService,
 		merchantService: merchantService,
 		logger:          logger,
 	}
@@ -37,9 +37,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "MiniApp", "Authorize")
 	defer span.End()
 
-	s.logger.Infof("Authorize called, action: %s", cpsAction.RequestAction)
-
-	miniApp, err := local_util.JsonUnmarshal[model.MiniApp](cpsAction.CurrentAction)
+	miniApp, err := local_util.JsonUnmarshal[mini_model.MiniApp](cpsAction.CurrentAction)
 	if err != nil {
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -144,7 +142,7 @@ func (s *miniAppService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	return cpsAction, nil
 }
 
-func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchantService) error {
+func (s *miniAppService) ValidMerchant(MerchantID string, ctx context.Context, merchantService service.MiniAppMerchant) error {
 	merchant, err := merchantService.FindByID(ctx, MerchantID)
 	if err != nil {
 		s.logger.Errorf("Failed to get merchant details", "merchantID", MerchantID, "error", err)

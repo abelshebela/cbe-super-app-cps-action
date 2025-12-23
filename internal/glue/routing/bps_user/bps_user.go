@@ -1,7 +1,6 @@
 package bpsuser
 
 import (
-	role "cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 
 	"cbe-super-app-cps-action/internal/glue"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 			Handler: handler.FetchUserByUserCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 			Handler: handler.GetAllBPSUsers,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 			Handler: handler.DisableUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 			Handler: handler.EnableUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

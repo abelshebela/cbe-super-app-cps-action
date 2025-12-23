@@ -3,6 +3,7 @@ package cpsaction
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -52,7 +53,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.AdContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "Service"):
-		return d.app.ServiceCheckContainer.Authorize(ctx, cpsAction)
+		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
@@ -147,6 +148,15 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "MiniAppProductCode"):
 		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "AccessListSegmentation"):
+		return d.app.AccessListSegmentationContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "JobRole"):
+		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "Role"):
+		return d.app.RoleContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "CustomerSegmentation"):
+		fmt.Println("=======================q", action)
+		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))

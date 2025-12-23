@@ -66,6 +66,11 @@ const (
 	MsgBankEnableRequestSent      = "Bank enable request sent successfully"
 	MsgBankLogoUpdatedRequestSent = "Bank logo updated request sent successfully"
 
+	MsgJobRoleCreatedRequestSent = "Job role created request sent successfully"
+	MsgJobRoleUpdateRequestSent  = "Job role updated request sent successfully"
+	MsgRoleCreatedRequestSent    = "Rule created    request sent successfully"
+	MsgRoleUpdatedRequestSent    = "Rule updated request sent successfully"
+
 	// Donation related success messages
 	MsgDonationCategoryCreateRequestSent     = "Donation category create request submitted successfully"
 	MsgDonationCategoriesFetched             = "Donation categories fetched successfully"
@@ -437,14 +442,16 @@ const (
 	MsgInvalidActionFormat                  = "Invalid action format"
 
 	// System error messages
-	MsgInternalServerError  = "Internal server error occurred"
-	MsgServiceUnavailable   = "Service is temporarily unavailable"
-	MsgDatabaseError        = "Database operation failed"
-	MsgNetworkError         = "Network error occurred"
-	MsgTimeoutError         = "Request timeout occurred"
-	MsgUnexpectedError      = "An unexpected error occurred"
-	MsgConfigurationError   = "Configuration error"
-	MsgExternalServiceError = "External service error"
+	MsgInternalServerError         = "Internal server error occurred"
+	MsgCPSActionWaitPrevious       = "Wait for previous checker approval to be completed"
+	MsgCPSActionApprovedByThisRole = "Action Approval on your role is already completed"
+	MsgServiceUnavailable          = "Service is temporarily unavailable"
+	MsgDatabaseError               = "Database operation failed"
+	MsgNetworkError                = "Network error occurred"
+	MsgTimeoutError                = "Request timeout occurred"
+	MsgUnexpectedError             = "An unexpected error occurred"
+	MsgConfigurationError          = "Configuration error"
+	MsgExternalServiceError        = "External service error"
 
 	// Business logic error messages
 	MsgInsufficientBalance = "Insufficient balance"
@@ -454,6 +461,7 @@ const (
 	MsgMaintenanceMode     = "System is in maintenance mode"
 
 	// Bank related error messages
+	MsgAmountTierNotFound        = "Vault's amount tier not found"
 	MsgBankNotFound              = "Bank not found"
 	MsgBankAlreadyExists         = "Bank already exists"
 	MsgBankAlreadyEnabled        = "Bank already enabled"
@@ -728,7 +736,8 @@ const (
 	MsgInvalidRequestBankName           = "invalid format for Name: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankCode           = "invalid format for Code: only letters, numbers, and spaces are allowed"
 	MsgInvalidRequestBankBIC            = "invalid format for BIC: only letters, numbers, and spaces are allowed"
-	MsgInvalidRequestBankType           = "invalid format for Bank Type: only letters, numbers, and spaces are allowed"
+	MsgInvalidRequestBankType           = "invalid format for Bank Type: only WALLET,BANK OR MFI allowed"
+	MsgBankTypeRequired                 = "Bank type is required"
 	MsgNoDataProvidedForBankUpdate      = "No data provided for Bank update"
 	MsgInvalidToken                     = "Invalid token"
 	MsgCustomerPermanentlyDisabled      = "Customer account is permanently disabled"
@@ -1048,7 +1057,7 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
-
+	MsgRoleNotFound          = "Role not found"
 	// transaction related messages
 	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
 	MsgTransactionRetrievedSuccess   = "Transaction retrieved successfully"
@@ -1072,4 +1081,20 @@ const (
 	MsgEventMerchantUpdatedSuccessfully  = "event merchant updated successfully"
 	MsgEventMerchantDeletedSuccessfully  = "event merchant deleted successfully"
 	MsgEventMerchantFetchedSuccessfully  = "event merchant fetched successfully"
+
+	// access list segmentation related messages
+	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation created successfully"
+	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation updated successfully"
+	MsgAccessListSegmentationEnabledSuccessfully    = "Access list segmentation enabled successfully"
+	MsgAccessListSegmentationDisabledSuccessfully   = "Access list segmentation disabled successfully"
+	MsgAccessListSegmentationsRetrievedSuccessfully = "Access list segmentations retrieved successfully"
+
+	MsgAccessListSegmentationRetrievedSuccessfully = "Access list segmentation retrieved successfully"
+	MsgAccessListSegmentationNotFound              = "Access list segmentation not found"
+	MsgAccessListSegmentationAlreadyEnabled        = "Access list segmentation is already enabled"
+	MsgAccessListSegmentationAlreadyDisabled       = "Access list segmentation is already disabled"
+	MsgAccessListSegmentationInvalidID             = "Invalid access list segmentation ID"
+	MsgAccessListSegmentationIDsRequired           = "Access list segmentation IDs are required"
+	MsgAccessListSegmentationNameAlreadyExists     = "Access list segmentation name already exists"
+	MsgServiceIdRequired                           = "Service ID is required"
 )

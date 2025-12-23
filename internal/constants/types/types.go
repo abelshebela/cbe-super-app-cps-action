@@ -155,13 +155,14 @@ type LoginPIN struct {
 }
 
 type UserContext struct {
-	UserCode    string
-	UserID      string
-	FullName    string
-	PhoneNumber string
-	Department  string
-	BranchCode  []string
-	UserRole    string
+	UserCode     string
+	UserID       string
+	FullName     string
+	PhoneNumber  string
+	Department   string
+	BranchCode   []string
+	UserRole     string
+	CheckerIndex string
 }
 
 type RegistrationRecord struct {
@@ -215,6 +216,24 @@ type Password struct {
 	CurrentPassword  string    `json:"current_password" bson:"current_password"`
 	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
 	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
+}
+
+type Checker struct {
+	CheckerID          string    `bson:"checker_id" json:"checker_id,omitempty"`
+	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
+	CheckerIndex       int32     `bson:"checker_index" json:"checker_index,omitempty"`
+	CheckerName        string    `bson:"checker_name" json:"checker_name,omitempty"`
+	CheckerPhoneNumber string    `bson:"checker_phone_number" json:"checker_phone_number,omitempty"`
+	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
+}
+
+type Auditor struct {
+	AuditorID          string    `bson:"auditor_id" json:"auditor_id,omitempty"`
+	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
+	AuditorIndex       int32     `bson:"auditor_index" json:"auditor_index,omitempty"`
+	AuditorName        string    `bson:"auditor_name" json:"auditor_name,omitempty"`
+	AuditorPhoneNumber string    `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
+	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
 }
 
 // ==================================
@@ -321,6 +340,16 @@ type TicketInformation struct {
 	TotalNumberOfTicket          uint64 `json:"total_number_of_ticket" bson:"total_number_of_ticket"`
 	TotalNumberOfAvailableTicket uint64 `json:"total_number_of_available_ticket" bson:"total_number_of_available_ticket"`
 	TotalNumberOFUnsoldTicket    uint64 `json:"total_number_of_unsold_ticket" bson:"total_number_of_unsold_ticket"`
+}
+
+// InAppBroadcastMessage is the payload for in-app broadcast notifications
+// that will be wrapped by shared/notification/dto.NewNotificationMessage
+// and sent to Kafka with type "in_app_broadcast".
+type InAppBroadcastMessage struct {
+	Title     string    `json:"title"`
+	Message   string    `json:"message"`
+	Type      string    `json:"type"`       // should be "inapp"
+	ExpiresAt time.Time `json:"expires_at"` // RFC3339 when marshaled
 }
 
 type EventInformation struct {

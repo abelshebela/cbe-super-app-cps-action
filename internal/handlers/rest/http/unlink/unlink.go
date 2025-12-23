@@ -37,16 +37,16 @@ func InitUnlinkAdapter(unlinkApp service.UnlinkService, logger utils.Logger) inb
 //	@Tags			Unlink
 //	@Accept			json
 //	@Produce		json
-//	@Param			page		query	int		false	"Page number"
-//	@Param			per_page	query	int		false	"Items per page"
-//	@Param			enabled		query	bool	false	"Filter by enabled status"
-//	@Param			kyc_level	query	string	false	"Filter by KYC level"
-//	@Param			is_blocked	query	bool	false	"Filter by blocked status"
-//	@Param			is_verified	query	bool	false	"Filter by verified status"
-//	@Param			search		query	string	false	"Search term (searches full_name, username, user_code, phone_number)"
-//	@Success		200	{object}	localization.StandardResponse{data=PaginatedArchieveUserResponse}	"User retrieved successfully"
-//	@Failure		400	{object}	localization.StandardResponse{data=nil}	"Bad request"
-//	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
+//	@Param			page		query		int																	false	"Page number"
+//	@Param			per_page	query		int																	false	"Items per page"
+//	@Param			enabled		query		bool																false	"Filter by enabled status"
+//	@Param			kyc_level	query		string																false	"Filter by KYC level"
+//	@Param			is_blocked	query		bool																false	"Filter by blocked status"
+//	@Param			is_verified	query		bool																false	"Filter by verified status"
+//	@Param			search		query		string																false	"Search term (searches full_name, username, user_code, phone_number)"
+//	@Success		200			{object}	localization.StandardResponse{data=PaginatedArchieveUserResponse}	"User retrieved successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}								"Bad request"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}								"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/unlink/archived_user [get]
 func (a *unlinkAdapter) GetArchivedUser(w http.ResponseWriter, r *http.Request) {

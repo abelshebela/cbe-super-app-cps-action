@@ -66,7 +66,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 	a.logger.Infof("this is the wallet request%+v\n", req)
 
-	if err := req.AggregatedValidate(true); err != nil {
+	if err := req.Validate(true); err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -130,41 +130,13 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.logger.Infof("this is the wallet request%+v\n", req)
-
-	// Track which fields were provided in the form
-	fieldsProvided := make(map[string]bool)
-
-	// Parse the multipart form to check which fields exist
-	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		a.logger.Errorf("failed to parse multipart form: %v", err)
 		localization.SendBadRequestResponse(w, "Failed to parse form data")
 		return
 	}
 
-	// Check for each field in the form
-	if r.FormValue("name") != "" {
-		fieldsProvided["name"] = true
-	}
-	if r.FormValue("code") != "" {
-		fieldsProvided["code"] = true
-	}
-	if r.FormValue("self") != "" {
-		fieldsProvided["self"] = true
-	}
-	if r.FormValue("other") != "" {
-		fieldsProvided["other"] = true
-	}
-	if r.FormValue("agent") != "" {
-		fieldsProvided["agent"] = true
-	}
-	if r.FormValue("type") != "" {
-		fieldsProvided["type"] = true
-	}
-	if _, _, err := r.FormFile("avatar"); err == nil {
-		fieldsProvided["avatar"] = true
-	}
-
-	if err := req.AggregatedValidate(false); err != nil {
+	if err := req.Validate(false); err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("wallet request validation failed: %v", err)
 		localization.SendBadRequestResponse(w, err.Error())
@@ -179,10 +151,8 @@ func (a *walletAdapter) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pass fieldsProvided to the service
-
 	span.SetAttributes(attribute.String("wallet.id", id))
-	if err := a.walletApp.UpdateWallet(ctx, id, req, fieldsProvided); err != nil {
+	if err := a.walletApp.UpdateWallet(ctx, id, req); err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("failed to update wallet (ID: %s): %v", id, err)
 		localization.SendErrorByCodeResponse(w, err.Error())

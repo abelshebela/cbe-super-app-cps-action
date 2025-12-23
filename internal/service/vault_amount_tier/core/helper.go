@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
@@ -17,13 +18,13 @@ func AmountTierMapper(action map[string]interface{}) model.VaultAmountTier {
 		}
 	}
 	if v, ok := action["min_amount"]; ok {
-		amountTier.MinAmount = getFloat64(v)
+		amountTier.MinAmount = getDecimal(v)
 	}
 	if v, ok := action["max_amount"]; ok {
-		amountTier.MaxAmount = getFloat64(v)
+		amountTier.MaxAmount = getDecimal(v)
 	}
 	if v, ok := action["interest"]; ok {
-		amountTier.Interest = getFloat64(v)
+		amountTier.Interest = getDecimal(v)
 	}
 	if v, ok := action["is_active"]; ok {
 		if isActive, ok := v.(bool); ok {
@@ -59,16 +60,23 @@ func MapCamelCaseToVaultAmountTier(jsonBytes []byte) (model.VaultAmountTier, err
 		return result, err
 	}
 
+	minAmount := getDecimal(data["minAmount"])
+	maxAmount := getDecimal(data["maxAmount"])
+	interest := getDecimal(data["interest"])
+
+	data["min_amount"] = minAmount
+	data["max_amount"] = maxAmount
+	data["interest"] = interest
+
 	result.ID = getString(data, "id")
 	result.VaultCategoryID = getString(data, "vault_category_id")
-	result.MinAmount = getFloat64(data["min_amount"])
-	result.MaxAmount = getFloat64(data["max_amount"])
-	result.Interest = getFloat64(data["interest"])
+	result.MinAmount = minAmount
+	result.MaxAmount = maxAmount
+	result.Interest = interest
 	result.IsActive = getBool(data, "is_active")
 	result.IsDeleted = getBool(data, "is_deleted")
-	result.CreatedAt = getTime(data, "created_at")
-	result.UpdatedAt = getTime(data, "updated_at")
-	result.DeletedAt = getTimePtr(data, "deleted_at")
+	result.CreatedAt = getString(data, "created_at")
+	result.UpdatedAt = getString(data, "updated_at")
 
 	return result, nil
 }
@@ -121,4 +129,57 @@ func getFloat64(v interface{}) float64 {
 		}
 	}
 	return 0
+}
+
+func getDecimal(v interface{}) decimal.Decimal {
+	switch val := v.(type) {
+	case decimal.Decimal:
+		return val
+	case *decimal.Decimal:
+		if val == nil {
+			return decimal.Zero
+		}
+		return *val
+	case float64:
+		return decimal.NewFromFloat(val)
+	case float32:
+		return decimal.NewFromFloat32(val)
+	case int:
+		return decimal.NewFromInt(int64(val))
+	case int64:
+		return decimal.NewFromInt(val)
+	case json.Number:
+		if d, err := decimal.NewFromString(val.String()); err == nil {
+			return d
+		}
+	case string:
+		if d, err := decimal.NewFromString(val); err == nil {
+			return d
+		}
+	case nil:
+		return decimal.Zero
+	default:
+		if b, err := json.Marshal(val); err == nil {
+			// try to parse marshalled value
+			if d, err := decimal.NewFromString(string(b)); err == nil {
+				return d
+			}
+		}
+	}
+	return decimal.Zero
+}
+
+func getDecimalFromMap(data map[string]interface{}, key string) decimal.Decimal {
+	if v, ok := data[key]; ok {
+		return getDecimal(v)
+	}
+	return decimal.Zero
+}
+
+func getDecimalPtrFromMap(data map[string]interface{}, key string) *decimal.Decimal {
+	if v, ok := data[key]; ok {
+		d := getDecimal(v)
+		return &d
+	}
+	return nil
 }

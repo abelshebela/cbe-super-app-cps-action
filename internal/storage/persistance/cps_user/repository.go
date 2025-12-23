@@ -51,7 +51,7 @@ func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *model.CPSUser) err
 	return nil
 }
 
-func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *model.CPSUser) error {
+func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *cpsuser.UpdateUserRequest) error {
 	r.logger.Infof("[Update] updating CPS user")
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	update := CPSUserUpdateMapper(cpsUser)
@@ -283,7 +283,8 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
 	r.logger.Infof("[GetPopulatedByID] fetching populated CPS user")
-	pipeline := PipelineBuilder(userCode, r.relatedCollection[0], r.relatedCollection[3], r.relatedCollection[1], r.relatedCollection[2])
+	// pipeline := PipelineBuilder(userCode, r.relatedCollection[0], r.relatedCollection[3], r.relatedCollection[1], r.relatedCollection[2])
+	pipeline := PipelineBuilder(userCode)
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {

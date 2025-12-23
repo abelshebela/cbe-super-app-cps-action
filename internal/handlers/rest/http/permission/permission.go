@@ -84,17 +84,17 @@ func (h *PermissionHandler) CreatePermissionGroup(w http.ResponseWriter, r *http
 //	@Tags			Permission
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			page			query	int		false	"Page number"
-//	@Param			per_page		query	int		false	"Items per page"
-//	@Param			enabled			query	bool	false	"Filter by enabled status"
-//	@Param			is_deleted		query	bool	false	"Filter by deleted status"
-//	@Param			department_id	query	string	false	"Filter by department ID"
-//	@Param			role			query	string	false	"Filter by role"
-//	@Param			realm			query	string	false	"Filter by realm"
-//	@Param			group_name		query	string	false	"Filter by group name"
-//	@Param			search			query	string	false	"Search term (searches group_name)"
-//	@Success		200	{object}	localization.StandardResponse{data=permission.PaginatedPermissionGroupResponse}
-//	@Failure		400,500	{object}	localization.StandardResponse{data=nil}
+//	@Param			page			query		int		false	"Page number"
+//	@Param			per_page		query		int		false	"Items per page"
+//	@Param			enabled			query		bool	false	"Filter by enabled status"
+//	@Param			is_deleted		query		bool	false	"Filter by deleted status"
+//	@Param			department_id	query		string	false	"Filter by department ID"
+//	@Param			role			query		string	false	"Filter by role"
+//	@Param			realm			query		string	false	"Filter by realm"
+//	@Param			group_name		query		string	false	"Filter by group name"
+//	@Param			search			query		string	false	"Search term (searches group_name)"
+//	@Success		200				{object}	localization.StandardResponse{data=permission.PaginatedPermissionGroupResponse}
+//	@Failure		400,500			{object}	localization.StandardResponse{data=nil}
 //	@Router			/permissions [get]
 func (h *PermissionHandler) GetPermissionGroups(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "permission", "PermissionHandler", "GetPermissionGroups")
