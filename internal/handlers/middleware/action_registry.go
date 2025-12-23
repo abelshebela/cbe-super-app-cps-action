@@ -232,6 +232,13 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /job_role/{id}":        "JOBROLE",
 	"PATCH /job_role/{id}/enable":  "JOBROLE",
 	"PATCH /job_role/{id}/disable": "JOBROLE",
+
+	// Customer Segmentation
+	"POST /customer-segmentations":              "CUSTOMERSEGMENTATION",
+	"PATCH /customer-segmentations/{id}/update": "CUSTOMERSEGMENTATION",
+	"GET /customer-segmentations":               "CUSTOMERSEGMENTATION",
+	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATION",
+	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATION",
 }
 
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
@@ -292,14 +299,12 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			// actionName, ok := cpsActionRegistry[keyPattern]
 			actionName := ""
 
-			for _, v := range cpsActionRegistry {
-				path := strings.ReplaceAll(relPath, "_", "")
-
-				if strings.Contains(path, strings.ToLower(v)) {
+			path := method + " " + relPath
+			for k, v := range cpsActionRegistry {
+				if strings.EqualFold(path, strings.ToLower(k)) {
 					actionName = v
 					break
 				}
-
 			}
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)

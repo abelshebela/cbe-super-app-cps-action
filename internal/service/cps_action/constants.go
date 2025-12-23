@@ -461,6 +461,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
 
+	RequestCreateCustomerSegmentation: {},
+	RequestUpdateCustomerSegmentation: {},
+	RequestDeleteCustomerSegmentation: {},
+
 	// Region
 	RequestEnableRegions:  {},
 	RequestDisableRegions: {},
