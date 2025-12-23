@@ -186,7 +186,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
-		Current_role_level := *idxDoc.CheckerIndex + 1
+		Current_role_level := *idxDoc.CheckerIndex
 		// expected := int32(*idxDoc.CheckerIndex)
 		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
 		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
