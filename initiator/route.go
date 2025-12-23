@@ -215,7 +215,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 		// CPS Action Guard
 		r.Use(customeMiddleware.CPSActionRouteGuard([]string{
-			"/password_rule",
 			"/actions",
 			"/actions/{action_code}/approve",
 			"/actions/{action_code}/reject",
@@ -228,7 +227,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		// 	r.Post("/{action_code}/reject", handlerLayer.CpsActionHandler.RejectCPSAction)
 		// })
 	})
-
+	secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 
