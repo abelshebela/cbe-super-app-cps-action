@@ -180,6 +180,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorPermissionGroupAlreadyExists,
 	ErrorPermissionCatagoryNotFound,
 	ErrorUserUnauthorized,
+	ErrorThirdAPIRequestNotUnauthorized,
 	ErrorUserForbidden,
 	ErrorUserInvalidCredentials,
 	ErrorUserAccountBlocked,
@@ -3391,6 +3392,13 @@ var (
 		Code:       "ERROR_USER_UNAUTHORIZED",
 		StatusCode: StatusUnauthorized,
 		Message:    MsgUserUnauthorized,
+		Type:       "error",
+	}
+
+	ErrorThirdAPIRequestNotUnauthorized = ResponseCode{
+		Code:       "ERROR_THIRD_API_REQUEST_UNAUTHORIZED",
+		StatusCode: StatusUnauthorized,
+		Message:    MsgThirdApiRequestNotAuthorized,
 		Type:       "error",
 	}
 

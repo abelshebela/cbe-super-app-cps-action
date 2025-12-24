@@ -351,10 +351,8 @@ func (h *ecommerceMerchantAdapter) MerchantLookup(w http.ResponseWriter, r *http
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
 		return
 	}
-	token := r.Header.Get("token")
-
 	span.SetAttributes(attribute.String("ecommerce_merchant.id", merchantID))
-	result, err := h.srv.MerchantLookup(ctx, merchantID, token)
+	result, err := h.srv.MerchantLookup(ctx, merchantID)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
