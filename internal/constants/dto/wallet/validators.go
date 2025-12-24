@@ -33,11 +33,13 @@ func (w WalletRequest) Validate(isCreate bool) error {
 
 	// --- Code ---
 	if isCreate || w.Code != "" {
-		if strings.TrimSpace(w.Code) == "" && isCreate {
+		trimmed := strings.TrimSpace(w.Code)
+		if trimmed == "" && isCreate {
 			errs["code"] = localization.ErrorWalletCodeRequired
-		} else if strings.ContainsAny(w.Code, specialChars) {
+		} else if len(trimmed) != 6 || !isAlpha(trimmed) {
 			errs["code"] = localization.ErrorInvalidWalletCode
 		}
+		w.Code = strings.ToUpper(trimmed)
 	}
 
 	// --- Type ---
@@ -83,4 +85,14 @@ func validateAvatar(file *multipart.FileHeader) error {
 		return validation.NewError("avatar", localization.MsgFileTooLarge)
 	}
 	return nil
+}
+
+// Helper: check if string is all alphabetic
+func isAlpha(s string) bool {
+	for _, r := range s {
+		if (r < 'A' || r > 'Z') && (r < 'a' || r > 'z') {
+			return false
+		}
+	}
+	return true
 }

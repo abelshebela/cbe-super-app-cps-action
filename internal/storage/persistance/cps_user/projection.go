@@ -91,10 +91,10 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 		// Lookup roles by job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from": "roles",
-			"let":  bson.M{"jobTitle": "$job_title"},
+			"let":  bson.M{"job_title": "$job_title"},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{"$eq": []interface{}{"$job_title", "$$jobTitle"}},
+					"$expr": bson.M{"$eq": []interface{}{"$job_title", "$$job_title"}},
 				}}},
 				bson.D{{Key: "$project", Value: bson.M{
 					"_id":  1,

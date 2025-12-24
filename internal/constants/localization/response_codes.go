@@ -1829,7 +1829,7 @@ var (
 	ErrorInvalidWalletCode = ResponseCode{
 		Code:       "ERROR_INVALID_WALLET_CODE",
 		StatusCode: 400,
-		Message:    "Invalid wallet code, special characters are not allowed",
+		Message:    "Invalid wallet code, wallet should be only characters and exactly 6 characters long",
 		Type:       "error",
 	}
 	ErrorInvalidWalletType = ResponseCode{
@@ -4595,7 +4595,6 @@ var (
 		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentations deleted request submitted successfully",
-		Message:    "Customer segmentation creation submitted successfully",
 		Type:       "error",
 	}
 
@@ -4624,6 +4623,12 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberRequired,
+		Type:       "error",
+	}
+	ErrorCannotGetRole = ResponseCode{
+		Code:       "ERROR_CANNOT_APPROVE_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotGetRole,
 		Type:       "error",
 	}
 

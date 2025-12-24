@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	avatar "cbe-super-app-cps-action/internal/constants/interfaces/avatar"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.CreateAvatar,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 				authMiddleware.RequireFormContentType(),
 			},
 		},
@@ -30,7 +28,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.DeleteAvatar,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 
@@ -40,7 +37,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 		{
@@ -49,7 +45,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -58,7 +53,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.FetchAvatars,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 		{
@@ -67,7 +61,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.FetchAvatar,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.Checker}),
 			},
 		},
 
@@ -77,7 +70,6 @@ func Init(router chi.Router, handler avatar.AvatarInbound, authMiddleware middle
 			Handler: handler.UpdateAvatar,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker}),
 			},
 		},
 	}

@@ -232,6 +232,43 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /job_role/{id}":        "JOBROLE",
 	"PATCH /job_role/{id}/enable":  "JOBROLE",
 	"PATCH /job_role/{id}/disable": "JOBROLE",
+
+	// Customer Segmentation
+	"POST /customer-segmentations":              "CUSTOMERSEGMENTATIONS",
+	"PATCH /customer-segmentations/{id}/update": "CUSTOMERSEGMENTATIONS",
+	"GET /customer-segmentations":               "CUSTOMERSEGMENTATIONS",
+	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATIONS",
+	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATIONS",
+}
+
+func extractResource(path string) string {
+	path = strings.Trim(path, "/")
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	return parts[0]
+}
+
+func normalize(s string) string {
+	s = strings.ToUpper(s)
+	replacer := strings.NewReplacer(
+		"-", "",
+		"_", "",
+	)
+	return replacer.Replace(s)
+}
+
+func resolveActionName(relPath string, registry map[string]string) string {
+	resource := extractResource(relPath)
+	normalizedResource := normalize(resource)
+
+	for _, action := range registry {
+		if normalize(action) == normalizedResource {
+			return action
+		}
+	}
+	return ""
 }
 
 func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
@@ -288,19 +325,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			// keyPattern := method + " " + relPattern
-			// actionName, ok := cpsActionRegistry[keyPattern]
-			actionName := ""
-
-			for _, v := range cpsActionRegistry {
-				path := strings.ReplaceAll(relPath, "_", "")
-
-				if strings.Contains(path, strings.ToLower(v)) {
-					actionName = v
-					break
-				}
-
-			}
+			actionName := resolveActionName(relPath, cpsActionRegistry)
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)

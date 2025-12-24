@@ -1,7 +1,6 @@
 package cpsuser
 
 import (
-	role "cbe-super-app-cps-action/internal/constants"
 	cps_user "cbe-super-app-cps-action/internal/constants/interfaces/cps_user"
 
 	"cbe-super-app-cps-action/internal/glue"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.CreateUserRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.UpdateUserRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.DeleteUserRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.FetchUserByUserCode,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -55,7 +50,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.GetAllCPSUsers,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker, role.IFBChecker}),
 			},
 		},
 		{
@@ -64,7 +58,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.DisableUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -73,7 +66,6 @@ func Init(router chi.Router, handler cps_user.CPSUserHandler, authMiddleware mid
 			Handler: handler.EnableUser,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

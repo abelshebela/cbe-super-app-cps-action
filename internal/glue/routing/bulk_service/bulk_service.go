@@ -1,7 +1,6 @@
 package bulk_service
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	bulk_service "cbe-super-app-cps-action/internal/constants/interfaces/bulk_service"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -18,7 +17,6 @@ func Init(router chi.Router, handler bulk_service.BulkServiceHandler, authMiddle
 			Handler: handler.GetAllBulkServices,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -27,7 +25,6 @@ func Init(router chi.Router, handler bulk_service.BulkServiceHandler, authMiddle
 			Handler: handler.DisableBulkService,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -36,7 +33,6 @@ func Init(router chi.Router, handler bulk_service.BulkServiceHandler, authMiddle
 			Handler: handler.EnableBulkService,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

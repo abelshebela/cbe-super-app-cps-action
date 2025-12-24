@@ -46,6 +46,7 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	if err := c.svc.Create(r.Context(), req); err != nil {
 		c.logger.Errorf("[CreateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
