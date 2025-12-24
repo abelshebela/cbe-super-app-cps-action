@@ -41,6 +41,44 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 	}
 }
 
+// CancelCPSAction implements cps_action.CPSActionAdapter.
+func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "cancelCpsAction", "handler", "cpsAction")
+	defer span.End()
+	actionCode := chi.URLParam(r, string(constants.ActionCode))
+
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if action.ActionStatus != string(constants.Pending) || action.CurrentCheckerIndex > 0 {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	userData, err := local_util.ParseUserContext(r)
+	if err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
+		return
+	}
+	if userData.UserID != action.MakerID {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	action.ActionStatus = string(constants.Canceled)
+
+	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionCanceled, nil)
+
+}
+
 // ReverseCPSAction reverses an already-approved CPS action
 //
 //	@Summary		Reverse CPS action (auditor only)
@@ -151,6 +189,10 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
 		return
 	}
+	if action.ActionStatus == string(constants.Canceled) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
+		return
+	}
 
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -244,7 +286,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionCanceled, nil)
 }
 
 // RejectCPSAction rejects a CPS action
@@ -282,6 +324,10 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 	if action.ActionStatus == string(constants.Rejected) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
+		return
+	}
+	if action.ActionStatus == string(constants.Canceled) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyCanceled)
 		return
 	}
 	idx32 := int32(action.CurrentCheckerIndex) + 1

@@ -31,6 +31,14 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodPatch,
+			Path:    "/actions/{action_code}/cancel",
+			Handler: handler.CancelCPSAction,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
 			Path:    "/actions/{action_code}/reverse",
 			Handler: handler.ReverseCPSAction,
 			Middlewares: []func(next http.Handler) http.Handler{

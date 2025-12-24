@@ -91,6 +91,16 @@ func (ca *cpsActionService) RejectCPSAction(ctx context.Context, action_code str
 	}
 	return nil
 }
+func (ca *cpsActionService) CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CancelCPSAction", "CPSAction", "CancelCPSAction")
+	defer span.End()
+	_, err := ca.repo.Update(ctx, action_code, *action)
+	if err != nil {
+		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return err
+	}
+	return nil
+}
 func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsByDepartment", "CPSAction", "GetCPSActionsByDepartment")
 	defer span.End()

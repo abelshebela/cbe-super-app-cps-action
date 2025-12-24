@@ -64,6 +64,7 @@ const (
 	Approved                          = "APPROVED"
 	Rejected                          = "REJECTED"
 	Reversed                          = "REVERSED"
+	Canceled                          = "CANCELED"
 )
 
 const (
