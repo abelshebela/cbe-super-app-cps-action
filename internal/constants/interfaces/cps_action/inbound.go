@@ -5,6 +5,7 @@ import "net/http"
 type CPSActionAdapter interface {
 	ApproveCPSAction(w http.ResponseWriter, r *http.Request)
 	RejectCPSAction(w http.ResponseWriter, r *http.Request)
+	CancelCPSAction(w http.ResponseWriter, r *http.Request)
 	ReverseCPSAction(w http.ResponseWriter, r *http.Request)
 	GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByID(w http.ResponseWriter, r *http.Request)

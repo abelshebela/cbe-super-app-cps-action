@@ -1078,6 +1078,12 @@ var (
 		Message:    MsgCPSActionRejectedSuccessfully,
 		Type:       "success",
 	}
+	SuccessCPSActionCanceled = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_CANCELED",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionCanceledSuccessfully,
+		Type:       "success",
+	}
 
 	SuccessCPSActionsRetrievedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTIONS_RETRIEVED_SUCCESSFULLY",

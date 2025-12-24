@@ -1,4 +1,4 @@
-package servicesdto
+package services
 
 import (
 	"fmt"
@@ -39,7 +39,6 @@ func (t *TierRequest) Validate(prev *TierRequest) error {
 	if err := validation.ValidateStruct(
 		t,
 		validation.Field(&t.Min,
-			validation.Required.Error("tiers.min is required"),
 			validation.Min(int64(0)).Error("tiers.min must be >= 0"),
 		),
 		validation.Field(&t.Max,
@@ -57,7 +56,7 @@ func (t *TierRequest) Validate(prev *TierRequest) error {
 		return fmt.Errorf("tiers.min (%d) must be less than tiers.max (%d)", t.Min, t.Max)
 	}
 	if prev != nil {
-		if t.Min <= prev.Max {
+		if t.Min < prev.Max {
 			return fmt.Errorf("tiers.min (%d) cannot be less than previous tier max (%d)", t.Min, prev.Max)
 		}
 	}
@@ -99,11 +98,18 @@ func (r *CreateServiceRequest) Validate() error {
 	if err := r.Cap.Validate(); err != nil {
 		return err
 	}
+
 	for i := range r.Tiers {
-		if err := r.Tiers[i].Validate(&r.Tiers[i-1]); err != nil {
+		var prev *TierRequest
+		if i > 0 {
+			prev = &r.Tiers[i-1]
+		}
+
+		if err := r.Tiers[i].Validate(prev); err != nil {
 			return fmt.Errorf("tier %d validation failed: %w", i+1, err)
 		}
 	}
+
 	return nil
 }
 
@@ -130,7 +136,7 @@ func (r *UpdateServiceRequest) Validate() error {
 		}
 	}
 	// Validate cap if provided (any field set)
-	if r.Cap.MinimumTransferCap != 0 || r.Cap.SingleCap != 0 || r.Cap.KYCLevel != "" {
+	if r.Cap.MinimumTransferCap != 0 || r.Cap.SingleCap != 0 {
 		if err := r.Cap.Validate(); err != nil {
 			return err
 		}
@@ -138,7 +144,12 @@ func (r *UpdateServiceRequest) Validate() error {
 	// Validate tiers if provided
 	if len(r.Tiers) > 0 {
 		for i := range r.Tiers {
-			if err := r.Tiers[i].Validate(&r.Tiers[i-1]); err != nil {
+			var prev *TierRequest
+			if i > 0 {
+				prev = &r.Tiers[i-1]
+			}
+
+			if err := r.Tiers[i].Validate(prev); err != nil {
 				return fmt.Errorf("tier %d validation failed: %w", i+1, err)
 			}
 		}

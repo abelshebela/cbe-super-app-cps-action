@@ -180,17 +180,44 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	// 	r.Handle("/*", miniAppCategoryProxyHandler)
 	// })
 
-	// Wrap all CPS routes in a secured router that authenticates first, then applies the central guard
-	secured := chi.NewRouter()
-	secured.Use(authMiddleware.AuthenticateToken)
-	// Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
-	// Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
-	secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/password_rule/", "/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
-	secured.Mount("/", r)
+	// Public routes for password_rule
 
-	// router.Mount("/", secured)
+	// Wrap all CPS routes in a secured router that authenticates first, then applies the central guard
+	// secured := chi.NewRouter()
+
+	// secured.Use("/password_rule", r.HandleFunc("/",handlerLayer.PasswordHandler.GetPasswordRule))
+
+	// secured.Use(authMiddleware.AuthenticateToken)
+	// // Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
+	// // Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
+
+	// secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/password_rule", "/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
+
+	// // router.Mount("/api/v1/cbesuperapp/cps_action", public)
+	// router.Mount("/api/v1/cbesuperapp/cps_action", secured)
+	// // router.Use(customeMiddleware.ChiCORS())
+
+	secured := chi.NewRouter()
+
+	secured.Route("/password_rule", func(r chi.Router) {
+		r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
+	})
+
+	secured.Group(func(r chi.Router) {
+		// Auth first
+		r.Use(authMiddleware.AuthenticateToken)
+
+		// CPS Action Guard
+		r.Use(customeMiddleware.CPSActionRouteGuard([]string{
+			"/actions",
+			"/actions/{action_code}/approve",
+			"/actions/{action_code}/reject",
+		}))
+
+	})
+	secured.Mount("/", r)
+	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
-	// router.Use(customeMiddleware.ChiCORS())
 
 	// Swagger documentation routes
 	router.Get("/api/v1/cbesuperapp/cps_action/swagger/*", httpSwagger.Handler(

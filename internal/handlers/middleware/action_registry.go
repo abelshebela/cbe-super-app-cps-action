@@ -197,10 +197,10 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /service/service_fee/delete/{id}":        "Service",
 
 	// Services module
-	"POST /services":               "Service",
-	"PATCH /services/{id}":         "Service",
-	"PATCH /services/{id}/enable":  "Service",
-	"PATCH /services/{id}/disable": "Service",
+	"POST /services":               "SERVICE",
+	"PATCH /services/{id}":         "SERVICE",
+	"PATCH /services/{id}/enable":  "SERVICE",
+	"PATCH /services/{id}/disable": "SERVICE",
 
 	// Topup
 	"POST /topups":               "Topup",
@@ -325,7 +325,19 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				return
 			}
 
-			actionName := resolveActionName(relPath, cpsActionRegistry)
+			//actionName := resolveActionName(relPath, cpsActionRegistry)
+			// keyPattern := method + " " + relPattern
+			// actionName, ok := cpsActionRegistry[keyPattern]
+			actionName := ""
+
+			for _, v := range cpsActionRegistry {
+				path := strings.ReplaceAll(relPath, "_", "")
+
+				if strings.Contains(path, strings.ToLower(v)) {
+					actionName = v
+					break
+				}
+			}
 
 			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 			roleID := utils.FirstHex24(rawRoleID)
