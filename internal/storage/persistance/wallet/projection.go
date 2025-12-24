@@ -30,14 +30,11 @@ func UpdateMapper(wallet model.Wallet) bson.M {
 	if wallet.Name != "" {
 		update["name"] = wallet.Name
 	}
-	if wallet.Code != "" {
-		update["code"] = wallet.Code
+	if wallet.UniqueCode != "" {
+		update["unique_code"] = wallet.UniqueCode
 	}
 	if wallet.Avatar != "" {
 		update["avatar"] = wallet.Avatar
-	}
-	if wallet.Type != "" {
-		update["type"] = wallet.Type
 	}
 
 	update["services.self"] = wallet.Services.Self
