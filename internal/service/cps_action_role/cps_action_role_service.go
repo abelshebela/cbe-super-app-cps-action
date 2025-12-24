@@ -406,6 +406,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		}
 		action.CurrentAction = updatedPayload
 		return action, nil
+
 	case string(constants.UPDATE):
 		existing, err := s.repo.FindByActionCode(ctx, action.UniqueId)
 		if err != nil {
@@ -525,7 +526,7 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 	s.logger.Infof("generateIndices: Starting for action %s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedMakersRoles), len(role.AssignedCheckersRoles), len(role.AssignedAuditorRoles))
 	// Makers
 	for i, makerID := range role.AssignedMakersRoles {
-		idx := int64(i)
+		idx := int64(i) + 1
 		indices = append(indices, model.CPSActionApproveIndex{
 			ID:         bson.NewObjectID(),
 			RoleId:     makerID.Hex(),

@@ -2,6 +2,7 @@ package cpsaction
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -77,8 +78,11 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				return err
 			}
 
-			if role.IsMakerOnly {
-				s.base.ApproveCPSAction(ctx, cpsAction)
+			if role != nil {
+				fmt.Printf("CPS Action created with role policy: %+v\n", role)
+				if role.IsMakerOnly {
+					s.base.ApproveCPSAction(ctx, cpsAction)
+				}
 			}
 
 		}
