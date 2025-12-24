@@ -846,6 +846,8 @@ const (
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
 
+	MsgCannotGetRole = "Cannot get role"
+
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
 	MsgBankRejectionPayloadDecodeFailed = "Failed to decode rejection payload"

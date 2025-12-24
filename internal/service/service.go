@@ -445,6 +445,10 @@ type RoleService interface {
 
 type CustomerSegmentationService interface {
 	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
+	Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
+	Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
