@@ -65,15 +65,6 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				cpsAction.CheckerCount = 0
 			}
 
-			if role.IsMakerOnly {
-				cpsAction.CheckerCount = 0
-				cpsAction.ActionStatus = string(constants.Approved)
-			} else if role.ApproverCount > 0 {
-				cpsAction.CheckerCount = int32(role.ApproverCount)
-			} else {
-				cpsAction.CheckerCount = 0
-			}
-
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
 			}

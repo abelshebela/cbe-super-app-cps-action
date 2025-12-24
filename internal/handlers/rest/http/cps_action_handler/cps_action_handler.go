@@ -149,7 +149,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 		attribute.String("cps_action.code", actionCode),
 		attribute.String("auditor.id", userData.UserID),
 	)
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionReversed, nil)
 }
 
 // ApproveCPSAction approves a CPS action
