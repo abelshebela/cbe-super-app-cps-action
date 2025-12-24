@@ -106,7 +106,7 @@ func (m *miniAppMerchantService) Create(ctx context.Context, req *merchantDto.Ec
 		ctx,
 		m.cpsService,
 		"",
-		constants.RequestCreateMiniAppMerchant,
+		constants.RequestCreateEcommerceMerchant,
 		data,
 		nil,
 		constants.ActionCreate,
@@ -178,7 +178,7 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *mer
 		}
 	}
 
-	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateMiniAppMerchant, updated, old, constants.ActionUpdate)
+	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestUpdateEcommerceMerchant, updated, old, constants.ActionUpdate)
 	if err != nil {
 		m.logger.Errorf("CPS action failed for merchant update, id: %s, error: %v", id, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
@@ -245,7 +245,7 @@ func (m *miniAppMerchantService) Delete(ctx context.Context, id string) error {
 	deletedMerchant.IsDeleted = true
 	deletedMerchant.DeletedAt = &now
 
-	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteMiniAppMerchant, deletedMerchant, *prev, constants.ActionDelete)
+	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, constants.RequestDeleteEcommerceMerchant, deletedMerchant, *prev, constants.ActionDelete)
 	if err != nil {
 		m.logger.Errorf("CPS action failed for merchant deletion, id: %s, error: %v", id, err)
 		span.AddEvent("CPS action failed", trace.WithAttributes(
@@ -263,7 +263,7 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 	ctx, span := local_util.TraceLogger(ctx, "service", "EnableOrDisable", "MiniAppMerchant", "EnableOrDisable")
 	defer span.End()
 
-	m.logger.Infof("EnableOrDisable mini app merchant, id: %s, enable: %v", id, enable)
+	m.logger.Infof("EnableOrDisable ecommerce merchant, id: %s, enable: %v", id, enable)
 
 	prevMerchant, err := m.repo.FindByID(ctx, id)
 	if err != nil {
@@ -298,9 +298,9 @@ func (m *miniAppMerchantService) EnableOrDisable(ctx context.Context, id string,
 
 	var action constants.RequestAction
 	if enable {
-		action = constants.RequestEnableMiniAppMerchant
+		action = constants.RequestEnableEcommerceMerchant
 	} else {
-		action = constants.RequestDisableMiniAppMerchant
+		action = constants.RequestDisableEcommerceMerchant
 	}
 
 	err = core.HandleCPSActionForMiniAppMerchant(ctx, m.cpsService, id, action, updatedMerchant, *prevMerchant, constants.ActionUpdate)
@@ -336,7 +336,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	}
 
 	switch cpsAction.RequestAction {
-	case string(constants.RequestCreateMiniAppMerchant):
+	case string(constants.RequestCreateEcommerceMerchant):
 		_, err = m.repo.Create(ctx, merchant)
 		if err != nil {
 			span.AddEvent("Failed to create mini app merchant", trace.WithAttributes(
@@ -345,7 +345,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-	case string(constants.RequestUpdateMiniAppMerchant):
+	case string(constants.RequestUpdateEcommerceMerchant):
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
 		if err != nil {
 			span.AddEvent("Failed to update mini app merchant", trace.WithAttributes(
@@ -354,7 +354,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-	case string(constants.RequestDeleteMiniAppMerchant):
+	case string(constants.RequestDeleteEcommerceMerchant):
 		err = m.repo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
 			span.AddEvent("Failed to delete mini app merchant", trace.WithAttributes(
@@ -363,7 +363,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-	case string(constants.RequestEnableMiniAppMerchant):
+	case string(constants.RequestEnableEcommerceMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
 			span.AddEvent("Failed to enable mini app merchant", trace.WithAttributes(
@@ -372,7 +372,7 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			))
 			return nil, err
 		}
-	case string(constants.RequestDisableMiniAppMerchant):
+	case string(constants.RequestDisableEcommerceMerchant):
 		err = m.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 		if err != nil {
 			span.AddEvent("Failed to disable mini app merchant", trace.WithAttributes(

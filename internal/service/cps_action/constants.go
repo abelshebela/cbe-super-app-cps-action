@@ -108,6 +108,12 @@ const (
 	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
 
+	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant  RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
+
 	// Services catalog (model.Services)
 	RequestCreateService  RequestAction = "CREATE_SERVICE"
 	RequestUpdateService  RequestAction = "UPDATE_SERVICE"
@@ -360,6 +366,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteVaultGroupCategory:  {},
 	RequestEnableVaultGroupCategory:  {},
 	RequestDisAbleVaultGroupCategory: {},
+
+	RequestCreateEcommerceMerchant:  {},
+	RequestUpdateEcommerceMerchant:  {},
+	RequestEnableEcommerceMerchant:  {},
+	RequestDisableEcommerceMerchant: {},
+	RequestDeleteEcommerceMerchant:  {},
 
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
@@ -1005,6 +1017,13 @@ var RequestActionGroups = map[string][]RequestAction{
 	},
 	"CustomerSegmentation": {
 		RequestCreateCustomerSegmentation,
+	},
+	"EcommerceMerchant": {
+		RequestCreateEcommerceMerchant,
+		RequestUpdateEcommerceMerchant,
+		RequestEnableEcommerceMerchant,
+		RequestDisableEcommerceMerchant,
+		RequestDeleteEcommerceMerchant,
 	},
 }
 

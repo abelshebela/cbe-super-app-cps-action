@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -155,8 +154,9 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "Role"):
 		return d.app.RoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "CustomerSegmentation"):
-		fmt.Println("=======================q", action)
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "EcommerceMerchant"):
+		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))
