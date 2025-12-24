@@ -63,6 +63,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
+
 	update := bson.M{
 		"last_modified_at": time.Now(),
 	}
@@ -72,12 +73,12 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if service.ServiceName != "" {
 		update["service_name"] = service.ServiceName
 	}
-	if service.ServiceType != "" {
-		update["service_type"] = service.ServiceType
-	}
-	if service.Key != "" {
-		update["key"] = service.Key
-	}
+	// if service.ServiceType != "" {
+	// 	update["service_type"] = service.ServiceType
+	// }
+	// if service.Key != "" {
+	// 	update["key"] = service.Key
+	// }
 	if service.PaymentType != "" {
 		update["payment_type"] = service.PaymentType
 	}
@@ -87,9 +88,9 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if service.AboveServiceFee != 0 {
 		update["above_service_fee"] = service.AboveServiceFee
 	}
-	if service.CbeIFBProductAccount != "" {
-		update["cbe_ifb_product_account"] = service.CbeIFBProductAccount
-	}
+	// if service.CbeIFBProductAccount != "" {
+	// 	update["cbe_ifb_product_account"] = service.CbeIFBProductAccount
+	// }
 	if service.CbeGLProductAccount != "" {
 		update["cbe_gl_product_account"] = service.CbeGLProductAccount
 	}
@@ -99,12 +100,12 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if (service.Cap != model.Cap{}) {
 		update["cap"] = service.Cap
 	}
-	if (service.CbeProductCodes != model.ProductCodes{}) {
-		update["cbe_product_codes"] = service.CbeProductCodes
-	}
-	if (service.CbeIfbProductCodes != model.ProductCodes{}) {
-		update["cbe_ifb_product_codes"] = service.CbeIfbProductCodes
-	}
+	// if (service.CbeProductCodes != model.ProductCodes{}) {
+	// 	update["cbe_product_codes"] = service.CbeProductCodes
+	// }
+	// if (service.CbeIfbProductCodes != model.ProductCodes{}) {
+	// 	update["cbe_ifb_product_codes"] = service.CbeIfbProductCodes
+	// }
 
 	if len(update) == 1 { // only last_modified_at
 		return errors.New(localization.ErrorNoDataProvided.Code)
