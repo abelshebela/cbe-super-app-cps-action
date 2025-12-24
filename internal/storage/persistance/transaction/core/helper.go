@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	"github.com/godror/godror"
 )
 
 func MapFullTransactionToNative(ft model.TransactionModel) transaction_dto.FullTransaction {
@@ -27,19 +25,15 @@ func MapFullTransactionToNative(ft model.TransactionModel) transaction_dto.FullT
 
 	var metadataBytes json.RawMessage
 	if ft.Metadata != nil {
-		if v, err := ft.Metadata.GetValue(godror.JSONOption(godror.JSONOptDefault)); err == nil && v != nil {
-			if mapVal, ok := v.(json.RawMessage); !ok || mapVal == nil {
-				metadataBytes = mapVal
-			}
-		}
+		metadataBytes = ft.Metadata
 	}
 
-	fee := godror.Number(ft.ServiceFee)
-	TipAmount := godror.Number(ft.TipAmount)
-	paidAmount := godror.Number(ft.PaidAmount)
-	vat := godror.Number(ft.VAT)
-	amount := godror.Number(ft.Amount)
-	totalAmount := godror.Number(ft.TotalAmount)
+	fee := ft.ServiceFee
+	TipAmount := ft.TipAmount
+	paidAmount := ft.PaidAmount
+	vat := ft.VAT
+	amount := ft.Amount
+	totalAmount := ft.TotalAmount
 
 	return transaction_dto.FullTransaction{
 		ID:                      ft.ID,

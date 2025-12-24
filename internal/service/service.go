@@ -242,7 +242,7 @@ type EcommerceMerchantService interface {
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error)
+	MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error)
 }
 
 type PasswordRuleService interface {
