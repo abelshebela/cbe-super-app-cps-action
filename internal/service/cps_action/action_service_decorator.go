@@ -82,6 +82,10 @@ func (s *cpsActionServiceWithRoles) RejectCPSAction(ctx context.Context, actionC
 	return s.base.RejectCPSAction(ctx, actionCode, action)
 }
 
+func (s *cpsActionServiceWithRoles) CancelCPSAction(ctx context.Context, actionCode string, action *model.CPSAction) error {
+	return s.base.CancelCPSAction(ctx, actionCode, action)
+}
+
 func (s *cpsActionServiceWithRoles) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	return s.base.GetCPSActionsByDepartment(ctx, department, filterParams)
 }
