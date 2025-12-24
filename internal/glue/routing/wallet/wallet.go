@@ -3,7 +3,6 @@ package wallet
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/wallet"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -20,7 +19,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.CreateWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -29,7 +27,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.UpdateWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -38,7 +35,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.DeleteWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -47,7 +43,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.GetWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -56,7 +51,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.GetAllWallet,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -65,7 +59,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -74,7 +67,6 @@ func Init(router chi.Router, wallet wallet.WalletAdapter, authMiddleware middlew
 			Handler: wallet.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

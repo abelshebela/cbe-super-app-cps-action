@@ -5,7 +5,6 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/middleware"
 	"net/http"
 
-	role "cbe-super-app-cps-action/internal/constants"
 	vaultAmountTier "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.CreateAmountTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.FindAllAmountTiers,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.GetAmountTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 
@@ -47,7 +43,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.UpdateAmountTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -56,7 +51,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.DeleteAmountTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -65,7 +59,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.DisableAmountTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -74,7 +67,6 @@ func Init(router chi.Router, handler vaultAmountTier.VaultAmountTierHandler, aut
 			Handler: handler.EnableAmountTier,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

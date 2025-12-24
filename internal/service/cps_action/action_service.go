@@ -6,13 +6,13 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -62,6 +62,7 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
 
+	action.ActionStatus = string(constants.Approved)
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
