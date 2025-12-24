@@ -196,7 +196,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if currentIndex+1 < Current_role_level {
+		if int64(currentIndex)+1 < int64(Current_role_level) {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 			return
 		}
