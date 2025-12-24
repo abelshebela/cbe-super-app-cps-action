@@ -64,8 +64,10 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				return err
 			}
 
-			if role.IsMakerOnly {
-				s.base.ApproveCPSAction(ctx, cpsAction)
+			if role != nil {
+				if role.IsMakerOnly {
+					s.base.ApproveCPSAction(ctx, cpsAction)
+				}
 			}
 
 		}

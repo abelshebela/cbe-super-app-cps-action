@@ -95,3 +95,273 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	}
 	return nil
 }
+func (r *CPSActionApproveIndexRepository) InsertMany(
+	ctx context.Context,
+	makerIndex []bson.ObjectID,
+	checkerIndex [][]bson.ObjectID,
+	auditorIndex []bson.ObjectID,
+	roleCode string,
+) error {
+
+	r.logger.Infof("InsertMany: Insert or update indices for RoleCode: %s", roleCode)
+
+	var models []mongo.WriteModel
+	now := time.Now()
+
+	// Makers
+	for _, id := range makerIndex {
+		models = append(models,
+			mongo.NewUpdateOneModel().
+				SetFilter(bson.M{
+					"role_id":     id,
+					"action_name": roleCode,
+				}).
+				SetUpdate(bson.M{
+					"$set": bson.M{
+						"maker_index": 1,
+						"updated_at":  now,
+					},
+					"$setOnInsert": bson.M{
+						"created_at": now,
+					},
+				}).
+				SetUpsert(true),
+		)
+	}
+
+	// Checkers
+	for i, ids := range checkerIndex {
+		for _, id := range ids {
+			models = append(models,
+				mongo.NewUpdateOneModel().
+					SetFilter(bson.M{
+						"role_id":     id,
+						"action_name": roleCode,
+					}).
+					SetUpdate(bson.M{
+						"$set": bson.M{
+							"checker_index": i + 1,
+							"updated_at":    now,
+						},
+						"$setOnInsert": bson.M{
+							"created_at": now,
+						},
+					}).
+					SetUpsert(true),
+			)
+		}
+	}
+
+	// Auditors
+	for _, id := range auditorIndex {
+		models = append(models,
+			mongo.NewUpdateOneModel().
+				SetFilter(bson.M{
+					"role_id":     id,
+					"action_name": roleCode,
+				}).
+				SetUpdate(bson.M{
+					"$set": bson.M{
+						"auditor_index": 1,
+						"updated_at":    now,
+					},
+					"$setOnInsert": bson.M{
+						"created_at": now,
+					},
+				}).
+				SetUpsert(true),
+		)
+	}
+
+	if len(models) == 0 {
+		return nil
+	}
+
+	_, err := r.collection.BulkWrite(ctx, models)
+	if err != nil {
+		r.logger.Errorf("InsertMany: BulkWrite failed: %v", err)
+		return err
+	}
+
+	r.logger.Infof("InsertMany: Successfully processed indices for RoleCode: %s", roleCode)
+	return nil
+}
+
+// func (r *CPSActionApproveIndexRepository) InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error {
+// 	r.logger.Infof("InsertMany: Inserting indices for RoleCode: %s", roleCode)
+
+// 	var models []mongo.WriteModel
+// 	now := time.Now()
+
+// 	// 1. Insert makers
+// 	for _, id := range makerIndex {
+// 		models = append(models, mongo.NewInsertOneModel().SetDocument(bson.M{
+// 			"role_id":       id,
+// 			"action_name":   roleCode,
+// 			"maker_index":   1, // marker for maker
+// 			"checker_index": nil,
+// 			"auditor_index": nil,
+// 			"created_at":    now,
+// 			"updated_at":    now,
+// 		}))
+// 	}
+
+// 	// 2. Insert checkers (by index)
+// 	for i, ids := range checkerIndex {
+// 		for _, id := range ids {
+// 			models = append(models, mongo.NewInsertOneModel().SetDocument(bson.M{
+// 				"role_id":       id,
+// 				"action_name":   roleCode,
+// 				"maker_index":   nil,
+// 				"checker_index": i + 1, // 1-based
+// 				"auditor_index": nil,
+// 				"created_at":    now,
+// 				"updated_at":    now,
+// 			}))
+// 		}
+// 	}
+
+// 	// 3. Insert auditors
+// 	for _, id := range auditorIndex {
+// 		models = append(models, mongo.NewInsertOneModel().SetDocument(bson.M{
+// 			"role_id":       id,
+// 			"action_name":   roleCode,
+// 			"maker_index":   nil,
+// 			"checker_index": nil,
+// 			"auditor_index": 1, // marker for auditor
+// 			"created_at":    now,
+// 			"updated_at":    now,
+// 		}))
+// 	}
+
+// 	if len(models) == 0 {
+// 		return nil
+// 	}
+
+// 	_, err := r.collection.BulkWrite(ctx, models)
+// 	if err != nil {
+// 		r.logger.Errorf("InsertMany: BulkWrite failed: %v", err)
+// 		return err
+// 	}
+// 	r.logger.Infof("InsertMany: Successfully inserted indices for RoleCode: %s", roleCode)
+// 	return nil
+// }
+
+// func (r *CPSActionApproveIndexRepository) DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error {
+// 	r.logger.Infof("DeleteMany: Deleting indices for RoleCode: %s", roleCode)
+
+// 	var models []mongo.WriteModel
+
+// 	// 1. Delete makers
+// 	if len(makerIndex) > 0 {
+// 		models = append(models, mongo.NewDeleteManyModel().SetFilter(bson.M{
+// 			"role_id":     bson.M{"$in": makerIndex},
+// 			"action_name": roleCode,
+// 		}))
+// 	}
+
+// 	// 2. Delete checkers (by index)
+// 	for i, ids := range checkerIndex {
+// 		if len(ids) == 0 {
+// 			continue
+// 		}
+// 		models = append(models, mongo.NewDeleteManyModel().SetFilter(bson.M{
+// 			"role_id":       bson.M{"$in": ids},
+// 			"action_name":   roleCode,
+// 			"checker_index": i + 1, // 1-based
+// 		}))
+// 	}
+
+// 	// 3. Delete auditors
+// 	if len(auditorIndex) > 0 {
+// 		models = append(models, mongo.NewDeleteManyModel().SetFilter(bson.M{
+// 			"role_id":     bson.M{"$in": auditorIndex},
+// 			"action_name": roleCode,
+// 		}))
+// 	}
+
+// 	if len(models) == 0 {
+// 		return nil
+// 	}
+
+//		_, err := r.collection.BulkWrite(ctx, models)
+//		if err != nil {
+//			r.logger.Errorf("DeleteMany: BulkWrite failed: %v", err)
+//			return err
+//		}
+//		r.logger.Infof("DeleteMany: Successfully deleted indices for RoleCode: %s", roleCode)
+//		return nil
+//	}
+func (r *CPSActionApproveIndexRepository) DeleteMany(
+	ctx context.Context,
+	makerIndex []bson.ObjectID,
+	checkerIndex [][]bson.ObjectID,
+	auditorIndex []bson.ObjectID,
+	roleCode string,
+) error {
+
+	r.logger.Infof("DeleteMany: Deleting indices for RoleCode: %s", roleCode)
+
+	var models []mongo.WriteModel
+
+	// 1. Delete makers (only if NOT checker or auditor)
+	if len(makerIndex) > 0 {
+		models = append(models,
+			mongo.NewDeleteManyModel().SetFilter(bson.M{
+				"role_id":     bson.M{"$in": makerIndex},
+				"action_name": roleCode,
+
+				// must be pure maker
+				"checker_index": bson.M{"$eq": nil},
+				"auditor_index": bson.M{"$eq": nil},
+			}),
+		)
+	}
+
+	// 2. Delete checkers (only if NOT maker or auditor)
+	for i, ids := range checkerIndex {
+		if len(ids) == 0 {
+			continue
+		}
+
+		models = append(models,
+			mongo.NewDeleteManyModel().SetFilter(bson.M{
+				"role_id":       bson.M{"$in": ids},
+				"action_name":   roleCode,
+				"checker_index": i + 1, // 1-based index
+
+				// must be pure checker
+				"maker_index":   bson.M{"$eq": nil},
+				"auditor_index": bson.M{"$eq": nil},
+			}),
+		)
+	}
+
+	// 3. Delete auditors (only if NOT maker or checker)
+	if len(auditorIndex) > 0 {
+		models = append(models,
+			mongo.NewDeleteManyModel().SetFilter(bson.M{
+				"role_id":     bson.M{"$in": auditorIndex},
+				"action_name": roleCode,
+
+				// must be pure auditor
+				"maker_index":   bson.M{"$eq": nil},
+				"checker_index": bson.M{"$eq": nil},
+			}),
+		)
+	}
+
+	if len(models) == 0 {
+		r.logger.Infof("DeleteMany: No delete models generated for RoleCode: %s", roleCode)
+		return nil
+	}
+
+	_, err := r.collection.BulkWrite(ctx, models)
+	if err != nil {
+		r.logger.Errorf("DeleteMany: BulkWrite failed: %v", err)
+		return err
+	}
+
+	r.logger.Infof("DeleteMany: Successfully deleted indices for RoleCode: %s", roleCode)
+	return nil
+}

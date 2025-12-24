@@ -286,7 +286,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCanceled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
 }
 
 // RejectCPSAction rejects a CPS action

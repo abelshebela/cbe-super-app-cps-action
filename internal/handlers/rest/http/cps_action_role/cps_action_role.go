@@ -102,7 +102,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", req.ActionCode))
-	err := h.service.Create(ctx, actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles})
+	err := h.service.Create(ctx, actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles, AssignedAuditorRoles: req.AssignedAuditorRoles})
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("create action role failed: %v", err)
