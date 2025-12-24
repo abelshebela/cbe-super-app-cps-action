@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"

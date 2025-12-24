@@ -559,6 +559,7 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 				UpdatedAt:    now,
 				CreatedAt:    now,
 			})
+
 			span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
 			s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID.Hex())
 		} else {

@@ -655,10 +655,10 @@ type CustomerSegmentationRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
 }
 
-type CustomerSegmentationRepository interface {
-	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
-	Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error
-	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
-}
+// type CustomerSegmentationRepository interface {
+// 	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
+// 	Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error
+// 	Delete(ctx context.Context, id string) error
+// 	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
+// 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+// }

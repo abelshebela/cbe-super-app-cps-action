@@ -200,7 +200,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// TotalCheckerCount := action.CheckerCount
+	TotalCheckerCount := action.CheckerCount
 	currentIndex := action.CurrentCheckerIndex
 
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
@@ -231,7 +231,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		Current_role_level := *idxDoc.CheckerIndex + 1
+		Current_role_level := *idxDoc.CheckerIndex
 		expected := int32(*idxDoc.CheckerIndex)
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
@@ -261,10 +261,10 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// 	return
 	// }
 	// Build approval update inline (only mark Approved on final checker)
-	finalStatus := string(constants.Rejected)
-	// if int32(currentIndex+1) == TotalCheckerCount {
-	// 	finalStatus = string(constants.Approved)
-	// }
+	finalStatus := string(constants.Pending)
+	if int32(currentIndex+1) == TotalCheckerCount {
+		finalStatus = string(constants.Approved)
+	}
 	checkerUser := model.Checker{
 		CheckerID:          userData.UserID,
 		RoleID:             r.Context().Value(constants.ContextKey("role_id")).(string),
@@ -288,7 +288,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCanceled, nil)
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
 }
 
 // RejectCPSAction rejects a CPS action

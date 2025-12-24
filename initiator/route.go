@@ -215,6 +215,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		}))
 
 	})
+	secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 
