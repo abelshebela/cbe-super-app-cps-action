@@ -153,7 +153,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Role"):
 		return d.app.RoleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "CustomerSegmentation"):
+	case IsActionInGroup(RequestAction(action), "CustomerSegmentations"):
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "EcommerceMerchant"):
 		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)

@@ -624,6 +624,12 @@ var ResponseCodesList = []ResponseCode{
 	SuccessAccessListSegmentationUpdated,
 	SuccessAccessListSegmentationCreated,
 	AccessListSegmentationCreatedSuccessfully,
+
+	// Customer segmentations
+	CustomerSegmentationCreationSubmittedSuccessfully,
+	CustomerSegmentationUpdateSubmittedSuccessfully,
+	CustomerSegmentationFetchedSuccessfully,
+	CustomerSegmentationDeleteddSuccessfully,
 }
 
 // Success Response Codes
@@ -1071,6 +1077,12 @@ var (
 		Code:       "SUCCESS_CPS_ACTION_REJECTED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionRejectedSuccessfully,
+		Type:       "success",
+	}
+	SuccessCPSActionCanceled = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_CANCELED",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionCanceledSuccessfully,
 		Type:       "success",
 	}
 
@@ -4578,7 +4590,25 @@ var (
 	CustomerSegmentationCreationSubmittedSuccessfully = ResponseCode{
 		Code:       "ERROR_CUSTOMER_SEGMENTATION_CREATION_SUBMITTED",
 		StatusCode: StatusOK,
-		Message:    "Customer segmentation creation submitted successfully",
+		Message:    "Customer segmentation creation request submitted successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationUpdateSubmittedSuccessfully = ResponseCode{
+		Code:       "ERROR_CUSTOMER_SEGMENTATION_UPDATE_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation update request submitted successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationFetchedSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATIONS_FETCHED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentations fetched successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationDeleteddSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentations deleted request submitted successfully",
 		Type:       "error",
 	}
 
@@ -4607,6 +4637,12 @@ var (
 		Code:       "ERROR_ACCOUNT_NUMBER_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccountNumberRequired,
+		Type:       "error",
+	}
+	ErrorCannotGetRole = ResponseCode{
+		Code:       "ERROR_CANNOT_APPROVE_ACTION",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCannotGetRole,
 		Type:       "error",
 	}
 

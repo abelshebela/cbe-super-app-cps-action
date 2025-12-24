@@ -111,6 +111,7 @@ const (
 	MsgCPSActionsRetrievedSuccessfully = "CPS Actions retrieved successfully"
 	MsgCPSActionAuthorizedSuccessfully = "CPS Action authorized successfully"
 	MsgCPSActionRejectedSuccessfully   = "CPS Action rejected successfully"
+	MsgCPSActionCanceledSuccessfully   = "CPS Action Canceled Successfully"
 	MsgCPSActionsRetrieved             = "CPS actions retrieved successfully"
 
 	// Wallet related success messages
@@ -528,6 +529,7 @@ const (
 	MsgCPSActionNotPending           = "Action is not in pending status"
 	MsgCPSActionAlreadyApproved      = "Action already approved"
 	MsgCPSActionAlreadyRejected      = "Action already rejected"
+	MsgCPSActionAlreadyCanceled      = "Action already canceled"
 	MsgCPSActionCreationFailed       = "Failed to create CPS action"
 	MsgCPSActionUpdateFailed         = "Failed to update CPS action"
 	MsgCPSActionApprovalFailed       = "Failed to approve action"
@@ -844,6 +846,8 @@ const (
 	MsgDonationImageUpdateFailed      = "Failed to update donation image"
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
+
+	MsgCannotGetRole = "Cannot get role"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
