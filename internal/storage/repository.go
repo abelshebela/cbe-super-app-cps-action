@@ -590,6 +590,9 @@ type CPSActionApproveIndexRepository interface {
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
+	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
+
+	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 }
 
 type SitotaRepository interface {

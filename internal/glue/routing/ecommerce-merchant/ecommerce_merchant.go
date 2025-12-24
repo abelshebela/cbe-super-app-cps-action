@@ -26,10 +26,10 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Method:  http.MethodGet,
 			Path:    "/ecommerce-merchant",
 			Handler: handler.FindAllWithPagination,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-			},
+			// Middlewares: []func(next http.Handler) http.Handler{
+			// 	authMiddleware.AuthenticateToken,
+			// 	authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			// },
 		},
 		{
 			Method:  http.MethodGet,
@@ -44,19 +44,19 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Method:  http.MethodPatch,
 			Path:    "/ecommerce-merchant/enable/{id}",
 			Handler: handler.Enable,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-			},
+			// Middlewares: []func(next http.Handler) http.Handler{
+			// 	authMiddleware.AuthenticateToken,
+			// 	authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			// },
 		},
 		{
 			Method:  http.MethodPatch,
 			Path:    "/ecommerce-merchant/disable/{id}",
 			Handler: handler.Disable,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-			},
+			// Middlewares: []func(next http.Handler) http.Handler{
+			// 	authMiddleware.AuthenticateToken,
+			// 	authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			// },
 		},
 		{
 			Method:  http.MethodPatch,

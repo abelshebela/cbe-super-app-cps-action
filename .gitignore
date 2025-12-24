@@ -53,4 +53,4 @@ definition_of_ready.md
 docs
 tools
 
-cmd
+./cmd/_debug*
