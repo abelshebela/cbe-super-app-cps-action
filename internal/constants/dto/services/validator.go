@@ -1,4 +1,4 @@
-package servicesdto
+package services
 
 import (
 	"fmt"
@@ -136,7 +136,7 @@ func (r *UpdateServiceRequest) Validate() error {
 		}
 	}
 	// Validate cap if provided (any field set)
-	if r.Cap.MinimumTransferCap != 0 || r.Cap.SingleCap != 0 || r.Cap.KYCLevel != "" {
+	if r.Cap.MinimumTransferCap != 0 || r.Cap.SingleCap != 0 {
 		if err := r.Cap.Validate(); err != nil {
 			return err
 		}

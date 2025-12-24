@@ -67,6 +67,7 @@ type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
 	CreateCPSAction(ctx context.Context, action *model.CPSAction) error
 	RejectCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
+	CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
 	ReverseCPSAction(ctx context.Context, actionCode string) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
@@ -444,6 +445,10 @@ type RoleService interface {
 
 type CustomerSegmentationService interface {
 	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
+	Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
+	Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

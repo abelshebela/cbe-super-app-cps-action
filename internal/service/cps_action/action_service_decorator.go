@@ -8,6 +8,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
+	"cbe-super-app-cps-action/internal/constants/localization"
 
 	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -50,16 +51,28 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				role = r
 			}
 
-			if role != nil {
-				if role.IsMakerOnly {
-					cpsAction.CheckerCount = 0
-					// cpsAction.ActionStatus = string(constants.Approved)
-				} else if role.ApproverCount > 0 {
-					cpsAction.CheckerCount = int32(role.ApproverCount)
-				} else {
-					cpsAction.CheckerCount = 0
-				}
+			if role == nil {
+				return localization.ErrorCannotGetRole
 			}
+
+			if role.IsMakerOnly {
+				cpsAction.CheckerCount = 0
+				// cpsAction.ActionStatus = string(constants.Approved)
+			} else if role.ApproverCount > 0 {
+				cpsAction.CheckerCount = int32(role.ApproverCount)
+			} else {
+				cpsAction.CheckerCount = 0
+			}
+
+			if role.IsMakerOnly {
+				cpsAction.CheckerCount = 0
+				cpsAction.ActionStatus = string(constants.Approved)
+			} else if role.ApproverCount > 0 {
+				cpsAction.CheckerCount = int32(role.ApproverCount)
+			} else {
+				cpsAction.CheckerCount = 0
+			}
+
 			if err := s.base.CreateCPSAction(ctx, cpsAction); err != nil {
 				return err
 			}
@@ -80,6 +93,10 @@ func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action
 
 func (s *cpsActionServiceWithRoles) RejectCPSAction(ctx context.Context, actionCode string, action *model.CPSAction) error {
 	return s.base.RejectCPSAction(ctx, actionCode, action)
+}
+
+func (s *cpsActionServiceWithRoles) CancelCPSAction(ctx context.Context, actionCode string, action *model.CPSAction) error {
+	return s.base.CancelCPSAction(ctx, actionCode, action)
 }
 
 func (s *cpsActionServiceWithRoles) GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {

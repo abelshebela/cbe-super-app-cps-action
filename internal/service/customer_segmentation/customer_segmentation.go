@@ -11,6 +11,7 @@ import (
 	"errors"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -50,6 +51,68 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	return nil
 }
 
+func (s *customerSegmentationService) Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[Update] failed to find existing customer segmentation: %v", err)
+		return err
+	}
+
+	if req.CustomerRole != nil {
+		existing.CustomerRole = *req.CustomerRole
+	}
+	if req.CustomerSegment != nil {
+		existing.CustomerSegment = *req.CustomerSegment
+	}
+	if req.CustomerSubSegment != nil {
+		existing.CustomerSubSegment = *req.CustomerSubSegment
+	}
+	if req.CustomerGroup != nil {
+		existing.CustomerGroup = *req.CustomerGroup
+	}
+	existing.UpdatedAt = time.Now()
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, existing, string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
+
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		s.logger.Errorf("[Update] failed to create CPS action: %v", err)
+		return err
+	}
+
+	s.logger.Infof("[Update] customer segmentation update request created successfully")
+	return nil
+}
+
+func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
+	return s.repo.FindAllWithPagination(ctx, *filterParam)
+}
+
+func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
+	return s.repo.FindByID(ctx, id)
+}
+
+func (s *customerSegmentationService) Delete(ctx context.Context, id string) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[Delete] failed to find existing customer segmentation: %v", err)
+		return err
+	}
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, existing, string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
+
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		s.logger.Errorf("[Delete] failed to create CPS action: %v", err)
+		return err
+	}
+
+	s.logger.Infof("[Delete] customer segmentation delete request created successfully")
+	return nil
+}
+
 func (s *customerSegmentationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("[Authorize] authorizing customer segmentation action: %s", action.RequestAction)
 	var err error
@@ -66,6 +129,20 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 			return nil, err
 		}
 		s.logger.Infof("[Authorize] customer segmentation created successfully")
+	case string(constants.RequestUpdateCustomerSegmentation):
+		err = s.repo.Update(ctx, action.UniqueId, seg)
+		if err != nil {
+			s.logger.Errorf("[Authorize] failed to update customer segmentation: %v", err)
+			return nil, err
+		}
+		s.logger.Infof("[Authorize] customer segmentation updated successfully")
+	case string(constants.RequestDeleteCustomerSegmentation):
+		err = s.repo.Delete(ctx, action.UniqueId)
+		if err != nil {
+			s.logger.Errorf("[Authorize] failed to delete customer segmentation: %v", err)
+			return nil, err
+		}
+		s.logger.Infof("[Authorize] customer segmentation deleted successfully")
 	default:
 		s.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
