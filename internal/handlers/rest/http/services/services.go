@@ -70,15 +70,13 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mapped := model.Services{
-		ServiceCode:          req.ServiceCode,
-		ServiceName:          req.ServiceName,
-		ChargeCode:           req.ChargeCode,
-		CommissionCode:       req.CommissionCode,
-		CbeGLProductAccount:  req.CbeGLProductAccount,
-		CbeIFBProductAccount: req.CbeIFBProductAccount,
-		PaymentType:          req.PaymentType,
+		ServiceCode:         req.ServiceCode,
+		ServiceName:         req.ServiceName,
+		CbeGLProductAccount: req.CbeGLProductAccount,
+		PaymentType:         req.PaymentType,
+		ChargeCode:          req.ChargeCode,
+		CommissionCode:      req.CommissionCode,
 		Cap: model.Cap{
-			KYCLevel:           req.Cap.KYCLevel,
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},
@@ -143,15 +141,13 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("service.id", id))
 	mapped := model.Services{
-		ServiceCode:          req.ServiceCode,
-		ServiceName:          req.ServiceName,
-		ChargeCode:           req.ChargeCode,
-		CommissionCode:       req.CommissionCode,
-		CbeGLProductAccount:  req.CbeGLProductAccount,
-		CbeIFBProductAccount: req.CbeIFBProductAccount,
-		PaymentType:          req.PaymentType,
+		ServiceCode:         req.ServiceCode,
+		ServiceName:         req.ServiceName,
+		CbeGLProductAccount: req.CbeGLProductAccount,
+		PaymentType:         req.PaymentType,
+		ChargeCode:          req.ChargeCode,
+		CommissionCode:      req.CommissionCode,
 		Cap: model.Cap{
-			KYCLevel:           req.Cap.KYCLevel,
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},

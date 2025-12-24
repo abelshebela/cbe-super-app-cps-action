@@ -407,6 +407,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		}
 		action.CurrentAction = updatedPayload
 		return action, nil
+
 	case string(constants.UPDATE):
 		cur, err := local_util.JsonUnmarshal[model.CPSActionRole](action.PreviousAction)
 		if err != nil {
@@ -540,6 +541,7 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 				UpdatedAt:    now,
 				CreatedAt:    now,
 			})
+
 			span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
 			s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID.Hex())
 		} else {

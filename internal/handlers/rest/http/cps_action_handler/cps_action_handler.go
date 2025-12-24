@@ -209,12 +209,14 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
+
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 		if rawRoleID == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
 		roleID := local_util.FirstHex24(rawRoleID)
 		UpperCaseAction := strings.ToUpper(actionName)
 		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
@@ -228,10 +230,11 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
 		Current_role_level := *idxDoc.CheckerIndex
-		// expected := int32(*idxDoc.CheckerIndex)
-		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+		expected := int32(*idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
 		if currentIndex == Current_role_level {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
@@ -252,7 +255,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Enforce ordering: must approve in sequence
-	// if int32(*idxDoc.CheckerIndex) != currentIndex+1 || int32(*idxDoc.CheckerIndex) > checkerCount {
+	// if int64(*idxDoc.CheckerIndex) != int64(currentIndex)+1 || int64(*idxDoc.CheckerIndex) > int64(checkerCount) {
 	// 	span.RecordError(fmt.Errorf("out of order checker approval"))
 	// 	localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 	// 	return
@@ -280,7 +283,6 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(ctx, update); err != nil {
-		fmt.Printf("Errors : %v\n", err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -317,6 +319,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	// Prevent rejecting an action that is already finalized
 	if action.ActionStatus == string(constants.Approved) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
@@ -371,11 +374,12 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		}
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			roleID = local_util.FirstHex24(roleID)
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
-			idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, actionName)
+			idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
 			if err != nil {
 				span.RecordError(err)
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)

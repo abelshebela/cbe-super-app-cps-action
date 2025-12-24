@@ -18,6 +18,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -31,6 +32,7 @@ type miniAppMerchantService struct {
 	logger               utils.Logger
 	accountLookupService account_lookup.Account
 	merchantLookup       merchant_lookup.MerchantLookupAdapter
+	cfg                  config.VaultConfig
 }
 
 func NewEcommerceMerchantService(
@@ -39,6 +41,7 @@ func NewEcommerceMerchantService(
 	merchantLookup merchant_lookup.MerchantLookupAdapter,
 	logger utils.Logger,
 	accountLookupService account_lookup.Account,
+	cfg config.VaultConfig,
 ) service.EcommerceMerchantService {
 	return &miniAppMerchantService{
 		repo:                 repo,
@@ -46,6 +49,7 @@ func NewEcommerceMerchantService(
 		accountLookupService: accountLookupService,
 		merchantLookup:       merchantLookup,
 		logger:               logger,
+		cfg:                  cfg,
 	}
 }
 
@@ -411,11 +415,12 @@ func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id strin
 	return result, nil
 }
 
-func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID, token string) (*merchantDto.MerchantLookUpResponse, error) {
+func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID string) (*merchantDto.MerchantLookUpResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
-	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, token)
+	xAPIKey := m.cfg.ApiKey
+	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey)
 	if err != nil {
 		m.logger.Errorf("Merchant lookup error : %v", err)
 		span.AddEvent("Merchant lookup failed", trace.WithAttributes(

@@ -30,8 +30,6 @@ func (s *servicesService) Create(ctx context.Context, req model.Services) error 
 	if err := core.ValidateCreate(req, s.repo); err != nil {
 		return err
 	}
-	// new entity, uniqueId empty
-
 	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, req, nil, constants.ActionCreate)
 }
 

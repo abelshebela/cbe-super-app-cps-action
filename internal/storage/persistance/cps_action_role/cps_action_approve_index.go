@@ -22,7 +22,7 @@ func NewCPSActionApproveIndexRepository(client *mongo.Client, database string, c
 	return &CPSActionApproveIndexRepository{
 		client:     client,
 		logger:     logger,
-		collection: client.Database(database).Collection(collection),
+		collection: client.Database(database).Collection("cps_action_approver_index"),
 	}
 }
 

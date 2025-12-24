@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -154,8 +153,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "Role"):
 		return d.app.RoleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "CustomerSegmentation"):
-		fmt.Println("=======================q", action)
+	case IsActionInGroup(RequestAction(action), "CustomerSegmentations"):
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 
 	default:

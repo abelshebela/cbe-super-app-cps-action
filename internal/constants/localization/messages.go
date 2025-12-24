@@ -362,18 +362,19 @@ const (
 	MsgDepartmentIDRequired = "Department ID is required"
 
 	// User related error messages
-	MsgUserNotFound             = "User not found"
-	MsgUserAlreadyExists        = "User already exists"
-	MsgUserAccountBlocked       = "User account is blocked"
-	MsgUserUnauthorized         = "User is not authorized"
-	MsgUserForbidden            = "User access is forbidden"
-	MsgUserInvalidCredentials   = "Invalid credentials"
-	MsgUserSessionExpired       = "User session has expired"
-	MsgUserTooManyLoginAttempts = "Too many login attempts"
-	MsgUserDeviceMismatch       = "Device mismatch detected"
-	MsgUserDeviceNotFound       = "User device not found"
-	MsgUserDeviceAlreadyExists  = "User device already exists"
-	MsgSamePIN                  = "You used the same pin as the old one"
+	MsgUserNotFound                 = "User not found"
+	MsgUserAlreadyExists            = "User already exists"
+	MsgUserAccountBlocked           = "User account is blocked"
+	MsgUserUnauthorized             = "User is not authorized"
+	MsgThirdApiRequestNotAuthorized = "Third API request is not authorized"
+	MsgUserForbidden                = "User access is forbidden"
+	MsgUserInvalidCredentials       = "Invalid credentials"
+	MsgUserSessionExpired           = "User session has expired"
+	MsgUserTooManyLoginAttempts     = "Too many login attempts"
+	MsgUserDeviceMismatch           = "Device mismatch detected"
+	MsgUserDeviceNotFound           = "User device not found"
+	MsgUserDeviceAlreadyExists      = "User device already exists"
+	MsgSamePIN                      = "You used the same pin as the old one"
 
 	// OTP related error messages
 	MsgOTPNotFound        = "OTP not found"
@@ -845,6 +846,8 @@ const (
 	MsgDonationImageUpdateFailed      = "Failed to update donation image"
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
+
+	MsgCannotGetRole = "Cannot get role"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
