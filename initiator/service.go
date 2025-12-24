@@ -95,7 +95,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// miniAppMerchantService := ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, nil, persistence.MerchantLookup, logger, persistence.Account_lookup_external)
 	miniMerchant := miniapp.NewMiniAppMerchantService(persistence.MiniAppMerchant, persistence.MiniAppPersistence, persistence.MerchantLookup, logger)
 	miniAppService := miniapp.NewMiniAppService(persistence.MiniAppPersistence, miniMerchant, logger)
-	ecommerceMerchantService := ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, nil, persistence.MerchantLookup, logger, persistence.Account_lookup_external)
+	ecommerceMerchantService := ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, nil, persistence.MerchantLookup, logger, persistence.Account_lookup_external, *cfg)
 	faydaService := fayda.NewFaydaService(persistence.FaydaPersistence, nil, logger)
 
 	adService := advert.NewAdvertService(persistence.AdvertRepositoryPersistence, nil, minioClient, cfg.S3BucketName, cfg, logger)
@@ -213,7 +213,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	hqService = hq.NewHQService(persistence.HQPersistence, cpsActionService, logger)
 	miniAppService = miniapp.NewMiniAppService(persistence.MiniAppPersistence, miniMerchant, logger)
 	// miniAppMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter)
-	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter)
+	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter, *cfg)
 	faydaService = fayda.NewFaydaService(persistence.FaydaPersistence, cpsActionService, logger)
 	adService = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, cfg.S3BucketName, cfg, logger)
 	// serviceDetails = service_details.NewServiceDetailsService(mongoClient, persistence.ServiceDetailsPersistence, persistence.HQPersistence, cpsActionService, logger)
@@ -255,7 +255,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// serviceContainer.ServicesContainer = servicesService
 	// miniAppMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter)
 	serviceContainer.MiniAppMerchantContainer = miniMerchant
-	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter)
+	ecommerceMerchantService = ecommerce_merchant.NewEcommerceMerchantService(persistence.EcommerceMerchantPersistence, cpsActionService, persistence.MerchantLookup, logger, accountLookupAdapter, *cfg)
 	serviceContainer.EcommerceMerchantContainer = ecommerceMerchantService
 	serviceContainer.ProductCodeService = productcode.NewProductCodeService(persistence.ProductCodePersistence, cpsActionService, logger)
 	unlinkService = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
