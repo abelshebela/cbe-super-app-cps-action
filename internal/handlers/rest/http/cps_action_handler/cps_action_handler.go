@@ -54,7 +54,7 @@ func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if action.ActionStatus != string(constants.Pending) {
+	if action.ActionStatus != string(constants.Pending) || action.CurrentCheckerIndex > 0 {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
