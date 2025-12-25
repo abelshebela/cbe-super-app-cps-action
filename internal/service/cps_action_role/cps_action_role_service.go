@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/cps_action_role/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -270,7 +269,6 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 
 	// Recalculate ApproverCount
 	payload.ApproverCount = int32(len(payload.AssignedCheckerRoles))
-
 	cpsAction := lib.CpsModelBuilder(
 		actionCode,
 		maker,
@@ -521,26 +519,26 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		return action, nil
 
 	case string(constants.UPDATE):
-		rprev, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.PreviousAction)
+		prev, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
-		rnew, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.CurrentAction)
+		new, err := local_util.JsonUnmarshal[model.CPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal new action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal new action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
-		prev := core.MapResponseToModel(rprev)
-		new := core.MapResponseToModel(rnew)
-		add, remove := core.DiffFinder(prev, new)
+		// prev := core.MapResponseToModel(rprev)
+		// new := core.MapResponseToModel(rnew)
+		// add, remove := core.DiffFinder(prev, new)
 
 		// add all ids in add to role action index with role cur.ActionCode
-		s.indexRepo.InsertMany(ctx, add.MakerDiff, add.CheckerDiff, add.AuditorDiff, prev.ActionCode)
-		s.indexRepo.DeleteMany(ctx, remove.MakerDiff, remove.CheckerDiff, remove.AuditorDiff, prev.ActionCode)
+		s.indexRepo.InsertAll(ctx, *new)
+		s.indexRepo.DeleteAll(ctx, *prev)
 
 		if err := s.repo.UpdateByActionCode(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to update action role", trace.WithAttributes(attribute.String("error", err.Error())))
