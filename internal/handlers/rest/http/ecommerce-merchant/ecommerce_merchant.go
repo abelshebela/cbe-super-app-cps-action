@@ -56,9 +56,9 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
+	// formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
 
-	reqDTO.PhoneNumber = formattedPhone
+	// reqDTO.PhoneNumber = formattedPhone
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
 		span.RecordError(errors.New("incomplete user context"))
@@ -66,9 +66,6 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-
-	h.logger.Debugf("Converted to domain model: %+v", reqDTO)
-	span.SetAttributes(attribute.String("ecommerce_merchant.phone", formattedPhone))
 
 	createdMerchant, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {

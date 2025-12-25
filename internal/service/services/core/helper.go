@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"errors"
 	"log"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -17,10 +16,10 @@ import (
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
-	if incomplet := local_util.IsIncomplete(userData); incomplet {
-		log.Println("User data incomplete for CPS action", "userCode", userData.UserCode)
-		return errors.New(localization.ErrorIncompleteUserInfo.Code)
-	}
+	// if incomplet := local_util.IsIncomplete(userData); incomplet {
+	// 	log.Println("User data incomplete for CPS action", "userCode", userData.UserCode)
+	// 	return errors.New(localization.ErrorIncompleteUserInfo.Code)
+	// }
 
 	cpsAction := lib.CpsModelBuilder(uniqueID, userData, prevData, curData, string(requestAction), string(actionType))
 
