@@ -5,20 +5,18 @@ import (
 )
 
 type CreateBankRequest struct {
-	Name string                `form:"name" json:"name" binding:"required"`
-	Logo *multipart.FileHeader `form:"logo" json:"logo" binding:"required"`
-	Code string                `form:"code" json:"code" binding:"required"`
-	BIC  string                `form:"bic" json:"bic" binding:"required"`
-	Type string                `form:"type" json:"type" binding:"required"`
+	Name    string                `form:"name" json:"name" binding:"required"`
+	Logo    *multipart.FileHeader `form:"logo" json:"logo" binding:"required"`
+	BICCode string                `form:"bic_code" json:"bic_code" binding:"required"`
+	Type    string                `form:"type" json:"type" binding:"required"`
 }
 
 type UpdateBankRequest struct {
-	ID   string                `json:"_id" bson:"_id"`
-	Logo *multipart.FileHeader `form:"logo" json:"logo"`
-	Name string                `json:"name" bson:"name"`
-	Code string                `json:"code" bson:"code"`
-	BIC  string                `json:"bic" bson:"bic"`
-	Type string                `form:"type" json:"type"`
+	ID      string                `json:"_id" bson:"_id"`
+	Logo    *multipart.FileHeader `form:"logo" json:"logo"`
+	Name    string                `json:"name" bson:"name"`
+	BICCode string                `json:"bic_code" bson:"bic_code"`
+	Type    string                `form:"type" json:"type"`
 }
 
 type UpdateLogo struct {

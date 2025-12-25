@@ -64,8 +64,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	bankRequest.Name = r.FormValue("name")
-	bankRequest.Code = r.FormValue("code")
-	bankRequest.BIC = r.FormValue("bic")
+	bankRequest.BICCode = r.FormValue("bic_code")
 	bankRequest.Type = r.FormValue("type")
 	bankRequest.Logo = fileHeader
 
@@ -77,7 +76,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	span.SetAttributes(
-		attribute.String("bank.code", bankRequest.Code),
+		attribute.String("bank.bic_code", bankRequest.BICCode),
 		attribute.String("bank.name", bankRequest.Name),
 	)
 
@@ -88,7 +87,7 @@ func (b *bankAdapter) CreateOneBank(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	b.logger.Infof("[CreateOneBank] request sent successfully for bank code: %s", bankRequest.Code)
+	b.logger.Infof("[CreateOneBank] request sent successfully for bank bic_code: %s", bankRequest.BICCode)
 	localization.SendSuccessResponse(w, localization.SuccessBankCreatedRequestSent, nil)
 }
 
@@ -369,8 +368,7 @@ func (b *bankAdapter) UpdateOneBank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updateRequest.Name = r.FormValue("name")
-	updateRequest.Code = r.FormValue("code")
-	updateRequest.BIC = r.FormValue("bic")
+	updateRequest.BICCode = r.FormValue("bic_code")
 	updateRequest.Type = r.FormValue("type")
 
 	if response_code := bank_core.ValidateBankRequest(r, &updateRequest); response_code.Code != "" {
