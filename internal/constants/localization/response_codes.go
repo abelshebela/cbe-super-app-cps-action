@@ -55,6 +55,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
 
+	SuccessEcommerceMerchantCreatedSuccessfully,
+	SuccessEcommerceMerchantUpdatedSuccessfully,
+	SuccessEcommerceMerchantDeletedSuccessfully,
+	SuccessEcommerceMerchantEnableSuccessfully,
+	SuccessEcommerceMerchantDisableSuccessfully,
+	SuccessEcommerceMerchantFetchedSuccessfully,
+	SuccessEcommerceMerchantsFetchedSuccessfully,
+	SuccessEcommerceMerchantLookup,
+
 	SuccessTopupEnableRequestSubmitted,
 	SuccessTopupDisableRequestSubmitted,
 	SuccessTopupCreationRequestSent,
@@ -2088,6 +2097,56 @@ var (
 		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgBankEnableRequestSent,
+		Type:       "success",
+	}
+
+	// Ecommerce merchant
+	SuccessEcommerceMerchantCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantCreated,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantUpdatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantUpdated,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantDeletedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantDeleted,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantEnableSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_ENABLE",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantEnable,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantDisableSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_DISABLE",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantDisable,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantFetched,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantsFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANTS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantsFetched,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantLookup = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantLookup,
 		Type:       "success",
 	}
 

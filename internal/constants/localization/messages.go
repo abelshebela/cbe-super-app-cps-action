@@ -510,6 +510,16 @@ const (
 	MsgDonationInvalidStartDate          = "Invalid start date format"
 	MsgDonationInvalidEndDate            = "Invalid end date format"
 
+	// Ecommerce Merchant
+	MsgEcommerceMerchantCreated  = "Ecommerce merchant created request submitted successfully"
+	MsgEcommerceMerchantUpdated  = "Ecommerce merchant updated request submitted successfully"
+	MsgEcommerceMerchantDeleted  = "Ecommerce merchant delete request submitted successfully"
+	MsgEcommerceMerchantEnable   = "Ecommerce merchant enable request submitted successfully"
+	MsgEcommerceMerchantDisable  = "Ecommerce merchant disable request submitted successfully"
+	MsgEcommerceMerchantFetched  = "Ecommerce merchant fetched successfully"
+	MsgEcommerceMerchantsFetched = "Ecommerce merchants fetched successfully"
+	MsgEcommerceMerchantLookup   = "Ecommerce merchant lookup successfully"
+
 	MsgDonationAccountNotFound    = "Account not found"
 	MsgDonationUploadFailed       = "Failed to upload donation files"
 	MsgDonationTitleDuplicated    = "Donation title already exists"
