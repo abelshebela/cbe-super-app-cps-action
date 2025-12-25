@@ -22,17 +22,13 @@ const (
 )
 
 type Bank struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Logo  string                 `protobuf:"bytes,3,opt,name=logo,proto3" json:"logo,omitempty"`
-	// Deprecated: Marked as deprecated in bank.proto.
-	Bic string `protobuf:"bytes,4,opt,name=bic,proto3" json:"bic,omitempty"`
-	// Deprecated: Marked as deprecated in bank.proto.
-	Code          string `protobuf:"bytes,5,opt,name=code,proto3" json:"code,omitempty"`
-	Enabled       bool   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	Type          string `protobuf:"bytes,7,opt,name=type,proto3" json:"type,omitempty"`
-	BicCode       string `protobuf:"bytes,8,opt,name=bic_code,json=bicCode,proto3" json:"bic_code,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Logo          string                 `protobuf:"bytes,3,opt,name=logo,proto3" json:"logo,omitempty"`
+	BicCode       string                 `protobuf:"bytes,4,opt,name=bic_code,json=bicCode,proto3" json:"bic_code,omitempty"`
+	Type          string                 `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -88,27 +84,11 @@ func (x *Bank) GetLogo() string {
 	return ""
 }
 
-// Deprecated: Marked as deprecated in bank.proto.
-func (x *Bank) GetBic() string {
+func (x *Bank) GetBicCode() string {
 	if x != nil {
-		return x.Bic
+		return x.BicCode
 	}
 	return ""
-}
-
-// Deprecated: Marked as deprecated in bank.proto.
-func (x *Bank) GetCode() string {
-	if x != nil {
-		return x.Code
-	}
-	return ""
-}
-
-func (x *Bank) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
-	}
-	return false
 }
 
 func (x *Bank) GetType() string {
@@ -118,11 +98,11 @@ func (x *Bank) GetType() string {
 	return ""
 }
 
-func (x *Bank) GetBicCode() string {
+func (x *Bank) GetEnabled() bool {
 	if x != nil {
-		return x.BicCode
+		return x.Enabled
 	}
-	return ""
+	return false
 }
 
 type Docs struct {
@@ -466,16 +446,14 @@ var File_bank_proto protoreflect.FileDescriptor
 const file_bank_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"bank.proto\x12\vBankService\"\xb5\x01\n" +
+	"bank.proto\x12\vBankService\"\x87\x01\n" +
 	"\x04Bank\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04logo\x18\x03 \x01(\tR\x04logo\x12\x14\n" +
-	"\x03bic\x18\x04 \x01(\tB\x02\x18\x01R\x03bic\x12\x16\n" +
-	"\x04code\x18\x05 \x01(\tB\x02\x18\x01R\x04code\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x12\n" +
-	"\x04type\x18\a \x01(\tR\x04type\x12\x19\n" +
-	"\bbic_code\x18\b \x01(\tR\abicCode\"/\n" +
+	"\x04logo\x18\x03 \x01(\tR\x04logo\x12\x19\n" +
+	"\bbic_code\x18\x04 \x01(\tR\abicCode\x12\x12\n" +
+	"\x04type\x18\x05 \x01(\tR\x04type\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\"/\n" +
 	"\x04docs\x12'\n" +
 	"\x05banks\x18\x01 \x03(\v2\x11.BankService.BankR\x05banks\"#\n" +
 	"\x11GetOneBankRequest\x12\x0e\n" +

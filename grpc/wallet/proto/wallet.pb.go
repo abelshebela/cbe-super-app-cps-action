@@ -22,16 +22,14 @@ const (
 )
 
 type Wallet struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// Deprecated: Marked as deprecated in wallet.proto.
-	Code          string    `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Avatar        string    `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Enabled       bool      `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	IsDeleted     bool      `protobuf:"varint,6,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
-	Services      *Services `protobuf:"bytes,7,opt,name=services,proto3" json:"services,omitempty"`
-	UniqueCode    string    `protobuf:"bytes,8,opt,name=unique_code,json=uniqueCode,proto3" json:"unique_code,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	UniqueCode    string                 `protobuf:"bytes,3,opt,name=unique_code,json=uniqueCode,proto3" json:"unique_code,omitempty"`
+	Avatar        string                 `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	IsDeleted     bool                   `protobuf:"varint,6,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
+	Services      *Services              `protobuf:"bytes,7,opt,name=services,proto3" json:"services,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -80,10 +78,9 @@ func (x *Wallet) GetName() string {
 	return ""
 }
 
-// Deprecated: Marked as deprecated in wallet.proto.
-func (x *Wallet) GetCode() string {
+func (x *Wallet) GetUniqueCode() string {
 	if x != nil {
-		return x.Code
+		return x.UniqueCode
 	}
 	return ""
 }
@@ -114,13 +111,6 @@ func (x *Wallet) GetServices() *Services {
 		return x.Services
 	}
 	return nil
-}
-
-func (x *Wallet) GetUniqueCode() string {
-	if x != nil {
-		return x.UniqueCode
-	}
-	return ""
 }
 
 type Services struct {
@@ -523,18 +513,17 @@ var File_wallet_proto protoreflect.FileDescriptor
 
 const file_wallet_proto_rawDesc = "" +
 	"\n" +
-	"\fwallet.proto\x12\x06wallet\"\xe4\x01\n" +
+	"\fwallet.proto\x12\x06wallet\"\xcc\x01\n" +
 	"\x06Wallet\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x16\n" +
-	"\x04code\x18\x03 \x01(\tB\x02\x18\x01R\x04code\x12\x16\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
+	"\vunique_code\x18\x03 \x01(\tR\n" +
+	"uniqueCode\x12\x16\n" +
 	"\x06avatar\x18\x04 \x01(\tR\x06avatar\x12\x18\n" +
 	"\aenabled\x18\x05 \x01(\bR\aenabled\x12\x1d\n" +
 	"\n" +
 	"is_deleted\x18\x06 \x01(\bR\tisDeleted\x12,\n" +
-	"\bservices\x18\a \x01(\v2\x10.wallet.ServicesR\bservices\x12\x1f\n" +
-	"\vunique_code\x18\b \x01(\tR\n" +
-	"uniqueCode\"J\n" +
+	"\bservices\x18\a \x01(\v2\x10.wallet.ServicesR\bservices\"J\n" +
 	"\bServices\x12\x12\n" +
 	"\x04self\x18\x01 \x01(\bR\x04self\x12\x14\n" +
 	"\x05other\x18\x02 \x01(\bR\x05other\x12\x14\n" +

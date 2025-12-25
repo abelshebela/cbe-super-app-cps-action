@@ -288,7 +288,7 @@ func UploadFileToMinio(
 	}
 
 	// Build public URL
-	url := fmt.Sprintf("%s/%s", env.MinioPublicEndPoint, strings.TrimPrefix(key, "/"))
+	url := fmt.Sprintf("%s/%s", bucketName, strings.TrimPrefix(key, "/"))
 	return url, nil
 }
 func RemoveFileFromMinio(

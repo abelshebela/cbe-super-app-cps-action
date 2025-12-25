@@ -8,11 +8,9 @@ message Bank {
     string id = 1;
     string name = 2;
     string logo = 3;
-    string bic = 4 [deprecated = true];
-    string code = 5 [deprecated = true];
+    string bic_code = 4;
+    string type = 5;
     bool enabled = 6;
-    string type = 7;
-    string bic_code = 8;
 }
 
 message docs {
