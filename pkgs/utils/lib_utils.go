@@ -122,6 +122,10 @@ func ExtractUserFromContext(ctx context.Context) types.UserContext {
 }
 
 func IsIncomplete(u types.UserContext) bool {
+	fmt.Println("==========1", u.UserID)
+	fmt.Println("==========1", u.FullName)
+	fmt.Println("==========1", u.PhoneNumber)
+	fmt.Println("==========1", u.Department)
 	return strings.TrimSpace(u.UserID) == "" || strings.TrimSpace(u.FullName) == "" || strings.TrimSpace(u.PhoneNumber) == "" || strings.TrimSpace(u.Department) == ""
 }
 
