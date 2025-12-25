@@ -1073,6 +1073,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessCPSActionReversed = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_REVERSED",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionReversedSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessCPSActionRejected = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTION_REJECTED",
 		StatusCode: StatusOK,

@@ -201,6 +201,11 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 
 	secured.Route("/password_rule", func(r chi.Router) {
 		r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.AuthenticateToken)
+			r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
+			r.Patch("/{id}", handlerLayer.PasswordHandler.RequestPasswordRuleUpdate)
+		})
 	})
 
 	secured.Group(func(r chi.Router) {
@@ -208,11 +213,11 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		r.Use(authMiddleware.AuthenticateToken)
 
 		// CPS Action Guard
-		r.Use(customeMiddleware.CPSActionRouteGuard([]string{
-			"/actions",
-			"/actions/{action_code}/approve",
-			"/actions/{action_code}/reject",
-		}))
+		// r.Use(customeMiddleware.CPSActionRouteGuard([]string{
+		// 	"/actions",
+		// 	"/actions/{action_code}/approve",
+		// 	"/actions/{action_code}/reject",
+		// }))
 
 	})
 	secured.Mount("/", r)

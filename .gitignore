@@ -52,3 +52,5 @@ definition_of_done.md
 definition_of_ready.md
 docs
 tools
+
+./cmd/_debug*

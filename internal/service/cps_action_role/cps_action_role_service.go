@@ -155,7 +155,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		AssignedMakersRoles:  makers,
 		AssignedCheckerRoles: checkers,
 		AssignedAuditorRoles: auditors,
-		IsMakerOnly:          req.IsMakerOnly,
+		IsMakerOnly:          req.IsMakerOnly || int32(len(checkers)) == 0,
 		Enabled:              true,
 		ApproverCount:        int32(len(checkers)),
 	}
