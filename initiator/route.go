@@ -198,41 +198,29 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	// // router.Use(customeMiddleware.ChiCORS())
 
 	secured := chi.NewRouter()
-	secured.Use(authMiddleware.AuthenticateToken)
-	// Central CPS Action Guard (Option B): authorize by role_id + action_name with cache.
-	// Whitelist CPSAction endpoints under /actions (approve/reject/list...), allow them all.
-	// secured.Use(customeMiddleware.CPSActionRouteGuard([]string{"/password_rule/", "/actions", "/actions/{action_code}/approve", "/actions/{action_code}/reject"}))
-	secured.Mount("/", r)
 
-	// --------------------
-	// Public (no auth)
-	// --------------------
 	secured.Route("/password_rule", func(r chi.Router) {
 		r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
+		r.Group(func(r chi.Router) {
+			r.Use(authMiddleware.AuthenticateToken)
+			r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
+			r.Patch("/{id}", handlerLayer.PasswordHandler.RequestPasswordRuleUpdate)
+		})
 	})
 
-	// --------------------
-	// Protected routes
-	// --------------------
 	secured.Group(func(r chi.Router) {
 		// Auth first
 		r.Use(authMiddleware.AuthenticateToken)
 
 		// CPS Action Guard
-		r.Use(customeMiddleware.CPSActionRouteGuard([]string{
-			"/actions",
-			"/actions/{action_code}/approve",
-			"/actions/{action_code}/reject",
-		}))
+		// r.Use(customeMiddleware.CPSActionRouteGuard([]string{
+		// 	"/actions",
+		// 	"/actions/{action_code}/approve",
+		// 	"/actions/{action_code}/reject",
+		// }))
 
-		// CPS Actions
-		// r.Route("/actions", func(r chi.Router) {
-		// 	r.Get("/", handlerLayer.CpsActionHandler.GetCPSActionsByDepartment)
-		// 	r.Post("/{action_code}/approve", handlerLayer.CpsActionHandler.ApproveCPSAction)
-		// 	r.Post("/{action_code}/reject", handlerLayer.CpsActionHandler.RejectCPSAction)
-		// })
 	})
-	// secured.Mount("/", r)
+	secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 

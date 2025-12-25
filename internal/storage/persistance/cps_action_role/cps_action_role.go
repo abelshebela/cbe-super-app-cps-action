@@ -60,87 +60,75 @@ func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Contex
 func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
 	const rolesCollection = "roles"
 	pipeline := mongo.Pipeline{
-		// Stage 1: Match the document by actionCode
+		// Stage 1: Match by actionCode
 		{{Key: "$match", Value: bson.D{{Key: "action_code", Value: actionCode}}}},
 
-		// --- Stages for AssignedMakers (Simple Lookup) ---
-		// Stage 2: Lookup the Roles for 'assigned_makers' (1:N relationship)
+		// Stage 2: Lookup assigned_makers_roles (simple array)
 		{{Key: "$lookup", Value: bson.M{
 			"from":         rolesCollection,
 			"localField":   "assigned_makers_roles",
 			"foreignField": "_id",
-			"as":           "assigned_makers_roles", // Overwrites the IDs with the full Role objects
+			"as":           "assigned_makers_roles",
 		}}},
 
-		// --- Stages for AssignedCheckersRoles ([[]ObjectID] -> [[]Role]) ---
-
-		// Stage 3: Unwind the OUTER array of assigned_checkers, preserving the index
+		// Stage 3: Lookup assigned_checkers_roles (nested array [[]ObjectID])
 		{{Key: "$unwind", Value: bson.M{
-			"path":              "$assigned_checkers_roles",
-			"includeArrayIndex": "outer_index",
+			"path":                       "$assigned_checkers_roles",
+			"preserveNullAndEmptyArrays": true,
+			"includeArrayIndex":          "checker_outer_index",
 		}}},
-
-		// Stage 4: Unwind the INNER array of ObjectID, preserving the index
 		{{Key: "$unwind", Value: bson.M{
-			"path":              "$assigned_checkers_roles",
-			"includeArrayIndex": "inner_index",
+			"path":                       "$assigned_checkers_roles",
+			"preserveNullAndEmptyArrays": true,
+			"includeArrayIndex":          "checker_inner_index",
 		}}},
-
-		// Stage 5: Lookup the Role document for the now single ObjectID
 		{{Key: "$lookup", Value: bson.M{
 			"from":         rolesCollection,
-			"localField":   "assigned_checkers_roles", // This is now a single ObjectID
+			"localField":   "assigned_checkers_roles",
 			"foreignField": "_id",
-			"as":           "checker_role_doc", // Temporary field for the fetched role (still an array [Role])
+			"as":           "checker_role_doc",
 		}}},
-
-		// Stage 6: Convert the temporary single-element array to a single object
-		// This prepares the role for grouping.
-		{{Key: "$unwind", Value: "$checker_role_doc"}},
-
-		// Stage 7: Group back the inner array ([Role])
-		// Group by the original document ID AND the outer_index to rebuild the inner array.
-		// IMPORTANT: Use $first to carry forward ALL original fields.
+		{{Key: "$unwind", Value: bson.M{
+			"path":                       "$checker_role_doc",
+			"preserveNullAndEmptyArrays": true,
+		}}},
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: bson.D{
 				{Key: "_id", Value: "$_id"},
-				{Key: "outer_index", Value: "$outer_index"},
+				{Key: "checker_outer_index", Value: "$checker_outer_index"},
 			}},
-			// --- Carry forward all original fields ---
 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
 			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
-			// ----------------------------------------
-
-			// Reconstruct the inner array of roles
-			{Key: "inner_roles_array", Value: bson.D{{Key: "$push", Value: "$checker_role_doc"}}},
+			// FIX: Pass the auditor IDs forward
+			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
+			{Key: "inner_checkers", Value: bson.D{{Key: "$push", Value: "$checker_role_doc"}}},
 		}}},
-
-		// Stage 8: Group back the outer array ([[]Role])
-		// Group by the original document ID to rebuild the outer array and final document.
-		// IMPORTANT: Use $first to carry forward ALL original fields.
 		{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "$_id._id"}, // The original document ID
-
-			// --- Carry forward all original fields (using the field names from the previous stage) ---
+			{Key: "_id", Value: "$_id._id"},
 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
 			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
-			// ----------------------------------------
-
-			// Reconstruct the outer array of role arrays
-			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$inner_roles_array"}}},
+			// FIX: Pass the auditor IDs forward again
+			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
+			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$inner_checkers"}}},
 		}}},
 
-		// Stage 9: Final Projection (Optional but recommended for clean output)
-		// This renames the fields to match the DTO struct's JSON/BSON tags if necessary
-		// and ensures the output document is clean.
+		// Stage 4: Lookup assigned_auditor_roles (similar to makers)
+		{{Key: "$lookup", Value: bson.M{
+			"from":         rolesCollection,
+			"localField":   "assigned_auditor_roles",
+			"foreignField": "_id",
+			"as":           "assigned_auditor_roles",
+		}}},
+
+		// Stage 5: Project final fields
 		{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 1},
 			{Key: "action_code", Value: 1},
@@ -150,7 +138,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 			{Key: "created_at", Value: 1},
 			{Key: "assigned_makers_roles", Value: 1},
 			{Key: "assigned_checkers_roles", Value: 1},
-			{Key: "assigned_auditor_roles", Value: 1}, // FIXED spelling
+			{Key: "assigned_auditor_roles", Value: 1},
 		}}},
 	}
 
@@ -170,6 +158,302 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 	return results[0], nil
 }
 
+// func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
+// 	const rolesCollection = "roles"
+// 	pipeline := mongo.Pipeline{
+// 		// Stage 1: Match the document by actionCode
+// 		{{Key: "$match", Value: bson.D{{Key: "action_code", Value: actionCode}}}},
+
+// 		// --- Stages for AssignedMakers (Simple Lookup) ---
+// 		// Stage 2: Lookup the Roles for 'assigned_makers' (1:N relationship)
+// 		{{Key: "$lookup", Value: bson.M{
+// 			"from":         rolesCollection,
+// 			"localField":   "assigned_makers_roles",
+// 			"foreignField": "_id",
+// 			"as":           "assigned_makers_roles", // Overwrites the IDs with the full Role objects
+// 		}}},
+
+// 		// --- Stages for AssignedCheckersRoles ([[]ObjectID] -> [[]Role]) ---
+
+// 		// Stage 3: Unwind the OUTER array of assigned_checkers, preserving the index
+// 		{{Key: "$unwind", Value: bson.M{
+// 			"path":              "$assigned_checkers_roles",
+// 			"includeArrayIndex": "outer_index",
+// 		}}},
+
+// 		// Stage 4: Unwind the INNER array of ObjectID, preserving the index
+// 		{{Key: "$unwind", Value: bson.M{
+// 			"path":              "$assigned_checkers_roles",
+// 			"includeArrayIndex": "inner_index",
+// 		}}},
+
+// 		// Stage 5: Lookup the Role document for the now single ObjectID
+// 		{{Key: "$lookup", Value: bson.M{
+// 			"from":         rolesCollection,
+// 			"localField":   "assigned_checkers_roles", // This is now a single ObjectID
+// 			"foreignField": "_id",
+// 			"as":           "checker_role_doc", // Temporary field for the fetched role (still an array [Role])
+// 		}}},
+
+// 		// Stage 6: Convert the temporary single-element array to a single object
+// 		// This prepares the role for grouping.
+// 		{{Key: "$unwind", Value: "$checker_role_doc"}},
+
+// 		// Stage 7: Group back the inner array ([Role])
+// 		// Group by the original document ID AND the outer_index to rebuild the inner array.
+// 		// IMPORTANT: Use $first to carry forward ALL original fields.
+// 		{{Key: "$group", Value: bson.D{
+// 			{Key: "_id", Value: bson.D{
+// 				{Key: "_id", Value: "$_id"},
+// 				{Key: "outer_index", Value: "$outer_index"},
+// 			}},
+// 			// --- Carry forward all original fields ---
+// 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
+// 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
+// 			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
+// 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
+// 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
+// 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
+// 			// ----------------------------------------
+
+// 			// Reconstruct the inner array of roles
+// 			{Key: "inner_roles_array", Value: bson.D{{Key: "$push", Value: "$checker_role_doc"}}},
+// 		}}},
+
+// 		// Stage 8: Group back the outer array ([[]Role])
+// 		// Group by the original document ID to rebuild the outer array and final document.
+// 		// IMPORTANT: Use $first to carry forward ALL original fields.
+// 		{{Key: "$group", Value: bson.D{
+// 			{Key: "_id", Value: "$_id._id"}, // The original document ID
+
+// 			// --- Carry forward all original fields (using the field names from the previous stage) ---
+// 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
+// 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
+// 			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
+// 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
+// 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
+// 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
+// 			// ----------------------------------------
+
+// 			// Reconstruct the outer array of role arrays
+// 			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$inner_roles_array"}}},
+// 		}}},
+
+// 		// Stage 9: Final Projection (Optional but recommended for clean output)
+// 		// This renames the fields to match the DTO struct's JSON/BSON tags if necessary
+// 		// and ensures the output document is clean.
+// 		{{Key: "$project", Value: bson.D{
+// 			{Key: "_id", Value: 1},
+// 			{Key: "action_code", Value: 1},
+// 			{Key: "action_name", Value: 1},
+// 			{Key: "enabled", Value: 1},
+// 			{Key: "updated_at", Value: 1},
+// 			{Key: "created_at", Value: 1},
+// 			{Key: "assigned_makers_roles", Value: 1},
+// 			{Key: "assigned_checkers_roles", Value: 1},
+// 			{Key: "assigned_auditor_roles", Value: 1}, // FIXED spelling
+// 		}}},
+// 	}
+
+// 	cursor, err := r.collection.Aggregate(ctx, pipeline)
+// 	if err != nil {
+
+// 		return nil, err
+// 	}
+// 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
+// 	if err := cursor.All(ctx, &results); err != nil {
+// 		fmt.Println("/////// pipline error ", err)
+// 		return nil, err
+// 	}
+// 	if len(results) == 0 {
+// 		return nil, errors.New(localization.ErrorBpsActionRoleNotFound.Code)
+// 	}
+// 	return results[0], nil
+// }
+
+// func (r *CPSActionRoleRepository) FindAllWithPagination(
+// 	ctx context.Context,
+// 	filterParam types.Filter,
+// ) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error) {
+
+// 	// -----------------------------
+// 	// Build search filter
+// 	// -----------------------------
+// 	searchKeys := bson.M{}
+// 	allowedKeys := []string{"action_code", "action_name", "enabled"}
+
+// 	if filterParam.Search != "" {
+// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+// 		searchKeys["$or"] = []bson.M{
+// 			{"action_code": searchRegex},
+// 			{"action_name": searchRegex},
+// 		}
+// 	}
+
+// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+// 	// -----------------------------
+// 	// Aggregation pipeline
+// 	// -----------------------------
+// 	pipeline := mongo.Pipeline{
+// 		// 1Match base filter
+// 		{{Key: "$match", Value: filter}},
+
+// 		//  Lookup maker roles
+// 		{{
+// 			Key: "$lookup",
+// 			Value: bson.M{
+// 				"from": "roles",
+// 				"let":  bson.M{"roleIds": "$assigned_makers_roles"},
+// 				"pipeline": mongo.Pipeline{
+// 					{{Key: "$match", Value: bson.M{
+// 						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
+// 					}}},
+// 				},
+// 				"as": "assigned_makers_roles",
+// 			},
+// 		}},
+
+// 		//  Lookup all checker roles (flat)
+// 		// {{
+// 		// 	Key: "$lookup",
+// 		// 	Value: bson.M{
+// 		// 		"from": "roles",
+// 		// 		"let": bson.M{"allCheckerIds": bson.M{
+// 		// 			"$reduce": bson.M{
+// 		// 				"input":        "$assigned_checkers_roles",
+// 		// 				"initialValue": bson.A{},
+// 		// 				"in":           bson.M{"$concatArrays": bson.A{"$$value", "$$this"}},
+// 		// 			},
+// 		// 		}},
+// 		// 		"pipeline": mongo.Pipeline{
+// 		// 			{{Key: "$match", Value: bson.M{
+// 		// 				"$expr": bson.M{"$in": []interface{}{"$_id", "$$allCheckerIds"}},
+// 		// 			}}},
+// 		// 		},
+// 		// 		"as": "checker_roles_all",
+// 		// 	},
+// 		// }},
+// 		{{
+// 			Key: "$lookup",
+// 			Value: bson.M{
+// 				"from": "roles",
+// 				"let": bson.M{
+// 					"allCheckerIds": bson.M{
+// 						"$reduce": bson.M{
+// 							"input": bson.M{
+// 								"$ifNull": bson.A{"$assigned_checkers_roles", bson.A{}},
+// 							},
+// 							"initialValue": bson.A{},
+// 							"in": bson.M{
+// 								"$concatArrays": bson.A{
+// 									"$$value",
+// 									bson.M{
+// 										"$cond": bson.A{
+// 											bson.M{"$isArray": "$$this"},
+// 											"$$this",
+// 											bson.A{}, // ⬅️ SAFETY
+// 										},
+// 									},
+// 								},
+// 							},
+// 						},
+// 					},
+// 				},
+// 				"pipeline": mongo.Pipeline{
+// 					{{Key: "$match", Value: bson.M{
+// 						"$expr": bson.M{"$in": []interface{}{"$_id", "$$allCheckerIds"}},
+// 					}}},
+// 				},
+// 				"as": "checker_roles_all",
+// 			},
+// 		}},
+
+// 		//  Map nested checker arrays to full documents
+// 		{{
+// 			Key: "$addFields",
+// 			Value: bson.M{
+// 				"assigned_checkers_roles": bson.M{
+// 					"$map": bson.M{
+// 						"input": "$assigned_checkers_roles",
+// 						"as":    "level",
+// 						"in": bson.M{
+// 							"$map": bson.M{
+// 								"input": "$$level",
+// 								"as":    "rid",
+// 								"in": bson.M{
+// 									"$first": bson.M{
+// 										"$filter": bson.M{
+// 											"input": "$checker_roles_all",
+// 											"as":    "role",
+// 											"cond":  bson.M{"$eq": []interface{}{"$$role._id", "$$rid"}},
+// 										},
+// 									},
+// 								},
+// 							},
+// 						},
+// 					},
+// 				},
+// 			},
+// 		}},
+
+// 		//  Lookup auditor roles
+// 		{{
+// 			Key: "$lookup",
+// 			Value: bson.M{
+// 				"from": "roles",
+// 				"let":  bson.M{"roleIds": "$assigned_auditor_roles"},
+// 				"pipeline": mongo.Pipeline{
+// 					{{Key: "$match", Value: bson.M{
+// 						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
+// 					}}},
+// 				},
+// 				"as": "assigned_auditor_roles",
+// 			},
+// 		}},
+
+// 		//  Remove helper flat array
+// 		{{Key: "$project", Value: bson.M{"checker_roles_all": 0}}},
+
+// 		//  Pagination
+// 		{{Key: "$skip", Value: skip}},
+// 		{{Key: "$limit", Value: limit}},
+// 	}
+
+// 	// -----------------------------
+// 	// Execute aggregation
+// 	// -----------------------------
+// 	cursor, err := r.collection.Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var data []*model.CPSActionRoleResposne
+// 	if err := cursor.All(ctx, &data); err != nil {
+// 		fmt.Println(err)
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	// -----------------------------
+// 	// Total count
+// 	// -----------------------------
+// 	total, err := r.mongoDal.TotalCount(ctx, filter)
+// 	if err != nil {
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+// 	}
+
+// 	meta := local_util.BuildPaginationMeta(
+// 		total,
+// 		filterParam.Page,
+// 		filterParam.PerPage,
+// 	)
+
+//		return &types.PaginatedResponse[[]*model.CPSActionRoleResposne]{
+//			Data: data,
+//			Meta: meta,
+//		}, nil
+//	}
 func (r *CPSActionRoleRepository) FindAllWithPagination(
 	ctx context.Context,
 	filterParam types.Filter,
@@ -195,10 +479,36 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 	// Aggregation pipeline
 	// -----------------------------
 	pipeline := mongo.Pipeline{
-		// 1Match base filter
+
+		// 1️⃣ Match base filter
 		{{Key: "$match", Value: filter}},
 
-		//  Lookup maker roles
+		// 2️⃣ Normalize arrays to avoid schema-drift crashes
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_makers_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_makers_roles"},
+					"$assigned_makers_roles",
+					bson.A{},
+				},
+			},
+			"assigned_checkers_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_checkers_roles"},
+					"$assigned_checkers_roles",
+					bson.A{},
+				},
+			},
+			"assigned_auditor_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_auditor_roles"},
+					"$assigned_auditor_roles",
+					bson.A{},
+				},
+			},
+		}}},
+
+		// 3️⃣ Lookup maker roles
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -213,18 +523,31 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}},
 
-		//  Lookup all checker roles (flat)
+		// 4️⃣ Lookup ALL checker roles (flatten safely)
 		{{
 			Key: "$lookup",
 			Value: bson.M{
 				"from": "roles",
-				"let": bson.M{"allCheckerIds": bson.M{
-					"$reduce": bson.M{
-						"input":        "$assigned_checkers_roles",
-						"initialValue": bson.A{},
-						"in":           bson.M{"$concatArrays": bson.A{"$$value", "$$this"}},
+				"let": bson.M{
+					"allCheckerIds": bson.M{
+						"$reduce": bson.M{
+							"input":        "$assigned_checkers_roles",
+							"initialValue": bson.A{},
+							"in": bson.M{
+								"$concatArrays": bson.A{
+									"$$value",
+									bson.M{
+										"$cond": bson.A{
+											bson.M{"$isArray": "$$this"},
+											"$$this",
+											bson.A{},
+										},
+									},
+								},
+							},
+						},
 					},
-				}},
+				},
 				"pipeline": mongo.Pipeline{
 					{{Key: "$match", Value: bson.M{
 						"$expr": bson.M{"$in": []interface{}{"$_id", "$$allCheckerIds"}},
@@ -234,7 +557,7 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}},
 
-		//  Map nested checker arrays to full documents
+		// 5️⃣ Rebuild nested checker arrays → full role docs
 		{{
 			Key: "$addFields",
 			Value: bson.M{
@@ -243,18 +566,26 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 						"input": "$assigned_checkers_roles",
 						"as":    "level",
 						"in": bson.M{
-							"$map": bson.M{
-								"input": "$$level",
-								"as":    "rid",
-								"in": bson.M{
-									"$first": bson.M{
-										"$filter": bson.M{
-											"input": "$checker_roles_all",
-											"as":    "role",
-											"cond":  bson.M{"$eq": []interface{}{"$$role._id", "$$rid"}},
+							"$cond": bson.A{
+								bson.M{"$isArray": "$$level"},
+								bson.M{
+									"$map": bson.M{
+										"input": "$$level",
+										"as":    "rid",
+										"in": bson.M{
+											"$first": bson.M{
+												"$filter": bson.M{
+													"input": "$checker_roles_all",
+													"as":    "role",
+													"cond": bson.M{
+														"$eq": []interface{}{"$$role._id", "$$rid"},
+													},
+												},
+											},
 										},
 									},
 								},
+								bson.A{},
 							},
 						},
 					},
@@ -262,7 +593,7 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}},
 
-		//  Lookup auditor roles
+		// 6️⃣ Lookup auditor roles
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -277,10 +608,10 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}},
 
-		//  Remove helper flat array
+		// 7️⃣ Cleanup helper field
 		{{Key: "$project", Value: bson.M{"checker_roles_all": 0}}},
 
-		//  Pagination
+		// 8️⃣ Pagination
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 	}
@@ -296,7 +627,6 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 
 	var data []*model.CPSActionRoleResposne
 	if err := cursor.All(ctx, &data); err != nil {
-		fmt.Println(err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 

@@ -64,6 +64,7 @@ const (
 	Approved                          = "APPROVED"
 	Rejected                          = "REJECTED"
 	Reversed                          = "REVERSED"
+	Canceled                          = "CANCELED"
 )
 
 const (
@@ -248,6 +249,13 @@ const (
 	RequestDeleteRole  string = "DELETE_ROLE"
 	RequestEnableRole  string = "ENABLE_ROLE"
 	RequestDisableRole string = "DISABLE_ROLE"
+
+	// Ecommerce
+	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant  RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
 
 	RequestUser                  RequestAction = "USER"
 	RequestActionRole            RequestAction = "ACTION_ROLE"
@@ -442,6 +450,8 @@ const (
 	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
 	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"

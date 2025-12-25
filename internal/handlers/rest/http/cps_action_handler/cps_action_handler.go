@@ -41,6 +41,44 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 	}
 }
 
+// CancelCPSAction implements cps_action.CPSActionAdapter.
+func (a *cpsActionAdapter) CancelCPSAction(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "cancelCpsAction", "handler", "cpsAction")
+	defer span.End()
+	actionCode := chi.URLParam(r, string(constants.ActionCode))
+
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if action.ActionStatus != string(constants.Pending) || action.CurrentCheckerIndex > 0 {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	userData, err := local_util.ParseUserContext(r)
+	if err != nil {
+		localization.SendBadRequestResponse(w, localization.ErrorUserForbidden.Message)
+		return
+	}
+	if userData.UserID != action.MakerID {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	action.ActionStatus = string(constants.Canceled)
+
+	if err := a.cpsActionApplication.RejectCPSAction(ctx, actionCode, action); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionCanceled, nil)
+
+}
+
 // ReverseCPSAction reverses an already-approved CPS action
 //
 //	@Summary		Reverse CPS action (auditor only)
@@ -111,7 +149,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 		attribute.String("cps_action.code", actionCode),
 		attribute.String("auditor.id", userData.UserID),
 	)
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionAuthorized, nil)
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionReversed, nil)
 }
 
 // ApproveCPSAction approves a CPS action
@@ -151,6 +189,10 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
 		return
 	}
+	if action.ActionStatus == string(constants.Canceled) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
+		return
+	}
 
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -167,12 +209,14 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
+
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
 		if rawRoleID == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
 		roleID := local_util.FirstHex24(rawRoleID)
 		UpperCaseAction := strings.ToUpper(actionName)
 		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
@@ -186,10 +230,11 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
+
 		Current_role_level := *idxDoc.CheckerIndex
-		// expected := int32(*idxDoc.CheckerIndex)
-		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
-		// ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
+		expected := int32(*idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
+		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
 		if currentIndex == Current_role_level {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
@@ -210,7 +255,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Enforce ordering: must approve in sequence
-	// if int32(*idxDoc.CheckerIndex) != currentIndex+1 || int32(*idxDoc.CheckerIndex) > checkerCount {
+	// if int64(*idxDoc.CheckerIndex) != int64(currentIndex)+1 || int64(*idxDoc.CheckerIndex) > int64(checkerCount) {
 	// 	span.RecordError(fmt.Errorf("out of order checker approval"))
 	// 	localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
 	// 	return
@@ -238,7 +283,6 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Then, approve the action
 	if err := a.cpsActionApplication.ApproveCPSAction(ctx, update); err != nil {
-		fmt.Printf("Errors : %v\n", err)
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -275,6 +319,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	// Prevent rejecting an action that is already finalized
 	if action.ActionStatus == string(constants.Approved) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
@@ -282,6 +327,10 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	}
 	if action.ActionStatus == string(constants.Rejected) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
+		return
+	}
+	if action.ActionStatus == string(constants.Canceled) {
+		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyCanceled)
 		return
 	}
 	idx32 := int32(action.CurrentCheckerIndex) + 1
@@ -325,11 +374,12 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		}
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
 			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			roleID = local_util.FirstHex24(roleID)
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
-			idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, actionName)
+			idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
 			if err != nil {
 				span.RecordError(err)
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)

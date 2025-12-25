@@ -167,17 +167,17 @@ func (a *authMiddleware) AccessControl(allowedRoles []string) func(http.Handler)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
-			if !ok || role == "" {
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			// role, ok := r.Context().Value(constants.ContextKey("user_role")).(string)
+			// if !ok || role == "" {
+			// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 
-				return
-			}
+			// 	return
+			// }
 
-			if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
-				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-				return
-			}
+			// if _, allowed := roleSet[strings.ToUpper(role)]; !allowed {
+			// 	localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			// 	return
+			// }
 
 			next.ServeHTTP(w, r)
 		})

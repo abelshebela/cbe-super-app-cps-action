@@ -40,6 +40,8 @@ type RequestAction string
 
 const (
 	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
@@ -107,6 +109,12 @@ const (
 	RequestDeleteWallet               RequestAction = "DELETE_WALLET"
 	RequestEnableWallet               RequestAction = "ENABLE_WALLET"
 	RequestDisableWallet              RequestAction = "DISABLE_WALLET"
+
+	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
+	RequestUpdateEcommerceMerchant  RequestAction = "UPDATE_ECOMMERCE_MERCHANT"
+	RequestEnableEcommerceMerchant  RequestAction = "ENABLE_ECOMMERCE_MERCHANT"
+	RequestDisableEcommerceMerchant RequestAction = "DISABLE_ECOMMERCE_MERCHANT"
+	RequestDeleteEcommerceMerchant  RequestAction = "DELETE_ECOMMERCE_MERCHANT"
 
 	// Services catalog (model.Services)
 	RequestCreateService  RequestAction = "CREATE_SERVICE"
@@ -361,6 +369,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableVaultGroupCategory:  {},
 	RequestDisAbleVaultGroupCategory: {},
 
+	RequestCreateEcommerceMerchant:  {},
+	RequestUpdateEcommerceMerchant:  {},
+	RequestEnableEcommerceMerchant:  {},
+	RequestDisableEcommerceMerchant: {},
+	RequestDeleteEcommerceMerchant:  {},
+
 	RequestCreateDonationCategory: {},
 	RequestUpdateDonationCategory: {},
 	RequestCreateDonationCompany:  {},
@@ -458,6 +472,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	// Branch
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
+
+	RequestCreateCustomerSegmentation: {},
+	RequestUpdateCustomerSegmentation: {},
+	RequestDeleteCustomerSegmentation: {},
 
 	// Region
 	RequestEnableRegions:  {},
@@ -1003,8 +1021,17 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateAccessListSegmentation,
 		RequestEnableDisableAccessListSegmentation,
 	},
-	"CustomerSegmentation": {
+	"CustomerSegmentations": {
 		RequestCreateCustomerSegmentation,
+		RequestUpdateCustomerSegmentation,
+		RequestDeleteCustomerSegmentation,
+	},
+	"EcommerceMerchant": {
+		RequestCreateEcommerceMerchant,
+		RequestUpdateEcommerceMerchant,
+		RequestEnableEcommerceMerchant,
+		RequestDisableEcommerceMerchant,
+		RequestDeleteEcommerceMerchant,
 	},
 }
 

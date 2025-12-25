@@ -70,6 +70,25 @@ func ParseUserContext(r *http.Request) (types.UserContext, error) {
 	return userContext, nil
 }
 
+func ExtractBearerToken(r *http.Request) (string, error) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("authorization header missing")
+	}
+
+	const bearerPrefix = "Bearer "
+	if !strings.HasPrefix(authHeader, bearerPrefix) {
+		return "", errors.New("invalid authorization header format")
+	}
+
+	token := strings.TrimSpace(strings.TrimPrefix(authHeader, bearerPrefix))
+	if token == "" {
+		return "", errors.New("empty bearer token")
+	}
+
+	return token, nil
+}
+
 func ExtractUserContext(r *http.Request) types.UserContext {
 	get := func(key string) string {
 		val, _ := r.Context().Value(constants.ContextKey(key)).(string)
@@ -103,6 +122,10 @@ func ExtractUserFromContext(ctx context.Context) types.UserContext {
 }
 
 func IsIncomplete(u types.UserContext) bool {
+	fmt.Println("==========1", u.UserID)
+	fmt.Println("==========1", u.FullName)
+	fmt.Println("==========1", u.PhoneNumber)
+	fmt.Println("==========1", u.Department)
 	return strings.TrimSpace(u.UserID) == "" || strings.TrimSpace(u.FullName) == "" || strings.TrimSpace(u.PhoneNumber) == "" || strings.TrimSpace(u.Department) == ""
 }
 
