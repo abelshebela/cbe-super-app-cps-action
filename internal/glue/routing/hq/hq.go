@@ -28,7 +28,7 @@ func Init(router chi.Router, hqHandler hq.HQAdapter, authMiddleware middleware.A
 			Handler: hqHandler.GetArchiveTime,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -37,7 +37,7 @@ func Init(router chi.Router, hqHandler hq.HQAdapter, authMiddleware middleware.A
 			Handler: hqHandler.GetPasswordExpiry,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -46,7 +46,7 @@ func Init(router chi.Router, hqHandler hq.HQAdapter, authMiddleware middleware.A
 			Handler: hqHandler.UpdateBlockTimeRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -55,7 +55,7 @@ func Init(router chi.Router, hqHandler hq.HQAdapter, authMiddleware middleware.A
 			Handler: hqHandler.UpdateArchiveTimeRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func Init(router chi.Router, hqHandler hq.HQAdapter, authMiddleware middleware.A
 			Handler: hqHandler.UpdatePasswordExpiryRequest,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}
