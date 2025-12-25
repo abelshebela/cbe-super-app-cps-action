@@ -100,7 +100,7 @@ type BulkService interface {
 type CPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
-	UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error
+	UpdateUserRequest(ctx context.Context, usercode string, req cpsuser.UpdateUserRequest) error
 	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error)
 	DeleteUserRequest(ctx context.Context, userCode string) error

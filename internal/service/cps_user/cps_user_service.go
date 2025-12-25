@@ -132,11 +132,11 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	return nil
 }
 
-func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.UpdateUserRequest) error {
+func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string, req cpsuser.UpdateUserRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateUserRequest", "CPSUser", "UpdateUserRequest")
 	defer span.End()
 
-	currentUser, err := s.repo.FindByID(ctx, req.UserCode)
+	currentUser, err := s.repo.FindByID(ctx, usercode)
 	if err != nil {
 		span.AddEvent("failed to find user by id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -182,59 +182,68 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, req cpsuser.Upda
 
 	}
 
-	var dep *model.Department
-	if !req.Department.IsZero() {
-		d, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
-		if err != nil {
-			span.AddEvent("failed to find department by id", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-		if !d.Enabled || d.IsDeleted {
-			span.AddEvent("department not found", trace.WithAttributes(attribute.String("department_id", req.Department.Hex())))
-			return errors.New(localization.ErrorDepartmentNotFound.Code)
-		}
-		dep = d
-	}
+	// var dep *model.Department
+	// if !req.Department.IsZero() {
+	// 	d, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
+	// 	if err != nil {
+	// 		span.AddEvent("failed to find department by id", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		return err
+	// 	}
+	// 	if !d.Enabled || d.IsDeleted {
+	// 		span.AddEvent("department not found", trace.WithAttributes(attribute.String("department_id", req.Department.Hex())))
+	// 		return errors.New(localization.ErrorDepartmentNotFound.Code)
+	// 	}
+	// 	dep = d
+	// }
 
-	var populatedCategories []cpsuser.PermissionCategoryResponse
-	if len(req.PermissionCategory) > 0 {
-		populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
-		if err != nil {
-			span.AddEvent("failed to populate permission categories", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-		populatedCategories = populated
-	}
+	// var populatedCategories []cpsuser.PermissionCategoryResponse
+	// if len(req.PermissionCategory) > 0 {
+	// 	populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
+	// 	if err != nil {
+	// 		span.AddEvent("failed to populate permission categories", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		return err
+	// 	}
+	// 	populatedCategories = populated
+	// }
 
-	var populatedGroups []cpsuser.PermissionGroupResponse
-	if len(req.PermissionGroups) > 0 {
-		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
-		if err != nil {
-			span.AddEvent("failed to populate permission groups", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
-		}
-		populatedGroups = populated
-	}
+	// var populatedGroups []cpsuser.PermissionGroupResponse
+	// if len(req.PermissionGroups) > 0 {
+	// 	populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
+	// 	if err != nil {
+	// 		span.AddEvent("failed to populate permission groups", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		return err
+	// 	}
+	// 	populatedGroups = populated
+	// }
 
-	payload := map[string]interface{}{
-		"user": req,
-	}
-	if len(populatedCategories) > 0 {
-		payload["permission_categories"] = populatedCategories
-	}
-	if len(populatedGroups) > 0 {
-		payload["permission_groups"] = populatedGroups
-	}
-	if dep != nil {
-		payload["portal_cards"] = dep.PortalCards
+	// payload := map[string]interface{}{
+	// 	"user": req,
+	// }
+	// if len(populatedCategories) > 0 {
+	// 	payload["permission_categories"] = populatedCategories
+	// }
+	// if len(populatedGroups) > 0 {
+	// 	payload["permission_groups"] = populatedGroups
+	// }
+	// if dep != nil {
+	// 	payload["portal_cards"] = dep.PortalCards
+	// }
+
+	updated := cpsuser.UpdateUserRequest{
+		UserName:    req.UserName,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		Gender:      req.Gender,
+		Email:       req.Email,
+		JobTitle:    req.JobTitle,
 	}
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	cpsActionModel := lib.CpsModelBuilder(
-		req.UserCode,
+		usercode,
 		makerData,
 		currentUser,
-		payload,
+		updated,
 		string(constants.RequestCpsUserUpdate),
 		constants.UPDATE,
 	)
@@ -449,7 +458,6 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 
 	switch action.RequestAction {
 	case string(constants.RequestCpsUserCreate):
-
 		cur, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
