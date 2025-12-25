@@ -5,10 +5,10 @@ import (
 )
 
 type EcommerceMerchant struct {
-	MerchantName     string                    `json:"merchant_name"`
-	MerchantCode     string                    `json:"merchant_code"`
-	PhoneNumber      string                    `json:"phone_number"`
-	Email            string                    `json:"email"`
+	MerchantName string `json:"merchant_name"`
+	MerchantCode string `json:"merchant_code"`
+	// PhoneNumber      string                    `json:"phone_number"`
+	// Email            string                    `json:"email"`
 	AccountNumber    string                    `json:"account_number"`
 	SettlementMethod string                    `json:"settlement_method" bson:"settlement_method"`
 	Branches         []model.BranchInformation `json:"branches"`
