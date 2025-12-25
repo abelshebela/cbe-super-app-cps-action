@@ -156,9 +156,9 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /events/{id}":        "Event",
 
 	// HQ
-	"POST /hq/block_time":      "BlockTime",
-	"POST /hq/archive_time":    "Archive",
-	"POST /hq/password_expiry": "PasswordExpiry",
+	"POST /hq/block_time":      "HQ",
+	"POST /hq/archive_time":    "HQ",
+	"POST /hq/password_expiry": "HQ",
 
 	// Fayda
 	"POST /fayda_account/disable/{user_code}": "Fayda",
