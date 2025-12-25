@@ -1,4 +1,4 @@
-package bps_action_role_service
+package cps_action_role_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
