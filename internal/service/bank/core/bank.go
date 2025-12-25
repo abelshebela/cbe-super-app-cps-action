@@ -19,14 +19,9 @@ func Bank_mapper(action map[string]interface{}) model.Bank {
 			bank.Logo = logo
 		}
 	}
-	if v, ok := action["code"]; ok {
-		if code, ok := v.(string); ok {
-			bank.Code = code
-		}
-	}
-	if v, ok := action["bic"]; ok {
-		if bic, ok := v.(string); ok {
-			bank.BIC = bic
+	if v, ok := action["bic_code"]; ok {
+		if bicCode, ok := v.(string); ok {
+			bank.BICCode = bicCode
 		}
 	}
 	if v, ok := action["enabled"]; ok {

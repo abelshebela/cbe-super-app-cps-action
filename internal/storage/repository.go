@@ -267,7 +267,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
-	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
+	FindByNameOrBIC(ctx context.Context, bic, name string) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {
@@ -591,8 +591,9 @@ type CPSActionApproveIndexRepository interface {
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
-
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
+	DeleteAll(ctx context.Context, prev model.CPSActionRoleResposne) error
+	InsertAll(ctx context.Context, new model.CPSActionRole) error
 }
 
 type SitotaRepository interface {

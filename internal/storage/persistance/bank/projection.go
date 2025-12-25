@@ -12,11 +12,8 @@ func BankMapper(data model.Bank) bson.M {
 	if data.Name != "" {
 		result["name"] = data.Name
 	}
-	if data.Code != "" {
-		result["code"] = data.Code
-	}
-	if data.BIC != "" {
-		result["bic"] = data.BIC
+	if data.BICCode != "" {
+		result["bic_code"] = data.BICCode
 	}
 	if data.Type != "" {
 		result["type"] = data.Type

@@ -1,4 +1,4 @@
-package bps_action_role_service
+package cps_action_role_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
@@ -7,7 +7,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/service/cps_action_role/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -233,13 +232,6 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 			makers = append(makers, oid)
 		}
 		payload.AssignedMakersRoles = makers
-	} else {
-		// Keep existing
-		makers := make([]bson.ObjectID, len(old.AssignedMakersRoles))
-		for i, r := range old.AssignedMakersRoles {
-			makers[i] = r.ID
-		}
-		payload.AssignedMakersRoles = makers
 	}
 
 	if req.IsMakerOnly {
@@ -260,17 +252,6 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 				checkers = append(checkers, g)
 			}
 			payload.AssignedCheckerRoles = checkers
-		} else {
-			// Keep existing
-			checkers := make([][]bson.ObjectID, len(old.AssignedCheckerRoles))
-			for i, group := range old.AssignedCheckerRoles {
-				g := make([]bson.ObjectID, len(group))
-				for j, r := range group {
-					g[j] = r.ID
-				}
-				checkers[i] = g
-			}
-			payload.AssignedCheckerRoles = checkers
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
@@ -284,18 +265,10 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 			auditors = append(auditors, oid)
 		}
 		payload.AssignedAuditorRoles = auditors
-	} else {
-		// Keep existing
-		auditors := make([]bson.ObjectID, len(old.AssignedAuditorRoles))
-		for i, r := range old.AssignedAuditorRoles {
-			auditors[i] = r.ID
-		}
-		payload.AssignedAuditorRoles = auditors
 	}
 
 	// Recalculate ApproverCount
 	payload.ApproverCount = int32(len(payload.AssignedCheckerRoles))
-
 	cpsAction := lib.CpsModelBuilder(
 		actionCode,
 		maker,
@@ -312,6 +285,142 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 	return nil
 }
+
+// func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error {
+// 	ctx, span := local_util.TraceLogger(ctx, "service", "Update", "CPSActionRole", "Update")
+// 	defer span.End()
+// 	if actionCode == "" {
+// 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
+// 		return errors.New(localization.ErrorActionNameIsRequired.Code)
+// 	}
+
+// 	old, err := s.repo.FindByActionCode(ctx, actionCode)
+// 	if err != nil {
+// 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
+// 		return errors.New(localization.ErrorResourceNotFound.Code)
+// 	}
+
+// 	maker := local_util.ExtractUserFromContext(ctx)
+// 	if local_util.IsIncomplete(maker) {
+// 		span.AddEvent("incomplete maker information", trace.WithAttributes(attribute.String("error", "incomplete maker information")))
+// 		return errors.New(localization.ErrorUserUnauthorized.Code)
+// 	}
+// 	if req.AssignedMakersRoles != nil {
+// 		if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
+// 			span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
+// 			return err
+// 		}
+// 	}
+// 	if req.AssignedCheckerRoles != nil {
+// 		if err := s.validateUniqueIDsInGroups(req.AssignedCheckerRoles); err != nil {
+// 			span.AddEvent("failed to validate unique checker IDs in groups", trace.WithAttributes(attribute.String("error", err.Error())))
+// 			return err
+// 		}
+// 	}
+// 	if req.AssignedAuditorRoles != nil {
+// 		if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+// 			span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
+// 			return err
+// 		}
+// 	}
+
+// 	payload := model.ActionRole{
+// 		ActionCode:  actionCode,
+// 		ActionName:  local_util.NonEmptyString(req.ActionName, old.ActionName),
+// 		Enabled:     old.Enabled,
+// 		IsMakerOnly: req.IsMakerOnly,
+// 	}
+
+// 	if req.AssignedMakersRoles != nil {
+// 		makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
+// 		for _, id := range req.AssignedMakersRoles {
+// 			oid, err := bson.ObjectIDFromHex(id)
+// 			if err != nil {
+// 				span.AddEvent("invalid maker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+// 				return errors.New(localization.ErrorInvalidID.Code)
+// 			}
+// 			makers = append(makers, oid)
+// 		}
+// 		payload.AssignedMakersRoles = makers
+// 	} else {
+// 		// Keep existing
+// 		makers := make([]bson.ObjectID, len(old.AssignedMakersRoles))
+// 		for i, r := range old.AssignedMakersRoles {
+// 			makers[i] = r.ID
+// 		}
+// 		payload.AssignedMakersRoles = makers
+// 	}
+
+// 	if req.IsMakerOnly {
+// 		payload.AssignedCheckerRoles = [][]bson.ObjectID{}
+// 	} else {
+// 		if req.AssignedCheckerRoles != nil {
+// 			checkers := make([][]bson.ObjectID, 0, len(req.AssignedCheckerRoles))
+// 			for _, group := range req.AssignedCheckerRoles {
+// 				g := make([]bson.ObjectID, 0, len(group))
+// 				for _, id := range group {
+// 					oid, err := bson.ObjectIDFromHex(id)
+// 					if err != nil {
+// 						span.AddEvent("invalid checker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+// 						return errors.New(localization.ErrorInvalidID.Code)
+// 					}
+// 					g = append(g, oid)
+// 				}
+// 				checkers = append(checkers, g)
+// 			}
+// 			payload.AssignedCheckerRoles = checkers
+// 		} else {
+// 			// Keep existing
+// 			checkers := make([][]bson.ObjectID, len(old.AssignedCheckerRoles))
+// 			for i, group := range old.AssignedCheckerRoles {
+// 				g := make([]bson.ObjectID, len(group))
+// 				for j, r := range group {
+// 					g[j] = r.ID
+// 				}
+// 				checkers[i] = g
+// 			}
+// 			payload.AssignedCheckerRoles = checkers
+// 		}
+// 	}
+// 	if req.AssignedAuditorRoles != nil {
+// 		auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
+// 		for _, id := range req.AssignedAuditorRoles {
+// 			oid, err := bson.ObjectIDFromHex(id)
+// 			if err != nil {
+// 				span.AddEvent("invalid auditor ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
+// 				return errors.New(localization.ErrorInvalidID.Code)
+// 			}
+// 			auditors = append(auditors, oid)
+// 		}
+// 		payload.AssignedAuditorRoles = auditors
+// 	} else {
+// 		// Keep existing
+// 		auditors := make([]bson.ObjectID, len(old.AssignedAuditorRoles))
+// 		for i, r := range old.AssignedAuditorRoles {
+// 			auditors[i] = r.ID
+// 		}
+// 		payload.AssignedAuditorRoles = auditors
+// 	}
+
+// 	// Recalculate ApproverCount
+// 	payload.ApproverCount = int32(len(payload.AssignedCheckerRoles))
+
+// 	cpsAction := lib.CpsModelBuilder(
+// 		actionCode,
+// 		maker,
+// 		old,
+// 		payload,
+// 		string(constants.RequestUpdateCpsActionRole),
+// 		constants.UPDATE,
+// 	)
+
+// 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
+// 	if err != nil {
+// 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (s *cpsActionRoleService) Enable(ctx context.Context, actionCode string) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Enable", "CPSActionRole", "Enable")
@@ -374,14 +483,15 @@ func (s *cpsActionRoleService) Disable(ctx context.Context, actionCode string) e
 func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "CPSActionRole", "Authorize")
 	defer span.End()
-	cur, err := local_util.JsonUnmarshal[model.CPSActionRole](action.CurrentAction)
-	if err != nil {
-		span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
-		s.logger.Errorf("failed to unmarshal action: %v", err)
-		return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
-	}
 	switch action.ActionType {
 	case string(constants.CREATE):
+
+		cur, err := local_util.JsonUnmarshal[model.CPSActionRole](action.CurrentAction)
+		if err != nil {
+			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal action: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
+		}
 		ar, err := s.bindActionRoleModel(*cur)
 		if err != nil {
 			span.AddEvent("failed to bind action role model", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -409,21 +519,28 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		return action, nil
 
 	case string(constants.UPDATE):
-		cur, err := local_util.JsonUnmarshal[model.CPSActionRole](action.PreviousAction)
+		prev, err := local_util.JsonUnmarshal[model.CPSActionRoleResposne](action.PreviousAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal action: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 		new, err := local_util.JsonUnmarshal[model.CPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal new action", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to unmarshal new action: %v", err)
+			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
-		add, remove := core.DiffFinder(cur, new)
+
+		// prev := core.MapResponseToModel(rprev)
+		// new := core.MapResponseToModel(rnew)
+		// add, remove := core.DiffFinder(prev, new)
 
 		// add all ids in add to role action index with role cur.ActionCode
-		s.indexRepo.InsertMany(ctx, add.MakerDiff, add.CheckerDiff, add.AuditorDiff, cur.ActionCode)
-		s.indexRepo.DeleteMany(ctx, remove.MakerDiff, remove.CheckerDiff, remove.AuditorDiff, cur.ActionCode)
+		s.indexRepo.InsertAll(ctx, *new)
+		s.indexRepo.DeleteAll(ctx, *prev)
 
-		if err := s.repo.UpdateByActionCode(ctx, cur.ActionCode, new); err != nil {
+		if err := s.repo.UpdateByActionCode(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to update action role", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}

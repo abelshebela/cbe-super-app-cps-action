@@ -25,11 +25,10 @@ func toBoolPtr(s string) (*bool, error) {
 func ParseWalletRequestFromMultipartForm(r *http.Request, isCreate bool) (walletDto.WalletRequest, error) {
 	var req walletDto.WalletRequest
 	req.Name = r.FormValue("name")
-	req.Code = r.FormValue("code")
+	req.UniqueCode = r.FormValue("unique_code")
 	req.Self, _ = toBoolPtr(r.FormValue("self"))
 	req.Other, _ = toBoolPtr(r.FormValue("other"))
 	req.Agent, _ = toBoolPtr(r.FormValue("agent"))
-	req.Type = r.FormValue("type")
 	// switch req.Type {
 	// case constants.Bank, constants.Wallet, constants.MFI:
 	// 	// valid type

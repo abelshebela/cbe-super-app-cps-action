@@ -15,7 +15,7 @@ const specialChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/?"
 
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
-		strings.TrimSpace(w.Code) == "" &&
+		strings.TrimSpace(w.UniqueCode) == "" &&
 		w.Avatar == nil
 }
 
@@ -32,21 +32,14 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	}
 
 	// --- Code ---
-	if isCreate || w.Code != "" {
-		trimmed := strings.TrimSpace(w.Code)
+	if isCreate || w.UniqueCode != "" {
+		trimmed := strings.TrimSpace(w.UniqueCode)
 		if trimmed == "" && isCreate {
-			errs["code"] = localization.ErrorWalletCodeRequired
+			errs["unique_code"] = localization.ErrorWalletCodeRequired
 		} else if len(trimmed) != 6 || !isAlpha(trimmed) {
-			errs["code"] = localization.ErrorInvalidWalletCode
+			errs["unique_code"] = localization.ErrorInvalidWalletCode
 		}
-		w.Code = strings.ToUpper(trimmed)
-	}
-
-	// --- Type ---
-	if isCreate || w.Type != "" {
-		if strings.TrimSpace(string(w.Type)) == "" && isCreate {
-			errs["type"] = localization.ErrorWalletTypeRequired
-		}
+		w.UniqueCode = strings.ToUpper(trimmed)
 	}
 
 	// --- Avatar ---
