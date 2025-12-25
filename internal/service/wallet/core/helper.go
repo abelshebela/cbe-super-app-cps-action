@@ -45,17 +45,16 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool, walletType string) *model.Wallet {
+func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool) *model.Wallet {
 	return &model.Wallet{
-		Name:   name,
-		Code:   code,
-		Avatar: URL,
+		Name:       name,
+		UniqueCode: code,
+		Avatar:     URL,
 		Services: shared_type.Services{
 			Self:  *self,
 			Other: *other,
 			Agent: *agent,
 		},
-		Type: walletType,
 	}
 }
 
@@ -84,13 +83,9 @@ func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*mod
 		wallet.Name = req.Name
 	}
 
-	if req.Code != "" && req.Code != existing.Code {
+	if req.UniqueCode != "" && req.UniqueCode != existing.UniqueCode {
 		changeCount++
-		wallet.Code = req.Code
-	}
-	if string(req.Type) != "" && string(req.Type) != (existing.Type) {
-		changeCount++
-		wallet.Type = string(req.Type)
+		wallet.UniqueCode = req.UniqueCode
 	}
 
 	return &wallet, changeCount

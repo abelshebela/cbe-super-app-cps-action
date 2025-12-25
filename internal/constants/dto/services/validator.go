@@ -17,18 +17,18 @@ func (c *CapRequest) Validate() error {
 		c,
 		validation.Field(&c.SingleCap,
 			validation.Required.Error("cap.single_cap is required"),
-			validation.Min(int64(1)).Error("cap.single_cap must be greater than 0"),
+			validation.Min(int64(0)).Error("cap.single_cap must be greater than 0"),
 		),
-		validation.Field(&c.MinimumTransferCap,
-			validation.Required.Error("cap.minimum_transfer_cap is required"),
-			validation.Min(int64(1)).Error("cap.minimum_transfer_cap must be greater than 0"),
-		),
+		// validation.Field(&c.MinimumTransferCap,
+		// 	validation.Required.Error("cap.minimum_transfer_cap is required"),
+		// 	validation.Min(int64(0)).Error("cap.minimum_transfer_cap must be greater than 0"),
+		// ),
 	); err != nil {
 		return err
 	}
-	if c.MinimumTransferCap > c.SingleCap {
-		return fmt.Errorf("cap.minimum_transfer_cap (%d) cannot exceed cap.single_cap (%d)", c.MinimumTransferCap, c.SingleCap)
-	}
+	// if c.MinimumTransferCap > c.SingleCap {
+	// 	return fmt.Errorf("cap.minimum_transfer_cap (%d) cannot exceed cap.single_cap (%d)", c.MinimumTransferCap, c.SingleCap)
+	// }
 	return nil
 }
 
@@ -120,21 +120,16 @@ func (r *UpdateServiceRequest) Validate() error {
 	// 		return err
 	// 	}
 	// }
-	// if r.ServiceType != "" {
-	// 	if err := validation.Validate(&r.ServiceType, validation.By(local_utils.NoSpecialChars)); err != nil {
-	// 		return err
-	// 	}
-	// }
 	// if r.ChargeCode != "" {
 	// 	if err := validation.Validate(&r.ChargeCode, validation.By(local_utils.NoSpecialChars)); err != nil {
 	// 		return err
 	// 	}
 	// }
-	if r.CbeGLProductAccount != "" {
-		if err := validation.Validate(&r.CbeGLProductAccount, validation.By(local_utils.NoSpecialChars)); err != nil {
-			return err
-		}
-	}
+	// if r.CbeGLProductAccount != "" {
+	// 	if err := validation.Validate(&r.CbeGLProductAccount, validation.By(local_utils.NoSpecialChars)); err != nil {
+	// 		return err
+	// 	}
+	// }
 	// Validate cap if provided (any field set)
 	if r.Cap.MinimumTransferCap != 0 || r.Cap.SingleCap != 0 {
 		if err := r.Cap.Validate(); err != nil {

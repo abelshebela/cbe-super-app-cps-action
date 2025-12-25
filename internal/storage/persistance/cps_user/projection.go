@@ -1,14 +1,14 @@
 package cps_user
 
 import (
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func CPSUserUpdateMapper(u *cpsuser.UpdateUserRequest) bson.M {
+func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
 	set := bson.M{}
 	if u.UserName != "" {
 		set["username"] = u.UserName
@@ -25,6 +25,10 @@ func CPSUserUpdateMapper(u *cpsuser.UpdateUserRequest) bson.M {
 	if u.Email != "" {
 		set["email"] = u.Email
 	}
+	if u.JobTitle != "" {
+		set["job_title"] = u.JobTitle
+	}
+
 	if u.JobTitle != "" {
 		set["job_title"] = u.JobTitle
 	}

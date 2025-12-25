@@ -45,6 +45,7 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 		"action_name":             actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
 		"assigned_checkers_roles": actionRole.AssignedCheckersRoles,
+		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
 		"enabled":                 actionRole.Enabled,
 		"updated_at":              actionRole.UpdatedAt,
 	}
@@ -74,7 +75,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		// Stage 3: Lookup assigned_checkers_roles (nested array [[]ObjectID])
 		{{Key: "$unwind", Value: bson.M{
 			"path":                       "$assigned_checkers_roles",
-			"preserveNullAndEmptyArrays": true, // Keep empty arrays
+			"preserveNullAndEmptyArrays": true,
 			"includeArrayIndex":          "checker_outer_index",
 		}}},
 		{{Key: "$unwind", Value: bson.M{
@@ -103,6 +104,8 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
+			// FIX: Pass the auditor IDs forward
+			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
 			{Key: "inner_checkers", Value: bson.D{{Key: "$push", Value: "$checker_role_doc"}}},
 		}}},
 		{{Key: "$group", Value: bson.D{
@@ -113,6 +116,8 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
+			// FIX: Pass the auditor IDs forward again
+			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
 			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$inner_checkers"}}},
 		}}},
 

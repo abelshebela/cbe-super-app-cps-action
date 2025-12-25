@@ -9,7 +9,7 @@ option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet
 message Wallet {
   string id = 1;
   string name = 2;
-  string code = 3;
+  string unique_code = 3;
   string avatar = 4;
   bool enabled = 5;
   bool is_deleted = 6;

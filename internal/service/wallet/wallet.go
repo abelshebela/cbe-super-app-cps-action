@@ -53,7 +53,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	defer span.End()
 	s.logger.Infof("CreateWallet called", "wallet_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "WAL-"+req.Code, req.Name)
+	exist, err := s.repo.Find(ctx, "WAL-"+req.UniqueCode, req.Name)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -64,7 +64,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
 	}
 
-	code, err := core.GeneratePrefixedName("WAL", req.Code, s.logger)
+	code, err := core.GeneratePrefixedName("WAL", req.UniqueCode, s.logger)
 	if err != nil {
 		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -76,17 +76,17 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.Self, req.Other, req.Agent, string(req.Type))
+	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
 	wallet.Enabled = true
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
 	if err := core.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
-		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", wallet.Code)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", wallet.Code, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", wallet.UniqueCode)))
+		s.logger.Errorf("CPS action failed for wallet %s: %v", wallet.UniqueCode, err)
 		return err
 	}
 
-	span.AddEvent("Wallet created", trace.WithAttributes(attribute.String("code", wallet.Code)))
+	span.AddEvent("Wallet created", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 	return nil
 }
 
@@ -100,8 +100,8 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 		return err
 	}
 
-	if req.Name != "" || req.Code != "" {
-		exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	if req.Name != "" || req.UniqueCode != "" {
+		exist, err := s.repo.Find(ctx, req.UniqueCode, req.Name)
 		if err != nil {
 			span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -139,8 +139,8 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	}
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestUpdateWallet, UpdateWallet, *prevWallet, constants.ActionUpdate); err != nil {
-		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", UpdateWallet.Code)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", UpdateWallet.Code, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", UpdateWallet.UniqueCode)))
+		s.logger.Errorf("CPS action failed for wallet %s: %v", UpdateWallet.UniqueCode, err)
 		return err
 	}
 
@@ -163,8 +163,8 @@ func (s *walletService) DeleteWallet(ctx context.Context, id string) error {
 	deletedWallet.DeletedAt = now
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, constants.RequestDeleteWallet, deletedWallet, *prevWallet, constants.ActionDelete); err != nil {
-		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", deletedWallet.Code)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", deletedWallet.Code, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", deletedWallet.UniqueCode)))
+		s.logger.Errorf("CPS action failed for wallet %s: %v", deletedWallet.UniqueCode, err)
 		return err
 	}
 
@@ -202,8 +202,8 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 	}
 
 	if err := core.HandleCPSAction(ctx, s.cpsService, id, action, updatedWallet, *prevWallet, constants.ActionUpdate); err != nil {
-		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", updatedWallet.Code)))
-		s.logger.Errorf("CPS action failed for wallet %s: %v", updatedWallet.Code, err)
+		span.AddEvent("CPS action failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("unique_code", updatedWallet.UniqueCode)))
+		s.logger.Errorf("CPS action failed for wallet %s: %v", updatedWallet.UniqueCode, err)
 		return err
 	}
 
@@ -231,19 +231,19 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateWallet):
-		span.AddEvent("Creating wallet", trace.WithAttributes(attribute.String("code", wallet.Code)))
+		span.AddEvent("Creating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.Create(ctx, wallet)
 	case string(constants.RequestUpdateWallet):
-		span.AddEvent("Updating wallet", trace.WithAttributes(attribute.String("code", wallet.Code)))
+		span.AddEvent("Updating wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.Update(ctx, action.UniqueId, wallet)
 	case string(constants.RequestDeleteWallet):
-		span.AddEvent("Deleting wallet", trace.WithAttributes(attribute.String("code", wallet.Code)))
+		span.AddEvent("Deleting wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.Delete(ctx, action.UniqueId)
 	case string(constants.RequestEnableWallet):
-		span.AddEvent("Enabling wallet", trace.WithAttributes(attribute.String("code", wallet.Code)))
+		span.AddEvent("Enabling wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
 	case string(constants.RequestDisableWallet):
-		span.AddEvent("Disabling wallet", trace.WithAttributes(attribute.String("code", wallet.Code)))
+		span.AddEvent("Disabling wallet", trace.WithAttributes(attribute.String("unique_code", wallet.UniqueCode)))
 		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
 	default:
 		span.AddEvent("Unsupported action", trace.WithAttributes(attribute.String("action", action.RequestAction)))

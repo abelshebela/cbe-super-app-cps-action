@@ -71,3 +71,59 @@ func DiffFinder(cur *model.CPSActionRole, new *model.CPSActionRole) (add Dif, re
 
 	return
 }
+
+func MapResponseToModel(res *model.CPSActionRoleResposne) *model.CPSActionRole {
+	m := &model.CPSActionRole{
+		ID:            res.ID,
+		ActionCode:    res.ActionCode,
+		ActionName:    res.ActionName,
+		ApproverCount: res.ApproverCount,
+		IsMakerOnly:   res.IsMakerOnly,
+		Enabled:       res.Enabled,
+		UpdatedAt:     res.UpdatedAt,
+		CreatedAt:     res.CreatedAt,
+	}
+
+	// Extract IDs from Makers
+	for _, item := range res.AssignedMakersRoles {
+		if id, ok := extractID(item); ok {
+			m.AssignedMakersRoles = append(m.AssignedMakersRoles, id)
+		}
+	}
+
+	// Extract IDs from Auditors
+	for _, item := range res.AssignedAuditorRoles {
+		if id, ok := extractID(item); ok {
+			m.AssignedAuditorRoles = append(m.AssignedAuditorRoles, id)
+		}
+	}
+
+	// Extract IDs from Checkers (nested arrays)
+	for _, checkerArr := range res.AssignedCheckersRoles {
+		var ids []bson.ObjectID
+		for _, item := range checkerArr {
+			if id, ok := extractID(item); ok {
+				ids = append(ids, id)
+			}
+		}
+		m.AssignedCheckersRoles = append(m.AssignedCheckersRoles, ids)
+	}
+
+	return m
+}
+
+// Helper to get ObjectID from either a string, a map, or an ObjectID type
+func extractID(data interface{}) (bson.ObjectID, bool) {
+	// If it's already an ObjectID
+	if id, ok := data.(bson.ObjectID); ok {
+		return id, true
+	}
+	// If it's a map (from the lookup document)
+	if m, ok := data.(map[string]interface{}); ok {
+		if idStr, ok := m["_id"].(string); ok {
+			id, _ := bson.ObjectIDFromHex(idStr)
+			return id, true
+		}
+	}
+	return bson.NilObjectID, false
+}

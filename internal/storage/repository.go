@@ -1,7 +1,7 @@
 package storage
 
 import (
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+
 	// "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
@@ -267,7 +267,7 @@ type BankRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
-	FindByNameOrBICOrCode(ctx context.Context, bic, code, name string) (*model.Bank, error)
+	FindByNameOrBIC(ctx context.Context, bic, name string) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {
@@ -288,7 +288,7 @@ type PortalCardRepository interface {
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *cpsuser.UpdateUserRequest) error
+	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
@@ -591,8 +591,9 @@ type CPSActionApproveIndexRepository interface {
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
-
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
+	DeleteAll(ctx context.Context, prev model.CPSActionRoleResposne) error
+	InsertAll(ctx context.Context, new model.CPSActionRole) error
 }
 
 type SitotaRepository interface {
