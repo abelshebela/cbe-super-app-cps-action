@@ -92,36 +92,30 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 	}
 
 	// Populate permission categories if provided
-	var populatedCategories []cpsuser.PermissionCategoryResponse
-	if len(req.PermissionCategory) > 0 {
-		populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
-		if err != nil {
-			span.AddEvent("failed to populate permission categories", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[CreateUserRequest] failed to populate permission categories: %v", err)
-			return err
-		}
-		populatedCategories = populated
-	}
-	var populatedGroups []cpsuser.PermissionGroupResponse
-	if len(req.PermissionGroups) > 0 {
-		populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
-		if err != nil {
-			span.AddEvent("failed to populate permission groups", trace.WithAttributes(attribute.String("error", err.Error())))
-			s.logger.Errorf("[CreateUserRequest] failed to populate permission groups: %v", err)
-			return err
-		}
-		populatedGroups = populated
-	}
+	// var populatedCategories []cpsuser.PermissionCategoryResponse
+	// if len(req.PermissionCategory) > 0 {
+	// 	populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
+	// 	if err != nil {
+	// 		span.AddEvent("failed to populate permission categories", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		s.logger.Errorf("[CreateUserRequest] failed to populate permission categories: %v", err)
+	// 		return err
+	// 	}
+	// 	populatedCategories = populated
+	// }
+	// var populatedGroups []cpsuser.PermissionGroupResponse
+	// if len(req.PermissionGroups) > 0 {
+	// 	populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
+	// 	if err != nil {
+	// 		span.AddEvent("failed to populate permission groups", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 		s.logger.Errorf("[CreateUserRequest] failed to populate permission groups: %v", err)
+	// 		return err
+	// 	}
+	// 	populatedGroups = populated
+	// }
 
 	cpsUser := core.CPSUModel(req)
 	cpsUser.JobTitle = req.JobTitle
-	payload := cpsuser.CPSUserActionPayload{
-		User:                 cpsUser,
-		PermissionCategories: populatedCategories,
-		PermissionGroups:     populatedGroups,
-		PortalCards:          dep.PortalCards,
-	}
-	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, payload, string(constants.RequestCpsUserCreate), constants.CREATE)
+	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, cpsUser, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("failed to create CPS action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -450,25 +444,27 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 	switch action.RequestAction {
 	case string(constants.RequestCpsUserCreate):
 
-		cur, err := core.BindCPSUserFromAction(action.CurrentAction)
+		cur, err := local_util.JsonUnmarshal[model.CPSUser](action.CurrentAction)
+		// cur, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
-		if err := s.repo.Create(ctx, &cur); err != nil {
+		if err := s.repo.Create(ctx, cur); err != nil {
 			span.AddEvent("failed to create user", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
 		return action, nil
 
 	case string(constants.RequestCpsUserUpdate):
-		cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
+		cur, err := local_util.JsonUnmarshal[model.CPSUser](action.CurrentAction)
+		// cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, errors.New(localization.ErrorInvalidRequest.Code)
 		}
 
-		if err := s.repo.Update(ctx, action.UniqueId, &cur); err != nil {
+		if err := s.repo.Update(ctx, action.UniqueId, cur); err != nil {
 			span.AddEvent("failed to update user", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
