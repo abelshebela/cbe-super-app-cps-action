@@ -1,7 +1,7 @@
 package storage
 
 import (
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+
 	// "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
@@ -288,7 +288,7 @@ type PortalCardRepository interface {
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *cpsuser.UpdateUserRequest) error
+	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
