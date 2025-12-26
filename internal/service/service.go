@@ -40,6 +40,7 @@ import (
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
+	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
@@ -452,6 +453,15 @@ type CustomerSegmentationService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type CPSRolesService interface {
+	Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error
+	Update(ctx context.Context, id string, req cps_role_dto.UpdateCPSRoleRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type ServiceLayer struct {
 	RoleService                   RoleService
 	EventService                  EventService
@@ -509,6 +519,7 @@ type ServiceLayer struct {
 	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
 	CustomerSegmentation          CustomerSegmentationService
+	CPSRoles                      CPSRolesService
 }
 
 type ServiceContainer struct {
@@ -574,10 +585,12 @@ type ServiceContainer struct {
 	MiniAppProductCodeContainer        MiniappProductCodeService
 	AccessListSegmentationContainer    AccessListSegmentationService
 	CustomerSegmentationContainer      CustomerSegmentationService
+	CPSRolesContainer                  CPSRolesService
 }
 
 type BPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
@@ -672,6 +685,7 @@ type TransactionService interface {
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error

@@ -276,6 +276,12 @@ var cpsActionRegistry = map[string]string{
 	"GET /customer-segmentations":               "CUSTOMERSEGMENTATIONS",
 	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATIONS",
 	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATIONS",
+
+	// CPS Roles
+	"POST /cps-roles/create":        "CPSROLES",
+	"PATCH /cps-roles/{id}/update":  "CPSROLES",
+	"PATCH /cps-roles/{id}/enable":  "CPSROLES",
+	"PATCH /cps-roles/{id}/disable": "CPSROLES",
 }
 
 func extractResource(path string) string {

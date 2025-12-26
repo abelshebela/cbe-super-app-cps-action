@@ -61,6 +61,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
+	cps_roles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
 	"github.com/hugokessem/coreio/core"
@@ -128,17 +129,18 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NewsCategoryPersistence:           newscategory_repo.NewNewsCategoryRepository(client, dbName, NewsCategoryCollection, clientOrchestrationProducer, logger),
 		KYCVerifierPersistence:            kyc_repo.NewKYCVerifierRepository(client, dbName, CustomersKYCCollection, clientOrchestrationProducer, logger),
 		NewsTagsServiceContainer:          media.NewNewsTagsRepository(logger, client, dbName, NewsTagsCollection),
-		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, dbName, BPSActionRolesCollection, logger),
+		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, dbName, []string{BPSActionRolesCollection, BPSActionListCollection}, logger),
 		BPSActionApproveIndexPersistence:  actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
 		RolePersistence:                   role_repo.NewRoleRepository(client, dbName, RolesCollection, logger),
 		MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, dbName, MiniAppCategoryCollection),
-		CPSActionRolePersistence:          cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, CPSActionRolesCollection, logger),
+		CPSActionRolePersistence:          cps_actionrole_repo.NewCPSActionRoleRepository(client, dbName, []string{CPSActionRolesCollection, CPSActionListCollection}, logger),
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
 		EventMerchantPersistence:          event_merchant_repository.NewEventMerchantRepository(client, dbName, EventMerchantsCollection, logger),
 		MiniAppProductCodePersistence:     mini_app.NewMiniAppProdutCodeRepository(logger, client, dbName, MiniAppProductCodes),
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, dbName, AccessListSegmentationCollection, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, dbName, CustomerSegmentationCollection, logger),
+		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, dbName, CPSRolesCollection, logger),
 	}
 
 	return data

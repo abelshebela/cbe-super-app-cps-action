@@ -453,6 +453,12 @@ const (
 	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
+	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
+	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"
+	RequestDeleteCpsRole  RequestAction = "DELETE_CPS_ROLE"
+	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
+	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
+
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
 	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"

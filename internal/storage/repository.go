@@ -142,6 +142,7 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
@@ -575,6 +576,7 @@ type BPSActionRoleRepository interface {
 	Create(ctx context.Context, actionRole *model.ActionRole) error
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error)
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	FindByActionName(ctx context.Context, actionName string) (*model.ActionRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
@@ -659,4 +661,12 @@ type CustomerSegmentationRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
+}
+
+type CPSRolesRepository interface {
+	Create(ctx context.Context, req imodel.CPSRoles) error
+	Update(ctx context.Context, id string, req imodel.CPSRoles) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }

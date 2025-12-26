@@ -336,6 +336,16 @@ const (
 	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
 
+	// CPS Roles
+	MsgCpsRoleCreated         = "CPS role create request submitted successfully"
+	MsgCpsRoleUpdated         = "CPS role update request submitted successfully"
+	MsgCpsRolesFetched        = "CPS roles fetched successfully"
+	MsgCpsRoleFetched         = "CPS role fetched successfully"
+	MsgCpsRoleEnabled         = "CPS role enable request submitted successfully"
+	MsgCpsRoleDisabled        = "CPS role disable request submitted successfully"
+	MsgCpsRoleAlreadyEnabled  = "CPS role already enabled"
+	MsgCpsRoleAlreadyDisabled = "CPS role already disabled"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
@@ -858,7 +868,7 @@ const (
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
 
-	MsgCannotGetRole = "Cannot get role"
+	MsgCannotGetRole = "CPS user's role cannot be found"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
@@ -1073,6 +1083,7 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
+	MsgCpsActionRoleNotFound = "CPS action role not found"
 	MsgRoleNotFound          = "Role not found"
 	// transaction related messages
 	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
