@@ -4,11 +4,12 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -19,35 +20,65 @@ import (
 )
 
 type customerSegmentationService struct {
-	repo       storage.CustomerSegmentationRepository
-	cpsService service.CPSActionService
-	logger     utils.Logger
+	repo        storage.CustomerSegmentationRepository
+	cpsRoleRepo storage.CPSRolesRepository
+	cpsService  service.CPSActionService
+	logger      utils.Logger
 }
 
-func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsService service.CPSActionService, logger utils.Logger) *customerSegmentationService {
-	return &customerSegmentationService{repo: repo, cpsService: cpsService, logger: logger}
+func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRoleRepo storage.CPSRolesRepository, cpsService service.CPSActionService, logger utils.Logger) *customerSegmentationService {
+	return &customerSegmentationService{
+		repo:        repo,
+		cpsRoleRepo: cpsRoleRepo,
+		cpsService:  cpsService,
+		logger:      logger,
+	}
 }
 
-func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error {
+func (s *customerSegmentationService) CreateBulk(ctx context.Context, reqs []cust_seg.CreateCustomerSegmentationRequest) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
-	seg := &imodel.CustomerSegmentation{
-		CustomerRole:       req.CustomerRole,
-		CustomerSegment:    req.CustomerSegment,
-		CustomerSubSegment: req.CustomerSubSegment,
-		CustomerGroup:      req.CustomerGroup,
-		CreatedAt:          time.Now(),
-		UpdatedAt:          time.Now(),
+	var newData []model.CustomerSegmentation
+	var notFoundRoles []string
+	for _, req := range reqs {
+		role, err := s.cpsRoleRepo.FindById(ctx, req.CustomerRole)
+		if err != nil {
+			if err.Error() == localization.ErrorResourceNotFound.Code {
+				s.logger.Errorf("CPS role {%s} cannot be found", req.CustomerRole)
+				notFoundRoles = append(notFoundRoles, req.CustomerRole)
+				continue
+			} else {
+				s.logger.Errorf("error while fetching CPS role {%s}: %v", req.CustomerRole, err)
+				return err
+			}
+		}
+
+		if role != nil {
+			seg := model.CustomerSegmentation{
+				CustomerRole:       req.CustomerRole,
+				CustomerSegment:    req.CustomerSegment,
+				CustomerSubSegment: req.CustomerSubSegment,
+				CustomerGroup:      req.CustomerGroup,
+				CreatedAt:          time.Now(),
+				UpdatedAt:          time.Now(),
+			}
+			newData = append(newData, seg)
+		}
 	}
 
-	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, seg, string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
+	if len(notFoundRoles) > 0 {
+		return fmt.Errorf("these roles cannot be found: %s", notFoundRoles)
+
+	}
+
+	cpsActionData := lib.CpsModelBuilder("", makerUser, nil, newData, string(constants.RequestCreateCustomerSegmentation), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
-		s.logger.Errorf("[Create] failed to create CPS action: %v", err)
+		s.logger.Errorf("[CreateBulk] failed to create CPS action %d: %v", err)
 		return err
 	}
+	s.logger.Infof("[CreateBulk] customer segmentation creation request sent successfully")
 
-	s.logger.Infof("[Create] customer segmentation creation request created successfully")
 	return nil
 }
 
@@ -87,11 +118,11 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	return nil
 }
 
-func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
+func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error) {
 	return s.repo.FindAllWithPagination(ctx, *filterParam)
 }
 
-func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
+func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*model.CustomerSegmentation, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
@@ -118,20 +149,35 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 
 func (s *customerSegmentationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	s.logger.Infof("[Authorize] authorizing customer segmentation action: %s", action.RequestAction)
-	var err error
-	seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
-	if marshal_err != nil || seg == nil {
-		s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
-		return nil, marshal_err
+
+	var (
+		err error
+		seg *model.CustomerSegmentation
+	)
+	if action.ActionType != constants.CREATE {
+		seg, marshal_err := local_util.JsonUnmarshal[model.CustomerSegmentation](action.CurrentAction)
+		if marshal_err != nil || seg == nil {
+			s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
+			return nil, marshal_err
+		}
 	}
+
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerSegmentation):
-		err = s.repo.Create(ctx, seg)
-		if err != nil {
-			s.logger.Errorf("[Authorize] failed to create customer segmentation: %v", err)
-			return nil, err
+		cusSegs, marshal_err := local_util.JsonUnmarshal[[]model.CustomerSegmentation](action.CurrentAction)
+		if marshal_err != nil || cusSegs == nil {
+			s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
+			return nil, marshal_err
 		}
-		s.logger.Infof("[Authorize] customer segmentation created successfully")
+
+		for _, action := range *cusSegs {
+			err = s.repo.Create(ctx, &action)
+			if err != nil {
+				s.logger.Errorf("[Authorize] failed to create customer segmentation: %v", err)
+				return nil, err
+			}
+			s.logger.Infof("[Authorize] customer segmentation created successfully")
+		}
 	case string(constants.RequestUpdateCustomerSegmentation):
 		err = s.repo.Update(ctx, action.UniqueId, seg)
 		if err != nil {

@@ -5,7 +5,6 @@ import (
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -33,7 +32,7 @@ func (r *cpsRoleService) Create(ctx context.Context, req cps_role_dto.CreateCPSR
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
 	enabled := true
-	role := imodel.CPSRoles{
+	role := model.CPSRoles{
 		Name:      req.Name,
 		Enabled:   &enabled,
 		CreatedAt: time.Now(),
@@ -124,11 +123,11 @@ func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
-func (r *cpsRoleService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CPSRoles], error) {
+func (r *cpsRoleService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CPSRoles], error) {
 	return r.repo.FindAllWithPagination(ctx, filterParam)
 }
 
-func (r *cpsRoleService) FindById(ctx context.Context, id string) (*imodel.CPSRoles, error) {
+func (r *cpsRoleService) FindById(ctx context.Context, id string) (*model.CPSRoles, error) {
 	return r.repo.FindById(ctx, id)
 }
 
@@ -136,7 +135,7 @@ func (r *cpsRoleService) Authorize(ctx context.Context, action *model.CPSAction)
 	r.logger.Infof("[Authorize] authorizing cps role action: %s", action.RequestAction)
 
 	var err error
-	role, marshal_err := local_util.JsonUnmarshal[imodel.CPSRoles](action.CurrentAction)
+	role, marshal_err := local_util.JsonUnmarshal[model.CPSRoles](action.CurrentAction)
 	if marshal_err != nil || role == nil {
 		r.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
 		return nil, marshal_err

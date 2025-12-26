@@ -142,6 +142,7 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
@@ -576,6 +577,7 @@ type BPSActionRoleRepository interface {
 	Create(ctx context.Context, actionRole *model.ActionRole) error
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error)
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	FindByActionName(ctx context.Context, actionName string) (*model.ActionRole, error)
@@ -655,18 +657,18 @@ type MiniAppMerchant interface {
 }
 
 type CustomerSegmentationRepository interface {
-	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
-	Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error
+	Create(ctx context.Context, seg *model.CustomerSegmentation) error
+	Update(ctx context.Context, id string, seg *model.CustomerSegmentation) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
-	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
+	FindByID(ctx context.Context, id string) (*model.CustomerSegmentation, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error)
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CustomerSegmentation, error)
 }
 
 type CPSRolesRepository interface {
-	Create(ctx context.Context, req imodel.CPSRoles) error
-	Update(ctx context.Context, id string, req imodel.CPSRoles) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CPSRoles], error)
-	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
+	Create(ctx context.Context, req model.CPSRoles) error
+	Update(ctx context.Context, id string, req model.CPSRoles) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
