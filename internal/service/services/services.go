@@ -129,5 +129,3 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	action.CurrentAction = serviceDoc
 	return action, nil
 }
-
-// local CPS wrapper functions removed; using services/core helper directly above

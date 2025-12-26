@@ -10,7 +10,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/storage/kafka"
 
-	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -45,7 +44,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Services) e
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
-	service.LastModifiedAt = time.Now()
+	service.UpdatedAt = time.Now()
 	service.IsDeleted = false
 
 	createService, err := s.dal.InsertOne(ctx, *service)
@@ -65,7 +64,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	update := bson.M{
-		"last_modified_at": time.Now(),
+		"updated_at": time.Now(),
 	}
 	if service.ServiceCode != "" {
 		update["service_code"] = service.ServiceCode
@@ -73,26 +72,14 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if service.ServiceName != "" {
 		update["service_name"] = service.ServiceName
 	}
-	// if service.ServiceType != "" {
-	// 	update["service_type"] = service.ServiceType
-	// }
-	// if service.Key != "" {
-	// 	update["key"] = service.Key
-	// }
-	if service.PaymentType != "" {
-		update["payment_type"] = service.PaymentType
-	}
 	if service.AboveAmount != 0 {
 		update["above_amount"] = service.AboveAmount
 	}
 	if service.AboveServiceFee != 0 {
 		update["above_service_fee"] = service.AboveServiceFee
 	}
-	// if service.CbeIFBProductAccount != "" {
-	// 	update["cbe_ifb_product_account"] = service.CbeIFBProductAccount
-	// }
-	if service.CbeGLProductAccount != "" {
-		update["cbe_gl_product_account"] = service.CbeGLProductAccount
+	if service.ProductAccount != "" {
+		update["product_account"] = service.ProductAccount
 	}
 	if len(service.Tiers) > 0 {
 		update["tiers"] = service.Tiers
@@ -100,14 +87,8 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if (service.Cap != model.Cap{}) {
 		update["cap"] = service.Cap
 	}
-	// if (service.CbeProductCodes != model.ProductCodes{}) {
-	// 	update["cbe_product_codes"] = service.CbeProductCodes
-	// }
-	// if (service.CbeIfbProductCodes != model.ProductCodes{}) {
-	// 	update["cbe_ifb_product_codes"] = service.CbeIfbProductCodes
-	// }
 
-	if len(update) == 1 { // only last_modified_at
+	if len(update) == 1 {
 		return errors.New(localization.ErrorNoDataProvided.Code)
 	}
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
@@ -148,7 +129,7 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
+	update := bson.M{"enabled": enable, "updated_at": time.Now()}
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
