@@ -592,6 +592,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
+	ErrorCpsActionRoleNotFound,
 
 	// transaction related responses
 	SuccessTransactionRetrieved,
@@ -6098,6 +6099,13 @@ var (
 		Code:       "ERROR_BPS_ACTION_ROLE_NOT_FOUND",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBpsActionRoleNotFound,
+		Type:       "error",
+	}
+
+	ErrorCpsActionRoleNotFound = ResponseCode{
+		Code:       "ERROR_CPS_ACTION_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCpsActionRoleNotFound,
 		Type:       "error",
 	}
 

@@ -49,6 +49,8 @@ var (
 	NewsCategoryCollection           = "news_category"
 	CustomersKYCCollection           = "customer_kyc"
 	BPSActionRolesCollection         = "action_roles"
+	BPSActionListCollection          = "bps_action_list"
+	CPSActionListCollection          = "cps_action_list"
 	RolesCollection                  = "roles"
 
 	BPSActionApproveIndexCollection = "bps_action_approver_index"
