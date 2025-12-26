@@ -76,6 +76,14 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBpsUserEnableRequestSent,
 	SuccessBpsUserDisableRequestSent,
 
+	// CPS Roles
+	SuccessCPSRoleCreated,
+	SuccessCPSRoleUpdated,
+	SuccessCPSRolesFetched,
+	SuccessCPSRoleFetched,
+	SuccessCPSRoleEnabled,
+	SuccessCPSRoleDisabled,
+
 	// Ad related success response codes
 	SuccessAdvertCreated,
 	SuccessAdvertCreateRequestSent,
@@ -1162,6 +1170,44 @@ var (
 		Code:       "SUCCESS_BPS_USER_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgBpsUserDisabledRequestedSuccessfully,
+		Type:       "success",
+	}
+
+	// CPS Roles
+	SuccessCPSRoleCreated = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleCreated,
+		Type:       "success",
+	}
+	SuccessCPSRoleUpdated = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleUpdated,
+		Type:       "success",
+	}
+	SuccessCPSRolesFetched = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLES_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRolesFetched,
+		Type:       "success",
+	}
+	SuccessCPSRoleFetched = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleFetched,
+		Type:       "success",
+	}
+	SuccessCPSRoleEnabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleEnabled,
+		Type:       "success",
+	}
+	SuccessCPSRoleDisabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDisabled,
 		Type:       "success",
 	}
 

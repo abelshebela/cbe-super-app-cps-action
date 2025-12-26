@@ -61,6 +61,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/wallet"
 
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
+	cps_roles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 
 	"github.com/hugokessem/coreio/core"
@@ -139,6 +140,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		AccessListSegmentationPersistence: access_list_segmentation_repository.NewAccessListSegmentationRepository(client, dbName, AccessListSegmentationCollection, logger),
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, dbName, CustomerSegmentationCollection, logger),
+		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, dbName, CPSRolesCollection, logger),
 	}
 
 	return data

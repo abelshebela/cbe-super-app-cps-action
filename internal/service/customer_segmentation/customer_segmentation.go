@@ -9,7 +9,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -141,7 +140,6 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 		}
 		s.logger.Infof("[Authorize] customer segmentation updated successfully")
 	case string(constants.RequestDeleteCustomerSegmentation):
-		fmt.Println("===========")
 		err = s.repo.Delete(ctx, action.UniqueId)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to delete customer segmentation: %v", err)
