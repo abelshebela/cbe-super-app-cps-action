@@ -514,13 +514,9 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []model.CPSActionApproveIndex {
 	_, span := local_util.TraceLogger(context.Background(), "service", "generateIndices", "CPSActionRole", "generateIndices")
 	defer span.End()
-
 	var indices []model.CPSActionApproveIndex
-	now := time.Now().UTC()
-
-	s.logger.Infof("generateIndices: Starting for action %s. Makers: %d, Checkers: %d, Auditors: %d",
-		role.ActionName, len(role.AssignedMakersRoles), len(role.AssignedCheckersRoles), len(role.AssignedAuditorRoles))
-
+	now := time.Now()
+	s.logger.Infof("generateIndices: Starting for action %s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedMakersRoles), len(role.AssignedCheckersRoles), len(role.AssignedAuditorRoles))
 	// Makers
 	for i, makerID := range role.AssignedMakersRoles {
 		idx := int64(i + 1)
@@ -536,7 +532,7 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 		s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID.Hex())
 	}
 
-	// Auditors (merge onto same role doc if present)
+	// Auditors
 	for i, auditorID := range role.AssignedAuditorRoles {
 		idx := int64(i + 1)
 		found := false
@@ -556,6 +552,7 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 				UpdatedAt:    now,
 				CreatedAt:    now,
 			})
+
 			span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
 			s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID.Hex())
 		} else {
@@ -564,12 +561,11 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 		}
 	}
 
-	// Checkers (deterministic, collision-free numeric index)
+	// Checkers
 	if !role.IsMakerOnly {
 		for outer, group := range role.AssignedCheckersRoles {
 			for inner, checkerID := range group {
-				iv := (outer+1)*1000 + (inner + 1) // 1001, 1002, 2001, ...
-				val := float64(iv)
+				val := float64(outer+1) + float64(inner+1)/10.0
 				found := false
 				for j := range indices {
 					if indices[j].RoleId == checkerID.Hex() {
@@ -587,110 +583,17 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 						UpdatedAt:    now,
 						CreatedAt:    now,
 					})
-					span.AddEvent("checker index generated", trace.WithAttributes(
-						attribute.String("role_id", checkerID.Hex()),
-						attribute.Float64("value", val),
-					))
+					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID.Hex()), attribute.Float64("value", val)))
 					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID.Hex(), val)
 				} else {
-					span.AddEvent("checker index updated", trace.WithAttributes(
-						attribute.String("role_id", checkerID.Hex()),
-						attribute.Float64("value", val),
-					))
+					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID.Hex()), attribute.Float64("value", val)))
 					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID.Hex(), val)
 				}
 			}
 		}
 	}
-
 	span.AddEvent("generate indices completed", trace.WithAttributes(attribute.Int("total_indices", len(indices))))
 	s.logger.Infof("generateIndices: Completed. Total indices: %d", len(indices))
+
 	return indices
 }
-
-// func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []model.CPSActionApproveIndex {
-// 	_, span := local_util.TraceLogger(context.Background(), "service", "generateIndices", "CPSActionRole", "generateIndices")
-// 	defer span.End()
-// 	var indices []model.CPSActionApproveIndex
-// 	now := time.Now()
-// 	s.logger.Infof("generateIndices: Starting for action %s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedMakersRoles), len(role.AssignedCheckersRoles), len(role.AssignedAuditorRoles))
-// 	// Makers
-// 	for i, makerID := range role.AssignedMakersRoles {
-// 		idx := int64(i + 1)
-// 		indices = append(indices, model.CPSActionApproveIndex{
-// 			ID:         bson.NewObjectID(),
-// 			RoleId:     makerID.Hex(),
-// 			ActionName: role.ActionName,
-// 			MakerIndex: &idx,
-// 			UpdatedAt:  now,
-// 			CreatedAt:  now,
-// 		})
-// 		span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID.Hex())))
-// 		s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID.Hex())
-// 	}
-
-// 	// Auditors
-// 	for i, auditorID := range role.AssignedAuditorRoles {
-// 		idx := int64(i + 1)
-// 		found := false
-// 		for j := range indices {
-// 			if indices[j].RoleId == auditorID.Hex() {
-// 				indices[j].AuditorIndex = &idx
-// 				found = true
-// 				break
-// 			}
-// 		}
-// 		if !found {
-// 			indices = append(indices, model.CPSActionApproveIndex{
-// 				ID:           bson.NewObjectID(),
-// 				RoleId:       auditorID.Hex(),
-// 				ActionName:   role.ActionName,
-// 				AuditorIndex: &idx,
-// 				UpdatedAt:    now,
-// 				CreatedAt:    now,
-// 			})
-
-// 			span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
-// 			s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID.Hex())
-// 		} else {
-// 			span.AddEvent("auditor index updated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
-// 			s.logger.Infof("generateIndices: Updated Auditor index for RoleID %s", auditorID.Hex())
-// 		}
-// 	}
-
-// 	// Checkers
-// 	if !role.IsMakerOnly {
-// 		for outer, group := range role.AssignedCheckersRoles {
-// 			for inner, checkerID := range group {
-// 				val := float64(outer+1) + float64(inner+1)/10.0
-// 				found := false
-// 				for j := range indices {
-// 					if indices[j].RoleId == checkerID.Hex() {
-// 						indices[j].CheckerIndex = &val
-// 						found = true
-// 						break
-// 					}
-// 				}
-// 				if !found {
-// 					indices = append(indices, model.CPSActionApproveIndex{
-// 						ID:           bson.NewObjectID(),
-// 						RoleId:       checkerID.Hex(),
-// 						ActionName:   role.ActionName,
-// 						CheckerIndex: &val,
-// 						UpdatedAt:    now,
-// 						CreatedAt:    now,
-// 					})
-// 					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID.Hex()), attribute.Float64("value", val)))
-// 					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID.Hex(), val)
-// 				} else {
-// 					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID.Hex()), attribute.Float64("value", val)))
-// 					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID.Hex(), val)
-// 				}
-// 			}
-// 		}
-// 	}
-// 	span.AddEvent("generate indices completed", trace.WithAttributes(attribute.Int("total_indices", len(indices))))
-// 	s.logger.Infof("generateIndices: Completed. Total indices: %d", len(indices))
-
-// 	return indices
-// }
