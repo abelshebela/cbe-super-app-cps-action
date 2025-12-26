@@ -455,11 +455,24 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		ar.ID = bson.NewObjectID()
 		ar.CreatedAt = time.Now()
 		ar.UpdatedAt = time.Now()
+
+		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
+			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to update action list: %v", err)
+			return nil, err
+		}
+
 		if err := s.repo.Create(ctx, &ar); err != nil {
 			span.AddEvent("[Authorize] failed to create action role", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", action.UniqueId),
 			))
+
+			if err := s.UpdateActionList(ctx, cur.ActionName, false); err != nil {
+				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
+				s.logger.Errorf("failed to update action list: %v", err)
+				return nil, err
+			}
 			s.logger.Errorf("[Authorize] failed to create action role: %v", err)
 			return nil, err
 		}
@@ -537,6 +550,11 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		s.logger.Errorf("[Authorize] unsupported action type: %s", action.ActionType)
 		return nil, errors.New(localization.ErrorUnsupportedAction.Code)
 	}
+}
+
+func (s *bpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
+	err := s.repo.UpdateActionList(ctx, actionCode, status)
+	return err
 }
 
 func (s *bpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *model.ActionRole) error {
