@@ -35,7 +35,7 @@ var cpsActionRegistry = map[string]string{
 
 	// AccountValidation
 	"GET account_validation":   "ACCOUNTVALIDATION",
-	"PATCH account_validation": "AccountValidation",
+	"PATCH account_validation": "ACCOUNTVALIDATION",
 
 	// AmountBasedAuth
 	"PATCH amount_based_auth": "AMOUNTBASEDAUTH",
