@@ -624,6 +624,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationInvalidID,
 	ErrorAccessListSegmentationIDSRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
+	ErrorCustomerSegmentationCodeNotFound,
 	ErrorServiceIdRequired,
 
 	// Access List Segmentaion Success Code
@@ -6214,6 +6215,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_NAME_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgAccessListSegmentationNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCustomerSegmentationCodeNotFound = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_CODE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCustomerSegmentationCodeNotFound,
 		Type:       "error",
 	}
 	ErrorAccessListSegmentationIDSRequired = ResponseCode{
