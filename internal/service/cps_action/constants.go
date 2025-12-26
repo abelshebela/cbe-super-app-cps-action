@@ -623,24 +623,31 @@ func IsValidRequestAction(requestAction string) bool {
 }
 
 var RequestActionGroups = map[string][]RequestAction{
-	// "Service": {
-	// 	RequestUpdateServiceSingle,
-	// 	RequestUpdateServiceTotal,
-	// 	RequestUpdateServiceMinCap,
-	// 	RequestCreateServiceFee,
-	// 	RequestUpdateServiceFee,
-	// 	RequestDeleteServiceFee,
-	// 	RequestCreateDailyLimit,
-	// 	RequestUpdateDailyLimit,
-	// 	RequestDeleteDailyLimit,
-	// },
-	"Service": {
-		RequestCreateService,
-		RequestUpdateService,
-		RequestEnableService,
-		RequestDisableService,
+	// Canonical
+	"NOTIFICATIONS": {
+		RequestCreatePublicNotification,
+		RequestUpdatePublicNotification,
+		RequestDeleteNotification,
+		RequestEnableNotification,
+		RequestDisableNotification,
+		RequestMarkNotificationAsSeen,
 	},
-	"Account": {
+	"ACCOUNTBLOCK": {
+		RequestBlockUser,
+		RequestDisableSingleBranch,
+		RequestEnableSingleBranch,
+		RequestDisableMultiBranches,
+		RequestEnableMultiBranches,
+		RequestEnableBranches,
+		RequestDisableBranches,
+		RequestEnableRegions,
+		RequestDisableRegions,
+		RequestEnableDistricts,
+		RequestDisableDistricts,
+		RequestEnableCities,
+		RequestDisableCities,
+	},
+	"ACCOUNTVALIDATION": {
 		RequestUser,
 		RequestUpdateAccountValidation,
 		RequestEnableUser,
@@ -648,114 +655,133 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"Event": {
+	"BPSACTIONROLE": {
+		RequestCreateActionRole,
+		RequestUpdateActionRole,
+		RequestEnableActionRole,
+		RequestDisableActionRole,
+	},
+	"JOBROLES": {
+		RequestCreateJobRole,
+		RequestUpdateJobRole,
+		RequestDeleteJobRole,
+		RequestEnableJobRole,
+		RequestDisableJobRole,
+	},
+	"PASSWORDRULES": {
+		RequestUpdatePasswordRule,
+	},
+	"VAULTCATEGORY": {
+		RequestCreateVaultGroupCategory,
+		RequestUpdateVaultGroupCategory,
+		RequestDeleteVaultGroupCategory,
+		RequestEnableVaultGroupCategory,
+		RequestDisAbleVaultGroupCategory,
+	},
+
+	// Legacy/operational modules (kept as requested)
+	"SERVICE": {
+		RequestCreateService,
+		RequestUpdateService,
+		RequestEnableService,
+		RequestDisableService,
+	},
+	"ACCOUNT": {
+		RequestUser,
+		RequestUpdateAccountValidation,
+		RequestEnableUser,
+		RequestDisableUser,
+		RequestUpdateUser,
+		RequestArchiveUser,
+	},
+	"EVENT": {
 		RequestCreateEvent,
 		RequestDeleteEvent,
 		RequestDisableEvent,
 		RequestEnableEvent,
 		RequestUpdateEvent,
 	},
-	"AmountBasedAuth": {
+	"AMOUNTBASEDAUTH": {
 		RequestCreateAmountBasedAuth,
 		RequestUpdateAmountBasedAuth,
 		RequestDeleteAmountBasedAuth,
 		RequestAuthTier,
 	},
-	"User": {
+	"USER": {
 		RequestUser,
 		RequestEnableUser,
 		RequestDisableUser,
 		RequestUpdateUser,
 		RequestArchiveUser,
 	},
-	"BPSUser": {
+	"BPSUSER": {
 		RequestBPSUser,
 		RequestEnableBPSUser,
 		RequestDisableBPSUser,
 	},
-	"PermissionGroup": {
+	"PERMISSIONGROUP": {
 		RequestPermissionGroup,
 	},
-	"Department": {
+	"DEPARTMENT": {
 		RequestCreateDepartment,
 		RequestUpdateDepartment,
 		RequestEnableDisableDepartment,
-		// RequestDeleteDepartment,
 	},
-	"ServiceFee": {
+	"SERVICEFEE": {
 		RequestCreateServiceFee,
 		RequestUpdateServiceFee,
 		RequestDeleteServiceFee,
 	},
-	"DailyLimit": {
+	"DAILYLIMIT": {
 		RequestCreateDailyLimit,
 		RequestUpdateDailyLimit,
 		RequestDeleteDailyLimit,
 		RequestTotalDailyLimit,
 	},
-	"VAT": {
-		RequestUpdateVAT,
-	},
-	"AuthTier": {
-		RequestAuthTier,
-	},
-	"Archive": {
-		RequestUpdateArchiveExpiry,
-	},
-	"MinimumService": {
-		RequestUpdateMinimumService,
-	},
-	"ServiceRule": {
-		RequestUpdateServiceRule,
-	},
-	"Total": {
-		RequestUpdateTotal,
-	},
-	"AccessConfig": {
-		RequestUpdateAccessConfig,
-	},
-	"Branch": {
+	"VAT": {RequestUpdateVAT},
+	// "AUTHTIER":       {RequestAuthTier},
+	"ARCHIVE":        {RequestUpdateArchiveExpiry},
+	"MINIMUMSERVICE": {RequestUpdateMinimumService},
+	"SERVICERULE":    {RequestUpdateServiceRule},
+	"TOTAL":          {RequestUpdateTotal},
+	"ACCESSCONFIG":   {RequestUpdateAccessConfig},
+	"BRANCH": {
 		RequestEnableSingleBranch,
 		RequestEnableMultiUsers,
 		RequestDisableMultiUsers,
 		RequestEnableSingleBranches,
 		RequestEnableMultiBranches,
 	},
-	"Business": {
+	"BUSINESS": {
 		RequestCreateBusiness,
 		RequestUpdateBusiness,
 	},
-	"EventCategory": {
+	"EVENTCATEGORY": {
 		RequestCreateEventCategory,
 		RequestUpdateEventCategory,
 	},
-	"MiniAppMerchant": {
+	"MINIAPPMERCHANT": {
 		RequestCreateMiniAppMerchant,
 		RequestUpdateMiniAppMerchant,
 		RequestDeleteMiniAppMerchant,
 		RequestEnableMiniAppMerchant,
 		RequestDisableMiniAppMerchant,
 	},
-	"BlockTime": {
-		RequestUpdateBlockTime,
-	},
-	"Password": {
-
-		RequestUpdatePasswordRule,
-	},
-	"Permission": {
+	"BLOCKTIME":    {RequestUpdateBlockTime},
+	"PASSWORDRULE": {RequestUpdatePasswordRule},
+	"PERMISSION": {
 		RequestCreatePermissionGroup,
 		RequestDeletePermissionGroup,
 		RequestUpdatePermissionGroup,
 	},
-	"Avatar": {
+	"AVATAR": {
 		RequestCreateAvatar,
 		RequestUpdateAvatar,
 		RequestEnableAvatar,
 		RequestDisableAvatar,
 		RequestDeleteAvatar,
 	},
-	"Budget": {
+	"BUDGET": {
 		RequestCreateBudgetColor,
 		RequestUpdateBudgetColor,
 		RequestDeleteBudgetColor,
@@ -763,15 +789,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateBudgetIcon,
 		RequestDeleteBudgetIcon,
 	},
-
-	"Advert": {
+	"ADVERT": {
 		RequestCreateAdvert,
 		RequestUpdateAdvert,
 		RequestEnableAdvert,
 		RequestDisableAdvert,
 		RequestDeleteAdvert,
 	},
-	"Bank": {
+	"BANK": {
 		RequestCreateBank,
 		RequestUpdateBank,
 		RequestDeleteBank,
@@ -780,71 +805,62 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableBank,
 		RequestDisableBank,
 	},
-	"Wallet": {
+	"WALLET": {
 		RequestCreateWallet,
 		RequestUpdateWallet,
 		RequestDeleteWallet,
 		RequestEnableWallet,
 		RequestDisableWallet,
 	},
-	"Topup": {
+	"TOPUP": {
 		RequestCreateTopup,
 		RequestUpdateTopup,
 		RequestDeleteTopup,
 		RequestEnableTopup,
 		RequestDisableTopup,
 	},
-	"Validation": {
+	"VALIDATION": {
 		RequestCreateValidation,
 		RequestUpdateValidation,
 		RequestDeleteValidation,
 	},
-	"JobRole": {
+	"JOBROLE": {
 		RequestCreateJobRole,
 		RequestUpdateJobRole,
 		RequestDeleteJobRole,
 		RequestEnableJobRole,
 		RequestDisableJobRole,
 	},
-	"Role": {
+	"ROLE": {
 		RequestCreateRole,
 		RequestUpdateRole,
 		RequestDeleteRole,
 		RequestEnableRole,
 		RequestDisableRole,
 	},
-	"Block": {
+	"BLOCK": {
 		RequestBlockUser,
 		RequestDisableSingleBranch,
 		RequestEnableSingleBranch,
-
 		RequestDisableMultiBranches,
 		RequestEnableMultiBranches,
-
-		// Branch
 		RequestEnableBranches,
 		RequestDisableBranches,
-
-		// Region
 		RequestEnableRegions,
 		RequestDisableRegions,
-
-		// District
 		RequestEnableDistricts,
 		RequestDisableDistricts,
-
-		// City
 		RequestEnableCities,
 		RequestDisableCities,
 	},
-	"BudgetCategory": {
+	"BUDGETCATEGORY": {
 		RequestCreateBudgetCategory,
 		RequestUpdateBudgetCategory,
 		RequestDeleteBudgetCategory,
 		RequestDisableBudgetCategory,
 		RequestEnableBudgetCategory,
 	},
-	"UnlinkDevice": {
+	"UNLINKDEVICE": {
 		RequestUnlinkDevice,
 		RequestUnlinkUser,
 	},
@@ -853,31 +869,29 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateHQArchiveTime,
 		RequestUpdatePasswordExpiry,
 	},
-	"Fayda": {
+	"FAYDA": {
 		RequestDisableFaydaAccount,
 		RequestEnableFaydaAccount,
 	},
-	"CPSUser": {
+	"CPSUSER": {
 		RequestCpsUserCreate,
 		RequestCpsUserUpdate,
 		RequestCpsUserDelete,
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
-	"BulkService": {
+	"BULKSERVICE": {
 		RequestBulkServiceEnable,
 		RequestBulkServiceDisable,
 	},
-	"MiniApp": {
+	"MINIAPP": {
 		RequestCreateMiniApp,
 		RequestUpdateMiniApp,
 		RequestDeleteMiniApp,
 		RequestEnableMiniApp,
 		RequestDisableMiniApp,
 	},
-	"Notification": {
-		// RequestCreateNotification,
-		// RequestUpdateNotification,
+	"NOTIFICATION": {
 		RequestCreatePublicNotification,
 		RequestUpdatePublicNotification,
 		RequestDeleteNotification,
@@ -885,17 +899,17 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableNotification,
 		RequestMarkNotificationAsSeen,
 	},
-	"BankVault": {
+	"BANKVAULT": {
 		RequestCreateBankVault,
 		RequestUpdateBankVault,
 		RequestDeleteBankVault,
 		RequestEnableBankVault,
 		RequestDisAbleBankVault,
 	},
-	"ProductCode": {
+	"PRODUCTCODE": {
 		RequestUpdateProductCode,
 	},
-	"Donation": {
+	"DONATION": {
 		RequestCreateDonation,
 		RequestUpdateDonation,
 		RequestDisableDonation,
@@ -904,80 +918,79 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteDonationImage,
 		RequestEnableDonation,
 	},
-	"donationCategory": {
+	"DONATIONCATEGORY": {
 		RequestCreateDonationCategory,
 		RequestUpdateDonationCategory,
 		RequestDisableDonationCategory,
 		RequestEnableDonationCategory,
 	},
-	"donationCompany": {
+	"DONATIONCOMPANY": {
 		RequestCreateDonationCompany,
 		RequestUpdateDonationCompany,
 		RequestEnableDonationCompany,
 		RequestDisableDonationCompany,
 	},
-	"VaultGroupCategory": {
+	"VAULTGROUPCATEGORY": {
 		RequestCreateVaultGroupCategory,
 		RequestUpdateVaultGroupCategory,
 		RequestDeleteVaultGroupCategory,
 		RequestEnableVaultGroupCategory,
 		RequestDisAbleVaultGroupCategory,
 	},
-	"KYCVerifier": {
+	"KYCVERIFIER": {
 		RequestUpdateKYCVerifier,
 		RequestApproveKYC,
 	},
-	"article": {
+	"ARTICLE": {
 		RequestCreateArticle,
 		RequestUpdateArticle,
 		RequestDeleteArticle,
 		RequestEnableArticle,
 		RequestDisableArticle,
 	},
-	"articleCategory": {
+	"ARTICLECATEGORY": {
 		RequestCreateArticleCategory,
 		RequestUpdateArticleCategory,
 		RequestDeleteArticleCategory,
 		RequestEnableArticleCategory,
 		RequestDisableArticleCategory,
 	},
-	"short_video": {
+	"SHORTVIDEO": {
 		RequestCreateShortVideo,
 		RequestUpdateShortVideo,
 		RequestDeleteShortVideo,
 		RequestEnableShortVideo,
 		RequestDisableShortVideo,
 	},
-	"customer": {
+	"CUSTOMER": {
 		RequestEnableDisableCustomer,
 		RequestApproveFaydaCustomer,
 	},
-
-	"news_category": {
+	"NEWSCATEGORY": {
 		RequestAction("CREATE_NEWS_CATEGORY"),
 		RequestAction("UPDATE_NEWS_CATEGORY"),
 		RequestAction("DELETE_NEWS_CATEGORY"),
 	},
-	"news_tag": {
+	"NEWSTAG": {
 		RequestCreateNewsTag,
 		RequestUpdateNewsTag,
 		RequestEnableNewsTag,
 		RequestDisableNewsTag,
 		RequestDeleteNewsTag,
 	},
-	"ActionRole": {
+	"ACTIONROLE": {
 		RequestCreateActionRole,
 		RequestUpdateActionRole,
 		RequestEnableActionRole,
 		RequestDisableActionRole,
 	},
-	"CpsActionRole": {
+	"CPSACTIONROLE": {
 		RequestCreateCpsActionRole,
 		RequestUpdateCpsActionRole,
 		RequestEnableCpsActionRole,
 		RequestDisableCpsActionRole,
 	},
-	"DeviceVersion": {
+	"DEVICEVERSION": {
 		RequestCreateDeviceVersion,
 		RequestUpdateDeviceVersion,
 		RequestEnableDeviceVersion,
@@ -985,53 +998,53 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteDeviceVersion,
 		RequestEnableDisableDeviceVersion,
 	},
-	"MiniAppCategory": {
+	"MINIAPPCATEGORY": {
 		RequestCreateMiniAppCategory,
 		RequestUpdateMiniAppCategory,
 		RequestDeleteMiniAppCategory,
 		RequestEnableMiniAppCategory,
 		RequestDisableMiniAppCategory,
 	},
-
-	"eventMerchant": {
+	"EVENTMERCHANT": {
 		RequestCreateEventMerchant,
 		RequestUpdateEventMerchant,
 		RequestDeleteEventMerchant,
 		RequestEnableEventMerchant,
 		RequestDisableEventMerchant,
 	},
-
-	"VaultAmountTier": {
+	"VAULTAMOUNTTIER": {
 		RequestCreateVaultAmountTier,
 		RequestUpdateVaultAmountTier,
 		RequestDeleteVaultAmountTier,
 		RequestEnableVaultAmountTier,
 		RequestDisAbleVaultAmountTier,
 	},
-	"MiniAppProductCode": {
+	"MINIAPPPRODUCTCODE": {
 		RequestCreateMiniappProductCode,
 		RequestUpdateMiniappProductCode,
 		RequestDeleteMiniappProductCode,
 		RequestEnableMiniappProductCode,
 		RequestDisableMiniappProductCode,
 	},
-
-	"AccessListSegmentation": {
+	"ACCESSLISTSEGMENTATION": {
 		RequestCreateAccessListSegmentation,
 		RequestUpdateAccessListSegmentation,
 		RequestEnableDisableAccessListSegmentation,
 	},
-	"CustomerSegmentations": {
+	"CUSTOMERSEGMENTATIONS": {
 		RequestCreateCustomerSegmentation,
 		RequestUpdateCustomerSegmentation,
 		RequestDeleteCustomerSegmentation,
 	},
-	"EcommerceMerchant": {
+	"ECOMMERCEMERCHANT": {
 		RequestCreateEcommerceMerchant,
 		RequestUpdateEcommerceMerchant,
 		RequestEnableEcommerceMerchant,
 		RequestDisableEcommerceMerchant,
 		RequestDeleteEcommerceMerchant,
+	},
+	"ENCRYPTION": {
+		// no actions defined yet
 	},
 }
 
