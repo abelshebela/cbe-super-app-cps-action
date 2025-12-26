@@ -49,7 +49,7 @@ var cpsActionRegistry = map[string]string{
 	// AccountValidation
 	"GET /account_validation":               "ACCOUNTVALIDATION",
 	"GET /account_validation/{id}":          "ACCOUNTVALIDATION",
-	"PATCH /account_validation/update/{id}": "AccountValidation",
+	"PATCH /account_validation/update/{id}": "ACCOUNTVALIDATION",
 
 	// AmountBasedAuth
 	"PATCH /amount_based_auth/update/{method}/{id}": "AMOUNTBASEDAUTH",
@@ -79,10 +79,10 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /vault/products/enable/{id}":  "BANKVAULT",
 
 	// ActionRole (BPS)
-	"POST /bps-action-roles":                 "BPSACTIONEROLE",
-	"PATCH /bps-action-roles/{code}":         "BPSACTIONEROLE",
-	"PATCH /bps-action-roles/{code}/enable":  "BPSACTIONEROLE",
-	"PATCH /bps-action-roles/{code}/disable": "BPSACTIONEROLE",
+	"POST /bps-action-roles":                 "ACTIONROLE",
+	"PATCH /bps-action-roles/{code}":         "ACTIONROLE",
+	"PATCH /bps-action-roles/{code}/enable":  "ACTIONROLE",
+	"PATCH /bps-action-roles/{code}/disable": "ACTIONROLE",
 
 	// BPSUser
 	"POST /bps_users/disable/{user_code}": "BPSUSER",
@@ -169,11 +169,11 @@ var cpsActionRegistry = map[string]string{
 	"DELETE /event_merchant/{id}":         "EVENTMERCHANT",
 
 	// Event
-	"POST /events":               "Event",
-	"PATCH /events/{id}":         "Event",
-	"PATCH /events/enable/{id}":  "Event",
-	"PATCH /events/disable/{id}": "Event",
-	"DELETE /events/{id}":        "Event",
+	"POST /events":               "EVENT",
+	"PATCH /events/{id}":         "EVENT",
+	"PATCH /events/enable/{id}":  "EVENT",
+	"PATCH /events/disable/{id}": "EVENT",
+	"DELETE /events/{id}":        "EVENT",
 
 	// HQ
 	"POST /hq/block_time":      "HQ",
@@ -199,8 +199,12 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /news/tags/{id}":  "NEWSTAG",
 
 	// Job roles
-	"POST /job_roles":       "JOBROLES",
-	"PATCH /job_roles/{id}": "JOBROLES",
+	"POST /job_roles":       "JOBROLE",
+	"PATCH /job_roles/{id}": "JOBROLE",
+
+	// Roles
+	"POST /roles":       "ROLE",
+	"PATCH /roles/{id}": "ROLE",
 
 	// Access list segmentation
 	"POST /access_list_segmentation":              "ACCESSLISTSEGMENTATION",
@@ -209,22 +213,15 @@ var cpsActionRegistry = map[string]string{
 	"POST /access_list_segmentation/disable/{id}": "ACCESSLISTSEGMENTATION",
 
 	// PasswordRule
-	"PATCH /password_rule/{id}": "PASSWORD",
-	"POST /password_rule/check": "PASSWORD",
+	"PATCH /password_rule/{id}": "PASSWORDRULES",
+	"POST /password_rule/check": "PASSWORDRULES",
 
 	// PermissionGroup
-	"POST /permissions":       "PermissionGroup",
-	"PATCH /permissions/{id}": "PermissionGroup",
+	"POST /permissions":       "PERMISSIONGROUP",
+	"PATCH /permissions/{id}": "PERMISSIONGROUP",
 
 	// ProductCode (nested router)
-	"PATCH /productcodes/{id}": "ProductCode",
-
-	// ServiceDetails -> Service
-	"PATCH /service/service_fee/update/{id}":         "Service",
-	"PATCH /service/single_transfer_max/update/{id}": "Service",
-	"PATCH /service/total_transfer_max/update":       "Service",
-	"PATCH /service/minimum_transfer/update/{id}":    "Service",
-	"DELETE /service/service_fee/delete/{id}":        "Service",
+	"PATCH /productcodes/{id}": "PRODUCTCODE",
 
 	// Services module
 	"POST /services":               "SERVICE",
