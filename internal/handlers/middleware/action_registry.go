@@ -209,8 +209,8 @@ var cpsActionRegistry = map[string]string{
 	"POST /access_list_segmentation/disable/{id}": "ACCESSLISTEGMENTATION",
 
 	// PasswordRule
-	"PATCH /password_rule/{id}": "PASSWORDRULES",
-	"POST /password_rule/check": "PASSWORDRULES",
+	"PATCH /password_rule/{id}": "PASSWORD",
+	"POST /password_rule/check": "PASSWORD",
 
 	// PermissionGroup
 	"POST /permissions":       "PermissionGroup",
