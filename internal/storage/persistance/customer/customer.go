@@ -407,48 +407,130 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 	return response, nil
 }
 
-func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error) {
-	p.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", req.CifOrAccountNumber)
+// func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
+// 	p.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", number)
 
-	// Step 1: Find user_id from linked_account where customer_id and account_number match
-	linkedAccountColl := p.client.Database(p.coll.Database().Name()).Collection("linked_account")
-	var linkedResult struct {
-		UserID interface{} `bson:"user_id"`
+// 	// Step 1: Find user_id from linked_account where customer_id and account_number match
+// 	linkedAccountColl := p.client.Database(p.coll.Database().Name()).Collection("linked_account")
+// 	var linkedResult struct {
+// 		UserID interface{} `bson:"user_id"`
+// 	}
+// 	f := bson.M{"$or": bson.A{
+// 		bson.M{"customer_number": number},
+// 		bson.M{"account_number": number},
+// 	}}
+
+// 	err := linkedAccountColl.FindOne(ctx, f).Decode(&linkedResult)
+// 	if err != nil {
+// 		code, _ := local_util.HandleMongoError(err)
+// 		if code == localization.ErrorResourceNotFound.Code {
+// 			p.logger.Errorf("[searchCustomerByCIForAccountNumber] customer not found")
+// 			return nil, fmt.Errorf("%s", code)
+// 		}
+// 		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to fetch customer: %v", err)
+// 		return nil, err
+// 	}
+
+// 	res, err := p.mongoDal.FindOne(ctx, bson.M{"_id": linkedResult.UserID}, nil)
+// 	if err != nil {
+// 		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to find customer: %v", err)
+// 		return nil, err
+// 	}
+
+// 	response := &customer_dto.CustomerListResponse{
+// 		ID:          res.ID.Hex(),
+// 		UserCode:    res.UserCode,
+// 		FullName:    res.FullName,
+// 		PhoneNumber: res.PhoneNumber,
+// 		BranchCode:  res.BranchCode,
+// 		Gender:      string(res.Gender),
+// 		CreatedAt:   res.CreatedAt.Format(time.RFC3339),
+// 		IsBlocked:   res.IsBlocked,
+// 	}
+
+//		return response, nil
+//	}
+func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
+	p.logger.Infof("[SearchCustomerByCIForAccountNumber] searching members by value: %s", number)
+
+	pipeline := mongo.Pipeline{
+		// 1. JOIN Linked Accounts
+		// We start with the 'members' collection and look into 'linked_account'
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "linked_account"},
+			{Key: "localField", Value: "_id"},       // member's ObjectID
+			{Key: "foreignField", Value: "user_id"}, // linked_account's owner ObjectID
+			{Key: "as", Value: "accounts"},
+		}}},
+
+		// 2. MULTI-FIELD MATCH
+		// This stage checks the current member document AND the joined 'accounts' array simultaneously.
+		{{Key: "$match", Value: bson.D{
+			{Key: "$or", Value: bson.A{
+				bson.M{"phone_number": number},             // Search in 'members'
+				bson.M{"accounts.customer_number": number}, // Search in joined 'linked_account' array
+				bson.M{"accounts.account_number": number},  // Search in joined 'linked_account' array
+			}},
+		}}},
+
+		// 3. LIMIT
+		// We only need the first member that matches any of the criteria.
+		{{Key: "$limit", Value: 1}},
+
+		// 4. PROJECT
+		// Formatting the output and ensuring 'user_id' is returned as a string.
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "user_id", Value: bson.M{"$toString": "$_id"}},
+			{Key: "user_code", Value: 1},
+			{Key: "full_name", Value: 1},
+			{Key: "phone_number", Value: 1},
+			{Key: "branch_code", Value: 1},
+			{Key: "gender", Value: 1},
+			{Key: "created_at", Value: 1},
+			{Key: "is_blocked", Value: 1},
+		}}},
 	}
-	f := bson.M{"$or": bson.A{
-		bson.M{"customer_id": req.CifOrAccountNumber},
-		bson.M{"account_number": req.CifOrAccountNumber},
-	}}
 
-	err := linkedAccountColl.FindOne(ctx, f).Decode(&linkedResult)
+	cursor, err := p.coll.Aggregate(ctx, pipeline) // p.coll must point to 'members'
 	if err != nil {
-		code, _ := local_util.HandleMongoError(err)
-		if code == localization.ErrorResourceNotFound.Code {
-			p.logger.Errorf("[searchCustomerByCIForAccountNumber] customer not found")
-			return nil, fmt.Errorf("%s", code)
-		}
-		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to fetch customer: %v", err)
+		p.logger.Errorf("[SearchCustomerByCIForAccountNumber] aggregation failed: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []struct {
+		ID          bson.ObjectID `bson:"_id"`
+		UserID      string        `bson:"user_id"`
+		UserCode    string        `bson:"user_code"`
+		FullName    string        `bson:"full_name"`
+		PhoneNumber string        `bson:"phone_number"`
+		BranchCode  string        `bson:"branch_code"`
+		Gender      string        `bson:"gender"`
+		CreatedAt   time.Time     `bson:"created_at"`
+		IsBlocked   bool          `bson:"is_blocked"`
+	}
+
+	if err = cursor.All(ctx, &results); err != nil {
 		return nil, err
 	}
 
-	res, err := p.mongoDal.FindOne(ctx, bson.M{"_id": linkedResult.UserID}, nil)
-	if err != nil {
-		p.logger.Errorf("[searchCustomerByCIForAccountNumber] failed to find customer: %v", err)
-		return nil, err
+	if len(results) == 0 {
+		return nil, fmt.Errorf("no customer found matching: %s", number)
 	}
 
-	response := &customer_dto.CustomerListResponse{
+	res := results[0]
+	return &customer_dto.CustomerListResponse{
 		ID:          res.ID.Hex(),
+		UserID:      res.UserID,
 		UserCode:    res.UserCode,
 		FullName:    res.FullName,
 		PhoneNumber: res.PhoneNumber,
 		BranchCode:  res.BranchCode,
-		Gender:      string(res.Gender),
+		Gender:      res.Gender,
 		CreatedAt:   res.CreatedAt.Format(time.RFC3339),
 		IsBlocked:   res.IsBlocked,
-	}
-
-	return response, nil
+	}, nil
 }
 
 func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error) {
