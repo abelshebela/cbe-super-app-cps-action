@@ -423,19 +423,16 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
-		// prev := core.MapResponseToModel(rprev)
-		// new := core.MapResponseToModel(rnew)
-		// add, remove := core.DiffFinder(prev, new)
-
-		// add all ids in add to role action index with role cur.ActionCode
-		s.indexRepo.InsertAll(ctx, *new)
-		s.indexRepo.DeleteAll(ctx, *prev)
-
 		if err := s.repo.UpdateByActionCode(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to update action role", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
-		s.logger.Infof("Authorize: Syncing indices for Update. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckersRoles), len(new.AssignedAuditorRoles))
+
+		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckersRoles), len(new.AssignedAuditorRoles))
+		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
+			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
 		return action, nil
 	default:
 		span.AddEvent("unsupported action type", trace.WithAttributes(attribute.String("action_type", action.ActionType)))
