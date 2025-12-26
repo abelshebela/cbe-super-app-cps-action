@@ -157,6 +157,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "EcommerceMerchant"):
 		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "CPSRoles"):
+		return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))

@@ -660,3 +660,11 @@ type CustomerSegmentationRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
 }
+
+type CPSRolesRepository interface {
+	Create(ctx context.Context, req imodel.CPSRoles) error
+	Update(ctx context.Context, id string, req imodel.CPSRoles) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*imodel.CPSRoles, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}

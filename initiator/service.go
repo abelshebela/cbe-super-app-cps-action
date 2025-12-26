@@ -45,6 +45,7 @@ import (
 	portalcard "cbe-super-app-cps-action/internal/service/portal_card"
 
 	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
+	cps_role "cbe-super-app-cps-action/internal/service/cps_roles"
 	customer_segmentation "cbe-super-app-cps-action/internal/service/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/service/donation"
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
@@ -135,6 +136,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerSegmentationService := customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, nil, logger)
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, nil, *cfg, logger)
+	CPSRolesService := cps_role.NewCPSRoleService(persistence.CPSRoles, nil, logger)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -194,6 +196,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CustomerSegmentationContainer:   customerSegmentationService,
 		MiniAppMerchantContainer:        miniMerchant,
 		EcommerceMerchantContainer:      ecommerceMerchantService,
+		CPSRolesContainer:               CPSRolesService,
 	}
 
 	// CPSActionService Appended
@@ -287,6 +290,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	customerSegmentationService = customer_segmentation.NewCustomerSegmentation(persistence.CustomerSegmentation, cpsActionService, logger)
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, cpsActionService, *cfg, logger)
+	CPSRolesService = cps_role.NewCPSRoleService(persistence.CPSRoles, cpsActionService, logger)
 
 	return service.ServiceLayer{
 		RoleService:       RoleService,
@@ -344,5 +348,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniappProductCode:            miniAppProductCodeContainer,
 		AccessListSegmentationService: accessListSegmentationService,
 		CustomerSegmentation:          customerSegmentationService,
+		CPSRoles:                      CPSRolesService,
 	}
 }
