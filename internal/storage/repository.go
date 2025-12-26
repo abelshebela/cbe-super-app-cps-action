@@ -142,6 +142,7 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
+	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
@@ -576,6 +577,7 @@ type BPSActionRoleRepository interface {
 	Create(ctx context.Context, actionRole *model.ActionRole) error
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.ActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
+	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error)
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	FindByActionName(ctx context.Context, actionName string) (*model.ActionRole, error)

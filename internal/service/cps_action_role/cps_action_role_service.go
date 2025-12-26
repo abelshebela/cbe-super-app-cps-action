@@ -370,6 +370,13 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			s.logger.Errorf("failed to unmarshal action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
+
+		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
+			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
+			s.logger.Errorf("failed to update action list: %v", err)
+			return nil, err
+		}
+
 		ar, err := s.bindActionRoleModel(*cur)
 		if err != nil {
 			span.AddEvent("failed to bind action role model", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -380,6 +387,10 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		ar.UpdatedAt = time.Now()
 		if err := s.repo.Create(ctx, &ar); err != nil {
 			span.AddEvent("failed to create action role", trace.WithAttributes(attribute.String("error", err.Error())))
+			if err := s.UpdateActionList(ctx, cur.ActionName, false); err != nil {
+				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
+				s.logger.Errorf("failed to update action list: %v", err)
+			}
 			return nil, err
 		}
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckersRoles), len(ar.AssignedAuditorRoles))
@@ -431,6 +442,10 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	}
 }
 
+func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
+	err := s.repo.UpdateActionList(ctx, actionCode, status)
+	return err
+}
 func (s *cpsActionRoleService) bindActionRoleModel(in model.CPSActionRole) (model.CPSActionRole, error) {
 	// Since model.ActionRole already has []bson.ObjectID, and json.Unmarshal handles the conversion from hex strings,
 	// we just need to return the input.
