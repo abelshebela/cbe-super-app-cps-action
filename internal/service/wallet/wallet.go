@@ -70,7 +70,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "wallet", *s.cfg, "", s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.WalletFolderName), *s.cfg, "", s.logger)
 	if err != nil {
 		span.AddEvent("UploadFileToMinio error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -119,7 +119,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			objectkey = path.Base(prevWallet.Avatar)
 		}
 
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", *s.cfg, objectkey, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.WalletFolderName), *s.cfg, objectkey, s.logger)
 		if err != nil {
 			span.AddEvent("UploadFileToMinio error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 			return errors.New(localization.ErrorUnhandledServer.Code)

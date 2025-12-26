@@ -94,7 +94,7 @@ func (e *eventService) CreateEvent(ctx context.Context, event eventdto.EventRequ
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, "", e.logger)
+	URL, err := lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, string(constants.EventFolderName), *e.cfg, "", e.logger)
 	if err != nil {
 		e.logger.Errorf("UploadFileToMinio failed", "error", err)
 		span.AddEvent("UploadFileToMinio failed", trace.WithAttributes(
@@ -149,7 +149,7 @@ func (e *eventService) UpdateEvent(ctx context.Context, id string, event eventdt
 			objectkey = path.Base(prevEvent.EventInformation.Cover)
 		}
 
-		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, "cover_image", *e.cfg, objectkey, e.logger)
+		URL, err = lib.UploadFileToMinio(ctx, e.minio, e.bucketName, event.CoverImage, string(constants.EventFolderName), *e.cfg, objectkey, e.logger)
 		if err != nil {
 			e.logger.Errorf("UploadFileToMinio failed", "event_id", id, "error", err)
 			span.AddEvent("UploadFileToMinio failed", trace.WithAttributes(

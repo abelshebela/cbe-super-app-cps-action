@@ -59,7 +59,7 @@ func (s *vaultgroupCategoryService) CreateVaultGroupCategory(ctx context.Context
 		if errors.Is(err, sql.ErrNoRows) {
 			makerData := local_util.ExtractUserFromContext(ctx)
 
-			coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", *s.cfg, "", s.logger)
+			coverImageUrl, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
 			if err != nil {
 				span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error())))
 				s.logger.Errorf(localization.ErrorFileUploadFailed.Code)
@@ -158,7 +158,7 @@ func (s *vaultgroupCategoryService) UpdateVaultGroupCategory(ctx context.Context
 
 	var coverImageUrl string
 	if req.CoverImage != nil {
-		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, "", *s.cfg, "", s.logger)
+		coverImageUrl, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.CoverImage, string(constants.VaultGroupCategoryFolderName), *s.cfg, "", s.logger)
 		if err != nil {
 			span.AddEvent("File upload failed", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 			s.logger.Errorf(localization.ErrorFileUploadFailed.Code)

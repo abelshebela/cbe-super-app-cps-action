@@ -1,6 +1,7 @@
 package ad
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -86,7 +87,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 		return errors.New(localization.ErrorAdvertTitleAlreadyExists.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
+	url, err := lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, string(constants.AdFolderName), *s.cfg, "", s.logger)
 	if err != nil {
 		span.AddEvent("[CreateAdvert] failed to upload banner image", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -184,7 +185,7 @@ func (s *advertService) UpdateAdvert(ctx context.Context, id string, ad *model.A
 	var url string
 	if bannerImage != nil {
 
-		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, s.bucketName, *s.cfg, "", s.logger)
+		url, err = lib.UploadFileToMinio(ctx, s.minioClient, s.bucketName, bannerImage, string(constants.AdFolderName), *s.cfg, "", s.logger)
 		if err != nil {
 			span.AddEvent("[UpdateAdvert] failed to upload banner image", trace.WithAttributes(
 				attribute.String("error", err.Error()),
