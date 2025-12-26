@@ -115,12 +115,12 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	req.ID = id
 	if err := req.Validate(); err != nil {
 		a.logger.Errorf("[UpdateAccessListSegmentation] validation error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	req.ID = id
 	if err := a.service.UpdateAccessListSegmentation(r.Context(), req); err != nil {
 		a.logger.Errorf("[UpdateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

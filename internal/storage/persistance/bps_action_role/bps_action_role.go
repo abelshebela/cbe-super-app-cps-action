@@ -4,6 +4,7 @@ import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -20,19 +21,53 @@ import (
 )
 
 type BPSActionRoleRepository struct {
-	client     *mongo.Client
-	mongoDal   dal.MongoDal[model.ActionRole, model.ActionRole]
-	logger     utils.Logger
-	collection *mongo.Collection
+	client        *mongo.Client
+	mongoDal      dal.MongoDal[model.ActionRole, model.ActionRole]
+	actionListDal dal.MongoDal[imodel.BPSActionList, imodel.BPSActionList]
+	logger        utils.Logger
+	collection    *mongo.Collection
 }
 
-func NewBPSActionRoleRepository(client *mongo.Client, database, collection string, logger utils.Logger) storage.BPSActionRoleRepository {
+func NewBPSActionRoleRepository(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.BPSActionRoleRepository {
 	return &BPSActionRoleRepository{
-		client:     client,
-		mongoDal:   dal.NewMongoDal[model.ActionRole, model.ActionRole](client, database, collection),
-		logger:     logger,
-		collection: client.Database(database).Collection(collection),
+		client:        client,
+		mongoDal:      dal.NewMongoDal[model.ActionRole, model.ActionRole](client, database, collection[0]),
+		actionListDal: dal.NewMongoDal[imodel.BPSActionList, imodel.BPSActionList](client, database, collection[1]),
+		logger:        logger,
+		collection:    client.Database(database).Collection(collection[0]),
 	}
+}
+
+func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error) {
+	searchKeys := bson.M{}
+	allowedKeys := []string{"action_name", "action_code"}
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["action_name"] = searchRegex
+		searchKeys["action_code"] = searchRegex
+	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	data, err := a.actionListDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		a.logger.Errorf("[FindAllWithPagination] failed to fetch action lists: %v", err)
+		return nil, err
+	}
+
+	total, err := a.actionListDal.TotalCount(ctx, filter)
+	if err != nil {
+		a.logger.Errorf("[FindAllWithPagination] failed to count action lists: %v", err)
+		return nil, err
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	a.logger.Infof("[FindAllWithPagination] retrieved %d action lists", len(data))
+
+	return &types.PaginatedResponse[[]*imodel.BPSActionList]{
+		Data: data,
+		Meta: meta,
+	}, nil
 }
 
 func (r *BPSActionRoleRepository) Create(ctx context.Context, actionRole *model.ActionRole) error {

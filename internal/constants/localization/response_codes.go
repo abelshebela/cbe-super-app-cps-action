@@ -592,6 +592,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
+	ErrorCpsActionRoleNotFound,
 
 	// transaction related responses
 	SuccessTransactionRetrieved,
@@ -634,6 +635,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationInvalidID,
 	ErrorAccessListSegmentationIDSRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
+	ErrorCustomerSegmentationCodeNotFound,
 	ErrorServiceIdRequired,
 
 	// Access List Segmentaion Success Code
@@ -6100,6 +6102,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCpsActionRoleNotFound = ResponseCode{
+		Code:       "ERROR_CPS_ACTION_ROLE_NOT_FOUND",
+		StatusCode: StatusBadRequest,
+		Message:    MsgCpsActionRoleNotFound,
+		Type:       "error",
+	}
+
 	ErrorRoleNotFound = ResponseCode{
 		Code:       "ERROR_ROLE_NOT_FOUND",
 		StatusCode: StatusBadRequest,
@@ -6276,6 +6285,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_NAME_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgAccessListSegmentationNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCustomerSegmentationCodeNotFound = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_CODE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCustomerSegmentationCodeNotFound,
 		Type:       "error",
 	}
 	ErrorAccessListSegmentationIDSRequired = ResponseCode{

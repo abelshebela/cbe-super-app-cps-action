@@ -206,7 +206,7 @@ func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*loca
 }
 
 // Update implements storage.AccessListSegmentationRepository.
-func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error {
+func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		a.logger.Errorf("[Update] invalid ObjectID: %s", id)
@@ -218,24 +218,20 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	if accessListSegmentation.Type != "" {
 		update["type"] = accessListSegmentation.Type
 	}
-	if accessListSegmentation.NewSegmentedID != "" {
-		objID, err := bson.ObjectIDFromHex(accessListSegmentation.NewSegmentedID)
-		if err != nil {
-			a.logger.Errorf("[Update] invalid ObjectID: %s", accessListSegmentation.NewSegmentedID)
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		update["segmented_id"] = objID
+	if accessListSegmentation.SegmentationType != "" {
+		update["segmentation_type"] = accessListSegmentation.SegmentationType
 	}
-	if accessListSegmentation.NewServiceID != "" {
-		serviceObjID, err := bson.ObjectIDFromHex(accessListSegmentation.NewServiceID)
-		if err != nil {
-			a.logger.Errorf("[Update] invalid ServiceID ObjectID: %s", accessListSegmentation.NewServiceID)
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		update["service_id"] = serviceObjID
+	if !accessListSegmentation.SegmentedID.IsZero() {
+		update["segmented_id"] = accessListSegmentation.SegmentedID
 	}
-	if accessListSegmentation.NewServiceName != "" {
-		update["service_name"] = accessListSegmentation.NewServiceName
+	if !accessListSegmentation.ServiceID.IsZero() {
+		update["service_id"] = accessListSegmentation.ServiceID
+	}
+	if accessListSegmentation.SegmentationCode != "" {
+		update["segmentation_code"] = accessListSegmentation.SegmentationCode
+	}
+	if accessListSegmentation.SegmentationName != "" {
+		update["service_name"] = accessListSegmentation.SegmentationName
 	}
 	update["updated_at"] = time.Now()
 
