@@ -50,7 +50,7 @@ func NewCPSActionRoleService(
 	}
 }
 
-// FindAllWithPagination implements service.bpsActionRoleService.
+// FindAllWithPagination implements service.cpsActionRoleService.
 func (s *cpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CPSActionRole", "FindAllWithPagination")
 	defer span.End()
@@ -62,7 +62,7 @@ func (s *cpsActionRoleService) FindAllActionListWithPagination(ctx context.Conte
 	return result, nil
 }
 
-// FindAllWithPagination implements service.bpsActionRoleService.
+// FindAllWithPagination implements service.cpsActionRoleService.
 func (s *cpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CPSActionRole", "FindAllWithPagination")
 	defer span.End()
@@ -74,7 +74,7 @@ func (s *cpsActionRoleService) FindAllWithPagination(ctx context.Context, filter
 	return result, nil
 }
 
-// GetByActionCode implements service.bpsActionRoleService.
+// GetByActionCode implements service.cpsActionRoleService.
 func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetByActionCode", "CPSActionRole", "GetByActionCode")
 	defer span.End()

@@ -21,7 +21,7 @@ func Init(router chi.Router, handler actionrole_inbound.BPSActionRoleHandler, au
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/bps-action-roles/action-list",
+			Path:    "/bps-action-list",
 			Handler: handler.GetAllActionList,
 			Middlewares: []func(next http.Handler) http.Handler{
 				auth.AuthenticateToken,
