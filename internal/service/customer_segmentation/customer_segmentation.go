@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -60,21 +61,23 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 		return err
 	}
 
+	updated := *existing
+
 	if req.CustomerRole != nil {
-		existing.CustomerRole = *req.CustomerRole
+		updated.CustomerRole = *req.CustomerRole
 	}
 	if req.CustomerSegment != nil {
-		existing.CustomerSegment = *req.CustomerSegment
+		updated.CustomerSegment = *req.CustomerSegment
 	}
 	if req.CustomerSubSegment != nil {
-		existing.CustomerSubSegment = *req.CustomerSubSegment
+		updated.CustomerSubSegment = *req.CustomerSubSegment
 	}
 	if req.CustomerGroup != nil {
-		existing.CustomerGroup = *req.CustomerGroup
+		updated.CustomerGroup = *req.CustomerGroup
 	}
-	existing.UpdatedAt = time.Now()
+	updated.UpdatedAt = time.Now()
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, existing, string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, string(constants.RequestUpdateCustomerSegmentation), constants.UPDATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		s.logger.Errorf("[Update] failed to create CPS action: %v", err)
@@ -102,14 +105,15 @@ func (s *customerSegmentationService) Delete(ctx context.Context, id string) err
 		return err
 	}
 
-	cpsActionData := lib.CpsModelBuilder(id, makerUser, nil, existing, string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
+	updated := *existing
+	updated.IsDeleted = true
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, existing, updated, string(constants.RequestDeleteCustomerSegmentation), constants.DELETE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
 		s.logger.Errorf("[Delete] failed to create CPS action: %v", err)
 		return err
 	}
 
-	s.logger.Infof("[Delete] customer segmentation delete request created successfully")
 	return nil
 }
 
@@ -137,6 +141,7 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 		}
 		s.logger.Infof("[Authorize] customer segmentation updated successfully")
 	case string(constants.RequestDeleteCustomerSegmentation):
+		fmt.Println("===========")
 		err = s.repo.Delete(ctx, action.UniqueId)
 		if err != nil {
 			s.logger.Errorf("[Authorize] failed to delete customer segmentation: %v", err)

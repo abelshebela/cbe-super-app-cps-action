@@ -68,6 +68,7 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))

@@ -78,15 +78,12 @@ func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
 
 func CPSUUpdateModel(req cpsuser.UpdateUserRequest) *model.CPSUser {
 	return &model.CPSUser{
-		FullName:           req.FullName,
-		Role:               req.Role,
-		Department:         req.Department,
-		Gender:             req.Gender,
-		PhoneNumber:        req.PhoneNumber,
-		Email:              req.Email,
-		UserName:           req.UserName,
-		PermissionCategory: req.PermissionCategory,
-		PermissionGroup:    req.PermissionGroups,
+		UserName:    req.UserName,
+		FullName:    req.FullName,
+		PhoneNumber: req.PhoneNumber,
+		Gender:      req.Gender,
+		Email:       req.Email,
+		JobTitle:    req.JobTitle,
 	}
 }
 
@@ -126,30 +123,25 @@ func BindCPSUserFromAction(currentAction interface{}) (model.CPSUser, error) {
 		return user, nil
 	}
 
-	// Fallback: try to unmarshal directly as CPSUser
 	if err := json.Unmarshal(bytes, &user); err != nil {
 		return user, err
 	}
 	return user, nil
 }
 
-// BindCPSUserUpdateFromAction decodes action.CurrentAction into cpsuser.UpdateUserRequest
 func BindCPSUserUpdateFromAction(currentAction interface{}) (cpsuser.UpdateUserRequest, error) {
 	var updateReq cpsuser.UpdateUserRequest
 
-	// Fast-path if already the correct type
 	if v, ok := currentAction.(cpsuser.UpdateUserRequest); ok {
 		return v, nil
 	}
 
-	// If stored as JSON string
 	if s, ok := currentAction.(string); ok {
 		if err := json.Unmarshal([]byte(s), &updateReq); err == nil {
 			return updateReq, nil
 		}
 	}
 
-	// Generic path: marshal then unmarshal
 	bytes, err := json.Marshal(currentAction)
 	if err != nil {
 		return updateReq, err

@@ -51,7 +51,7 @@ func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *model.CPSUser) err
 	return nil
 }
 
-func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *cpsuser.UpdateUserRequest) error {
+func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *model.CPSUser) error {
 	r.logger.Infof("[Update] updating CPS user")
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	update := CPSUserUpdateMapper(cpsUser)

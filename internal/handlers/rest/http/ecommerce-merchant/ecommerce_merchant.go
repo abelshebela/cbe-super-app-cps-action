@@ -56,9 +56,9 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
+	// formattedPhone := local_util.FormatPhoneNumber(reqDTO.PhoneNumber)
 
-	reqDTO.PhoneNumber = formattedPhone
+	// reqDTO.PhoneNumber = formattedPhone
 	userContext := local_util.ExtractUserContext(r)
 	if local_util.IsIncomplete(userContext) {
 		span.RecordError(errors.New("incomplete user context"))
@@ -66,9 +66,6 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		localization.SendErrorResponse(w, localization.ErrorIncompleteUserInfo, nil, nil)
 		return
 	}
-
-	h.logger.Debugf("Converted to domain model: %+v", reqDTO)
-	span.SetAttributes(attribute.String("ecommerce_merchant.phone", formattedPhone))
 
 	createdMerchant, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {
@@ -79,7 +76,7 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 	}
 	h.logger.Debugf("Created merchant: %+v", createdMerchant)
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantCreateRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreatedSuccessfully, nil)
 }
 
 // Update Mini App Merchant
@@ -138,7 +135,7 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantUpdateRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdatedSuccessfully, nil)
 }
 
 // Delete Mini App Merchant
@@ -179,7 +176,7 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDeleteRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeletedSuccessfully, nil)
 }
 
 // Enable Mini App Merchant
@@ -216,7 +213,7 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantEnableRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnableSuccessfully, nil)
 }
 
 // Disable Mini App Merchant
@@ -254,7 +251,7 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppMerchantDisableRequestCreated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisableSuccessfully, nil)
 }
 
 // {
@@ -292,7 +289,7 @@ func (h *ecommerceMerchantAdapter) FindByID(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, result)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantFetchedSuccessfully, result)
 }
 
 // List Mini App Merchants with Pagination
@@ -329,7 +326,7 @@ func (h *ecommerceMerchantAdapter) FindAllWithPagination(w http.ResponseWriter, 
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessMiniAppDetailsFetched, miniAppMerchant)
+	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantsFetchedSuccessfully, miniAppMerchant)
 }
 
 // Merchant Lookup
