@@ -1,7 +1,7 @@
 package storage
 
 import (
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+
 	// "cbe-super-app-cps-action/internal/constants/model"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
@@ -288,7 +288,7 @@ type PortalCardRepository interface {
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *model.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *cpsuser.UpdateUserRequest) error
+	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
@@ -637,7 +637,8 @@ type AccessListSegmentationRepository interface {
 	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
 	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
-	Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	// Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
@@ -657,4 +658,5 @@ type CustomerSegmentationRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
 }

@@ -107,10 +107,10 @@ func (r CreateUserRequest) Validate() error {
 				return nil
 			}),
 		),
-		validation.Field(&r.Role,
-			validation.Required.Error("user role is required"),
-			validation.In("maker", "checker").Error("role must be maker or checker"),
-		),
+		// validation.Field(&r.Role,
+		// 	validation.Required.Error("user role is required"),
+		// 	validation.In("maker", "checker").Error("role must be maker or checker"),
+		// ),
 		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
 		validation.Field(&r.PermissionCategory),
 		validation.Field(&r.PermissionGroups),
@@ -120,9 +120,7 @@ func (r CreateUserRequest) Validate() error {
 }
 
 func (r UpdateUserRequest) Validate() error {
-	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" &&
-		r.Role == "" && r.Department.IsZero() &&
-		r.PermissionCategory == nil && r.PermissionGroups == nil {
+	if r.UserName == "" && r.FullName == "" && r.PhoneNumber == "" {
 		return fmt.Errorf("at least one field must be provided for update")
 	}
 
@@ -155,13 +153,12 @@ func (r UpdateUserRequest) Validate() error {
 				return nil
 			}),
 		)),
-		validation.Field(&r.Role, validation.When(r.Role != "",
-			validation.Length(1, 50).Error("user_role cannot be empty"),
-			validation.In("maker", "checker").Error("role must be maker or checker"),
+		validation.Field(&r.Gender, validation.When(r.Gender != "",
+			validation.By(utils.NoSpecialChars),
 		)),
-		validation.Field(&r.Department, validation.When(!r.Department.IsZero(), validation.By(IsObjectIDRequired))),
-		validation.Field(&r.PermissionCategory),
-		validation.Field(&r.PermissionGroups),
+		validation.Field(&r.JobTitle, validation.When(r.JobTitle != "",
+			validation.By(utils.NoSpecialChars),
+		)),
 	)
 }
 

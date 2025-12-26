@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	// model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 type paginated_resp *types.PaginatedResponse[[]*model.BPSUser]
@@ -184,3 +185,33 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }
+
+// func (h *BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
+// 	var req bps_dto.BPSUserCreatePayload
+// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+// 		localization.SendBadRequestResponse(w, "Invalid request payload")
+// 		return
+// 	}
+
+// 	// Validate required fields
+// 	if req.FullName == "" || req.JobTitle == "" || req.ImpowerID == "" || req.PhoneNumber == "" || req.Email == "" {
+// 		localization.SendBadRequestResponse(w, "All fields are required")
+// 		return
+// 	}
+
+// 	// user := model.BPSUser{
+// 	// 	// ID:          primitive.NewObjectID(),
+// 	// 	UserCode:    userCode,
+// 	// 	FullName:    req.FullName,
+// 	// 	JobTitle:    req.JobTitle,
+// 	// 	ImpowerID:   req.ImpowerID,
+// 	// 	PhoneNumber: req.PhoneNumber,
+// 	// 	Email:       req.Email,
+// 	// 	// CreatedAt:   time.Now(),
+// 	// 	// Enabled:     true,
+// 	// }
+
+// 	// // TODO: Save user to DB (implement your DB logic here)
+
+// 	// localization.SendSuccessResponse(w, "User created successfully", user)
+// }
