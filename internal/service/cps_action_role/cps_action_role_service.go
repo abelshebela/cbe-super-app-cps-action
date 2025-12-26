@@ -377,11 +377,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		ar, err := s.bindActionRoleModel(*cur)
-		if err != nil {
-			span.AddEvent("failed to bind action role model", trace.WithAttributes(attribute.String("error", err.Error())))
-			return nil, err
-		}
+		ar := *cur
 		ar.ID = bson.NewObjectID()
 		ar.CreatedAt = time.Now()
 		ar.UpdatedAt = time.Now()
@@ -442,11 +438,6 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
 	err := s.repo.UpdateActionList(ctx, actionCode, status)
 	return err
-}
-func (s *cpsActionRoleService) bindActionRoleModel(in model.CPSActionRole) (model.CPSActionRole, error) {
-	// Since model.ActionRole already has []bson.ObjectID, and json.Unmarshal handles the conversion from hex strings,
-	// we just need to return the input.
-	return in, nil
 }
 
 func (s *cpsActionRoleService) validateUniqueIDs(ids []string) error {
