@@ -46,6 +46,8 @@ func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 
 func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error {
 	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
+
+	// 1) Load existing documents for the old action name
 	cursor, err := r.collection.Find(ctx, bson.M{"action_name": oldActionName})
 	if err != nil {
 		return err
@@ -55,46 +57,130 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 		return err
 	}
 
+	// Map existing docs by role_id
 	oldMap := make(map[string]model.CPSActionApproveIndex)
 	for _, idx := range oldIndices {
 		oldMap[idx.RoleId] = idx
 	}
+
+	// 2) Consolidate all new entries by role_id (one target doc per role_id)
+	now := time.Now().UTC()
+	combined := make(map[string]model.CPSActionApproveIndex)
+	for _, ni := range newIndices {
+		key := ni.RoleId
+		if cur, ok := combined[key]; ok {
+			if ni.MakerIndex != nil {
+				cur.MakerIndex = ni.MakerIndex
+			}
+			if ni.CheckerIndex != nil {
+				cur.CheckerIndex = ni.CheckerIndex
+			}
+			if ni.AuditorIndex != nil {
+				cur.AuditorIndex = ni.AuditorIndex
+			}
+			cur.ActionName = ni.ActionName
+			cur.UpdatedAt = now
+			combined[key] = cur
+		} else {
+			ni.UpdatedAt = now
+			if ni.CreatedAt.IsZero() {
+				ni.CreatedAt = now
+			}
+			combined[key] = ni
+		}
+	}
+
+	// 3) Build bulk operations
 	var writes []mongo.WriteModel
 
-	for _, newIdx := range newIndices {
-		if oldIdx, exists := oldMap[newIdx.RoleId]; exists {
-			// Update existing index
+	// Upsert consolidated entries
+	for roleID, newIdx := range combined {
+		if oldIdx, exists := oldMap[roleID]; exists {
 			update := bson.M{
 				"action_name":   newIdx.ActionName,
 				"maker_index":   newIdx.MakerIndex,
 				"checker_index": newIdx.CheckerIndex,
 				"auditor_index": newIdx.AuditorIndex,
-				"updated_at":    time.Now(),
+				"updated_at":    now,
 			}
-			r.logger.Infof("SyncIndices: Updating RoleID %s with %v", newIdx.RoleId, update)
+			r.logger.Infof("SyncIndices: Updating RoleID %s", roleID)
 			writes = append(writes, mongo.NewUpdateOneModel().
 				SetFilter(bson.M{"_id": oldIdx.ID}).
 				SetUpdate(bson.M{"$set": update}))
-			delete(oldMap, newIdx.RoleId)
+			delete(oldMap, roleID)
 		} else {
-			// Insert new index
-			r.logger.Infof("SyncIndices: Inserting new index for RoleID %s", newIdx.RoleId)
+			newIdx.ID = bson.NewObjectID()
+			newIdx.CreatedAt = now
+			newIdx.UpdatedAt = now
+			r.logger.Infof("SyncIndices: Inserting consolidated RoleID %s", roleID)
 			writes = append(writes, mongo.NewInsertOneModel().SetDocument(newIdx))
 		}
 	}
 
+	// Delete roles no longer present
 	for _, oldIdx := range oldMap {
-		// Delete removed index
-		r.logger.Infof("SyncIndices: Deleting index for RoleID %s", oldIdx.RoleId)
+		r.logger.Infof("SyncIndices: Deleting RoleID %s", oldIdx.RoleId)
 		writes = append(writes, mongo.NewDeleteOneModel().SetFilter(bson.M{"_id": oldIdx.ID}))
 	}
 
-	if len(writes) > 0 {
-		_, err := r.collection.BulkWrite(ctx, writes)
-		return err
+	if len(writes) == 0 {
+		return nil
 	}
-	return nil
+	_, err = r.collection.BulkWrite(ctx, writes)
+	return err
 }
+
+// func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error {
+// 	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
+// 	cursor, err := r.collection.Find(ctx, bson.M{"action_name": oldActionName})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	var oldIndices []model.CPSActionApproveIndex
+// 	if err := cursor.All(ctx, &oldIndices); err != nil {
+// 		return err
+// 	}
+
+// 	oldMap := make(map[string]model.CPSActionApproveIndex)
+// 	for _, idx := range oldIndices {
+// 		oldMap[idx.RoleId] = idx
+// 	}
+// 	var writes []mongo.WriteModel
+
+// 	for _, newIdx := range newIndices {
+// 		if oldIdx, exists := oldMap[newIdx.RoleId]; exists {
+// 			// Update existing index
+// 			update := bson.M{
+// 				"action_name":   newIdx.ActionName,
+// 				"maker_index":   newIdx.MakerIndex,
+// 				"checker_index": newIdx.CheckerIndex,
+// 				"auditor_index": newIdx.AuditorIndex,
+// 				"updated_at":    time.Now(),
+// 			}
+// 			r.logger.Infof("SyncIndices: Updating RoleID %s with %v", newIdx.RoleId, update)
+// 			writes = append(writes, mongo.NewUpdateOneModel().
+// 				SetFilter(bson.M{"_id": oldIdx.ID}).
+// 				SetUpdate(bson.M{"$set": update}))
+// 			delete(oldMap, newIdx.RoleId)
+// 		} else {
+// 			// Insert new index
+// 			r.logger.Infof("SyncIndices: Inserting new index for RoleID %s", newIdx.RoleId)
+// 			writes = append(writes, mongo.NewInsertOneModel().SetDocument(newIdx))
+// 		}
+// 	}
+
+// 	for _, oldIdx := range oldMap {
+// 		// Delete removed index
+// 		r.logger.Infof("SyncIndices: Deleting index for RoleID %s", oldIdx.RoleId)
+// 		writes = append(writes, mongo.NewDeleteOneModel().SetFilter(bson.M{"_id": oldIdx.ID}))
+// 	}
+
+//		if len(writes) > 0 {
+//			_, err := r.collection.BulkWrite(ctx, writes)
+//			return err
+//		}
+//		return nil
+//	}
 func (r *CPSActionApproveIndexRepository) InsertMany(
 	ctx context.Context,
 	makerIndex []bson.ObjectID,
