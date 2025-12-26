@@ -51,6 +51,34 @@ func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
 }
 
+// GetAllActionList godoc
+//
+//	@Summary	List action roles
+//	@Tags		ActionRole
+//	@Accept		json
+//	@Produce	json
+//	@Param		page		query		int		false	"Page"
+//	@Param		per_page	query		int		false	"Per Page"
+//	@Param		search		query		string	false	"Search"
+//	@Success	200			{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/action-list [get]
+func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllActionList", "handler", "actionRole")
+	defer span.End()
+	filter := *local_util.ExtractFilterParams(r)
+	res, err := h.service.FindAllActionListWithPagination(ctx, filter)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("[GetAllActionList] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("action_role.count", len(res.Data)))
+	h.logger.Infof("[GetAllActionList] retrieved %d action roles", len(res.Data))
+	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
+}
+
 // GetByActionCode godoc
 //
 //	@Summary	Get action role by code

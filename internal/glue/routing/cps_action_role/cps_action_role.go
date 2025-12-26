@@ -21,6 +21,14 @@ func Init(router chi.Router, handler actionrole_inbound.CPSActionRoleHandler, au
 		},
 		{
 			Method:  http.MethodGet,
+			Path:    "/cps-action-roles/action-list",
+			Handler: handler.GetAllActionList,
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
 			Path:    "/cps-action-roles/{code}",
 			Handler: handler.GetByActionCode,
 			Middlewares: []func(next http.Handler) http.Handler{
