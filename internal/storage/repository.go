@@ -637,7 +637,8 @@ type AccessListSegmentationRepository interface {
 	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
 	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
-	Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	// Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
+	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
 
@@ -657,4 +658,5 @@ type CustomerSegmentationRepository interface {
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
 }

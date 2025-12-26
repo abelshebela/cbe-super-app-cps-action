@@ -132,3 +132,13 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 		Meta: meta,
 	}, nil
 }
+
+func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error) {
+	filter := bson.M{"customer_segment": customerSegment, "is_deleted": false}
+	result, err := r.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		r.logger.Errorf("[FindByCustomerSegmentation] failed to fetch customer segmentation: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	return result, nil
+}
