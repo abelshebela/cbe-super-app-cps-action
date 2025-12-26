@@ -113,7 +113,7 @@ func (d *DonationCategory) CreateDonationCategory(ctx context.Context, donationC
 		))
 		return errors.New(localization.ErrorDonationCategoryIDRequired.Code)
 	}
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationCategoryFolderName), *d.cfg, "", d.logger)
 	if err != nil {
 		d.logger.Errorf("failed to upload image to minio: %v", err)
 		span.AddEvent("Failed to upload image to minio", trace.WithAttributes(
@@ -212,7 +212,7 @@ func (d *DonationCategory) UpdateDonationCategory(ctx context.Context, id string
 			objectkey = path.Base(existingCategory.Icon)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationIcon), *d.cfg, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCategory.Icon, string(constants.DonationCategoryFolderName), *d.cfg, objectkey, d.logger)
 		if err != nil {
 			span.AddEvent("Failed to upload image to minio", trace.WithAttributes(
 				attribute.String("error", err.Error()),

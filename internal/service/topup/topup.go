@@ -87,7 +87,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "topup", *s.cfg, "", s.logger)
+	URL, err := lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.TopupFolderName), *s.cfg, "", s.logger)
 	if err != nil {
 		span.AddEvent("UploadFileToMinio error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -162,7 +162,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 			objectkey = path.Base(prevtopup.Avatar)
 		}
 
-		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, "avatar", *s.cfg, objectkey, s.logger)
+		avatarURL, err = lib.UploadFileToMinio(ctx, s.minio, s.bucketName, req.Avatar, string(constants.TopupFolderName), *s.cfg, objectkey, s.logger)
 		if err != nil {
 			span.AddEvent("UploadFileToMinio error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 			return errors.New(localization.ErrorUnhandledServer.Code)

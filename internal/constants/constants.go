@@ -824,3 +824,19 @@ type maxMemory int64
 const (
 	MaxMemoryForUpload maxMemory = 15 << 20 // 15 MB
 )
+
+type ImageFolderName string
+
+const (
+	BankFolderName               ImageFolderName = "banks"
+	WalletFolderName             ImageFolderName = "wallets"
+	AdFolderName                 ImageFolderName = "ads"
+	AvatarFolderName             ImageFolderName = "avatars"
+	BudgetCategoryFolderName     ImageFolderName = "budget_categories"
+	DonationFolderName           ImageFolderName = "donations"
+	DonationCategoryFolderName   ImageFolderName = "donation_categories"
+	DonationCompanyFolderName    ImageFolderName = "donation_companies"
+	EventFolderName              ImageFolderName = "events"
+	TopupFolderName              ImageFolderName = "topups"
+	VaultGroupCategoryFolderName ImageFolderName = "vault_group_categories"
+)

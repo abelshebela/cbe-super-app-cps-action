@@ -367,9 +367,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			// actionName, ok := cpsActionRegistry[keyPattern]
 			actionName := ""
 
+			path := strings.ReplaceAll(relPath, "_", "")
 			for _, v := range cpsActionRegistry {
-				path := strings.ReplaceAll(relPath, "_", "")
-
 				if strings.Contains(path, strings.ToLower(v)) {
 					actionName = v
 					break
