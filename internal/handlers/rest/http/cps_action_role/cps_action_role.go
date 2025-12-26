@@ -23,6 +23,33 @@ func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logg
 	return &CPSActionRoleHandler{service: svc, logger: logger}
 }
 
+// GetAllActionList godoc
+//
+//	@Summary	List of Action for Cps
+//	@Tags		ActionList
+//	@Accept		json
+//	@Produce	json
+//	@Param		page		query		int		false	"Page"
+//	@Param		per_page	query		int		false	"Per Page"
+//	@Param		search		query		string	false	"Search"
+//	@Success	200			{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/action-list [get]
+func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
+	defer span.End()
+	filter := *local_util.ExtractFilterParams(r)
+	res, err := h.service.FindAllActionListWithPagination(ctx, filter)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("list action list error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("cps_action_role.count", len(res.Data)))
+	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
+}
+
 // GetAll godoc
 //
 //	@Summary	List action roles

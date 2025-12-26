@@ -1083,6 +1083,7 @@ const (
 
 	// bps action role related
 	MsgBpsActionRoleNotFound = "BPS action role not found"
+	MsgCpsActionRoleNotFound = "CPS action role not found"
 	MsgRoleNotFound          = "Role not found"
 	// transaction related messages
 	MsgTransactionsRetrievedSuccess  = "Transactions retrieved successfully"
@@ -1122,5 +1123,6 @@ const (
 	MsgAccessListSegmentationInvalidID             = "Invalid access list segmentation ID"
 	MsgAccessListSegmentationIDsRequired           = "Access list segmentation IDs are required"
 	MsgAccessListSegmentationNameAlreadyExists     = "Access list segmentation name already exists"
+	MsgCustomerSegmentationCodeNotFound            = "Customer segmentation code not found"
 	MsgServiceIdRequired                           = "Service ID is required"
 )

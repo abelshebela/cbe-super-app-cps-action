@@ -17,7 +17,7 @@ type UpdateAccessListSegmentationRequest struct {
 	NewServiceID   string `json:"new_service_id" bson:"new_service_id"`
 	NewServiceName string `json:"new_service_name" bson:"new_service_name"`
 	NewSegmentedID string `json:"new_segmented_id" bson:"new_segmented_id"`
-	Type           string `json:"type" bson:"type" validate:"oneof=R D C U"`
+	Type           string `json:"type" bson:"type" validate:"oneof=R D C U B"`
 	SegmentType    string `json:"segment_type" bson:"segment_type"`
 	SegmentCode    string `json:"segment_code" bson:"segment_code"`
 	SegmentName    string `json:"segment_name" bson:"segment_name"`

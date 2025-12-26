@@ -5,6 +5,7 @@ import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -45,6 +46,14 @@ func NewBPSActionRoleService(
 		cpsService: cps,
 		logger:     logger,
 	}
+}
+
+// FindAllWithPagination implements service.bpsActionRoleService.
+func (s *bpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllActionListWithPagination", "BPS Action LIST", "FindAllActionListWithPagination")
+	defer span.End()
+
+	return s.repo.FindAllAccessListWithPagination(ctx, filter)
 }
 
 // FindAllWithPagination implements service.bpsActionRoleService.
