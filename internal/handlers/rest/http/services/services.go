@@ -92,9 +92,10 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 			}
 			return tiers
 		}(),
-		AboveAmount:     req.AboveAmount,
-		AboveServiceFee: req.AboveServiceFee,
-		Enabled:         req.Enabled,
+		AboveAmount:      req.AboveAmount,
+		AboveServiceFee:  req.AboveServiceFee,
+		AbovePaymentType: req.AbovePaymentType,
+		Enabled:          req.Enabled,
 	}
 
 	if err := a.app.Create(ctx, mapped); err != nil {
@@ -163,9 +164,10 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 			}
 			return tiers
 		}(),
-		AboveAmount:     req.AboveAmount,
-		AboveServiceFee: req.AboveServiceFee,
-		Enabled:         req.Enabled,
+		AboveAmount:      req.AboveAmount,
+		AboveServiceFee:  req.AboveServiceFee,
+		AbovePaymentType: req.AbovePaymentType,
+		Enabled:          req.Enabled,
 	}
 
 	if err := a.app.Update(ctx, id, mapped); err != nil {

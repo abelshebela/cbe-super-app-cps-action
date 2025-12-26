@@ -29,6 +29,7 @@ type CreateServiceRequest struct {
 	Tiers               []TierRequest `json:"tiers"`
 	AboveAmount         int64         `json:"above_amount" example:"10000"`
 	AboveServiceFee     int64         `json:"above_service_fee" example:"500"`
+	AbovePaymentType    string        `json:"above_payment_type"`
 	Enabled             bool          `json:"enabled" example:"true"`
 	// ProductAccount string `json:"product_account" example:"234353354"`
 	// ServiceType          string        `json:"service_type" example:"TRANSFER"`
@@ -49,5 +50,6 @@ type UpdateServiceRequest struct {
 	Tiers               []TierRequest `json:"tiers"`
 	AboveAmount         int64         `json:"above_amount" example:"10000"`
 	AboveServiceFee     int64         `json:"above_service_fee" example:"500"`
+	AbovePaymentType    string        `json:"above_payment_type"`
 	Enabled             bool          `json:"enabled" example:"true"`
 }
