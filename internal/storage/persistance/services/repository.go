@@ -37,14 +37,13 @@ func NewServicesRepository(client *mongo.Client, dbName, collection string, kafk
 }
 
 func (s *ServicesStorage) Create(ctx context.Context, service *model.Services) error {
-	// set defaults
 	if service.ID == bson.NilObjectID {
 		service.ID = bson.NewObjectID()
 	}
 	if service.CreatedAt.IsZero() {
 		service.CreatedAt = time.Now()
 	}
-	service.UpdatedAt = time.Now()
+	service.LastModifiedAt = time.Now()
 	service.IsDeleted = false
 
 	createService, err := s.dal.InsertOne(ctx, *service)
@@ -64,7 +63,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	filter := bson.M{"_id": objID, "is_deleted": false}
 
 	update := bson.M{
-		"updated_at": time.Now(),
+		"last_modified_at": time.Now(),
 	}
 	if service.ServiceCode != "" {
 		update["service_code"] = service.ServiceCode
@@ -78,8 +77,8 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 	if service.AboveServiceFee != 0 {
 		update["above_service_fee"] = service.AboveServiceFee
 	}
-	if service.ProductAccount != "" {
-		update["product_account"] = service.ProductAccount
+	if service.CbeGLProductAccount != "" {
+		update["cbe_gl_product_account"] = service.CbeGLProductAccount
 	}
 	if len(service.Tiers) > 0 {
 		update["tiers"] = service.Tiers
@@ -129,7 +128,7 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 		return errors.New(localization.ErrorInvalidID.Code)
 	}
 	filter := bson.M{"_id": objID, "is_deleted": false}
-	update := bson.M{"enabled": enable, "updated_at": time.Now()}
+	update := bson.M{"enabled": enable, "last_modified_at": time.Now()}
 	updatedService, err := s.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
