@@ -3,7 +3,6 @@ package customersegmentaion
 import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -12,13 +11,14 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type customerStorage struct {
-	dal        dal.MongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation]
+	dal        dal.MongoDal[model.CustomerSegmentation, model.CustomerSegmentation]
 	client     *mongo.Client
 	dbName     string
 	collection string
@@ -27,7 +27,7 @@ type customerStorage struct {
 
 func NewCustomerSegmentationRepository(client *mongo.Client, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
 	return &customerStorage{
-		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client, dbName, collection),
+		dal:        dal.NewMongoDal[model.CustomerSegmentation, model.CustomerSegmentation](client, dbName, collection),
 		client:     client,
 		dbName:     dbName,
 		collection: collection,
@@ -35,7 +35,7 @@ func NewCustomerSegmentationRepository(client *mongo.Client, dbName, collection 
 	}
 }
 
-func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
+func (r *customerStorage) Create(ctx context.Context, seg *model.CustomerSegmentation) error {
 	_, err := r.dal.InsertOne(ctx, *seg)
 	if err != nil {
 		r.logger.Errorf("Unable to create customer segmentation with error: %s", err)
@@ -44,7 +44,7 @@ func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmen
 	return nil
 }
 
-func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error {
+func (r *customerStorage) Update(ctx context.Context, id string, seg *model.CustomerSegmentation) error {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -75,7 +75,7 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
+func (r *customerStorage) FindByID(ctx context.Context, id string) (*model.CustomerSegmentation, error) {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -95,7 +95,7 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 	return seg, nil
 }
 
-func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
+func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error) {
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"search"}
@@ -127,13 +127,13 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*imodel.CustomerSegmentation]{
+	return &types.PaginatedResponse[[]*model.CustomerSegmentation]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error) {
+func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CustomerSegmentation, error) {
 	filter := bson.M{"customer_segment": customerSegment, "is_deleted": false}
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {

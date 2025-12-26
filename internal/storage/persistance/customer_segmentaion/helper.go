@@ -1,12 +1,11 @@
 package customersegmentaion
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToCustomerSegUpdate(c *imodel.CustomerSegmentation) bson.M {
+func MapToCustomerSegUpdate(c *model.CustomerSegmentation) bson.M {
 	update := bson.M{}
 
 	if c.CustomerRole != "" {

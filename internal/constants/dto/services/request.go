@@ -15,7 +15,7 @@ type TierRequest struct {
 type CreateServiceRequest struct {
 	ServiceName      string        `json:"service_name" example:"Transfer To Other bank"`
 	ServiceCode      string        `json:"service_code" example:"JKSJBDJB"`
-	ProductAccount   string        `json:"product_account" example:"234353354"`
+	ProductAccount   string        `json:"cbe_gl_product_account" example:"234353354"`
 	ChargeCode       string        `json:"charge_code" example:"JKSJBDJB"`
 	CommissionCode   string        `json:"commission_code" example:"DSFDDHJS"`
 	Cap              CapRequest    `json:"cap"`
@@ -28,7 +28,7 @@ type CreateServiceRequest struct {
 type UpdateServiceRequest struct {
 	ServiceName      string        `json:"service_name" example:"Transfer To Other bank"`
 	ServiceCode      string        `json:"service_code" example:"JKSJBDJB"`
-	ProductAccount   string        `json:"product_account" example:"234353354"`
+	ProductAccount   string        `json:"cbe_gl_product_account" example:"234353354"`
 	ChargeCode       string        `json:"charge_code" example:"JKSJBDJB"`
 	CommissionCode   string        `json:"commission_code" example:"DSFDDHJS"`
 	Cap              CapRequest    `json:"cap"`

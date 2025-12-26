@@ -70,11 +70,11 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mapped := model.Services{
-		ServiceCode:    req.ServiceCode,
-		ServiceName:    req.ServiceName,
-		ProductAccount: req.ProductAccount,
-		ChargeCode:     req.ChargeCode,
-		CommissionCode: req.CommissionCode,
+		ServiceCode:         req.ServiceCode,
+		ServiceName:         req.ServiceName,
+		CbeGLProductAccount: req.ProductAccount,
+		ChargeCode:          req.ChargeCode,
+		CommissionCode:      req.CommissionCode,
 		Cap: model.Cap{
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
@@ -91,10 +91,10 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 			}
 			return tiers
 		}(),
-		AboveAmount:      req.AboveAmount,
-		AboveServiceFee:  req.AboveServiceFee,
-		AbovePaymentType: req.AbovePaymentType,
-		Enabled:          true,
+		AboveAmount:     req.AboveAmount,
+		AboveServiceFee: req.AboveServiceFee,
+		PaymentType:     req.AbovePaymentType,
+		Enabled:         true,
 	}
 
 	if err := a.app.Create(ctx, mapped); err != nil {
@@ -141,11 +141,11 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("service.id", id))
 	mapped := model.Services{
-		ServiceCode:    req.ServiceCode,
-		ServiceName:    req.ServiceName,
-		ProductAccount: req.ProductAccount,
-		ChargeCode:     req.ChargeCode,
-		CommissionCode: req.CommissionCode,
+		ServiceCode:         req.ServiceCode,
+		ServiceName:         req.ServiceName,
+		CbeGLProductAccount: req.ProductAccount,
+		ChargeCode:          req.ChargeCode,
+		CommissionCode:      req.CommissionCode,
 		Cap: model.Cap{
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
@@ -162,10 +162,10 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 			}
 			return tiers
 		}(),
-		AboveAmount:      req.AboveAmount,
-		AboveServiceFee:  req.AboveServiceFee,
-		AbovePaymentType: req.AbovePaymentType,
-		Enabled:          true,
+		AboveAmount:     req.AboveAmount,
+		AboveServiceFee: req.AboveServiceFee,
+		PaymentType:     req.AbovePaymentType,
+		Enabled:         true,
 	}
 
 	if err := a.app.Update(ctx, id, mapped); err != nil {

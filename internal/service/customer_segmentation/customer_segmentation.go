@@ -5,7 +5,6 @@ import (
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -39,7 +38,7 @@ func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRol
 func (s *customerSegmentationService) CreateBulk(ctx context.Context, reqs []cust_seg.CreateCustomerSegmentationRequest) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
-	var newData []imodel.CustomerSegmentation
+	var newData []model.CustomerSegmentation
 	var notFoundRoles []string
 	for _, req := range reqs {
 		role, err := s.cpsRoleRepo.FindById(ctx, req.CustomerRole)
@@ -55,7 +54,7 @@ func (s *customerSegmentationService) CreateBulk(ctx context.Context, reqs []cus
 		}
 
 		if role != nil {
-			seg := imodel.CustomerSegmentation{
+			seg := model.CustomerSegmentation{
 				CustomerRole:       req.CustomerRole,
 				CustomerSegment:    req.CustomerSegment,
 				CustomerSubSegment: req.CustomerSubSegment,
@@ -119,11 +118,11 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	return nil
 }
 
-func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
+func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error) {
 	return s.repo.FindAllWithPagination(ctx, *filterParam)
 }
 
-func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
+func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*model.CustomerSegmentation, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
@@ -153,10 +152,10 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 
 	var (
 		err error
-		seg *imodel.CustomerSegmentation
+		seg *model.CustomerSegmentation
 	)
 	if action.ActionType != constants.CREATE {
-		seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
+		seg, marshal_err := local_util.JsonUnmarshal[model.CustomerSegmentation](action.CurrentAction)
 		if marshal_err != nil || seg == nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
 			return nil, marshal_err
@@ -165,7 +164,7 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 
 	switch action.RequestAction {
 	case string(constants.RequestCreateCustomerSegmentation):
-		cusSegs, marshal_err := local_util.JsonUnmarshal[[]imodel.CustomerSegmentation](action.CurrentAction)
+		cusSegs, marshal_err := local_util.JsonUnmarshal[[]model.CustomerSegmentation](action.CurrentAction)
 		if marshal_err != nil || cusSegs == nil {
 			s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
 			return nil, marshal_err
