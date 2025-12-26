@@ -533,6 +533,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPhoneNumber,
 	ErrorExistPhoneNumber,
 	ErrorInvalidEmail,
+	ErrorCPSRoleAlreadyEnabled,
+	ErrorCPSRoleAlreadyDisabled,
 
 	// OTP related error codes
 	ErrorOTPExpired,
@@ -4583,6 +4585,20 @@ var (
 		Code:       "ERROR_MINI_APP_MERCHANT_DISABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgMiniAppMerchantDisableFailed,
+		Type:       "error",
+	}
+
+	ErrorCPSRoleAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorCPSRoleAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleAlreadyDisabled,
 		Type:       "error",
 	}
 

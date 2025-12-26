@@ -65,8 +65,8 @@ func (r *cpsRoleService) Update(ctx context.Context, id string, req cps_role_dto
 	}
 
 	updated := *existing
-	if req.Name != nil {
-		updated.Name = *req.Name
+	if req.Name != "" {
+		updated.Name = req.Name
 	}
 	updated.UpdatedAt = time.Now()
 
@@ -92,6 +92,15 @@ func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 		}
 		r.logger.Errorf("[Enable] failed to find existing cps role: %v", err)
 		return err
+	}
+
+	if enable && *existing.Enabled {
+		r.logger.Warnf("CPS Role already enabled, id: %s", id)
+		return errors.New(localization.ErrorCPSRoleAlreadyEnabled.Code)
+	}
+	if !enable && !*existing.Enabled {
+		r.logger.Warnf("CPS Role already disabled, id: %s", id)
+		return errors.New(localization.ErrorCPSRoleAlreadyDisabled.Code)
 	}
 
 	updated := *existing

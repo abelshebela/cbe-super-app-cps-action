@@ -337,12 +337,14 @@ const (
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
 
 	// CPS Roles
-	MsgCpsRoleCreated  = "CPS role create request submitted successfully"
-	MsgCpsRoleUpdated  = "CPS role update request submitted successfully"
-	MsgCpsRolesFetched = "CPS roles fetched successfully"
-	MsgCpsRoleFetched  = "CPS role fetched successfully"
-	MsgCpsRoleEnabled  = "CPS role enable request submitted successfully"
-	MsgCpsRoleDisabled = "CPS role disable request submitted successfully"
+	MsgCpsRoleCreated         = "CPS role create request submitted successfully"
+	MsgCpsRoleUpdated         = "CPS role update request submitted successfully"
+	MsgCpsRolesFetched        = "CPS roles fetched successfully"
+	MsgCpsRoleFetched         = "CPS role fetched successfully"
+	MsgCpsRoleEnabled         = "CPS role enable request submitted successfully"
+	MsgCpsRoleDisabled        = "CPS role disable request submitted successfully"
+	MsgCpsRoleAlreadyEnabled  = "CPS role already enabled"
+	MsgCpsRoleAlreadyDisabled = "CPS role already disabled"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"

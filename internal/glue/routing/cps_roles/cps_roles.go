@@ -21,7 +21,7 @@ func Init(router chi.Router, handler cps_role.CPSRolesAdapter, authMiddleware mi
 		},
 		{
 			Method:  http.MethodPatch,
-			Path:    "/cps-roles/update",
+			Path:    "/cps-roles/{id}/update",
 			Handler: handler.UpdateCPSRole,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

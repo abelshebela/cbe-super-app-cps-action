@@ -20,7 +20,6 @@ func (r UpdateCPSRoleRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name,
 			validation.By(utils.NoSpecialChars),
-			validation.By(utils.TrimWhiteSpace),
 		),
 	)
 }
