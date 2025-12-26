@@ -39,6 +39,12 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
+	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"
+	RequestDeleteCpsRole  RequestAction = "DELETE_CPS_ROLE"
+	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
+	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
+
 	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
@@ -361,6 +367,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteBankVault:           {},
 	RequestEnableBankVault:           {},
 	RequestDisAbleBankVault:          {},
+
+	RequestCreateCpsRole:  {},
+	RequestUpdateCpsRole:  {},
+	RequestDeleteCpsRole:  {},
+	RequestEnableCpsRole:  {},
+	RequestDisableCpsRole: {},
 
 	// for vault group category
 	RequestCreateVaultGroupCategory:  {},
@@ -1043,8 +1055,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableEcommerceMerchant,
 		RequestDeleteEcommerceMerchant,
 	},
-	"ENCRYPTION": {
-		// no actions defined yet
+	"CPSRoles": {
+		RequestCreateCpsRole,
+		RequestUpdateCpsRole,
+		RequestDeleteCpsRole,
+		RequestEnableCpsRole,
+		RequestDisableCpsRole,
 	},
 }
 

@@ -51,7 +51,7 @@ type Services struct {
 	AboveServiceFee      int64        `bson:"above_service_fee" json:"above_service_fee"`
 	PaymentType          string       `bson:"payment_type" json:"payment_type"`
 	Tiers                []Tier       `bson:"tiers" json:"tiers"`
-	CbeGLProductAccount  string       `bson:"cbe_gl_product_account" json:"cbe_gl_product_account"`
+	CbeGLProductAccount  string       `bson:"product_account" json:"product_account"`
 	CbeIFBProductAccount string       `bson:"cbe_ifb_product_account" json:"cbe_ifb_product_account"`
 	Enabled              bool         `bson:"enabled" json:"enabled"`
 	IsDeleted            bool         `bson:"is_deleted" json:"is_deleted"`

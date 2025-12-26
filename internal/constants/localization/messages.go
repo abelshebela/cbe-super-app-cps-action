@@ -336,6 +336,16 @@ const (
 	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
 
+	// CPS Roles
+	MsgCpsRoleCreated         = "CPS role create request submitted successfully"
+	MsgCpsRoleUpdated         = "CPS role update request submitted successfully"
+	MsgCpsRolesFetched        = "CPS roles fetched successfully"
+	MsgCpsRoleFetched         = "CPS role fetched successfully"
+	MsgCpsRoleEnabled         = "CPS role enable request submitted successfully"
+	MsgCpsRoleDisabled        = "CPS role disable request submitted successfully"
+	MsgCpsRoleAlreadyEnabled  = "CPS role already enabled"
+	MsgCpsRoleAlreadyDisabled = "CPS role already disabled"
+
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
@@ -509,6 +519,16 @@ const (
 	MsgDonationInvalidAmount             = "Invalid donation amount"
 	MsgDonationInvalidStartDate          = "Invalid start date format"
 	MsgDonationInvalidEndDate            = "Invalid end date format"
+
+	// Ecommerce Merchant
+	MsgEcommerceMerchantCreated  = "Ecommerce merchant created request submitted successfully"
+	MsgEcommerceMerchantUpdated  = "Ecommerce merchant updated request submitted successfully"
+	MsgEcommerceMerchantDeleted  = "Ecommerce merchant delete request submitted successfully"
+	MsgEcommerceMerchantEnable   = "Ecommerce merchant enable request submitted successfully"
+	MsgEcommerceMerchantDisable  = "Ecommerce merchant disable request submitted successfully"
+	MsgEcommerceMerchantFetched  = "Ecommerce merchant fetched successfully"
+	MsgEcommerceMerchantsFetched = "Ecommerce merchants fetched successfully"
+	MsgEcommerceMerchantLookup   = "Ecommerce merchant lookup successfully"
 
 	MsgDonationAccountNotFound    = "Account not found"
 	MsgDonationUploadFailed       = "Failed to upload donation files"
@@ -848,7 +868,7 @@ const (
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
 
-	MsgCannotGetRole = "Cannot get role"
+	MsgCannotGetRole = "CPS user's role cannot be found"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
@@ -1103,5 +1123,6 @@ const (
 	MsgAccessListSegmentationInvalidID             = "Invalid access list segmentation ID"
 	MsgAccessListSegmentationIDsRequired           = "Access list segmentation IDs are required"
 	MsgAccessListSegmentationNameAlreadyExists     = "Access list segmentation name already exists"
+	MsgCustomerSegmentationCodeNotFound            = "Customer segmentation code not found"
 	MsgServiceIdRequired                           = "Service ID is required"
 )

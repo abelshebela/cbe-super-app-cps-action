@@ -143,7 +143,7 @@ func (b *BudgetCategoryService) CreateBudgetCategory(ctx context.Context, req bu
 
 	iconURL := ""
 	if req.Icon != nil {
-		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryIcon), *b.cfg, "", b.logger)
+		url, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, req.Icon, string(constants.BudgetCategoryFolderName), *b.cfg, "", b.logger)
 		if err != nil {
 			span.AddEvent("[CreateBudgetCategory] failed to upload icon", trace.WithAttributes(
 				attribute.String("error", err.Error()),
@@ -305,7 +305,7 @@ func (b *BudgetCategoryService) UpdateBudgetCategory(ctx context.Context, id str
 			b.minio,
 			b.bucketName,
 			req.Icon,
-			string(constants.BudgetCategoryIcon),
+			string(constants.BudgetCategoryFolderName),
 			*b.cfg,
 			objectkey,
 			b.logger,

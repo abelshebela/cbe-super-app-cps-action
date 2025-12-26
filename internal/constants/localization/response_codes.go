@@ -55,6 +55,15 @@ var ResponseCodesList = []ResponseCode{
 	SuccessWalletsRetrieved,
 	SuccessWalletRetrieved,
 
+	SuccessEcommerceMerchantCreatedSuccessfully,
+	SuccessEcommerceMerchantUpdatedSuccessfully,
+	SuccessEcommerceMerchantDeletedSuccessfully,
+	SuccessEcommerceMerchantEnableSuccessfully,
+	SuccessEcommerceMerchantDisableSuccessfully,
+	SuccessEcommerceMerchantFetchedSuccessfully,
+	SuccessEcommerceMerchantsFetchedSuccessfully,
+	SuccessEcommerceMerchantLookup,
+
 	SuccessTopupEnableRequestSubmitted,
 	SuccessTopupDisableRequestSubmitted,
 	SuccessTopupCreationRequestSent,
@@ -66,6 +75,14 @@ var ResponseCodesList = []ResponseCode{
 	//BPS_USer
 	SuccessBpsUserEnableRequestSent,
 	SuccessBpsUserDisableRequestSent,
+
+	// CPS Roles
+	SuccessCPSRoleCreated,
+	SuccessCPSRoleUpdated,
+	SuccessCPSRolesFetched,
+	SuccessCPSRoleFetched,
+	SuccessCPSRoleEnabled,
+	SuccessCPSRoleDisabled,
 
 	// Ad related success response codes
 	SuccessAdvertCreated,
@@ -516,6 +533,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidPhoneNumber,
 	ErrorExistPhoneNumber,
 	ErrorInvalidEmail,
+	ErrorCPSRoleAlreadyEnabled,
+	ErrorCPSRoleAlreadyDisabled,
 
 	// OTP related error codes
 	ErrorOTPExpired,
@@ -616,6 +635,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationInvalidID,
 	ErrorAccessListSegmentationIDSRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
+	ErrorCustomerSegmentationCodeNotFound,
 	ErrorServiceIdRequired,
 
 	// Access List Segmentaion Success Code
@@ -1154,6 +1174,44 @@ var (
 		Code:       "SUCCESS_BPS_USER_DISABLED",
 		StatusCode: StatusOK,
 		Message:    MsgBpsUserDisabledRequestedSuccessfully,
+		Type:       "success",
+	}
+
+	// CPS Roles
+	SuccessCPSRoleCreated = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleCreated,
+		Type:       "success",
+	}
+	SuccessCPSRoleUpdated = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleUpdated,
+		Type:       "success",
+	}
+	SuccessCPSRolesFetched = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLES_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRolesFetched,
+		Type:       "success",
+	}
+	SuccessCPSRoleFetched = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleFetched,
+		Type:       "success",
+	}
+	SuccessCPSRoleEnabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleEnabled,
+		Type:       "success",
+	}
+	SuccessCPSRoleDisabled = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDisabled,
 		Type:       "success",
 	}
 
@@ -2089,6 +2147,56 @@ var (
 		Code:       "SUCCESS_BANK_ENABLE_REQUEST_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgBankEnableRequestSent,
+		Type:       "success",
+	}
+
+	// Ecommerce merchant
+	SuccessEcommerceMerchantCreatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantCreated,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantUpdatedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantUpdated,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantDeletedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantDeleted,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantEnableSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_ENABLE",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantEnable,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantDisableSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_DISABLE",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantDisable,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantFetched,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantsFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANTS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantsFetched,
+		Type:       "success",
+	}
+	SuccessEcommerceMerchantLookup = ResponseCode{
+		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantLookup,
 		Type:       "success",
 	}
 
@@ -4482,6 +4590,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorCPSRoleAlreadyEnabled = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_ALREADY_ENABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleAlreadyEnabled,
+		Type:       "error",
+	}
+
+	ErrorCPSRoleAlreadyDisabled = ResponseCode{
+		Code:       "ERROR_CPS_ROLE_ALREADY_DISABLED",
+		StatusCode: StatusConflict,
+		Message:    MsgCpsRoleAlreadyDisabled,
+		Type:       "error",
+	}
+
 	// Notification related error response codes
 	ErrorNotificationMapFailed = ResponseCode{
 		Code:       "ERROR_NOTIFICATION_MAP_FAILED",
@@ -6163,6 +6285,12 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_NAME_ALREADY_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgAccessListSegmentationNameAlreadyExists,
+		Type:       "error",
+	}
+	ErrorCustomerSegmentationCodeNotFound = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_CODE_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCustomerSegmentationCodeNotFound,
 		Type:       "error",
 	}
 	ErrorAccessListSegmentationIDSRequired = ResponseCode{

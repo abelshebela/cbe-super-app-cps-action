@@ -165,7 +165,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, "banks", *b.cfg, "", b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, string(constants.BankFolderName), *b.cfg, "", b.logger)
 	if err != nil {
 		span.AddEvent("[CreateOneBank] failed to upload logo", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -375,7 +375,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		objectkey = path.Base(bank.Logo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, objectkey, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, string(constants.BankFolderName), *b.cfg, objectkey, b.logger)
 
 	if err != nil {
 		span.AddEvent("[UpdateLogo] failed to upload logo", trace.WithAttributes(
@@ -452,7 +452,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			b.minio,
 			b.bucketName,
 			bank_request.Logo,
-			b.bucketName,
+			string(constants.BankFolderName),
 			*b.cfg,
 			objectkey,
 			b.logger,

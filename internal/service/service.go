@@ -40,6 +40,7 @@ import (
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
 	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
+	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
@@ -444,11 +445,20 @@ type RoleService interface {
 }
 
 type CustomerSegmentationService interface {
-	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
+	CreateBulk(ctx context.Context, req []cust_seg.CreateCustomerSegmentationRequest) error
 	Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
-	FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error)
+	FindById(ctx context.Context, id string) (*model.CustomerSegmentation, error)
 	Delete(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
+type CPSRolesService interface {
+	Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error
+	Update(ctx context.Context, id string, req cps_role_dto.UpdateCPSRoleRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CPSRoles], error)
+	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -509,6 +519,7 @@ type ServiceLayer struct {
 	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
 	CustomerSegmentation          CustomerSegmentationService
+	CPSRoles                      CPSRolesService
 }
 
 type ServiceContainer struct {
@@ -574,6 +585,7 @@ type ServiceContainer struct {
 	MiniAppProductCodeContainer        MiniappProductCodeService
 	AccessListSegmentationContainer    AccessListSegmentationService
 	CustomerSegmentationContainer      CustomerSegmentationService
+	CPSRolesContainer                  CPSRolesService
 }
 
 type BPSActionRoleService interface {

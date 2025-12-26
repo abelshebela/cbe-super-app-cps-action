@@ -26,6 +26,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
 	vaultAmountTierInbound "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
 
+	cpsRoleInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_roles"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
 	hqInbound "cbe-super-app-cps-action/internal/constants/interfaces/hq"
 	kycInbound "cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
@@ -71,6 +72,7 @@ import (
 	bulkServiceHandler "cbe-super-app-cps-action/internal/handlers/rest/http/bulk_service"
 
 	cpsactionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_action_handler"
+	cpsRoleHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_roles"
 	cpsUserHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_user"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/department"
@@ -155,6 +157,7 @@ type Handler struct {
 	EcommerceMerchantHandler      ecommerce_merchant.EcommerceMerchant
 	AccessLostSegmentationHandler accesslistsegmentation.AccessListSegmentationHandler
 	CustomerSegmentationHandler   customer_seg.CustomerSegmentation
+	CPSRolesHandler               cpsRoleInbound.CPSRolesAdapter
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -209,5 +212,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 
 		AccessLostSegmentationHandler: accesslistsegmentaion.InitAccessListSegmentationAdapter(serviceLayer.AccessListSegmentationService, logger),
 		CustomerSegmentationHandler:   customer_hand.NewCustomerSegmentation(serviceLayer.CustomerSegmentation, logger),
+		CPSRolesHandler:               cpsRoleHandler.NewCPSRolesHandler(serviceLayer.CPSRoles, logger),
 	}
 }

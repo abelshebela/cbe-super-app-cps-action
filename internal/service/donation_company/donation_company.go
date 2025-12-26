@@ -140,7 +140,7 @@ func (d *DonationCompany) CreateDonationCompany(ctx context.Context, donationCom
 		return errors.New(localization.ErrorLogoIsRequired.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, "", d.logger)
+	url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.DonationCompanyFolderName), *d.cfg, "", d.logger)
 	if err != nil {
 		span.AddEvent("Failed to upload logo", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -205,7 +205,7 @@ func (d *DonationCompany) UpdateDonationCompany(ctx context.Context, id string, 
 			objectkey = path.Base(existingCompany.CompanyLogo)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.CampanyLogo), *d.cfg, objectkey, d.logger)
+		url, err := lib.UploadFileToMinio(ctx, d.minio, d.bucketName, donationCompany.CompanyLogo, string(constants.DonationCompanyFolderName), *d.cfg, objectkey, d.logger)
 		if err != nil {
 			span.AddEvent("Failed to upload logo", trace.WithAttributes(
 				attribute.String("error", err.Error()),
