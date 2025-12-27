@@ -1023,6 +1023,8 @@ const (
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 	MsgCannotEnableDistrict   = "Cannot enable district, its region is blocked"
 	MsgCannotEnableCity       = "Cannot enable city, its district is blocked"
+	MsgJobTitleExisted        = "Job title already existed"
+	MsgJobTitleNotUpdated     = "Job title not updated"
 	MsgCannotEnableBranch     = "Cannot enable branch, its city is already blocked"
 
 	// Password Rule

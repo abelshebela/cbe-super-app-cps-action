@@ -179,6 +179,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
 
+	ErrorUsedJobTitleExisting,
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -376,6 +377,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBranchNotFound,
 	ErrorDistrictNotFound,
 	ErrorCannotEnableDistrict,
+	ErrorUsedJobTitleExisting,
+	ErrorNoUpdatedJobTitle,
 	ErrorCannotEnableBranch,
 	ErrorRegionNotFound,
 	ErrorCityNotFound,
@@ -5488,6 +5491,20 @@ var (
 		Code:       "ERROR_CANNOT_ENABLE_CITY",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCannotEnableCity,
+		Type:       "error",
+	}
+
+	ErrorUsedJobTitleExisting = ResponseCode{
+		Code:       "ERROR_USED_JOB_TITLE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleExisted,
+		Type:       "error",
+	}
+
+	ErrorNoUpdatedJobTitle = ResponseCode{
+		Code:       "ERROR_NO_UPDATED_JOB_TITLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleNotUpdated,
 		Type:       "error",
 	}
 
