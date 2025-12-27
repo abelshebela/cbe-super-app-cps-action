@@ -11,11 +11,6 @@ import (
 
 func (r CreateJobRoleRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.Code,
-			validation.Required.Error("code is required"),
-			validation.Length(2, 50).Error("code must be between 2 and 50 characters"),
-			validation.By(utils.NoSpecialChars),
-		),
 		validation.Field(&r.Name,
 			validation.Required.Error("name is required"),
 			validation.Length(2, 100).Error("name must be between 2 and 100 characters"),

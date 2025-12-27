@@ -9,7 +9,6 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/pkgs/utils"
 )
 
 // cpsActionRegistry maps METHOD + " " + RoutePattern to CPS action name
@@ -313,21 +312,21 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-			roleID := utils.FirstHex24(rawRoleID)
-			if roleID == "" {
+			roleCode, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			// roleID := utils.FirstHex24(rawRoleID)
+			if roleCode == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
 			}
 
 			action := strings.ToUpper(strings.TrimSpace(actionName))
-			cacheKey := roleID + ":" + action
+			cacheKey := roleCode + ":" + action
 			if ent, ok := cpsGuardCache.get(cacheKey); ok && ent.allow {
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleID, action)
+			allowed, err := cpsApproveRepo.ExistsByRoleAndAction(r.Context(), roleCode, action)
 			if err != nil {
 				if guardLogger != nil {
 					guardLogger.Errorf("central guard lookup failed: %v", err)

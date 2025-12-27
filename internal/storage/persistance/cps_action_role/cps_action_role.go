@@ -100,7 +100,7 @@ func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Contex
 }
 
 func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
-	const rolesCollection = "roles"
+	const rolesCollection = "job_roles"
 	pipeline := mongo.Pipeline{
 		// Stage 1: Match by actionCode
 		{{Key: "$match", Value: bson.D{{Key: "action_code", Value: actionCode}}}},
@@ -109,7 +109,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		{{Key: "$lookup", Value: bson.M{
 			"from":         rolesCollection,
 			"localField":   "assigned_makers_roles",
-			"foreignField": "_id",
+			"foreignField": "code",
 			"as":           "assigned_makers_roles",
 		}}},
 
@@ -127,7 +127,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		{{Key: "$lookup", Value: bson.M{
 			"from":         rolesCollection,
 			"localField":   "assigned_checkers_roles",
-			"foreignField": "_id",
+			"foreignField": "code",
 			"as":           "checker_role_doc",
 		}}},
 		{{Key: "$unwind", Value: bson.M{
@@ -170,7 +170,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 		{{Key: "$lookup", Value: bson.M{
 			"from":         rolesCollection,
 			"localField":   "assigned_auditor_roles",
-			"foreignField": "_id",
+			"foreignField": "code",
 			"as":           "assigned_auditor_roles",
 		}}},
 
