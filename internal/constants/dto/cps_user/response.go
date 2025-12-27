@@ -24,9 +24,11 @@ type CPSUserDTO struct {
 	Enabled            bool            `json:"enabled" example:"true"`
 	DateJoined         *time.Time      `json:"date_joined" example:"2024-01-15T10:30:00Z"`
 	LastModified       *time.Time      `json:"last_modified" example:"2024-01-15T10:30:00Z"`
-
-	Country string `json:"country" example:"Ethiopia"`
-	Region  string `json:"region" example:"Addis Ababa"`
+	MakerAllocations   []string        `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
+	CheckerAllocations []string        `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
+	AuditorAllocations []string        `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	Country            string          `json:"country" example:"Ethiopia"`
+	Region             string          `json:"region" example:"Addis Ababa"`
 }
 
 type PermissionResponse struct {

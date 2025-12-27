@@ -26,6 +26,38 @@ func NewCPSActionApproveIndexRepository(client *mongo.Client, database string, c
 	}
 }
 
+func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, error) {
+	r.logger.Infof("PopulateUserApproverAllocations: Populating approver allocations for RoleID: %s", role_id)
+	var makerAllocations []string
+	var checkerAllocations []string
+	var auditorAllocations []string
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"role_id": role_id,
+	})
+	if err != nil {
+		r.logger.Errorf("PopulateUserApproverAllocations: Find failed: %v", err)
+		return nil, nil, nil, err
+	}
+	defer cursor.Close(ctx)
+	var results []model.CPSActionApproveIndex
+	if err := cursor.All(ctx, &results); err != nil {
+		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
+		return nil, nil, nil, err
+	}
+	for _, v := range results {
+		if v.MakerIndex != nil {
+			makerAllocations = append(makerAllocations, v.ActionName)
+		}
+		if v.CheckerIndex != nil {
+			checkerAllocations = append(checkerAllocations, v.ActionName)
+		}
+		if v.AuditorIndex != nil {
+			auditorAllocations = append(auditorAllocations, v.ActionName)
+		}
+	}
+	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
+	return makerAllocations, checkerAllocations, auditorAllocations, nil
+}
 func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error {
 	r.logger.Infof("SaveIndices: Saving %d indices to DB: %s, Collection: %s", len(indices), r.collection.Database().Name(), r.collection.Name())
 	if len(indices) == 0 {
@@ -56,6 +88,75 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	}
 
 	return nil
+}
+
+func (r *CPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error) {
+	r.logger.Infof("FindMakerAllocationsByRoleID: Finding maker allocations for RoleID: %s", roleID.Hex())
+
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"role_id":     roleID.Hex(),
+		"maker_index": bson.M{"$ne": nil},
+	})
+	if err != nil {
+		r.logger.Errorf("FindMakerAllocationsByRoleID: Find failed: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []model.CPSActionApproveIndex
+	if err := cursor.All(ctx, &results); err != nil {
+		r.logger.Errorf("FindMakerAllocationsByRoleID: Cursor.All failed: %v", err)
+		return nil, err
+	}
+
+	r.logger.Infof("FindMakerAllocationsByRoleID: Found %d maker allocations for RoleID: %s", len(results), roleID.Hex())
+	return results, nil
+}
+
+func (r *CPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error) {
+	r.logger.Infof("FindCheckerAllocationsByRoleID: Finding checker allocations for RoleID: %s", roleID.Hex())
+
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"role_id":       roleID.Hex(),
+		"checker_index": bson.M{"$ne": nil},
+	})
+	if err != nil {
+		r.logger.Errorf("FindCheckerAllocationsByRoleID: Find failed: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []model.CPSActionApproveIndex
+	if err := cursor.All(ctx, &results); err != nil {
+		r.logger.Errorf("FindCheckerAllocationsByRoleID: Cursor.All failed: %v", err)
+		return nil, err
+	}
+
+	r.logger.Infof("FindCheckerAllocationsByRoleID: Found %d checker allocations for RoleID: %s", len(results), roleID.Hex())
+	return results, nil
+}
+
+func (r *CPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error) {
+	r.logger.Infof("FindAuditorAllocationsByRoleID: Finding auditor allocations for RoleID: %s", roleID.Hex())
+
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"role_id":       roleID.Hex(),
+		"auditor_index": bson.M{"$ne": nil},
+	})
+	if err != nil {
+		r.logger.Errorf("FindAuditorAllocationsByRoleID: Find failed: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []model.CPSActionApproveIndex
+	if err := cursor.All(ctx, &results); err != nil {
+		r.logger.Errorf("FindAuditorAllocationsByRoleID: Cursor.All failed: %v", err)
+		return nil, err
+	}
+
+	r.logger.Infof("FindAuditorAllocationsByRoleID: Found %d auditor allocations for RoleID: %s", len(results), roleID.Hex())
+	return results, nil
 }
 func (r *CPSActionApproveIndexRepository) InsertMany(
 	ctx context.Context,

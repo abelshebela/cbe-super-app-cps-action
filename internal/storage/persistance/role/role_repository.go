@@ -123,6 +123,19 @@ func (r *RoleRepository) FindByID(ctx context.Context, id string) (*model.Role, 
 	return result, nil
 }
 
+func (r *RoleRepository) FindByName(ctx context.Context, name string) (*model.Role, error) {
+	filter := bson.M{"job_title": name}
+	result, err := r.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[Role Repository][FindByName] failed to find: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
+}
+
 func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error) {
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
