@@ -9,7 +9,7 @@ import (
 
 func CheckRoleExistent(ctx context.Context, roleId string, roleRepo storage.RoleRepository) error {
 
-	_, err := roleRepo.FindByName(ctx, roleId)
+	_, err := roleRepo.FindByCode(ctx, roleId)
 	if err != nil {
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
