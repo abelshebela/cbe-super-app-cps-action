@@ -10,7 +10,7 @@ import (
 
 func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.RoleRepository) error {
 
-	_, err := roleRepo.FindByRole(ctx, role)
+	_, err := roleRepo.FindByCode(ctx, role)
 	if err != nil {
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}

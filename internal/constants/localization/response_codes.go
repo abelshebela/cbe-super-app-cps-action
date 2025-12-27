@@ -598,6 +598,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCpsActionRoleNotFound,
 	ErrorRoleNotFound,
 	ErrorUsedRoleExisting,
+	ErrorRoleIDMissing,
 
 	// transaction related responses
 	SuccessTransactionRetrieved,
@@ -6153,6 +6154,13 @@ var (
 		Code:       "ERROR_USED_ROLE_EXISTING",
 		StatusCode: StatusBadRequest,
 		Message:    MsgExistingUsedRole,
+		Type:       "error",
+	}
+
+	ErrorRoleIDMissing = ResponseCode{
+		Code:       "ERROR_ROLE_ID_MISSING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleIDMissing,
 		Type:       "error",
 	}
 
