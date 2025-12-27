@@ -45,7 +45,7 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.CheckRoleExistent(ctx, role.Role, j.roleRepository); err != nil {
+	if err := core.CheckRoleExistent(ctx, role.Role, j.jobRoleRepository); err != nil {
 		j.logger.Errorf("[JobRole Service] the give role not found %v", err)
 		return err
 	}
@@ -66,7 +66,7 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmod
 	}
 
 	if update.Role != "" {
-		if err := core.CheckRoleExistent(ctx, update.Role, j.roleRepository); err != nil {
+		if err := core.CheckRoleExistent(ctx, update.Role, j.jobRoleRepository); err != nil {
 			j.logger.Errorf("[JobRole Service] the give role not found")
 			return err
 		}
