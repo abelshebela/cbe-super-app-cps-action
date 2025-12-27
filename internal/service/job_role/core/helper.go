@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.RoleRepository) error {
+func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRoleRepository) error {
 
 	_, err := roleRepo.FindByCode(ctx, role)
 	if err != nil {
