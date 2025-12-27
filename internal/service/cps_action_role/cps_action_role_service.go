@@ -229,10 +229,11 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	payload := model.ActionRole{
-		ActionCode:  actionCode,
-		ActionName:  local_util.NonEmptyString(req.ActionName, old.ActionName),
-		Enabled:     old.Enabled,
-		IsMakerOnly: req.IsMakerOnly,
+		ActionCode:    actionCode,
+		ActionName:    local_util.NonEmptyString(req.ActionName, old.ActionName),
+		IsMakerOnly:   req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
+		Enabled:       true,
+		ApproverCount: int32(len(req.AssignedCheckerRoles)),
 	}
 
 	if req.AssignedMakersRoles != nil {
