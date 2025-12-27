@@ -63,6 +63,7 @@ var (
 	MiniAppProductCodes              = "mini_app_product_codes"
 	AccessListSegmentationCollection = "access_list_segmentation"
 	CustomerSegmentationCollection   = "customer_segmentations"
+	CPSRolesCollection               = "cps_roles"
 )
 
 // Minio Bucket Names

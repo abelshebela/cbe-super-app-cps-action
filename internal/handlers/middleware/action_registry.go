@@ -273,6 +273,12 @@ var cpsActionRegistry = map[string]string{
 	"GET /customer-segmentations":               "CUSTOMERSEGMENTATIONS",
 	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATIONS",
 	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATIONS",
+
+	// CPS Roles
+	"POST /cps-roles/create":        "CPSROLES",
+	"PATCH /cps-roles/{id}/update":  "CPSROLES",
+	"PATCH /cps-roles/{id}/enable":  "CPSROLES",
+	"PATCH /cps-roles/{id}/disable": "CPSROLES",
 }
 
 func extractResource(path string) string {
@@ -364,9 +370,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			// actionName, ok := cpsActionRegistry[keyPattern]
 			actionName := ""
 
+			path := strings.ReplaceAll(relPath, "_", "")
 			for _, v := range cpsActionRegistry {
-				path := strings.ReplaceAll(relPath, "_", "")
-
 				if strings.Contains(path, strings.ToLower(v)) {
 					actionName = v
 					break

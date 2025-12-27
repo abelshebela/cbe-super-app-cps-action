@@ -61,7 +61,7 @@ func (a *avatarService) CreateAvatar(ctx context.Context, avatar *model.Avatar, 
 		return errors.New(localization.ErrorAvatarAlreadyExist.Code)
 	}
 
-	url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.cfg, "", a.logger)
+	url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.AvatarFolderName), a.cfg, "", a.logger)
 	if err != nil {
 		span.AddEvent("[CreateAvatar] failed to upload file", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -128,7 +128,7 @@ func (a *avatarService) UpdateAvatar(ctx context.Context, id string, avatar *mod
 			objectkey = path.Base(existed.Avatar)
 		}
 
-		url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.Avatar), a.cfg, objectkey, a.logger)
+		url, err := lib.UploadFileToMinio(ctx, a.minio, a.bucketName, fileHeader, string(constants.AvatarFolderName), a.cfg, objectkey, a.logger)
 		if err != nil {
 			span.AddEvent("[UpdateAvatar] failed to upload avatar image", trace.WithAttributes(
 				attribute.String("error", err.Error()),

@@ -40,6 +40,7 @@ import (
 	vaultgroupcategory "cbe-super-app-cps-action/internal/glue/routing/vaultgroup_category"
 	"cbe-super-app-cps-action/internal/glue/routing/wallet"
 
+	cps_roles "cbe-super-app-cps-action/internal/glue/routing/cps_roles"
 	cps_user_det "cbe-super-app-cps-action/internal/glue/routing/cps_user"
 	customer_seg "cbe-super-app-cps-action/internal/glue/routing/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/glue/routing/donation"
@@ -154,6 +155,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	access_list_segmentation.Init(r, handlerLayer.AccessLostSegmentationHandler, authMiddleware)
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
 	customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
+	cps_roles.Init(r, handlerLayer.CPSRolesHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	// router.Mount("/api/v1/cbesuperapp/cps_action", r)

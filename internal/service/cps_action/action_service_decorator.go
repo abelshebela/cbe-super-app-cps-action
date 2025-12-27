@@ -11,7 +11,6 @@ import (
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 
-	// "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -29,14 +28,12 @@ func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSAction
 }
 
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
-	// Only apply policy for CREATE/UPDATE/ENABLE/DISABLE flows
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
 
-	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) ||
+	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) || actType == string(constants.ActionDelete) ||
 		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
 
-		// Always ensure multi-checker shape on these flows, even when count is 0
 		if cpsAction.CheckerUsers == nil {
 			cpsAction.CheckerUsers = []model.Checker{}
 		}
@@ -45,7 +42,6 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
-			// Attempt case-insensitive role lookup to avoid ActionName casing mismatches
 			var role *model.CPSActionRole
 
 			if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod)); err == nil && r != nil {
@@ -58,7 +54,6 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 			if role.IsMakerOnly {
 				cpsAction.CheckerCount = 0
-				// cpsAction.ActionStatus = string(constants.Approved)
 			} else if role.ApproverCount > 0 {
 				cpsAction.CheckerCount = int32(role.ApproverCount)
 			} else {

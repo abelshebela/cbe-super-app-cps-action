@@ -453,6 +453,12 @@ const (
 	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
+	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
+	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"
+	RequestDeleteCpsRole  RequestAction = "DELETE_CPS_ROLE"
+	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
+	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
+
 	RequestCreateMiniApp  RequestAction = "CREATE_MINI_APP"
 	RequestUpdateMiniApp  RequestAction = "UPDATE_MINI_APP"
 	RequestDeleteMiniApp  RequestAction = "DELETE_MINI_APP"
@@ -823,4 +829,20 @@ type maxMemory int64
 
 const (
 	MaxMemoryForUpload maxMemory = 15 << 20 // 15 MB
+)
+
+type ImageFolderName string
+
+const (
+	BankFolderName               ImageFolderName = "banks"
+	WalletFolderName             ImageFolderName = "wallets"
+	AdFolderName                 ImageFolderName = "ads"
+	AvatarFolderName             ImageFolderName = "avatars"
+	BudgetCategoryFolderName     ImageFolderName = "budget_categories"
+	DonationFolderName           ImageFolderName = "donations"
+	DonationCategoryFolderName   ImageFolderName = "donation_categories"
+	DonationCompanyFolderName    ImageFolderName = "donation_companies"
+	EventFolderName              ImageFolderName = "events"
+	TopupFolderName              ImageFolderName = "topups"
+	VaultGroupCategoryFolderName ImageFolderName = "vault_group_categories"
 )
