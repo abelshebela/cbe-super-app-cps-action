@@ -30,14 +30,14 @@ type cpsActionRoleService struct {
 	repo       storage.CPSActionRoleRepository
 	cpsService service.CPSActionService
 	indexRepo  storage.CPSActionApproveIndexRepository
-	roleRepo   storage.RoleRepository
+	roleRepo   storage.JobRoleRepository
 	logger     utils.Logger
 }
 
 func NewCPSActionRoleService(
 	repo storage.CPSActionRoleRepository,
 	indexRepo storage.CPSActionApproveIndexRepository,
-	roleRepo storage.RoleRepository,
+	roleRepo storage.JobRoleRepository,
 	cps service.CPSActionService,
 	logger utils.Logger,
 ) service.CPSActionRoleService {
@@ -109,6 +109,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("incomplete maker information", trace.WithAttributes(attribute.String("error", "incomplete maker information")))
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
+
 	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
 	if err == nil && existing != nil {
 		span.AddEvent("action name already exists", trace.WithAttributes(attribute.String("error", "action name already exists")))
@@ -127,43 +128,29 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	var makers []bson.ObjectID
-	for _, id := range req.AssignedMakersRoles {
-		obj, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			span.AddEvent("invalid maker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		makers = append(makers, obj)
+	var makers []string
+	for _, code := range req.AssignedMakersRoles {
+		makers = append(makers, code)
 	}
-	var checkers [][]bson.ObjectID
+	var checkers [][]string
 	if !req.IsMakerOnly {
-		checkers = make([][]bson.ObjectID, 0, len(req.AssignedCheckerRoles))
+		checkers = make([][]string, 0, len(req.AssignedCheckerRoles))
 		for _, group := range req.AssignedCheckerRoles {
-			g := make([]bson.ObjectID, 0, len(group))
-			for _, id := range group {
-				oid, err := bson.ObjectIDFromHex(id)
-				if err != nil {
-					span.AddEvent("invalid checker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-					return errors.New(localization.ErrorInvalidID.Code)
-				}
-				g = append(g, oid)
+			g := make([]string, 0, len(group))
+			for _, code := range group {
+				g = append(g, code)
 			}
 			checkers = append(checkers, g)
 		}
 	}
-	auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
-	for _, id := range req.AssignedAuditorRoles {
-		oid, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			span.AddEvent("invalid auditor ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		auditors = append(auditors, oid)
+	auditors := make([]string, 0, len(req.AssignedAuditorRoles))
+	for _, code := range req.AssignedAuditorRoles {
+
+		auditors = append(auditors, code)
 	}
 
 	// build CPS action payload
-	payload := model.ActionRole{
+	payload := imodel.CPSActionRole{
 		ActionCode:           req.ActionCode,
 		ActionName:           req.ActionName,
 		AssignedMakersRoles:  makers,
@@ -228,7 +215,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 
-	payload := model.ActionRole{
+	payload := imodel.CPSActionRole{
 		ActionCode:    actionCode,
 		ActionName:    local_util.NonEmptyString(req.ActionName, old.ActionName),
 		IsMakerOnly:   req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
@@ -237,32 +224,22 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	if req.AssignedMakersRoles != nil {
-		makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
-		for _, id := range req.AssignedMakersRoles {
-			oid, err := bson.ObjectIDFromHex(id)
-			if err != nil {
-				span.AddEvent("invalid maker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-				return errors.New(localization.ErrorInvalidID.Code)
-			}
-			makers = append(makers, oid)
+		makers := make([]string, 0, len(req.AssignedMakersRoles))
+		for _, code := range req.AssignedMakersRoles {
+			makers = append(makers, code)
 		}
 		payload.AssignedMakersRoles = makers
 	}
 
 	if req.IsMakerOnly {
-		payload.AssignedCheckerRoles = [][]bson.ObjectID{}
+		payload.AssignedCheckerRoles = [][]string{}
 	} else {
 		if req.AssignedCheckerRoles != nil {
-			checkers := make([][]bson.ObjectID, 0, len(req.AssignedCheckerRoles))
+			checkers := make([][]string, 0, len(req.AssignedCheckerRoles))
 			for _, group := range req.AssignedCheckerRoles {
-				g := make([]bson.ObjectID, 0, len(group))
-				for _, id := range group {
-					oid, err := bson.ObjectIDFromHex(id)
-					if err != nil {
-						span.AddEvent("invalid checker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-						return errors.New(localization.ErrorInvalidID.Code)
-					}
-					g = append(g, oid)
+				g := make([]string, 0, len(group))
+				for _, code := range group {
+					g = append(g, code)
 				}
 				checkers = append(checkers, g)
 			}
@@ -270,14 +247,9 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
-		auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
-		for _, id := range req.AssignedAuditorRoles {
-			oid, err := bson.ObjectIDFromHex(id)
-			if err != nil {
-				span.AddEvent("invalid auditor ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-				return errors.New(localization.ErrorInvalidID.Code)
-			}
-			auditors = append(auditors, oid)
+		auditors := make([]string, 0, len(req.AssignedAuditorRoles))
+		for _, code := range req.AssignedAuditorRoles {
+			auditors = append(auditors, code)
 		}
 		payload.AssignedAuditorRoles = auditors
 	}
@@ -365,7 +337,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	switch action.ActionType {
 	case string(constants.CREATE):
 
-		cur, err := local_util.JsonUnmarshal[model.CPSActionRole](action.CurrentAction)
+		cur, err := local_util.JsonUnmarshal[imodel.CPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal action: %v", err)
@@ -391,7 +363,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckersRoles), len(ar.AssignedAuditorRoles))
+		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, "", &ar); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
@@ -413,7 +385,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
-		new, err := local_util.JsonUnmarshal[model.CPSActionRole](action.CurrentAction)
+		new, err := local_util.JsonUnmarshal[imodel.CPSActionRole](action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to unmarshal new action", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to unmarshal new action: %v", err)
@@ -425,7 +397,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckersRoles), len(new.AssignedAuditorRoles))
+		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
 		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
@@ -483,7 +455,7 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 	}
 	return nil
 }
-func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *model.CPSActionRole) error {
+func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *imodel.CPSActionRole) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "syncIndices", "CPSActionRole", "syncIndices")
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
@@ -501,25 +473,25 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 	return err
 }
 
-func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []model.CPSActionApproveIndex {
+func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []model.CPSActionApproveIndex {
 	_, span := local_util.TraceLogger(context.Background(), "service", "generateIndices", "CPSActionRole", "generateIndices")
 	defer span.End()
 	var indices []model.CPSActionApproveIndex
 	now := time.Now()
-	s.logger.Infof("generateIndices: Starting for action %s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedMakersRoles), len(role.AssignedCheckersRoles), len(role.AssignedAuditorRoles))
+	s.logger.Infof("generateIndices: Starting for action %s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
 	// Makers
 	for i, makerID := range role.AssignedMakersRoles {
 		idx := int64(i + 1)
 		indices = append(indices, model.CPSActionApproveIndex{
 			ID:         bson.NewObjectID(),
-			RoleId:     makerID.Hex(),
+			RoleId:     makerID,
 			ActionName: role.ActionName,
 			MakerIndex: &idx,
 			UpdatedAt:  now,
 			CreatedAt:  now,
 		})
-		span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID.Hex())))
-		s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID.Hex())
+		span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID)))
+		s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID)
 	}
 
 	// Auditors
@@ -527,7 +499,7 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 		idx := int64(i + 1)
 		found := false
 		for j := range indices {
-			if indices[j].RoleId == auditorID.Hex() {
+			if indices[j].RoleId == auditorID {
 				indices[j].AuditorIndex = &idx
 				found = true
 				break
@@ -536,29 +508,29 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 		if !found {
 			indices = append(indices, model.CPSActionApproveIndex{
 				ID:           bson.NewObjectID(),
-				RoleId:       auditorID.Hex(),
+				RoleId:       auditorID,
 				ActionName:   role.ActionName,
 				AuditorIndex: &idx,
 				UpdatedAt:    now,
 				CreatedAt:    now,
 			})
 
-			span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
-			s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID.Hex())
+			span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+			s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID)
 		} else {
-			span.AddEvent("auditor index updated", trace.WithAttributes(attribute.String("role_id", auditorID.Hex())))
-			s.logger.Infof("generateIndices: Updated Auditor index for RoleID %s", auditorID.Hex())
+			span.AddEvent("auditor index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+			s.logger.Infof("generateIndices: Updated Auditor index for RoleID %s", auditorID)
 		}
 	}
 
 	// Checkers
 	if !role.IsMakerOnly {
-		for outer, group := range role.AssignedCheckersRoles {
+		for outer, group := range role.AssignedCheckerRoles {
 			for inner, checkerID := range group {
 				val := float64(outer+1) + float64(inner+1)/10.0
 				found := false
 				for j := range indices {
-					if indices[j].RoleId == checkerID.Hex() {
+					if indices[j].RoleId == checkerID {
 						indices[j].CheckerIndex = &val
 						found = true
 						break
@@ -567,17 +539,18 @@ func (s *cpsActionRoleService) generateIndices(role *model.CPSActionRole) []mode
 				if !found {
 					indices = append(indices, model.CPSActionApproveIndex{
 						ID:           bson.NewObjectID(),
-						RoleId:       checkerID.Hex(),
+						RoleId:       checkerID,
 						ActionName:   role.ActionName,
 						CheckerIndex: &val,
 						UpdatedAt:    now,
 						CreatedAt:    now,
 					})
-					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID.Hex()), attribute.Float64("value", val)))
-					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID.Hex(), val)
+
+					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID, val)
 				} else {
-					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID.Hex()), attribute.Float64("value", val)))
-					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID.Hex(), val)
+					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID, val)
 				}
 			}
 		}

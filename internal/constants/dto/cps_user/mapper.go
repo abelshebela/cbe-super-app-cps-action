@@ -8,7 +8,7 @@ func NewCPSUserDTO(user model.CPSUser) CPSUserDTO {
 		UserCode:           user.UserCode,
 		FullName:           user.FullName,
 		Role:               user.Role,
-		Department:         user.Department.Hex(),
+		Department:         user.Department,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,

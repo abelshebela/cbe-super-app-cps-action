@@ -43,12 +43,14 @@ type RoleRepository interface {
 	Update(ctx context.Context, id string, role *model.Role) error
 	FindByID(ctx context.Context, id string) (*model.Role, error)
 	FindByName(ctx context.Context, name string) (*model.Role, error)
+	FindByCode(ctx context.Context, code string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
 }
 
 type JobRoleRepository interface {
 	Create(ctx context.Context, role *imodel.JobRole) error
 	Update(ctx context.Context, id string, role *imodel.JobRole) error
+	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
@@ -139,15 +141,16 @@ type SessionGRPCPort interface {
 	Close() error
 }
 type CPSActionRoleRepository interface {
-	Create(ctx context.Context, actionRole *model.CPSActionRole) error
-	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error
+	Create(ctx context.Context, actionRole *imodel.CPSActionRole) error
+	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
-	FindByActionName(ctx context.Context, actionName string) (*model.CPSActionRole, error)
-	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
+	FindByActionName(ctx context.Context, actionName string) (*imodel.CPSActionRole, error)
+	FindApproverByActionName(ctx context.Context, actionName, role_code string) (model.CPSActionApproveIndex, error)
+	FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.CPSActionRole, error)
 }
 type DeviceVersionControlRepository interface {
 	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
