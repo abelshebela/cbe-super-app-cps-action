@@ -143,6 +143,7 @@ type CPSUserWithDepartment struct {
 	Realm              string          `json:"realm,omitempty" bson:"realm"`
 	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category"`
 	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group"`
+	JobTitle           string          `json:"job_title,omitempty" bson:"job_title"`
 	Enabled            bool            `json:"enabled,omitempty" bson:"enabled"`
 	DateJoined         *time.Time      `json:"date_joined,omitempty" bson:"date_joined"`
 	LastModified       *time.Time      `json:"last_modified,omitempty" bson:"last_modified"`
