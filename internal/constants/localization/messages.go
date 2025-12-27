@@ -868,7 +868,9 @@ const (
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
 
-	MsgCannotGetRole = "CPS user's role cannot be found"
+	MsgCannotGetRole         = "CPS user's role cannot be found"
+	MsgJobTitleAlreadyExists = "Job title already exists"
+	MsgRoleAlreadyExists     = "Role already exists"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"
@@ -1023,6 +1025,8 @@ const (
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
 	MsgCannotEnableDistrict   = "Cannot enable district, its region is blocked"
 	MsgCannotEnableCity       = "Cannot enable city, its district is blocked"
+	MsgJobTitleExisted        = "Job title already existed"
+	MsgJobTitleNotUpdated     = "Job title not updated"
 	MsgCannotEnableBranch     = "Cannot enable branch, its city is already blocked"
 
 	// Password Rule

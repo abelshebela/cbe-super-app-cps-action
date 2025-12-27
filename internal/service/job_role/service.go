@@ -45,9 +45,14 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.CheckRoleExistent(ctx, role.Role, j.jobRoleRepository); err != nil {
+	_, err := j.roleRepository.FindByName(ctx, role.JobTitle)
+	if err == nil {
+		return errors.New(localization.ErrorJobTitleAlreadyExists.Code)
+	}
+
+	if err := core.CheckRoleExistent(ctx, role.Role, j.roleRepository); err == nil {
 		j.logger.Errorf("[JobRole Service] the give role not found %v", err)
-		return err
+		return errors.New(localization.ErrorRoleAlreadyExists.Code)
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateJobRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
@@ -61,10 +66,14 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmod
 	}
 
 	if update.Role != "" {
-		if err := core.CheckRoleExistent(ctx, update.Role, j.jobRoleRepository); err != nil {
+		if err := core.CheckRoleExistent(ctx, update.Role, j.roleRepository); err != nil {
 			j.logger.Errorf("[JobRole Service] the give role not found")
 			return err
 		}
+	}
+	res, err := j.roleRepository.FindByName(ctx, update.JobTitle)
+	if err == nil && res.ID.Hex() != id {
+		return errors.New(localization.ErrorJobTitleAlreadyExists.Code)
 	}
 
 	prev, err := j.roleRepository.FindByID(ctx, id)

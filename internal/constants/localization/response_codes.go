@@ -179,6 +179,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
 
+	ErrorUsedJobTitleExisting,
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -376,6 +377,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBranchNotFound,
 	ErrorDistrictNotFound,
 	ErrorCannotEnableDistrict,
+	ErrorUsedJobTitleExisting,
+	ErrorNoUpdatedJobTitle,
 	ErrorCannotEnableBranch,
 	ErrorRegionNotFound,
 	ErrorCityNotFound,
@@ -653,6 +656,9 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationUpdateSubmittedSuccessfully,
 	CustomerSegmentationFetchedSuccessfully,
 	CustomerSegmentationDeleteddSuccessfully,
+
+	ErrorJobTitleAlreadyExists,
+	ErrorRoleAlreadyExists,
 }
 
 // Success Response Codes
@@ -4777,7 +4783,18 @@ var (
 		Message:    MsgCannotGetRole,
 		Type:       "error",
 	}
-
+	ErrorRoleAlreadyExists = ResponseCode{
+		Code:       "ERROR_ROLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleAlreadyExists,
+		Type:       "error",
+	}
+	ErrorJobTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleAlreadyExists,
+		Type:       "error",
+	}
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -5488,6 +5505,20 @@ var (
 		Code:       "ERROR_CANNOT_ENABLE_CITY",
 		StatusCode: StatusBadRequest,
 		Message:    MsgCannotEnableCity,
+		Type:       "error",
+	}
+
+	ErrorUsedJobTitleExisting = ResponseCode{
+		Code:       "ERROR_USED_JOB_TITLE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleExisted,
+		Type:       "error",
+	}
+
+	ErrorNoUpdatedJobTitle = ResponseCode{
+		Code:       "ERROR_NO_UPDATED_JOB_TITLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleNotUpdated,
 		Type:       "error",
 	}
 
