@@ -265,7 +265,8 @@ func UploadFileToMinio(
 	}
 
 	// 4. Metadata Preparation
-	genName := fmt.Sprintf("%s/%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+	// genName := fmt.Sprintf("%s/%d-%s", prefix, time.Now().UnixNano(), fileHeader.Filename)
+	genName := fmt.Sprintf("%d-%s", time.Now().UnixNano(), fileHeader.Filename)
 	key := genName
 
 	if strings.TrimSpace(contentType) == "" {
@@ -285,9 +286,12 @@ func UploadFileToMinio(
 		logger.Errorf("upload failed error: %v", err)
 		return "", err
 	}
-
+	baseURL := env.MinioPublicEndPoint
+	if strings.HasSuffix(baseURL, "/") {
+		baseURL = strings.TrimSuffix(baseURL, "/")
+	}
 	// Build public URL
-	url := fmt.Sprintf("%s", strings.TrimPrefix(key, "/"))
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(key, "/"))
 	return url, nil
 }
 func RemoveFileFromMinio(

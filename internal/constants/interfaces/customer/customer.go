@@ -12,4 +12,5 @@ type CustomerDetail interface {
 	DisableCustomer(w http.ResponseWriter, r *http.Request)
 	GetLinkedAccount(w http.ResponseWriter, r *http.Request)
 	SearchCustomerByCIForAccountNumber(w http.ResponseWriter, r *http.Request)
+	GetCustomerDetailByID(w http.ResponseWriter, r *http.Request)
 }

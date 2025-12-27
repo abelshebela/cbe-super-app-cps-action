@@ -77,8 +77,16 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/customers/search",
+			Path:    "/customers/account_lookup/{number}",
 			Handler: handler.SearchCustomerByCIForAccountNumber,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customers/detail/{id}",
+			Handler: handler.GetCustomerDetailByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

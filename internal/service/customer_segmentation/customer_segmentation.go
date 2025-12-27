@@ -55,7 +55,7 @@ func (s *customerSegmentationService) CreateBulk(ctx context.Context, reqs []cus
 
 		if role != nil {
 			seg := model.CustomerSegmentation{
-				CustomerRole:       req.CustomerRole,
+				CustomerRole:       role.Name,
 				CustomerSegment:    req.CustomerSegment,
 				CustomerSubSegment: req.CustomerSubSegment,
 				CustomerGroup:      req.CustomerGroup,
@@ -92,9 +92,13 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	}
 
 	updated := *existing
-
 	if req.CustomerRole != nil {
-		updated.CustomerRole = *req.CustomerRole
+		role, err := s.cpsRoleRepo.FindById(ctx, *req.CustomerRole)
+		if err != nil {
+			return err
+		}
+
+		updated.CustomerRole = role.Name
 	}
 	if req.CustomerSegment != nil {
 		updated.CustomerSegment = *req.CustomerSegment
