@@ -593,6 +593,7 @@ var ResponseCodesList = []ResponseCode{
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
 	ErrorCpsActionRoleNotFound,
+	ErrorRoleNotFound,
 
 	// transaction related responses
 	SuccessTransactionRetrieved,
