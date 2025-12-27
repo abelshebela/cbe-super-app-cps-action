@@ -26,13 +26,18 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 	var role *imodel.JobRole
 	var err error
 
-	res, err := roleRepo.Find(ctx, bson.M{"code": update.Code, "name": update.Name})
-	if err == nil && res != nil {
-		return errors.New(localization.MsgRoleAlreadyExists)
+	resByCode, err := roleRepo.Find(ctx, bson.M{"code": update.Code})
+	if err != nil {
+		return err
+	}
+
+	resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
+	if err != nil {
+		return err
 	}
 
 	if types == constants.CREATE {
-		if res != nil {
+		if resByCode != nil {
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}
 	} else if types == constants.UPDATE {
@@ -48,8 +53,12 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 		}
 	}
 
-	if role != nil && res != nil {
-		if role.Code != res.Code {
+	if role != nil && (resByCode != nil || resByName != nil) {
+		if role.ID.Hex() != resByCode.ID.Hex() {
+			return errors.New(localization.ErrorUsedRoleExisting.Code)
+		}
+
+		if role.ID.Hex() != resByName.ID.Hex() {
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}
 	}
