@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -35,23 +36,28 @@ func NewCustomerSegmentation(svc service.CustomerSegmentationService, logger uti
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations [post]
 func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
-	var req cust_seg.CreateCustomerSegmentationRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var reqs []cust_seg.CreateCustomerSegmentationRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&reqs); err != nil {
 		c.logger.Errorf("[CreateCustomerSegmentation] failed to decode request body: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-	if err := req.Validate(); err != nil {
-		c.logger.Errorf("[CreateCustomerSegmentation] validation error: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
+		localization.SendErrorByCodeResponse(w, "invalid request format")
 		return
 	}
 
-	if err := c.svc.Create(r.Context(), req); err != nil {
+	for i, req := range reqs {
+		if err := req.Validate(); err != nil {
+			c.logger.Errorf("[CreateCustomerSegmentation] validation error at index %d: %v", i, err)
+			localization.SendErrorByCodeResponse(w, fmt.Sprintf("validation error at index %d: %v", i, err))
+			return
+		}
+	}
+
+	if err := c.svc.CreateBulk(r.Context(), reqs); err != nil {
 		c.logger.Errorf("[CreateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationCreationSubmittedSuccessfully, nil)
 }
 

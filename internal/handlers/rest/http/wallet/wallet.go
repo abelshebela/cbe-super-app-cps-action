@@ -74,7 +74,7 @@ func (a *walletAdapter) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	span.SetAttributes(
-		attribute.String("wallet.code", req.Code),
+		attribute.String("wallet.unique_code", req.UniqueCode),
 		attribute.String("wallet.name", req.Name),
 	)
 

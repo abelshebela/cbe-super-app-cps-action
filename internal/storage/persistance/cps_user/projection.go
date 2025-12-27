@@ -1,35 +1,36 @@
 package cps_user
 
 import (
-	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func CPSUserUpdateMapper(u *cpsuser.UpdateUserRequest) bson.M {
+func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
 	set := bson.M{}
+	if u.UserName != "" {
+		set["username"] = u.UserName
+	}
 	if u.FullName != "" {
 		set["full_name"] = u.FullName
-	}
-	if u.Role != "" {
-		set["role"] = u.Role
-	}
-	if !u.Department.IsZero() {
-		set["department"] = u.Department
-	}
-	if u.Gender != "" {
-		set["gender"] = u.Gender
 	}
 	if u.PhoneNumber != "" {
 		set["phone_number"] = u.PhoneNumber
 	}
+	if u.Gender != "" {
+		set["gender"] = u.Gender
+	}
 	if u.Email != "" {
 		set["email"] = u.Email
 	}
-	if u.UserName != "" {
-		set["username"] = u.UserName
+	if u.JobTitle != "" {
+		set["job_title"] = u.JobTitle
+	}
+
+	if u.JobTitle != "" {
+		set["job_title"] = u.JobTitle
 	}
 
 	set["last_modified"] = time.Now()

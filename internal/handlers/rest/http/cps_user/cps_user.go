@@ -104,9 +104,6 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ensure the request carries the target user code from the path
-	req.UserCode = userCode
-
 	req.Normalize()
 
 	if err := req.Validate(); err != nil {
@@ -118,7 +115,7 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("cps_user.code", userCode))
 
-	if err := h.svc.UpdateUserRequest(ctx, req); err != nil {
+	if err := h.svc.UpdateUserRequest(ctx, userCode, req); err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("[UpdateUserRequest] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

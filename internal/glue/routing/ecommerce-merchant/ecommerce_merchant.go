@@ -80,10 +80,10 @@ func Init(router chi.Router, handler miniappmerchat.EcommerceMerchant, authMiddl
 			Method:  http.MethodGet,
 			Path:    "/ecommerce-merchant/merchant-lookup/{merchant_id}",
 			Handler: handler.MerchantLookup,
-			// Middlewares: []func(next http.Handler) http.Handler{
-			// 	authMiddleware.AuthenticateToken,
-			// 	authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
-			// },
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
+			},
 		},
 	}
 

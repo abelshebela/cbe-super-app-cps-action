@@ -58,12 +58,12 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 
 func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
-		Id:        data.ID.Hex(),
-		Name:      data.Name,
-		Avatar:    data.Avatar,
-		Code:      data.Code,
-		IsDeleted: data.IsDeleted,
-		Enabled:   data.Enabled,
+		Id:         data.ID.Hex(),
+		Name:       data.Name,
+		Avatar:     data.Avatar,
+		UniqueCode: data.UniqueCode,
+		IsDeleted:  data.IsDeleted,
+		Enabled:    data.Enabled,
 		Services: &walletpb.Services{
 			Self:  data.Services.Self,
 			Other: data.Services.Other,
@@ -94,8 +94,7 @@ func (s *server) bankMapper(data *model.Bank) *bankpb.Bank {
 	return &bankpb.Bank{
 		Id:      data.ID.Hex(),
 		Name:    data.Name,
-		Bic:     data.BIC,
-		Code:    data.Code,
+		BicCode: data.BICCode,
 		Logo:    data.Logo,
 		Enabled: data.Enabled,
 		Type:    data.Type,

@@ -25,7 +25,6 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 	return &servicesService{repo: repo, cps: cps, logger: logger}
 }
 
-// Public API (raises CPS actions)
 func (s *servicesService) Create(ctx context.Context, req model.Services) error {
 	if err := core.ValidateCreate(req, s.repo); err != nil {
 		return err
@@ -34,7 +33,6 @@ func (s *servicesService) Create(ctx context.Context, req model.Services) error 
 }
 
 func (s *servicesService) Update(ctx context.Context, id string, req model.Services) error {
-	// fetch existing and validate uniqueness if code or name changes
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -68,7 +66,6 @@ func (s *servicesService) Enable(ctx context.Context, id string) error {
 	if id == "" {
 		return localization.ErrorInvalidID
 	}
-	// carry minimal payload
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
@@ -95,7 +92,6 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDisableService, payload, prev, constants.ActionUpdate)
 }
 
-// Reads (direct)
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
@@ -104,7 +100,6 @@ func (s *servicesService) GetByID(ctx context.Context, id string) (*model.Servic
 	return s.repo.FindByID(ctx, id)
 }
 
-// Authorize applies changes on approval
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
 	serviceDoc, err := local_util.JsonUnmarshal[model.Services](action.CurrentAction)
 	if err != nil {
@@ -129,5 +124,3 @@ func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction
 	action.CurrentAction = serviceDoc
 	return action, nil
 }
-
-// local CPS wrapper functions removed; using services/core helper directly above

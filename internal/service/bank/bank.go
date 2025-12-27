@@ -165,7 +165,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		return fmt.Errorf(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, "banks", *b.cfg, "", b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, bank_request.Logo, string(constants.BankFolderName), *b.cfg, "", b.logger)
 	if err != nil {
 		span.AddEvent("[CreateOneBank] failed to upload logo", trace.WithAttributes(
 			attribute.String("error", err.Error()),
@@ -177,14 +177,13 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 
 	bank := model.Bank{
 		Name:    bank_request.Name,
-		BIC:     bank_request.BIC,
-		Code:    bank_request.Code,
+		BICCode: bank_request.BICCode,
 		Type:    string(bank_request.Type),
 		Logo:    URL,
 		Enabled: true,
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
+	result, err := b.repo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
 
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
@@ -195,16 +194,10 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 	}
 
 	if result != nil {
-		if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
+		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
 			b.logger.Errorf("[CreateOneBank] bank with BIC already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
 		}
-
-		if bank_request.Code != "" && result.Code != "" && strings.ToLower(result.Code) == strings.ToLower(bank_request.Code) {
-			b.logger.Errorf("[CreateOneBank] bank with code already exists")
-			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
-		}
-
 		if bank_request.Name != "" && result.Name != "" && strings.ToLower(result.Name) == strings.ToLower(bank_request.Name) {
 			b.logger.Errorf("[CreateOneBank] bank with name already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithNameAlreadyExists.Code)
@@ -382,7 +375,7 @@ func (b *BankService) UpdateLogo(ctx context.Context, id string, logo bank_dto.U
 		objectkey = path.Base(bank.Logo)
 	}
 
-	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, b.bucketName, *b.cfg, objectkey, b.logger)
+	URL, err := lib.UploadFileToMinio(ctx, b.minio, b.bucketName, logo.Logo, string(constants.BankFolderName), *b.cfg, objectkey, b.logger)
 
 	if err != nil {
 		span.AddEvent("[UpdateLogo] failed to upload logo", trace.WithAttributes(
@@ -437,11 +430,8 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 
 	updatedBank := *bank
 
-	if bank_request.BIC != "" {
-		updatedBank.BIC = bank_request.BIC
-	}
-	if bank_request.Code != "" {
-		updatedBank.Code = bank_request.Code
+	if bank_request.BICCode != "" {
+		updatedBank.BICCode = bank_request.BICCode
 	}
 	if bank_request.Name != "" {
 		updatedBank.Name = bank_request.Name
@@ -462,7 +452,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 			b.minio,
 			b.bucketName,
 			bank_request.Logo,
-			b.bucketName,
+			string(constants.BankFolderName),
 			*b.cfg,
 			objectkey,
 			b.logger,
@@ -479,7 +469,7 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		logoUrl = URL
 	}
 
-	result, err := b.repo.FindByNameOrBICOrCode(ctx, bank_request.BIC, bank_request.Code, bank_request.Name)
+	result, err := b.repo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
 	if err != nil {
 		code, _ := local_util.HandleMongoError(err)
 		if code != localization.ErrorResourceNotFound.Code {
@@ -488,14 +478,9 @@ func (b *BankService) UpdateOneBank(ctx context.Context, id string, bank_request
 		}
 	}
 	if result != nil && result.ID.Hex() != id {
-		if bank_request.BIC != "" && result.BIC != "" && result.BIC == bank_request.BIC {
+		if bank_request.BICCode != "" && result.BICCode != "" && result.BICCode == bank_request.BICCode {
 			b.logger.Errorf("[UpdateOneBank] bank with BIC already exists")
 			return fmt.Errorf("%s", localization.ErrorBankWithBICAlreadyExists.Code)
-		}
-
-		if bank_request.Code != "" && result.Code != "" && result.Code == bank_request.Code {
-			b.logger.Errorf("[UpdateOneBank] bank with code already exists")
-			return fmt.Errorf("%s", localization.ErrorBankWithCodeAlreadyExists.Code)
 		}
 
 		if bank_request.Name != "" && result.Name != "" && result.Name == bank_request.Name {

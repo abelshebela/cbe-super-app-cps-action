@@ -3,7 +3,6 @@ package cpsaction
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -37,125 +36,129 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	span.SetAttributes(attribute.String("action", action))
 
 	switch {
-	case IsActionInGroup(RequestAction(action), "Bank"):
+	case IsActionInGroup(RequestAction(action), "BANK"):
 		return d.app.BankContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "KYCVerifier"):
+	case IsActionInGroup(RequestAction(action), "KYCVERIFIER"):
 		return d.app.KYCVerifierContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Block"):
+	case IsActionInGroup(RequestAction(action), "ACCOUNTBLOCK"):
 		return d.app.AccountBlockContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Account"):
+	case IsActionInGroup(RequestAction(action), "ACCOUNTVALIDATION"):
 		return d.app.AccountContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Advert"):
+	case IsActionInGroup(RequestAction(action), "ADVERT"):
 		return d.app.AdContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Service"):
+	case IsActionInGroup(RequestAction(action), "SERVICE"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "DeviceVersion"):
+	case IsActionInGroup(RequestAction(action), "DEVICEVERSION"):
 		return d.app.DeviceVersionContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Fayda"):
+	case IsActionInGroup(RequestAction(action), "FAYDA"):
 		return d.app.FaydaContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "MiniAppMerchant"):
+	case IsActionInGroup(RequestAction(action), "MINIAPPMERCHANT"):
 		return d.app.MiniAppMerchantContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "MiniApp"):
+	case IsActionInGroup(RequestAction(action), "MINIAPP"):
 		return d.app.MiniAppContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "HQ"):
 		return d.app.HQContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Password"):
+	case IsActionInGroup(RequestAction(action), "PASSWORDRULES"):
 		return d.app.PasswordRuleContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Permission"):
+	case IsActionInGroup(RequestAction(action), "PERMISSION"):
 		return d.app.PermissionContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "UnlinkDevice"):
+	case IsActionInGroup(RequestAction(action), "UNLINKDEVICE"):
 		return d.app.UnlinkContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Wallet"):
+	case IsActionInGroup(RequestAction(action), "WALLET"):
 		return d.app.WalletContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "Topup"):
+	case IsActionInGroup(RequestAction(action), "TOPUP"):
 		return d.app.TopupContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "AmountBasedAuth"):
+	case IsActionInGroup(RequestAction(action), "AMOUNTBASEDAUTH"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "BulkService"):
+	case IsActionInGroup(RequestAction(action), "BULKSERVICE"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Event"):
+	case IsActionInGroup(RequestAction(action), "EVENT"):
 		return d.app.EventContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Notification"):
+	case IsActionInGroup(RequestAction(action), "NOTIFICATION"):
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "ProductCode"):
+	case IsActionInGroup(RequestAction(action), "PRODUCTCODE"):
 		return d.app.ProductCodeService.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "BPSUser"):
+	case IsActionInGroup(RequestAction(action), "BPSUSER"):
 		return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "Avatar"):
+	case IsActionInGroup(RequestAction(action), "AVATAR"):
 		return d.app.AvatarDomian.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "donationCategory"):
+	case IsActionInGroup(RequestAction(action), "DONATIONCATEGORY"):
 		return d.app.DonationCategoryContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "donationCompany"):
+	case IsActionInGroup(RequestAction(action), "DONATIONCOMPANY"):
 		return d.app.DonationCompanyContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "Donation"):
+	case IsActionInGroup(RequestAction(action), "DONATION"):
 		return d.app.DonationContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "Department"):
+	case IsActionInGroup(RequestAction(action), "DEPARTMENT"):
 		return d.app.DepartmentContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "CPSUser"):
+	case IsActionInGroup(RequestAction(action), "CPSUSER"):
 		return d.app.CPSUserContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "BankVault"):
+	case IsActionInGroup(RequestAction(action), "BANKVAULT"):
 		return d.app.BankProductContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "VaultGroupCategory"):
+	case IsActionInGroup(RequestAction(action), "VAULTCATEGORY"):
 		return d.app.VaultCategoryContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "article"):
+	case IsActionInGroup(RequestAction(action), "ARTICLE"):
 		return d.app.ArticleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "articleCategory"):
+	case IsActionInGroup(RequestAction(action), "ARTICLECATEGORY"):
 		return d.app.ArticleCategoryContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "short_video"):
+	case IsActionInGroup(RequestAction(action), "SHORTVIDEO"):
 		return d.app.ShortVideoServiceContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "customer"):
+	case IsActionInGroup(RequestAction(action), "CUSTOMER"):
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "news_tag"):
+	case IsActionInGroup(RequestAction(action), "NEWSTAG"):
 		return d.app.NewsTagsServiceContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "ActionRole"):
+	case IsActionInGroup(RequestAction(action), "ACTIONROLE"):
 		return d.app.BPSActionRoleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "news_category"):
+	case IsActionInGroup(RequestAction(action), "NEWSCATEGORY"):
 		return d.app.NewsCategoryContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "BudgetCategory"):
+	case IsActionInGroup(RequestAction(action), "BUDGETCATEGORY"):
 		return d.app.BudgetCategoryContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "MiniAppCategory"):
+	case IsActionInGroup(RequestAction(action), "MINIAPPCATEGORY"):
 		return d.app.MiniAppCategoryContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "CpsActionRole"):
+	case IsActionInGroup(RequestAction(action), "CPSACTIONROLE"):
 		return d.app.CPSActionRoleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "eventMerchant"):
+	case IsActionInGroup(RequestAction(action), "EVENTMERCHANT"):
 		return d.app.EventMerchantServiceContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "VaultAmountTier"):
+	case IsActionInGroup(RequestAction(action), "VAULTAMOUNTTIER"):
 		return d.app.VaultAmountTierContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "MiniAppProductCode"):
+	case IsActionInGroup(RequestAction(action), "MINIAPPPRODUCTCODE"):
 		return d.app.MiniAppProductCodeContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "AccessListSegmentation"):
+	case IsActionInGroup(RequestAction(action), "ACCESSLISTSEGMENTATION"):
 		return d.app.AccessListSegmentationContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "JobRole"):
+	case IsActionInGroup(RequestAction(action), "JOBROLE"):
 		return d.app.JobRoleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "Role"):
+	case IsActionInGroup(RequestAction(action), "ROLE"):
 		return d.app.RoleContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "CustomerSegmentations"):
+	case IsActionInGroup(RequestAction(action), "CUSTOMERSEGMENTATIONS"):
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "ECOMMERCEMERCHANT"):
+		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "CPSRoles"):
+		return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
 
 	default:
 		span.AddEvent("unsupported action", trace.WithAttributes(attribute.String("action", action)))

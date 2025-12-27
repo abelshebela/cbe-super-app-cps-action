@@ -28,6 +28,14 @@ func Init(router chi.Router, handler bps_user.BPSUserHandler, authMiddleware mid
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		// {
+		// 	Method:  http.MethodPost,
+		// 	Path:    "/bps_users/",
+		// 	Handler: handler.CreateBPSUser,
+		// 	Middlewares: []func(next http.Handler) http.Handler{
+		// 		authMiddleware.AuthenticateToken,
+		// 	},
+		// },
 		{
 			Method:  http.MethodPost,
 			Path:    "/bps_users/disable/{user_code}",

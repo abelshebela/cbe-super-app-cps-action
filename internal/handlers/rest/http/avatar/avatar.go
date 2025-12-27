@@ -60,7 +60,6 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
-	// avatarUrl, err := lib.UploadFileToMinio(r.Context(),a)
 	span.SetAttributes(attribute.String("avatar.label", req.Label))
 	if err := a.avatarApplication.CreateAvatar(ctx, &model.Avatar{Label: req.Label}, req.Avatar); err != nil {
 		span.RecordError(err)

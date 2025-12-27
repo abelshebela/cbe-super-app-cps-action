@@ -62,12 +62,12 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	ctx, span := local_util.TraceLogger(ctx, "service", "ApproveCPSAction", "CPSAction", "ApproveCPSAction")
 	defer span.End()
 
-	action.ActionStatus = string(constants.Approved)
 	data, err := ca.repo.Update(ctx, action.ActionCode, *action)
 	if err != nil {
 		span.AddEvent("failed to update cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	approve, err := ca.dispatcher.Authorize(ctx, data)
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))

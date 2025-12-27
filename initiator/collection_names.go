@@ -49,6 +49,8 @@ var (
 	NewsCategoryCollection           = "news_category"
 	CustomersKYCCollection           = "customer_kyc"
 	BPSActionRolesCollection         = "action_roles"
+	BPSActionListCollection          = "bps_action_list"
+	CPSActionListCollection          = "cps_action_list"
 	RolesCollection                  = "roles"
 
 	BPSActionApproveIndexCollection = "bps_action_approver_index"
@@ -61,6 +63,7 @@ var (
 	MiniAppProductCodes              = "mini_app_product_codes"
 	AccessListSegmentationCollection = "access_list_segmentation"
 	CustomerSegmentationCollection   = "customer_segmentations"
+	CPSRolesCollection               = "cps_roles"
 )
 
 // Minio Bucket Names

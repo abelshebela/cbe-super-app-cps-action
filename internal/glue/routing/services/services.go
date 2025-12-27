@@ -16,37 +16,37 @@ func Init(router chi.Router, handler inbound.ServicesHandler, auth middleware.Au
 			Method:  http.MethodPost,
 			Path:    "/services",
 			Handler: handler.Create,
-			// Middlewares: []func(next http.Handler) http.Handler{
-			// 	auth.AuthenticateToken,
-			// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-			// },
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
 		},
 		{
 			Method:  http.MethodPatch,
 			Path:    "/services/{id}",
 			Handler: handler.Update,
-			// Middlewares: []func(next http.Handler) http.Handler{
-			// 	auth.AuthenticateToken,
-			// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-			// },
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
 		},
 		{
 			Method:  http.MethodPatch,
 			Path:    "/services/{id}/enable",
 			Handler: handler.Enable,
-			// Middlewares: []func(next http.Handler) http.Handler{
-			// 	auth.AuthenticateToken,
-			// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-			// },
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
 		},
 		{
 			Method:  http.MethodPatch,
 			Path:    "/services/{id}/disable",
 			Handler: handler.Disable,
-			// Middlewares: []func(next http.Handler) http.Handler{
-			// 	auth.AuthenticateToken,
-			// 	auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
-			// },
+			Middlewares: []func(next http.Handler) http.Handler{
+				auth.AuthenticateToken,
+				// auth.AccessControl([]string{constants.Maker, constants.IFBMaker}),
+			},
 		},
 		{
 			Method:  http.MethodGet,
