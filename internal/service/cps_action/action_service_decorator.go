@@ -49,7 +49,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 
 			if role == nil {
-				return localization.ErrorCannotGetRole
+				return localization.ErrorOperationNotAllowed
 			}
 
 			if role.IsMakerOnly {
