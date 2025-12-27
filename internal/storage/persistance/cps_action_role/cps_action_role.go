@@ -22,7 +22,7 @@ import (
 
 type CPSActionRoleRepository struct {
 	client        *mongo.Client
-	mongoDal      dal.MongoDal[model.CPSActionRole, model.CPSActionRole]
+	mongoDal      dal.MongoDal[imodel.CPSActionRole, imodel.CPSActionRole]
 	approverDal   dal.MongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex]
 	actionListDal dal.MongoDal[imodel.CPSActionList, imodel.CPSActionList]
 	logger        utils.Logger
@@ -32,7 +32,7 @@ type CPSActionRoleRepository struct {
 func NewCPSActionRoleRepository(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.CPSActionRoleRepository {
 	return &CPSActionRoleRepository{
 		client:        client,
-		mongoDal:      dal.NewMongoDal[model.CPSActionRole, model.CPSActionRole](client, database, collection[0]),
+		mongoDal:      dal.NewMongoDal[imodel.CPSActionRole, imodel.CPSActionRole](client, database, "cps_action_roles"),
 		actionListDal: dal.NewMongoDal[imodel.CPSActionList, imodel.CPSActionList](client, database, collection[1]),
 		approverDal:   dal.NewMongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex](client, database, "cps_action_approver_index"),
 		logger:        logger,
@@ -76,16 +76,16 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	}, nil
 }
 
-func (r *CPSActionRoleRepository) Create(ctx context.Context, actionRole *model.CPSActionRole) error {
+func (r *CPSActionRoleRepository) Create(ctx context.Context, actionRole *imodel.CPSActionRole) error {
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
 	return err
 }
 
-func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *model.CPSActionRole) error {
+func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.CPSActionRole) error {
 	update := bson.M{
 		"action_name":             actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
-		"assigned_checkers_roles": actionRole.AssignedCheckersRoles,
+		"assigned_checkers_roles": actionRole.AssignedCheckerRoles,
 		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
 		"approver_count":          actionRole.ApproverCount,
 		"is_maker_only":           actionRole.IsMakerOnly,
@@ -404,10 +404,11 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 	}, nil
 }
 
-func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionName, role_code string) (*model.CPSActionRole, error) {
+func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionName string) (*imodel.CPSActionRole, error) {
 
 	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 	if err != nil {
+		r.logger.Errorf("error finding role by action name: %v", err)
 		return nil, err
 	}
 
@@ -423,6 +424,6 @@ func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, 
 
 	return *approverModal, nil
 }
-func (r *CPSActionRoleRepository) FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error) {
+func (r *CPSActionRoleRepository) FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.CPSActionRole, error) {
 	return r.mongoDal.FindOne(ctx, bson.M{"action_code": actionCode}, bson.M{})
 }
