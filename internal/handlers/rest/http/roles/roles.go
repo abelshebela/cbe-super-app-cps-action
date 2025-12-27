@@ -12,6 +12,7 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	service "cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -70,7 +71,7 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	role := imodel.JobRole{
 		Name:        strings.TrimSpace(body.Name),
-		Code:        strings.TrimSpace(body.Code),
+		Code:        "ROLE_" + local_util.UniqueIdGenerator(),
 		PortalCards: body.PortalCards,
 		CreatedAt:   time.Now(),
 	}

@@ -84,12 +84,21 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 	return res, nil
 }
 
+func (r *JobRoleStorage) ExistsMany(ctx context.Context, codes []string) (bool, error) {
+	if len(codes) == 0 {
+		return true, nil
+	}
+
+	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": codes}})
+	if err != nil {
+		return false, err
+	}
+	return count == int64(len(codes)), nil
+}
+
 func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.JobRole, error) {
 	filter := bson.M{
-		"code": bson.M{
-			"$regex":   "^" + strings.ToLower(code) + "$",
-			"$options": "i",
-		},
+		"code": code,
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {

@@ -30,14 +30,14 @@ type cpsActionRoleService struct {
 	repo       storage.CPSActionRoleRepository
 	cpsService service.CPSActionService
 	indexRepo  storage.CPSActionApproveIndexRepository
-	roleRepo   storage.RoleRepository
+	roleRepo   storage.JobRoleRepository
 	logger     utils.Logger
 }
 
 func NewCPSActionRoleService(
 	repo storage.CPSActionRoleRepository,
 	indexRepo storage.CPSActionApproveIndexRepository,
-	roleRepo storage.RoleRepository,
+	roleRepo storage.JobRoleRepository,
 	cps service.CPSActionService,
 	logger utils.Logger,
 ) service.CPSActionRoleService {
@@ -127,43 +127,29 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	var makers []bson.ObjectID
-	for _, id := range req.AssignedMakersRoles {
-		obj, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			span.AddEvent("invalid maker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		makers = append(makers, obj)
+	var makers []string
+	for _, code := range req.AssignedMakersRoles {
+		makers = append(makers, code)
 	}
-	var checkers [][]bson.ObjectID
+	var checkers [][]string
 	if !req.IsMakerOnly {
-		checkers = make([][]bson.ObjectID, 0, len(req.AssignedCheckerRoles))
+		checkers = make([][]string, 0, len(req.AssignedCheckerRoles))
 		for _, group := range req.AssignedCheckerRoles {
-			g := make([]bson.ObjectID, 0, len(group))
-			for _, id := range group {
-				oid, err := bson.ObjectIDFromHex(id)
-				if err != nil {
-					span.AddEvent("invalid checker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-					return errors.New(localization.ErrorInvalidID.Code)
-				}
-				g = append(g, oid)
+			g := make([]string, 0, len(group))
+			for _, code := range group {
+				g = append(g, code)
 			}
 			checkers = append(checkers, g)
 		}
 	}
-	auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
-	for _, id := range req.AssignedAuditorRoles {
-		oid, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			span.AddEvent("invalid auditor ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		auditors = append(auditors, oid)
+	auditors := make([]string, 0, len(req.AssignedAuditorRoles))
+	for _, code := range req.AssignedAuditorRoles {
+
+		auditors = append(auditors, code)
 	}
 
 	// build CPS action payload
-	payload := model.ActionRole{
+	payload := imodel.CPSActionRole{
 		ActionCode:           req.ActionCode,
 		ActionName:           req.ActionName,
 		AssignedMakersRoles:  makers,
@@ -228,7 +214,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 
-	payload := model.ActionRole{
+	payload := imodel.CPSActionRole{
 		ActionCode:    actionCode,
 		ActionName:    local_util.NonEmptyString(req.ActionName, old.ActionName),
 		IsMakerOnly:   req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
@@ -237,32 +223,22 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	if req.AssignedMakersRoles != nil {
-		makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
-		for _, id := range req.AssignedMakersRoles {
-			oid, err := bson.ObjectIDFromHex(id)
-			if err != nil {
-				span.AddEvent("invalid maker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-				return errors.New(localization.ErrorInvalidID.Code)
-			}
-			makers = append(makers, oid)
+		makers := make([]string, 0, len(req.AssignedMakersRoles))
+		for _, code := range req.AssignedMakersRoles {
+			makers = append(makers, code)
 		}
 		payload.AssignedMakersRoles = makers
 	}
 
 	if req.IsMakerOnly {
-		payload.AssignedCheckerRoles = [][]bson.ObjectID{}
+		payload.AssignedCheckerRoles = [][]string{}
 	} else {
 		if req.AssignedCheckerRoles != nil {
-			checkers := make([][]bson.ObjectID, 0, len(req.AssignedCheckerRoles))
+			checkers := make([][]string, 0, len(req.AssignedCheckerRoles))
 			for _, group := range req.AssignedCheckerRoles {
-				g := make([]bson.ObjectID, 0, len(group))
-				for _, id := range group {
-					oid, err := bson.ObjectIDFromHex(id)
-					if err != nil {
-						span.AddEvent("invalid checker ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-						return errors.New(localization.ErrorInvalidID.Code)
-					}
-					g = append(g, oid)
+				g := make([]string, 0, len(group))
+				for _, code := range group {
+					g = append(g, code)
 				}
 				checkers = append(checkers, g)
 			}
@@ -270,14 +246,9 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
-		auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
-		for _, id := range req.AssignedAuditorRoles {
-			oid, err := bson.ObjectIDFromHex(id)
-			if err != nil {
-				span.AddEvent("invalid auditor ID", trace.WithAttributes(attribute.String("id", id), attribute.String("error", err.Error())))
-				return errors.New(localization.ErrorInvalidID.Code)
-			}
-			auditors = append(auditors, oid)
+		auditors := make([]string, 0, len(req.AssignedAuditorRoles))
+		for _, code := range req.AssignedAuditorRoles {
+			auditors = append(auditors, code)
 		}
 		payload.AssignedAuditorRoles = auditors
 	}
