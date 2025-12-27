@@ -85,6 +85,8 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
 		"assigned_checkers_roles": actionRole.AssignedCheckersRoles,
 		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
+		"approver_count":          actionRole.ApproverCount,
+		"is_maker_only":           actionRole.IsMakerOnly,
 		"enabled":                 actionRole.Enabled,
 		"updated_at":              actionRole.UpdatedAt,
 	}
