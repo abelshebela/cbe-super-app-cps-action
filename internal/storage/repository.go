@@ -294,7 +294,7 @@ type PortalCardRepository interface {
 }
 
 type CpsUserRepository interface {
-	Create(ctx context.Context, cpsUser *model.CPSUser) error
+	Create(ctx context.Context, cpsUser *imodel.CPSUser) error
 	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error

@@ -1,6 +1,7 @@
 package core
 
 import (
+	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -21,9 +22,13 @@ func CheckPortalCardsExistent(ctx context.Context, portalCards []string, portalC
 
 func RoleExistenChecker(ctx context.Context, roleId string, update imodel.JobRole, roleRepo storage.JobRoleRepository) error {
 
-	role, err := roleRepo.FindByID(ctx, roleId)
-	if err != nil {
-		return err
+	var role *imodel.JobRole
+	var err error
+	if roleId != "" {
+		role, err = roleRepo.FindByID(ctx, roleId)
+		if err != nil {
+			return err
+		}
 	}
 
 	res, err := roleRepo.Find(ctx, bson.M{"code": update.Code, "name": update.Name})
@@ -31,7 +36,11 @@ func RoleExistenChecker(ctx context.Context, roleId string, update imodel.JobRol
 		return err
 	}
 
-	if role.ID.Hex() != res.ID.Hex() {
-		return errors.New("role already exists")
+	if role != nil && res != nil {
+		if role.ID.Hex() != res.ID.Hex() {
+			return errors.New(localization.ErrorUsedRoleExisting.Code)
+		}
 	}
+
+	return nil
 }
