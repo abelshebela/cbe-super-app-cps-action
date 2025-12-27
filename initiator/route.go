@@ -215,15 +215,15 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		r.Use(authMiddleware.AuthenticateToken)
 
 		// CPS Action Guard
-		// r.Use(customeMiddleware.CPSActionRouteGuard([]string{
-		// 	"/actions",
-		// 	"/actions/{action_code}/approve",
-		// 	"/actions/{action_code}/reject",
-		// }))
-		r.Mount("/", r)
+		// // r.Use(customeMiddleware.CPSActionRouteGuard([]string{
+		// // 	"/actions",
+		// // 	"/actions/{action_code}/approve",
+		// // 	"/actions/{action_code}/reject",
+		// // }))
+		// r.Mount("/", r)
 
 	})
-	// secured.Mount("/", r)
+	secured.Mount("/", r)
 	// Mount
 	router.Mount("/api/v1/cbesuperapp/cps_action", secured)
 
