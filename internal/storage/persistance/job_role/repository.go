@@ -107,6 +107,15 @@ func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.J
 	return res, nil
 }
 
+func (s *JobRoleStorage) Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error) {
+
+	res, err := s.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (s *JobRoleStorage) FindByName(ctx context.Context, name string) (*imodel.JobRole, error) {
 	filter := bson.M{
 		"name": bson.M{

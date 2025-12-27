@@ -53,6 +53,7 @@ type JobRoleRepository interface {
 	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
 }
