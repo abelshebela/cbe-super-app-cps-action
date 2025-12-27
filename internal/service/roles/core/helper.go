@@ -32,8 +32,8 @@ func RoleExistenChecker(ctx context.Context, roleId string, update imodel.JobRol
 	}
 
 	res, err := roleRepo.Find(ctx, bson.M{"code": update.Code, "name": update.Name})
-	if err != nil {
-		return err
+	if err == nil && res != nil {
+		return errors.New(localization.MsgRoleAlreadyExists)
 	}
 
 	if role != nil && res != nil {
