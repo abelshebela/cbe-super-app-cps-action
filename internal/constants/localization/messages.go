@@ -868,7 +868,9 @@ const (
 	MsgDonationImageDeleteFailed      = "Failed to delete donation image"
 	MsgDonationImageAddFailed         = "Failed to add donation image"
 
-	MsgCannotGetRole = "CPS user's role cannot be found"
+	MsgCannotGetRole         = "CPS user's role cannot be found"
+	MsgJobTitleAlreadyExists = "Job title already exists"
+	MsgRoleAlreadyExists     = "Role already exists"
 
 	// Bank related error messages
 	MsgBankFileParseFailed              = "Failed to parse bank file"

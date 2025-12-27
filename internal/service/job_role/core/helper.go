@@ -8,9 +8,17 @@ import (
 	"errors"
 )
 
-func CheckRoleExistent(ctx context.Context, roleId string, roleRepo storage.JobRoleRepository) error {
+func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.RoleRepository) error {
 
-	_, err := roleRepo.FindByCode(ctx, roleId)
+	_, err := roleRepo.FindByRole(ctx, role)
+	if err != nil {
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	return nil
+}
+func CheckJobTitleExistent(ctx context.Context, jobTitle string, roleRepo storage.RoleRepository) error {
+
+	_, err := roleRepo.FindByName(ctx, jobTitle)
 	if err != nil {
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}

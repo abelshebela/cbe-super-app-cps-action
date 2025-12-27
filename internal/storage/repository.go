@@ -44,6 +44,7 @@ type RoleRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Role, error)
 	FindByName(ctx context.Context, name string) (*model.Role, error)
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
+	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
 }
 

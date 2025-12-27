@@ -656,6 +656,9 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationUpdateSubmittedSuccessfully,
 	CustomerSegmentationFetchedSuccessfully,
 	CustomerSegmentationDeleteddSuccessfully,
+
+	ErrorJobTitleAlreadyExists,
+	ErrorRoleAlreadyExists,
 }
 
 // Success Response Codes
@@ -4780,7 +4783,18 @@ var (
 		Message:    MsgCannotGetRole,
 		Type:       "error",
 	}
-
+	ErrorRoleAlreadyExists = ResponseCode{
+		Code:       "ERROR_ROLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleAlreadyExists,
+		Type:       "error",
+	}
+	ErrorJobTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleAlreadyExists,
+		Type:       "error",
+	}
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
