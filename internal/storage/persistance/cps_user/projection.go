@@ -173,5 +173,9 @@ func CPSUserMapper(u imodel.CPSUser) *model.CPSUser {
 		PasswordDisable:    u.PasswordDisable,
 		SyncDisabled:       u.SyncDisabled,
 		IsFirstTimeLogin:   u.IsFirstTimeLogin,
+		Enabled:            true,
+		IsDeleted:          u.IsDeleted,
+		DateJoined:         u.DateJoined,
+		LastModified:       u.LastModified,
 	}
 }
