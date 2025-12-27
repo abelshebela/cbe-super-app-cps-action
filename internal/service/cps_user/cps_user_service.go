@@ -24,15 +24,19 @@ import (
 
 type cpsUserService struct {
 	repo              storage.CpsUserRepository
+	roleRepo          storage.RoleRepository
+	approverRepo      storage.CPSActionApproveIndexRepository
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
+		roleRepo:          roleRepo,
+		approverRepo:      approverRepo,
 		permissionService: permission,
 		cpsService:        cps,
 		logger:            logger,
@@ -376,7 +380,19 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	return core.ConvertToDTO(user), nil
+	roles, err := s.roleRepo.FindByName(ctx, user.JobTitle)
+	if err != nil {
+		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	makerAlloc, checkerAlloc, auditorAlloc, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+	if err != nil {
+		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	return core.ConvertToDTO(user, makerAlloc, checkerAlloc, auditorAlloc), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {

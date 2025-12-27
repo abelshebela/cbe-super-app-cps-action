@@ -35,7 +35,7 @@ func PhoneNumberExists(ctx context.Context, repo storage.CpsUserRepository, phon
 }
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
-func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
+func ConvertToDTO(user *model.CPSUser, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CPSUserDTO {
 	return &cpsuser.CPSUserDTO{
 		ID:                 user.ID,
 		UserCode:           user.UserCode,
@@ -49,6 +49,10 @@ func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
 		Realm:              user.Realm,
 		PermissionCategory: user.PermissionCategory,
 		PermissionGroup:    user.PermissionGroup,
+		JobTitle:           user.JobTitle,
+		MakerAllocations:   makerAlloc,
+		CheckerAllocations: checkerAlloc,
+		AuditorAllocations: auditorAlloc,
 		Enabled:            user.Enabled,
 		DateJoined:         user.DateJoined,
 		LastModified:       user.LastModified,

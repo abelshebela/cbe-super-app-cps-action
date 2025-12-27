@@ -42,6 +42,7 @@ type RoleRepository interface {
 	Create(ctx context.Context, role *model.Role) error
 	Update(ctx context.Context, id string, role *model.Role) error
 	FindByID(ctx context.Context, id string) (*model.Role, error)
+	FindByName(ctx context.Context, name string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
 }
 
@@ -593,6 +594,10 @@ type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
 	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
+	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error)
+	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error)
+	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error)
+	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, error)
 	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
