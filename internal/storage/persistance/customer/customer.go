@@ -489,6 +489,8 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "gender", Value: 1},
 			{Key: "created_at", Value: 1},
 			{Key: "is_blocked", Value: 1},
+			// Extract the first account_number from linked_account array if exists
+			{Key: "account_number", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$accounts.account_number", 0}}}},
 		}}},
 	}
 
@@ -500,15 +502,16 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	defer cursor.Close(ctx)
 
 	var results []struct {
-		ID          bson.ObjectID `bson:"_id"`
-		UserID      string        `bson:"user_id"`
-		UserCode    string        `bson:"user_code"`
-		FullName    string        `bson:"full_name"`
-		PhoneNumber string        `bson:"phone_number"`
-		BranchCode  string        `bson:"branch_code"`
-		Gender      string        `bson:"gender"`
-		CreatedAt   time.Time     `bson:"created_at"`
-		IsBlocked   bool          `bson:"is_blocked"`
+		ID            bson.ObjectID `bson:"_id"`
+		UserID        string        `bson:"user_id"`
+		UserCode      string        `bson:"user_code"`
+		AccountNumber string        `bson:"account_number"`
+		FullName      string        `bson:"full_name"`
+		PhoneNumber   string        `bson:"phone_number"`
+		BranchCode    string        `bson:"branch_code"`
+		Gender        string        `bson:"gender"`
+		CreatedAt     time.Time     `bson:"created_at"`
+		IsBlocked     bool          `bson:"is_blocked"`
 	}
 
 	if err = cursor.All(ctx, &results); err != nil {
@@ -521,15 +524,16 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 
 	res := results[0]
 	return &customer_dto.CustomerListResponse{
-		ID:          res.ID.Hex(),
-		UserID:      res.UserID,
-		UserCode:    res.UserCode,
-		FullName:    res.FullName,
-		PhoneNumber: res.PhoneNumber,
-		BranchCode:  res.BranchCode,
-		Gender:      res.Gender,
-		CreatedAt:   res.CreatedAt.Format(time.RFC3339),
-		IsBlocked:   res.IsBlocked,
+		ID:            res.ID.Hex(),
+		UserID:        res.UserID,
+		UserCode:      res.UserCode,
+		FullName:      res.FullName,
+		PhoneNumber:   res.PhoneNumber,
+		BranchCode:    res.BranchCode,
+		Gender:        res.Gender,
+		CreatedAt:     res.CreatedAt.Format(time.RFC3339),
+		IsBlocked:     res.IsBlocked,
+		AccountNumber: res.AccountNumber,
 	}, nil
 }
 
