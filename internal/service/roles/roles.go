@@ -46,7 +46,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.RoleExistenChecker(ctx, "", role, j.roleRepository); err != nil {
+	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
 		return err
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
@@ -60,7 +60,7 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.RoleExistenChecker(ctx, id, update, j.roleRepository); err != nil {
+	if err := core.RoleExistenChecker(ctx, constants.UPDATE, id, update, j.roleRepository); err != nil {
 		return err
 	}
 
