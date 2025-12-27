@@ -86,10 +86,7 @@ func (s *JobRoleStorage) FindByID(ctx context.Context, id string) (*imodel.JobRo
 
 func (s *JobRoleStorage) FindByCode(ctx context.Context, code string) (*imodel.JobRole, error) {
 	filter := bson.M{
-		"code": bson.M{
-			"$regex":   "^" + strings.ToLower(code) + "$",
-			"$options": "i",
-		},
+		"code": code,
 	}
 	res, err := s.dal.FindOne(ctx, filter, nil)
 	if err != nil {
