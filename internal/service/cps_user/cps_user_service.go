@@ -61,7 +61,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 		return errors.New(localization.ErrorUserAlreadyExists.Code)
 	}
-	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+	emailCheck, err := core.EmailExists(ctx, "", s.repo, req.Email)
 	if err != nil {
 		span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -70,7 +70,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
-	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
 	if err != nil {
 		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -144,7 +144,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
 
-		phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+		phoneCheck, err := core.PhoneNumberExists(ctx, currentUser.UserCode, s.repo, req.PhoneNumber)
 		if err != nil {
 			span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -168,7 +168,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		}
 	}
 	if req.Email != "" {
-		emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+		emailCheck, err := core.EmailExists(ctx, currentUser.UserCode, s.repo, req.Email)
 		if err != nil {
 			span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
