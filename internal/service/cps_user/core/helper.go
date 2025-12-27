@@ -50,13 +50,13 @@ func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUs
 }
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
-func ConvertToDTO(user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CPSUserDTO {
-	return &cpsuser.CPSUserDTO{
-		ID:                 user.ID,
-		UserCode:           user.UserCode,
-		FullName:           user.FullName,
-		Role:               user.Role,
-		Department:         user.Department.Name,
+func ConvertToDTO(user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CPSUserResponse {
+	return &cpsuser.CPSUserResponse{
+		ID:       user.ID,
+		UserCode: user.UserCode,
+		FullName: user.FullName,
+		Role:     user.Role,
+		// Department:         *user.Department,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
@@ -77,20 +77,16 @@ func ConvertToDTO(user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, audit
 
 func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
 	return model.CPSUser{
-		UserCode:           local_util.GenerateCPSUserCode(),
-		UserName:           req.UserName,
-		FullName:           req.FullName,
-		Department:         req.Department,
-		PhoneNumber:        req.PhoneNumber,
-		JobTitle:           req.JobTitle,
-		Role:               req.Role,
-		Gender:             req.Gender,
-		Email:              req.Email,
-		PermissionCategory: req.PermissionCategory,
-		PermissionGroup:    req.PermissionGroups,
-		PasswordDisable:    false,
-		IsFirstTimeLogin:   true,
-		Enabled:            true,
+		UserCode:         local_util.GenerateCPSUserCode(),
+		UserName:         req.UserName,
+		FullName:         req.FullName,
+		PhoneNumber:      req.PhoneNumber,
+		JobTitle:         req.JobTitle,
+		Gender:           req.Gender,
+		Email:            req.Email,
+		PasswordDisable:  false,
+		IsFirstTimeLogin: true,
+		Enabled:          true,
 	}
 }
 
