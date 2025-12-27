@@ -16,177 +16,120 @@ import (
 // Only write/approval routes should be included here
 var cpsActionRegistry = map[string]string{
 	// Notification
-	"POST /notifications":               "NOTIFICATIONS",
-	"PATCH /notifications/{id}":         "NOTIFICATIONS",
-	"PATCH /notifications/enable/{id}":  "NOTIFICATIONS",
-	"PATCH /notifications/disable/{id}": "NOTIFICATIONS",
-	"DELETE /notifications/{id}":        "NOTIFICATIONS",
+	"POST notifications":   "NOTIFICATIONS",
+	"PATCH notifications":  "NOTIFICATIONS",
+	"DELETE notifications": "NOTIFICATIONS",
 
 	// MiniAppMerchant
-	"POST /mini-app-merchants":               "MINIAPPMERCHANT",
-	"PATCH /mini-app-merchants/{id}":         "MINIAPPMERCHANT",
-	"PATCH /mini-app-merchants/enable/{id}":  "MINIAPPMERCHANT",
-	"PATCH /mini-app-merchants/disable/{id}": "MINIAPPMERCHANT",
-	"DELETE /mini-app-merchants/{id}":        "MINIAPPMERCHANT",
+	"POST mini-app-merchants":   "MINIAPPMERCHANT",
+	"PATCH mini-app-merchants":  "MINIAPPMERCHANT",
+	"DELETE mini-app-merchants": "MINIAPPMERCHANT",
 
 	// Advert
-	"POST /adverts":               "ADVERT",
-	"PATCH /adverts/{id}":         "ADVERT",
-	"DELETE /advert/{id}":         "ADVERT",
-	"PATCH /adverts/{id}/enable":  "ADVERT",
-	"PATCH /adverts/{id}/disable": "ADVERT",
+	"POST adverts":  "ADVERT",
+	"PATCH adverts": "ADVERT",
+	"DELETE advert": "ADVERT",
 
 	// AccountBlock
-	"POST /account_block/branches/enable":   "ACCOUNTBLOCK",
-	"POST /account_block/branches/disable":  "ACCOUNTBLOCK",
-	"POST /account_block/regions/enable":    "ACCOUNTBLOCK",
-	"POST /account_block/regions/disable":   "ACCOUNTBLOCK",
-	"POST /account_block/districts/enable":  "ACCOUNTBLOCK",
-	"POST /account_block/districts/disable": "ACCOUNTBLOCK",
-	"POST /account_block/cities/enable":     "ACCOUNTBLOCK",
-	"POST /account_block/cities/disable":    "ACCOUNTBLOCK",
+	"POST account_block": "ACCOUNTBLOCK",
 
 	// AccountValidation
-	"GET /account_validation":               "ACCOUNTVALIDATION",
-	"GET /account_validation/{id}":          "ACCOUNTVALIDATION",
-	"PATCH /account_validation/update/{id}": "ACCOUNTVALIDATION",
+	"GET account_validation":   "ACCOUNTVALIDATION",
+	"PATCH account_validation": "ACCOUNTVALIDATION",
 
 	// AmountBasedAuth
-	"PATCH /amount_based_auth/update/{method}/{id}": "AMOUNTBASEDAUTH",
-	"GET /amount_based_auth":                        "AMOUNTBASEDAUTH",
-	"PATCH /amount_based_auth/reject/{id}":          "AMOUNTBASEDAUTH",
+	"PATCH amount_based_auth": "AMOUNTBASEDAUTH",
+	"GET amount_based_auth":   "AMOUNTBASEDAUTH",
 
 	// Avatar
-	"POST /avatar":            "AVATAR",
-	"DELETE /avatar/{id}":     "AVATAR",
-	"PATCH /avatar/disable/*": "AVATAR",
-	"PATCH /avatar/enable/*":  "AVATAR",
-	"PATCH /avatar/{id}":      "AVATAR",
-
+	"POST avatar":   "AVATAR",
+	"DELETE avatar": "AVATAR",
+	"PATCH avatar":  "AVATAR",
 	// Bank
-	"POST /banks":               "BANK",
-	"PATCH /banks/{id}":         "BANK",
-	"DELETE /banks/{id}":        "BANK",
-	"PATCH /banks/{id}/enable":  "BANK",
-	"PATCH /banks/{id}/disable": "BANK",
-	"PATCH /banks/{id}/logo":    "BANK",
+	"POST banks":   "BANK",
+	"PATCH banks":  "BANK",
+	"DELETE banks": "BANK",
 
 	// BankVault
-	"POST /vault/products/create":        "BANKVAULT",
-	"PATCH /vault/products/update/{id}":  "BANKVAULT",
-	"DELETE /vault/products/delete/{id}": "BANKVAULT",
-	"PATCH /vault/products/disable/{id}": "BANKVAULT",
-	"PATCH /vault/products/enable/{id}":  "BANKVAULT",
+	"POST vault":   "BANKVAULT",
+	"PATCH vault":  "BANKVAULT",
+	"DELETE vault": "BANKVAULT",
 
 	// ActionRole (BPS)
-	"POST /bps-action-roles":                 "ACTIONROLE",
-	"PATCH /bps-action-roles/{code}":         "ACTIONROLE",
-	"PATCH /bps-action-roles/{code}/enable":  "ACTIONROLE",
-	"PATCH /bps-action-roles/{code}/disable": "ACTIONROLE",
+	"POST bps-action-roles":  "BPSACTIONEROLE",
+	"PATCH bps-action-roles": "BPSACTIONEROLE",
 
 	// BPSUser
-	"POST /bps_users/disable/{user_code}": "BPSUSER",
-	"POST /bps_users/enable/{user_code}":  "BPSUSER",
+	"POST bps_users": "BPSUSER",
 
 	// BudgetCategory
-	"POST /budget-category":               "BUDGETCATEGORY",
-	"PATCH /budget-category/{id}":         "BUDGETCATEGORY",
-	"DELETE /budget-category/{id}":        "BUDGETCATEGORY",
-	"PATCH /budget-category/enable/{id}":  "BUDGETCATEGORY",
-	"PATCH /budget-category/disable/{id}": "BUDGETCATEGORY",
+	"POST budget-category":   "BUDGETCATEGORY",
+	"PATCH budget-category":  "BUDGETCATEGORY",
+	"DELETE budget-category": "BUDGETCATEGORY",
 
 	// BulkService
-	"POST /bulk_services/disable": "BULKSERVICE",
-	"POST /bulk_services/enable":  "BULKSERVICE",
+	"POST bulk_services": "BULKSERVICE",
 
 	// CpsActionRole
-	"POST /cps-action-roles":                 "CPSACTIONROLE",
-	"PATCH /cps-action-roles/{code}":         "CPSACTIONROLE",
-	"PATCH /cps-action-roles/{code}/enable":  "CPSACTIONROLE",
-	"PATCH /cps-action-roles/{code}/disable": "CPSACTIONROLE",
+	"POST cps-action-roles":  "CPSACTIONROLE",
+	"PATCH cps-action-roles": "CPSACTIONROLE",
 
 	// CpsUser
-	"POST /cps_users/create":               "CPSUSER",
-	"PATCH /cps_users/update/{user_code}":  "CPSUSER",
-	"DELETE /cps_users/delete/{user_code}": "CPSUSER",
-	"POST /cps_users/disable/{user_code}":  "CPSUSER",
-	"POST /cps_users/enable/{user_code}":   "CPSUSER",
+	"POST cps_users":   "CPSUSER",
+	"PATCH cps_users":  "CPSUSER",
+	"DELETE cps_users": "CPSUSER",
 
 	// Customer
-	"PATCH /customers/enable/{id}":            "CUSTOMER",
-	"PATCH /customers/enable_otp_verify/{id}": "CUSTOMER",
-	"PATCH /customers/disable/{id}":           "CUSTOMER",
-	"PATCH /customers/fayda/enable/{id}":      "CUSTOMER",
+	"PATCH customers": "CUSTOMER",
 
 	// Department
-	"POST /departments":               "DEPARTMENT",
-	"PATCH /departments/{id}":         "DEPARTMENT",
-	"PATCH /departments/enable/{id}":  "DEPARTMENT",
-	"PATCH /departments/disable/{id}": "DEPARTMENT",
+	"POST departments":  "DEPARTMENT",
+	"PATCH departments": "DEPARTMENT",
 
 	// DeviceVersion
-	"POST /device_versions":               "DEVICEVERSION",
-	"PATCH /device_versions/{id}":         "DEVICEVERSION",
-	"PATCH /device_versions/enable/{id}":  "DEVICEVERSION",
-	"PATCH /device_versions/disable/{id}": "DEVICEVERSION",
+	"POST device_versions":  "DEVICEVERSION",
+	"PATCH device_versions": "DEVICEVERSION",
 
 	// Donation
-	"POST /donation":               "DONATION",
-	"PATCH /donation/{id}":         "DONATION",
-	"PATCH /donation/image/{id}":   "DONATION",
-	"DELETE /donation/image/{id}":  "DONATION",
-	"POST /donation/image/{id}":    "DONATION",
-	"PATCH /donation/enable/{id}":  "DONATION",
-	"PATCH /donation/disable/{id}": "DONATION",
+	"POST donation":   "DONATION",
+	"PATCH donation":  "DONATION",
+	"DELETE donation": "DONATION",
 
 	// DonationCategory
-	"POST /donation_category":               "DONATIONCATEGORY",
-	"PATCH /donation_category/{id}":         "DONATIONCATEGORY",
-	"PATCH /donation_category/enable/{id}":  "DONATIONCATEGORY",
-	"PATCH /donation_category/disable/{id}": "DONATIONCATEGORY",
+	"POST donation_category":  "DONATIONCATEGORY",
+	"PATCH donation_category": "DONATIONCATEGORY",
 
 	// DonationCompany
-	"POST /donation_company":               "DONATIONCOMPANY",
-	"PATCH /donation_company/{id}":         "DONATIONCOMPANY",
-	"PATCH /donation_company/enable/{id}":  "DONATIONCOMPANY",
-	"PATCH /donation_company/disable/{id}": "DONATIONCOMPANY",
+	"POST donation_company":  "DONATIONCOMPANY",
+	"PATCH donation_company": "DONATIONCOMPANY",
 
 	// Ecommerce merrchant
-	"POST /ecommerce-merchant":               "ECOMMERCEMERCHANT",
-	"PATCH /ecommerce-merchant/enable/{id}":  "ECOMMERCEMERCHANT",
-	"PATCH /ecommerce-merchant/disable/{id}": "ECOMMERCEMERCHANT",
-	"PATCH /ecommerce-merchant/{id}":         "ECOMMERCEMERCHANT",
-	"DELETE /ecommerce-merchant/{id}":        "ECOMMERCEMERCHANT",
+	"POST ecommerce-merchant":   "ECOMMERCEMERCHANT",
+	"PATCH ecommerce-merchant":  "ECOMMERCEMERCHANT",
+	"DELETE ecommerce-merchant": "ECOMMERCEMERCHANT",
 
 	// Encryption
-	"POST /encryption/encrypt": "ENCRYPTION",
+	"POST encryption": "ENCRYPTION",
 
 	// Event merchant
-	"POST /event_merchants":               "EVENTMERCHANT",
-	"PATCH /event_merchants/{id}":         "EVENTMERCHANT",
-	"PATCH /event_merchants/enable/{id}":  "EVENTMERCHANT",
-	"PATCH /event_merchants/disable/{id}": "EVENTMERCHANT",
-	"DELETE /event_merchant/{id}":         "EVENTMERCHANT",
+	"POST event_merchants":  "EVENTMERCHANT",
+	"PATCH event_merchants": "EVENTMERCHANT",
+	"DELETE event_merchant": "EVENTMERCHANT",
 
 	// Event
-	"POST /events":               "EVENT",
-	"PATCH /events/{id}":         "EVENT",
-	"PATCH /events/enable/{id}":  "EVENT",
-	"PATCH /events/disable/{id}": "EVENT",
-	"DELETE /events/{id}":        "EVENT",
+	"POST events":   "Event",
+	"PATCH events":  "Event",
+	"DELETE events": "Event",
 
 	// HQ
-	"POST /hq/block_time":      "HQ",
-	"POST /hq/archive_time":    "HQ",
-	"POST /hq/password_expiry": "HQ",
+	"POST hq": "HQ",
 
 	// Fayda
 	"POST /fayda_account/disable/{user_code}": "FAYDA",
 	"POST /fayda_account/enable/{user_code}":  "FAYDA",
 
 	// KYCVerifier
-	"PATCH /kyc_verifier/update/{id}":  "KYCVERIFIER",
-	"PATCH /kyc_verifier/approve/{id}": "KYCVERIFIER",
+	"PATCH kyc_verifier": "KYCVERIFIER",
 
 	// NewsCategory
 	"POST /news/category/create": "NEWSCATEGORY",
@@ -199,86 +142,67 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /news/tags/{id}":  "NEWSTAG",
 
 	// Job roles
-	"POST /job_roles":       "JOBROLE",
-	"PATCH /job_roles/{id}": "JOBROLE",
-
-	// Roles
-	"POST /roles":       "ROLE",
-	"PATCH /roles/{id}": "ROLE",
+	"POST job_roles":  "JOBROLES",
+	"PATCH job_roles": "JOBROLES",
 
 	// Access list segmentation
-	"POST /access_list_segmentation":              "ACCESSLISTSEGMENTATION",
-	"POST /access_list_segmentation/{id}":         "ACCESSLISTSEGMENTATION",
-	"POST /access_list_segmentation/enable/{id}":  "ACCESSLISTSEGMENTATION",
-	"POST /access_list_segmentation/disable/{id}": "ACCESSLISTSEGMENTATION",
+	"POST access_list_segmentation": "ACCESSLISTSEGMENTATION",
 
 	// PasswordRule
-	"PATCH /password_rule/{id}": "PASSWORDRULES",
-	"POST /password_rule/check": "PASSWORDRULES",
+	"PATCH password_rule": "PASSWORD",
+	"POST password_rule":  "PASSWORD",
 
 	// PermissionGroup
-	"POST /permissions":       "PERMISSIONGROUP",
-	"PATCH /permissions/{id}": "PERMISSIONGROUP",
+	"POST permissions":  "PermissionGroup",
+	"PATCH permissions": "PermissionGroup",
 
 	// ProductCode (nested router)
-	"PATCH /productcodes/{id}": "PRODUCTCODE",
+	"PATCH productcodes": "ProductCode",
+
+	// ServiceDetails -> Service
+	"PATCH service":  "Service",
+	"DELETE service": "Service",
 
 	// Services module
-	"POST /services":               "SERVICE",
-	"PATCH /services/{id}":         "SERVICE",
-	"PATCH /services/{id}/enable":  "SERVICE",
-	"PATCH /services/{id}/disable": "SERVICE",
+	"POST services":  "SERVICE",
+	"PATCH services": "SERVICE",
 
 	// Topup
-	"POST /topups":               "TOPUP",
-	"PATCH /topups/{id}":         "TOPUP",
-	"DELETE /topups/{id}":        "TOPUP",
-	"PATCH /topups/{id}/enable":  "TOPUP",
-	"PATCH /topups/{id}/disable": "TOPUP",
+	"POST topups":   "TOPUP",
+	"PATCH topups":  "TOPUP",
+	"DELETE topups": "TOPUP",
 
 	// UnlinkDevice
-	"PATCH /unlink/user_cif/{user_code}": "UNLINKDEVICE",
+	"PATCH unlink": "UNLINKDEVICE",
 
 	// VaultGroupCategory
-	"POST /vaultgroupcategory/create":        "VAULTCATEGORY",
-	"PATCH /vaultgroupcategory/update/{id}":  "VAULTCATEGORY",
-	"DELETE /vaultgroupcategory/delete/{id}": "VAULTCATEGORY",
-	"PATCH /vaultgroupcategory/enable/{id}":  "VAULTCATEGORY",
-	"PATCH /vaultgroupcategory/disable/{id}": "VAULTCATEGORY",
+	"POST vaultgroupcategory":   "VAULTCATEGORY",
+	"PATCH vaultgroupcategory":  "VAULTCATEGORY",
+	"DELETE vaultgroupcategory": "VAULTCATEGORY",
 
 	// Vault amount tier
-	"POST /vault-amount-tier/create":        "VAULTAMOUNTTIER",
-	"PATCH /vault-amount-tier/{id}/update":  "VAULTAMOUNTTIER",
-	"DELETE /vault-amount-tier/{id}/delete": "VAULTAMOUNTTIER",
-	"PATCH /vault-amount-tier/{id}/disable": "VAULTAMOUNTTIER",
-	"PATCH /vault-amount-tier/{id}/enable":  "VAULTAMOUNTTIER",
+	"POST vault-amount-tier":   "VAULTAMOUNTTIER",
+	"PATCH vault-amount-tier":  "VAULTAMOUNTTIER",
+	"DELETE vault-amount-tier": "VAULTAMOUNTTIER",
 
 	// Wallet
-	"POST /wallets":               "WALLET",
-	"PATCH /wallets/{id}":         "WALLET",
-	"DELETE /wallets/{id}":        "WALLET",
-	"PATCH /wallets/{id}/enable":  "WALLET",
-	"PATCH /wallets/{id}/disable": "WALLET",
+	"POST wallets":   "WALLET",
+	"PATCH wallets":  "WALLET",
+	"DELETE wallets": "WALLET",
 
 	// 	ROLE
-	"POST /job_role":               "JOBROLE",
-	"PATCH /job_role/{id}":         "JOBROLE",
-	"DELETE /job_role/{id}":        "JOBROLE",
-	"PATCH /job_role/{id}/enable":  "JOBROLE",
-	"PATCH /job_role/{id}/disable": "JOBROLE",
+	"POST job_role":   "JOBROLE",
+	"PATCH job_role":  "JOBROLE",
+	"DELETE job_role": "JOBROLE",
 
 	// Customer Segmentation
-	"POST /customer-segmentations":              "CUSTOMERSEGMENTATIONS",
-	"PATCH /customer-segmentations/{id}/update": "CUSTOMERSEGMENTATIONS",
-	"GET /customer-segmentations":               "CUSTOMERSEGMENTATIONS",
-	"GET /customer-segmentations/{id}":          "CUSTOMERSEGMENTATIONS",
-	"DELETE /customer-segmentations/{id}":       "CUSTOMERSEGMENTATIONS",
+	"POST customer-segmentations":   "CUSTOMERSEGMENTATIONS",
+	"PATCH customer-segmentations":  "CUSTOMERSEGMENTATIONS",
+	"DELETE customer-segmentations": "CUSTOMERSEGMENTATIONS",
 
 	// CPS Roles
-	"POST /cps-roles/create":        "CPSROLES",
-	"PATCH /cps-roles/{id}/update":  "CPSROLES",
-	"PATCH /cps-roles/{id}/enable":  "CPSROLES",
-	"PATCH /cps-roles/{id}/disable": "CPSROLES",
+	"POST cps-roles":  "CPSROLES",
+	"PATCH cps-roles": "CPSROLES",
 }
 
 func extractResource(path string) string {
@@ -343,11 +267,8 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 
 			// Normalize actual path route (concrete values like /banks/567...)
 			relPath := r.URL.Path
-			if strings.HasPrefix(relPath, "/api/v1/cbesuperapp/cps_action") {
-				relPath = strings.TrimPrefix(relPath, "/api/v1/cbesuperapp/cps_action")
-				if relPath == "" {
-					relPath = "/"
-				}
+			if strings.HasPrefix(relPath, "/api/v1/cbesuperapp/cps_action/") {
+				relPath = strings.TrimPrefix(relPath, "/api/v1/cbesuperapp/cps_action/")
 			}
 
 			// Allowlist (e.g., CPSAction endpoints)
@@ -368,13 +289,27 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 			//actionName := resolveActionName(relPath, cpsActionRegistry)
 			// keyPattern := method + " " + relPattern
 			// actionName, ok := cpsActionRegistry[keyPattern]
-			actionName := ""
 
-			path := strings.ReplaceAll(relPath, "_", "")
-			for _, v := range cpsActionRegistry {
-				if strings.Contains(path, strings.ToLower(v)) {
-					actionName = v
-					break
+			actionName := ""
+			found := false
+			if strings.Contains(relPath, "news/category") {
+				actionName = "NEWSCATEGORY"
+				found = true
+			} else if strings.Contains(relPath, "news/tag") {
+				actionName = "NEWSTAG"
+				found = true
+			}
+
+			if !found {
+				if rparts := strings.Split(relPattern, "/"); rparts != nil && len(rparts) >= 1 {
+					relPattern = rparts[0]
+				}
+				path := method + " " + relPath
+				for k, v := range cpsActionRegistry {
+					if strings.EqualFold(path, k) {
+						actionName = v
+						break
+					}
 				}
 			}
 
@@ -522,4 +457,16 @@ func deriveModuleFromPattern(pattern string) string {
 	}
 	res := b.String()
 	return res
+}
+
+func actionKey(method, path string) string {
+	path = strings.Trim(path, "/")
+
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 {
+		return method
+	}
+
+	// METHOD + /first-segment
+	return method + " /" + parts[0]
 }

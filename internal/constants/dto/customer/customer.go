@@ -53,6 +53,7 @@ type CustomerDetailResponse struct {
 type CustomerListResponse struct {
 	ID          string `json:"id" bson:"_id"`
 	UserCode    string `json:"user_code" bson:"user_code"`
+	UserID      string `json:"user_id" bson:"user_id"`
 	FullName    string `json:"full_name" bson:"full_name"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 	BranchCode  string `json:"branch_code" bson:"branch_code"`

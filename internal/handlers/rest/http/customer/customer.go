@@ -369,20 +369,9 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 	ctx, span := util.TraceLogger(r.Context(), "handler", "searchCustomerByCIForAccountNumber", "handler", "customer")
 	defer span.End()
 
-	var req dto.SearchCustomerByCIRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidRequestBody.Code)
-		return
-	}
+	number := chi.URLParam(r, "number")
 
-	if err := req.Validate(); err != nil {
-		c.logger.Errorf("invalid search customer by ci request")
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-
-	customer, err := c.customerService.SearchCustomerByCIForAccountNumber(ctx, req)
+	customer, err := c.customerService.SearchCustomerByCIForAccountNumber(ctx, number)
 	if err != nil {
 		span.RecordError(err)
 		c.logger.Errorf("[SearchCustomerByCIForAccountNumber] service error: %v", err)
@@ -391,4 +380,20 @@ func (c customerAdapter) SearchCustomerByCIForAccountNumber(w http.ResponseWrite
 	}
 	localization.SendSuccessResponse(w, localization.SuccessCustomerDetailSuccessfullyFetched, customer)
 
+}
+
+// GetCustomerDetailByAccountNumber implements customer.CustomerDetail.
+func (c *customerAdapter) GetCustomerDetailByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	customerDetail, err := c.customerService.GetCustomerDetailByID(r.Context(), id)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessUserRetrieved, customerDetail)
 }

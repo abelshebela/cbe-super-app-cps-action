@@ -428,18 +428,33 @@ func (d *customerService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 	return cpsAction, nil
 }
 
-func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context, req customer_dto.SearchCustomerByCIRequest) (*customer_dto.CustomerListResponse, error) {
+func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "SearchCustomerByCIForAccountNumber", "Customer", "SearchCustomerByCIForAccountNumber")
 	defer span.End()
-	d.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", req.CifOrAccountNumber)
+	d.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", number)
 
-	customer, err := d.repo.SearchCustomerByCIForAccountNumber(ctx, req)
+	customer, err := d.repo.SearchCustomerByCIForAccountNumber(ctx, number)
 	if err != nil {
 		span.AddEvent("Failed to fetch customer by CI", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("cif_or_account_number", req.CifOrAccountNumber),
+			attribute.String("cif_or_account_number", number),
 		))
 		return nil, err
 	}
 	return customer, nil
+}
+
+func (d *customerService) GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerDetailByID", "Customer", "GetCustomerDetailByID")
+	defer span.End()
+	d.logger.Infof("[GetCustomerDetailByID] getting customer detail by id: %s", id)
+	res, err := d.repo.FindCustomerDetailByID(ctx, id)
+	if err != nil {
+		span.AddEvent("Failed to fetch customer detail by id", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("id", id),
+		))
+		return nil, err
+	}
+	return res, nil
 }
