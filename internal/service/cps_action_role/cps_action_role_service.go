@@ -545,6 +545,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []mod
 						UpdatedAt:    now,
 						CreatedAt:    now,
 					})
+
 					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
 					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID, val)
 				} else {
