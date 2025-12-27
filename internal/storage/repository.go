@@ -43,12 +43,14 @@ type RoleRepository interface {
 	Update(ctx context.Context, id string, role *model.Role) error
 	FindByID(ctx context.Context, id string) (*model.Role, error)
 	FindByName(ctx context.Context, name string) (*model.Role, error)
+	FindByCode(ctx context.Context, code string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
 }
 
 type JobRoleRepository interface {
 	Create(ctx context.Context, role *imodel.JobRole) error
 	Update(ctx context.Context, id string, role *imodel.JobRole) error
+	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
