@@ -9,6 +9,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/cps_user/core"
@@ -356,16 +357,22 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
-	roles, err := s.roleRepo.FindByName(ctx, populated.JobTitle)
-	if err != nil {
-		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+	var makerAlloc, checkerAlloc, auditorAlloc []string
+	var roles *model.Role
+	if populated.JobTitle != "" {
+		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
+		if err != nil {
+			span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
 	}
 
-	makerAlloc, checkerAlloc, auditorAlloc, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
-	if err != nil {
-		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
-		return nil, err
+	if roles != nil {
+		makerAlloc, checkerAlloc, auditorAlloc, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+		if err != nil {
+			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+			return nil, err
+		}
 	}
 
 	return core.ConvertToDTO(populated, makerAlloc, checkerAlloc, auditorAlloc), nil
@@ -402,7 +409,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 	switch action.RequestAction {
 	case string(constants.RequestCpsUserCreate):
 
-		cur, err := local_util.JsonUnmarshal[model.CPSUser](action.CurrentAction)
+		cur, err := local_util.JsonUnmarshal[imodel.CPSUser](action.CurrentAction)
 		// cur, err := core.BindCPSUserFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user from action", trace.WithAttributes(attribute.String("error", err.Error())))
