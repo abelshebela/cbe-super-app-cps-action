@@ -109,7 +109,8 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("incomplete maker information", trace.WithAttributes(attribute.String("error", "incomplete maker information")))
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
-	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
+
+	existing, _, err := s.repo.FindByActionName(ctx, req.ActionName, "")
 	if err == nil && existing != nil {
 		span.AddEvent("action name already exists", trace.WithAttributes(attribute.String("error", "action name already exists")))
 		return errors.New(localization.ErrorActionNameAlreadyExists.Code)

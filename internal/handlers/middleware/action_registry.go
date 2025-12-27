@@ -190,6 +190,8 @@ var cpsActionRegistry = map[string]string{
 	"DELETE wallets": "WALLET",
 
 	// 	ROLE
+	"POST roles":      "ROLE",
+	"PATCH roles":     "JOBROLE",
 	"POST job_role":   "JOBROLE",
 	"PATCH job_role":  "JOBROLE",
 	"DELETE job_role": "JOBROLE",
@@ -312,7 +314,7 @@ func CPSActionRouteGuard(whitelist []string) func(http.Handler) http.Handler {
 				}
 			}
 
-			roleCode, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+			roleCode, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 			// roleID := utils.FirstHex24(rawRoleID)
 			if roleCode == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
