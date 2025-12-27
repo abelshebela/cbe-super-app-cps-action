@@ -34,7 +34,7 @@ func NewCPSActionRoleRepository(client *mongo.Client, database string, collectio
 		client:        client,
 		mongoDal:      dal.NewMongoDal[model.CPSActionRole, model.CPSActionRole](client, database, collection[0]),
 		actionListDal: dal.NewMongoDal[imodel.CPSActionList, imodel.CPSActionList](client, database, collection[1]),
-		approverDal:   dal.NewMongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex](client, database, collection[2]),
+		approverDal:   dal.NewMongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex](client, database, "cps_action_approver_index"),
 		logger:        logger,
 		collection:    client.Database(database).Collection(collection[0]),
 	}
@@ -404,19 +404,24 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 	}, nil
 }
 
-func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionName, role_code string) (*model.CPSActionRole, model.CPSActionApproveIndex, error) {
-	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
-	if err != nil {
-		r.logger.Errorf("error finding approver index: %v", err)
-		// return nil, model.CPSActionApproveIndex{}, err
-	}
+func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionName, role_code string) (*model.CPSActionRole, error) {
 
 	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 	if err != nil {
-		return nil, model.CPSActionApproveIndex{}, err
+		return nil, err
 	}
 
-	return roleData, *approverModal, nil
+	return roleData, nil
+}
+
+func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (model.CPSActionApproveIndex, error) {
+	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
+	if err != nil {
+		r.logger.Errorf("error finding approver index: %v", err)
+		return model.CPSActionApproveIndex{}, err
+	}
+
+	return *approverModal, nil
 }
 func (r *CPSActionRoleRepository) FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error) {
 	return r.mongoDal.FindOne(ctx, bson.M{"action_code": actionCode}, bson.M{})

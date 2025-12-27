@@ -148,7 +148,8 @@ type CPSActionRoleRepository interface {
 	UpdateActionList(ctx context.Context, actionCode string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
-	FindByActionName(ctx context.Context, actionName, role_code string) (*model.CPSActionRole, model.CPSActionApproveIndex, error)
+	FindByActionName(ctx context.Context, actionName, role_code string) (*model.CPSActionRole, error)
+	FindApproverByActionName(ctx context.Context, actionName, role_code string) (model.CPSActionApproveIndex, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*model.CPSActionRole, error)
 }
 type DeviceVersionControlRepository interface {

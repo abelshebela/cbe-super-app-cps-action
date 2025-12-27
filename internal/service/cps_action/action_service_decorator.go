@@ -46,9 +46,12 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			var approverData model.CPSActionApproveIndex
 			roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
-			if r, approverData, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil && r != nil {
+			if r, err := s.roles.FindByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil && r != nil {
 				role = r
-				approverData = approverData
+			}
+
+			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
+				approverData = approver
 			}
 
 			if role == nil || approverData.ID.IsZero() {
