@@ -141,6 +141,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"_id":                 0,
 			"user_code":           1,
 			"full_name":           1,
+			"username":            1,
 			"job_title":           1,
 			"department":          "$department_doc",
 			"gender":              1,
