@@ -102,13 +102,13 @@ type CPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	CreateUserRequest(ctx context.Context, req cpsuser.CreateUserRequest) error
 	UpdateUserRequest(ctx context.Context, usercode string, req cpsuser.UpdateUserRequest) error
-	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error)
 	GetAllCPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error)
 	DeleteUserRequest(ctx context.Context, userCode string) error
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
-	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
+	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error)
 }
 
 type NotificationService interface {
