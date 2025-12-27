@@ -7,7 +7,6 @@ import (
 	"mime/multipart"
 	"regexp"
 
-	"github.com/go-ozzo/ozzo-validation/is"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -28,7 +27,7 @@ func (u UpdateBankRequest) Validate() error {
 		validation.Field(&u.Name,
 			validation.NilOrNotEmpty,
 			validation.Length(3, 50),
-			is.Alpha,
+			validation.Match(regexp.MustCompile(`^[A-Za-z]+( [A-Za-z]+)*$`)).Error("Name must contain only letters and single spaces between words"),
 		),
 		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
 			if value == nil {
