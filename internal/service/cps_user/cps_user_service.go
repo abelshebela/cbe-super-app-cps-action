@@ -392,7 +392,11 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	return core.ConvertToDTO(user, makerAlloc, checkerAlloc, auditorAlloc), nil
+	userData, err := local_util.JsonUnmarshal[cpsuser.CpsUserResponse](user)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return core.ConvertToDTO(userData, makerAlloc, checkerAlloc, auditorAlloc), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
@@ -418,7 +422,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
 	defer span.End()
 
@@ -437,8 +441,22 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
+	roles, err := s.roleRepo.FindByName(ctx, populated.JobTitle)
+	if err != nil {
+		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	makerAlloc, checkerAlloc, auditorAlloc, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+	if err != nil {
+		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	return core.ConvertToDTO(populated, makerAlloc, checkerAlloc, auditorAlloc), nil
+
 	// detail := cpsuser.BuildCpsUserDetail(populated)
-	return populated, nil
+	// return populated, nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
