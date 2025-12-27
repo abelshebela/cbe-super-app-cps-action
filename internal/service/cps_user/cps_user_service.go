@@ -24,15 +24,19 @@ import (
 
 type cpsUserService struct {
 	repo              storage.CpsUserRepository
+	roleRepo          storage.RoleRepository
+	approverRepo      storage.CPSActionApproveIndexRepository
 	permissionService service.PermissionService
 	departmentRepo    storage.DepartmentRepository
 	logger            shared_utils.Logger
 	cpsService        service.CPSActionService
 }
 
-func NewCPSUserService(repo storage.CpsUserRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, logger shared_utils.Logger) service.CPSUserService {
+func NewCPSUserService(repo storage.CpsUserRepository, roleRepo storage.RoleRepository, approverRepo storage.CPSActionApproveIndexRepository, departmentRepo storage.DepartmentRepository, permission service.PermissionService, cps service.CPSActionService, logger shared_utils.Logger) service.CPSUserService {
 	return &cpsUserService{
 		repo:              repo,
+		roleRepo:          roleRepo,
+		approverRepo:      approverRepo,
 		permissionService: permission,
 		cpsService:        cps,
 		logger:            logger,
@@ -57,7 +61,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
 		return errors.New(localization.ErrorUserAlreadyExists.Code)
 	}
-	emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+	emailCheck, err := core.EmailExists(ctx, "", s.repo, req.Email)
 	if err != nil {
 		span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -66,7 +70,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
-	phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
 	if err != nil {
 		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -76,45 +80,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return errors.New(localization.ErrorExistPhoneNumber.Code)
 	}
 
-	// department validation
-	if req.Department.IsZero() {
-		span.AddEvent("department is zero", trace.WithAttributes(attribute.String("error", "department is zero")))
-		return errors.New(localization.ErrorInvalidRequest.Code)
-	}
-	dep, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
-	if err != nil {
-		span.AddEvent("failed to find department by id", trace.WithAttributes(attribute.String("error", err.Error())))
-		return err
-	}
-	if !dep.Enabled || dep.IsDeleted {
-		span.AddEvent("department not found", trace.WithAttributes(attribute.String("department_id", req.Department.Hex())))
-		return errors.New(localization.ErrorDepartmentNotFound.Code)
-	}
-
-	// Populate permission categories if provided
-	// var populatedCategories []cpsuser.PermissionCategoryResponse
-	// if len(req.PermissionCategory) > 0 {
-	// 	populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
-	// 	if err != nil {
-	// 		span.AddEvent("failed to populate permission categories", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 		s.logger.Errorf("[CreateUserRequest] failed to populate permission categories: %v", err)
-	// 		return err
-	// 	}
-	// 	populatedCategories = populated
-	// }
-	// var populatedGroups []cpsuser.PermissionGroupResponse
-	// if len(req.PermissionGroups) > 0 {
-	// 	populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
-	// 	if err != nil {
-	// 		span.AddEvent("failed to populate permission groups", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 		s.logger.Errorf("[CreateUserRequest] failed to populate permission groups: %v", err)
-	// 		return err
-	// 	}
-	// 	populatedGroups = populated
-	// }
-
 	cpsUser := core.CPSUModel(req)
-	cpsUser.JobTitle = req.JobTitle
 	cpsActionModel := lib.CpsModelBuilder("", makerData, nil, cpsUser, string(constants.RequestCpsUserCreate), constants.CREATE)
 
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
@@ -140,7 +106,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 		req.PhoneNumber = normalized
 
-		phoneCheck, err := core.PhoneNumberExists(ctx, s.repo, req.PhoneNumber)
+		phoneCheck, err := core.PhoneNumberExists(ctx, currentUser.UserCode, s.repo, req.PhoneNumber)
 		if err != nil {
 			span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -164,7 +130,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		}
 	}
 	if req.Email != "" {
-		emailCheck, err := core.EmailExists(ctx, s.repo, req.Email)
+		emailCheck, err := core.EmailExists(ctx, currentUser.UserCode, s.repo, req.Email)
 		if err != nil {
 			span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
@@ -175,53 +141,6 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 		}
 
 	}
-
-	// var dep *model.Department
-	// if !req.Department.IsZero() {
-	// 	d, err := s.departmentRepo.FindByID(ctx, req.Department.Hex())
-	// 	if err != nil {
-	// 		span.AddEvent("failed to find department by id", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 		return err
-	// 	}
-	// 	if !d.Enabled || d.IsDeleted {
-	// 		span.AddEvent("department not found", trace.WithAttributes(attribute.String("department_id", req.Department.Hex())))
-	// 		return errors.New(localization.ErrorDepartmentNotFound.Code)
-	// 	}
-	// 	dep = d
-	// }
-
-	// var populatedCategories []cpsuser.PermissionCategoryResponse
-	// if len(req.PermissionCategory) > 0 {
-	// 	populated, err := s.permissionService.GetPopulatedPermissionCategories(ctx, req.PermissionCategory)
-	// 	if err != nil {
-	// 		span.AddEvent("failed to populate permission categories", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 		return err
-	// 	}
-	// 	populatedCategories = populated
-	// }
-
-	// var populatedGroups []cpsuser.PermissionGroupResponse
-	// if len(req.PermissionGroups) > 0 {
-	// 	populated, err := s.permissionService.GetPopulatedPermissionGroups(ctx, req.PermissionGroups)
-	// 	if err != nil {
-	// 		span.AddEvent("failed to populate permission groups", trace.WithAttributes(attribute.String("error", err.Error())))
-	// 		return err
-	// 	}
-	// 	populatedGroups = populated
-	// }
-
-	// payload := map[string]interface{}{
-	// 	"user": req,
-	// }
-	// if len(populatedCategories) > 0 {
-	// 	payload["permission_categories"] = populatedCategories
-	// }
-	// if len(populatedGroups) > 0 {
-	// 	payload["permission_groups"] = populatedGroups
-	// }
-	// if dep != nil {
-	// 	payload["portal_cards"] = dep.PortalCards
-	// }
 
 	updated := cpsuser.UpdateUserRequest{
 		UserName:    req.UserName,
@@ -357,7 +276,7 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 	return err
 }
 
-func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserDTO, error) {
+func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserCode", "CPSUser", "FetchUserByUserCode")
 	defer span.End()
 
@@ -376,7 +295,23 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	return core.ConvertToDTO(user), nil
+	roles, err := s.roleRepo.FindByName(ctx, user.JobTitle)
+	if err != nil {
+		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	makerAlloc, checkerAlloc, auditorAlloc, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+	if err != nil {
+		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	userData, err := local_util.JsonUnmarshal[cpsuser.CpsUserResponse](user)
+	if err != nil {
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return core.ConvertToDTO(userData, makerAlloc, checkerAlloc, auditorAlloc), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
@@ -402,7 +337,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
 	defer span.End()
 
@@ -421,8 +356,22 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
+	roles, err := s.roleRepo.FindByName(ctx, populated.JobTitle)
+	if err != nil {
+		span.AddEvent("failed to find role by name", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	makerAlloc, checkerAlloc, auditorAlloc, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+	if err != nil {
+		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	return core.ConvertToDTO(populated, makerAlloc, checkerAlloc, auditorAlloc), nil
+
 	// detail := cpsuser.BuildCpsUserDetail(populated)
-	return populated, nil
+	// return populated, nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {

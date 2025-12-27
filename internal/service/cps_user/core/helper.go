@@ -19,39 +19,57 @@ func UsernameExists(ctx context.Context, repo storage.CpsUserRepository, usernam
 	return user != nil, nil
 }
 
-func EmailExists(ctx context.Context, repo storage.CpsUserRepository, email string) (bool, error) {
+func EmailExists(ctx context.Context, user_code string, repo storage.CpsUserRepository, email string) (bool, error) {
 	user, err := repo.FindByEmail(ctx, email)
 	if err != nil {
 		return false, err
 	}
+
+	if user != nil {
+		user_code = user.UserCode
+	}
+	if user_code != "" &&
+		user_code == user.UserCode {
+		return false, nil
+	}
 	return user != nil, nil
 }
-func PhoneNumberExists(ctx context.Context, repo storage.CpsUserRepository, phoneNumber string) (bool, error) {
+func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUserRepository, phoneNumber string) (bool, error) {
 	user, err := repo.FindByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
 		return false, err
+	}
+	if user == nil {
+		return false, nil
+	}
+	if user_code != "" &&
+		user_code == user.UserCode {
+		return false, nil
 	}
 	return user != nil, nil
 }
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
-func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
-	return &cpsuser.CPSUserDTO{
-		ID:                 user.ID,
-		UserCode:           user.UserCode,
-		FullName:           user.FullName,
-		Role:               user.Role,
-		Department:         user.Department,
+func ConvertToDTO(user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CPSUserResponse {
+	return &cpsuser.CPSUserResponse{
+		ID:       user.ID,
+		UserCode: user.UserCode,
+		FullName: user.FullName,
+		Role:     user.Role,
+		// Department:         *user.Department,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
 		UserName:           user.UserName,
 		Realm:              user.Realm,
-		PermissionCategory: user.PermissionCategory,
-		PermissionGroup:    user.PermissionGroup,
+		JobTitle:           user.JobTitle,
+		MakerAllocations:   makerAlloc,
+		CheckerAllocations: checkerAlloc,
+		AuditorAllocations: auditorAlloc,
+		PortalCards:        user.PortalCards,
 		Enabled:            user.Enabled,
-		DateJoined:         user.DateJoined,
-		LastModified:       user.LastModified,
+		DateJoined:         &user.DateJoined,
+		LastModified:       &user.LastModified,
 		Country:            user.Country,
 		Region:             user.Region,
 	}
@@ -59,20 +77,16 @@ func ConvertToDTO(user *model.CPSUser) *cpsuser.CPSUserDTO {
 
 func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
 	return model.CPSUser{
-		UserCode:           local_util.GenerateCPSUserCode(),
-		UserName:           req.UserName,
-		FullName:           req.FullName,
-		Department:         req.Department,
-		PhoneNumber:        req.PhoneNumber,
-		JobTitle:           req.JobTitle,
-		Role:               req.Role,
-		Gender:             req.Gender,
-		Email:              req.Email,
-		PermissionCategory: req.PermissionCategory,
-		PermissionGroup:    req.PermissionGroups,
-		PasswordDisable:    false,
-		IsFirstTimeLogin:   true,
-		Enabled:            true,
+		UserCode:         local_util.GenerateCPSUserCode(),
+		UserName:         req.UserName,
+		FullName:         req.FullName,
+		PhoneNumber:      req.PhoneNumber,
+		JobTitle:         req.JobTitle,
+		Gender:           req.Gender,
+		Email:            req.Email,
+		PasswordDisable:  false,
+		IsFirstTimeLogin: true,
+		Enabled:          true,
 	}
 }
 

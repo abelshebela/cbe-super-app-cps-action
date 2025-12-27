@@ -142,8 +142,8 @@ var cpsActionRegistry = map[string]string{
 	"PATCH /news/tags/{id}":  "NEWSTAG",
 
 	// Job roles
-	"POST job_roles":  "JOBROLES",
-	"PATCH job_roles": "JOBROLES",
+	"POST job_roles":  "JOBROLE",
+	"PATCH job_roles": "JOBROLE",
 
 	// Access list segmentation
 	"POST access_list_segmentation": "ACCESSLISTSEGMENTATION",

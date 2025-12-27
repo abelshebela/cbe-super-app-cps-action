@@ -185,6 +185,7 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 			"_id":                 1,
 			"user_code":           1,
 			"full_name":           1,
+			"job_title":           1,
 			"role":                1,
 			"department":          1,
 			"gender":              1,

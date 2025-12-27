@@ -107,14 +107,8 @@ func (r CreateUserRequest) Validate() error {
 				return nil
 			}),
 		),
-		// validation.Field(&r.Role,
-		// 	validation.Required.Error("user role is required"),
-		// 	validation.In("maker", "checker").Error("role must be maker or checker"),
-		// ),
-		validation.Field(&r.Department, validation.By(IsObjectIDRequired)),
-		validation.Field(&r.PermissionCategory),
-		validation.Field(&r.PermissionGroups),
 		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
+		validation.Field(&r.JobTitle, validation.Required.Error("job_title is required")),
 		validation.Field(&r.Email, validation.Required.Error("email is required")),
 	)
 }

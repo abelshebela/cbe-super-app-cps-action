@@ -3,7 +3,6 @@ package cpsuser
 import (
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -24,9 +23,38 @@ type CPSUserDTO struct {
 	Enabled            bool            `json:"enabled" example:"true"`
 	DateJoined         *time.Time      `json:"date_joined" example:"2024-01-15T10:30:00Z"`
 	LastModified       *time.Time      `json:"last_modified" example:"2024-01-15T10:30:00Z"`
+	MakerAllocations   []string        `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
+	CheckerAllocations []string        `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
+	AuditorAllocations []string        `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	PortalCards        []string        `json:"portal_cards" bson:"portal_cards"` // top-level from job_roles
+	Country            string          `json:"country" example:"Ethiopia"`
+	Region             string          `json:"region" example:"Addis Ababa"`
+}
 
-	Country string `json:"country" example:"Ethiopia"`
-	Region  string `json:"region" example:"Addis Ababa"`
+type CPSUserResponse struct {
+	ID         bson.ObjectID      `json:"id" example:"507f1f77bcf86cd799439011"`
+	UserCode   string             `json:"user_code" example:"USR001"`
+	FullName   string             `json:"full_name" example:"John Doe"`
+	Role       string             `json:"role" example:"Maker"`
+	Department DepartmentResponse `json:"department" example:"507f1f77bcf86cd799439011"`
+	// Department         bson.ObjectID   `json:"department" example:"507f1f77bcf86cd799439011"`
+	Gender             string          `json:"gender" example:"Male"`
+	PhoneNumber        string          `json:"phone_number" example:"+251911234567"`
+	Email              string          `json:"email" example:"john.doe@example.com"`
+	UserName           string          `json:"username" example:"john.doe"`
+	Realm              string          `json:"realm" example:"cps"`
+	PermissionCategory []bson.ObjectID `json:"permission_category" example:"[\"507f1f77bcf86cd799439011\"]"`
+	PermissionGroup    []bson.ObjectID `json:"permission_group" example:"[\"507f1f77bcf86cd799439011\"]"`
+	JobTitle           string          `json:"job_title" example:"Branch Manager"`
+	Enabled            bool            `json:"enabled" example:"true"`
+	DateJoined         *time.Time      `json:"date_joined" example:"2024-01-15T10:30:00Z"`
+	LastModified       *time.Time      `json:"last_modified" example:"2024-01-15T10:30:00Z"`
+	MakerAllocations   []string        `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
+	CheckerAllocations []string        `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
+	AuditorAllocations []string        `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
+	PortalCards        []string        `json:"portal_cards" bson:"portal_cards"` // top-level from job_roles
+	Country            string          `json:"country" example:"Ethiopia"`
+	Region             string          `json:"region" example:"Addis Ababa"`
 }
 
 type PermissionResponse struct {
@@ -54,7 +82,7 @@ type DepartmentResponse struct {
 }
 
 type CpsUserResponse struct {
-	ID                 primitive.ObjectID        `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
+	ID                 bson.ObjectID             `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
 	UserCode           string                    `json:"user_code" bson:"user_code"`
 	FullName           string                    `json:"full_name" bson:"full_name"`
 	Role               string                    `json:"role,omitempty" bson:"role"`   // optional, can keep empty
@@ -73,6 +101,9 @@ type CpsUserResponse struct {
 	PortalCards        []string                  `json:"portal_cards" bson:"portal_cards"`                     // top-level from job_roles
 	PermissionGroups   []PermissionGroupResponse `json:"permission_groups,omitempty" bson:"permission_groups"` // optional
 	PermissionCategory any                       `json:"permission_category,omitempty" bson:"permission_category"`
+	MakerAllocations   []string                  `json:"maker_allocations" example:"[\"Action1\", \"Action2\"]"`
+	CheckerAllocations []string                  `json:"checker_allocations" example:"[[\"Action1_Checker1\", \"Action1_Checker2\"], [\"Action2_Checker1\"]]"`
+	AuditorAllocations []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
 }
 
 // type CpsUserResponse struct {

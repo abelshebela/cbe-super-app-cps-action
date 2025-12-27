@@ -85,6 +85,8 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
 		"assigned_checkers_roles": actionRole.AssignedCheckersRoles,
 		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
+		"approver_count":          actionRole.ApproverCount,
+		"is_maker_only":           actionRole.IsMakerOnly,
 		"enabled":                 actionRole.Enabled,
 		"updated_at":              actionRole.UpdatedAt,
 	}
@@ -154,7 +156,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
 			{Key: "approver_count", Value: bson.D{{Key: "$first", Value: "$approver_count"}}},
-			{Key: "is_maker_only", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
+			{Key: "is_maker_only", Value: bson.D{{Key: "$first", Value: "$is_maker_only"}}},
 			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
