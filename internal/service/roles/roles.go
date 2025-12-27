@@ -46,10 +46,9 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	// if err := core.CheckPortalCardsExistent(ctx, role.PortalCards, j.portalCardRepo); err != nil {
-	// 	j.logger.Errorf("[Role Service] the give role not found")
-	// 	return err
-	// }
+	if err := core.RoleExistenChecker(ctx, "", role, j.roleRepository); err != nil {
+		return err
+	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
@@ -61,11 +60,8 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if len(update.PortalCards) > 0 {
-		if err := core.CheckPortalCardsExistent(ctx, update.PortalCards, j.portalCardRepo); err != nil {
-			j.logger.Errorf("[Role Service] the give role not found")
-			return err
-		}
+	if err := core.RoleExistenChecker(ctx, id, update, j.roleRepository); err != nil {
+		return err
 	}
 
 	prev, err := j.roleRepository.FindByID(ctx, id)

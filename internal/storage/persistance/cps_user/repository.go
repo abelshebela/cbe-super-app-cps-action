@@ -4,6 +4,7 @@ import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
@@ -42,8 +43,9 @@ func NewCPSUserRepository(client *mongo.Client, dbName string, collection string
 }
 
 // Implement actual repository methods for CPS action authorization
-func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *model.CPSUser) error {
-	_, err := r.dal.InsertOne(ctx, *cpsUser)
+func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *imodel.CPSUser) error {
+	cpsUserMap := CPSUserMapper(*cpsUser)
+	_, err := r.dal.InsertOne(ctx, *cpsUserMap)
 	if err != nil {
 		r.logger.Errorf("failed to create CPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Message)

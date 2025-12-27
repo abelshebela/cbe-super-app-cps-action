@@ -54,6 +54,7 @@ type JobRoleRepository interface {
 	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
 }
@@ -294,7 +295,7 @@ type PortalCardRepository interface {
 }
 
 type CpsUserRepository interface {
-	Create(ctx context.Context, cpsUser *model.CPSUser) error
+	Create(ctx context.Context, cpsUser *imodel.CPSUser) error
 	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error

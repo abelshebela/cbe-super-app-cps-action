@@ -3,6 +3,8 @@ package cps_user
 import (
 	"time"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -153,5 +155,23 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"last_modified":       1,
 			"date_joined":         1,
 		}}},
+	}
+}
+
+func CPSUserMapper(u imodel.CPSUser) *model.CPSUser {
+	return &model.CPSUser{
+		UserCode:           u.UserCode,
+		FullName:           u.FullName,
+		Gender:             u.Gender,
+		PhoneNumber:        u.PhoneNumber,
+		Email:              u.Email,
+		UserName:           u.UserName,
+		Realm:              u.Realm,
+		PermissionCategory: u.PermissionCategory,
+		PermissionGroup:    u.PermissionGroup,
+		JobTitle:           u.JobTitle,
+		PasswordDisable:    u.PasswordDisable,
+		SyncDisabled:       u.SyncDisabled,
+		IsFirstTimeLogin:   u.IsFirstTimeLogin,
 	}
 }
