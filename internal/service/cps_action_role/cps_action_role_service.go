@@ -420,6 +420,8 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
+		new.ApproverCount = int64(len(new.AssignedCheckersRoles))
+		new.IsMakerOnly = new.IsMakerOnly || new.ApproverCount == 0
 		if err := s.repo.UpdateByActionCode(ctx, prev.ActionCode, new); err != nil {
 			span.AddEvent("failed to update action role", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
