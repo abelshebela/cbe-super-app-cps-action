@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent ELST_SLAVE_01
 
     environment {
         SERVICE_NAME = "cps-action"
@@ -216,4 +216,5 @@ pipeline {
         }
         
     }
+
 }
