@@ -296,15 +296,15 @@ type PortalCardRepository interface {
 
 type CpsUserRepository interface {
 	Create(ctx context.Context, cpsUser *imodel.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
+	Update(ctx context.Context, id string, cpsUser *imodel.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
-	FindByUsername(ctx context.Context, username string) (*model.CPSUser, error)
+	FindByID(ctx context.Context, id string) (*imodel.CPSUser, error)
+	FindByUsername(ctx context.Context, username string) (*imodel.CPSUser, error)
 	GetPopulatedByID(ctx context.Context, id string) (*cps_user_dto.CpsUserResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cps_user_dto.CPSUserWithDepartment], error)
-	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error)
-	FindByEmail(ctx context.Context, email string) (*model.CPSUser, error)
+	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*imodel.CPSUser, error)
+	FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {

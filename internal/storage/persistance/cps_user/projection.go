@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func CPSUserUpdateMapper(u *model.CPSUser) bson.M {
+func CPSUserUpdateMapper(u *imodel.CPSUser) bson.M {
 	set := bson.M{}
 	if u.UserName != "" {
 		set["username"] = u.UserName

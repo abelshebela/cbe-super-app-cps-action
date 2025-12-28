@@ -10,8 +10,6 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"time"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -23,8 +21,8 @@ import (
 )
 
 type CPSUserStorage struct {
-	dal               dal.MongoDal[model.CPSUser, model.CPSUser]
-	cpsAction         dal.MongoDal[model.CPSAction, model.CPSAction]
+	dal               dal.MongoDal[imodel.CPSUser, imodel.CPSUser]
+	cpsAction         dal.MongoDal[imodel.CPSAction, imodel.CPSAction]
 	client            *mongo.Client
 	collection        *mongo.Collection
 	relatedCollection []string
@@ -33,8 +31,8 @@ type CPSUserStorage struct {
 
 func NewCPSUserRepository(client *mongo.Client, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
-		dal:               dal.NewMongoDal[model.CPSUser, model.CPSUser](client, dbName, collection),
-		cpsAction:         dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, "cps_actions"),
+		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, dbName, collection),
+		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client, dbName, "cps_actions"),
 		client:            client,
 		collection:        client.Database(dbName).Collection(collection),
 		relatedCollection: relatedCollection,
@@ -44,8 +42,8 @@ func NewCPSUserRepository(client *mongo.Client, dbName string, collection string
 
 // Implement actual repository methods for CPS action authorization
 func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *imodel.CPSUser) error {
-	cpsUserMap := CPSUserMapper(*cpsUser)
-	_, err := r.dal.InsertOne(ctx, *cpsUserMap)
+	// cpsUserMap := CPSUserMapper(*cpsUser)
+	_, err := r.dal.InsertOne(ctx, *cpsUser)
 	if err != nil {
 		r.logger.Errorf("failed to create CPS user: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Message)
@@ -53,7 +51,7 @@ func (r *CPSUserStorage) Create(ctx context.Context, cpsUser *imodel.CPSUser) er
 	return nil
 }
 
-func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *model.CPSUser) error {
+func (r *CPSUserStorage) Update(ctx context.Context, userCode string, cpsUser *imodel.CPSUser) error {
 	r.logger.Infof("[Update] updating CPS user")
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	update := CPSUserUpdateMapper(cpsUser)
@@ -99,7 +97,7 @@ func (r *CPSUserStorage) EnableOrDisable(ctx context.Context, userCode string, e
 }
 
 // FindByID supports both ObjectID and user_code lookups
-func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*model.CPSUser, error) {
+func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*imodel.CPSUser, error) {
 	r.logger.Infof("[FindByUsername] searching for CPS user by username")
 	filter := bson.M{"username": username}
 	result, err := r.dal.FindOne(ctx, filter, nil)
@@ -114,7 +112,7 @@ func (r *CPSUserStorage) FindByUsername(ctx context.Context, username string) (*
 	r.logger.Infof("[FindByUsername] CPS user retrieved successfully")
 	return result, nil
 }
-func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error) {
+func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber string) (*imodel.CPSUser, error) {
 	r.logger.Infof("[FindByPhoneNumber] searching for CPS user by phone number")
 	filter := bson.M{"phone_number": phoneNumber}
 	result, err := r.dal.FindOne(ctx, filter, nil)
@@ -129,7 +127,7 @@ func (r *CPSUserStorage) FindByPhoneNumber(ctx context.Context, phoneNumber stri
 	r.logger.Infof("[FindByPhoneNumber] CPS user retrieved successfully")
 	return result, nil
 }
-func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*model.CPSUser, error) {
+func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error) {
 	r.logger.Infof("[FindByEmail] searching for CPS user by email")
 	filter := bson.M{"email": email}
 	result, err := r.dal.FindOne(ctx, filter, nil)
@@ -146,7 +144,7 @@ func (r *CPSUserStorage) FindByEmail(ctx context.Context, email string) (*model.
 }
 
 // FindByID supports both ObjectID and user_code lookups
-func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*model.CPSUser, error) {
+func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUser, error) {
 	r.logger.Infof("[FindByID] fetching CPS user by id")
 	filter := bson.M{"user_code": id, "is_deleted": false}
 
