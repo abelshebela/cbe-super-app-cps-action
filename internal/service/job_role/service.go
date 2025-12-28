@@ -65,16 +65,16 @@ func (j *jobRoleService) Update(ctx context.Context, id string, update sharedmod
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if update.Role != "" {
-		if err := core.CheckRoleExistent(ctx, update.Role, j.jobRoleRepository); err != nil {
-			j.logger.Errorf("[JobRole Service] the give role not found")
-			return err
-		}
-	}
-
 	prev, err := j.roleRepository.FindByID(ctx, id)
 	if err != nil {
 		return err
+	}
+
+	if update.JobTitle != "" {
+		if err := core.CheckJobTitleExistent(ctx, *prev, update.JobTitle, j.roleRepository); err != nil {
+			j.logger.Errorf("[JobRole Service] the give job title not found")
+			return err
+		}
 	}
 
 	newRole := *prev
