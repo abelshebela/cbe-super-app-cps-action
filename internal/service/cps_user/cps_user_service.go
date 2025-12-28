@@ -422,7 +422,7 @@ func (s *cpsUserService) Authorize(ctx context.Context, action *model.CPSAction)
 		return action, nil
 
 	case string(constants.RequestCpsUserUpdate):
-		cur, err := local_util.JsonUnmarshal[model.CPSUser](action.CurrentAction)
+		cur, err := local_util.JsonUnmarshal[imodel.CPSUser](action.CurrentAction)
 		// cur, err := core.BindCPSUserUpdateFromAction(action.CurrentAction)
 		if err != nil {
 			span.AddEvent("failed to bind cps user update from action", trace.WithAttributes(attribute.String("error", err.Error())))
