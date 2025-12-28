@@ -128,10 +128,14 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
+	// Makers
 	var makers []string
 	for _, code := range req.AssignedMakersRoles {
 		makers = append(makers, code)
 	}
+
+	// Checkers
 	var checkers [][]string
 	if !req.IsMakerOnly {
 		checkers = make([][]string, 0, len(req.AssignedCheckerRoles))
@@ -143,6 +147,8 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 			checkers = append(checkers, g)
 		}
 	}
+
+	// Auditor
 	auditors := make([]string, 0, len(req.AssignedAuditorRoles))
 	for _, code := range req.AssignedAuditorRoles {
 
@@ -160,6 +166,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		Enabled:              true,
 		ApproverCount:        int32(len(checkers)),
 	}
+
 	cpsAction := lib.CpsModelBuilder(
 		req.ActionCode,
 		maker,
@@ -168,6 +175,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		string(constants.RequestCreateCpsActionRole),
 		constants.CREATE,
 	)
+
 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))

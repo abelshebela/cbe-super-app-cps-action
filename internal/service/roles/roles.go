@@ -19,6 +19,7 @@ import (
 	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type RoleService struct {
@@ -47,7 +48,9 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 	}
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
-		return err
+		if err != mongo.ErrNoDocuments {
+			return err
+		}
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
