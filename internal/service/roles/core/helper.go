@@ -37,20 +37,13 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}
 	} else if types == constants.UPDATE {
-		// On update, roleId is required
 		if roleId == "" {
 			return errors.New(localization.ErrorRoleIDMissing.Code)
 		}
 
-		// Load current role to compare IDs
 		role, err = roleRepo.FindByID(ctx, roleId)
 		if err != nil {
 			return err
-		}
-
-		// If another record (different ID) has same code, it's a conflict
-		if role != nil && role.ID.Hex() != resByName.ID.Hex() {
-			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}
 
 		// If another record (different ID) has same name, it's a conflict
