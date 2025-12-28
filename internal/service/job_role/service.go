@@ -52,7 +52,10 @@ func (j *jobRoleService) Create(ctx context.Context, role sharedmodel.Role) erro
 
 	if err := core.JobTitleExistentChecker(ctx, constants.CREATE, "", role.JobTitle, j.roleRepository); err != nil {
 		j.logger.Errorf("[JobRole Service] the give job title already exists %v", err)
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			j.logger.Errorf("[JobRole Service] the give job title not exists")
+			return err
+		}
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateJobRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
