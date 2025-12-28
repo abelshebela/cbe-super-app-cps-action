@@ -421,12 +421,12 @@ type NotificationRepository interface {
 }
 
 type PasswordRuleRepository interface {
-	Create(ctx context.Context, rule *model.PasswordRule) error
-	Update(ctx context.Context, id string, rule *model.PasswordRule) error
+	Create(ctx context.Context, rule *local_model.PasswordRule) error
+	Update(ctx context.Context, id string, rule *local_model.PasswordRule) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.PasswordRule, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
-	FindCurrentRule(ctx context.Context) (*model.PasswordRule, error)
+	FindByID(ctx context.Context, id string) (*local_model.PasswordRule, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.PasswordRule], error)
+	FindCurrentRule(ctx context.Context) (*local_model.PasswordRule, error)
 }
 
 type ServiceDetailsRepository interface {

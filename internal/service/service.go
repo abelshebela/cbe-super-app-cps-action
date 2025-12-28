@@ -248,7 +248,7 @@ type EcommerceMerchantService interface {
 }
 
 type PasswordRuleService interface {
-	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*imodel.PasswordRule], error)
 	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
 	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
