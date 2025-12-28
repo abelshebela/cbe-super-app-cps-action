@@ -46,6 +46,7 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 			return err
 		}
 
+		// If another record (different ID) has same name, it's a conflict
 		if resByName != nil && role != nil && role.ID.Hex() != resByName.ID.Hex() {
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}

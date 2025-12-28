@@ -2,6 +2,7 @@ package core
 
 import (
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
@@ -75,8 +76,8 @@ func ConvertToDTO(user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, audit
 	}
 }
 
-func CPSUModel(req cpsuser.CreateUserRequest) model.CPSUser {
-	return model.CPSUser{
+func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
+	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
 		UserName:         req.UserName,
 		FullName:         req.FullName,
