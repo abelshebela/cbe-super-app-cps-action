@@ -108,99 +108,179 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 
 	pipeline := mongo.Pipeline{
 
-		// 1. Match action
-		{{Key: "$match", Value: bson.D{
-			{Key: "action_code", Value: actionCode},
+		// 1️⃣ Match action
+		{{Key: "$match", Value: bson.M{
+			"action_code": actionCode,
 		}}},
 
-		// 2. Lookup makers (flat)
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: rolesCollection},
-			{Key: "localField", Value: "assigned_makers_roles"},
-			{Key: "foreignField", Value: "code"},
-			{Key: "as", Value: "assigned_makers_roles"},
+		// 2️⃣ Normalize arrays (safety)
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_makers_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_makers_roles"},
+					"$assigned_makers_roles",
+					bson.A{},
+				},
+			},
+			"assigned_checkers_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_checkers_roles"},
+					"$assigned_checkers_roles",
+					bson.A{},
+				},
+			},
+			"assigned_auditor_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_auditor_roles"},
+					"$assigned_auditor_roles",
+					bson.A{},
+				},
+			},
 		}}},
 
-		// 3. Unwind checker levels
-		{{Key: "$unwind", Value: bson.D{
-			{Key: "path", Value: "$assigned_checkers_roles"},
-			{Key: "preserveNullAndEmptyArrays", Value: true},
-			{Key: "includeArrayIndex", Value: "checker_level"},
+		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         rolesCollection,
+				"localField":   "assigned_makers_roles",
+				"foreignField": "code",
+				"as":           "assigned_makers_roles",
+			},
+		}},
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_makers_roles": bson.M{
+				"$map": bson.M{
+					"input": "$assigned_makers_roles",
+					"as":    "r",
+					"in": bson.M{
+						"_id":          "$$r._id",
+						"code":         "$$r.code",
+						"name":         "$$r.name",
+						"portal_cards": "$$r.portal_cards",
+						"created_at":   "$$r.created_at",
+						"updated_at":   "$$r.updated_at",
+					},
+				},
+			},
 		}}},
 
-		// 4. Unwind checker codes
-		{{Key: "$unwind", Value: bson.D{
-			{Key: "path", Value: "$assigned_checkers_roles"},
-			{Key: "preserveNullAndEmptyArrays", Value: true},
+		// 4️⃣ Lookup ALL CHECKER ROLES (flatten by code)
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from": rolesCollection,
+				"let": bson.M{
+					"allCheckerCodes": bson.M{
+						"$reduce": bson.M{
+							"input":        "$assigned_checkers_roles",
+							"initialValue": bson.A{},
+							"in": bson.M{
+								"$concatArrays": bson.A{
+									"$$value",
+									bson.M{
+										"$cond": bson.A{
+											bson.M{"$isArray": "$$this"},
+											"$$this",
+											bson.A{},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"pipeline": mongo.Pipeline{
+					{{Key: "$match", Value: bson.M{
+						"$expr": bson.M{
+							"$in": []interface{}{"$code", "$$allCheckerCodes"},
+						},
+					}}},
+				},
+				"as": "checker_roles_all",
+			},
+		}},
+
+		// 5️⃣ Rebuild CHECKERS [][]JobRole (FORCED projection)
+		{{
+			Key: "$addFields",
+			Value: bson.M{
+				"assigned_checkers_roles": bson.M{
+					"$map": bson.M{
+						"input": "$assigned_checkers_roles",
+						"as":    "level",
+						"in": bson.M{
+							"$cond": bson.A{
+								bson.M{"$isArray": "$$level"},
+								bson.M{
+									"$map": bson.M{
+										"input": "$$level",
+										"as":    "code",
+										"in": bson.M{
+											"$let": bson.M{
+												"vars": bson.M{
+													"role": bson.M{
+														"$first": bson.M{
+															"$filter": bson.M{
+																"input": "$checker_roles_all",
+																"as":    "r",
+																"cond": bson.M{
+																	"$eq": []interface{}{"$$r.code", "$$code"},
+																},
+															},
+														},
+													},
+												},
+												"in": bson.M{
+													"_id":          "$$role._id",
+													"code":         "$$role.code",
+													"name":         "$$role.name",
+													"portal_cards": "$$role.portal_cards",
+													"created_at":   "$$role.created_at",
+													"updated_at":   "$$role.updated_at",
+												},
+											},
+										},
+									},
+								},
+								bson.A{},
+							},
+						},
+					},
+				},
+			},
+		}},
+
+		// 6️⃣ Lookup AUDITORS (by code) + FORCE projection
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         rolesCollection,
+				"localField":   "assigned_auditor_roles",
+				"foreignField": "code",
+				"as":           "assigned_auditor_roles",
+			},
+		}},
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_auditor_roles": bson.M{
+				"$map": bson.M{
+					"input": "$assigned_auditor_roles",
+					"as":    "r",
+					"in": bson.M{
+						"_id":          "$$r._id",
+						"code":         "$$r.code",
+						"name":         "$$r.name",
+						"portal_cards": "$$r.portal_cards",
+						"created_at":   "$$r.created_at",
+						"updated_at":   "$$r.updated_at",
+					},
+				},
+			},
 		}}},
 
-		// 5. Lookup checker role
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: rolesCollection},
-			{Key: "localField", Value: "assigned_checkers_roles"},
-			{Key: "foreignField", Value: "code"},
-			{Key: "as", Value: "checker_role"},
-		}}},
-
-		{{Key: "$unwind", Value: bson.D{
-			{Key: "path", Value: "$checker_role"},
-			{Key: "preserveNullAndEmptyArrays", Value: true},
-		}}},
-
-		// 6. Group per checker level
-		{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: bson.D{
-				{Key: "id", Value: "$_id"},
-				{Key: "level", Value: "$checker_level"},
-			}},
-			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
-			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
-			{Key: "is_maker_only", Value: bson.D{{Key: "$first", Value: "$is_maker_only"}}},
-			{Key: "approver_count", Value: bson.D{{Key: "$first", Value: "$approver_count"}}},
-			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
-			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
-			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
-			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
-			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
-			{Key: "checkers", Value: bson.D{{Key: "$push", Value: "$checker_role"}}},
-		}}},
-
-		// 7. Group back to [][]JobRole
-		{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "$_id.id"},
-			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
-			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
-			{Key: "is_maker_only", Value: bson.D{{Key: "$first", Value: "$is_maker_only"}}},
-			{Key: "approver_count", Value: bson.D{{Key: "$first", Value: "$approver_count"}}},
-			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
-			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
-			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
-			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
-			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
-			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$checkers"}}},
-		}}},
-
-		// 8. Lookup auditors (flat)
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: rolesCollection},
-			{Key: "localField", Value: "assigned_auditor_roles"},
-			{Key: "foreignField", Value: "code"},
-			{Key: "as", Value: "assigned_auditor_roles"},
-		}}},
-
-		// 9. Final projection
-		{{Key: "$project", Value: bson.D{
-			{Key: "_id", Value: 1},
-			{Key: "action_code", Value: 1},
-			{Key: "action_name", Value: 1},
-			{Key: "is_maker_only", Value: 1},
-			{Key: "approver_count", Value: 1},
-			{Key: "enabled", Value: 1},
-			{Key: "assigned_makers_roles", Value: 1},
-			{Key: "assigned_checkers_roles", Value: 1},
-			{Key: "assigned_auditor_roles", Value: 1},
-			{Key: "updated_at", Value: 1},
-			{Key: "created_at", Value: 1},
+		// 7️⃣ Cleanup helper field
+		{{Key: "$project", Value: bson.M{
+			"checker_roles_all": 0,
 		}}},
 	}
 
@@ -215,7 +295,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 	}
 
 	if len(results) == 0 {
-		return nil, errors.New(localization.ErrorBpsActionRoleNotFound.Code)
+		return nil, errors.New("action role not found")
 	}
 
 	return results[0], nil
