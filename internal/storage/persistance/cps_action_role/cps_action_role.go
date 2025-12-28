@@ -226,9 +226,9 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 	filterParam types.Filter,
 ) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error) {
 
-	// -----------------------------
+	// ----------------------------------
 	// Build search filter
-	// -----------------------------
+	// ----------------------------------
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_code", "action_name", "enabled"}
 
@@ -242,15 +242,17 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// -----------------------------
+	const rolesCollection = "job_roles"
+
+	// ----------------------------------
 	// Aggregation pipeline
-	// -----------------------------
+	// ----------------------------------
 	pipeline := mongo.Pipeline{
 
 		// 1️⃣ Match base filter
 		{{Key: "$match", Value: filter}},
 
-		// 2️⃣ Normalize arrays to avoid schema-drift crashes
+		// 2️⃣ Normalize arrays (schema safety)
 		{{Key: "$addFields", Value: bson.M{
 			"assigned_makers_roles": bson.M{
 				"$cond": bson.A{
@@ -275,28 +277,24 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}}},
 
-		// 3️⃣ Lookup maker roles
+		// 3️⃣ Lookup makers by CODE
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from": "roles",
-				"let":  bson.M{"roleIds": "$assigned_makers_roles"},
-				"pipeline": mongo.Pipeline{
-					{{Key: "$match", Value: bson.M{
-						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
-					}}},
-				},
-				"as": "assigned_makers_roles",
+				"from":         rolesCollection,
+				"localField":   "assigned_makers_roles",
+				"foreignField": "code",
+				"as":           "assigned_makers_roles",
 			},
 		}},
 
-		// 4️⃣ Lookup ALL checker roles (flatten safely)
+		// 4️⃣ Lookup ALL checker roles (flatten → code-based)
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from": "roles",
+				"from": rolesCollection,
 				"let": bson.M{
-					"allCheckerIds": bson.M{
+					"allCheckerCodes": bson.M{
 						"$reduce": bson.M{
 							"input":        "$assigned_checkers_roles",
 							"initialValue": bson.A{},
@@ -317,14 +315,16 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 				},
 				"pipeline": mongo.Pipeline{
 					{{Key: "$match", Value: bson.M{
-						"$expr": bson.M{"$in": []interface{}{"$_id", "$$allCheckerIds"}},
+						"$expr": bson.M{
+							"$in": []interface{}{"$code", "$$allCheckerCodes"},
+						},
 					}}},
 				},
 				"as": "checker_roles_all",
 			},
 		}},
 
-		// 5️⃣ Rebuild nested checker arrays → full role docs
+		// 5️⃣ Rebuild nested [][]JobRole (checkers)
 		{{
 			Key: "$addFields",
 			Value: bson.M{
@@ -338,14 +338,14 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 								bson.M{
 									"$map": bson.M{
 										"input": "$$level",
-										"as":    "rid",
+										"as":    "code",
 										"in": bson.M{
 											"$first": bson.M{
 												"$filter": bson.M{
 													"input": "$checker_roles_all",
 													"as":    "role",
 													"cond": bson.M{
-														"$eq": []interface{}{"$$role._id", "$$rid"},
+														"$eq": []interface{}{"$$role.code", "$$code"},
 													},
 												},
 											},
@@ -360,32 +360,30 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}},
 
-		// 6️⃣ Lookup auditor roles
+		// 6️⃣ Lookup auditors by CODE
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from": "roles",
-				"let":  bson.M{"roleIds": "$assigned_auditor_roles"},
-				"pipeline": mongo.Pipeline{
-					{{Key: "$match", Value: bson.M{
-						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
-					}}},
-				},
-				"as": "assigned_auditor_roles",
+				"from":         rolesCollection,
+				"localField":   "assigned_auditor_roles",
+				"foreignField": "code",
+				"as":           "assigned_auditor_roles",
 			},
 		}},
 
 		// 7️⃣ Cleanup helper field
-		{{Key: "$project", Value: bson.M{"checker_roles_all": 0}}},
+		{{Key: "$project", Value: bson.M{
+			"checker_roles_all": 0,
+		}}},
 
 		// 8️⃣ Pagination
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 	}
 
-	// -----------------------------
+	// ----------------------------------
 	// Execute aggregation
-	// -----------------------------
+	// ----------------------------------
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -397,9 +395,9 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// -----------------------------
+	// ----------------------------------
 	// Total count
-	// -----------------------------
+	// ----------------------------------
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
