@@ -24,14 +24,12 @@ func CheckPortalCardsExistent(ctx context.Context, portalCards []string, portalC
 func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel.JobRole, roleRepo storage.JobRoleRepository) error {
 
 	var role *imodel.JobRole
-	var err error
-
-	resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
-	if err != nil {
-		return err
-	}
 
 	if types == constants.CREATE {
+		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
+		if err != nil {
+			return err
+		}
 		// On create, both code and name must be unique
 		if resByName != nil {
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
@@ -40,7 +38,10 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 		if roleId == "" {
 			return errors.New(localization.ErrorRoleIDMissing.Code)
 		}
-
+		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
+		if err != nil {
+			return err
+		}
 		role, err = roleRepo.FindByID(ctx, roleId)
 		if err != nil {
 			return err
