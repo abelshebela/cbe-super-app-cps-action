@@ -49,7 +49,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
 		if err != mongo.ErrNoDocuments {
-			return err
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
@@ -63,8 +63,10 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if err := core.RoleExistenChecker(ctx, constants.UPDATE, id, update, j.roleRepository); err != nil {
-		return err
+	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", update, j.roleRepository); err != nil {
+		if err != mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
 	}
 
 	prev, err := j.roleRepository.FindByID(ctx, id)

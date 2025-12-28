@@ -10,7 +10,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
-	"fmt"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -100,46 +99,59 @@ func (r *CPSActionRoleRepository) EnableOrDisableByActionCode(ctx context.Contex
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"enabled": enable})
 	return err
 }
+func (r *CPSActionRoleRepository) FindByActionCode(
+	ctx context.Context,
+	actionCode string,
+) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
 
-func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error) {
 	const rolesCollection = "job_roles"
+
 	pipeline := mongo.Pipeline{
-		// Stage 1: Match by actionCode
-		{{Key: "$match", Value: bson.D{{Key: "action_code", Value: actionCode}}}},
 
-		// Stage 2: Lookup assigned_makers_roles (simple array)
-		{{Key: "$lookup", Value: bson.M{
-			"from":         rolesCollection,
-			"localField":   "assigned_makers_roles",
-			"foreignField": "code",
-			"as":           "assigned_makers_roles",
+		// 1. Match action
+		{{Key: "$match", Value: bson.D{
+			{Key: "action_code", Value: actionCode},
 		}}},
 
-		// Stage 3: Lookup assigned_checkers_roles (nested array [[]ObjectID])
-		{{Key: "$unwind", Value: bson.M{
-			"path":                       "$assigned_checkers_roles",
-			"preserveNullAndEmptyArrays": true,
-			"includeArrayIndex":          "checker_outer_index",
+		// 2. Lookup makers (flat)
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: rolesCollection},
+			{Key: "localField", Value: "assigned_makers_roles"},
+			{Key: "foreignField", Value: "code"},
+			{Key: "as", Value: "assigned_makers_roles"},
 		}}},
-		{{Key: "$unwind", Value: bson.M{
-			"path":                       "$assigned_checkers_roles",
-			"preserveNullAndEmptyArrays": true,
-			"includeArrayIndex":          "checker_inner_index",
+
+		// 3. Unwind checker levels
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$assigned_checkers_roles"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+			{Key: "includeArrayIndex", Value: "checker_level"},
 		}}},
-		{{Key: "$lookup", Value: bson.M{
-			"from":         rolesCollection,
-			"localField":   "assigned_checkers_roles",
-			"foreignField": "code",
-			"as":           "checker_role_doc",
+
+		// 4. Unwind checker codes
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$assigned_checkers_roles"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
 		}}},
-		{{Key: "$unwind", Value: bson.M{
-			"path":                       "$checker_role_doc",
-			"preserveNullAndEmptyArrays": true,
+
+		// 5. Lookup checker role
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: rolesCollection},
+			{Key: "localField", Value: "assigned_checkers_roles"},
+			{Key: "foreignField", Value: "code"},
+			{Key: "as", Value: "checker_role"},
 		}}},
+
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$checker_role"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+
+		// 6. Group per checker level
 		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: bson.D{
-				{Key: "_id", Value: "$_id"},
-				{Key: "checker_outer_index", Value: "$checker_outer_index"},
+				{Key: "id", Value: "$_id"},
+				{Key: "level", Value: "$checker_level"},
 			}},
 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
@@ -149,34 +161,34 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
-			// FIX: Pass the auditor IDs forward
 			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
-			{Key: "inner_checkers", Value: bson.D{{Key: "$push", Value: "$checker_role_doc"}}},
+			{Key: "checkers", Value: bson.D{{Key: "$push", Value: "$checker_role"}}},
 		}}},
+
+		// 7. Group back to [][]JobRole
 		{{Key: "$group", Value: bson.D{
-			{Key: "_id", Value: "$_id._id"},
+			{Key: "_id", Value: "$_id.id"},
 			{Key: "action_code", Value: bson.D{{Key: "$first", Value: "$action_code"}}},
 			{Key: "action_name", Value: bson.D{{Key: "$first", Value: "$action_name"}}},
-			{Key: "approver_count", Value: bson.D{{Key: "$first", Value: "$approver_count"}}},
 			{Key: "is_maker_only", Value: bson.D{{Key: "$first", Value: "$is_maker_only"}}},
+			{Key: "approver_count", Value: bson.D{{Key: "$first", Value: "$approver_count"}}},
 			{Key: "enabled", Value: bson.D{{Key: "$first", Value: "$enabled"}}},
 			{Key: "updated_at", Value: bson.D{{Key: "$first", Value: "$updated_at"}}},
 			{Key: "created_at", Value: bson.D{{Key: "$first", Value: "$created_at"}}},
 			{Key: "assigned_makers_roles", Value: bson.D{{Key: "$first", Value: "$assigned_makers_roles"}}},
-			// FIX: Pass the auditor IDs forward again
 			{Key: "assigned_auditor_roles", Value: bson.D{{Key: "$first", Value: "$assigned_auditor_roles"}}},
-			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$inner_checkers"}}},
+			{Key: "assigned_checkers_roles", Value: bson.D{{Key: "$push", Value: "$checkers"}}},
 		}}},
 
-		// Stage 4: Lookup assigned_auditor_roles (similar to makers)
-		{{Key: "$lookup", Value: bson.M{
-			"from":         rolesCollection,
-			"localField":   "assigned_auditor_roles",
-			"foreignField": "code",
-			"as":           "assigned_auditor_roles",
+		// 8. Lookup auditors (flat)
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: rolesCollection},
+			{Key: "localField", Value: "assigned_auditor_roles"},
+			{Key: "foreignField", Value: "code"},
+			{Key: "as", Value: "assigned_auditor_roles"},
 		}}},
 
-		// Stage 5: Project final fields
+		// 9. Final projection
 		{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 1},
 			{Key: "action_code", Value: 1},
@@ -184,27 +196,28 @@ func (r *CPSActionRoleRepository) FindByActionCode(ctx context.Context, actionCo
 			{Key: "is_maker_only", Value: 1},
 			{Key: "approver_count", Value: 1},
 			{Key: "enabled", Value: 1},
-			{Key: "updated_at", Value: 1},
-			{Key: "created_at", Value: 1},
 			{Key: "assigned_makers_roles", Value: 1},
 			{Key: "assigned_checkers_roles", Value: 1},
 			{Key: "assigned_auditor_roles", Value: 1},
+			{Key: "updated_at", Value: 1},
+			{Key: "created_at", Value: 1},
 		}}},
 	}
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-
 		return nil, err
 	}
+
 	var results []*actionrole_dto.GetActionRoleByActionCodeRes
 	if err := cursor.All(ctx, &results); err != nil {
-		fmt.Println("/////// pipline error ", err)
 		return nil, err
 	}
+
 	if len(results) == 0 {
 		return nil, errors.New(localization.ErrorBpsActionRoleNotFound.Code)
 	}
+
 	return results[0], nil
 }
 
@@ -213,9 +226,9 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 	filterParam types.Filter,
 ) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error) {
 
-	// -----------------------------
+	// ----------------------------------
 	// Build search filter
-	// -----------------------------
+	// ----------------------------------
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_code", "action_name", "enabled"}
 
@@ -229,15 +242,17 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// -----------------------------
+	const rolesCollection = "job_roles"
+
+	// ----------------------------------
 	// Aggregation pipeline
-	// -----------------------------
+	// ----------------------------------
 	pipeline := mongo.Pipeline{
 
 		// 1️⃣ Match base filter
 		{{Key: "$match", Value: filter}},
 
-		// 2️⃣ Normalize arrays to avoid schema-drift crashes
+		// 2️⃣ Normalize arrays (schema safety)
 		{{Key: "$addFields", Value: bson.M{
 			"assigned_makers_roles": bson.M{
 				"$cond": bson.A{
@@ -262,28 +277,24 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}}},
 
-		// 3️⃣ Lookup maker roles
+		// 3️⃣ Lookup makers by CODE
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from": "roles",
-				"let":  bson.M{"roleIds": "$assigned_makers_roles"},
-				"pipeline": mongo.Pipeline{
-					{{Key: "$match", Value: bson.M{
-						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
-					}}},
-				},
-				"as": "assigned_makers_roles",
+				"from":         rolesCollection,
+				"localField":   "assigned_makers_roles",
+				"foreignField": "code",
+				"as":           "assigned_makers_roles",
 			},
 		}},
 
-		// 4️⃣ Lookup ALL checker roles (flatten safely)
+		// 4️⃣ Lookup ALL checker roles (flatten → code-based)
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from": "roles",
+				"from": rolesCollection,
 				"let": bson.M{
-					"allCheckerIds": bson.M{
+					"allCheckerCodes": bson.M{
 						"$reduce": bson.M{
 							"input":        "$assigned_checkers_roles",
 							"initialValue": bson.A{},
@@ -304,14 +315,16 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 				},
 				"pipeline": mongo.Pipeline{
 					{{Key: "$match", Value: bson.M{
-						"$expr": bson.M{"$in": []interface{}{"$_id", "$$allCheckerIds"}},
+						"$expr": bson.M{
+							"$in": []interface{}{"$code", "$$allCheckerCodes"},
+						},
 					}}},
 				},
 				"as": "checker_roles_all",
 			},
 		}},
 
-		// 5️⃣ Rebuild nested checker arrays → full role docs
+		// 5️⃣ Rebuild nested [][]JobRole (checkers)
 		{{
 			Key: "$addFields",
 			Value: bson.M{
@@ -325,14 +338,14 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 								bson.M{
 									"$map": bson.M{
 										"input": "$$level",
-										"as":    "rid",
+										"as":    "code",
 										"in": bson.M{
 											"$first": bson.M{
 												"$filter": bson.M{
 													"input": "$checker_roles_all",
 													"as":    "role",
 													"cond": bson.M{
-														"$eq": []interface{}{"$$role._id", "$$rid"},
+														"$eq": []interface{}{"$$role.code", "$$code"},
 													},
 												},
 											},
@@ -347,32 +360,30 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 			},
 		}},
 
-		// 6️⃣ Lookup auditor roles
+		// 6️⃣ Lookup auditors by CODE
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from": "roles",
-				"let":  bson.M{"roleIds": "$assigned_auditor_roles"},
-				"pipeline": mongo.Pipeline{
-					{{Key: "$match", Value: bson.M{
-						"$expr": bson.M{"$in": []interface{}{"$_id", "$$roleIds"}},
-					}}},
-				},
-				"as": "assigned_auditor_roles",
+				"from":         rolesCollection,
+				"localField":   "assigned_auditor_roles",
+				"foreignField": "code",
+				"as":           "assigned_auditor_roles",
 			},
 		}},
 
 		// 7️⃣ Cleanup helper field
-		{{Key: "$project", Value: bson.M{"checker_roles_all": 0}}},
+		{{Key: "$project", Value: bson.M{
+			"checker_roles_all": 0,
+		}}},
 
 		// 8️⃣ Pagination
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 	}
 
-	// -----------------------------
+	// ----------------------------------
 	// Execute aggregation
-	// -----------------------------
+	// ----------------------------------
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -384,9 +395,9 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	// -----------------------------
+	// ----------------------------------
 	// Total count
-	// -----------------------------
+	// ----------------------------------
 	total, err := r.mongoDal.TotalCount(ctx, filter)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
