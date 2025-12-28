@@ -26,11 +26,6 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 	var role *imodel.JobRole
 	var err error
 
-	resByCode, err := roleRepo.Find(ctx, bson.M{"code": update.Code})
-	if err != nil {
-		return err
-	}
-
 	resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
 	if err != nil {
 		return err
@@ -38,27 +33,19 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 
 	if types == constants.CREATE {
 		// On create, both code and name must be unique
-		if resByCode != nil || resByName != nil {
+		if resByName != nil {
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}
 	} else if types == constants.UPDATE {
-		// On update, roleId is required
 		if roleId == "" {
 			return errors.New(localization.ErrorRoleIDMissing.Code)
 		}
 
-		// Load current role to compare IDs
 		role, err = roleRepo.FindByID(ctx, roleId)
 		if err != nil {
 			return err
 		}
 
-		// If another record (different ID) has same code, it's a conflict
-		if resByCode != nil && role != nil && role.ID.Hex() != resByCode.ID.Hex() {
-			return errors.New(localization.ErrorUsedRoleExisting.Code)
-		}
-
-		// If another record (different ID) has same name, it's a conflict
 		if resByName != nil && role != nil && role.ID.Hex() != resByName.ID.Hex() {
 			return errors.New(localization.ErrorUsedRoleExisting.Code)
 		}

@@ -6,6 +6,8 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRoleRepository) error {
@@ -16,11 +18,20 @@ func CheckRoleExistent(ctx context.Context, role string, roleRepo storage.JobRol
 	}
 	return nil
 }
-func CheckJobTitleExistent(ctx context.Context, jobTitle string, roleRepo storage.RoleRepository) error {
+func CheckJobTitleExistent(ctx context.Context, prev model.Role, jobTitle string, roleRepo storage.RoleRepository) error {
 
-	_, err := roleRepo.FindByName(ctx, jobTitle)
+	data, err := roleRepo.FindByName(ctx, jobTitle)
 	if err != nil {
-		return errors.New(localization.ErrorRoleNotFound.Code)
+		if err.Error() == localization.ErrorResourceNotFound.Code {
+			return nil
+		}
+		return err
+	}
+
+	if data != nil {
+		if data.ID != prev.ID {
+			return errors.New(localization.ErrorUsedJobTitleExisting.Code)
+		}
 	}
 	return nil
 }
