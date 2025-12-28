@@ -5,14 +5,13 @@ import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
 	"mime/multipart"
-	"regexp"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func (c CreateBankRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Name, validation.Required.Error(localization.MsgBankNameRequired), validation.Length(3, 25), validation.Match(regexp.MustCompile(`^[a-zA-Z0-9 ]+$`)).Error("Name must not be contain special char")),
+		validation.Field(&c.Name, validation.Required.Error(localization.MsgBankNameRequired), validation.Length(3, 25)),
 		validation.Field(&c.Type,
 			validation.Required.Error(localization.MsgBankTypeRequired),
 			validation.In("BANK", "WALLET", "MFI").Error(localization.MsgInvalidRequestBankType),
@@ -27,7 +26,6 @@ func (u UpdateBankRequest) Validate() error {
 		validation.Field(&u.Name,
 			validation.NilOrNotEmpty,
 			validation.Length(3, 50),
-			validation.Match(regexp.MustCompile(`^[A-Za-z]+( [A-Za-z]+)*$`)).Error("Name must contain only letters and single spaces between words"),
 		),
 		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
 			if value == nil {

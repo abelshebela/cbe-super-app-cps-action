@@ -26,8 +26,6 @@ func (w WalletRequest) Validate(isCreate bool) error {
 	if isCreate || w.Name != "" {
 		if strings.TrimSpace(w.Name) == "" && isCreate {
 			errs["name"] = localization.ErrorWalletNameRequired
-		} else if strings.ContainsAny(w.Name, specialChars) {
-			errs["name"] = localization.ErrorInvalidWalletName
 		}
 	}
 
