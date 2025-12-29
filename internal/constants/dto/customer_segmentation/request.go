@@ -2,8 +2,8 @@ package customersegmentation
 
 type CustomerSubSegments struct {
 	Name            string `json:"name"`
-	CustomerSegment string `json:"cust_group"`
-	CustomerGroup   string `json:"cust_segment"`
+	CustomerSegment string `json:"cust_segment"`
+	CustomerGroup   string `json:"cust_group"`
 }
 
 type CreateCustomerSegmentationRequest struct {
@@ -12,6 +12,6 @@ type CreateCustomerSegmentationRequest struct {
 }
 
 type UpdateCustomerSegmentationRequest struct {
-	OldName             []string               `json:"old_name"`
+	OldName             []string              `json:"old_name"`
 	CustomerSubSegments []CustomerSubSegments `json:"t24_customer_sub_segments,omitempty"`
 }

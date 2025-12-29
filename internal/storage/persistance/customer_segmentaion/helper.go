@@ -29,7 +29,6 @@ import (
 func MapToCustomerSegUpdate(c *model.CustomerSegmentation) bson.M {
 	update := bson.M{}
 
-	update["customer_role"] = c.CustomerRole
 	if len(c.CustomerSubSegments) > 0 {
 		update["t24_customer_sub_segments"] = c.CustomerSubSegments
 	}

@@ -8,11 +8,11 @@ import (
 	servicesdto "cbe-super-app-cps-action/internal/constants/dto/services"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -67,6 +67,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		a.logger.Errorf("Failed to decode JSON request: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
+		return
 	}
 
 	if err := req.Validate(); err != nil {
@@ -89,7 +90,8 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
 				tiers = append(tiers, model.Tier{
-					FeeType:   constants.FeeType(t.FeeType),
+					// FeeType:   constants.FeeType(t.FeeType),
+					FeeType:   model.FeeType(t.FeeType),
 					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
@@ -160,7 +162,8 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
 				tiers = append(tiers, model.Tier{
-					FeeType:   constants.FeeType(t.FeeType),
+					// FeeType:   constants.FeeType(t.FeeType),
+					FeeType:   model.FeeType(t.FeeType),
 					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,

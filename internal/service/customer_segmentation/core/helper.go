@@ -9,8 +9,8 @@ func MapCustomerSegmentationToMap(seg model.CustomerSegmentation) map[string]int
 	for _, sub := range seg.CustomerSubSegments {
 		subSegments = append(subSegments, map[string]interface{}{
 			"name":         sub.Name,
-			"cust_group":   sub.CustomerSegment,
-			"cust_segment": sub.CustomerGroup,
+			"cust_group":   sub.CustomerGroup,
+			"cust_segment": sub.CustomerSegment,
 		})
 	}
 
