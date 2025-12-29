@@ -87,7 +87,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
-	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
+	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil, logger)
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
@@ -209,7 +209,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
 	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
-	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
+	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService = accountblock.NewAccountService(persistence.AccountBlockPersistence, cpsActionService, logger)
 	departmentService = department.NewDepartmentService(persistence.DepartmentPersistence, cpsActionService, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
