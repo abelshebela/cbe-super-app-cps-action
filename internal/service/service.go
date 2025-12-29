@@ -64,6 +64,7 @@ type ServicesService interface {
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
+	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error)
 	GetByID(ctx context.Context, id string) (*imodel.Services, error)
 }
 type CPSActionService interface {

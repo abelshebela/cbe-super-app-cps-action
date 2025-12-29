@@ -73,6 +73,7 @@ type ServicesRepository interface {
 
 	FindByID(ctx context.Context, id string) (*imodel.Services, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error)
 }
 
 type OTPRepository interface {

@@ -6,6 +6,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
+
+	// imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/services/core"
@@ -95,6 +97,10 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 
 func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
+}
+
+func (s *servicesService) GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error) {
+	return s.repo.FindAllServiceListWithPagination(ctx, filter)
 }
 
 func (s *servicesService) GetByID(ctx context.Context, id string) (*imodel.Services, error) {
