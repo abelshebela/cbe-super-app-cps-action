@@ -10,9 +10,9 @@ import (
 type Wallet struct {
 	ID             bson.ObjectID  `json:"id" bson:"_id"`
 	Name           string         `json:"name" bson:"name"`
-	Code           string         `json:"code" bson:"code"`
+	UniqueCode     string         `json:"unique_code" bson:"unique_code"`
+	ServiceID      string         `json:"service_id" bson:"service_id"`
 	Avatar         string         `json:"avatar" bson:"avatar"`
-	Type           string         `json:"type" bson:"type"`
 	Enabled        bool           `json:"enabled" bson:"enabled"`
 	Services       types.Services `json:"services" bson:"services"`
 	IsDeleted      bool           `json:"is_deleted" bson:"is_deleted"`

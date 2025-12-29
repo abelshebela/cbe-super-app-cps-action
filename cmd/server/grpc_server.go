@@ -239,16 +239,11 @@ func (s *server) TopupMapper(data []*model.Topup) []*topuppb.Topup {
 	var topups []*topuppb.Topup
 	for _, topup := range data {
 		topups = append(topups, &topuppb.Topup{
-			Id:      topup.ID.Hex(),
-			Name:    topup.Name,
-			Code:    topup.Code,
-			Avatar:  topup.Avatar,
-			Enabled: topup.Enabled,
-			Services: &topuppb.Services{
-				Self:  topup.Services.Self,
-				Other: topup.Services.Other,
-				Agent: topup.Services.Agent,
-			},
+			Id:             topup.ID.Hex(),
+			Name:           topup.Name,
+			Code:           topup.Code,
+			Avatar:         topup.Avatar,
+			Enabled:        topup.Enabled,
 			IsDeleted:      topup.IsDeleted,
 			CreatedAt:      timestamppb.New(topup.CreatedAt),
 			LastModifiedAt: timestamppb.New(topup.LastModifiedAt),

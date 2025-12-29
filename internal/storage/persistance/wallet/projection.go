@@ -33,6 +33,9 @@ func UpdateMapper(wallet model.Wallet) bson.M {
 	if wallet.UniqueCode != "" {
 		update["unique_code"] = wallet.UniqueCode
 	}
+	if wallet.ServiceCode != "" {
+		update["service_code"] = wallet.ServiceCode
+	}
 	if wallet.Avatar != "" {
 		update["avatar"] = wallet.Avatar
 	}

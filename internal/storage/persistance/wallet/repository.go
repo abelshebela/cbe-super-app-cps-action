@@ -20,8 +20,9 @@ import (
 )
 
 type WalletStorage struct {
-	dal    dal.MongoDal[model.Wallet, model.Wallet]
-	logger utils.Logger
+	dal        dal.MongoDal[model.Wallet, model.Wallet]
+	serviceDal dal.MongoDal[model.Services, model.Services]
+	logger     utils.Logger
 }
 
 func NewWalletRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.WalletRepository {
@@ -141,14 +142,14 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 
 	if code != "" {
 		orFilters = append(orFilters, bson.M{
-			"code": code,
+			"unique_code": code,
 		})
 	}
 
 	if name != "" {
 		orFilters = append(orFilters, bson.M{
 			"name": bson.M{
-				"$regex":   name,
+				"$regex":   "^" + name + "$",
 				"$options": "i",
 			},
 		})
