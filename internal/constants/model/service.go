@@ -15,7 +15,7 @@ const (
 
 type Tier struct {
 	FeeType   FeeType `bson:"fee_type" json:"fee_type"`
-	FeeAmount uint8   `bson:"fee_amount" json:"fee_amount"`
+	FeeAmount float64 `bson:"fee_amount" json:"fee_amount"`
 	Min       float64 `bson:"min" json:"min"`
 	Max       float64 `bson:"max" json:"max"`
 }

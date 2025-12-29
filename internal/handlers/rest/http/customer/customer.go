@@ -289,19 +289,19 @@ func (c customerAdapter) GetBlockedCustomer(w http.ResponseWriter, r *http.Reque
 //	@Summary		Get Customer Linked Account
 //	@Description	Retrives a list of customer linked account
 //	@Tags			Customers
-//	@Param			customer_number	path	string	true	"Customer number"
+//	@Param			user_id	path	string	true	"Customer number"
 //	@Produce		json
 //	@Success		200	{object}	localization.StandardResponse{data=customers_paginated_resp}	"Blocked customers retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}							"Bad request"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}							"Internal server error"
 //	@Security		BearerAuth
-//	@Router			/customers/linked_account/{customer_number} [get]
+//	@Router			/customers/linked_account/{user_id} [get]
 func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request) {
 	ctx, span := util.TraceLogger(r.Context(), "handler", "getLinkedAccount", "handler", "customer")
 	defer span.End()
-	id := chi.URLParam(r, "customer_number")
+	id := chi.URLParam(r, "user_id")
 	if id == "" {
-		c.logger.Errorf("customer_number not set on param")
+		c.logger.Errorf("user_id not set on param")
 		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
 		return
 	}
@@ -314,7 +314,7 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	c.logger.Infof("[GetLinkedAccount] linked accounts retrieved successfully for customer_number: %s", id)
+	c.logger.Infof("[GetLinkedAccount] linked accounts retrieved successfully for user_id: %s", id)
 	localization.SendSuccessResponse(w, localization.CustomerDetailSuccessfullyFetched, userDetail)
 }
 
