@@ -55,6 +55,7 @@ var cpsActionRegistry = map[string]string{
 	"DELETE vault": "BANKVAULT",
 
 	// ActionRole (BPS)
+
 	"POST bps-action-roles":  "BPSACTIONEROLE",
 	"PATCH bps-action-roles": "BPSACTIONEROLE",
 
