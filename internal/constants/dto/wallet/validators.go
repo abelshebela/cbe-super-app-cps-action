@@ -22,14 +22,12 @@ func (w WalletRequest) IsEmpty() bool {
 func (w WalletRequest) Validate(isCreate bool) error {
 	errs := validation.Errors{}
 
-	// --- Name ---
 	if isCreate || w.Name != "" {
 		if strings.TrimSpace(w.Name) == "" && isCreate {
 			errs["name"] = localization.ErrorWalletNameRequired
 		}
 	}
 
-	// --- Code ---
 	if isCreate || w.UniqueCode != "" {
 		trimmed := strings.TrimSpace(w.UniqueCode)
 		if trimmed == "" && isCreate {
@@ -40,7 +38,6 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		w.UniqueCode = strings.ToUpper(trimmed)
 	}
 
-	// --- Avatar ---
 	if isCreate {
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired
