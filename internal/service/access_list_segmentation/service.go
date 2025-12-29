@@ -127,7 +127,7 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[Create] access list segmentation already exists with segmented id and service id: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
-		req.SegmentName = seg.CustomerSubSegment
+		// req.SegmentName = seg.CustomerSubSegment
 	}
 
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, string(constants.RequestCreateAccessListSegmentation), constants.CREATE)
@@ -250,9 +250,9 @@ func (a *AccessListSegmentationService) UpdateAccessListSegmentation(ctx context
 			a.logger.Errorf("[Create] access list segmentation already exists with segmented id and service id: %v", err)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
-		req.SegmentName = seg.CustomerSubSegment
+		// req.SegmentName = seg.CustomerSubSegment
 		updatedAccessListSegmentation.SegmentationCode = req.SegmentCode
-		updatedAccessListSegmentation.SegmentationName = seg.CustomerSubSegment
+		// updatedAccessListSegmentation.SegmentationName = seg.CustomerSubSegment
 	}
 
 	if seg, err := a.repo.FindBySegmentationAndServiceID(ctx, req.NewSegmentedID, req.NewServiceID); err != nil || seg != nil {
