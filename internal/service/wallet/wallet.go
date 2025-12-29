@@ -23,6 +23,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -238,11 +240,11 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 	return nil
 }
 
-func (s *walletService) GetWallet(ctx context.Context, id string) (*model.Wallet, error) {
+func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.Wallet, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
+func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error) {
 	return s.repo.FindAllWithPagination(ctx, filterParams)
 }
 
@@ -250,7 +252,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "walletService", "walletService")
 	defer span.End()
 
-	wallet, err := local_util.JsonUnmarshal[model.Wallet](action.CurrentAction)
+	wallet, err := local_util.JsonUnmarshal[local_model.Wallet](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("JsonUnmarshal error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)

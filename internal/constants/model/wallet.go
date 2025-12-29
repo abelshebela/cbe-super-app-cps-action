@@ -11,7 +11,7 @@ type Wallet struct {
 	ID             bson.ObjectID  `json:"id" bson:"_id"`
 	Name           string         `json:"name" bson:"name"`
 	UniqueCode     string         `json:"unique_code" bson:"unique_code"`
-	ServiceID      string         `json:"service_id" bson:"service_id"`
+	ServiceCode    string         `json:"service_code" bson:"service_code"`
 	Avatar         string         `json:"avatar" bson:"avatar"`
 	Enabled        bool           `json:"enabled" bson:"enabled"`
 	Services       types.Services `json:"services" bson:"services"`

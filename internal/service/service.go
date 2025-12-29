@@ -53,6 +53,8 @@ import (
 	"mime/multipart"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 )
 
 type ServicesService interface {
@@ -318,8 +320,8 @@ type WalletService interface {
 	UpdateWallet(ctx context.Context, id string, req walletDto.WalletRequest) error
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
-	GetWallet(ctx context.Context, id string) (*model.Wallet, error)
-	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
+	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
