@@ -192,6 +192,8 @@ type BPSUserRepository interface {
 	GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	Update(ctx context.Context, BpsUser *model.BPSUser) error
+	Create(ctx context.Context, BpsUser model.BPSUser) error
+	FindByFilterKey(ctx context.Context, field, value string) (*model.BPSUser, error)
 }
 
 type BudgetCategoryRepository interface {

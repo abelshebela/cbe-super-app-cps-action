@@ -5,7 +5,9 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -15,7 +17,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 	// model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 )
 
 type paginated_resp *types.PaginatedResponse[[]*model.BPSUser]
@@ -186,32 +190,41 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }
 
-// func (h *BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
-// 	var req bps_dto.BPSUserCreatePayload
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		localization.SendBadRequestResponse(w, "Invalid request payload")
-// 		return
-// 	}
+func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
+	var req bps_user_dto.BPSUserCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendBadRequestResponse(w, "Invalid request payload")
+		return
+	}
 
-// 	// Validate required fields
-// 	if req.FullName == "" || req.JobTitle == "" || req.ImpowerID == "" || req.PhoneNumber == "" || req.Email == "" {
-// 		localization.SendBadRequestResponse(w, "All fields are required")
-// 		return
-// 	}
+	// Validate required fields
+	if req.UserID == "" {
+		localization.SendBadRequestResponse(w, "user id requed")
+		return
+	}
 
-// 	// user := model.BPSUser{
-// 	// 	// ID:          primitive.NewObjectID(),
-// 	// 	UserCode:    userCode,
-// 	// 	FullName:    req.FullName,
-// 	// 	JobTitle:    req.JobTitle,
-// 	// 	ImpowerID:   req.ImpowerID,
-// 	// 	PhoneNumber: req.PhoneNumber,
-// 	// 	Email:       req.Email,
-// 	// 	// CreatedAt:   time.Now(),
-// 	// 	// Enabled:     true,
-// 	// }
+	concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	now := time.Now()
+	NewUser := model.BPSUser{
+		// ID:       primitive.NewObjectID(),
+		UserCode: req.UserID,
+		FullName: concatinated_name,
+		// JobTitle:    req.JobTitle,
+		// UserName:    req.ImpowerID,
+		PhoneNumber: req.PhoneNumber,
+		// Email:       req.Email,
+		CreatedAt:      now,
+		LastModifiedAt: now,
 
-// 	// // TODO: Save user to DB (implement your DB logic here)
+		Enabled: true,
+	}
 
-// 	// localization.SendSuccessResponse(w, "User created successfully", user)
-// }
+	err := h.Service.CreateBPSUser(r.Context(), NewUser)
+	if err != nil {
+		// span.RecordError(err)
+		h.logger.Errorf("[CreateUser] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
+}

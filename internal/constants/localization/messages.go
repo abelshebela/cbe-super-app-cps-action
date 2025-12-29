@@ -335,6 +335,7 @@ const (
 
 	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
 	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
+	MsgBpsUserCreateSuccess                 = "BPS user create request submitted successfully"
 
 	// CPS Roles
 	MsgCpsRoleCreated         = "CPS role create request submitted successfully"

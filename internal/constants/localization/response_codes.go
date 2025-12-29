@@ -1185,6 +1185,12 @@ var (
 		Message:    MsgBpsUserDisabledRequestedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBPSUserCreated = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgBpsUserCreateSuccess,
+		Type:       "success",
+	}
 
 	// CPS Roles
 	SuccessCPSRoleCreated = ResponseCode{

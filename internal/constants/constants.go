@@ -284,6 +284,7 @@ const (
 	RequestEnableUser            RequestAction = "ENABLE_USER"
 	RequestDisableUser           RequestAction = "DISABLE_USER"
 	RequestBPSUser               RequestAction = "BPS_USER"
+	RequestCreateBPSUser         RequestAction = "CREAT_BPS_USER"
 	RequestDisableBPSUser        RequestAction = "DISABLE_BPS_USER"
 	RequestEnableBPSUser         RequestAction = "ENABLE_BPS_USER"
 	RequestUpdateUser            RequestAction = "UPDATE_USER"
