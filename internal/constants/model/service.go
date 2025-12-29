@@ -15,9 +15,9 @@ const (
 
 type Tier struct {
 	FeeType   FeeType `bson:"fee_type" json:"fee_type"`
-	FeeAmount uint8   `bson:"fee_amount" json:"fee_amount"`
-	Min       int64   `bson:"min" json:"min"`
-	Max       int64   `bson:"max" json:"max"`
+	FeeAmount float64 `bson:"fee_amount" json:"fee_amount"`
+	Min       float64 `bson:"min" json:"min"`
+	Max       float64 `bson:"max" json:"max"`
 }
 
 type Services struct {
@@ -28,8 +28,8 @@ type Services struct {
 	ChargeCode          string        `bson:"charge_code" json:"charge_code"`
 	CommissionCode      string        `bson:"commission_code" json:"commission_code"`
 	Cap                 Cap           `bson:"cap" json:"cap"`
-	AboveAmount         int64         `bson:"above_amount" json:"above_amount"`
-	AboveServiceFee     int64         `bson:"above_service_fee" json:"above_service_fee"`
+	AboveAmount         float64       `bson:"above_amount" json:"above_amount"`
+	AboveServiceFee     float64       `bson:"above_service_fee" json:"above_service_fee"`
 	PaymentType         string        `bson:"payment_type" json:"payment_type"`
 	Tiers               []Tier        `bson:"tiers" json:"tiers"`
 	CbeGLProductAccount string        `bson:"cbe_gl_product_account" json:"cbe_gl_product_account"`
@@ -41,6 +41,6 @@ type Services struct {
 }
 
 type Cap struct {
-	SingleCap          int64 `bson:"single_cap" json:"single_cap"`
-	MinimumTransferCap int64 `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
+	SingleCap          float64 `bson:"single_cap" json:"single_cap"`
+	MinimumTransferCap float64 `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
 }
