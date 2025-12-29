@@ -216,7 +216,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:      now,
 		LastModifiedAt: now,
 
-		Enabled: true,
+		Enabled: false,
 	}
 
 	err := h.Service.CreateBPSUser(r.Context(), NewUser)

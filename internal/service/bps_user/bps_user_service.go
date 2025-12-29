@@ -244,7 +244,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) e
 
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
-		req.UserCode,                           // unique id
+		"",                                     // unique id
 		makerData,                              // maker data
 		nil,                                    // old data (nil for create)
 		req,                                    // new data
