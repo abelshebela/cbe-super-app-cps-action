@@ -22,15 +22,16 @@ func (w WalletRequest) IsEmpty() bool {
 func (w WalletRequest) Validate(isCreate bool) error {
 	errs := validation.Errors{}
 
-	// --- Name ---
 	if isCreate || w.Name != "" {
 		if strings.TrimSpace(w.Name) == "" && isCreate {
 			errs["name"] = localization.ErrorWalletNameRequired
-		} else if strings.ContainsAny(w.Name, specialChars) {
-			errs["name"] = localization.ErrorInvalidWalletName
 		}
 	}
-
+	if isCreate || w.ServiceID != "" {
+		if strings.TrimSpace(w.ServiceID) == "" && isCreate {
+			errs["service_id"] = localization.ErrorWalletServiceIDRequired
+		}
+	}
 	// --- Code ---
 	if isCreate || w.UniqueCode != "" {
 		trimmed := strings.TrimSpace(w.UniqueCode)
@@ -42,7 +43,6 @@ func (w WalletRequest) Validate(isCreate bool) error {
 		w.UniqueCode = strings.ToUpper(trimmed)
 	}
 
-	// --- Avatar ---
 	if isCreate {
 		if w.Avatar == nil {
 			errs["avatar"] = localization.ErrorWalletAvatarRequired

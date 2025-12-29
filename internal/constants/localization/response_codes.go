@@ -179,6 +179,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEventMerchantDeleted,
 	SuccessEventMerchantFetched,
 
+	ErrorUsedJobTitleExisting,
 	// Error codes
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
@@ -342,6 +343,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidWalletCode,
 	ErrorInvalidWalletType,
 	ErrorInvalidWalletName,
+	ErrorWalletServiceIDRequired,
 
 	//topup related error codes
 	ErrorTopupNameRequired,
@@ -376,6 +378,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBranchNotFound,
 	ErrorDistrictNotFound,
 	ErrorCannotEnableDistrict,
+	ErrorUsedJobTitleExisting,
+	ErrorNoUpdatedJobTitle,
 	ErrorCannotEnableBranch,
 	ErrorRegionNotFound,
 	ErrorCityNotFound,
@@ -594,6 +598,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBpsActionRoleNotFound,
 	ErrorCpsActionRoleNotFound,
 	ErrorRoleNotFound,
+	ErrorUsedRoleExisting,
+	ErrorRoleIDMissing,
 
 	// transaction related responses
 	SuccessTransactionRetrieved,
@@ -652,6 +658,9 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationUpdateSubmittedSuccessfully,
 	CustomerSegmentationFetchedSuccessfully,
 	CustomerSegmentationDeleteddSuccessfully,
+
+	ErrorJobTitleAlreadyExists,
+	ErrorRoleAlreadyExists,
 }
 
 // Success Response Codes
@@ -1836,13 +1845,19 @@ var (
 	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Wallet with the given name or code already exists",
+		Message:    "Wallet with the given name already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_CODE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given code already exists",
+		Type:       "error",
+	}
+	ErrorWalletServiceIDAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_SERVICE_ID_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given service ID already exists",
 		Type:       "error",
 	}
 	ErrorWalletNotFound = ResponseCode{
@@ -1910,6 +1925,12 @@ var (
 		Code:       "ERROR_INVALID_WALLET_TYPE",
 		StatusCode: 400,
 		Message:    "Invalid wallet type, special characters are not allowed",
+		Type:       "error",
+	}
+	ErrorWalletServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet service ID is required",
 		Type:       "error",
 	}
 
@@ -4776,7 +4797,18 @@ var (
 		Message:    MsgCannotGetRole,
 		Type:       "error",
 	}
-
+	ErrorRoleAlreadyExists = ResponseCode{
+		Code:       "ERROR_ROLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleAlreadyExists,
+		Type:       "error",
+	}
+	ErrorJobTitleAlreadyExists = ResponseCode{
+		Code:       "ERROR_JOB_TITLE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleAlreadyExists,
+		Type:       "error",
+	}
 	ErrorDonationCompanyLookupFailed = ResponseCode{
 		Code:       "ERROR_DONATION_COMPANY_LOOKUP_FAILED",
 		StatusCode: StatusInternalServerError,
@@ -5490,6 +5522,20 @@ var (
 		Type:       "error",
 	}
 
+	ErrorUsedJobTitleExisting = ResponseCode{
+		Code:       "ERROR_USED_JOB_TITLE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleExisted,
+		Type:       "error",
+	}
+
+	ErrorNoUpdatedJobTitle = ResponseCode{
+		Code:       "ERROR_NO_UPDATED_JOB_TITLE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgJobTitleNotUpdated,
+		Type:       "error",
+	}
+
 	ErrorCannotEnableBranch = ResponseCode{
 		Code:       "ERROR_CANNOT_ENABLE_BRANCH",
 		StatusCode: StatusBadRequest,
@@ -6114,6 +6160,20 @@ var (
 		Code:       "ERROR_ROLE_NOT_FOUND",
 		StatusCode: StatusBadRequest,
 		Message:    MsgRoleNotFound,
+		Type:       "error",
+	}
+
+	ErrorUsedRoleExisting = ResponseCode{
+		Code:       "ERROR_USED_ROLE_EXISTING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistingUsedRole,
+		Type:       "error",
+	}
+
+	ErrorRoleIDMissing = ResponseCode{
+		Code:       "ERROR_ROLE_ID_MISSING",
+		StatusCode: StatusBadRequest,
+		Message:    MsgRoleIDMissing,
 		Type:       "error",
 	}
 

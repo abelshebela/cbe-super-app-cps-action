@@ -19,6 +19,7 @@ import (
 	sharedmodel "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type RoleService struct {
@@ -46,10 +47,11 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	// if err := core.CheckPortalCardsExistent(ctx, role.PortalCards, j.portalCardRepo); err != nil {
-	// 	j.logger.Errorf("[Role Service] the give role not found")
-	// 	return err
-	// }
+	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
+		if err != mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorUnexpectedError.Code)
+		}
+	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
 	return j.cpsService.CreateCPSAction(ctx, &cpsModel)
 }
@@ -61,10 +63,9 @@ func (j *RoleService) Update(ctx context.Context, id string, update imodel.JobRo
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
-	if len(update.PortalCards) > 0 {
-		if err := core.CheckPortalCardsExistent(ctx, update.PortalCards, j.portalCardRepo); err != nil {
-			j.logger.Errorf("[Role Service] the give role not found")
-			return err
+	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", update, j.roleRepository); err != nil {
+		if err != mongo.ErrNoDocuments {
+			return errors.New(localization.ErrorUnexpectedError.Code)
 		}
 	}
 

@@ -7,13 +7,12 @@
 package topup
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -59,66 +58,6 @@ func (*TopupRequest) Descriptor() ([]byte, []int) {
 	return file_proto_topup_proto_rawDescGZIP(), []int{0}
 }
 
-type Services struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Self          bool                   `protobuf:"varint,1,opt,name=Self,proto3" json:"Self,omitempty"`
-	Other         bool                   `protobuf:"varint,2,opt,name=Other,proto3" json:"Other,omitempty"`
-	Agent         bool                   `protobuf:"varint,3,opt,name=Agent,proto3" json:"Agent,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Services) Reset() {
-	*x = Services{}
-	mi := &file_proto_topup_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Services) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Services) ProtoMessage() {}
-
-func (x *Services) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_topup_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Services.ProtoReflect.Descriptor instead.
-func (*Services) Descriptor() ([]byte, []int) {
-	return file_proto_topup_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Services) GetSelf() bool {
-	if x != nil {
-		return x.Self
-	}
-	return false
-}
-
-func (x *Services) GetOther() bool {
-	if x != nil {
-		return x.Other
-	}
-	return false
-}
-
-func (x *Services) GetAgent() bool {
-	if x != nil {
-		return x.Agent
-	}
-	return false
-}
-
 type Topup struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -126,7 +65,6 @@ type Topup struct {
 	Code           string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	Avatar         string                 `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	Enabled        bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	Services       *Services              `protobuf:"bytes,6,opt,name=services,proto3" json:"services,omitempty"`
 	IsDeleted      bool                   `protobuf:"varint,7,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
 	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	LastModifiedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=last_modified_at,json=lastModifiedAt,proto3" json:"last_modified_at,omitempty"`
@@ -137,7 +75,7 @@ type Topup struct {
 
 func (x *Topup) Reset() {
 	*x = Topup{}
-	mi := &file_proto_topup_proto_msgTypes[2]
+	mi := &file_proto_topup_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -149,7 +87,7 @@ func (x *Topup) String() string {
 func (*Topup) ProtoMessage() {}
 
 func (x *Topup) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_topup_proto_msgTypes[2]
+	mi := &file_proto_topup_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +100,7 @@ func (x *Topup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Topup.ProtoReflect.Descriptor instead.
 func (*Topup) Descriptor() ([]byte, []int) {
-	return file_proto_topup_proto_rawDescGZIP(), []int{2}
+	return file_proto_topup_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Topup) GetId() string {
@@ -198,13 +136,6 @@ func (x *Topup) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
-}
-
-func (x *Topup) GetServices() *Services {
-	if x != nil {
-		return x.Services
-	}
-	return nil
 }
 
 func (x *Topup) GetIsDeleted() bool {
@@ -244,7 +175,7 @@ type TopupResponse struct {
 
 func (x *TopupResponse) Reset() {
 	*x = TopupResponse{}
-	mi := &file_proto_topup_proto_msgTypes[3]
+	mi := &file_proto_topup_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -256,7 +187,7 @@ func (x *TopupResponse) String() string {
 func (*TopupResponse) ProtoMessage() {}
 
 func (x *TopupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_topup_proto_msgTypes[3]
+	mi := &file_proto_topup_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +200,7 @@ func (x *TopupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TopupResponse.ProtoReflect.Descriptor instead.
 func (*TopupResponse) Descriptor() ([]byte, []int) {
-	return file_proto_topup_proto_rawDescGZIP(), []int{3}
+	return file_proto_topup_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TopupResponse) GetTopups() []*Topup {
@@ -284,18 +215,13 @@ var File_proto_topup_proto protoreflect.FileDescriptor
 const file_proto_topup_proto_rawDesc = "" +
 	"\n" +
 	"\x11proto/topup.proto\x12\x05topup\x1a\x1fgoogle/protobuf/timestamp.proto\"\x0e\n" +
-	"\fTopupRequest\"J\n" +
-	"\bServices\x12\x12\n" +
-	"\x04Self\x18\x01 \x01(\bR\x04Self\x12\x14\n" +
-	"\x05Other\x18\x02 \x01(\bR\x05Other\x12\x14\n" +
-	"\x05Agent\x18\x03 \x01(\bR\x05Agent\"\xf9\x02\n" +
+	"\fTopupRequest\"\xcc\x02\n" +
 	"\x05Topup\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12\x16\n" +
 	"\x06avatar\x18\x04 \x01(\tR\x06avatar\x12\x18\n" +
-	"\aenabled\x18\x05 \x01(\bR\aenabled\x12+\n" +
-	"\bservices\x18\x06 \x01(\v2\x0f.topup.ServicesR\bservices\x12\x1d\n" +
+	"\aenabled\x18\x05 \x01(\bR\aenabled\x12\x1d\n" +
 	"\n" +
 	"is_deleted\x18\a \x01(\bR\tisDeleted\x129\n" +
 	"\n" +
@@ -321,27 +247,25 @@ func file_proto_topup_proto_rawDescGZIP() []byte {
 	return file_proto_topup_proto_rawDescData
 }
 
-var file_proto_topup_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_topup_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_proto_topup_proto_goTypes = []any{
 	(*TopupRequest)(nil),          // 0: topup.TopupRequest
-	(*Services)(nil),              // 1: topup.Services
-	(*Topup)(nil),                 // 2: topup.Topup
-	(*TopupResponse)(nil),         // 3: topup.TopupResponse
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*Topup)(nil),                 // 1: topup.Topup
+	(*TopupResponse)(nil),         // 2: topup.TopupResponse
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_proto_topup_proto_depIdxs = []int32{
-	1, // 0: topup.Topup.services:type_name -> topup.Services
-	4, // 1: topup.Topup.created_at:type_name -> google.protobuf.Timestamp
-	4, // 2: topup.Topup.last_modified_at:type_name -> google.protobuf.Timestamp
-	4, // 3: topup.Topup.deleted_at:type_name -> google.protobuf.Timestamp
-	2, // 4: topup.TopupResponse.topups:type_name -> topup.Topup
-	0, // 5: topup.TopupService.GetAllTopup:input_type -> topup.TopupRequest
-	3, // 6: topup.TopupService.GetAllTopup:output_type -> topup.TopupResponse
-	6, // [6:7] is the sub-list for method output_type
-	5, // [5:6] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	3, // 0: topup.Topup.created_at:type_name -> google.protobuf.Timestamp
+	3, // 1: topup.Topup.last_modified_at:type_name -> google.protobuf.Timestamp
+	3, // 2: topup.Topup.deleted_at:type_name -> google.protobuf.Timestamp
+	1, // 3: topup.TopupResponse.topups:type_name -> topup.Topup
+	0, // 4: topup.TopupService.GetAllTopup:input_type -> topup.TopupRequest
+	2, // 5: topup.TopupService.GetAllTopup:output_type -> topup.TopupResponse
+	5, // [5:6] is the sub-list for method output_type
+	4, // [4:5] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_topup_proto_init() }
@@ -355,7 +279,7 @@ func file_proto_topup_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_topup_proto_rawDesc), len(file_proto_topup_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

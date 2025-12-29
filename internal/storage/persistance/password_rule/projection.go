@@ -1,15 +1,14 @@
 package password_rule
 
 import (
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"time"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // PasswordRuleMapper maps a PasswordRule model to a bson.M for updates
-func PasswordRuleMapper(rule model.PasswordRule) bson.M {
+func PasswordRuleMapper(rule local_model.PasswordRule) bson.M {
 	result := bson.M{}
 	if rule.Name != "" {
 		result["name"] = rule.Name

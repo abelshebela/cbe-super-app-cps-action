@@ -44,6 +44,7 @@ type RoleRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Role, error)
 	FindByName(ctx context.Context, name string) (*model.Role, error)
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
+	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
 }
 
@@ -53,6 +54,7 @@ type JobRoleRepository interface {
 	ExistsMany(ctx context.Context, codes []string) (bool, error)
 	FindByID(ctx context.Context, id string) (*imodel.JobRole, error)
 	FindByCode(ctx context.Context, code string) (*imodel.JobRole, error)
+	Find(ctx context.Context, filter bson.M) (*imodel.JobRole, error)
 	FindByName(ctx context.Context, name string) (*imodel.JobRole, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
 }
@@ -293,16 +295,16 @@ type PortalCardRepository interface {
 }
 
 type CpsUserRepository interface {
-	Create(ctx context.Context, cpsUser *model.CPSUser) error
-	Update(ctx context.Context, id string, cpsUser *model.CPSUser) error
+	Create(ctx context.Context, cpsUser *imodel.CPSUser) error
+	Update(ctx context.Context, id string, cpsUser *imodel.CPSUser) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*model.CPSUser, error)
-	FindByUsername(ctx context.Context, username string) (*model.CPSUser, error)
+	FindByID(ctx context.Context, id string) (*imodel.CPSUser, error)
+	FindByUsername(ctx context.Context, username string) (*imodel.CPSUser, error)
 	GetPopulatedByID(ctx context.Context, id string) (*cps_user_dto.CpsUserResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cps_user_dto.CPSUserWithDepartment], error)
-	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*model.CPSUser, error)
-	FindByEmail(ctx context.Context, email string) (*model.CPSUser, error)
+	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*imodel.CPSUser, error)
+	FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error)
 }
 
 type BankVaultRepository interface {
@@ -419,12 +421,12 @@ type NotificationRepository interface {
 }
 
 type PasswordRuleRepository interface {
-	Create(ctx context.Context, rule *model.PasswordRule) error
-	Update(ctx context.Context, id string, rule *model.PasswordRule) error
+	Create(ctx context.Context, rule *local_model.PasswordRule) error
+	Update(ctx context.Context, id string, rule *local_model.PasswordRule) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.PasswordRule, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error)
-	FindCurrentRule(ctx context.Context) (*model.PasswordRule, error)
+	FindByID(ctx context.Context, id string) (*local_model.PasswordRule, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.PasswordRule], error)
+	FindCurrentRule(ctx context.Context) (*local_model.PasswordRule, error)
 }
 
 type ServiceDetailsRepository interface {
@@ -453,14 +455,14 @@ type KYCVerifierRepository interface {
 }
 
 type WalletRepository interface {
-	Create(ctx context.Context, wallet *model.Wallet) error
-	Update(ctx context.Context, id string, wallet *model.Wallet) error
+	Create(ctx context.Context, wallet *local_model.Wallet) error
+	Update(ctx context.Context, id string, wallet *local_model.Wallet) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
-	FindByID(ctx context.Context, id string) (*model.Wallet, error)
-	Find(ctx context.Context, key, value string) (*model.Wallet, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error)
+	FindByID(ctx context.Context, id string) (*local_model.Wallet, error)
+	Find(ctx context.Context, key, value string) (*local_model.Wallet, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error)
 }
 type TopupRepository interface {
 	Create(ctx context.Context, topup *model.Topup) error

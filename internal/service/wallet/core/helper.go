@@ -4,8 +4,10 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
 	"cbe-super-app-cps-action/internal/constants/lib"
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	// "cbe-super-app-cps-action/internal/constants/types"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -15,9 +17,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_type "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -45,12 +44,13 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 
 }
 
-func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool) *model.Wallet {
-	return &model.Wallet{
-		Name:       name,
-		UniqueCode: code,
-		Avatar:     URL,
-		Services: shared_type.Services{
+func ToCreateWalletDoc(name, code, URL, serviceCode string, self, other, agent *bool) *local_model.Wallet {
+	return &local_model.Wallet{
+		Name:        name,
+		UniqueCode:  code,
+		Avatar:      URL,
+		ServiceCode: serviceCode,
+		Services: types.Services{
 			Self:  *self,
 			Other: *other,
 			Agent: *agent,
@@ -59,7 +59,7 @@ func ToCreateWalletDoc(name, code, URL string, self, other, agent *bool) *model.
 }
 
 // note: this comparision might not be needed if the existing data is first in the request form and the user update those values
-func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*model.Wallet, int) {
+func ToUpdateWalletDoc(existing local_model.Wallet, req walletDto.WalletRequest, serviceCode string) (*local_model.Wallet, int) {
 	wallet := existing
 	changeCount := 0
 
@@ -86,6 +86,10 @@ func ToUpdateWalletDoc(existing model.Wallet, req walletDto.WalletRequest) (*mod
 	if req.UniqueCode != "" && req.UniqueCode != existing.UniqueCode {
 		changeCount++
 		wallet.UniqueCode = req.UniqueCode
+	}
+	if serviceCode != "" && serviceCode != existing.ServiceCode {
+		changeCount++
+		wallet.ServiceCode = serviceCode
 	}
 
 	return &wallet, changeCount

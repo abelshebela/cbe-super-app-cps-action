@@ -7,6 +7,7 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -20,18 +21,19 @@ import (
 )
 
 type WalletStorage struct {
-	dal    dal.MongoDal[model.Wallet, model.Wallet]
-	logger utils.Logger
+	dal        dal.MongoDal[local_model.Wallet, local_model.Wallet]
+	serviceDal dal.MongoDal[model.Services, model.Services]
+	logger     utils.Logger
 }
 
 func NewWalletRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.WalletRepository {
 	return &WalletStorage{
-		dal:    dal.NewMongoDal[model.Wallet, model.Wallet](client, dbName, collection),
+		dal:    dal.NewMongoDal[local_model.Wallet, local_model.Wallet](client, dbName, collection),
 		logger: logger,
 	}
 }
 
-func (w *WalletStorage) Create(ctx context.Context, wallet *model.Wallet) error {
+func (w *WalletStorage) Create(ctx context.Context, wallet *local_model.Wallet) error {
 	walletDoc, err := ToWalletDocument(*wallet)
 	if err != nil {
 		w.logger.Errorf("Failed to convert wallet to document: %v", err)
@@ -46,7 +48,7 @@ func (w *WalletStorage) Create(ctx context.Context, wallet *model.Wallet) error 
 	return nil
 }
 
-func (w *WalletStorage) Update(ctx context.Context, id string, wallet *model.Wallet) error {
+func (w *WalletStorage) Update(ctx context.Context, id string, wallet *local_model.Wallet) error {
 	var update bson.M
 	objID, err := bson.ObjectIDFromHex(id)
 
@@ -113,7 +115,7 @@ func (w *WalletStorage) EnableOrDisable(ctx context.Context, id string, enable b
 	return nil
 }
 
-func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet, error) {
+func (w *WalletStorage) FindByID(ctx context.Context, id string) (*local_model.Wallet, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -132,7 +134,7 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*model.Wallet,
 	return doc, nil
 }
 
-func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wallet, error) {
+func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_model.Wallet, error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -141,14 +143,14 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 
 	if code != "" {
 		orFilters = append(orFilters, bson.M{
-			"code": code,
+			"unique_code": code,
 		})
 	}
 
 	if name != "" {
 		orFilters = append(orFilters, bson.M{
 			"name": bson.M{
-				"$regex":   name,
+				"$regex":   "^" + name + "$",
 				"$options": "i",
 			},
 		})
@@ -171,7 +173,7 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*model.Wal
 	return doc, nil
 }
 
-func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
+func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
@@ -198,7 +200,7 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 
 	e.logger.Infof("FindAllWithPagination returning %d wallets, total: %d", len(docs), total)
 
-	return &types.PaginatedResponse[[]*model.Wallet]{
+	return &types.PaginatedResponse[[]*local_model.Wallet]{
 		Data: docs,
 		Meta: meta,
 	}, nil
