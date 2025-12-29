@@ -73,6 +73,7 @@ type ServicesRepository interface {
 
 	FindByID(ctx context.Context, id string) (*imodel.Services, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error)
 }
 
 type OTPRepository interface {
@@ -493,7 +494,7 @@ type CustomerRepository interface {
 	Update(ctx context.Context, id string, data member.User) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
+	FetchLinkedAccount(ctx context.Context, id string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error)
@@ -667,12 +668,12 @@ type MiniAppMerchant interface {
 }
 
 type CustomerSegmentationRepository interface {
-	Create(ctx context.Context, seg *model.CustomerSegmentation) error
-	Update(ctx context.Context, id string, seg *model.CustomerSegmentation) error
+	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
+	Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.CustomerSegmentation, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error)
-	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CustomerSegmentation, error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
 }
 
 type CPSRolesRepository interface {

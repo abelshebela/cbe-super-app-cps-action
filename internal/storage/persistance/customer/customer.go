@@ -265,10 +265,16 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 	return nil
 }
 
-func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]*model.LinkedAccount, error) {
 	c.logger.Infof("[FetchLinkedAccount] fetching linked accounts for customer number")
+
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return []*model.LinkedAccount{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	filter := bson.M{
-		"customer_number": customerNumber,
+		"user_id": obj,
 	}
 
 	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})

@@ -8,10 +8,11 @@ import (
 	servicesdto "cbe-super-app-cps-action/internal/constants/dto/services"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
@@ -71,22 +72,22 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapped := model.Services{
+	mapped := imodel.Services{
 		ServiceCode:         req.ServiceCode,
+		ServiceKey:          req.ServiceKey,
 		ServiceName:         req.ServiceName,
 		CbeGLProductAccount: req.ProductAccount,
 		ChargeCode:          req.ChargeCode,
 		CommissionCode:      req.CommissionCode,
-		Cap: model.Cap{
+		Cap: imodel.Cap{
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},
-		Tiers: func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
+		Tiers: func() []imodel.Tier {
+			tiers := make([]imodel.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					// FeeType:   constants.FeeType(t.FeeType),
-					FeeType:   model.FeeType(t.FeeType),
+				tiers = append(tiers, imodel.Tier{
+					FeeType:   imodel.FeeType(t.FeeType),
 					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
@@ -143,22 +144,22 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	span.SetAttributes(attribute.String("service.id", id))
-	mapped := model.Services{
+	mapped := imodel.Services{
 		ServiceCode:         req.ServiceCode,
+		ServiceKey:          req.ServiceKey,
 		ServiceName:         req.ServiceName,
 		CbeGLProductAccount: req.ProductAccount,
 		ChargeCode:          req.ChargeCode,
 		CommissionCode:      req.CommissionCode,
-		Cap: model.Cap{
+		Cap: imodel.Cap{
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},
-		Tiers: func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
+		Tiers: func() []imodel.Tier {
+			tiers := make([]imodel.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					// FeeType:   constants.FeeType(t.FeeType),
-					FeeType:   model.FeeType(t.FeeType),
+				tiers = append(tiers, imodel.Tier{
+					FeeType:   imodel.FeeType(t.FeeType),
 					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
@@ -284,6 +285,39 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	span.SetAttributes(attribute.Int("service.count", len(list.Data)))
+	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
+}
+
+// GetAllServiceList godoc
+//
+//	@Summary		List Service List
+//	@Description	Retrieve service list with pagination, filtering, and search.
+//	@Tags			Services
+//	@Accept			json
+//	@Produce		json
+//	@Param			page			query		int		false	"Page number"		default(1)
+//	@Param			per_page		query		int		false	"Items per page"	default(10)
+//	@Param			service_name	query		string	false	"Filter by service_name"
+//	@Param			service_code	query		string	false	"Filter by service_code"
+//	@Param			service_type	query		string	false	"Filter by service_type"
+//	@Param			enabled			query		bool	false	"Filter by enabled status"
+//	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
+//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/services/list [get]
+func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
+	defer span.End()
+
+	filter := local_util.ExtractFilterParams(r)
+	list, err := a.app.GetAllServiceList(ctx, *filter)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("service_list.count", len(list.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
 }
 

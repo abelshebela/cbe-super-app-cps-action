@@ -7,13 +7,14 @@ type CapRequest struct {
 
 type TierRequest struct {
 	FeeType   string  `json:"fee_type" example:"PERCENT"`
-	FeeAmount uint8   `json:"fee_amount" example:"1"`
+	FeeAmount float64 `json:"fee_amount" example:"1"`
 	Min       float64 `json:"min" example:"0"`
 	Max       float64 `json:"max" example:"5000"`
 }
 
 type CreateServiceRequest struct {
 	ServiceName      string        `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey       string        `json:"service_key" example:"Transfer To Other bank"`
 	ServiceCode      string        `json:"service_code" example:"JKSJBDJB"`
 	ProductAccount   string        `json:"cbe_gl_product_account" example:"234353354"`
 	ChargeCode       string        `json:"charge_code" example:"JKSJBDJB"`
@@ -27,6 +28,7 @@ type CreateServiceRequest struct {
 
 type UpdateServiceRequest struct {
 	ServiceName      string        `json:"service_name" example:"Transfer To Other bank"`
+	ServiceKey       string        `json:"service_key" example:"Transfer To Other bank"`
 	ServiceCode      string        `json:"service_code" example:"JKSJBDJB"`
 	ProductAccount   string        `json:"cbe_gl_product_account" example:"234353354"`
 	ChargeCode       string        `json:"charge_code" example:"JKSJBDJB"`

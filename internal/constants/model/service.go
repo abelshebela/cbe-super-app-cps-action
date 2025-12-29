@@ -15,7 +15,7 @@ const (
 
 type Tier struct {
 	FeeType   FeeType `bson:"fee_type" json:"fee_type"`
-	FeeAmount uint8   `bson:"fee_amount" json:"fee_amount"`
+	FeeAmount float64 `bson:"fee_amount" json:"fee_amount"`
 	Min       float64 `bson:"min" json:"min"`
 	Max       float64 `bson:"max" json:"max"`
 }
@@ -24,6 +24,7 @@ type Services struct {
 	ID                  bson.ObjectID `bson:"_id" json:"_id"`
 	ServiceCode         string        `bson:"service_code" json:"service_code"`
 	ServiceName         string        `bson:"service_name" json:"service_name"`
+	ServiceKey          string        `bson:"service_key" json:"service_key"`
 	ChargeCode          string        `bson:"charge_code" json:"charge_code"`
 	CommissionCode      string        `bson:"commission_code" json:"commission_code"`
 	Cap                 Cap           `bson:"cap" json:"cap"`
