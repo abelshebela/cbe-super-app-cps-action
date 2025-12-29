@@ -59,11 +59,6 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	var req servicesdto.CreateServiceRequest
-	// if !decodeJSONBody(w, r, &req, a.logger) {
-	// 	span.RecordError(errors.New("invalid payload"))
-	// 	return
-	// }
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		a.logger.Errorf("Failed to decode JSON request: %v", err)
 		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)

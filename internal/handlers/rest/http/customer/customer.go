@@ -238,7 +238,7 @@ func (c customerAdapter) GetCustomerByID(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		span.RecordError(err)
 		c.logger.Errorf("[GetCustomerByID] service error: %v", err)
-		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	c.logger.Infof("[GetCustomerByID] customer retrieved successfully for id: %s", id)
@@ -311,7 +311,7 @@ func (c customerAdapter) GetLinkedAccount(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		span.RecordError(err)
 		c.logger.Errorf("[GetLinkedAccount] service error: %v", err)
-		localization.SendErrorByCodeResponse(w, localization.UserNotFoundWithGivenID.Code)
+		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 	c.logger.Infof("[GetLinkedAccount] linked accounts retrieved successfully for customer_number: %s", id)
