@@ -44,13 +44,13 @@ import (
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
+	"context"
+	"mime/multipart"
+
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	"context"
-	"mime/multipart"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -59,12 +59,12 @@ import (
 
 type ServicesService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req model.Services) error
-	Update(ctx context.Context, id string, req model.Services) error
+	Create(ctx context.Context, req imodel.Services) error
+	Update(ctx context.Context, id string, req imodel.Services) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
-	GetByID(ctx context.Context, id string) (*model.Services, error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
+	GetByID(ctx context.Context, id string) (*imodel.Services, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
@@ -449,7 +449,7 @@ type RoleService interface {
 }
 
 type CustomerSegmentationService interface {
-	CreateBulk(ctx context.Context, req []cust_seg.CreateCustomerSegmentationRequest) error
+	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
 	Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error)
 	FindById(ctx context.Context, id string) (*model.CustomerSegmentation, error)

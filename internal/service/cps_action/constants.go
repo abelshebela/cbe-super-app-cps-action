@@ -649,7 +649,7 @@ func IsValidRequestAction(requestAction string) bool {
 
 var RequestActionGroups = map[string][]RequestAction{
 	// Canonical
-	"NOTIFICATIONS": {
+	"NOTIFICATION": {
 		RequestCreatePublicNotification,
 		RequestUpdatePublicNotification,
 		RequestDeleteNotification,
@@ -686,14 +686,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableActionRole,
 		RequestDisableActionRole,
 	},
-	"JOBROLES": {
+	"JOBROLE": {
 		RequestCreateJobRole,
 		RequestUpdateJobRole,
 		RequestDeleteJobRole,
 		RequestEnableJobRole,
 		RequestDisableJobRole,
 	},
-	"PASSWORDRULES": {
+	"PASSWORDRULE": {
 		RequestUpdatePasswordRule,
 	},
 	"VAULTCATEGORY": {
@@ -711,14 +711,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableService,
 		RequestDisableService,
 	},
-	"ACCOUNT": {
-		RequestUser,
-		RequestUpdateAccountValidation,
-		RequestEnableUser,
-		RequestDisableUser,
-		RequestUpdateUser,
-		RequestArchiveUser,
-	},
+	// "ACCOUNTVALIDATION": {
+	// 	RequestUser,
+	// 	RequestUpdateAccountValidation,
+	// 	RequestEnableUser,
+	// 	RequestDisableUser,
+	// 	RequestUpdateUser,
+	// 	RequestArchiveUser,
+	// },
 	"EVENT": {
 		RequestCreateEvent,
 		RequestDeleteEvent,
@@ -797,8 +797,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniAppMerchant,
 		RequestDisableMiniAppMerchant,
 	},
-	"BLOCKTIME":    {RequestUpdateBlockTime},
-	"PASSWORDRULE": {RequestUpdatePasswordRule},
+	"BLOCKTIME": {RequestUpdateBlockTime},
+	// "PASSWORDRULE": {RequestUpdatePasswordRule},
 	"PERMISSION": {
 		RequestCreatePermissionGroup,
 		RequestDeletePermissionGroup,
@@ -854,13 +854,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateValidation,
 		RequestDeleteValidation,
 	},
-	"JOBROLE": {
-		RequestCreateJobRole,
-		RequestUpdateJobRole,
-		RequestDeleteJobRole,
-		RequestEnableJobRole,
-		RequestDisableJobRole,
-	},
+	// "JOBROLE": {
+	// 	RequestCreateJobRole,
+	// 	RequestUpdateJobRole,
+	// 	RequestDeleteJobRole,
+	// 	RequestEnableJobRole,
+	// 	RequestDisableJobRole,
+	// },
 	"ROLE": {
 		RequestCreateRole,
 		RequestUpdateRole,
@@ -868,21 +868,21 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableRole,
 		RequestDisableRole,
 	},
-	"BLOCK": {
-		RequestBlockUser,
-		RequestDisableSingleBranch,
-		RequestEnableSingleBranch,
-		RequestDisableMultiBranches,
-		RequestEnableMultiBranches,
-		RequestEnableBranches,
-		RequestDisableBranches,
-		RequestEnableRegions,
-		RequestDisableRegions,
-		RequestEnableDistricts,
-		RequestDisableDistricts,
-		RequestEnableCities,
-		RequestDisableCities,
-	},
+	// "BLOCK": {
+	// 	RequestBlockUser,
+	// 	RequestDisableSingleBranch,
+	// 	RequestEnableSingleBranch,
+	// 	RequestDisableMultiBranches,
+	// 	RequestEnableMultiBranches,
+	// 	RequestEnableBranches,
+	// 	RequestDisableBranches,
+	// 	RequestEnableRegions,
+	// 	RequestDisableRegions,
+	// 	RequestEnableDistricts,
+	// 	RequestDisableDistricts,
+	// 	RequestEnableCities,
+	// 	RequestDisableCities,
+	// },
 	"BUDGETCATEGORY": {
 		RequestCreateBudgetCategory,
 		RequestUpdateBudgetCategory,
@@ -921,14 +921,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniApp,
 		RequestDisableMiniApp,
 	},
-	"NOTIFICATION": {
-		RequestCreatePublicNotification,
-		RequestUpdatePublicNotification,
-		RequestDeleteNotification,
-		RequestEnableNotification,
-		RequestDisableNotification,
-		RequestMarkNotificationAsSeen,
-	},
+	// "NOTIFICATION": {
+	// 	RequestCreatePublicNotification,
+	// 	RequestUpdatePublicNotification,
+	// 	RequestDeleteNotification,
+	// 	RequestEnableNotification,
+	// 	RequestDisableNotification,
+	// 	RequestMarkNotificationAsSeen,
+	// },
 	"BANKVAULT": {
 		RequestCreateBankVault,
 		RequestUpdateBankVault,
@@ -1073,7 +1073,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableEcommerceMerchant,
 		RequestDeleteEcommerceMerchant,
 	},
-	"CPSRoles": {
+	"CPSROLE": {
 		RequestCreateCpsRole,
 		RequestUpdateCpsRole,
 		RequestDeleteCpsRole,

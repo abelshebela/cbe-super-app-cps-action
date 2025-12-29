@@ -50,6 +50,7 @@ func (m *MiniAppMerchantStorage) Create(ctx context.Context, merchant *model.Eco
 		m.logger.Errorf("Failed to create mini app merchant: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
 	return &createdMerchant, nil
 }
 
