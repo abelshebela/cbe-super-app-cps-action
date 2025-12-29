@@ -47,7 +47,7 @@ func (t *TierRequest) Validate(prev *TierRequest) error {
 		),
 		validation.Field(&t.FeeAmount,
 			validation.Required.Error("tiers.fee_amount is required"),
-			validation.Min(uint8(0)).Error("tiers.fee_amount must be >= 0"),
+			validation.Min(float64(0)).Error("tiers.fee_amount must be >= 0"),
 		),
 	); err != nil {
 		return err
