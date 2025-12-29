@@ -168,7 +168,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	// 1. Base filter (only active records)
 	baseFilter := bson.M{
 		"is_deleted": false,
-		"department": department,
+		// "department": department,
 	}
 	searchKeys := bson.M{}
 
