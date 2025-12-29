@@ -7,19 +7,19 @@ import (
 	"errors"
 	"net/http"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"cbe-super-app-cps-action/internal/constants/localization"
 	walletcore "cbe-super-app-cps-action/internal/handlers/rest/http/wallet/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type PaginatedWalletResponse types.PaginatedResponse[[]*model.Wallet]
+type PaginatedWalletResponse types.PaginatedResponse[[]*local_model.Wallet]
 
 type walletAdapter struct {
 	walletApp service.WalletService
@@ -274,7 +274,7 @@ func (a *walletAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			id	path		string												true	"Wallet ID"
-//	@Success		200	{object}	localization.StandardResponse{data=model.Wallet}	"Wallet retrieved successfully"
+//	@Success		200	{object}	localization.StandardResponse{data=local_model.Wallet}	"Wallet retrieved successfully"
 //	@Failure		400	{object}	localization.StandardResponse{data=nil}				"Bad request"
 //	@Failure		404	{object}	localization.StandardResponse{data=nil}				"Wallet not found"
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}				"Internal server error"

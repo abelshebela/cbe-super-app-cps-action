@@ -7,6 +7,7 @@ import (
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
 	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"context"
@@ -56,7 +57,7 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
 
-func (s *server) walletMapper(data *model.Wallet) *walletpb.Wallet {
+func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
 		Id:         data.ID.Hex(),
 		Name:       data.Name,
@@ -146,7 +147,7 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []*model.Wallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []*local_model.Wallet) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
 	for _, wallet := range data {
 		wallets = append(wallets, s.walletMapper(wallet))
@@ -239,16 +240,11 @@ func (s *server) TopupMapper(data []*model.Topup) []*topuppb.Topup {
 	var topups []*topuppb.Topup
 	for _, topup := range data {
 		topups = append(topups, &topuppb.Topup{
-			Id:      topup.ID.Hex(),
-			Name:    topup.Name,
-			Code:    topup.Code,
-			Avatar:  topup.Avatar,
-			Enabled: topup.Enabled,
-			Services: &topuppb.Services{
-				Self:  topup.Services.Self,
-				Other: topup.Services.Other,
-				Agent: topup.Services.Agent,
-			},
+			Id:             topup.ID.Hex(),
+			Name:           topup.Name,
+			Code:           topup.Code,
+			Avatar:         topup.Avatar,
+			Enabled:        topup.Enabled,
 			IsDeleted:      topup.IsDeleted,
 			CreatedAt:      timestamppb.New(topup.CreatedAt),
 			LastModifiedAt: timestamppb.New(topup.LastModifiedAt),

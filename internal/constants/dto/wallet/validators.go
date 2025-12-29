@@ -28,7 +28,11 @@ func (w WalletRequest) Validate(isCreate bool) error {
 			errs["name"] = localization.ErrorWalletNameRequired
 		}
 	}
-
+	if isCreate || w.ServiceID != "" {
+		if strings.TrimSpace(w.ServiceID) == "" && isCreate {
+			errs["service_id"] = localization.ErrorWalletServiceIDRequired
+		}
+	}
 	// --- Code ---
 	if isCreate || w.UniqueCode != "" {
 		trimmed := strings.TrimSpace(w.UniqueCode)
