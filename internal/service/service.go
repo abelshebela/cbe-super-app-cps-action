@@ -59,12 +59,13 @@ import (
 
 type ServicesService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req model.Services) error
-	Update(ctx context.Context, id string, req model.Services) error
+	Create(ctx context.Context, req imodel.Services) error
+	Update(ctx context.Context, id string, req imodel.Services) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
-	GetByID(ctx context.Context, id string) (*model.Services, error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
+	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error)
+	GetByID(ctx context.Context, id string) (*imodel.Services, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error

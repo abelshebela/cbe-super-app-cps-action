@@ -68,13 +68,14 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, service *model.Services) error
-	Update(ctx context.Context, id string, service *model.Services) error
+	Create(ctx context.Context, service *imodel.Services) error
+	Update(ctx context.Context, id string, service *imodel.Services) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
-	FindByID(ctx context.Context, id string) (*model.Services, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Services], error)
+	FindByID(ctx context.Context, id string) (*imodel.Services, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error)
 }
 
 type OTPRepository interface {
