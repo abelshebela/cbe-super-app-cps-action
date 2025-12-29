@@ -1,10 +1,11 @@
 package core
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 )
 
-func MapCustomerSegmentationToMap(seg model.CustomerSegmentation) map[string]interface{} {
+func MapCustomerSegmentationToMap(seg imodel.CustomerSegmentation) map[string]interface{} {
 	subSegments := make([]map[string]interface{}, 0)
 	for _, sub := range seg.CustomerSubSegments {
 		subSegments = append(subSegments, map[string]interface{}{

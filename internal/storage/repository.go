@@ -665,12 +665,12 @@ type MiniAppMerchant interface {
 }
 
 type CustomerSegmentationRepository interface {
-	Create(ctx context.Context, seg *model.CustomerSegmentation) error
-	Update(ctx context.Context, id string, seg *model.CustomerSegmentation) error
+	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
+	Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.CustomerSegmentation, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error)
-	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CustomerSegmentation, error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)
 }
 
 type CPSRolesRepository interface {
