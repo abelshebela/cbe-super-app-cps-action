@@ -284,6 +284,14 @@ const (
 	RequestEnableUser            RequestAction = "ENABLE_USER"
 	RequestDisableUser           RequestAction = "DISABLE_USER"
 	RequestBPSUser               RequestAction = "BPS_USER"
+
+	// RequestBpsUserCreate  RequestAction = "CREATE_BPS_USER"
+	// RequestBpsUserUpdate  RequestAction = "UPDATE_BPS_USER"
+	// RequestBpsUserDelete  RequestAction = "DELETE_BPS_USER"
+	// RequestBpsUserEnable  RequestAction = "ENABLE_BPS_USER"
+	// RequestBpsUserDisable RequestAction = "DISABLE_BPS_USER"
+
+	RequestCreateBPSUser         RequestAction = "CREATE_BPS_USER"
 	RequestDisableBPSUser        RequestAction = "DISABLE_BPS_USER"
 	RequestEnableBPSUser         RequestAction = "ENABLE_BPS_USER"
 	RequestUpdateUser            RequestAction = "UPDATE_USER"

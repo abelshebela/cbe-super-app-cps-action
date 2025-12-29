@@ -408,6 +408,7 @@ type BPSUserService interface {
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	CreateBPSUser(ctx context.Context, req model.BPSUser) error
 }
 
 type AccountSearchService interface {

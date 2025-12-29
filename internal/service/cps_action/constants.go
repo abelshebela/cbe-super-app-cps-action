@@ -76,9 +76,16 @@ const (
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
 	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
 	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
-	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
-	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
-	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
+
+	RequestBpsUserCreate  RequestAction = "CREATE_BPS_USER"
+	RequestBpsUserUpdate  RequestAction = "UPDATE_BPS_USER"
+	RequestBpsUserDelete  RequestAction = "DELETE_BPS_USER"
+	RequestBpsUserEnable  RequestAction = "ENABLE_BPS_USER"
+	RequestBpsUserDisable RequestAction = "DISABLE_BPS_USER"
+
+	RequestPermissionGroup    RequestAction = "PERMISSION_GROUP"
+	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
@@ -381,6 +388,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableVaultGroupCategory:  {},
 	RequestDisAbleVaultGroupCategory: {},
 
+	RequestBpsUserCreate:  {},
+	RequestBpsUserUpdate:  {},
+	RequestBpsUserDelete:  {},
+	RequestBpsUserEnable:  {},
+	RequestBpsUserDisable: {},
+
 	RequestCreateEcommerceMerchant:  {},
 	RequestUpdateEcommerceMerchant:  {},
 	RequestEnableEcommerceMerchant:  {},
@@ -427,22 +440,22 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableUser:       {},
 	RequestDisableUser:      {},
 	RequestBPSUser:          {},
-	RequestDisableBPSUser:   {},
-	RequestEnableBPSUser:    {},
-	RequestUpdateUser:       {},
-	RequestTotalDailyLimit:  {},
-	RequestUpdateVAT:        {},
-	RequestAuthTier:         {},
-	RequestCreateAdvert:     {},
-	RequestUpdateAdvert:     {},
-	RequestEnableAdvert:     {},
-	RequestDisableAdvert:    {},
-	RequestDeleteAdvert:     {},
-	RequestCreateBank:       {},
-	RequestUpdateBank:       {},
-	RequestUpdateBankLogo:   {},
-	RequestEnableWallet:     {},
-	RequestDisableWallet:    {},
+	// RequestDisableBPSUser:   {},
+	// RequestEnableBPSUser:    {},
+	RequestUpdateUser:      {},
+	RequestTotalDailyLimit: {},
+	RequestUpdateVAT:       {},
+	RequestAuthTier:        {},
+	RequestCreateAdvert:    {},
+	RequestUpdateAdvert:    {},
+	RequestEnableAdvert:    {},
+	RequestDisableAdvert:   {},
+	RequestDeleteAdvert:    {},
+	RequestCreateBank:      {},
+	RequestUpdateBank:      {},
+	RequestUpdateBankLogo:  {},
+	RequestEnableWallet:    {},
+	RequestDisableWallet:   {},
 
 	// Services catalog
 	RequestCreateService:            {},
@@ -730,6 +743,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestBPSUser,
 		RequestEnableBPSUser,
 		RequestDisableBPSUser,
+		RequestBpsUserCreate,
+		RequestBpsUserUpdate,
+		RequestBpsUserDelete,
+		RequestBpsUserEnable,
+		RequestBpsUserDisable,
 	},
 	"PERMISSIONGROUP": {
 		RequestPermissionGroup,
