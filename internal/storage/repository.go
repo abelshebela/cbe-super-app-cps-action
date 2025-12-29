@@ -668,6 +668,7 @@ type CustomerSegmentationRepository interface {
 	Create(ctx context.Context, seg *imodel.CustomerSegmentation) error
 	Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
 	FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error)

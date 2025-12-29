@@ -449,9 +449,11 @@ const (
 	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
 	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
-	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
-	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
-	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
+	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestEnableCustomerSegmentation  RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
+	RequestDisableCustomerSegmentation RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation  RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"

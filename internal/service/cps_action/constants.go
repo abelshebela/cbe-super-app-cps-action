@@ -45,9 +45,11 @@ const (
 	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
 	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
 
-	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
-	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
-	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
+	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestEnableCustomerSegmentation  RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
+	RequestDisableCustomerSegmentation RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation  RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
@@ -485,9 +487,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
 
-	RequestCreateCustomerSegmentation: {},
-	RequestUpdateCustomerSegmentation: {},
-	RequestDeleteCustomerSegmentation: {},
+	RequestCreateCustomerSegmentation:  {},
+	RequestUpdateCustomerSegmentation:  {},
+	RequestEnableCustomerSegmentation:  {},
+	RequestDisableCustomerSegmentation: {},
+	RequestDeleteCustomerSegmentation:  {},
 
 	// Region
 	RequestEnableRegions:  {},
@@ -1046,6 +1050,8 @@ var RequestActionGroups = map[string][]RequestAction{
 	"CUSTOMERSEGMENTATIONS": {
 		RequestCreateCustomerSegmentation,
 		RequestUpdateCustomerSegmentation,
+		RequestEnableCustomerSegmentation,
+		RequestDisableCustomerSegmentation,
 		RequestDeleteCustomerSegmentation,
 	},
 	"ECOMMERCEMERCHANT": {
