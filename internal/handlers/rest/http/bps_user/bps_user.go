@@ -190,6 +190,19 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }
 
+// CreateBPSUser creates a new BPS user
+//
+//	@Summary		Create BPS user
+//	@Description	Creates a new BPS user account
+//	@Tags			BPS Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		bps_user_dto.BPSUserCreateRequest						true	"BPS user create request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bps_users/ [post]
 func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	var req bps_user_dto.BPSUserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
