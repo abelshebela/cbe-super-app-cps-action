@@ -343,6 +343,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorInvalidWalletCode,
 	ErrorInvalidWalletType,
 	ErrorInvalidWalletName,
+	ErrorWalletServiceIDRequired,
 
 	//topup related error codes
 	ErrorTopupNameRequired,
@@ -1850,13 +1851,19 @@ var (
 	ErrorWalletNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
-		Message:    "Wallet with the given name or code already exists",
+		Message:    "Wallet with the given name already exists",
 		Type:       "error",
 	}
 	ErrorWalletCodeAlreadyExists = ResponseCode{
 		Code:       "ERROR_WALLET_WITH_CODE_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
 		Message:    "Wallet with the given code already exists",
+		Type:       "error",
+	}
+	ErrorWalletServiceIDAlreadyExists = ResponseCode{
+		Code:       "ERROR_WALLET_WITH_SERVICE_ID_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    "Wallet with the given service ID already exists",
 		Type:       "error",
 	}
 	ErrorWalletNotFound = ResponseCode{
@@ -1924,6 +1931,12 @@ var (
 		Code:       "ERROR_INVALID_WALLET_TYPE",
 		StatusCode: 400,
 		Message:    "Invalid wallet type, special characters are not allowed",
+		Type:       "error",
+	}
+	ErrorWalletServiceIDRequired = ResponseCode{
+		Code:       "ERROR_WALLET_SERVICE_ID_REQUIRED",
+		StatusCode: 400,
+		Message:    "Wallet service ID is required",
 		Type:       "error",
 	}
 

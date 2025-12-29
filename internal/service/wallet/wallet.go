@@ -23,6 +23,8 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -30,6 +32,7 @@ import (
 type walletService struct {
 	repo        storage.WalletRepository
 	cpsService  service.CPSActionService
+	serviceRepo storage.ServicesRepository
 	logger      utils.Logger
 	minio       *s3.Client
 	bucketName  string
@@ -37,14 +40,15 @@ type walletService struct {
 	cfg         *config.VaultConfig
 }
 
-func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
+func NewWalletService(repo storage.WalletRepository, cps service.CPSActionService, serviceRepo storage.ServicesRepository, minio *s3.Client, minioPubUrl string, bucketName string, cfg *config.VaultConfig, logger utils.Logger) service.WalletService {
 	return &walletService{
-		repo:       repo,
-		cpsService: cps,
-		logger:     logger,
-		minio:      minio,
-		bucketName: bucketName,
-		cfg:        cfg,
+		repo:        repo,
+		cpsService:  cps,
+		serviceRepo: serviceRepo,
+		logger:      logger,
+		minio:       minio,
+		bucketName:  bucketName,
+		cfg:         cfg,
 	}
 }
 
@@ -61,9 +65,23 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 
 	if exist != nil {
 		span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+		if exist.Name == req.Name {
+			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+		}
+		if exist.UniqueCode == "WAL-"+req.UniqueCode {
+			return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+		}
+		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
 	}
-
+	service, err := s.serviceRepo.FindByID(ctx, req.ServiceID)
+	if err != nil {
+		span.AddEvent("GetServiceFeeDetail error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("service_id", req.ServiceID)))
+		return err
+	}
+	if service == nil {
+		span.AddEvent("Service not found", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
+		return errors.New(localization.ErrorFileNotFound.Code)
+	}
 	code, err := core.GeneratePrefixedName("WAL", req.UniqueCode, s.logger)
 	if err != nil {
 		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -76,7 +94,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
+	wallet := core.ToCreateWalletDoc(req.Name, code, URL, service.ServiceCode, req.Self, req.Other, req.Agent)
 	wallet.Enabled = true
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
@@ -107,8 +125,14 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		if exist != nil && exist.ID.Hex() != id {
-			span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-			return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+			if exist.Name == req.Name {
+				span.AddEvent("Wallet name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+				return errors.New(localization.ErrorWalletNameAlreadyExists.Code)
+			}
+			if exist.UniqueCode == req.UniqueCode {
+				span.AddEvent("Wallet code already exists", trace.WithAttributes(attribute.String("unique_code", req.UniqueCode)))
+				return errors.New(localization.ErrorWalletCodeAlreadyExists.Code)
+			}
 		}
 	}
 
@@ -127,7 +151,12 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
-	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req)
+	service, err := s.serviceRepo.FindByID(ctx, req.ServiceID)
+	if err != nil {
+		span.AddEvent("GetServiceFeeDetail error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("service_id", req.ServiceID)))
+		return err
+	}
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req, service.ServiceCode)
 	if avatarURL != prevWallet.Avatar {
 		change_count++
 	}
@@ -211,11 +240,11 @@ func (s *walletService) EnableOrDisableWallet(ctx context.Context, id string, en
 	return nil
 }
 
-func (s *walletService) GetWallet(ctx context.Context, id string) (*model.Wallet, error) {
+func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.Wallet, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Wallet], error) {
+func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error) {
 	return s.repo.FindAllWithPagination(ctx, filterParams)
 }
 
@@ -223,7 +252,7 @@ func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) 
 	ctx, span := local_util.TraceLogger(ctx, "service", "Authorize", "walletService", "walletService")
 	defer span.End()
 
-	wallet, err := local_util.JsonUnmarshal[model.Wallet](action.CurrentAction)
+	wallet, err := local_util.JsonUnmarshal[local_model.Wallet](action.CurrentAction)
 	if err != nil {
 		span.AddEvent("JsonUnmarshal error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
