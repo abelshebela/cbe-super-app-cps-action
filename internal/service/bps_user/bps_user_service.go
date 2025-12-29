@@ -265,31 +265,3 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) e
 	b.logger.Infof("[CreateBPSUser] CPS action created successfully for user_code: %s", req.UserCode)
 	return nil
 }
-
-// func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) error {
-// 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
-// 	defer span.End()
-// 	makerData := local_util.ExtractUserFromContext(ctx)
-
-// 	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
-
-// 	// Check if user already exists
-// 	existingUser, err := b.repo.GetByUserCode(ctx, req.UserCode)
-// 	if err == nil && existingUser != nil {
-// 		b.logger.Errorf("[CreateBPSUser] user already exists: %s", req.UserCode)
-// 		return errors.New(localization.ErrorUserAlreadyExists.Code)
-// 	}
-
-// 	// Save the new user
-// 	if err := b.repo.Create(ctx, req); err != nil {
-// 		span.AddEvent("[CreateBPSUser] failed to create BPS user", trace.WithAttributes(
-// 			attribute.String("error", err.Error()),
-// 			attribute.String("user_code", req.UserCode),
-// 		))
-// 		b.logger.Errorf("[CreateBPSUser] failed to create BPS user: %v", err)
-// 		return err
-// 	}
-
-// 	b.logger.Infof("[CreateBPSUser] BPS user created successfully for user_code: %s", req.UserCode)
-// 	return nil
-// }
