@@ -49,6 +49,8 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, 
 }
 
 func (m *MerchantLookupAdapter) UpdateMerchant(ctx context.Context, merchantID string, payload merchantDto.ERPUpdateMerchantRequest, xAPIKey string) error {
+	xAPIKey = "d900978c8506d19bd18c0e18029f1f882734ba9b"
+	m.Url = "https://qaerpsuperapp.cbe.com.et/"
 	if xAPIKey == "" {
 		xAPIKey = m.x_api_key
 	}
