@@ -446,7 +446,7 @@ type RoleService interface {
 }
 
 type CustomerSegmentationService interface {
-	CreateBulk(ctx context.Context, req []cust_seg.CreateCustomerSegmentationRequest) error
+	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
 	Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error)
 	FindById(ctx context.Context, id string) (*model.CustomerSegmentation, error)

@@ -168,6 +168,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		string(constants.RequestCreateCpsActionRole),
 		constants.CREATE,
 	)
+
 	err = s.cpsService.CreateCPSAction(ctx, &cpsAction)
 	if err != nil {
 		span.AddEvent("failed to create cps action", trace.WithAttributes(attribute.String("error", err.Error())))

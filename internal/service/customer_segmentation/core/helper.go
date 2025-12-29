@@ -1,0 +1,27 @@
+package core
+
+import (
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+)
+
+func MapCustomerSegmentationToMap(seg model.CustomerSegmentation) map[string]interface{} {
+	subSegments := make([]map[string]interface{}, 0)
+	for _, sub := range seg.CustomerSubSegments {
+		subSegments = append(subSegments, map[string]interface{}{
+			"name":         sub.Name,
+			"cust_group":   sub.CustomerSegment,
+			"cust_segment": sub.CustomerGroup,
+		})
+	}
+
+	return map[string]interface{}{
+		"customer_role": map[string]interface{}{
+			"id":   seg.CustomerRole.ID,
+			"name": seg.CustomerRole.Name,
+		},
+		"t24_customer_sub_segments": subSegments,
+		"created_at":                seg.CreatedAt,
+		"updated_at":                seg.UpdatedAt,
+		"is_deleted":                seg.IsDeleted,
+	}
+}
