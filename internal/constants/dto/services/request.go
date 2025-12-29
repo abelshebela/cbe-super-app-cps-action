@@ -7,7 +7,7 @@ type CapRequest struct {
 
 type TierRequest struct {
 	FeeType   string  `json:"fee_type" example:"PERCENT"`
-	FeeAmount uint8   `json:"fee_amount" example:"1"`
+	FeeAmount float64 `json:"fee_amount" example:"1"`
 	Min       float64 `json:"min" example:"0"`
 	Max       float64 `json:"max" example:"5000"`
 }

@@ -491,7 +491,7 @@ type CustomerRepository interface {
 	Update(ctx context.Context, id string, data member.User) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error)
+	FetchLinkedAccount(ctx context.Context, id string) ([]*model.LinkedAccount, error)
 	FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error)
