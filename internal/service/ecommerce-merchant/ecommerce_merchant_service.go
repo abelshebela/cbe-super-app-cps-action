@@ -337,6 +337,12 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateEcommerceMerchant):
+		err = m.updateERP(ctx, merchant)
+		if err != nil {
+			m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
+			return nil, err
+		}
+
 		_, err = m.repo.Create(ctx, merchant)
 		if err != nil {
 			span.AddEvent("Failed to create mini app merchant", trace.WithAttributes(
@@ -397,6 +403,33 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 	cpsAction.CurrentAction = merchant
 	m.logger.Infof("Authorization completed for merchant action, action: %s, id: %s", cpsAction.RequestAction, merchant.ID)
 	return cpsAction, nil
+}
+
+func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.EcommerceMerchant) error {
+	if merchant.Code == "" {
+		return errors.New(localization.ErrorMerchantIDRequired.Code)
+	}
+
+	erpBranches := make([]merchantDto.ERPUpdateBranch, len(merchant.Branches))
+	for i, b := range merchant.Branches {
+		erpBranches[i] = merchantDto.ERPUpdateBranch{
+			Merchant:         b.BranchCode,
+			CPSAccountNumber: b.BranchAccountNumber,
+		}
+	}
+
+	payload := merchantDto.ERPUpdateMerchantRequest{
+		CPSAccountNumber: merchant.BankAccountNumber,
+		Branches:         erpBranches,
+	}
+
+	err := m.merchantLookup.UpdateMerchant(ctx, merchant.Code, payload, "")
+	if err != nil {
+		m.logger.Errorf("ERP update failed for merchant %s: %v", merchant.Code, err)
+		return err
+	}
+
+	return nil
 }
 
 func (m *miniAppMerchantService) DetailMiniAppByID(ctx context.Context, id string) (*model.EcommerceMerchant, error) {

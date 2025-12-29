@@ -22,3 +22,13 @@ type RepresentativeDTO struct {
 	Phone string `json:"phone"`
 	Email string `json:"email"`
 }
+
+type ERPUpdateMerchantRequest struct {
+	CPSAccountNumber string            `json:"cps_account_number"`
+	Branches         []ERPUpdateBranch `json:"branches"`
+}
+
+type ERPUpdateBranch struct {
+	Merchant         string `json:"merchant"`
+	CPSAccountNumber string `json:"cps_account_number"`
+}
