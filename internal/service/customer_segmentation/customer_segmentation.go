@@ -16,6 +16,8 @@ import (
 	"cbe-super-app-cps-action/internal/service/customer_segmentation/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -39,7 +41,7 @@ func NewCustomerSegmentation(repo storage.CustomerSegmentationRepository, cpsRol
 func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
-	var newData model.CustomerSegmentation
+	var newData imodel.CustomerSegmentation
 	role, err := s.cpsRoleRepo.FindById(ctx, req.CustomerRole)
 	if err != nil {
 		if err.Error() == localization.ErrorResourceNotFound.Code {
@@ -52,11 +54,11 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 	}
 
 	if role != nil {
-		newData.CustomerRole = model.CustomerRoleInfo{ID: role.ID, Name: role.Name}
+		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name}
 		newData.CreatedAt = time.Now()
 		newData.UpdatedAt = time.Now()
 		for _, info := range req.CustomerSubSegments {
-			seg := model.CustomerSubSegments{
+			seg := imodel.CustomerSubSegments{
 				Name:            info.Name,
 				CustomerGroup:   info.CustomerGroup,
 				CustomerSegment: info.CustomerSegment,
@@ -88,10 +90,10 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	updated := *existing
 
 	if len(req.CustomerSubSegments) > 0 && len(req.OldName) > 0 {
-		updates := make(map[string]model.CustomerSubSegments)
+		updates := make(map[string]imodel.CustomerSubSegments)
 
 		for i, sub := range req.CustomerSubSegments {
-			updates[req.OldName[i]] = model.CustomerSubSegments{
+			updates[req.OldName[i]] = imodel.CustomerSubSegments{
 				Name:            sub.Name,
 				CustomerGroup:   sub.CustomerGroup,
 				CustomerSegment: sub.CustomerSegment,
@@ -118,7 +120,7 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	return nil
 }
 
-func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []model.CustomerSubSegments) bool {
+func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []imodel.CustomerSubSegments) bool {
 	if len(existing) != len(incoming) {
 		return false
 	}
@@ -133,11 +135,11 @@ func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []mo
 	return true
 }
 
-func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error) {
+func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
 	return s.repo.FindAllWithPagination(ctx, *filterParam)
 }
 
-func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*model.CustomerSegmentation, error) {
+func (s *customerSegmentationService) FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
@@ -167,10 +169,10 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 
 	var (
 		err error
-		seg *model.CustomerSegmentation
+		seg *imodel.CustomerSegmentation
 	)
 
-	seg, marshal_err := local_util.JsonUnmarshal[model.CustomerSegmentation](action.CurrentAction)
+	seg, marshal_err := local_util.JsonUnmarshal[imodel.CustomerSegmentation](action.CurrentAction)
 	if marshal_err != nil || seg == nil {
 		s.logger.Errorf("[Authorize] failed to unmarshal current action: %v", marshal_err)
 		return nil, marshal_err

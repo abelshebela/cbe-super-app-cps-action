@@ -1,9 +1,10 @@
 package customersegmentaion
 
 import (
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -26,7 +27,7 @@ import (
 // 	return update
 // }
 
-func MapToCustomerSegUpdate(c *model.CustomerSegmentation) bson.M {
+func MapToCustomerSegUpdate(c *imodel.CustomerSegmentation) bson.M {
 	update := bson.M{}
 
 	if len(c.CustomerSubSegments) > 0 {
