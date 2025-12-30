@@ -22,6 +22,7 @@ func MapCustomerSegmentationToMap(seg imodel.CustomerSegmentation) map[string]in
 		},
 		"t24_customer_sub_segments": subSegments,
 		"created_at":                seg.CreatedAt,
+		"is_enabled":                seg.IsEnabled,
 		"updated_at":                seg.UpdatedAt,
 		"is_deleted":                seg.IsDeleted,
 	}

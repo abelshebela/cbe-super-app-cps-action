@@ -56,6 +56,22 @@ func Init(router chi.Router, handler segmentations.CustomerSegmentation, authMid
 				// authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/customer-segmentations/enable/{id}",
+			Handler: handler.Enable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/customer-segmentations/disable/{id}",
+			Handler: handler.Disable,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

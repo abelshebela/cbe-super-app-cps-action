@@ -658,6 +658,8 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationUpdateSubmittedSuccessfully,
 	CustomerSegmentationFetchedSuccessfully,
 	CustomerSegmentationDeleteddSuccessfully,
+	CustomerSegmentationEnableSuccessfully,
+	CustomerSegmentationDisableSuccessfully,
 
 	ErrorJobTitleAlreadyExists,
 	ErrorRoleAlreadyExists,
@@ -4767,6 +4769,18 @@ var (
 		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentations deleted request submitted successfully",
+		Type:       "error",
+	}
+	CustomerSegmentationEnableSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_ENABLE_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerSegmentationEnableSuccessfully,
+		Type:       "error",
+	}
+	CustomerSegmentationDisableSuccessfully = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_DISABLE_SUCCESSFULLY",
+		StatusCode: StatusOK,
+		Message:    MsgCustomerSegmentationDisableSuccessfully,
 		Type:       "error",
 	}
 

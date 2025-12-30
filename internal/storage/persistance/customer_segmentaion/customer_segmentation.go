@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
 
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -56,6 +57,27 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.Cus
 	_, err = r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("Unable to update customer segmentation with error: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{"_id": obj, "is_deleted": false}
+	update := bson.M{"is_enabled": enable, "last_modified_at": time.Now()}
+
+	_, err = r.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Warnf("Customer segmentation not found for enable/disable, id: %s", id)
+			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		r.logger.Errorf("Unable to enable/disable customer segmentation with error: %s", err)
 		return err
 	}
 	return nil

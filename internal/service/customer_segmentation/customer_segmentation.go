@@ -57,6 +57,8 @@ func (s *customerSegmentationService) Create(ctx context.Context, req cust_seg.C
 		newData.CustomerRole = imodel.CustomerRoleInfo{ID: role.ID, Name: role.Name}
 		newData.CreatedAt = time.Now()
 		newData.UpdatedAt = time.Now()
+		newData.IsEnabled = true
+		newData.IsDeleted = false
 		for _, info := range req.CustomerSubSegments {
 			seg := imodel.CustomerSubSegments{
 				Name:            info.Name,
@@ -143,6 +145,41 @@ func (s *customerSegmentationService) FindById(ctx context.Context, id string) (
 	return s.repo.FindByID(ctx, id)
 }
 
+func (s *customerSegmentationService) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	makerUser := local_util.ExtractUserFromContext(ctx)
+
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		s.logger.Errorf("[EnableOrDisable] failed to find existing customer segmentation: %v", err)
+		return err
+	}
+
+	if existing.IsEnabled == enable {
+		s.logger.Warnf("[EnableOrDisable] customer segmentation already in desired state, id: %s, enable: %v", id, enable)
+		return errors.New("already in desired state")
+	}
+
+	updated := *existing
+	updated.IsEnabled = enable
+	updated.UpdatedAt = time.Now()
+
+	var action constants.RequestAction
+	if enable {
+		action = constants.RequestEnableCustomerSegmentation
+	} else {
+		action = constants.RequestDisableCustomerSegmentation
+	}
+
+	cpsActionData := lib.CpsModelBuilder(id, makerUser, core.MapCustomerSegmentationToMap(*existing), core.MapCustomerSegmentationToMap(updated), string(action), constants.UPDATE)
+
+	if err := s.cpsService.CreateCPSAction(ctx, &cpsActionData); err != nil {
+		s.logger.Errorf("[EnableOrDisable] failed to create CPS action: %v", err)
+		return err
+	}
+
+	return nil
+}
+
 func (s *customerSegmentationService) Delete(ctx context.Context, id string) error {
 	makerUser := local_util.ExtractUserFromContext(ctx)
 
@@ -200,6 +237,20 @@ func (s *customerSegmentationService) Authorize(ctx context.Context, action *mod
 			return nil, err
 		}
 		s.logger.Infof("[Authorize] customer segmentation deleted successfully")
+	case string(constants.RequestEnableCustomerSegmentation):
+		err = s.repo.EnableOrDisable(ctx, action.UniqueId, true)
+		if err != nil {
+			s.logger.Errorf("[Authorize] failed to enable customer segmentation: %v", err)
+			return nil, err
+		}
+		s.logger.Infof("[Authorize] customer segmentation enabled successfully")
+	case string(constants.RequestDisableCustomerSegmentation):
+		err = s.repo.EnableOrDisable(ctx, action.UniqueId, false)
+		if err != nil {
+			s.logger.Errorf("[Authorize] failed to disable customer segmentation: %v", err)
+			return nil, err
+		}
+		s.logger.Infof("[Authorize] customer segmentation disabled successfully")
 	default:
 		s.logger.Errorf("[Authorize] unsupported action: %s", action.RequestAction)
 		return nil, errors.New("unsupported action")
