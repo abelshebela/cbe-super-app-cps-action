@@ -117,7 +117,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		ServiceDetailsPersistence:         service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),
 		ServicesPersistence:               services_repo.NewServicesRepository(client, dbName, ServicesCollection, clientOrchestrationProducer, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
-		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),
+		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, ServicesCollection, logger),
 		TopupPersistence:                  Topup.NewTopupRepository(client, dbName, TopUpsCollection, logger),
 		ProductCodePersistence:            productcode.NewProductCodeRepository(client, dbName, ServicesCollection, logger),
 		DepartmentPersistence:             department.NewDepartmentRepository(client, dbName, DepartmentsCollection, logger),

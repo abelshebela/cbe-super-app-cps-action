@@ -133,7 +133,7 @@ func (m *LogisticsMerchantRepository) FindByID(ctx context.Context, id string) (
 	return result, nil
 }
 
-func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.LogisticsMerchant], error) {
+func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_type", "merchant_id", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -166,7 +166,7 @@ func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context,
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*local_model.LogisticsMerchant]{
+	return &types.PaginatedResponse[[]local_model.LogisticsMerchant]{
 		Data: data,
 		Meta: meta,
 	}, nil

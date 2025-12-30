@@ -57,22 +57,6 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
 
-func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
-	return &walletpb.Wallet{
-		Id:         data.ID.Hex(),
-		Name:       data.Name,
-		Avatar:     data.Avatar,
-		UniqueCode: data.UniqueCode,
-		IsDeleted:  data.IsDeleted,
-		Enabled:    data.Enabled,
-		Services: &walletpb.Services{
-			Self:  data.Services.Self,
-			Other: data.Services.Other,
-			Agent: data.Services.Agent,
-		},
-	}
-}
-
 func (s *server) bankListMapper(data []model.Bank) []*bankpb.Bank {
 	var banks []*bankpb.Bank
 	for i := range data {
@@ -119,7 +103,7 @@ func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 
 // ///////////////////wallet///////////////////
 func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletRequest) (*walletpb.GetAllWalletResponse, error) {
-	data, err := s.walletHandler.GetAllWallet(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
+	data, err := s.walletHandler.GetAllWalletForGRPC(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
 		s.logger.Errorf("Failed to get all wallets: %v", err)
 		return nil, err
@@ -128,12 +112,30 @@ func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletReq
 }
 
 func (s *server) GetWallet(ctx context.Context, req *walletpb.GetWalletRequest) (*walletpb.GetWalletResponse, error) {
-	data, err := s.walletHandler.GetWallet(ctx, req.Id)
+	data, err := s.walletHandler.GetWalletForGRPC(ctx, req.Id)
 	if err != nil {
 		s.logger.Errorf("Failed to get wallet: %v", err)
 		return nil, err
 	}
 	return &walletpb.GetWalletResponse{Wallet: s.walletMapper(data)}, nil
+}
+func (s *server) walletMapper(data *local_model.GRPCWallet) *walletpb.Wallet {
+	return &walletpb.Wallet{
+		Id:          data.ID.Hex(),
+		Name:        data.Name,
+		Avatar:      data.Avatar,
+		UniqueCode:  data.UniqueCode,
+		IsDeleted:   data.IsDeleted,
+		Enabled:     data.Enabled,
+		ServiceId:   data.ServiceID,
+		ServiceCode: data.ServiceCode,
+		ServiceKey:  data.ServiceKey,
+		Services: &walletpb.Services{
+			Self:  data.Services.Self,
+			Other: data.Services.Other,
+			Agent: data.Services.Agent,
+		},
+	}
 }
 
 func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
@@ -147,7 +149,7 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []local_model.GRPCWallet) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
 	for i := range data {
 		wallets = append(wallets, s.walletMapper(&data[i]))

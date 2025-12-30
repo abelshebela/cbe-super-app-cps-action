@@ -65,6 +65,15 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			))
 			return nil, err
 		}
+		if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, e.logger); err != nil {
+			e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, err
+		}
+
 	case string(constants.RequestUpdateLogisticsMerchant):
 		err = e.repo.Update(ctx, cpsAction.UniqueId, *merchant)
 		if err != nil {
@@ -74,6 +83,26 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			))
 			return nil, err
 		}
+		prevMerchant, err := local_util.JsonUnmarshal[local_model.LogisticsMerchant](cpsAction.PreviousAction)
+		if err != nil {
+			e.logger.Errorf("Failed to unmarshal current action into merchant: %v", err)
+			span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
+		}
+		if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
+			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, e.logger); err != nil {
+				e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
+				span.AddEvent("Failed to update ERP", trace.WithAttributes(
+					attribute.String("error", err.Error()),
+					attribute.String("unique_id", cpsAction.UniqueId),
+				))
+				return nil, err
+			}
+		}
+
 	case string(constants.RequestDeleteLogisticsMerchant):
 		err = e.repo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
@@ -264,7 +293,7 @@ func (e *LogisticsMerchantService) EnableOrDisable(ctx context.Context, id strin
 }
 
 // FindAllWithPagination implements service.LogisticsMerchantService.
-func (e *LogisticsMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.LogisticsMerchant], error) {
+func (e *LogisticsMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "LogisticsMerchant", "FindAllWithPagination")
 	defer span.End()
 

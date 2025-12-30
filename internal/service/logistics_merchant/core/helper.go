@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -11,9 +12,14 @@ import (
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/json"
+	"io"
+	"net/http"
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"errors"
 
@@ -118,4 +124,45 @@ func MergeLogisticsMerchantData(old, data *local_model.LogisticsMerchant) *local
 		CreatedAt:         old.CreatedAt,
 		UpdatedAt:         now,
 	}
+}
+
+func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber string, logger utils.Logger) error {
+	ctx, span := local_util.TraceLogger(ctx, "core", "UpdateERP", "LogisticsMerchant", "UpdateERP")
+	defer span.End()
+
+	endpoint := "cfg.GetERPApiEndpoint()"
+	apiKey := "cfg.GetERPApiKey()"
+
+	reqBody := map[string]string{
+		"cps_account_number": bankAccountNumber,
+	}
+	jsonBody, err := json.Marshal(reqBody)
+	if err != nil {
+		logger.Errorf("Failed to marshal ERP update body: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		logger.Errorf("Failed to build ERP update request: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-api-key", apiKey)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("ERP update request failed: %v", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		logger.Errorf("ERP update failed: %s", string(bodyBytes))
+		return errors.New("ERP update failed")
+	}
+
+	return nil
 }
