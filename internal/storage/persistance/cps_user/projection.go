@@ -89,139 +89,80 @@ func PermissionCategoryProjection(permissionColl, permissionCategoryColl string)
 func PipelineBuilder(userCode string) mongo.Pipeline {
 	return mongo.Pipeline{
 
-		// 1. Match active user
+		// 1️⃣ Match CPS user by user_code
 		bson.D{{Key: "$match", Value: bson.M{
-			"user_code":  userCode,
-			"is_deleted": false,
+			"user_code": userCode,
 		}}},
 
-		// 2. Lookup role using job_title
+		// 2️⃣ Lookup role using job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from": "roles",
-			"let":  bson.M{"jobTitle": "$job_title"},
+			"let": bson.M{
+				"jobTitle": "$job_title",
+			},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{"$eq": []interface{}{"$job_title", "$$jobTitle"}},
+					"$expr": bson.M{
+						"$eq": []interface{}{"$job_title", "$$jobTitle"},
+					},
 				}}},
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":  1,
-					"role": 1,
+					"_id":     0,
+					"role_id": "$role", // ObjectID
 				}}},
 			},
 			"as": "role_doc",
 		}}},
 
-		// 3. Unwind role
+		// 3️⃣ Unwind role_doc
 		bson.D{{Key: "$unwind", Value: bson.M{
-			"path": "$role_doc", "preserveNullAndEmptyArrays": true,
+			"path":                       "$role_doc",
+			"preserveNullAndEmptyArrays": false,
 		}}},
 
-		// 4. Lookup job_roles using role code
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": "job_roles",
-			"let":  bson.M{"roleCode": "$role_doc.role"},
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{"$eq": []interface{}{"$code", "$$roleCode"}},
-				}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"_id":          0,
-					"role_id":      "$code", // ✅ ADD THIS
-					"portal_cards": 1,
-				}}},
-			},
-			"as": "job_role_doc",
-		}}},
-
-		// 5. Unwind job_role_doc
-		bson.D{{Key: "$unwind", Value: bson.M{
-			"path": "$job_role_doc", "preserveNullAndEmptyArrays": true,
-		}}},
-
-		// 6. Unwind portal_cards
-		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$job_role_doc.portal_cards",
-			"preserveNullAndEmptyArrays": true,
-		}}},
-
-		// 7. Lookup CPS Action Approver Index
+		// 4️⃣ Lookup CPS Action Approver Index (collect portal cards)
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from": "cps_action_approver_index",
 			"let": bson.M{
-				"roleId":         "$job_role_doc.role_id", // ✅ USE job_roles.role_id
-				"portalCardName": "$job_role_doc.portal_cards.portal_card_name",
-				"actionName":     "$job_role_doc.portal_cards.action_name",
+				"roleId": bson.M{"$toString": "$role_doc.role_id"},
 			},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{
 					"$expr": bson.M{
-						"$and": []interface{}{
-							bson.M{"$eq": []interface{}{"$role_id", "$$roleId"}},
-							bson.M{"$eq": []interface{}{"$portal_card_name", "$$portalCardName"}},
-							bson.M{"$eq": []interface{}{"$action_name", "$$actionName"}},
-						},
+						"$eq": []interface{}{"$role_id", "$$roleId"},
 					},
 				}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"_id":            1,
-					"viewer_index":   1,
-					"maker_index":    1,
-					"checker_index":  1,
-					"auditor_index":  1,
-					"approver_count": 1,
+				bson.D{{Key: "$group", Value: bson.M{
+					"_id":          nil,
+					"portal_cards": bson.M{"$addToSet": "$portal_card_name"},
 				}}},
 			},
-			"as": "approver_index",
+			"as": "portal_card_doc",
 		}}},
 
-		// 8. Unwind approver_index
+		// 5️⃣ Unwind portal_card_doc
 		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$approver_index",
+			"path":                       "$portal_card_doc",
 			"preserveNullAndEmptyArrays": true,
 		}}},
 
-		// 9. Lookup department
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         "departments",
-			"localField":   "department",
-			"foreignField": "_id",
-			"as":           "department_doc",
-		}}},
-
-		// 10. Unwind department
-		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$department_doc",
-			"preserveNullAndEmptyArrays": true,
-		}}},
-
-		// 11. Final projection
+		// 6️⃣ Final projection
 		bson.D{{Key: "$project", Value: bson.M{
-			"_id":                 0,
-			"user_code":           1,
-			"full_name":           1,
-			"username":            1,
-			"job_title":           1,
-			"role_id":             "$job_role_doc.role_id", // ✅ USER ROLE FIELD
-			"gender":              1,
-			"phone_number":        1,
-			"email":               1,
-			"realm":               1,
-			"enabled":             1,
-			"permission_category": 1,
-			"department":          "$department_doc.name",
+			"_id":          0,
+			"user_code":    1,
+			"full_name":    1,
+			"username":     1,
+			"email":        1,
+			"phone_number": 1,
+			"gender":       1,
+			"realm":        1,
+			"job_title":    1,
+
+			"role_id": "$role_doc.role_id",
+
 			"portal_card": bson.M{
-				"name":   "$job_role_doc.portal_cards.portal_card_name",
-				"action": "$job_role_doc.portal_cards.action_name",
-				"approver": bson.M{
-					"viewer_index":   "$approver_index.viewer_index",
-					"maker_index":    "$approver_index.maker_index",
-					"checker_index":  "$approver_index.checker_index",
-					"auditor_index":  "$approver_index.auditor_index",
-					"approver_count": "$approver_index.approver_count",
-				},
+				"$ifNull": []interface{}{"$portal_card_doc.portal_cards", []interface{}{}},
 			},
-			"last_modified": 1,
-			"date_joined":   1,
 		}}},
 	}
 }
