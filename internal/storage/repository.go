@@ -389,6 +389,9 @@ type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error)
+
+	FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
+	FindCustomerFeedbackByID(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 }
 
 type LinkedAccountRepository interface {

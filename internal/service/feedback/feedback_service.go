@@ -2,6 +2,7 @@ package feedback
 
 import (
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/feedback/core"
@@ -104,4 +105,33 @@ func (f *feedbackService) GetFeedbacks(ctx context.Context, filterParams *types.
 
 	f.logger.Infof("[GetFeedbacks] retrieved %d feedbacks", len(feedbacks.Data))
 	return feedbacks, nil
+}
+func (f *feedbackService) GetAllCustomerFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.CustomerFeedback], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllCustomerFeedbacks", "Feedback", "GetAllCustomerFeedbacks")
+	defer span.End()
+
+	feedbacks, err := f.repo.FindAllCustomerFeedbacks(ctx, *filterParams)
+	if err != nil {
+		f.logger.Errorf("[GetAllCustomerFeedbacks] failed to fetch customer feedbacks: %v", err)
+		span.RecordError(err)
+		return nil, err
+	}
+
+	f.logger.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
+	return feedbacks, nil
+}
+
+func (f *feedbackService) GetCustomerFeedback(ctx context.Context, id string) (*local_model.CustomerFeedback, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerFeedback", "Feedback", "GetCustomerFeedback")
+	defer span.End()
+
+	feedback, err := f.repo.FindCustomerFeedbackByID(ctx, id)
+	if err != nil {
+		f.logger.Errorf("[GetCustomerFeedback] failed to get customer feedback for id %s: %v", id, err)
+		span.RecordError(err)
+		return nil, err
+	}
+
+	f.logger.Infof("[GetCustomerFeedback] customer feedback retrieved successfully for id: %s", id)
+	return feedback, nil
 }
