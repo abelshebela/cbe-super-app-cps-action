@@ -46,15 +46,6 @@ func (r CreateCustomerSegmentationRequest) Validate() error {
 
 func (r UpdateCustomerSegmentationRequest) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.OldName,
-			validation.Required,
-			validation.Each(
-				validation.Required,
-				validation.By(utils.TrimWhiteSpace),
-				validation.By(utils.NoSpecialChars),
-			),
-		),
-
 		validation.Field(&r.CustomerSubSegments,
 			validation.Required,
 			validation.Each(
