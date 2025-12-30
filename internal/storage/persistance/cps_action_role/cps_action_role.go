@@ -43,7 +43,7 @@ func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCo
 	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"is_configured": status})
 	return err
 }
-func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error) {
+func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
@@ -69,7 +69,7 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d access lists", len(data))
 
-	return &types.PaginatedResponse[[]*imodel.CPSActionList]{
+	return &types.PaginatedResponse[[]imodel.CPSActionList]{
 		Data: data,
 		Meta: meta,
 	}, nil
@@ -114,7 +114,14 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 		}}},
 
 		// 2️⃣ Normalize arrays (safety)
-		{{Key: "$addFields", Value: bson.M{ZZ
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_viewers_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_viewers_roles"},
+					"$assigned_viewers_roles",
+					bson.A{},
+				},
+			},
 			"assigned_makers_roles": bson.M{
 				"$cond": bson.A{
 					bson.M{"$isArray": "$assigned_makers_roles"},
@@ -138,6 +145,32 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}}},
 
+		// 3️⃣ Lookup VIEWERS (by code) + FORCE projection
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         rolesCollection,
+				"localField":   "assigned_viewers_roles",
+				"foreignField": "code",
+				"as":           "assigned_viewers_roles",
+			},
+		}},
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_viewers_roles": bson.M{
+				"$map": bson.M{
+					"input": "$assigned_viewers_roles",
+					"as":    "r",
+					"in": bson.M{
+						"_id":          "$$r._id",
+						"code":         "$$r.code",
+						"name":         "$$r.name",
+						"portal_cards": "$$r.portal_cards",
+						"created_at":   "$$r.created_at",
+						"updated_at":   "$$r.updated_at",
+					},
+				},
+			},
+		}}},
 		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
 		{{
 			Key: "$lookup",
