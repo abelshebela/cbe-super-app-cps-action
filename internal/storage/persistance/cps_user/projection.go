@@ -160,7 +160,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 
 			"role_id": "$role_doc.role_id",
 
-			"portal_card": bson.M{
+			"portal_cards": bson.M{
 				"$ifNull": []interface{}{"$portal_card_doc.portal_cards", []interface{}{}},
 			},
 		}}},

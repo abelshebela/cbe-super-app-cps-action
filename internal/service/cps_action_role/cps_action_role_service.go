@@ -532,28 +532,11 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 	var indices []imodel.CPSActionApproveIndex
 	now := time.Now()
 	s.logger.Infof("generateIndices: Starting for action %s. Viewers: %d,%s. Makers: %d, Checkers: %d, Auditors: %d", role.ActionName, len(role.AssignedViewersRoles), len(role.AssignedMakersRoles), len(role.AssignedCheckerRoles), len(role.AssignedAuditorRoles))
-	// Viewers
-	if len(role.AssignedViewersRoles) > 0 {
-		for i, viewerID := range role.AssignedViewersRoles {
-			idx := int64(i + 1)
-			indices = append(indices, imodel.CPSActionApproveIndex{
-				ID:             bson.NewObjectID(),
-				RoleId:         viewerID,
-				PortalCardName: role.PortalCardName,
-				ViewerIndex:    &idx,
-				ActionName:     role.ActionName,
-				UpdatedAt:      now,
-				CreatedAt:      now,
-			})
-			span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", viewerID)))
-			s.logger.Infof("generateIndices: Added Maker index for RoleID %s", viewerID)
-		}
-	}
 
 	// Makers
 	if len(role.AssignedMakersRoles) > 0 {
-		for i, makerID := range role.AssignedMakersRoles {
-			idx := int64(i + 1)
+		for j, makerID := range role.AssignedMakersRoles {
+			idx := int64(j + 1)
 			indices = append(indices, imodel.CPSActionApproveIndex{
 				ID:             bson.NewObjectID(),
 				RoleId:         makerID,
@@ -568,10 +551,42 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 		}
 	}
 
+	// Viewers
+	if len(role.AssignedViewersRoles) > 0 {
+		for k, viewerID := range role.AssignedViewersRoles {
+			idx := int64(k + 1)
+			found := false
+			for j := range indices {
+				if indices[j].RoleId == viewerID {
+					indices[j].ViewerIndex = &idx
+					found = true
+					break
+				}
+			}
+			if !found {
+				indices = append(indices, imodel.CPSActionApproveIndex{
+					ID:             bson.NewObjectID(),
+					RoleId:         viewerID,
+					PortalCardName: role.PortalCardName,
+					ActionName:     role.ActionName,
+					ViewerIndex:    &idx,
+					UpdatedAt:      now,
+					CreatedAt:      now,
+				})
+
+				span.AddEvent("viewer index generated", trace.WithAttributes(attribute.String("role_id", viewerID)))
+				s.logger.Infof("generateIndices: Added Viewer index for RoleID %s", viewerID)
+			} else {
+				span.AddEvent("viewer index updated", trace.WithAttributes(attribute.String("role_id", viewerID)))
+				s.logger.Infof("generateIndices: Updated Viewer index for RoleID %s", viewerID)
+			}
+		}
+	}
+
 	// Auditors
 	if len(role.AssignedAuditorRoles) > 0 {
-		for i, auditorID := range role.AssignedAuditorRoles {
-			idx := int64(i + 1)
+		for k, auditorID := range role.AssignedAuditorRoles {
+			idx := int64(k + 1)
 			found := false
 			for j := range indices {
 				if indices[j].RoleId == auditorID {

@@ -48,13 +48,13 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 	}
 	for _, v := range results {
 		if v.MakerIndex != nil {
-			makerAllocations = append(makerAllocations, v.ActionName)
+			makerAllocations = append(makerAllocations, v.PortalCardName)
 		}
 		if v.CheckerIndex != nil {
-			checkerAllocations = append(checkerAllocations, v.ActionName)
+			checkerAllocations = append(checkerAllocations, v.PortalCardName)
 		}
 		if v.AuditorIndex != nil {
-			auditorAllocations = append(auditorAllocations, v.ActionName)
+			auditorAllocations = append(auditorAllocations, v.PortalCardName)
 		}
 	}
 	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
