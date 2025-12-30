@@ -90,24 +90,34 @@ func (s *customerSegmentationService) Update(ctx context.Context, id string, req
 	}
 
 	updated := *existing
-
-	if len(req.CustomerSubSegments) > 0 && len(req.OldName) > 0 {
-		updates := make(map[string]imodel.CustomerSubSegments)
-
+	if req.CustomerSubSegments != nil {
+		updated.CustomerSubSegments = make([]imodel.CustomerSubSegments, len(req.CustomerSubSegments))
 		for i, sub := range req.CustomerSubSegments {
-			updates[req.OldName[i]] = imodel.CustomerSubSegments{
+			updated.CustomerSubSegments[i] = imodel.CustomerSubSegments{
 				Name:            sub.Name,
 				CustomerGroup:   sub.CustomerGroup,
 				CustomerSegment: sub.CustomerSegment,
 			}
 		}
-
-		for i, existingSub := range updated.CustomerSubSegments {
-			if newSub, ok := updates[existingSub.Name]; ok {
-				updated.CustomerSubSegments[i] = newSub
-			}
-		}
 	}
+
+	// if len(req.CustomerSubSegments) > 0 && len(req.OldName) > 0 {
+	// 	updates := make(map[string]imodel.CustomerSubSegments)
+
+	// 	for i, sub := range req.CustomerSubSegments {
+	// 		updates[req.OldName[i]] = imodel.CustomerSubSegments{
+	// 			Name:            sub.Name,
+	// 			CustomerGroup:   sub.CustomerGroup,
+	// 			CustomerSegment: sub.CustomerSegment,
+	// 		}
+	// 	}
+
+	// 	for i, existingSub := range updated.CustomerSubSegments {
+	// 		if newSub, ok := updates[existingSub.Name]; ok {
+	// 			updated.CustomerSubSegments[i] = newSub
+	// 		}
+	// 	}
+	// }
 
 	updated.UpdatedAt = time.Now()
 
