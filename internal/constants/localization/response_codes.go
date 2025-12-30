@@ -2328,6 +2328,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBPSUserUpdated = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSUserUpdatedSuccessfully,
+		Type:       "success",
+	}
+
 	// Ad related success response codes
 	SuccessAdvertCreated = ResponseCode{
 		Code:       "SUCCESS_ADVERT_CREATED",
