@@ -302,7 +302,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 		return nil, err
 	}
 
-	makerAlloc, checkerAlloc, auditorAlloc, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+	makerAlloc, checkerAlloc, auditorAlloc, portalCard, err := s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
 	if err != nil {
 		span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
@@ -312,7 +312,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return core.ConvertToDTO(userData, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToDTO(portalCard, userData, makerAlloc, checkerAlloc, auditorAlloc), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
@@ -357,7 +357,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, err
 	}
 
-	var makerAlloc, checkerAlloc, auditorAlloc []string
+	var makerAlloc, checkerAlloc, auditorAlloc, portalCard []string
 	var roles *model.Role
 	if populated.JobTitle != "" {
 		roles, err = s.roleRepo.FindByName(ctx, populated.JobTitle)
@@ -368,14 +368,14 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	if roles != nil {
-		makerAlloc, checkerAlloc, auditorAlloc, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.ID.Hex())
+		makerAlloc, checkerAlloc, auditorAlloc, portalCard, err = s.approverRepo.PopulateUserApproverAllocations(ctx, roles.Role)
 		if err != nil {
 			span.AddEvent("failed to populate user approver allocations", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
 	}
 
-	return core.ConvertToDTO(populated, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc), nil
 
 	// detail := cpsuser.BuildCpsUserDetail(populated)
 	// return populated, nil

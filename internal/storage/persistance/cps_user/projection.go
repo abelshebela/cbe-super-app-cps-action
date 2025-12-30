@@ -120,32 +120,6 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"preserveNullAndEmptyArrays": false,
 		}}},
 
-		// 4️⃣ Lookup CPS Action Approver Index (collect portal cards)
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": "cps_action_approver_index",
-			"let": bson.M{
-				"roleId": bson.M{"$toString": "$role_doc.role_id"},
-			},
-			"pipeline": mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{
-						"$eq": []interface{}{"$role_id", "$$roleId"},
-					},
-				}}},
-				bson.D{{Key: "$group", Value: bson.M{
-					"_id":          nil,
-					"portal_cards": bson.M{"$addToSet": "$portal_card_name"},
-				}}},
-			},
-			"as": "portal_card_doc",
-		}}},
-
-		// 5️⃣ Unwind portal_card_doc
-		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$portal_card_doc",
-			"preserveNullAndEmptyArrays": true,
-		}}},
-
 		// 6️⃣ Final projection
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":          0,
@@ -159,10 +133,6 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"job_title":    1,
 
 			"role_id": "$role_doc.role_id",
-
-			"portal_cards": bson.M{
-				"$ifNull": []interface{}{"$portal_card_doc.portal_cards", []interface{}{}},
-			},
 		}}},
 	}
 }

@@ -62,6 +62,7 @@ var modulePriority = []string{
 	"SHORTVIDEO",
 	"CUSTOMER",
 	"NEWSTAG",
+	"ROLE",
 	"ACTIONROLE",
 	"NEWSCATEGORY",
 	"BUDGETCATEGORY",

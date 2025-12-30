@@ -49,7 +49,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
 		if err != mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorUnexpectedError.Code)
+			return errors.New(err.Error())
 		}
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
