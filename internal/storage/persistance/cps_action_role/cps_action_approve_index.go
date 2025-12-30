@@ -1,11 +1,13 @@
 package action_role_repo
 
 import (
+	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -39,26 +41,26 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		return nil, nil, nil, err
 	}
 	defer cursor.Close(ctx)
-	var results []model.CPSActionApproveIndex
+	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
 		return nil, nil, nil, err
 	}
 	for _, v := range results {
 		if v.MakerIndex != nil {
-			makerAllocations = append(makerAllocations, v.ActionName)
+			makerAllocations = append(makerAllocations, v.PortalCardName)
 		}
 		if v.CheckerIndex != nil {
-			checkerAllocations = append(checkerAllocations, v.ActionName)
+			checkerAllocations = append(checkerAllocations, v.PortalCardName)
 		}
 		if v.AuditorIndex != nil {
-			auditorAllocations = append(auditorAllocations, v.ActionName)
+			auditorAllocations = append(auditorAllocations, v.PortalCardName)
 		}
 	}
 	r.logger.Infof("PopulateUserApproverAllocations: Found %d maker, %d checker, %d auditor allocations for RoleID: %s", len(makerAllocations), len(checkerAllocations), len(auditorAllocations), role_id)
 	return makerAllocations, checkerAllocations, auditorAllocations, nil
 }
-func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error {
+func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error {
 	r.logger.Infof("SaveIndices: Saving %d indices to DB: %s, Collection: %s", len(indices), r.collection.Database().Name(), r.collection.Name())
 	if len(indices) == 0 {
 		return nil
@@ -76,7 +78,7 @@ func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 	return nil
 }
 
-func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error {
+func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.CPSActionApproveIndex) error {
 	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
 
 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
@@ -90,7 +92,7 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	return nil
 }
 
-func (r *CPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error) {
+func (r *CPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error) {
 	r.logger.Infof("FindMakerAllocationsByRoleID: Finding maker allocations for RoleID: %s", roleID.Hex())
 
 	cursor, err := r.collection.Find(ctx, bson.M{
@@ -103,7 +105,7 @@ func (r *CPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx conte
 	}
 	defer cursor.Close(ctx)
 
-	var results []model.CPSActionApproveIndex
+	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindMakerAllocationsByRoleID: Cursor.All failed: %v", err)
 		return nil, err
@@ -113,7 +115,7 @@ func (r *CPSActionApproveIndexRepository) FindMakerAllocationsByRoleID(ctx conte
 	return results, nil
 }
 
-func (r *CPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error) {
+func (r *CPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error) {
 	r.logger.Infof("FindCheckerAllocationsByRoleID: Finding checker allocations for RoleID: %s", roleID.Hex())
 
 	cursor, err := r.collection.Find(ctx, bson.M{
@@ -126,7 +128,7 @@ func (r *CPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx con
 	}
 	defer cursor.Close(ctx)
 
-	var results []model.CPSActionApproveIndex
+	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindCheckerAllocationsByRoleID: Cursor.All failed: %v", err)
 		return nil, err
@@ -136,7 +138,7 @@ func (r *CPSActionApproveIndexRepository) FindCheckerAllocationsByRoleID(ctx con
 	return results, nil
 }
 
-func (r *CPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error) {
+func (r *CPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error) {
 	r.logger.Infof("FindAuditorAllocationsByRoleID: Finding auditor allocations for RoleID: %s", roleID.Hex())
 
 	cursor, err := r.collection.Find(ctx, bson.M{
@@ -149,7 +151,7 @@ func (r *CPSActionApproveIndexRepository) FindAuditorAllocationsByRoleID(ctx con
 	}
 	defer cursor.Close(ctx)
 
-	var results []model.CPSActionApproveIndex
+	var results []imodel.CPSActionApproveIndex
 	if err := cursor.All(ctx, &results); err != nil {
 		r.logger.Errorf("FindAuditorAllocationsByRoleID: Cursor.All failed: %v", err)
 		return nil, err
@@ -326,15 +328,15 @@ func (r *CPSActionApproveIndexRepository) DeleteMany(
 
 func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new model.CPSActionRole) error {
 	r.logger.Infof("InsertAll: Inserting indices for ActionName: %s", new.ActionName)
-	var indices []model.CPSActionApproveIndex
+	var indices []imodel.CPSActionApproveIndex
 	now := time.Now()
 
 	// Makers: 1-based index
 	for i, makerId := range new.AssignedMakersRoles {
 		idx := int64(i + 1)
-		indices = append(indices, model.CPSActionApproveIndex{
+		indices = append(indices, imodel.CPSActionApproveIndex{
 			ID:           bson.NewObjectID(),
-			RoleId:       makerId.Hex(),
+			RoleId:       makerId,
 			ActionName:   new.ActionName,
 			MakerIndex:   &idx,
 			CheckerIndex: nil,
@@ -345,12 +347,12 @@ func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new mod
 	}
 
 	// Checkers: 2D slice, float index (e.g., 1.1, 2.1, ...)
-	for i, checkerGroup := range new.AssignedCheckersRoles {
+	for i, checkerGroup := range new.AssignedCheckerRoles {
 		for j, checkerId := range checkerGroup {
 			idx := float64(i+1) + float64(j+1)*0.1
-			indices = append(indices, model.CPSActionApproveIndex{
+			indices = append(indices, imodel.CPSActionApproveIndex{
 				ID:           bson.NewObjectID(),
-				RoleId:       checkerId.Hex(),
+				RoleId:       checkerId,
 				ActionName:   new.ActionName,
 				MakerIndex:   nil,
 				CheckerIndex: &idx,
@@ -364,9 +366,9 @@ func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new mod
 	// Auditors: 1-based index
 	for i, auditorId := range new.AssignedAuditorRoles {
 		idx := int64(i + 1)
-		indices = append(indices, model.CPSActionApproveIndex{
+		indices = append(indices, imodel.CPSActionApproveIndex{
 			ID:           bson.NewObjectID(),
-			RoleId:       auditorId.Hex(),
+			RoleId:       auditorId,
 			ActionName:   new.ActionName,
 			MakerIndex:   nil,
 			CheckerIndex: nil,
@@ -394,7 +396,7 @@ func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new mod
 	return nil
 }
 
-func (r *CPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev model.CPSActionRoleResposne) error {
+func (r *CPSActionApproveIndexRepository) DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error {
 	r.logger.Infof("DeleteAll: Deleting indices for ActionName: %s", prev.ActionName)
 	var models []mongo.WriteModel
 

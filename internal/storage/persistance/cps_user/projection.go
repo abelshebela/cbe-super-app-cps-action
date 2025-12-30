@@ -88,72 +88,81 @@ func PermissionCategoryProjection(permissionColl, permissionCategoryColl string)
 
 func PipelineBuilder(userCode string) mongo.Pipeline {
 	return mongo.Pipeline{
-		// Match the user
-		bson.D{{Key: "$match", Value: bson.M{"user_code": userCode, "is_deleted": false}}},
 
-		// Lookup roles by job_title
+		// 1️⃣ Match CPS user by user_code
+		bson.D{{Key: "$match", Value: bson.M{
+			"user_code": userCode,
+		}}},
+
+		// 2️⃣ Lookup role using job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from": "roles",
-			"let":  bson.M{"job_title": "$job_title"},
+			"let": bson.M{
+				"jobTitle": "$job_title",
+			},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{"$eq": []interface{}{"$job_title", "$$job_title"}},
+					"$expr": bson.M{
+						"$eq": []interface{}{"$job_title", "$$jobTitle"},
+					},
 				}}},
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":  1,
-					"role": 1,
+					"_id":     0,
+					"role_id": "$role", // ObjectID
 				}}},
 			},
 			"as": "role_doc",
 		}}},
 
-		// Unwind role_doc
-		bson.D{{Key: "$unwind", Value: bson.M{"path": "$role_doc", "preserveNullAndEmptyArrays": true}}},
+		// 3️⃣ Unwind role_doc
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$role_doc",
+			"preserveNullAndEmptyArrays": false,
+		}}},
 
-		// Lookup job_roles using role code
+		// 4️⃣ Lookup CPS Action Approver Index (collect portal cards)
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": "job_roles",
-			"let":  bson.M{"roleCode": "$role_doc.role"},
+			"from": "cps_action_approver_index",
+			"let": bson.M{
+				"roleId": bson.M{"$toString": "$role_doc.role_id"},
+			},
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{"$eq": []interface{}{"$code", "$$roleCode"}},
+					"$expr": bson.M{
+						"$eq": []interface{}{"$role_id", "$$roleId"},
+					},
 				}}},
-				bson.D{{Key: "$project", Value: bson.M{
-					"_id":          0,
-					"portal_cards": 1,
+				bson.D{{Key: "$group", Value: bson.M{
+					"_id":          nil,
+					"portal_cards": bson.M{"$addToSet": "$portal_card_name"},
 				}}},
 			},
-			"as": "job_role_doc",
+			"as": "portal_card_doc",
 		}}},
 
-		// Unwind job_role_doc
-		bson.D{{Key: "$unwind", Value: bson.M{"path": "$job_role_doc", "preserveNullAndEmptyArrays": true}}},
-
-		// Lookup department document
-		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         "departments",
-			"localField":   "department",
-			"foreignField": "_id",
-			"as":           "department_doc",
+		// 5️⃣ Unwind portal_card_doc
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$portal_card_doc",
+			"preserveNullAndEmptyArrays": true,
 		}}},
-		bson.D{{Key: "$unwind", Value: bson.M{"path": "$department_doc", "preserveNullAndEmptyArrays": true}}},
 
-		// Project final user fields with populated portal_cards and department
+		// 6️⃣ Final projection
 		bson.D{{Key: "$project", Value: bson.M{
-			"_id":                 0,
-			"user_code":           1,
-			"full_name":           1,
-			"username":            1,
-			"job_title":           1,
-			"gender":              1,
-			"phone_number":        1,
-			"email":               1,
-			"realm":               1,
-			"enabled":             1,
-			"permission_category": 1,
-			"portal_cards":        "$job_role_doc.portal_cards",
-			"last_modified":       1,
-			"date_joined":         1,
+			"_id":          0,
+			"user_code":    1,
+			"full_name":    1,
+			"username":     1,
+			"email":        1,
+			"phone_number": 1,
+			"gender":       1,
+			"realm":        1,
+			"job_title":    1,
+
+			"role_id": "$role_doc.role_id",
+
+			"portal_cards": bson.M{
+				"$ifNull": []interface{}{"$portal_card_doc.portal_cards", []interface{}{}},
+			},
 		}}},
 	}
 }
