@@ -145,7 +145,7 @@ func (m *MiniAppMerchantStorage) FindByID(ctx context.Context, id string) (*mini
 	return result, nil
 }
 
-func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*mini_model.MiniAppMerchant], error) {
+func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]mini_model.MiniAppMerchant], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -178,7 +178,7 @@ func (s *MiniAppMerchantStorage) FindAllWithPagination(ctx context.Context, filt
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*mini_model.MiniAppMerchant]{
+	return &types.PaginatedResponse[[]mini_model.MiniAppMerchant]{
 		Data: data,
 		Meta: meta,
 	}, nil

@@ -44,7 +44,7 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*m
 	return result, nil
 }
 
-func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) {
+func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -84,7 +84,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.BPSUser]{
+	return &types.PaginatedResponse[[]model.BPSUser]{
 		Data: data,
 		Meta: meta,
 	}, nil

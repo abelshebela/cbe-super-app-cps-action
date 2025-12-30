@@ -86,7 +86,7 @@ func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M,
 
 }
 
-func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error) {
+func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -119,7 +119,7 @@ func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, proje
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.ServiceDetails]{
+	return &types.PaginatedResponse[[]model.ServiceDetails]{
 		Data: data,
 		Meta: meta,
 	}, nil

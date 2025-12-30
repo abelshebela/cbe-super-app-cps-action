@@ -63,7 +63,7 @@ func (a *AuthTierStorage) FindByID(ctx context.Context, id string) (*model.AuthT
 	return result, nil
 }
 
-func (a *AuthTierStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error) {
+func (a *AuthTierStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error) {
 	filter := bson.M{"is_deleted": false}
 
 	if filterParam.Search != "" {
@@ -86,7 +86,7 @@ func (a *AuthTierStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.AuthTier]{
+	return &types.PaginatedResponse[[]model.AuthTier]{
 		Data: data,
 		Meta: meta,
 	}, nil

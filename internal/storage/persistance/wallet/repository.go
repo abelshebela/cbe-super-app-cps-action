@@ -173,7 +173,7 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 	return doc, nil
 }
 
-func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error) {
+func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
@@ -200,7 +200,7 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 
 	e.logger.Infof("FindAllWithPagination returning %d wallets, total: %d", len(docs), total)
 
-	return &types.PaginatedResponse[[]*local_model.Wallet]{
+	return &types.PaginatedResponse[[]local_model.Wallet]{
 		Data: docs,
 		Meta: meta,
 	}, nil

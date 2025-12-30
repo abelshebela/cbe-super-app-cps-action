@@ -170,7 +170,7 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 	return doc, nil
 }
 
-func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Topup], error) {
+func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Topup], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
@@ -197,7 +197,7 @@ func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 
 	e.logger.Infof("FindAllWithPagination returning %d Topups, total: %d", len(docs), total)
 
-	return &types.PaginatedResponse[[]*model.Topup]{
+	return &types.PaginatedResponse[[]model.Topup]{
 		Data: docs,
 		Meta: meta,
 	}, nil

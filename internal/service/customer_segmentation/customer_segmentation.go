@@ -147,7 +147,7 @@ func (s *customerSegmentationService) isSubSegmentsEqual(existing, incoming []im
 	return true
 }
 
-func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
+func (s *customerSegmentationService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
 	return s.repo.FindAllWithPagination(ctx, *filterParam)
 }
 

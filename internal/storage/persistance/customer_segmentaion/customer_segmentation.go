@@ -118,7 +118,7 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.Cust
 	return seg, nil
 }
 
-func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error) {
+func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"search"}
@@ -150,7 +150,7 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*imodel.CustomerSegmentation]{
+	return &types.PaginatedResponse[[]imodel.CustomerSegmentation]{
 		Data: data,
 		Meta: meta,
 	}, nil

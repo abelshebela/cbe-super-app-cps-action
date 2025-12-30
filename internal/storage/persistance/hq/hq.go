@@ -94,7 +94,7 @@ func (p *HQStorage) Update(ctx context.Context, field string, value interface{},
 	return nil
 }
 
-func (h *HQStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.HQ], error) {
+func (h *HQStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.HQ], error) {
 
 	allowedKeys := []string{}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
@@ -111,7 +111,7 @@ func (h *HQStorage) FindAllWithPagination(ctx context.Context, filterParam types
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.HQ]{
+	return &types.PaginatedResponse[[]model.HQ]{
 		Data: data,
 		Meta: meta,
 	}, nil
