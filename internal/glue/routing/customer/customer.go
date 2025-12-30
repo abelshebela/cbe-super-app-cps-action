@@ -69,7 +69,7 @@ func Init(router chi.Router, handler customer.CustomerDetail, authMiddleware mid
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/customers/linked_account/{customer_number}",
+			Path:    "/customers/linked_account/{user_id}",
 			Handler: handler.GetLinkedAccount,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

@@ -43,7 +43,7 @@ func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action
 }
 
 func ValidateBankRequest(r *http.Request, data interface{}) localization.ResponseCode {
-	var name, bic *string
+	var bic *string
 
 	switch v := data.(type) {
 	case *bank_dto.UpdateBankRequest:
@@ -55,7 +55,7 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 				return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 			}
 		}
-		name, bic = &v.Name, &v.BICCode
+		bic = &v.BICCode
 	case *bank_dto.CreateBankRequest:
 		if v == nil {
 			return localization.ErrorNoDataProvidedForBankUpdate
@@ -63,14 +63,14 @@ func ValidateBankRequest(r *http.Request, data interface{}) localization.Respons
 		if err := v.Validate(); err != nil {
 			return localization.ErrorToResponseCode(err.Error(), 400, err.Error())
 		}
-		name, bic = &v.Name, &v.BICCode
+		bic = &v.BICCode
 	default:
 		return localization.ErrorInvalidBankRequest
 	}
 
-	if *name != "" && isInvalidFormat(name) {
-		return localization.ErrorInvalidFormatForName
-	}
+	// if *name != "" && isInvalidFormat(name) {
+	// 	return localization.ErrorInvalidFormatForName
+	// }
 
 	if *bic != "" && isInvalidFormat(bic) {
 		return localization.ErrorInvalidFormatForBIC

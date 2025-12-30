@@ -9,4 +9,5 @@ type ServicesHandler interface {
 	Disable(w http.ResponseWriter, r *http.Request)
 	GetAll(w http.ResponseWriter, r *http.Request)
 	GetByID(w http.ResponseWriter, r *http.Request)
+	GetAllServiceList(w http.ResponseWriter, r *http.Request)
 }

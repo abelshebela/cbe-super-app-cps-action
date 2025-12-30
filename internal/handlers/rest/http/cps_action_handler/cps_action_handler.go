@@ -212,13 +212,13 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 		if rawRoleID == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
 
-		roleID := local_util.FirstHex24(rawRoleID)
+		roleID := rawRoleID
 		UpperCaseAction := strings.ToUpper(actionName)
 		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
 		if err != nil {
@@ -268,7 +268,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	}
 	checkerUser := model.Checker{
 		CheckerID:          userData.UserID,
-		RoleID:             r.Context().Value(constants.ContextKey("role_id")).(string),
+		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerIndex:       int32(*idxDoc.CheckerIndex),
 		CheckerName:        userData.FullName,
 		CheckerPhoneNumber: userData.PhoneNumber,

@@ -1,6 +1,7 @@
 package merchant_lookup
 
 import (
+	"bytes"
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"context"
@@ -57,4 +58,33 @@ func ThreeClickMerchantLookup(ctx context.Context, client *http.Client, x_api_ke
 
 	merchant := apiResp.Data[0]
 	return res, merchant, nil
+}
+
+func ThreeClickMerchantUpdate(ctx context.Context, client *http.Client, x_api_key, url, merchantId string, payload merchantDto.ERPUpdateMerchantRequest, logger utils.Logger) (*http.Response, error) {
+	if merchantId == "" {
+		return nil, errors.New(localization.ErrorMerchantIDRequired.Code)
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		logger.Errorf("failed to marshal ERP update payload: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url+merchantId, bytes.NewReader(body))
+	if err != nil {
+		logger.Errorf("error with context error: %v ", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("X-Api-Key", x_api_key)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("Error while requesting merchant update error :%v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return res, nil
 }
