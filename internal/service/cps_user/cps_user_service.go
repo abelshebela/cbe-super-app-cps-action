@@ -312,7 +312,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return core.ConvertToDTO(userData, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToDTO(userData, makerAlloc, checkerAlloc, auditorAlloc, roles), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
@@ -375,7 +375,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
-	return core.ConvertToDTO(populated, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToDTO(populated, makerAlloc, checkerAlloc, auditorAlloc, roles), nil
 
 	// detail := cpsuser.BuildCpsUserDetail(populated)
 	// return populated, nil

@@ -82,6 +82,7 @@ func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 		span.AddEvent("action code is empty", trace.WithAttributes(attribute.String("error", "action code is empty")))
 		return nil, errors.New(localization.ErrorInvalidRequest.Code)
 	}
+
 	res, err := s.repo.FindByActionCode(ctx, actionCode)
 	if err != nil {
 		span.AddEvent("failed to find by action code", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -102,6 +103,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
+
 	req.ActionName = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(req.ActionName), " ", "_"))
 	req.ActionCode = req.ActionName
 	maker := local_util.ExtractUserFromContext(ctx)
