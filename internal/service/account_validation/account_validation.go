@@ -83,7 +83,7 @@ func (s *accountValidationService) FindById(ctx context.Context, id string) (*mo
 	return rule, nil
 }
 
-func (s *accountValidationService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
+func (s *accountValidationService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ValidationRule], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "Account Validation", "FindAllWithPagination")
 	defer span.End()
 

@@ -94,7 +94,7 @@ func (b *BudgetCategoryStorage) FindBudgetCategoryByID(ctx context.Context, id s
 	return budgetCategory, nil
 }
 
-func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BudgetCategory], error) {
+func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BudgetCategory], error) {
 	filter := bson.M{"is_deleted": false}
 	allowedKeys := []string{"enabled", "name"}
 
@@ -121,7 +121,7 @@ func (b *BudgetCategoryStorage) FindAllBudgetCategories(ctx context.Context, fil
 
 	meta := local_util.BuildPaginationMeta(total, filterParams.Page, filterParams.PerPage)
 	b.logger.Infof("[FindAllBudgetCategories] retrieved %d budget categories", len(data))
-	return &types.PaginatedResponse[[]*model.BudgetCategory]{Data: data, Meta: meta}, nil
+	return &types.PaginatedResponse[[]model.BudgetCategory]{Data: data, Meta: meta}, nil
 }
 
 func (b *BudgetCategoryStorage) DeleteBudgetCategory(ctx context.Context, id string) error {

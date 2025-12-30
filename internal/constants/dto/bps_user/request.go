@@ -17,3 +17,15 @@ type BPSUserCreateRequest struct {
 	Realm       string   `json:"realm"`
 	Enabled     bool     `json:"enabled"`
 }
+
+type BPSUserUpdateRequest struct {
+	UserID      string   `json:"user_id"`
+	FullName    FullName `json:"full_name"`
+	PhoneNumber string   `json:"phone_number"`
+	Email       string   `json:"email"`
+	Role        string   `json:"role"`
+	BranchCode  []string `json:"branch_code"`
+	HomeBranch  string   `json:"home_branch"`
+	Realm       string   `json:"realm"`
+	Enabled     bool     `json:"enabled"`
+}

@@ -36,7 +36,7 @@ func NewPasswordRuleService(repo storage.PasswordRuleRepository, cpsService serv
 	}
 }
 
-func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*local_model.PasswordRule], error) {
+func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.PasswordRule], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllPasswordRules", "PasswordRule", "GetAllPasswordRules")
 	defer span.End()
 

@@ -137,7 +137,7 @@ func (b *DepartmentStorage) FindByName(ctx context.Context, name string) (*model
 	return result, nil
 }
 
-func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]*model.Department], error) {
+func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.Department], error) {
 
 	searchKeys := bson.M{}
 
@@ -169,14 +169,14 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 	// }
 	results, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
-		return types.PaginatedResponse[[]*model.Department]{}, err
+		return types.PaginatedResponse[[]model.Department]{}, err
 	}
 
 	// 6. Count total
 	total, err := s.dal.TotalCount(ctx, filter)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to count departments: %v", err)
-		return types.PaginatedResponse[[]*model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
+		return types.PaginatedResponse[[]model.Department]{}, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
 	// 7. Build pagination metadata
@@ -184,7 +184,7 @@ func (s *DepartmentStorage) FindAllWithPagination(ctx context.Context, filterPar
 	s.logger.Infof("[FindAllWithPagination] retrieved %d departments", len(results))
 
 	// 8. Return standard paginated response
-	return types.PaginatedResponse[[]*model.Department]{
+	return types.PaginatedResponse[[]model.Department]{
 		Data: results,
 		Meta: meta,
 	}, nil

@@ -66,3 +66,16 @@ func NewKafkaMessage(id, msgType string, payload interface{}) (*KafkaMessage, er
 func (k *KafkaMessage) UnmarshalPayload(v interface{}) error {
 	return json.Unmarshal(k.Payload, v)
 }
+
+type CustomerFeedback struct {
+	ID            bson.ObjectID `json:"id" bson:"_id,omitempty"`
+	CustomerName  string        `json:"customer_name" bson:"customer_name"`
+	Email         string        `json:"email" bson:"email"`
+	PhoneNumber   string        `json:"phone_number" bson:"phone_number"`
+	AccountNumber string        `json:"account_number" bson:"account_number"`
+	Rating        int           `json:"rating" bson:"rating"`
+	DeviceModel   string        `json:"device_model" bson:"device_model"`
+	Message       string        `json:"message" bson:"message"`
+	SentAt        time.Time     `json:"sent_at" bson:"sent_at"`
+	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
+}

@@ -116,7 +116,7 @@ func (s *advertService) CreateAdvert(ctx context.Context, ad *model.Advert, bann
 }
 
 // FetchAdverts fetches adverts with pagination and filtering
-func (s *advertService) FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error) {
+func (s *advertService) FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Advert], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchAdverts", "Ad", "FetchAdverts")
 	defer span.End()
 

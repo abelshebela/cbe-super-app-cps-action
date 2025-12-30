@@ -60,7 +60,8 @@ var cpsActionRegistry = map[string]string{
 	"PATCH bps-action-roles": "BPSACTIONEROLE",
 
 	// BPSUser
-	"POST bps_users": "BPSUSER",
+	"POST bps_users":       "BPSUSER",
+	"PATCH bps_users/{id}": "BPSUSER",
 
 	// BudgetCategory
 	"POST budget-category":   "BUDGETCATEGORY",

@@ -137,7 +137,7 @@ func (d *DonationStorage) FindByID(ctx context.Context, id string) (*donation_dt
 		return nil, err
 	}
 	d.logger.Infof("[FindByID] donation retrieved successfully")
-	return MapToDonationListResponse(result, company, category), nil
+	return MapToDonationListResponse(*result, company, category), nil
 }
 
 func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]donation_dto.DonationListResponse], error) {

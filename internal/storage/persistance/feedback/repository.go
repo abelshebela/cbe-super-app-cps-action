@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -20,20 +21,22 @@ import (
 )
 
 type FeedbackStorage struct {
-	dal        dal.MongoDal[model.Feedback, model.Feedback]
-	client     *mongo.Client
-	collection *mongo.Collection
-	logger     utils.Logger
+	dal                 dal.MongoDal[model.Feedback, model.Feedback]
+	customerFeedbackDal dal.MongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback]
+	client              *mongo.Client
+	feedbackCollection  *mongo.Collection
+	customerCollection  *mongo.Collection
+	logger              utils.Logger
 }
 
-func NewFeedbackRepository(client *mongo.Client, dbName string, collectionName string, logger utils.Logger) storage.FeedbackRepository {
-	db := client.Database(dbName)
-	collection := db.Collection(collectionName)
+func NewFeedbackRepository(client *mongo.Client, dbName string, feedbackCollection, customerFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
 	return &FeedbackStorage{
-		dal:        dal.NewMongoDal[model.Feedback, model.Feedback](client, dbName, collectionName),
-		client:     client,
-		collection: collection,
-		logger:     logger,
+		dal:                 dal.NewMongoDal[model.Feedback, model.Feedback](client, dbName, feedbackCollection),
+		customerFeedbackDal: dal.NewMongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback](client, dbName, customerFeedbackCollection),
+		client:              client,
+		feedbackCollection:  client.Database(dbName).Collection(feedbackCollection),
+		customerCollection:  client.Database(dbName).Collection(customerFeedbackCollection),
+		logger:              logger,
 	}
 }
 
@@ -83,7 +86,7 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 	}
 
 	f.logger.Infof("[FindByID] fetching feedback by id: %s", id)
-	cursor, err := f.collection.Aggregate(ctx, pipeline)
+	cursor, err := f.feedbackCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		f.logger.Errorf("[FindByID] failed to aggregate feedback: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
@@ -174,7 +177,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 	}
 
 	f.logger.Infof("[FindAllWithPagination] fetching feedbacks with pagination")
-	cursor, err := f.collection.Aggregate(ctx, pipeline)
+	cursor, err := f.feedbackCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		f.logger.Errorf("[FindAllWithPagination] failed to aggregate feedbacks: %v", err)
 		return nil, err
@@ -220,4 +223,66 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 		Meta:           meta,
 		AverageRatings: averages,
 	}, nil
+}
+func (f *FeedbackStorage) FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.CustomerFeedback], error) {
+	searchKeys := bson.M{}
+	allowedKeys := []string{"search"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		searchKeys["$or"] = []bson.M{
+			{"customer_name": searchRegex},
+			{"email": searchRegex},
+			{"phone_number": searchRegex},
+			{"account_number": searchRegex},
+			{"message": searchRegex},
+		}
+	}
+
+	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+	f.logger.Infof("[FindAllCustomerFeedbacks] fetching customer feedbacks with pagination")
+	data, err := f.customerFeedbackDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	if err != nil {
+		f.logger.Errorf("[FindAllCustomerFeedbacks] failed to fetch customer feedbacks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	total, err := f.customerFeedbackDal.TotalCount(ctx, filter)
+	if err != nil {
+		f.logger.Errorf("[FindAllCustomerFeedbacks] failed to count customer feedbacks: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+	f.logger.Infof("[FindAllCustomerFeedbacks] retrieved %d customer feedbacks", len(data))
+
+	return &types.PaginatedResponse[[]local_model.CustomerFeedback]{
+		Data: data,
+		Meta: meta,
+	}, nil
+}
+
+func (f *FeedbackStorage) FindCustomerFeedbackByID(ctx context.Context, id string) (*local_model.CustomerFeedback, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		f.logger.Errorf("[FindCustomerFeedbackByID] invalid id: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+
+	filter := bson.M{"_id": objID}
+	f.logger.Infof("[FindCustomerFeedbackByID] fetching customer feedback by id: %s", id)
+
+	result, err := f.customerFeedbackDal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			f.logger.Warnf("[FindCustomerFeedbackByID] customer feedback not found for id: %s", id)
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		f.logger.Errorf("[FindCustomerFeedbackByID] failed to find customer feedback: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	f.logger.Infof("[FindCustomerFeedbackByID] customer feedback retrieved successfully for id: %s", id)
+	return result, nil
 }

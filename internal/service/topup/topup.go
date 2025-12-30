@@ -270,7 +270,7 @@ func (s *topupService) GetTopup(ctx context.Context, id string) (*model.Topup, e
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *topupService) GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Topup], error) {
+func (s *topupService) GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.Topup], error) {
 	s.logger.Infof("FetchAllcalled")
 
 	return s.repo.FindAllWithPagination(ctx, filterParams)

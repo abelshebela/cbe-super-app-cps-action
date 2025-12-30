@@ -34,6 +34,22 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customer-feedbacks",
+			Handler: feedbackHandler.GetAllCustomerFeedbacks,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/customer-feedbacks/{id}",
+			Handler: feedbackHandler.GetCustomerFeedback,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)

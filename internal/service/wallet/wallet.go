@@ -244,7 +244,7 @@ func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error) {
+func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 	return s.repo.FindAllWithPagination(ctx, filterParams)
 }
 

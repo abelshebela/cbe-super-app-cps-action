@@ -248,7 +248,7 @@ func (d *DepartmentService) EnableDisableDepartment(ctx context.Context, id stri
 }
 
 // GetAllDepartments implements service.DepartmentService.
-func (d *DepartmentService) GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]*model.Department], error) {
+func (d *DepartmentService) GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.Department], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllDepartments", "Department", "GetAllDepartments")
 	defer span.End()
 

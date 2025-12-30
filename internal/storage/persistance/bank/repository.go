@@ -163,7 +163,7 @@ func (s *BankStorage) FindByNameOrBIC(
 	return bank, nil
 }
 
-func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
+func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
@@ -200,7 +200,7 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	s.logger.Infof("[FindAllWithPagination] retrieved %d banks", len(data))
 
-	return &types.PaginatedResponse[[]*model.Bank]{
+	return &types.PaginatedResponse[[]model.Bank]{
 		Data: data,
 		Meta: meta,
 	}, nil

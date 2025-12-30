@@ -146,7 +146,7 @@ func (a *AccessListSegmentation) EnableOrDisable(ctx context.Context, id string,
 	return err
 }
 
-func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.AccessListSegmentation], error) {
+func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error) {
 	a.logger.Infof("[FindAllWithPagination] filter params: %+v", filterParam)
 
 	searchKeys := bson.M{}
@@ -177,7 +177,7 @@ func (a *AccessListSegmentation) FindAllWithPagination(ctx context.Context, filt
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d segmentations", len(data))
 
-	return &types.PaginatedResponse[[]*local_model.AccessListSegmentation]{
+	return &types.PaginatedResponse[[]local_model.AccessListSegmentation]{
 		Data: data,
 		Meta: meta,
 	}, nil

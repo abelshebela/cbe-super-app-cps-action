@@ -49,7 +49,7 @@ func (j *RoleService) Create(ctx context.Context, role imodel.JobRole) error {
 
 	if err := core.RoleExistenChecker(ctx, constants.CREATE, "", role, j.roleRepository); err != nil {
 		if err != mongo.ErrNoDocuments {
-			return errors.New(localization.ErrorUnexpectedError.Code)
+			return errors.New(err.Error())
 		}
 	}
 	cpsModel := lib.CpsModelBuilder(constants.Empty, maker, nil, role, constants.RequestCreateRole, constants.CREATE)
@@ -94,7 +94,7 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 	return j.roleRepository.FindByID(ctx, id)
 }
 
-func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error) {
+func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
 	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
 }
 

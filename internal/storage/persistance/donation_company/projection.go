@@ -27,10 +27,10 @@ func MapToDonationCompanyListResponse(company *model.DonationCompany) *dto.Donat
 	}
 }
 
-func MapToDonationCompanyListResponses(companies []*model.DonationCompany) []dto.DonationCompanyListResponse {
+func MapToDonationCompanyListResponses(companies []model.DonationCompany) []dto.DonationCompanyListResponse {
 	responses := make([]dto.DonationCompanyListResponse, len(companies))
-	for i, company := range companies {
-		responses[i] = *MapToDonationCompanyListResponse(company)
+	for i := range companies {
+		responses[i] = *MapToDonationCompanyListResponse(&companies[i])
 	}
 	return responses
 }

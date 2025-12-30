@@ -3,13 +3,13 @@ package service_details
 import (
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // ServiceDetailsMapper maps a ServiceDetails model to a bson.M for updates
-func ServiceDetailsMapper(details model.ServiceDetails) bson.M {
+func ServiceDetailsMapper(details imodel.ServiceDetails) bson.M {
 	return bson.M{
 		"service_code":          details.ServiceCode,
 		"service_name":          details.ServiceName,

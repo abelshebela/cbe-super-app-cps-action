@@ -29,7 +29,6 @@ import (
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
-	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
@@ -38,7 +37,6 @@ import (
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
-	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
@@ -52,20 +50,21 @@ import (
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ServicesService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req imodel.Services) error
-	Update(ctx context.Context, id string, req imodel.Services) error
+	Create(ctx context.Context, req service_dto.CreateServiceRequest) error
+	Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error)
-	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error)
-	GetByID(ctx context.Context, id string) (*imodel.Services, error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
+	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
+	GetByID(ctx context.Context, id string) (*imodel.Service, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
@@ -95,7 +94,7 @@ type BudgetCategoryService interface {
 }
 
 type BulkService interface {
-	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error)
+	GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
 	EnableBulkService(ctx context.Context, keys []string) error
 	DisableBulkService(ctx context.Context, keys []string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -122,7 +121,7 @@ type NotificationService interface {
 	EnableNotification(ctx context.Context, id string) error
 	DisableNotification(ctx context.Context, id string) error
 	FetchNotificationByID(ctx context.Context, id string) (*notify.NotificationResponse, error)
-	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error)
+	FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Notification], error)
 }
 
 type CustomerService interface {
@@ -132,7 +131,7 @@ type CustomerService interface {
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
-	GetLinkedAccount(ctx context.Context, id string) ([]*model.LinkedAccount, error)
+	GetLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -144,7 +143,7 @@ type DepartmentService interface {
 	CreateDepartment(ctx context.Context, department department_dto.CreateDepartmentRequest) error
 	UpdateDepartment(ctx context.Context, id string, department department_dto.UpdateDepartmentRequest) error
 	EnableDisableDepartment(ctx context.Context, id string, enableDisable bool) error
-	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]*model.Department], error)
+	GetAllDepartments(ctx context.Context, filterParams *types.Filter) (types.PaginatedResponse[[]model.Department], error)
 	GetDepartmentByID(ctx context.Context, id string) (*model.Department, error)
 }
 
@@ -188,12 +187,12 @@ type EventService interface {
 	DeleteEvent(ctx context.Context, id string) error
 	EnableDisableEvent(ctx context.Context, id string, enable bool) error
 	FetchEventByID(ctx context.Context, id string) (*model.Event, error)
-	FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error)
+	FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Event], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
 type KYCVerifierService interface {
-	FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*kyc_dto.KYCVerifierResponse], error)
+	FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]kyc_dto.KYCVerifierResponse], error)
 	FetchKYCByID(ctx context.Context, id string) (*kyc_dto.KYCVerifierResponse, error)
 	UpdateKYC(ctx context.Context, id string, req kyc_dto.UpdateKYCRequest) error
 	ApproveKYC(ctx context.Context, id string, req kyc_dto.ApproveKYCRequest) error
@@ -210,10 +209,13 @@ type FeedbackService interface {
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
 	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error)
+
+	GetAllCustomerFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
+	GetCustomerFeedback(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 }
 
 type HQService interface {
-	GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.HQ], error)
+	GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.HQ], error)
 	GetHQ(ctx context.Context, id string) (hqDto.HQ, error)
 	GetBlockTime(ctx context.Context) (hqDto.BlockTimeResponse, error)
 	GetArchiveTime(ctx context.Context) (hqDto.ArchiveTimeResponse, error)
@@ -243,7 +245,7 @@ type EcommerceMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	Create(ctx context.Context, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, error)
 	Update(ctx context.Context, id string, req *merchantDto.EcommerceMerchant) (*model.EcommerceMerchant, *model.EcommerceMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error)
 	FindByID(ctx context.Context, id string) (*model.EcommerceMerchant, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
@@ -251,7 +253,7 @@ type EcommerceMerchantService interface {
 }
 
 type PasswordRuleService interface {
-	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*imodel.PasswordRule], error)
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]imodel.PasswordRule], error)
 	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
 	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -274,16 +276,16 @@ type PermissionService interface {
 }
 
 type PortalCardService interface {
-	GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error)
+	GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Card], error)
 	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
-type ProductCodeService interface {
-	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
-	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
-	UpdateProductCode(ctx context.Context, request productcode_dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
-	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-}
+// type ProductCodeService interface {
+// 	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
+// 	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+// 	UpdateProductCode(ctx context.Context, request productcode_dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+// 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+// }
 
 type DeviceVersionServiceSrv interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -294,24 +296,24 @@ type DeviceVersionServiceSrv interface {
 	UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error
 }
 
-type ServiceService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ServiceDetails], error)
-	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MinimumTransferCapResponse], error)
-	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MaximumTransferCapResponse], error)
-	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.ServiceFeeResponse], error)
-	GetAllTotalTransferCap(ctx context.Context) (*dtoService.TotalTransferCapResponse, error)
-	GetServiceFeeDetail(ctx context.Context, id string) (*dtoService.ServiceFeeDetailResponse, error)
-	UpdateServiceFee(ctx context.Context, id string, req dtoService.ServiceFeeDetailDTO) error
-	UpdateSingleMaxTransfer(ctx context.Context, id string, req dtoService.SingleMaxTransferRequest) error
-	UpdateTotalMaxTransferCap(ctx context.Context, newTotalCap dtoService.TotalMaxTransferUpdateRequest) error
-	UpdateMinimumTransferCap(ctx context.Context, id string, req dtoService.MinimumTransferUpdateRequest) error
-	DeleteServiceFeeTire(ctx context.Context, id string) error
-}
+// type ServiceService interface {
+// 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+// 	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error)
+// 	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MinimumTransferCapResponse], error)
+// 	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MaximumTransferCapResponse], error)
+// 	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.ServiceFeeResponse], error)
+// 	GetAllTotalTransferCap(ctx context.Context) (*dtoService.TotalTransferCapResponse, error)
+// 	GetServiceFeeDetail(ctx context.Context, id string) (*dtoService.ServiceFeeDetailResponse, error)
+// 	UpdateServiceFee(ctx context.Context, id string, req dtoService.ServiceFeeDetailDTO) error
+// 	UpdateSingleMaxTransfer(ctx context.Context, id string, req dtoService.SingleMaxTransferRequest) error
+// 	UpdateTotalMaxTransferCap(ctx context.Context, newTotalCap dtoService.TotalMaxTransferUpdateRequest) error
+// 	UpdateMinimumTransferCap(ctx context.Context, id string, req dtoService.MinimumTransferUpdateRequest) error
+// 	DeleteServiceFeeTire(ctx context.Context, id string) error
+// }
 
 type UnlinkService interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
-	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error)
+	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
@@ -322,7 +324,7 @@ type WalletService interface {
 	DeleteWallet(ctx context.Context, id string) error
 	EnableOrDisableWallet(ctx context.Context, id string, enable bool) error
 	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
-	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*local_model.Wallet], error)
+	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -332,7 +334,7 @@ type TopupService interface {
 	DeleteTopup(ctx context.Context, id string) error
 	EnableOrDisableTopup(ctx context.Context, id string, enable bool) error
 	GetTopup(ctx context.Context, id string) (*model.Topup, error)
-	GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Topup], error)
+	GetAllTopup(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.Topup], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -355,7 +357,7 @@ type AccountBlockService interface {
 type AccountValidationService interface {
 	Update(ctx context.Context, id string, rule *model.ValidationRule) error
 	FindById(ctx context.Context, id string) (*model.ValidationRule, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ValidationRule], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -365,7 +367,7 @@ type ActionService interface {
 
 type AdvertService interface {
 	CreateAdvert(ctx context.Context, ad *model.Advert, bannerImage *multipart.FileHeader) error
-	FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error)
+	FetchAdverts(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Advert], error)
 	FetchAdvertByID(ctx context.Context, id string) (*model.Advert, error)
 	UpdateAdvert(ctx context.Context, id string, ad *model.Advert, bannerImage *multipart.FileHeader) error
 	DeleteAdvert(ctx context.Context, id string) error
@@ -375,7 +377,7 @@ type AdvertService interface {
 
 type AmountBasedAuthService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error)
+	FindAllWithPagination(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error)
 	UpdateAmountBasedAuth(ctx context.Context, id string, method shared_constant.Method, request amountauthdto.UpdateAmountBasedAuthRequest) error
 }
 
@@ -384,14 +386,14 @@ type AvatarService interface {
 	UpdateAvatar(ctx context.Context, id string, avatar *model.Avatar, fileHeader *multipart.FileHeader, fromEnabledDisable bool) error
 	DeleteAvatar(ctx context.Context, id string) error
 	EnableDisable(ctx context.Context, id string, enable bool) error
-	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error)
+	FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.Avatar], error)
 	FetchAvatarById(ctx context.Context, id string) (*model.Avatar, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type BankService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error)
+	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.Bank], error)
 
 	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
 
@@ -406,9 +408,10 @@ type BankService interface {
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req model.BPSUser) error
+	UpdateBPSUser(ctx context.Context, userCode string, updatedUser model.BPSUser) error
 }
 
 type AccountSearchService interface {
@@ -425,7 +428,7 @@ type EventMerchantService interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -437,7 +440,7 @@ type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
 	Update(ctx context.Context, id string, update model.Role) error
 	FindById(ctx context.Context, id string) (*model.Role, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -445,14 +448,14 @@ type RoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
 	Update(ctx context.Context, id string, update imodel.JobRole) error
 	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type CustomerSegmentationService interface {
 	Create(ctx context.Context, req cust_seg.CreateCustomerSegmentationRequest) error
 	Update(ctx context.Context, id string, req cust_seg.UpdateCustomerSegmentationRequest) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error)
 	FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
@@ -462,7 +465,7 @@ type CustomerSegmentationService interface {
 type CPSRolesService interface {
 	Create(ctx context.Context, req cps_role_dto.CreateCPSRoleRequest) error
 	Update(ctx context.Context, id string, req cps_role_dto.UpdateCPSRoleRequest) error
-	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CPSRoles], error)
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -495,10 +498,8 @@ type ServiceLayer struct {
 	AmountBasedAuth               AmountBasedAuthService
 	Permission                    PermissionService
 	CPSUser                       CPSUserService
-	ServiceDetails                ServiceService
 	Services                      ServicesService
 	AccountValidation             AccountValidationService
-	ProductCode                   ProductCodeService
 	BankVault                     BankVaultService
 	VaultGroupCategory            VaultGroupCategoryService
 	DonationCategory              DonationCategoryService
@@ -559,12 +560,10 @@ type ServiceContainer struct {
 	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
-	ServiceCheckContainer              ServiceService
 	ServicesContainer                  ServicesService
 	DeviceVersionContainer             DeviceVersionServiceSrv
 	KeyGenService                      KeyGeneratorService
 	NotificationService                NotificationService
-	ProductCodeService                 ProductCodeService
 	DonationContainer                  DonationService
 	Unlink                             UnlinkService
 	DonationCategoryContainer          DonationCategoryService
@@ -596,8 +595,8 @@ type ServiceContainer struct {
 
 type BPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error)
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error)
+	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ActionRole], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
@@ -655,7 +654,7 @@ type NewsTagsService interface {
 }
 
 type NewsTagService interface {
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsTag], error)
 	GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error)
 	CreateNewsTags(ctx context.Context, tagName []string) error
 	UpdateNewsTag(ctx context.Context, id string, tagName string) error
@@ -663,7 +662,7 @@ type NewsTagService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 type NewsCategoryService interface {
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsCategory], error)
 	GetNewsCategoryByID(ctx context.Context, id string) (*model.NewsCategory, error)
 	CreateNewsCategory(ctx context.Context, categoryName []string) error
 	UpdateNewsCategory(ctx context.Context, id string, categoryName string) error
@@ -691,7 +690,7 @@ type TransactionService interface {
 }
 type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error)
+	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error

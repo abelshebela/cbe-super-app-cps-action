@@ -161,12 +161,13 @@ func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*model.Ro
 	return result, nil
 }
 
-func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error) {
+func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error) {
 	searchKeys := bson.M{}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"job_title": searchRegex},
+			{"role": searchRegex},
 		}
 	}
 
@@ -189,7 +190,7 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 	}
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]*model.Role]{
+	return &types.PaginatedResponse[[]model.Role]{
 		Data: data,
 		Meta: meta,
 	}, nil
