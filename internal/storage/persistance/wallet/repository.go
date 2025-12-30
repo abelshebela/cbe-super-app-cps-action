@@ -22,7 +22,7 @@ import (
 
 type WalletStorage struct {
 	dal        dal.MongoDal[local_model.Wallet, local_model.Wallet]
-	serviceDal dal.MongoDal[model.Services, model.Services]
+	serviceDal dal.MongoDal[model.Service, model.Service]
 	logger     utils.Logger
 }
 

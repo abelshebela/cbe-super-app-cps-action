@@ -51,7 +51,6 @@ import (
 	password "cbe-super-app-cps-action/internal/storage/persistance/password_rule"
 	permission "cbe-super-app-cps-action/internal/storage/persistance/permission"
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
-	productcode "cbe-super-app-cps-action/internal/storage/persistance/product_code"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	role_repo "cbe-super-app-cps-action/internal/storage/persistance/role"
 	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
@@ -118,7 +117,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
 		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),
 		TopupPersistence:                  Topup.NewTopupRepository(client, dbName, TopUpsCollection, logger),
-		ProductCodePersistence:            productcode.NewProductCodeRepository(client, dbName, ServicesCollection, logger),
 		DepartmentPersistence:             department.NewDepartmentRepository(client, dbName, DepartmentsCollection, logger),
 		FaydaPersistence:                  fayda.InitFaydaAccountPersistence(client, dbName, MembersCollection, logger),
 		PermissionPersistence:             permission.InitPermission(client, dbName, []string{PermissionGroupsCollection, PermissionCategoryCollection, PermissionCollection, CPSActionsCollection}, 30*time.Second, logger),

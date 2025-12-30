@@ -20,24 +20,28 @@ type Tier struct {
 	Max       float64 `bson:"max" json:"max"`
 }
 
-type Services struct {
-	ID                  bson.ObjectID `bson:"_id" json:"_id"`
-	ServiceCode         string        `bson:"service_code" json:"service_code"`
-	ServiceName         string        `bson:"service_name" json:"service_name"`
-	ServiceKey          string        `bson:"service_key" json:"service_key"`
-	ChargeCode          string        `bson:"charge_code" json:"charge_code"`
-	CommissionCode      string        `bson:"commission_code" json:"commission_code"`
-	Cap                 Cap           `bson:"cap" json:"cap"`
-	AboveAmount         float64       `bson:"above_amount" json:"above_amount"`
-	AboveServiceFee     float64       `bson:"above_service_fee" json:"above_service_fee"`
-	PaymentType         string        `bson:"payment_type" json:"payment_type"`
-	Tiers               []Tier        `bson:"tiers" json:"tiers"`
-	CbeGLProductAccount string        `bson:"cbe_gl_product_account" json:"cbe_gl_product_account"`
-	Enabled             bool          `bson:"enabled" json:"enabled"`
-	IsDeleted           bool          `bson:"is_deleted" json:"is_deleted"`
-	CreatedAt           time.Time     `bson:"created_at" json:"created_at"`
-	LastModifiedAt      time.Time     `bson:"last_modified_at" json:"last_modified_at"`
-	DeletedAt           *time.Time    `bson:"deleted_at" json:"deleted_at"`
+type ServiceLists struct {
+	ServiceName             string `bson:"service_name" json:"service_name"`
+	ServiceKey              string `bson:"service_key" json:"service_key"`
+	OverideCap              Cap    `bson:"overide_cap" json:"overide_cap"`
+	OverideProductGlAccount string `bson:"overide_product_gl_account" json:"overide_product_gl_account"`
+	OverideTiers            []Tier `bson:"overide_tiers" json:"overide_tiers"`
+	IsEnabled               bool   `bson:"is_enabled" json:"is_enabled"`
+}
+type Service struct {
+	ID               bson.ObjectID  `bson:"_id,omitempty" json:"id"`
+	ServiceCode      string         `bson:"service_code" json:"service_code"`
+	ServiceKey       string         `bson:"service_key" json:"service_key"`
+	ServiceName      string         `bson:"service_name" json:"service_name"`
+	ServiceList      []ServiceLists `bson:"service_list" json:"service_list"`
+	Cap              Cap            `bson:"cap" json:"cap"`
+	Tiers            []Tier         `bson:"tiers" json:"tiers"`
+	ProductGlAccount string         `bson:"product_gl_account" json:"product_gl_account"`
+	Enabled          bool           `bson:"enabled" json:"enabled"`
+	IsDeleted        bool           `bson:"is_deleted" json:"is_deleted"`
+	CreatedAt        time.Time      `bson:"created_at" json:"created_at"`
+	LastModifiedAt   time.Time      `bson:"last_modified_at" json:"last_modified_at"`
+	DeletedAt        *time.Time     `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
 }
 
 type Cap struct {
