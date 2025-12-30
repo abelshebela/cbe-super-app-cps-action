@@ -50,20 +50,21 @@ import (
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ServicesService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req imodel.Services) error
-	Update(ctx context.Context, id string, req imodel.Services) error
+	Create(ctx context.Context, req service_dto.CreateServiceRequest) error
+	Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Services], error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
-	GetByID(ctx context.Context, id string) (*imodel.Services, error)
+	GetByID(ctx context.Context, id string) (*imodel.Service, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error

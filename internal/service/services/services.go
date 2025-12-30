@@ -2,12 +2,14 @@ package services
 
 import (
 	"context"
+	"errors"
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	// imodel "cbe-super-app-cps-action/internal/constants/model"
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/services/core"
@@ -28,41 +30,37 @@ func NewServicesService(repo storage.ServicesRepository, cps service.CPSActionSe
 	return &servicesService{repo: repo, cps: cps, logger: logger}
 }
 
-func (s *servicesService) Create(ctx context.Context, req imodel.Services) error {
+func (s *servicesService) Create(ctx context.Context, req service_dto.CreateServiceRequest) error {
 	if err := core.ValidateCreate(req, s.repo); err != nil {
 		return err
 	}
-	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, req, nil, constants.ActionCreate)
+
+	mapped := core.MapToServiceModel(req)
+
+	return core.HandleCPSAction(ctx, s.cps, "", constants.RequestCreateService, mapped, nil, constants.ActionCreate)
 }
 
-func (s *servicesService) Update(ctx context.Context, id string, req imodel.Services) error {
+func (s *servicesService) Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error {
 	prev, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return err
 	}
-	if req.ServiceCode != "" {
-		res, err := s.repo.FindAllWithPagination(ctx, types.Filter{Filters: map[string]interface{}{"service_code": req.ServiceCode}})
-		if err != nil {
-			return err
-		}
-		for _, v := range res.Data {
-			if v.ID.Hex() != id {
-				return localization.ErrorServiceExists
-			}
+
+	filterParam := types.Filter{
+		Search: req.ServiceCode,
+	}
+	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
+	if err != nil {
+		return err
+	}
+	for _, svc := range services.Data {
+		if svc.ID.Hex() != id && (svc.ServiceCode == req.ServiceCode || svc.ServiceName == req.ServiceName) {
+			return errors.New(localization.ErrorServiceExists.Code)
 		}
 	}
-	if req.ServiceName != "" {
-		res, err := s.repo.FindAllWithPagination(ctx, types.Filter{Filters: map[string]interface{}{"service_name": req.ServiceName}})
-		if err != nil {
-			return err
-		}
-		for _, v := range res.Data {
-			if v.ID.Hex() != id {
-				return localization.ErrorServiceExists
-			}
-		}
-	}
-	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateService, req, prev, constants.ActionUpdate)
+
+	mapped := core.MapToServiceUpdateModel(req)
+	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateService, mapped, prev, constants.ActionUpdate)
 }
 
 func (s *servicesService) Enable(ctx context.Context, id string) error {
@@ -95,7 +93,7 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDisableService, payload, prev, constants.ActionUpdate)
 }
 
-func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Services], error) {
+func (s *servicesService) GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Service], error) {
 	return s.repo.FindAllWithPagination(ctx, filter)
 }
 
@@ -103,12 +101,12 @@ func (s *servicesService) GetAllServiceList(ctx context.Context, filter types.Fi
 	return s.repo.FindAllServiceListWithPagination(ctx, filter)
 }
 
-func (s *servicesService) GetByID(ctx context.Context, id string) (*imodel.Services, error) {
+func (s *servicesService) GetByID(ctx context.Context, id string) (*imodel.Service, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
 func (s *servicesService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {
-	serviceDoc, err := local_util.JsonUnmarshal[imodel.Services](action.CurrentAction)
+	serviceDoc, err := local_util.JsonUnmarshal[imodel.Service](action.CurrentAction)
 	if err != nil {
 		return nil, localization.ErrorInvalidActionData
 	}

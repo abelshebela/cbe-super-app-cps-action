@@ -12,30 +12,35 @@ type TierRequest struct {
 	Max       float64 `json:"max" example:"5000"`
 }
 
+type ServiceList struct {
+	ServiceName             string        `bson:"service_name" json:"service_name"`
+	ServiceKey              string        `bson:"service_key" json:"service_key"`
+	OverideCap              CapRequest    `bson:"overide_cap" json:"overide_cap"`
+	OverideProductGlAccount string        `bson:"overide_product_gl_account" json:"overide_product_gl_account"`
+	OverideTiers            []TierRequest `bson:"overide_tiers" json:"overide_tiers"`
+	IsEnabled               *bool         `bson:"is_enabled" json:"is_enabled"`
+}
+
 type CreateServiceRequest struct {
 	ServiceName      string        `json:"service_name" example:"Transfer To Other bank"`
 	ServiceKey       string        `json:"service_key" example:"Transfer To Other bank"`
 	ServiceCode      string        `json:"service_code" example:"JKSJBDJB"`
-	ProductAccount   string        `json:"cbe_gl_product_account" example:"234353354"`
-	ChargeCode       string        `json:"charge_code" example:"JKSJBDJB"`
-	CommissionCode   string        `json:"commission_code" example:"DSFDDHJS"`
+	ProductGlAccount string        `json:"cbe_gl_product_account" example:"234353354"`
+	ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
 	Cap              CapRequest    `json:"cap"`
 	Tiers            []TierRequest `json:"tiers"`
-	AboveAmount      float64       `json:"above_amount" example:"10000"`
-	AboveServiceFee  float64       `json:"above_service_fee" example:"500"`
-	AbovePaymentType string        `json:"above_payment_type"`
+	Enabled          *bool         `bson:"enabled" json:"enabled"`
+	IsDeleted        *bool         `bson:"is_deleted" json:"is_deleted"`
 }
 
 type UpdateServiceRequest struct {
 	ServiceName      string        `json:"service_name" example:"Transfer To Other bank"`
 	ServiceKey       string        `json:"service_key" example:"Transfer To Other bank"`
 	ServiceCode      string        `json:"service_code" example:"JKSJBDJB"`
-	ProductAccount   string        `json:"cbe_gl_product_account" example:"234353354"`
-	ChargeCode       string        `json:"charge_code" example:"JKSJBDJB"`
-	CommissionCode   string        `json:"commission_code" example:"DSFDDHJS"`
+	ProductGlAccount string        `json:"cbe_gl_product_account" example:"234353354"`
+	ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
 	Cap              CapRequest    `json:"cap"`
 	Tiers            []TierRequest `json:"tiers"`
-	AboveAmount      float64       `json:"above_amount" example:"10000"`
-	AboveServiceFee  float64       `json:"above_service_fee" example:"500"`
-	AbovePaymentType string        `json:"above_payment_type"`
+	Enabled          *bool         `bson:"enabled" json:"enabled"`
+	IsDeleted        *bool         `bson:"is_deleted" json:"is_deleted"`
 }
