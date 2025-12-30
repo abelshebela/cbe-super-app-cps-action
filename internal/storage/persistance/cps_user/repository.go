@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"fmt"
 
 	"time"
 
@@ -182,24 +183,20 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$project", Value: bson.M{
-			"_id":                 1,
-			"user_code":           1,
-			"full_name":           1,
-			"job_title":           1,
-			"role":                1,
-			"department":          1,
-			"gender":              1,
-			"phone_number":        1,
-			"email":               1,
-			"username":            1,
-			"realm":               1,
-			"permission_category": 1,
-			"permission_group":    1,
-			"enabled":             1,
-			"date_joined":         1,
-			"last_modified":       1,
-			"country":             1,
-			"region":              1,
+			"_id":           1,
+			"user_code":     1,
+			"full_name":     1,
+			"job_title":     1,
+			"role":          1,
+			"gender":        1,
+			"phone_number":  1,
+			"email":         1,
+			"username":      1,
+			"enabled":       1,
+			"date_joined":   1,
+			"last_modified": 1,
+			"country":       1,
+			"region":        1,
 		}}},
 
 		bson.D{{Key: "$lookup", Value: bson.M{
@@ -305,6 +302,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 		r.logger.Errorf("[GetPopulatedByID] failed to decode CPS user response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
+	fmt.Println("Decoded CPS User Response:", resp)
 	r.logger.Infof("[GetPopulatedByID] populated CPS user retrieved successfully")
 	return &resp, nil
 }

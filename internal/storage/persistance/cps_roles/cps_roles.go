@@ -71,7 +71,7 @@ func (m *cpsRoleStorage) Update(ctx context.Context, id string, req model.CPSRol
 	return nil
 }
 
-func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CPSRoles], error) {
+func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "enabled"}
 
@@ -98,7 +98,7 @@ func (m *cpsRoleStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.CPSRoles]{
+	return &types.PaginatedResponse[[]model.CPSRoles]{
 		Data: data,
 		Meta: meta,
 	}, nil

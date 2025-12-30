@@ -142,7 +142,7 @@ func (m *EcommerceMerchantStorage) FindByID(ctx context.Context, id string) (*mo
 	return result, nil
 }
 
-func (s *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error) {
+func (s *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_code", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -175,7 +175,7 @@ func (s *EcommerceMerchantStorage) FindAllWithPagination(ctx context.Context, fi
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.EcommerceMerchant]{
+	return &types.PaginatedResponse[[]model.EcommerceMerchant]{
 		Data: data,
 		Meta: meta,
 	}, nil

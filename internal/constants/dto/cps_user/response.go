@@ -106,47 +106,24 @@ type CpsUserResponse struct {
 	AuditorAllocations []string                  `json:"auditor_allocations" example:"[\"Action1\", \"Action2\"]"`
 }
 
-// type CpsUserResponse struct {
-// 	ID               bson.ObjectID             `json:"id" bson:"_id"`
-// 	UserCode         string                    `json:"user_code" bson:"user_code"`
-// 	FullName         string                    `json:"full_name" bson:"full_name"`
-// 	Role             string                    `json:"role" bson:"role"`
-// 	Department       *DepartmentResponse       `json:"department" bson:"department"`
-// 	Gender           string                    `json:"gender" bson:"gender"`
-// 	PhoneNumber      string                    `json:"phone_number" bson:"phone_number"`
-// 	Email            string                    `json:"email" bson:"email"`
-// 	UserName         string                    `json:"username" bson:"username"`
-// 	Realm            string                    `json:"realm" bson:"realm"`
-// 	Enabled          bool                      `json:"enabled" bson:"enabled"`
-// 	DateJoined       time.Time                 `json:"date_joined" bson:"date_joined"`
-// 	LastModified     time.Time                 `json:"last_modified" bson:"last_modified"`
-// 	Country          string                    `json:"country" bson:"country"`
-// 	Region           string                    `json:"region" bson:"region"`
-// 	PermissionGroups []PermissionGroupResponse `json:"permission_groups" bson:"permission_groups"`
-// }
-
 type Department struct {
 	ID   bson.ObjectID `json:"id,omitempty" bson:"id,omitempty"`
 	Name string        `json:"name,omitempty" bson:"name,omitempty"`
 }
 
 type CPSUserWithDepartment struct {
-	ID                 bson.ObjectID   `json:"id,omitempty" bson:"_id,omitempty"`
-	UserCode           string          `json:"user_code,omitempty" bson:"user_code"`
-	FullName           string          `json:"full_name,omitempty" bson:"full_name"`
-	Role               string          `json:"role,omitempty" bson:"role"`
-	Department         *Department     `json:"department,omitempty" bson:"department"`
-	Gender             string          `json:"gender,omitempty" bson:"gender"`
-	PhoneNumber        string          `json:"phone_number,omitempty" bson:"phone_number"`
-	Email              string          `json:"email,omitempty" bson:"email"`
-	UserName           string          `json:"username,omitempty" bson:"username"`
-	Realm              string          `json:"realm,omitempty" bson:"realm"`
-	PermissionCategory []bson.ObjectID `json:"permission_category,omitempty" bson:"permission_category"`
-	PermissionGroup    []bson.ObjectID `json:"permission_group,omitempty" bson:"permission_group"`
-	JobTitle           string          `json:"job_title,omitempty" bson:"job_title"`
-	Enabled            bool            `json:"enabled,omitempty" bson:"enabled"`
-	DateJoined         *time.Time      `json:"date_joined,omitempty" bson:"date_joined"`
-	LastModified       *time.Time      `json:"last_modified,omitempty" bson:"last_modified"`
-	Country            string          `json:"country,omitempty" bson:"country"`
-	Region             string          `json:"region,omitempty" bson:"region"`
+	ID           bson.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	UserCode     string        `json:"user_code,omitempty" bson:"user_code"`
+	FullName     string        `json:"full_name,omitempty" bson:"full_name"`
+	Role         string        `json:"role,omitempty" bson:"role"`
+	Gender       string        `json:"gender,omitempty" bson:"gender"`
+	PhoneNumber  string        `json:"phone_number,omitempty" bson:"phone_number"`
+	Email        string        `json:"email,omitempty" bson:"email"`
+	UserName     string        `json:"username,omitempty" bson:"username"`
+	JobTitle     string        `json:"job_title,omitempty" bson:"job_title"`
+	Enabled      bool          `json:"enabled,omitempty" bson:"enabled"`
+	DateJoined   *time.Time    `json:"date_joined,omitempty" bson:"date_joined"`
+	LastModified *time.Time    `json:"last_modified,omitempty" bson:"last_modified"`
+	Country      string        `json:"country,omitempty" bson:"country"`
+	Region       string        `json:"region,omitempty" bson:"region"`
 }

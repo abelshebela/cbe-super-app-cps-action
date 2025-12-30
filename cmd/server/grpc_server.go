@@ -73,10 +73,10 @@ func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	}
 }
 
-func (s *server) bankListMapper(data []*model.Bank) []*bankpb.Bank {
+func (s *server) bankListMapper(data []model.Bank) []*bankpb.Bank {
 	var banks []*bankpb.Bank
-	for _, bank := range data {
-		banks = append(banks, s.bankMapper(bank))
+	for i := range data {
+		banks = append(banks, s.bankMapper(&data[i]))
 	}
 	return banks
 }
@@ -147,10 +147,10 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []*local_model.Wallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
-	for _, wallet := range data {
-		wallets = append(wallets, s.walletMapper(wallet))
+	for i := range data {
+		wallets = append(wallets, s.walletMapper(&data[i]))
 	}
 	return wallets
 }
@@ -189,10 +189,10 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []*model.ServiceDetails) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []model.ServiceDetails) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
-	for _, service := range data {
-		services = append(services, s.MapServiceDetails(service))
+	for i := range data {
+		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
@@ -236,19 +236,19 @@ func (s *server) GetAllTopup(ctx context.Context, req *topuppb.TopupRequest) (*t
 	return &topuppb.TopupResponse{Topups: s.TopupMapper(data.Data)}, nil
 }
 
-func (s *server) TopupMapper(data []*model.Topup) []*topuppb.Topup {
+func (s *server) TopupMapper(data []model.Topup) []*topuppb.Topup {
 	var topups []*topuppb.Topup
-	for _, topup := range data {
+	for i := range data {
 		topups = append(topups, &topuppb.Topup{
-			Id:             topup.ID.Hex(),
-			Name:           topup.Name,
-			Code:           topup.Code,
-			Avatar:         topup.Avatar,
-			Enabled:        topup.Enabled,
-			IsDeleted:      topup.IsDeleted,
-			CreatedAt:      timestamppb.New(topup.CreatedAt),
-			LastModifiedAt: timestamppb.New(topup.LastModifiedAt),
-			DeletedAt:      timestamppb.New(topup.DeletedAt),
+			Id:             data[i].ID.Hex(),
+			Name:           data[i].Name,
+			Code:           data[i].Code,
+			Avatar:         data[i].Avatar,
+			Enabled:        data[i].Enabled,
+			IsDeleted:      data[i].IsDeleted,
+			CreatedAt:      timestamppb.New(data[i].CreatedAt),
+			LastModifiedAt: timestamppb.New(data[i].LastModifiedAt),
+			DeletedAt:      timestamppb.New(data[i].DeletedAt),
 		})
 	}
 	return topups

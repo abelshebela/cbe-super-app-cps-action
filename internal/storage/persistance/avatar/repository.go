@@ -126,7 +126,7 @@ func (a *AvatarStorage) FindByID(ctx context.Context, id string) (*model.Avatar,
 	return result, nil
 }
 
-func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.Avatar, error) {
+func (a *AvatarStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.Avatar, error) {
 	result, err := a.dal.FindAll(ctx, filter, nil)
 	if err != nil {
 		a.logger.Errorf("[FindAll] failed to fetch avatars: %v", err)
@@ -152,7 +152,7 @@ func (a *AvatarStorage) Find(ctx context.Context, filter bson.M, projection bson
 	return avatar, nil
 }
 
-func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error) {
+func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Avatar], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -188,7 +188,7 @@ func (s *AvatarStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	s.logger.Infof("[FindAllWithPagination] retrieved %d avatars", len(data))
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.Avatar]{
+	return &types.PaginatedResponse[[]model.Avatar]{
 		Data: data,
 		Meta: meta,
 	}, nil

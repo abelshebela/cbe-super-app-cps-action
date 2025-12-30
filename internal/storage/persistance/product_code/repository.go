@@ -127,7 +127,7 @@ func (s *ProductCodeStorage) FindAllWithPagination(ctx context.Context, filterPa
 	}
 	pdata := []*model.ProductCode{}
 	for i := range data {
-		pdata = append(pdata, productcode.ToProducCode(*data[i]))
+		pdata = append(pdata, productcode.ToProducCode(data[i]))
 	}
 	total, err := s.producCodeDal.TotalCount(ctx, filter)
 	if err != nil {
@@ -253,7 +253,7 @@ func (p *ProductCodeStorage) FindByPRD(ctx context.Context, cbePRD, cbeIFBPRD st
 	// Convert ServiceDetails to ProductCode
 	productCodes := make([]*model.ProductCode, 0, len(results))
 	for _, result := range results {
-		productCodes = append(productCodes, productcode.ToProducCode(*result))
+		productCodes = append(productCodes, productcode.ToProducCode(result))
 	}
 
 	p.logger.Infof("[FindByPRD] retrieved %d product codes", len(productCodes))

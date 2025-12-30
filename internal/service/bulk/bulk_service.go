@@ -113,7 +113,7 @@ func GetAllKeysFromMaps(maps map[string]bool) []string {
 }
 
 // this function change the accesslist to key and enable map user to check the validity of  key given and check the current state
-func storedAccessListToMAP(AccessLists []*model.APPAccessList) map[string]bool {
+func storedAccessListToMAP(AccessLists []model.APPAccessList) map[string]bool {
 	validKeys := make(map[string]bool)
 	for _, access := range AccessLists {
 		validKeys[access.Key] = access.Enabled
@@ -150,7 +150,7 @@ func validaterAccessKey(validAccessMap map[string]bool, accessList []string, fla
 	return invalidKeys, validKeys, isActionValid
 }
 
-func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
+func (s *bulkService) GetAllBulkServices(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBulkServices", "Bulk Service", "GetAllBulkServices")
 	defer span.End()
 

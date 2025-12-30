@@ -43,7 +43,7 @@ func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCo
 	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"is_configured": status})
 	return err
 }
-func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error) {
+func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
@@ -69,7 +69,7 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d access lists", len(data))
 
-	return &types.PaginatedResponse[[]*imodel.CPSActionList]{
+	return &types.PaginatedResponse[[]imodel.CPSActionList]{
 		Data: data,
 		Meta: meta,
 	}, nil

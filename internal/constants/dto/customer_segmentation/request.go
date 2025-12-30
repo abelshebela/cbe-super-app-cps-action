@@ -12,6 +12,5 @@ type CreateCustomerSegmentationRequest struct {
 }
 
 type UpdateCustomerSegmentationRequest struct {
-	OldName             []string              `json:"old_name"`
 	CustomerSubSegments []CustomerSubSegments `json:"t24_customer_sub_segments,omitempty"`
 }

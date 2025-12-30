@@ -36,7 +36,7 @@ func InitBulkServicePersistence(client *mongo.Client, dbName string, collections
 	}
 }
 
-func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
+func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -61,8 +61,8 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 		if err == mongo.ErrNoDocuments {
 			// Return empty paginated response
 			meta := local_util.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
-			return &types.PaginatedResponse[[]*model.APPAccessList]{
-				Data: []*model.APPAccessList{},
+			return &types.PaginatedResponse[[]model.APPAccessList]{
+				Data: []model.APPAccessList{},
 				Meta: meta,
 			}, nil
 		}
@@ -79,13 +79,13 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.APPAccessList]{
+	return &types.PaginatedResponse[[]model.APPAccessList]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccessList, error) {
+func (b BulkServicePersistence) FindAll(ctx context.Context) ([]model.APPAccessList, error) {
 	b.logger.Infof("[FindAll] fetching all bulk services")
 	filter := bson.M{}
 
@@ -94,7 +94,7 @@ func (b BulkServicePersistence) FindAll(ctx context.Context) ([]*model.APPAccess
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			b.logger.Infof("[FindAll] no bulk services found")
-			return []*model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
+			return []model.APPAccessList{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		b.logger.Errorf("[FindAll] failed to fetch bulk services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
