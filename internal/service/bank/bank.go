@@ -314,7 +314,7 @@ func (b *BankService) EnableOrDisableBank(ctx context.Context, id string, enable
 	return nil
 }
 
-func (b *BankService) GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.Bank], error) {
+func (b *BankService) GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBank", "Bank", "GetAllBank")
 	defer span.End()
 

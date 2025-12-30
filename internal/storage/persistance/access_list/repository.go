@@ -134,7 +134,7 @@ func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APP
 	return result, nil
 }
 
-func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]*model.APPAccessList], error) {
+func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"access_list_name", "ussd_enabled", "enabled"}
 	if filterParam.Search != "" {
@@ -159,7 +159,7 @@ func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, departmen
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d access lists", len(data))
 
-	return &types.PaginatedResponse[[]*model.APPAccessList]{
+	return &types.PaginatedResponse[[]model.APPAccessList]{
 		Data: data,
 		Meta: meta,
 	}, nil

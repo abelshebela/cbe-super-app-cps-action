@@ -27,7 +27,7 @@ func NewportalCardService(storage storage.PortalCardRepository, logger utils.Log
 	}
 }
 
-func (s *portalCardService) GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Card], error) {
+func (s *portalCardService) GetAll(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Card], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAll", "PortalCard", "GetAll")
 	defer span.End()
 

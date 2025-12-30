@@ -130,7 +130,7 @@ func (a *AdvertStorage) FindByID(ctx context.Context, id string) (*model.Advert,
 	return result, nil
 }
 
-func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Advert], error) {
+func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Advert], error) {
 
 	allowedKeys := []string{"title", "description", "enabled"}
 
@@ -164,7 +164,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d adverts", len(data))
 
-	return &types.PaginatedResponse[[]*model.Advert]{
+	return &types.PaginatedResponse[[]model.Advert]{
 		Data: data,
 		Meta: meta,
 	}, nil

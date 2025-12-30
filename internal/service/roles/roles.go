@@ -94,7 +94,7 @@ func (j *RoleService) FindById(ctx context.Context, id string) (*imodel.JobRole,
 	return j.roleRepository.FindByID(ctx, id)
 }
 
-func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error) {
+func (j *RoleService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error) {
 	return j.roleRepository.FindAllWithPagination(ctx, filterParam)
 }
 

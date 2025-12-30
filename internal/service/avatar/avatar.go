@@ -245,7 +245,7 @@ func (a *avatarService) DeleteAvatar(ctx context.Context, id string) error {
 	a.logger.Infof("[DeleteAvatar] avatar deletion request created successfully for id: %s", id)
 	return nil
 }
-func (a *avatarService) FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.Avatar], error) {
+func (a *avatarService) FetchAllAvatar(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.Avatar], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchAllAvatar", "Avatar", "FetchAllAvatar")
 	defer span.End()
 

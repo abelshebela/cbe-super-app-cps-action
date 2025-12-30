@@ -206,7 +206,7 @@ func (n *NewsCategoryService) DeleteNewsCategory(ctx context.Context, id string)
 }
 
 // FindAllWithPagination implements service.NewsCategoryService.
-func (n *NewsCategoryService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error) {
+func (n *NewsCategoryService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsCategory], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "NewsCategory", "FindAllWithPagination")
 	defer span.End()
 

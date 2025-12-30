@@ -192,7 +192,7 @@ func (m *miniAppMerchantService) Update(ctx context.Context, id string, req *mer
 	return updated, old, nil
 }
 
-func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.EcommerceMerchant], error) {
+func (m *miniAppMerchantService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.EcommerceMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "MiniAppMerchant", "FindAllWithPagination")
 	defer span.End()
 

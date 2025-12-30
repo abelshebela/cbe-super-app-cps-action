@@ -265,12 +265,12 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 	return nil
 }
 
-func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]*model.LinkedAccount, error) {
+func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
 	c.logger.Infof("[FetchLinkedAccount] fetching linked accounts for customer number")
 
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return []*model.LinkedAccount{}, errors.New(localization.ErrorUnexpectedError.Code)
+		return []model.LinkedAccount{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
 	filter := bson.M{
@@ -280,11 +280,11 @@ func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) 
 	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
 		c.logger.Errorf("[FetchLinkedAccount] failed to fetch linked accounts: %v", err)
-		return []*model.LinkedAccount{}, err
+		return []model.LinkedAccount{}, err
 	}
 	if len(linkedAccount) == 0 {
 		c.logger.Errorf("[FetchLinkedAccount] linked account not found: %v", err)
-		return []*model.LinkedAccount{}, errors.New(localization.ErrorResourceNotFound.Code)
+		return []model.LinkedAccount{}, errors.New(localization.ErrorResourceNotFound.Code)
 	}
 
 	c.logger.Infof("[FetchLinkedAccount] retrieved %d linked accounts", len(linkedAccount))
@@ -551,7 +551,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	}, nil
 }
 
-func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error) {
+func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error) {
 	p.logger.Infof("[FindCustomerByIDs] fetching customers by ids")
 	var objIDs []bson.ObjectID
 	for _, idStr := range ids {

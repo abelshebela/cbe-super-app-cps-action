@@ -76,7 +76,7 @@ func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*memb
 	return customer, nil
 }
 
-func (s *customerService) GetLinkedAccount(ctx context.Context, id string) ([]*model.LinkedAccount, error) {
+func (s *customerService) GetLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetLinkedAccount", "Customer", "GetLinkedAccount")
 	defer span.End()
 

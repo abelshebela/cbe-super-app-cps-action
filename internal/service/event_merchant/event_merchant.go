@@ -255,7 +255,7 @@ func (e *EventMerchantService) EnableOrDisable(ctx context.Context, id string, e
 }
 
 // FindAllWithPagination implements service.EventMerchantService.
-func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error) {
+func (e *EventMerchantService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "EventMerchant", "FindAllWithPagination")
 	defer span.End()
 

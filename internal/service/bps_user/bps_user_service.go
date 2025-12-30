@@ -134,7 +134,7 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 }
 
 // GetAllBPSUsers implements service.BPSUserService.
-func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) {
+func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBPSUsers", "BPS User", "GetAllBPSUsers")
 	defer span.End()
 
