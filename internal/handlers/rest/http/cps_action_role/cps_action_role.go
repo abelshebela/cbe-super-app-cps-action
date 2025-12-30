@@ -8,6 +8,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -129,7 +130,19 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	span.SetAttributes(attribute.String("cps_action_role.code", req.ActionCode))
-	err := h.service.Create(ctx, actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedMakersRoles: req.AssignedMakersRoles, AssignedCheckerRoles: req.AssignedCheckerRoles, AssignedAuditorRoles: req.AssignedAuditorRoles})
+	action_role := actionrole_dto.CreateActionRoleRequest{
+		ActionName:           strings.ToUpper(strings.TrimSpace(req.ActionName)),
+		ActionCode:           strings.ToUpper(strings.TrimSpace(req.ActionCode)),
+		PortalCardName:       req.PortalCardName,
+		IsMakerOnly:          req.IsMakerOnly,
+		AssignedViewersRoles: req.AssignedViewersRoles,
+		AssignedMakersRoles:  req.AssignedMakersRoles,
+		AssignedCheckerRoles: req.AssignedCheckerRoles,
+		AssignedAuditorRoles: req.AssignedAuditorRoles,
+	}
+
+	// actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedCheckerRoles: req.AssignedCheckerRoles, AssignedAuditorRoles: req.AssignedAuditorRoles}
+	err := h.service.Create(ctx, action_role)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("create action role failed: %v", err)
