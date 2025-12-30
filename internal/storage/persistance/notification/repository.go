@@ -109,7 +109,7 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.N
 	return result, nil
 }
 
-func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Notification], error) {
+func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Notification], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
 
@@ -141,7 +141,7 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	n.logger.Infof("[FindAllWithPagination] retrieved %d notifications", len(data))
 
-	return &types.PaginatedResponse[[]*model.Notification]{
+	return &types.PaginatedResponse[[]model.Notification]{
 		Data: data,
 		Meta: meta,
 	}, nil

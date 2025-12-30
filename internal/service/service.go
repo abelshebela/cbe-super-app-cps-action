@@ -251,7 +251,7 @@ type EcommerceMerchantService interface {
 }
 
 type PasswordRuleService interface {
-	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*imodel.PasswordRule], error)
+	GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]imodel.PasswordRule], error)
 	RequestPasswordRuleUpdate(ctx context.Context, id string, body passwordrule.PasswordRuleUpdate) error
 	CheckPasswordRule(ctx context.Context, password string) (bool, string)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -425,7 +425,7 @@ type EventMerchantService interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -437,7 +437,7 @@ type JobRoleService interface {
 	Create(ctx context.Context, jobs model.Role) error
 	Update(ctx context.Context, id string, update model.Role) error
 	FindById(ctx context.Context, id string) (*model.Role, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Role], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -445,7 +445,7 @@ type RoleService interface {
 	Create(ctx context.Context, jobs imodel.JobRole) error
 	Update(ctx context.Context, id string, update imodel.JobRole) error
 	FindById(ctx context.Context, id string) (*imodel.JobRole, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.JobRole], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.JobRole], error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
@@ -655,7 +655,7 @@ type NewsTagsService interface {
 }
 
 type NewsTagService interface {
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsTag], error)
 	GetNewsTagByID(ctx context.Context, id string) (*model.NewsTag, error)
 	CreateNewsTags(ctx context.Context, tagName []string) error
 	UpdateNewsTag(ctx context.Context, id string, tagName string) error
@@ -663,7 +663,7 @@ type NewsTagService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 type NewsCategoryService interface {
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsCategory], error)
 	GetNewsCategoryByID(ctx context.Context, id string) (*model.NewsCategory, error)
 	CreateNewsCategory(ctx context.Context, categoryName []string) error
 	UpdateNewsCategory(ctx context.Context, id string, categoryName string) error

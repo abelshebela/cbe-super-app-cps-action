@@ -102,7 +102,7 @@ func (p *PasswordRuleStorage) FindByID(ctx context.Context, id string) (*local_m
 	return result, nil
 }
 
-func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.PasswordRule], error) {
+func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.PasswordRule], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -130,7 +130,7 @@ func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterP
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	p.logger.Infof("[FindAllWithPagination] retrieved %d password rules", len(data))
 
-	return &types.PaginatedResponse[[]*local_model.PasswordRule]{
+	return &types.PaginatedResponse[[]local_model.PasswordRule]{
 		Data: data,
 		Meta: meta,
 	}, nil

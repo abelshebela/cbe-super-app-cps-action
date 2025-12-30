@@ -163,7 +163,7 @@ func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*imodel.Serv
 	return doc, nil
 }
 
-func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.Services], error) {
+func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Services], error) {
 	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
@@ -186,13 +186,13 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]*imodel.Services]{
+	return &types.PaginatedResponse[[]imodel.Services]{
 		Data: items,
 		Meta: meta,
 	}, nil
 }
 
-func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.ServiceList], error) {
+func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error) {
 	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
@@ -216,7 +216,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]*imodel.ServiceList]{
+	return &types.PaginatedResponse[[]imodel.ServiceList]{
 		Data: items,
 		Meta: meta,
 	}, nil
