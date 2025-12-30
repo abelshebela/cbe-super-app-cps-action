@@ -51,7 +51,7 @@ func NewCPSActionRoleService(
 }
 
 // FindAllWithPagination implements service.cpsActionRoleService.
-func (s *cpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.CPSActionList], error) {
+func (s *cpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "CPSActionRole", "FindAllWithPagination")
 	defer span.End()
 	result, err := s.repo.FindAllAccessListWithPagination(ctx, filter)

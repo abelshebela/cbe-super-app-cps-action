@@ -123,7 +123,7 @@ func (r *cpsRoleService) EnableOrDisable(ctx context.Context, id string, enable 
 	return nil
 }
 
-func (r *cpsRoleService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.CPSRoles], error) {
+func (r *cpsRoleService) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error) {
 	return r.repo.FindAllWithPagination(ctx, filterParam)
 }
 

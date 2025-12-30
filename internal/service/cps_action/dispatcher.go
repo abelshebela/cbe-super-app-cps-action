@@ -54,7 +54,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "SERVICE"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "ServicesCatalog"):
+	case IsActionInGroup(RequestAction(action), "SERVICESCATALOG"):
 		return d.app.ServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "DEVICEVERSION"):
@@ -72,10 +72,10 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "HQ"):
 		return d.app.HQContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "PASSWORDRULES"):
+	case IsActionInGroup(RequestAction(action), "PASSWORDRULE"):
 		return d.app.PasswordRuleContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "PERMISSION"):
+	case IsActionInGroup(RequestAction(action), "PERMISSIONGROUP"):
 		return d.app.PermissionContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "UNLINKDEVICE"):
@@ -131,7 +131,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CustomerContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "NEWSTAG"):
 		return d.app.NewsTagsServiceContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "ACTIONROLE"):
+	case IsActionInGroup(RequestAction(action), "BPSACTIONROLE"):
 		return d.app.BPSActionRoleContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "NEWSCATEGORY"):
 		return d.app.NewsCategoryContainer.Authorize(ctx, cpsAction)
@@ -159,7 +159,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 		return d.app.CustomerSegmentationContainer.Authorize(ctx, cpsAction)
 	case IsActionInGroup(RequestAction(action), "ECOMMERCEMERCHANT"):
 		return d.app.EcommerceMerchantContainer.Authorize(ctx, cpsAction)
-	case IsActionInGroup(RequestAction(action), "CPSRoles"):
+	case IsActionInGroup(RequestAction(action), "CPSROLE"):
 		return d.app.CPSRolesContainer.Authorize(ctx, cpsAction)
 
 	default:

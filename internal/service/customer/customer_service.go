@@ -76,15 +76,15 @@ func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*memb
 	return customer, nil
 }
 
-func (s *customerService) GetLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+func (s *customerService) GetLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetLinkedAccount", "Customer", "GetLinkedAccount")
 	defer span.End()
 
-	accounts, err := s.repo.FetchLinkedAccount(ctx, customerNumber)
+	accounts, err := s.repo.FetchLinkedAccount(ctx, id)
 	if err != nil {
 		span.AddEvent("Failed to fetch linked accounts", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("customer_number", customerNumber),
+			attribute.String("user_id", id),
 		))
 		return nil, err
 	}

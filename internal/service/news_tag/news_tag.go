@@ -204,7 +204,7 @@ func (n *newsTagService) DeleteNewsTag(ctx context.Context, id string) error {
 }
 
 // FindAllWithPagination implements service.NewsTagService.
-func (n *newsTagService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.NewsTag], error) {
+func (n *newsTagService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.NewsTag], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "NewsTag", "FindAllWithPagination")
 	defer span.End()
 

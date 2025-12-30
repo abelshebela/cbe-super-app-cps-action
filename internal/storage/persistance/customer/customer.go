@@ -112,6 +112,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 			{Key: "user_code", Value: 1},
 			{Key: "full_name", Value: 1},
 			{Key: "phone_number", Value: 1},
+			{Key: "customer_number", Value: 1},
 			{Key: "branch_code", Value: 1},
 			{Key: "gender", Value: 1},
 			{Key: "created_at", Value: 1},
@@ -140,17 +141,18 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	var result []struct {
 		Data []struct {
-			ID           bson.ObjectID `bson:"_id"`
-			UserCode     string        `bson:"user_code"`
-			FullName     string        `bson:"full_name"`
-			PhoneNumber  string        `bson:"phone_number"`
-			BranchCode   string        `bson:"branch_code"`
-			Gender       string        `bson:"gender"`
-			CreatedAt    time.Time     `bson:"created_at"`
-			IsBlocked    bool          `bson:"is_blocked"`
-			BranchName   string        `bson:"branch_name"`
-			DistrictName string        `bson:"district_name"`
-			Status       string        `bson:"status"`
+			ID             bson.ObjectID `bson:"_id"`
+			UserCode       string        `bson:"user_code"`
+			FullName       string        `bson:"full_name"`
+			PhoneNumber    string        `bson:"phone_number"`
+			CustomerNumber string        `bson:"customer_number"`
+			BranchCode     string        `bson:"branch_code"`
+			Gender         string        `bson:"gender"`
+			CreatedAt      time.Time     `bson:"created_at"`
+			IsBlocked      bool          `bson:"is_blocked"`
+			BranchName     string        `bson:"branch_name"`
+			DistrictName   string        `bson:"district_name"`
+			Status         string        `bson:"status"`
 		} `bson:"data"`
 		Total []struct {
 			Count int64 `bson:"count"`
@@ -169,14 +171,15 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 		data = make([]*customer_dto.CustomerListResponse, len(result[0].Data))
 		for i, d := range result[0].Data {
 			data[i] = &customer_dto.CustomerListResponse{
-				ID:          d.ID.Hex(),
-				UserCode:    d.UserCode,
-				FullName:    d.FullName,
-				PhoneNumber: d.PhoneNumber,
-				BranchCode:  d.BranchCode,
-				Gender:      d.Gender,
-				CreatedAt:   d.CreatedAt.Format(time.RFC3339),
-				IsBlocked:   d.IsBlocked,
+				ID:             d.ID.Hex(),
+				UserCode:       d.UserCode,
+				FullName:       d.FullName,
+				CustomerNumber: d.CustomerNumber,
+				PhoneNumber:    d.PhoneNumber,
+				BranchCode:     d.BranchCode,
+				Gender:         d.Gender,
+				CreatedAt:      d.CreatedAt.Format(time.RFC3339),
+				IsBlocked:      d.IsBlocked,
 			}
 		}
 		if len(result[0].Total) > 0 {
@@ -262,17 +265,28 @@ func (b *CustomerRepository) EnableOrDisable(ctx context.Context, id string, ena
 	return nil
 }
 
-func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, customerNumber string) ([]*model.LinkedAccount, error) {
+func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {
 	c.logger.Infof("[FetchLinkedAccount] fetching linked accounts for customer number")
+
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return []model.LinkedAccount{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
 	filter := bson.M{
-		"customer_number": customerNumber,
+		"user_id": obj,
 	}
 
 	linkedAccount, err := c.linkedAccountDal.FindAll(ctx, filter, bson.M{})
 	if err != nil {
 		c.logger.Errorf("[FetchLinkedAccount] failed to fetch linked accounts: %v", err)
-		return []*model.LinkedAccount{}, err
+		return []model.LinkedAccount{}, err
 	}
+	if len(linkedAccount) == 0 {
+		c.logger.Errorf("[FetchLinkedAccount] linked account not found: %v", err)
+		return []model.LinkedAccount{}, errors.New(localization.ErrorResourceNotFound.Code)
+	}
+
 	c.logger.Infof("[FetchLinkedAccount] retrieved %d linked accounts", len(linkedAccount))
 
 	return linkedAccount, nil
@@ -537,7 +551,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 	}, nil
 }
 
-func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]*member.User, error) {
+func (p *CustomerRepository) FindCustomerByIDs(ctx context.Context, ids []string) ([]member.User, error) {
 	p.logger.Infof("[FindCustomerByIDs] fetching customers by ids")
 	var objIDs []bson.ObjectID
 	for _, idStr := range ids {

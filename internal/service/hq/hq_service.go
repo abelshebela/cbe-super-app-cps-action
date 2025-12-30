@@ -34,7 +34,7 @@ func NewHQService(repo storage.HQRepository, cpsActionService service.CPSActionS
 	}
 }
 
-func (a *hqService) GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.HQ], error) {
+func (a *hqService) GetHQDetail(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]model.HQ], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetHQDetail", "HQ", "GetHQDetail")
 	defer span.End()
 

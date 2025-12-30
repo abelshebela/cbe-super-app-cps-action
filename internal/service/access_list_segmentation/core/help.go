@@ -6,13 +6,11 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 )
 
-// ConvertPaginatedModelToDTO converts a paginated response of []*AccessListSegmentation to a paginated response of []AccessListSegmentationResponse
-func ConvertPaginatedModelToDTO(paginated types.PaginatedResponse[[]*local_model.AccessListSegmentation]) types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse] {
+// ConvertPaginatedModelToDTO converts a paginated response of []AccessListSegmentation to a paginated response of []AccessListSegmentationResponse
+func ConvertPaginatedModelToDTO(paginated types.PaginatedResponse[[]local_model.AccessListSegmentation]) types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse] {
 	var dtoList []access_list_segmentation_dto.AccessListSegmentationResponse
 	for _, m := range paginated.Data {
-		if m != nil {
-			dtoList = append(dtoList, MapModelToDTO(*m))
-		}
+		dtoList = append(dtoList, MapModelToDTO(m))
 	}
 	return types.PaginatedResponse[[]access_list_segmentation_dto.AccessListSegmentationResponse]{
 		Data: dtoList,

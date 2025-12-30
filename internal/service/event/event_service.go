@@ -278,7 +278,7 @@ func (e *eventService) FetchEventByID(ctx context.Context, id string) (*model.Ev
 	return result, nil
 }
 
-func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
+func (e *eventService) FetchEvent(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Event], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchEvent", "Event", "FetchEvent")
 	defer span.End()
 

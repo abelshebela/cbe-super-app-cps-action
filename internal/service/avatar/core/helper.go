@@ -15,7 +15,7 @@ func UpdateDataBuilder(ctx context.Context, avatarRepo storage.AvatarRepository,
 
 	var existed *model.Avatar
 	var update model.Avatar
-	var existedData []*model.Avatar
+	var existedData []model.Avatar
 	var err error
 
 	if !fromEnableDisable {

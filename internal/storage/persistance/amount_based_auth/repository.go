@@ -55,7 +55,7 @@ func (a *AmountBasedAuthStorage) Update(ctx context.Context, id string, authTier
 	return nil
 }
 
-func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]*model.AuthTier, error) {
+func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, projection bson.M) ([]model.AuthTier, error) {
 	a.logger.Infof("[FindAll] fetching all amount-based auth tiers")
 	result, err := a.dal.FindAll(ctx, filter, projection)
 	if err != nil {
@@ -66,7 +66,7 @@ func (a *AmountBasedAuthStorage) FindAll(ctx context.Context, filter bson.M, pro
 	return result, nil
 }
 
-func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error) {
+func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error) {
 	filter := bson.M{"is_deleted": false}
 
 	if filterParam.Search != "" {
@@ -92,7 +92,7 @@ func (a *AmountBasedAuthStorage) FindAllWithPagination(ctx context.Context, filt
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d amount-based auth tiers", len(data))
 
-	return &types.PaginatedResponse[[]*model.AuthTier]{
+	return &types.PaginatedResponse[[]model.AuthTier]{
 		Data: data,
 		Meta: meta,
 	}, nil

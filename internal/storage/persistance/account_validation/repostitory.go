@@ -89,7 +89,7 @@ func (a *AccountValidationStore) Update(ctx context.Context, id string, rule *mo
 }
 
 // GetAllAccountValidation implements ValidationRuleRepository
-func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ValidationRule], error) {
+func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ValidationRule], error) {
 	filter := bson.M{"is_deleted": false}
 
 	searchKeys := bson.M{}
@@ -128,7 +128,7 @@ func (l *AccountValidationStore) FindAllWithPagination(ctx context.Context, filt
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	l.logger.Infof("[FindAllWithPagination] retrieved %d account validation rules", len(data))
 
-	return &types.PaginatedResponse[[]*model.ValidationRule]{
+	return &types.PaginatedResponse[[]model.ValidationRule]{
 		Data: data,
 		Meta: meta,
 	}, nil

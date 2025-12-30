@@ -45,9 +45,11 @@ const (
 	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
 	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
 
-	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
-	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
-	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
+	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestEnableCustomerSegmentation  RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
+	RequestDisableCustomerSegmentation RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation  RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateMiniappProductCode  RequestAction = "CREATE_MINI_APP_PRODUCT_CODE"
 	RequestUpdateMiniappProductCode  RequestAction = "UPDATE_MINI_APP_PRODUCT_CODE"
@@ -76,9 +78,16 @@ const (
 	RequestCpsUserDelete         RequestAction = "DELETE_CPS_USER"
 	RequestCpsUserEnable         RequestAction = "ENABLE_CPS_USER"
 	RequestCpsUserDisable        RequestAction = "DISABLE_CPS_USER"
-	RequestPermissionGroup       RequestAction = "PERMISSION_GROUP"
-	RequestBulkServiceEnable     RequestAction = "ENABLE_BULK_SERVICE"
-	RequestBulkServiceDisable    RequestAction = "DISABLE_BULK_SERVICE"
+
+	RequestBpsUserCreate  RequestAction = "CREATE_BPS_USER"
+	RequestBpsUserUpdate  RequestAction = "UPDATE_BPS_USER"
+	RequestBpsUserDelete  RequestAction = "DELETE_BPS_USER"
+	RequestBpsUserEnable  RequestAction = "ENABLE_BPS_USER"
+	RequestBpsUserDisable RequestAction = "DISABLE_BPS_USER"
+
+	RequestPermissionGroup    RequestAction = "PERMISSION_GROUP"
+	RequestBulkServiceEnable  RequestAction = "ENABLE_BULK_SERVICE"
+	RequestBulkServiceDisable RequestAction = "DISABLE_BULK_SERVICE"
 	// RequestDepartment               RequestAction = "DEPARMTENT"
 	RequestCreateDepartment           RequestAction = "CREATE_DEPARTMENT"
 	RequestUpdateDepartment           RequestAction = "UPDATE_DEPARTMENT"
@@ -387,6 +396,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableVaultGroupCategory:  {},
 	RequestDisAbleVaultGroupCategory: {},
 
+	RequestBpsUserCreate:  {},
+	RequestBpsUserUpdate:  {},
+	RequestBpsUserDelete:  {},
+	RequestBpsUserEnable:  {},
+	RequestBpsUserDisable: {},
+
 	RequestCreateEcommerceMerchant:  {},
 	RequestUpdateEcommerceMerchant:  {},
 	RequestEnableEcommerceMerchant:  {},
@@ -433,22 +448,22 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableUser:       {},
 	RequestDisableUser:      {},
 	RequestBPSUser:          {},
-	RequestDisableBPSUser:   {},
-	RequestEnableBPSUser:    {},
-	RequestUpdateUser:       {},
-	RequestTotalDailyLimit:  {},
-	RequestUpdateVAT:        {},
-	RequestAuthTier:         {},
-	RequestCreateAdvert:     {},
-	RequestUpdateAdvert:     {},
-	RequestEnableAdvert:     {},
-	RequestDisableAdvert:    {},
-	RequestDeleteAdvert:     {},
-	RequestCreateBank:       {},
-	RequestUpdateBank:       {},
-	RequestUpdateBankLogo:   {},
-	RequestEnableWallet:     {},
-	RequestDisableWallet:    {},
+	// RequestDisableBPSUser:   {},
+	// RequestEnableBPSUser:    {},
+	RequestUpdateUser:      {},
+	RequestTotalDailyLimit: {},
+	RequestUpdateVAT:       {},
+	RequestAuthTier:        {},
+	RequestCreateAdvert:    {},
+	RequestUpdateAdvert:    {},
+	RequestEnableAdvert:    {},
+	RequestDisableAdvert:   {},
+	RequestDeleteAdvert:    {},
+	RequestCreateBank:      {},
+	RequestUpdateBank:      {},
+	RequestUpdateBankLogo:  {},
+	RequestEnableWallet:    {},
+	RequestDisableWallet:   {},
 
 	// Services catalog
 	RequestCreateService:            {},
@@ -491,9 +506,11 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestEnableBranches:  {},
 	RequestDisableBranches: {},
 
-	RequestCreateCustomerSegmentation: {},
-	RequestUpdateCustomerSegmentation: {},
-	RequestDeleteCustomerSegmentation: {},
+	RequestCreateCustomerSegmentation:  {},
+	RequestUpdateCustomerSegmentation:  {},
+	RequestEnableCustomerSegmentation:  {},
+	RequestDisableCustomerSegmentation: {},
+	RequestDeleteCustomerSegmentation:  {},
 
 	// Region
 	RequestEnableRegions:  {},
@@ -648,7 +665,7 @@ func IsValidRequestAction(requestAction string) bool {
 
 var RequestActionGroups = map[string][]RequestAction{
 	// Canonical
-	"NOTIFICATIONS": {
+	"NOTIFICATION": {
 		RequestCreatePublicNotification,
 		RequestUpdatePublicNotification,
 		RequestDeleteNotification,
@@ -685,14 +702,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableActionRole,
 		RequestDisableActionRole,
 	},
-	"JOBROLES": {
+	"JOBROLE": {
 		RequestCreateJobRole,
 		RequestUpdateJobRole,
 		RequestDeleteJobRole,
 		RequestEnableJobRole,
 		RequestDisableJobRole,
 	},
-	"PASSWORDRULES": {
+	"PASSWORDRULE": {
 		RequestUpdatePasswordRule,
 	},
 	"VAULTCATEGORY": {
@@ -710,14 +727,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableService,
 		RequestDisableService,
 	},
-	"ACCOUNT": {
-		RequestUser,
-		RequestUpdateAccountValidation,
-		RequestEnableUser,
-		RequestDisableUser,
-		RequestUpdateUser,
-		RequestArchiveUser,
-	},
+	// "ACCOUNTVALIDATION": {
+	// 	RequestUser,
+	// 	RequestUpdateAccountValidation,
+	// 	RequestEnableUser,
+	// 	RequestDisableUser,
+	// 	RequestUpdateUser,
+	// 	RequestArchiveUser,
+	// },
 	"EVENT": {
 		RequestCreateEvent,
 		RequestDeleteEvent,
@@ -742,6 +759,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestBPSUser,
 		RequestEnableBPSUser,
 		RequestDisableBPSUser,
+		RequestBpsUserCreate,
+		RequestBpsUserUpdate,
+		RequestBpsUserDelete,
+		RequestBpsUserEnable,
+		RequestBpsUserDisable,
 	},
 	"PERMISSIONGROUP": {
 		RequestPermissionGroup,
@@ -791,8 +813,8 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniAppMerchant,
 		RequestDisableMiniAppMerchant,
 	},
-	"BLOCKTIME":    {RequestUpdateBlockTime},
-	"PASSWORDRULE": {RequestUpdatePasswordRule},
+	"BLOCKTIME": {RequestUpdateBlockTime},
+	// "PASSWORDRULE": {RequestUpdatePasswordRule},
 	"PERMISSION": {
 		RequestCreatePermissionGroup,
 		RequestDeletePermissionGroup,
@@ -848,13 +870,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateValidation,
 		RequestDeleteValidation,
 	},
-	"JOBROLE": {
-		RequestCreateJobRole,
-		RequestUpdateJobRole,
-		RequestDeleteJobRole,
-		RequestEnableJobRole,
-		RequestDisableJobRole,
-	},
+	// "JOBROLE": {
+	// 	RequestCreateJobRole,
+	// 	RequestUpdateJobRole,
+	// 	RequestDeleteJobRole,
+	// 	RequestEnableJobRole,
+	// 	RequestDisableJobRole,
+	// },
 	"ROLE": {
 		RequestCreateRole,
 		RequestUpdateRole,
@@ -862,21 +884,21 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableRole,
 		RequestDisableRole,
 	},
-	"BLOCK": {
-		RequestBlockUser,
-		RequestDisableSingleBranch,
-		RequestEnableSingleBranch,
-		RequestDisableMultiBranches,
-		RequestEnableMultiBranches,
-		RequestEnableBranches,
-		RequestDisableBranches,
-		RequestEnableRegions,
-		RequestDisableRegions,
-		RequestEnableDistricts,
-		RequestDisableDistricts,
-		RequestEnableCities,
-		RequestDisableCities,
-	},
+	// "BLOCK": {
+	// 	RequestBlockUser,
+	// 	RequestDisableSingleBranch,
+	// 	RequestEnableSingleBranch,
+	// 	RequestDisableMultiBranches,
+	// 	RequestEnableMultiBranches,
+	// 	RequestEnableBranches,
+	// 	RequestDisableBranches,
+	// 	RequestEnableRegions,
+	// 	RequestDisableRegions,
+	// 	RequestEnableDistricts,
+	// 	RequestDisableDistricts,
+	// 	RequestEnableCities,
+	// 	RequestDisableCities,
+	// },
 	"BUDGETCATEGORY": {
 		RequestCreateBudgetCategory,
 		RequestUpdateBudgetCategory,
@@ -915,14 +937,14 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableMiniApp,
 		RequestDisableMiniApp,
 	},
-	"NOTIFICATION": {
-		RequestCreatePublicNotification,
-		RequestUpdatePublicNotification,
-		RequestDeleteNotification,
-		RequestEnableNotification,
-		RequestDisableNotification,
-		RequestMarkNotificationAsSeen,
-	},
+	// "NOTIFICATION": {
+	// 	RequestCreatePublicNotification,
+	// 	RequestUpdatePublicNotification,
+	// 	RequestDeleteNotification,
+	// 	RequestEnableNotification,
+	// 	RequestDisableNotification,
+	// 	RequestMarkNotificationAsSeen,
+	// },
 	"BANKVAULT": {
 		RequestCreateBankVault,
 		RequestUpdateBankVault,
@@ -1065,6 +1087,8 @@ var RequestActionGroups = map[string][]RequestAction{
 	"CUSTOMERSEGMENTATIONS": {
 		RequestCreateCustomerSegmentation,
 		RequestUpdateCustomerSegmentation,
+		RequestEnableCustomerSegmentation,
+		RequestDisableCustomerSegmentation,
 		RequestDeleteCustomerSegmentation,
 	},
 	"ECOMMERCEMERCHANT": {
@@ -1074,7 +1098,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableEcommerceMerchant,
 		RequestDeleteEcommerceMerchant,
 	},
-	"CPSRoles": {
+	"CPSROLE": {
 		RequestCreateCpsRole,
 		RequestUpdateCpsRole,
 		RequestDeleteCpsRole,
