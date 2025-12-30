@@ -37,10 +37,10 @@ func MapToDonationCategoryListResponse(category *model.DonationCategory) *donati
 }
 
 // MapToDonationCategoryListResponses maps slice of models to slice of DTO responses
-func MapToDonationCategoryListResponses(categories []*model.DonationCategory) []donation_category.DonationCategoryListResponse {
+func MapToDonationCategoryListResponses(categories []model.DonationCategory) []donation_category.DonationCategoryListResponse {
 	var responses []donation_category.DonationCategoryListResponse
-	for _, category := range categories {
-		responses = append(responses, *MapToDonationCategoryListResponse(category))
+	for i := range categories {
+		responses = append(responses, *MapToDonationCategoryListResponse(&categories[i]))
 	}
 	return responses
 }
