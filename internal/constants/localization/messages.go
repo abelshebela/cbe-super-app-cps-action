@@ -1131,5 +1131,7 @@ const (
 	MsgAccessListSegmentationIDsRequired           = "Access list segmentation IDs are required"
 	MsgAccessListSegmentationNameAlreadyExists     = "Access list segmentation name already exists"
 	MsgCustomerSegmentationCodeNotFound            = "Customer segmentation code not found"
+	MsgCustomerSegmentationEnableSuccessfully      = "Customer segmentation enable request submitted successfully"
+	MsgCustomerSegmentationDisableSuccessfully     = "Customer segmentation disable request submitted successfully"
 	MsgServiceIdRequired                           = "Service ID is required"
 )

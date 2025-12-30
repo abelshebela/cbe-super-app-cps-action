@@ -184,3 +184,57 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
 }
+
+// Enable Customer Segmentation
+//
+//	@Summary		Enable Customer Segmentation
+//	@Description	Enables a customer segmentation by ID
+//	@Tags			CustomerSegmentation
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"Segmentation ID"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/customer-segmentations/enable/{id} [patch]
+func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		c.logger.Errorf("[Enable] extractID: %v", err)
+		return
+	}
+
+	if err := c.svc.EnableOrDisable(r.Context(), id, true); err != nil {
+		c.logger.Errorf("[Enable] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
+}
+
+// Disable Customer Segmentation
+//
+//	@Summary		Disable Customer Segmentation
+//	@Description	Disables a customer segmentation by ID
+//	@Tags			CustomerSegmentation
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			id				path		string	true	"Segmentation ID"
+//	@Success		200				{object}	localization.StandardResponse{data=nil}
+//	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
+//	@Router			/customer-segmentations/disable/{id} [patch]
+func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	id, err := local_util.ExtractID(w, r)
+	if err != nil {
+		c.logger.Errorf("[Disable] extractID: %v", err)
+		return
+	}
+
+	if err := c.svc.EnableOrDisable(r.Context(), id, false); err != nil {
+		c.logger.Errorf("[Disable] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
+}
