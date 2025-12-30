@@ -1,0 +1,136 @@
+package logistics_merchant_handler
+
+import (
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	logistics_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/logistics_merchant"
+	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
+	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/logistics_merchant/core"
+	"cbe-super-app-cps-action/internal/service"
+	"encoding/json"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type LogisticsMerchantHandler struct {
+	service service.LogisticsMerchantService
+	logger  utils.Logger
+}
+
+func (e *LogisticsMerchantHandler) CreateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	var req logistics_merchant_dto.CreateLogisticsMerchantRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		e.logger.Errorf("[CreateLogisticsMerchant] decode: %v", err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	if err := logistics_merchant_dto.Validation(req); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	m := core.CreateLogisticsMerchantRequestToModel(req)
+
+	if err := e.service.Create(r.Context(), m); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantCreated, nil)
+}
+
+func (e *LogisticsMerchantHandler) DeleteLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	if err := e.service.Delete(r.Context(), id); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDeleted, nil)
+}
+
+func (e *LogisticsMerchantHandler) DisableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	if err := e.service.EnableOrDisable(r.Context(), id, false); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantDisabled, nil)
+}
+
+func (e *LogisticsMerchantHandler) EnableLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	if err := e.service.EnableOrDisable(r.Context(), id, true); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantEnabled, nil)
+}
+
+func (e *LogisticsMerchantHandler) GetLogisticMerchantByID(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	result, err := e.service.FindByID(r.Context(), id)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantFetched, result)
+}
+
+func (e *LogisticsMerchantHandler) GetLogisticMerchants(w http.ResponseWriter, r *http.Request) {
+	filter := local_util.ExtractFilterParams(r)
+	result, err := e.service.FindAllWithPagination(r.Context(), *filter)
+	if err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantFetched, result)
+}
+
+func (e *LogisticsMerchantHandler) UpdateLogisticMerchant(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	var req logistics_merchant_dto.UpdateLogisticsMerchantRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		e.logger.Errorf("[UpdateLogisticsMerchant] decode: %v", err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
+		return
+	}
+	if err := logistics_merchant_dto.Validation(req); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+	m := core.UpdateLogisticsMerchantRequestToModel(req)
+	if err := e.service.Update(r.Context(), id, m); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessLogisticsMerchantUpdated, nil)
+}
+
+func NewLogisticsMerchantHandler(service service.LogisticsMerchantService, logger utils.Logger) logistics_merchant_adaptor.LogisticMerchantInboundAdaptor {
+	return &LogisticsMerchantHandler{
+		service: service,
+		logger:  logger,
+	}
+}

@@ -3432,6 +3432,42 @@ var (
 		Message:    MsgEventMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+	SuccessLogisticsMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_LOGISTICS_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgLogisticMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessLogisticsMerchantDeleted = ResponseCode{
+		Code:       "SUCCESS_LOGISTICS_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgLogisticMerchantDeletedSuccessfully,
+		Type:       "success",
+	}
+	SuccessLogisticsMerchantUpdated = ResponseCode{
+		Code:       "SUCCESS_LOGISTICS_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgLogisticMerchantUpdatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessLogisticsMerchantEnabled = ResponseCode{
+		Code:       "SUCCESS_LOGISTICS_MERCHANT_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgLogisticMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessLogisticsMerchantDisabled = ResponseCode{
+		Code:       "SUCCESS_LOGISTICS_MERCHANT_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgLogisticMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+	SuccessLogisticsMerchantFetched = ResponseCode{
+		Code:       "SUCCESS_LOGISTICS_MERCHANT_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgLogisticMerchantFetchedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -6250,6 +6286,68 @@ var (
 		Code:       "ERROR_EVENT_MERCHANT_ENABLE_FAILED",
 		StatusCode: StatusInternalServerError,
 		Message:    MsgEventMerchantEnableFailed,
+		Type:       "error",
+	}
+
+	ErrorLogisticMerchantInvalidMerchantID = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_MERCHANT_ID",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidID,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidMerchantType = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_MERCHANT_TYPE",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidType,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidSettlementMethod = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_SETTLEMENT_METHOD",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidMethod,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidMerchantName = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_MERCHANT_NAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidName,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidBankAccountNumber = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_BANK_ACCOUNT_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidAccountNumber,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidEmail = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidEmail,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantInvalidPhoneNumber = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_INVALID_PHONE_NUMBER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgLogisticMerchantInvalidPhoneNumber,
+		Type:       "error",
+	}
+
+	ErrorLogisticMerchantNotFound = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgLogisticMerchantNotFound,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantDisableFailed = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_DISABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgLogisticMerchantDisableFailed,
+		Type:       "error",
+	}
+	ErrorLogisticMerchantEnableFailed = ResponseCode{
+		Code:       "ERROR_LOGISTIC_MERCHANT_ENABLE_FAILED",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgLogisticMerchantEnableFailed,
 		Type:       "error",
 	}
 

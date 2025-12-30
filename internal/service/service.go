@@ -427,6 +427,16 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type LogisticsMerchantService interface {
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.LogisticsMerchant], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type MiniAppMerchant interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
@@ -518,6 +528,7 @@ type ServiceLayer struct {
 	CPSActionRole                 CPSActionRoleService
 	MiniappProductCode            MiniappProductCodeService
 	EventMerchantService          EventMerchantService
+	LogisticsMerchantService      LogisticsMerchantService
 	JobRoleService                JobRoleService
 	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
@@ -583,6 +594,7 @@ type ServiceContainer struct {
 	CPSActionRoleContainer             CPSActionRoleService
 	MiniappProductCodeServiceContainer MiniappProductCodeService
 	EventMerchantServiceContainer      EventMerchantService
+	LogisticsMerchantServiceContainer  LogisticsMerchantService
 	ServiceContainer                   ServicesService
 	VaultAmountTierContainer           VaultAmountBasedTierService
 	MiniAppProductCodeContainer        MiniappProductCodeService

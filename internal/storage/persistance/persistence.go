@@ -84,4 +84,5 @@ type Persistence struct {
 	MiniAppMerchant                   storage.MiniAppMerchant
 	CustomerSegmentation              storage.CustomerSegmentationRepository
 	CPSRoles                          storage.CPSRolesRepository
+	LogisticsMerchantPersistence      storage.LogisticsMerchantRepository
 }

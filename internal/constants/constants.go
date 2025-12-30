@@ -539,6 +539,12 @@ const (
 	RequestUpdateEventMerchant  RequestAction = "UPDATE_EVENT_MERCHANT"
 	RequestDeleteEventMerchant  RequestAction = "DELETE_EVENT_MERCHANT"
 
+	RequestEnableLogisticsMerchant  RequestAction = "ENABLE_LOGISTICS_MERCHANT"
+	RequestDisableLogisticsMerchant RequestAction = "DISABLE_LOGISTICS_MERCHANT"
+	RequestCreateLogisticsMerchant  RequestAction = "CREATE_LOGISTICS_MERCHANT"
+	RequestUpdateLogisticsMerchant  RequestAction = "UPDATE_LOGISTICS_MERCHANT"
+	RequestDeleteLogisticsMerchant  RequestAction = "DELETE_LOGISTICS_MERCHANT"
+
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"

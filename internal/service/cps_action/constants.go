@@ -351,6 +351,12 @@ const (
 	RequestEnableEventMerchant  RequestAction = "ENABLE_EVENT_MERCHANT"
 	RequestDisableEventMerchant RequestAction = "DISABLE_EVENT_MERCHANT"
 
+	RequestCreateLogisticsMerchant  RequestAction = "CREATE_LOGISTICS_MERCHANT"
+	RequestUpdateLogisticsMerchant  RequestAction = "UPDATE_LOGISTICS_MERCHANT"
+	RequestDeleteLogisticsMerchant  RequestAction = "DELETE_LOGISTICS_MERCHANT"
+	RequestEnableLogisticsMerchant  RequestAction = "ENABLE_LOGISTICS_MERCHANT"
+	RequestDisableLogisticsMerchant RequestAction = "DISABLE_LOGISTICS_MERCHANT"
+
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
@@ -623,6 +629,12 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestDeleteEventMerchant:  {},
 	RequestEnableEventMerchant:  {},
 	RequestDisableEventMerchant: {},
+
+	RequestCreateLogisticsMerchant:  {},
+	RequestUpdateLogisticsMerchant:  {},
+	RequestDeleteLogisticsMerchant:  {},
+	RequestEnableLogisticsMerchant:  {},
+	RequestDisableLogisticsMerchant: {},
 
 	RequestCreateAccessListSegmentation:        {},
 	RequestUpdateAccessListSegmentation:        {},
@@ -1023,6 +1035,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteEventMerchant,
 		RequestEnableEventMerchant,
 		RequestDisableEventMerchant,
+	},
+	"LOGISTICSMERCHANT": {
+		RequestCreateLogisticsMerchant,
+		RequestUpdateLogisticsMerchant,
+		RequestDeleteLogisticsMerchant,
+		RequestEnableLogisticsMerchant,
+		RequestDisableLogisticsMerchant,
 	},
 	"VAULTAMOUNTTIER": {
 		RequestCreateVaultAmountTier,

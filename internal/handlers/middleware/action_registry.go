@@ -115,6 +115,11 @@ var cpsActionRegistry = map[string]string{
 	"PATCH event_merchants": "EVENTMERCHANT",
 	"DELETE event_merchant": "EVENTMERCHANT",
 
+	// Logistics merchant
+	"POST logistics_merchants":  "LOGISTICSMERCHANT",
+	"PATCH logistics_merchants": "LOGISTICSMERCHANT",
+	"DELETE logistics_merchant": "LOGISTICSMERCHANT",
+
 	// Event
 	"POST events":   "Event",
 	"PATCH events":  "Event",

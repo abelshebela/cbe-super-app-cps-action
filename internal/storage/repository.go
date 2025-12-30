@@ -643,6 +643,15 @@ type EventMerchantRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error)
 }
+type LogisticsMerchantRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*local_model.LogisticsMerchant], error)
+}
 
 type AccessListSegmentationRepository interface {
 	CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error

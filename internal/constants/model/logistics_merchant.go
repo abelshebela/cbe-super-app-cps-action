@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-type EventMerchant struct {
+type LogisticsMerchant struct {
 	ID                bson.ObjectID `json:"id" bson:"_id"`
 	MerchantID        string        `json:"merchant_id" bson:"merchant_id"`
 	MerchantType      string        `json:"merchant_type" bson:"merchant_type"`

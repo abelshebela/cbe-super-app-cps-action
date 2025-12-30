@@ -1115,6 +1115,24 @@ const (
 	MsgEventMerchantDeletedSuccessfully  = "event merchant deleted successfully"
 	MsgEventMerchantFetchedSuccessfully  = "event merchant fetched successfully"
 
+	// logistic merchant message
+	MsgLogisticMerchantCreatedSuccessfully  = "Logistic merchant created successfully"
+	MsgLogisticMerchantInvalidID            = "merchant id invalid or empty"
+	MsgLogisticMerchantInvalidType          = "merchant type invalid or empty"
+	MsgLogisticMerchantInvalidMethod        = "merchant method invalid or empty"
+	MsgLogisticMerchantInvalidName          = "merchant name invalid or empty"
+	MsgLogisticMerchantInvalidAccountNumber = "merchant account number invalid or empty"
+	MsgLogisticMerchantInvalidEmail         = "merchant email invalid or empty"
+	MsgLogisticMerchantInvalidPhoneNumber   = "merchant phone number invalid or empty"
+	MsgLogisticMerchantEnableFailed         = "logistic merchant already enabled"
+	MsgLogisticMerchantDisableFailed        = "logistic merchant already disabled"
+	MsgLogisticMerchantNotFound             = "logistic merchant not found"
+	MsgLogisticMerchantDisabledSuccessfully = "logistic merchant disabled successfully"
+	MsgLogisticMerchantEnabledSuccessfully  = "logistic merchant enabled successfully"
+	MsgLogisticMerchantUpdatedSuccessfully  = "logistic merchant updated successfully"
+	MsgLogisticMerchantDeletedSuccessfully  = "logistic merchant deleted successfully"
+	MsgLogisticMerchantFetchedSuccessfully  = "logistic merchant fetched successfully"
+
 	// access list segmentation related messages
 	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation created successfully"
 	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation updated successfully"
