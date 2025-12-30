@@ -187,7 +187,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	}
 
 	cpsAction := lib.CpsModelBuilder(
-		req.ActionCode,
+		constants.Empty,
 		maker,
 		nil,
 		payload,

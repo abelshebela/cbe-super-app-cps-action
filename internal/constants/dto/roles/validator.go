@@ -16,9 +16,9 @@ func (r CreateJobRoleRequest) Validate() error {
 			validation.Length(2, 100).Error("name must be between 2 and 100 characters"),
 			validation.By(utils.NoSpecialChars),
 		),
-		validation.Field(&r.PortalCards,
-			validation.By(validatePortalCards),
-		),
+		// validation.Field(&r.PortalCards,
+		// 	validation.By(validatePortalCards),
+		// ),
 	)
 }
 
@@ -39,11 +39,11 @@ func (r UpdateJobRoleRequest) Validate() error {
 				validation.By(utils.NoSpecialChars),
 			),
 		),
-		validation.Field(&r.PortalCards,
-			validation.When(len(r.PortalCards) > 0,
-				validation.By(validatePortalCards),
-			),
-		),
+		// validation.Field(&r.PortalCards,
+		// 	validation.When(len(r.PortalCards) > 0,
+		// 		validation.By(validatePortalCards),
+		// 	),
+		// ),
 	)
 }
 
