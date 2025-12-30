@@ -408,6 +408,7 @@ type BPSUserService interface {
 	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
+	CreateBPSUser(ctx context.Context, req model.BPSUser) error
 }
 
 type AccountSearchService interface {
@@ -454,6 +455,7 @@ type CustomerSegmentationService interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*imodel.CustomerSegmentation], error)
 	FindById(ctx context.Context, id string) (*imodel.CustomerSegmentation, error)
 	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 

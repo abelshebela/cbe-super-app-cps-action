@@ -106,3 +106,35 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) err
 	return nil
 
 }
+
+func (b *BPSUserStorage) Create(ctx context.Context, req model.BPSUser) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
+	defer span.End()
+
+	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
+
+	// Save the new user
+	_, err := b.dal.InsertOne(ctx, req)
+	if err != nil {
+		// span.AddEvent("[CreateBPSUser] failed to create BPS user", trace.WithAttributes(
+		//     attribute.String("error", err.Error()),
+		//     attribute.String("user_code", req.UserCode),
+		// ))
+		b.logger.Errorf("[CreateBPSUser] failed to create BPS user: %v", err)
+		return err
+	}
+
+	b.logger.Infof("[CreateBPSUser] BPS user created successfully for user_code: %s", req.UserCode)
+	return nil
+}
+
+func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value string) (*model.BPSUser, error) {
+	b.logger.Infof("[FindByFilterKey] searching BPS user by %s: %s", field, value)
+	filter := bson.M{field: value, "is_deleted": false}
+	result, err := b.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		b.logger.Errorf("[FindByFilterKey] failed to find BPS user by %s: %v", field, err)
+		return nil, err
+	}
+	return result, nil
+}

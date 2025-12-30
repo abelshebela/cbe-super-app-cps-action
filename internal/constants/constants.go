@@ -284,6 +284,14 @@ const (
 	RequestEnableUser            RequestAction = "ENABLE_USER"
 	RequestDisableUser           RequestAction = "DISABLE_USER"
 	RequestBPSUser               RequestAction = "BPS_USER"
+
+	// RequestBpsUserCreate  RequestAction = "CREATE_BPS_USER"
+	// RequestBpsUserUpdate  RequestAction = "UPDATE_BPS_USER"
+	// RequestBpsUserDelete  RequestAction = "DELETE_BPS_USER"
+	// RequestBpsUserEnable  RequestAction = "ENABLE_BPS_USER"
+	// RequestBpsUserDisable RequestAction = "DISABLE_BPS_USER"
+
+	RequestCreateBPSUser         RequestAction = "CREATE_BPS_USER"
 	RequestDisableBPSUser        RequestAction = "DISABLE_BPS_USER"
 	RequestEnableBPSUser         RequestAction = "ENABLE_BPS_USER"
 	RequestUpdateUser            RequestAction = "UPDATE_USER"
@@ -449,9 +457,11 @@ const (
 	RequestDisableBudgetCategory RequestAction = "DISABLE_BUDGET_CATEGORY"
 	RequestEnableBudgetCategory  RequestAction = "ENABLE_BUDGET_CATEGORY"
 
-	RequestCreateCustomerSegmentation RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
-	RequestUpdateCustomerSegmentation RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
-	RequestDeleteCustomerSegmentation RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
+	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
+	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
+	RequestEnableCustomerSegmentation  RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
+	RequestDisableCustomerSegmentation RequestAction = "DISABLE_CUSTOMER_SEGMENTATION"
+	RequestDeleteCustomerSegmentation  RequestAction = "DELETE_CUSTOMER_SEGMENTATION"
 
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"
