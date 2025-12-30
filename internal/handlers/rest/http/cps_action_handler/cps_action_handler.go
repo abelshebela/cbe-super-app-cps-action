@@ -5,6 +5,7 @@ import (
 	cpsactionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/service"
@@ -205,7 +206,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
-	var idxDoc *model.CPSActionApproveIndex
+	var idxDoc *imodel.CPSActionApproveIndex
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
