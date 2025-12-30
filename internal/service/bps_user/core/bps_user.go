@@ -32,8 +32,19 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 		}
 	}
 	if v, ok := action["branch_code"]; ok {
-		if arr, ok := v.([]string); ok {
-			user.BranchCode = arr
+		switch val := v.(type) {
+		case []string:
+			user.BranchCode = val
+		case []interface{}:
+			var branchCodes []string
+			for _, v := range val {
+				if str, ok := v.(string); ok {
+					branchCodes = append(branchCodes, str)
+				}
+			}
+			user.BranchCode = branchCodes
+		case string:
+			user.BranchCode = []string{val}
 		}
 	}
 	if v, ok := action["branch_name"]; ok {
