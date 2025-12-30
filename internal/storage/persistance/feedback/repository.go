@@ -24,19 +24,18 @@ type FeedbackStorage struct {
 	dal                 dal.MongoDal[model.Feedback, model.Feedback]
 	customerFeedbackDal dal.MongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback]
 	client              *mongo.Client
-	collection          *mongo.Collection
+	feedbackCollection  *mongo.Collection
 	customerCollection  *mongo.Collection
 	logger              utils.Logger
 }
 
 func NewFeedbackRepository(client *mongo.Client, dbName string, feedbackCollection, customerFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
-	db := client.Database(dbName)
 	return &FeedbackStorage{
 		dal:                 dal.NewMongoDal[model.Feedback, model.Feedback](client, dbName, feedbackCollection),
 		customerFeedbackDal: dal.NewMongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback](client, dbName, customerFeedbackCollection),
 		client:              client,
-		collection:          db.Collection(feedbackCollection),
-		customerCollection:  db.Collection(customerFeedbackCollection),
+		feedbackCollection:  client.Database(dbName).Collection(feedbackCollection),
+		customerCollection:  client.Database(dbName).Collection(customerFeedbackCollection),
 		logger:              logger,
 	}
 }
@@ -87,7 +86,7 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 	}
 
 	f.logger.Infof("[FindByID] fetching feedback by id: %s", id)
-	cursor, err := f.collection.Aggregate(ctx, pipeline)
+	cursor, err := f.feedbackCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		f.logger.Errorf("[FindByID] failed to aggregate feedback: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
@@ -178,7 +177,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 	}
 
 	f.logger.Infof("[FindAllWithPagination] fetching feedbacks with pagination")
-	cursor, err := f.collection.Aggregate(ctx, pipeline)
+	cursor, err := f.feedbackCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		f.logger.Errorf("[FindAllWithPagination] failed to aggregate feedbacks: %v", err)
 		return nil, err
@@ -227,7 +226,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 }
 func (f *FeedbackStorage) FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.CustomerFeedback], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"customer_name", "email", "phone_number", "account_number", "rating", "device_model", "message", "sent_at", "created_at"}
+	allowedKeys := []string{"search"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
