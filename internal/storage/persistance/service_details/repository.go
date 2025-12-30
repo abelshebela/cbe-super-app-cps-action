@@ -8,7 +8,7 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -19,20 +19,20 @@ import (
 )
 
 type ServiceDetailsStorage struct {
-	dal    dal.MongoDal[model.ServiceDetails, model.ServiceDetails]
+	dal    dal.MongoDal[imodel.ServiceDetails, imodel.ServiceDetails]
 	client *mongo.Client
 	logger utils.Logger
 }
 
 func NewServiceDetailsRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ServiceDetailsRepository {
 	return &ServiceDetailsStorage{
-		dal:    dal.NewMongoDal[model.ServiceDetails, model.ServiceDetails](client, dbName, collection),
+		dal:    dal.NewMongoDal[imodel.ServiceDetails, imodel.ServiceDetails](client, dbName, collection),
 		client: client,
 		logger: logger,
 	}
 }
 
-func (s *ServiceDetailsStorage) Create(ctx context.Context, details *model.ServiceDetails) error {
+func (s *ServiceDetailsStorage) Create(ctx context.Context, details *imodel.ServiceDetails) error {
 	_, err := s.dal.InsertOne(ctx, *details)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -40,7 +40,7 @@ func (s *ServiceDetailsStorage) Create(ctx context.Context, details *model.Servi
 	return nil
 }
 
-func (s *ServiceDetailsStorage) Update(ctx context.Context, id string, details *model.ServiceDetails) error {
+func (s *ServiceDetailsStorage) Update(ctx context.Context, id string, details *imodel.ServiceDetails) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -67,7 +67,7 @@ func (s *ServiceDetailsStorage) Delete(ctx context.Context, id string) error {
 	return s.dal.DeleteOne(ctx, filter)
 }
 
-func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M, id string) (*model.ServiceDetails, error) {
+func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M, id string) (*imodel.ServiceDetails, error) {
 	idObj, ok := local_util.StringToObjectID(id)
 	if !ok {
 		s.logger.Errorf("Invalid ObjectID for fetch by id: %s", id)
@@ -86,7 +86,7 @@ func (s *ServiceDetailsStorage) FindByID(ctx context.Context, projection bson.M,
 
 }
 
-func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error) {
+func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceDetails], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -119,7 +119,7 @@ func (s *ServiceDetailsStorage) FindAllWithPagination(ctx context.Context, proje
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]model.ServiceDetails]{
+	return &types.PaginatedResponse[[]imodel.ServiceDetails]{
 		Data: data,
 		Meta: meta,
 	}, nil

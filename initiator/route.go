@@ -54,9 +54,7 @@ import (
 	password "cbe-super-app-cps-action/internal/glue/routing/password_rule"
 	permission_details "cbe-super-app-cps-action/internal/glue/routing/permission"
 	portalcard "cbe-super-app-cps-action/internal/glue/routing/portal_card"
-	productcode "cbe-super-app-cps-action/internal/glue/routing/product_code"
 	roles "cbe-super-app-cps-action/internal/glue/routing/roles"
-	service_details "cbe-super-app-cps-action/internal/glue/routing/service_details"
 	service "cbe-super-app-cps-action/internal/glue/routing/services"
 	sitota "cbe-super-app-cps-action/internal/glue/routing/sitota"
 	unlink "cbe-super-app-cps-action/internal/glue/routing/unlink"
@@ -119,7 +117,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	password.Init(r, handlerLayer.PasswordHandler, authMiddleware)
 
 	feedback.Init(r, handlerLayer.FeedbackHandler, authMiddleware)
-	productcode.Init(r, &handlerLayer.ProductCodeHandler, authMiddleware)
 	advert.Init(r, handlerLayer.AdvertHandler, authMiddleware)
 	portalcard.Init(r, handlerLayer.PortalCardHander, authMiddleware)
 	accountvalidation.Init(r, handlerLayer.AccountValidation, authMiddleware)
@@ -127,7 +124,6 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	department.Init(r, &handlerLayer.DepartmentHandler, authMiddleware)
 	hqRoute.Init(r, handlerLayer.HqHandler, authMiddleware)
 	fayda.Init(r, handlerLayer.FaydaHandler, authMiddleware)
-	service_details.Init(r, handlerLayer.ServiceDetailsHandler, authMiddleware)
 	service.Init(r, handlerLayer.ServicesHandler, authMiddleware)
 	permission_details.Init(r, handlerLayer.Permission, authMiddleware)
 	cps_user_det.Init(r, handlerLayer.CPSUser, authMiddleware)

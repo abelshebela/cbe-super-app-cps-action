@@ -76,7 +76,7 @@ func (s *servicesService) Enable(ctx context.Context, id string) error {
 	if prev.Enabled {
 		return localization.ErrorAlreadyEnabled
 	}
-	payload := model.Services{Enabled: true}
+	payload := model.Service{Enabled: true}
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestEnableService, payload, prev, constants.ActionUpdate)
 }
 
@@ -91,7 +91,7 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 	if !prev.Enabled {
 		return localization.ErrorAlreadyDisabled
 	}
-	payload := model.Services{Enabled: false}
+	payload := model.Service{Enabled: false}
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDisableService, payload, prev, constants.ActionUpdate)
 }
 

@@ -431,11 +431,11 @@ type PasswordRuleRepository interface {
 }
 
 type ServiceDetailsRepository interface {
-	Create(ctx context.Context, details *model.ServiceDetails) error
-	Update(ctx context.Context, id string, details *model.ServiceDetails) error
+	Create(ctx context.Context, details *imodel.ServiceDetails) error
+	Update(ctx context.Context, id string, details *imodel.ServiceDetails) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, projection bson.M, id string) (*model.ServiceDetails, error)
-	FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error)
+	FindByID(ctx context.Context, projection bson.M, id string) (*imodel.ServiceDetails, error)
+	FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceDetails], error)
 }
 
 type ValidationRuleRepository interface {
