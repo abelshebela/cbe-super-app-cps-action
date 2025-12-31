@@ -147,6 +147,7 @@ func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestA
 func (ca *cpsActionService) GetCPSActionByActionCode(ctx context.Context, uniqueID, department string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByActionCode", "CPSAction", "GetCPSActionByActionCode")
 	defer span.End()
+
 	action, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": uniqueID})
 	if err != nil {
 		span.AddEvent("failed to find one", trace.WithAttributes(attribute.String("error", err.Error())))
