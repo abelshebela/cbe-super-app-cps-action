@@ -5,13 +5,14 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	"cbe-super-app-cps-action/internal/constants/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"log"
+	"strconv"
 	"time"
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
@@ -52,48 +53,48 @@ func ValidateCreate(req service_dto.CreateServiceRequest, service storage.Servic
 	return nil
 }
 
-func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
-	mapped := model.Service{
+func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
+	mapped := imodel.Service{
 		ServiceCode:      req.ServiceCode,
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: model.Cap{
-			SingleCap:          req.Cap.SingleCap,
-			MinimumTransferCap: req.Cap.MinimumTransferCap,
+		Cap: imodel.Cap{
+			SingleCap:          strconv.FormatFloat(req.Cap.SingleCap, 'f', -1, 64),
+			MinimumTransferCap: strconv.FormatFloat(req.Cap.MinimumTransferCap, 'f', -1, 64),
 		},
-		Tiers: func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
+		Tiers: func() []imodel.Tier {
+			tiers := make([]imodel.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					FeeType:   model.FeeType(t.FeeType),
-					FeeAmount: t.FeeAmount,
-					Min:       t.Min,
-					Max:       t.Max,
+				tiers = append(tiers, imodel.Tier{
+					FeeType:   imodel.FeeType(t.FeeType),
+					FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
+					Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
+					Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
 				})
 			}
 			return tiers
 		}(),
-		ServiceList: func() []model.ServiceLists {
-			lists := make([]model.ServiceLists, 0, len(req.ServiceList))
+		ServiceList: func() []imodel.ServiceLists {
+			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
-				lists = append(lists, model.ServiceLists{
+				lists = append(lists, imodel.ServiceLists{
 					ServiceName:             sl.ServiceName,
 					ServiceKey:              sl.ServiceKey,
 					OverideProductGlAccount: sl.OverideProductGlAccount,
 					IsEnabled:               true,
-					OverideCap: model.Cap{
-						SingleCap:          sl.OverideCap.SingleCap,
-						MinimumTransferCap: sl.OverideCap.MinimumTransferCap,
+					OverideCap: imodel.Cap{
+						SingleCap:          strconv.FormatFloat(sl.OverideCap.SingleCap, 'f', -1, 64),
+						MinimumTransferCap: strconv.FormatFloat(sl.OverideCap.MinimumTransferCap, 'f', -1, 64),
 					},
-					OverideTiers: func() []model.Tier {
-						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
+					OverideTiers: func() []imodel.Tier {
+						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, model.Tier{
-								FeeType:   model.FeeType(t.FeeType),
-								FeeAmount: t.FeeAmount,
-								Min:       t.Min,
-								Max:       t.Max,
+							tiers = append(tiers, imodel.Tier{
+								FeeType:   imodel.FeeType(t.FeeType),
+								FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
+								Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
+								Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
 							})
 						}
 						return tiers
@@ -110,56 +111,56 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
 	return mapped
 }
 
-func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) model.Service {
-	return model.Service{
+func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Service {
+	return imodel.Service{
 		ServiceCode:      req.ServiceCode,
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: model.Cap{
-			SingleCap:          req.Cap.SingleCap,
-			MinimumTransferCap: req.Cap.MinimumTransferCap,
+		Cap: imodel.Cap{
+			SingleCap:          strconv.FormatFloat(req.Cap.SingleCap, 'f', -1, 64),
+			MinimumTransferCap: strconv.FormatFloat(req.Cap.MinimumTransferCap, 'f', -1, 64),
 		},
-		Tiers: func() []model.Tier {
+		Tiers: func() []imodel.Tier {
 			if len(req.Tiers) == 0 {
 				return nil
 			}
-			tiers := make([]model.Tier, 0, len(req.Tiers))
+			tiers := make([]imodel.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					FeeType:   model.FeeType(t.FeeType),
-					FeeAmount: t.FeeAmount,
-					Min:       t.Min,
-					Max:       t.Max,
+				tiers = append(tiers, imodel.Tier{
+					FeeType:   imodel.FeeType(t.FeeType),
+					FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
+					Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
+					Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
 				})
 			}
 			return tiers
 		}(),
-		ServiceList: func() []model.ServiceLists {
+		ServiceList: func() []imodel.ServiceLists {
 			if len(req.ServiceList) == 0 {
 				return nil
 			}
-			lists := make([]model.ServiceLists, 0, len(req.ServiceList))
+			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
-				lists = append(lists, model.ServiceLists{
+				lists = append(lists, imodel.ServiceLists{
 					ServiceName:             sl.ServiceName,
 					ServiceKey:              sl.ServiceKey,
 					OverideProductGlAccount: sl.OverideProductGlAccount,
-					OverideCap: model.Cap{
-						SingleCap:          sl.OverideCap.SingleCap,
-						MinimumTransferCap: sl.OverideCap.MinimumTransferCap,
+					OverideCap: imodel.Cap{
+						SingleCap:          strconv.FormatFloat(sl.OverideCap.SingleCap, 'f', -1, 64),
+						MinimumTransferCap: strconv.FormatFloat(sl.OverideCap.MinimumTransferCap, 'f', -1, 64),
 					},
-					OverideTiers: func() []model.Tier {
+					OverideTiers: func() []imodel.Tier {
 						if len(sl.OverideTiers) == 0 {
 							return nil
 						}
-						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
+						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, model.Tier{
-								FeeType:   model.FeeType(t.FeeType),
-								FeeAmount: t.FeeAmount,
-								Min:       t.Min,
-								Max:       t.Max,
+							tiers = append(tiers, imodel.Tier{
+								FeeType:   imodel.FeeType(t.FeeType),
+								FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
+								Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
+								Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
 							})
 						}
 						return tiers

@@ -45,13 +45,13 @@ import (
 	"context"
 	"mime/multipart"
 
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -62,9 +62,9 @@ type ServicesService interface {
 	Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.Service], error)
-	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
-	GetByID(ctx context.Context, id string) (*model.Service, error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
+	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
+	GetByID(ctx context.Context, id string) (*imodel.Service, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error

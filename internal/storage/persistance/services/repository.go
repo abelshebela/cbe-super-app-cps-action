@@ -15,9 +15,11 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/services/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/imodel"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -25,22 +27,22 @@ import (
 )
 
 type ServicesStorage struct {
-	dal           dal.MongoDal[model.Service, model.Service]
-	serviceDal    dal.MongoDal[model.ServiceList, model.ServiceList]
+	dal           dal.MongoDal[imodel.Service, imodel.Service]
+	serviceDal    dal.MongoDal[imodel.ServiceList, imodel.ServiceList]
 	kafkaProducer kafka.ClientOrchestrationProducer
 	logger        utils.Logger
 }
 
 func NewServicesRepository(client *mongo.Client, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
-		dal:           dal.NewMongoDal[model.Service, model.Service](client, dbName, collection),
-		serviceDal:    dal.NewMongoDal[model.ServiceList, model.ServiceList](client, dbName, "service_list"),
+		dal:           dal.NewMongoDal[imodel.Service, imodel.Service](client, dbName, collection),
+		serviceDal:    dal.NewMongoDal[imodel.ServiceList, imodel.ServiceList](client, dbName, "service_list"),
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}
 }
 
-func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) error {
+func (s *ServicesStorage) Create(ctx context.Context, service *imodel.Service) error {
 	if service.ID == bson.NilObjectID {
 		service.ID = bson.NewObjectID()
 	}
@@ -59,7 +61,7 @@ func (s *ServicesStorage) Create(ctx context.Context, service *model.Service) er
 	return nil
 }
 
-func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.Service) error {
+func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel.Service) error {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorInvalidID.Code)
@@ -140,7 +142,7 @@ func (s *ServicesStorage) EnableOrDisable(ctx context.Context, id string, enable
 	return nil
 }
 
-func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Service, error) {
+func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*imodel.Service, error) {
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorInvalidID.Code)
@@ -157,7 +159,7 @@ func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Servi
 	return doc, nil
 }
 
-func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error) {
+func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Service], error) {
 	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
@@ -175,13 +177,13 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]model.Service]{
+	return &types.PaginatedResponse[[]imodel.Service]{
 		Data: items,
 		Meta: meta,
 	}, nil
 }
 
-func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error) {
+func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error) {
 	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
@@ -205,7 +207,7 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]model.ServiceList]{
+	return &types.PaginatedResponse[[]imodel.ServiceList]{
 		Data: items,
 		Meta: meta,
 	}, nil
