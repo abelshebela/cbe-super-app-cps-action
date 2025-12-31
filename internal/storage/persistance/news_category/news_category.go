@@ -96,7 +96,7 @@ func (n *NewsCategoryRepository) Delete(ctx context.Context, id string) error {
 }
 
 // FindAllWithPagination implements storage.NewsCategoryRepository.
-func (n *NewsCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.NewsCategory], error) {
+func (n *NewsCategoryRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.NewsCategory], error) {
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"category_name"}
@@ -160,7 +160,7 @@ func (n *NewsCategoryRepository) FindAllWithPagination(ctx context.Context, filt
 		nextPage = &nxt
 	}
 
-	return &types.PaginatedResponse[[]*model.NewsCategory]{
+	return &types.PaginatedResponse[[]model.NewsCategory]{
 		Data: catagories,
 		Meta: types.PaginationMeta{
 			TotalDocs:     totalDocs,

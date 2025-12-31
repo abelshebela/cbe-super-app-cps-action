@@ -1,14 +1,13 @@
 package wallet
 
 import (
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"time"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
+func ToWalletDocument(wallet local_model.Wallet) (*local_model.Wallet, error) {
 	if wallet.ID == bson.NilObjectID {
 		wallet.ID = bson.NewObjectID()
 	}
@@ -24,7 +23,7 @@ func ToWalletDocument(wallet model.Wallet) (*model.Wallet, error) {
 	return &wallet, nil
 }
 
-func UpdateMapper(wallet model.Wallet) bson.M {
+func UpdateMapper(wallet local_model.Wallet) bson.M {
 
 	update := bson.M{"last_modified_at": time.Now()}
 	if wallet.Name != "" {
@@ -32,6 +31,9 @@ func UpdateMapper(wallet model.Wallet) bson.M {
 	}
 	if wallet.UniqueCode != "" {
 		update["unique_code"] = wallet.UniqueCode
+	}
+	if wallet.ServiceCode != "" {
+		update["service_code"] = wallet.ServiceCode
 	}
 	if wallet.Avatar != "" {
 		update["avatar"] = wallet.Avatar

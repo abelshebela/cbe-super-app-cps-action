@@ -156,7 +156,7 @@ func (e *EventStorage) Find(ctx context.Context, name string) (*model.Event, err
 	return &result, nil
 }
 
-func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Event], error) {
+func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Event], error) {
 	allowedKeys := []string{"event_city", "event_venue", "enabled", "status", "has_restriction"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
 
@@ -176,10 +176,10 @@ func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	var events []*model.Event
+	var events []model.Event
 	for _, doc := range docs {
-		event := EventMapper(doc)
-		events = append(events, &event)
+		event := EventMapper(&doc)
+		events = append(events, event)
 	}
 
 	total, err := e.dal.TotalCount(ctx, filter)
@@ -192,7 +192,7 @@ func (e *EventStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 
 	e.logger.Infof("FindAllWithPagination returning %d events, total: %d", len(events), total)
 
-	return &types.PaginatedResponse[[]*model.Event]{
+	return &types.PaginatedResponse[[]model.Event]{
 		Data: events,
 		Meta: meta,
 	}, nil

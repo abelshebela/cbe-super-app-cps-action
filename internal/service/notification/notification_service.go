@@ -272,7 +272,7 @@ func (s *notificationService) FetchNotificationByID(ctx context.Context, id stri
 	return notify.MapNotificationToResponse(entity), nil
 }
 
-func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*notify.NotificationResponse], error) {
+func (s *notificationService) FetchNotifications(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Notification], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchNotifications", "Notification", "FetchNotifications")
 	defer span.End()
 
@@ -284,15 +284,8 @@ func (s *notificationService) FetchNotifications(ctx context.Context, filterPara
 		))
 		return nil, err
 	}
-	resp := make([]*notify.NotificationResponse, 0, len(entities.Data))
-	for _, e := range entities.Data {
-		resp = append(resp, notify.MapNotificationToResponse(e))
-	}
-	s.logger.Infof("[FetchNotifications] retrieved %d notifications", len(resp))
-	return &types.PaginatedResponse[[]*notify.NotificationResponse]{
-		Data: resp,
-		Meta: entities.Meta,
-	}, nil
+	s.logger.Infof("[FetchNotifications] retrieved %d notifications")
+	return entities, nil
 }
 
 func (s *notificationService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

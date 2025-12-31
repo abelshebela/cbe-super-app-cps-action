@@ -104,7 +104,7 @@ func (l *ArchivedLinkedAccountStorage) FindByAccountNumber(ctx context.Context, 
 	return result, nil
 }
 
-func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error) {
+func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedLinkedAccount], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -132,7 +132,7 @@ func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.ArchivedLinkedAccount]{
+	return &types.PaginatedResponse[[]model.ArchivedLinkedAccount]{
 		Data: data,
 		Meta: meta,
 	}, nil

@@ -46,7 +46,7 @@ func NewKYCVerifierService(client *mongo.Client, repo storage.KYCVerifierReposit
 	}
 }
 
-func (s *KYCVerifier) FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dto.KYCVerifierResponse], error) {
+func (s *KYCVerifier) FetchKYCList(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]dto.KYCVerifierResponse], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchKYCList", "KYCVerifier", "FetchKYCList")
 	defer span.End()
 

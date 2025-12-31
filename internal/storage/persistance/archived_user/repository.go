@@ -68,7 +68,7 @@ func (a *archivedUserStorage) FindByID(ctx context.Context, id string) (*model.A
 	return result, nil
 }
 
-func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
+func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -104,7 +104,7 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	// 7. Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.ArchivedUser]{
+	return &types.PaginatedResponse[[]model.ArchivedUser]{
 		Data: data,
 		Meta: meta,
 	}, nil

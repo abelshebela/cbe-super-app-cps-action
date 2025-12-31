@@ -64,6 +64,7 @@ var (
 	AccessListSegmentationCollection = "access_list_segmentation"
 	CustomerSegmentationCollection   = "customer_segmentations"
 	CPSRolesCollection               = "cps_roles"
+	CustomerFeedbackCollection       = "customer_feedbacks"
 )
 
 // Minio Bucket Names

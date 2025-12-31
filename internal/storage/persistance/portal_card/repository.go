@@ -34,7 +34,7 @@ func NewPortalCardRepository(client *mongo.Client, dbName string, collection str
 	}
 }
 
-func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.Card], error) {
+func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Card], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -81,7 +81,7 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 	s.logger.Infof("[FindAllWithPagination] retrieved %d portal cards", len(data))
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.Card]{
+	return &types.PaginatedResponse[[]model.Card]{
 		Data: data,
 		Meta: meta,
 	}, nil

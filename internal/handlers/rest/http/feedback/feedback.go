@@ -160,3 +160,72 @@ func (f *feedbackAdapter) GetFeedbackByID(w http.ResponseWriter, r *http.Request
 	f.logger.Infof("[GetFeedbackByID] feedback retrieved successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedback)
 }
+
+// GetAllCustomerFeedbacks godoc
+//
+//	@Summary		Get all customer feedbacks
+//	@Description	Fetch all customer feedbacks with pagination and search
+//	@Tags			Feedback
+//	@Accept			json
+//	@Produce		json
+//	@Param			page		query		int							false	"Page number"
+//	@Param			per_page	query		int							false	"Items per page"
+//	@Param			search		query		string						false	"Search term"
+//	@Success		200			{object}	localization.ResponseCode	"Customer feedbacks fetched successfully"
+//	@Failure		500			{object}	localization.ResponseCode	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/customer-feedbacks [get]
+func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCustomerFeedbacks", "handler", "feedback")
+	defer span.End()
+	filterParams := local_util.ExtractFilterParams(r)
+
+	feedbacks, err := f.feedbackApplication.GetAllCustomerFeedbacks(ctx, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[GetAllCustomerFeedbacks] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	span.SetAttributes(attribute.Int("feedback.count", len(feedbacks.Data)))
+	f.logger.Infof("[GetAllCustomerFeedbacks] retrieved %d customer feedbacks", len(feedbacks.Data))
+	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedbacks)
+}
+
+// GetCustomerFeedback godoc
+//
+//	@Summary		Get customer feedback by ID
+//	@Description	Fetch a single customer feedback by its ID
+//	@Tags			Feedback
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		string						true	"Feedback ID"
+//	@Success		200	{object}	localization.ResponseCode	"Customer feedback fetched successfully"
+//	@Failure		404	{object}	localization.ResponseCode	"Customer feedback not found"
+//	@Failure		500	{object}	localization.ResponseCode	"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/customer-feedbacks/{id} [get]
+func (f *feedbackAdapter) GetCustomerFeedback(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCustomerFeedback", "handler", "feedback")
+	defer span.End()
+	id := chi.URLParam(r, "id")
+
+	if id == "" {
+		f.logger.Errorf("empty feedback ID provided")
+		localization.SendErrorByCodeResponse(w, localization.ErrorFeedbackIDRequired.Code)
+		return
+	}
+
+	span.SetAttributes(attribute.String("feedback.id", id))
+	feedback, err := f.feedbackApplication.GetCustomerFeedback(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		f.logger.Errorf("[GetCustomerFeedback] service error for id %s: %v", id, err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	f.logger.Infof("[GetCustomerFeedback] customer feedback retrieved successfully for id: %s", id)
+	localization.SendSuccessResponse(w, localization.SuccessFeedbackFetched, feedback)
+}

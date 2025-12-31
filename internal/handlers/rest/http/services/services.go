@@ -11,8 +11,8 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -59,45 +59,19 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	var req servicesdto.CreateServiceRequest
-	if !decodeJSONBody(w, r, &req, a.logger) {
-		span.RecordError(errors.New("invalid payload"))
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("Failed to decode JSON request: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorInvalidJSONPayload, nil, nil)
 		return
 	}
+
 	if err := req.Validate(); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 
-	mapped := model.Services{
-		ServiceCode:         req.ServiceCode,
-		ServiceName:         req.ServiceName,
-		CbeGLProductAccount: req.ProductAccount,
-		ChargeCode:          req.ChargeCode,
-		CommissionCode:      req.CommissionCode,
-		Cap: model.Cap{
-			SingleCap:          req.Cap.SingleCap,
-			MinimumTransferCap: req.Cap.MinimumTransferCap,
-		},
-		Tiers: func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
-			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					FeeType:   constants.FeeType(t.FeeType),
-					FeeAmount: t.FeeAmount,
-					Min:       t.Min,
-					Max:       t.Max,
-				})
-			}
-			return tiers
-		}(),
-		AboveAmount:     req.AboveAmount,
-		AboveServiceFee: req.AboveServiceFee,
-		PaymentType:     req.AbovePaymentType,
-		Enabled:         true,
-	}
-
-	if err := a.app.Create(ctx, mapped); err != nil {
+	if err := a.app.Create(ctx, req); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -140,35 +114,8 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	span.SetAttributes(attribute.String("service.id", id))
-	mapped := model.Services{
-		ServiceCode:         req.ServiceCode,
-		ServiceName:         req.ServiceName,
-		CbeGLProductAccount: req.ProductAccount,
-		ChargeCode:          req.ChargeCode,
-		CommissionCode:      req.CommissionCode,
-		Cap: model.Cap{
-			SingleCap:          req.Cap.SingleCap,
-			MinimumTransferCap: req.Cap.MinimumTransferCap,
-		},
-		Tiers: func() []model.Tier {
-			tiers := make([]model.Tier, 0, len(req.Tiers))
-			for _, t := range req.Tiers {
-				tiers = append(tiers, model.Tier{
-					FeeType:   constants.FeeType(t.FeeType),
-					FeeAmount: t.FeeAmount,
-					Min:       t.Min,
-					Max:       t.Max,
-				})
-			}
-			return tiers
-		}(),
-		AboveAmount:     req.AboveAmount,
-		AboveServiceFee: req.AboveServiceFee,
-		PaymentType:     req.AbovePaymentType,
-		Enabled:         true,
-	}
 
-	if err := a.app.Update(ctx, id, mapped); err != nil {
+	if err := a.app.Update(ctx, id, req); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -280,6 +227,39 @@ func (a *servicesAdapter) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	span.SetAttributes(attribute.Int("service.count", len(list.Data)))
+	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
+}
+
+// GetAllServiceList godoc
+//
+//	@Summary		List Service List
+//	@Description	Retrieve service list with pagination, filtering, and search.
+//	@Tags			Services
+//	@Accept			json
+//	@Produce		json
+//	@Param			page			query		int		false	"Page number"		default(1)
+//	@Param			per_page		query		int		false	"Items per page"	default(10)
+//	@Param			service_name	query		string	false	"Filter by service_name"
+//	@Param			service_code	query		string	false	"Filter by service_code"
+//	@Param			service_type	query		string	false	"Filter by service_type"
+//	@Param			enabled			query		bool	false	"Filter by enabled status"
+//	@Param			search			query		string	false	"Search term (service_name, service_code, service_type)"
+//	@Success		200				{object}	localization.StandardResponse{data=types.PaginatedResponse}
+//	@Failure		500				{object}	localization.StandardResponse{data=nil}
+//	@Security		BearerAuth
+//	@Router			/services/list [get]
+func (a *servicesAdapter) GetAllServiceList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "", "getAllServicesList", "handler", "servicesList")
+	defer span.End()
+
+	filter := local_util.ExtractFilterParams(r)
+	list, err := a.app.GetAllServiceList(ctx, *filter)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("service_list.count", len(list.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessDataRetrieved, list)
 }
 

@@ -2,16 +2,18 @@ package core
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"log"
-
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"time"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
@@ -31,7 +33,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func ValidateCreate(req model.Services, service storage.ServicesRepository) error {
+func ValidateCreate(req service_dto.CreateServiceRequest, service storage.ServicesRepository) error {
 	if req.ServiceCode == "" || req.ServiceName == "" {
 		return localization.ErrorRequiredFieldMissing
 	}
@@ -48,4 +50,123 @@ func ValidateCreate(req model.Services, service storage.ServicesRepository) erro
 	}
 
 	return nil
+}
+
+func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
+	mapped := imodel.Service{
+		ServiceCode:      req.ServiceCode,
+		ServiceKey:       req.ServiceKey,
+		ServiceName:      req.ServiceName,
+		ProductGlAccount: req.ProductGlAccount,
+		Cap: imodel.Cap{
+			SingleCap:          req.Cap.SingleCap,
+			MinimumTransferCap: req.Cap.MinimumTransferCap,
+		},
+		Tiers: func() []imodel.Tier {
+			tiers := make([]imodel.Tier, 0, len(req.Tiers))
+			for _, t := range req.Tiers {
+				tiers = append(tiers, imodel.Tier{
+					FeeType:   imodel.FeeType(t.FeeType),
+					FeeAmount: t.FeeAmount,
+					Min:       t.Min,
+					Max:       t.Max,
+				})
+			}
+			return tiers
+		}(),
+		ServiceList: func() []imodel.ServiceLists {
+			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
+			for _, sl := range req.ServiceList {
+				lists = append(lists, imodel.ServiceLists{
+					ServiceName:             sl.ServiceName,
+					ServiceKey:              sl.ServiceKey,
+					OverideProductGlAccount: sl.OverideProductGlAccount,
+					IsEnabled:               true,
+					OverideCap: imodel.Cap{
+						SingleCap:          sl.OverideCap.SingleCap,
+						MinimumTransferCap: sl.OverideCap.MinimumTransferCap,
+					},
+					OverideTiers: func() []imodel.Tier {
+						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
+						for _, t := range sl.OverideTiers {
+							tiers = append(tiers, imodel.Tier{
+								FeeType:   imodel.FeeType(t.FeeType),
+								FeeAmount: t.FeeAmount,
+								Min:       t.Min,
+								Max:       t.Max,
+							})
+						}
+						return tiers
+					}(),
+				})
+			}
+			return lists
+		}(),
+		Enabled:   true,
+		IsDeleted: false,
+		CreatedAt: time.Now(),
+	}
+
+	return mapped
+}
+
+func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Service {
+	return imodel.Service{
+		ServiceCode:      req.ServiceCode,
+		ServiceKey:       req.ServiceKey,
+		ServiceName:      req.ServiceName,
+		ProductGlAccount: req.ProductGlAccount,
+		Cap: imodel.Cap{
+			SingleCap:          req.Cap.SingleCap,
+			MinimumTransferCap: req.Cap.MinimumTransferCap,
+		},
+		Tiers: func() []imodel.Tier {
+			if len(req.Tiers) == 0 {
+				return nil
+			}
+			tiers := make([]imodel.Tier, 0, len(req.Tiers))
+			for _, t := range req.Tiers {
+				tiers = append(tiers, imodel.Tier{
+					FeeType:   imodel.FeeType(t.FeeType),
+					FeeAmount: t.FeeAmount,
+					Min:       t.Min,
+					Max:       t.Max,
+				})
+			}
+			return tiers
+		}(),
+		ServiceList: func() []imodel.ServiceLists {
+			if len(req.ServiceList) == 0 {
+				return nil
+			}
+			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
+			for _, sl := range req.ServiceList {
+				lists = append(lists, imodel.ServiceLists{
+					ServiceName:             sl.ServiceName,
+					ServiceKey:              sl.ServiceKey,
+					OverideProductGlAccount: sl.OverideProductGlAccount,
+					OverideCap: imodel.Cap{
+						SingleCap:          sl.OverideCap.SingleCap,
+						MinimumTransferCap: sl.OverideCap.MinimumTransferCap,
+					},
+					OverideTiers: func() []imodel.Tier {
+						if len(sl.OverideTiers) == 0 {
+							return nil
+						}
+						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
+						for _, t := range sl.OverideTiers {
+							tiers = append(tiers, imodel.Tier{
+								FeeType:   imodel.FeeType(t.FeeType),
+								FeeAmount: t.FeeAmount,
+								Min:       t.Min,
+								Max:       t.Max,
+							})
+						}
+						return tiers
+					}(),
+				})
+			}
+			return lists
+		}(),
+	}
 }

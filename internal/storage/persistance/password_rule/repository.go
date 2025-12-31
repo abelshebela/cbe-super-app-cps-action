@@ -7,8 +7,7 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -18,7 +17,7 @@ import (
 )
 
 type PasswordRuleStorage struct {
-	dal        dal.MongoDal[model.PasswordRule, model.PasswordRule]
+	dal        dal.MongoDal[local_model.PasswordRule, local_model.PasswordRule]
 	client     *mongo.Client
 	collection *mongo.Collection
 	logger     utils.Logger
@@ -26,14 +25,14 @@ type PasswordRuleStorage struct {
 
 func NewPasswordRuleRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.PasswordRuleRepository {
 	return &PasswordRuleStorage{
-		dal:        dal.NewMongoDal[model.PasswordRule, model.PasswordRule](client, dbName, collection),
+		dal:        dal.NewMongoDal[local_model.PasswordRule, local_model.PasswordRule](client, dbName, collection),
 		client:     client,
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
 	}
 }
 
-func (p *PasswordRuleStorage) Create(ctx context.Context, rule *model.PasswordRule) error {
+func (p *PasswordRuleStorage) Create(ctx context.Context, rule *local_model.PasswordRule) error {
 	p.logger.Infof("[Create] creating password rule")
 	_, err := p.dal.InsertOne(ctx, *rule)
 	if err != nil {
@@ -44,7 +43,7 @@ func (p *PasswordRuleStorage) Create(ctx context.Context, rule *model.PasswordRu
 	return nil
 }
 
-func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *model.PasswordRule) error {
+func (p *PasswordRuleStorage) Update(ctx context.Context, id string, rule *local_model.PasswordRule) error {
 	p.logger.Infof("[Update] updating password rule for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -84,7 +83,7 @@ func (p *PasswordRuleStorage) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (p *PasswordRuleStorage) FindByID(ctx context.Context, id string) (*model.PasswordRule, error) {
+func (p *PasswordRuleStorage) FindByID(ctx context.Context, id string) (*local_model.PasswordRule, error) {
 	p.logger.Infof("[FindByID] fetching password rule by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -103,7 +102,7 @@ func (p *PasswordRuleStorage) FindByID(ctx context.Context, id string) (*model.P
 	return result, nil
 }
 
-func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error) {
+func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.PasswordRule], error) {
 	filter := bson.M{
 		"is_deleted": false,
 	}
@@ -131,19 +130,19 @@ func (p *PasswordRuleStorage) FindAllWithPagination(ctx context.Context, filterP
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	p.logger.Infof("[FindAllWithPagination] retrieved %d password rules", len(data))
 
-	return &types.PaginatedResponse[[]*model.PasswordRule]{
+	return &types.PaginatedResponse[[]local_model.PasswordRule]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (p *PasswordRuleStorage) FindCurrentRule(ctx context.Context) (*model.PasswordRule, error) {
+func (p *PasswordRuleStorage) FindCurrentRule(ctx context.Context) (*local_model.PasswordRule, error) {
 	p.logger.Infof("[FindCurrentRule] fetching current password rule")
-	ruleModel, err := p.dal.FindOne(ctx, bson.M{}, bson.M{})
-	if err != nil || ruleModel == nil {
+	rulelocal_Model, err := p.dal.FindOne(ctx, bson.M{}, bson.M{})
+	if err != nil || rulelocal_Model == nil {
 		p.logger.Errorf("[FindCurrentRule] failed to find current password rule: %v", err)
 		return nil, err
 	}
 	p.logger.Infof("[FindCurrentRule] current password rule retrieved successfully")
-	return ruleModel, nil
+	return rulelocal_Model, nil
 }

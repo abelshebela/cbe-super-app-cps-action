@@ -49,7 +49,7 @@ func NewBPSActionRoleService(
 }
 
 // FindAllWithPagination implements service.bpsActionRoleService.
-func (s *bpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error) {
+func (s *bpsActionRoleService) FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllActionListWithPagination", "BPS Action LIST", "FindAllActionListWithPagination")
 	defer span.End()
 
@@ -57,7 +57,7 @@ func (s *bpsActionRoleService) FindAllActionListWithPagination(ctx context.Conte
 }
 
 // FindAllWithPagination implements service.bpsActionRoleService.
-func (s *bpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error) {
+func (s *bpsActionRoleService) FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ActionRole], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "BPS Action Role", "FindAllWithPagination")
 	defer span.End()
 

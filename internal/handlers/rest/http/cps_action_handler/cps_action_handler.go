@@ -5,6 +5,7 @@ import (
 	cpsactionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	mid "cbe-super-app-cps-action/internal/handlers/middleware"
 	"cbe-super-app-cps-action/internal/service"
@@ -207,7 +208,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
 	actionName := ""
-	var idxDoc *model.CPSActionApproveIndex
+	var idxDoc *imodel.CPSActionApproveIndex
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
@@ -375,8 +376,8 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 			actionName = mod
 		}
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-			roleID = local_util.FirstHex24(roleID)
+			roleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+			roleID = roleID
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -410,7 +411,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 
 	CheckerUser := model.Checker{
 		CheckerID:          userData.UserID,
-		RoleID:             r.Context().Value(constants.ContextKey("role_id")).(string),
+		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerIndex:       idx32,
 		CheckerName:        userData.FullName,
 		CheckerPhoneNumber: userData.PhoneNumber,

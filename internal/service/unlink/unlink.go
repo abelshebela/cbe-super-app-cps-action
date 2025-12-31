@@ -75,7 +75,7 @@ func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) 
 	return user, nil
 }
 
-func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ArchivedUser], error) {
+func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllArchivedUser", "unlinkService", "unlinkService")
 	defer span.End()
 	result, err := u.archivedUserRepo.FindAllWithPagination(ctx, *filterParams)

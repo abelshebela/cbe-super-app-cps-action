@@ -44,7 +44,7 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*m
 	return result, nil
 }
 
-func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.BPSUser], error) {
+func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -84,7 +84,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]*model.BPSUser]{
+	return &types.PaginatedResponse[[]model.BPSUser]{
 		Data: data,
 		Meta: meta,
 	}, nil
@@ -92,7 +92,7 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 
 func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) error {
 	b.logger.Infof("[Update] updating BPS user")
-	filter := bson.M{"user_code": BpsUser.UserCode, "is_deleted": false}
+	filter := bson.M{"_id": BpsUser.ID, "is_deleted": false}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -105,4 +105,49 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) err
 	b.logger.Infof("[Update] BPS user updated successfully")
 	return nil
 
+}
+
+func (b *BPSUserStorage) Create(ctx context.Context, req model.BPSUser) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
+	defer span.End()
+
+	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
+
+	// Save the new user
+	_, err := b.dal.InsertOne(ctx, req)
+	if err != nil {
+		// span.AddEvent("[CreateBPSUser] failed to create BPS user", trace.WithAttributes(
+		//     attribute.String("error", err.Error()),
+		//     attribute.String("user_code", req.UserCode),
+		// ))
+		b.logger.Errorf("[CreateBPSUser] failed to create BPS user: %v", err)
+		return err
+	}
+
+	b.logger.Infof("[CreateBPSUser] BPS user created successfully for user_code: %s", req.UserCode)
+	return nil
+}
+
+func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value string) (*model.BPSUser, error) {
+	b.logger.Infof("[FindByFilterKey] searching BPS user by %s: %s", field, value)
+	var filter bson.M
+
+	if field == "id" {
+		field = "_id"
+		objID, err := bson.ObjectIDFromHex(value)
+		if err != nil {
+			b.logger.Errorf("[FindByFilterKey] invalid ObjectID: %v", err)
+			return nil, errors.New("invalid id format")
+		}
+		filter = bson.M{field: objID, "is_deleted": false}
+	} else {
+		filter = bson.M{field: value, "is_deleted": false}
+	}
+
+	result, err := b.dal.FindOne(ctx, filter, bson.M{})
+	if err != nil {
+		b.logger.Errorf("[FindByFilterKey] failed to find BPS user by %s: %v", field, err)
+		return nil, err
+	}
+	return result, nil
 }

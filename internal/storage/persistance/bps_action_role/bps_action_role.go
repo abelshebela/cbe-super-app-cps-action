@@ -43,7 +43,7 @@ func (a *BPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCo
 	return err
 }
 
-func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionList], error) {
+func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
@@ -69,7 +69,7 @@ func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	a.logger.Infof("[FindAllWithPagination] retrieved %d action lists", len(data))
 
-	return &types.PaginatedResponse[[]*imodel.BPSActionList]{
+	return &types.PaginatedResponse[[]imodel.BPSActionList]{
 		Data: data,
 		Meta: meta,
 	}, nil
@@ -240,7 +240,7 @@ func (r *BPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 	return r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 }
 
-func (r *BPSActionRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ActionRole], error) {
+func (r *BPSActionRoleRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ActionRole], error) {
 	r.logger.Infof("[FindAllWithPagination] fetching BPS action roles with pagination")
 	searchKeys := bson.M{}
 	allowedKeys := []string{"action_code", "action_name", "enabled"}
@@ -269,7 +269,7 @@ func (r *BPSActionRoleRepository) FindAllWithPagination(ctx context.Context, fil
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	r.logger.Infof("[FindAllWithPagination] retrieved %d BPS action roles", len(data))
 
-	return &types.PaginatedResponse[[]*model.ActionRole]{
+	return &types.PaginatedResponse[[]model.ActionRole]{
 		Data: data,
 		Meta: meta,
 	}, nil

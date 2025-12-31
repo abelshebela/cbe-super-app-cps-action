@@ -66,7 +66,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 
 	s.logger.Infof("[Authorize] processing action: %s", action.RequestAction)
 
-	result := (*currentAction)
+	result := *currentAction
 
 	switch result["method"] {
 	case "OPEN":
@@ -220,7 +220,7 @@ func (s *amountBasedAuthService) Authorize(ctx context.Context, action *model.CP
 }
 
 // FindAllWithPagination retrieves all amount-based auth tiers with pagination
-func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.AuthTier], error) {
+func (s *amountBasedAuthService) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.AuthTier], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FindAllWithPagination", "Amount Based Auth", "FindAllWithPagination")
 	defer span.End()
 
@@ -285,24 +285,23 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		if len(pinTiers) == 0 {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
-		pinTier := pinTiers[0]
 
-		if err := core.ApplyOpenUpdate(existingTier, pinTier); err != nil {
+		if err := core.ApplyOpenUpdate(existingTier, &pinTiers[0]); err != nil {
 			return err
 		}
 
 		// Persist updates: update OPEN first, then PIN
 		existingTier.LastModified = now
 
-		pinTier.LastModified = now
+		pinTiers[0].LastModified = now
 
 		data := map[string]interface{}{
 			"method": "OPEN",
 			"data": map[string]interface{}{
 				"open_id": existingTier.ID.Hex(),
-				"pin_id":  pinTier.ID.Hex(),
+				"pin_id":  pinTiers[0].ID.Hex(),
 				"open":    existingTier,
-				"pin":     pinTier,
+				"pin":     &pinTiers[0],
 			},
 		}
 		// Create cps action model
@@ -338,10 +337,6 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 			s.logger.Errorf("No OPEN tiers found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
-		if openTiers[0] == nil {
-			s.logger.Errorf("First OPEN tier is nil")
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
 
 		s.logger.Infof("Fetching OTP_PIN tiers...")
 		otpPinTiers, err := s.Repository.FindAll(ctx, bson.M{"method": constants.OTPANDPIN, "is_deleted": false}, bson.M{})
@@ -355,22 +350,9 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 			s.logger.Errorf("No OTP_PIN tiers found")
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
-		if otpPinTiers[0] == nil {
-			s.logger.Errorf("First OTP_PIN tier is nil")
-			return errors.New(localization.ErrorUnexpectedError.Code)
-		}
 
-		openTier := openTiers[0]
-		otpPinTier := otpPinTiers[0]
-
-		s.logger.Infof("OPEN tier: ID=%s, MinAmount=%d, MaxAmount=%d",
-			openTier.ID.Hex(), openTier.MinAmount, openTier.MaxAmount)
-		s.logger.Infof("OTP_PIN tier: ID=%s, MinAmount=%d, MaxAmount=%d",
-			otpPinTier.ID.Hex(), otpPinTier.MinAmount, otpPinTier.MaxAmount)
-
-		// Validate the user's PIN values against OPEN and OTP_PIN constraints
 		s.logger.Infof("Applying PIN update validation...")
-		if err := core.ApplyPinUpdate(existingTier, openTier, otpPinTier); err != nil {
+		if err := core.ApplyPinUpdate(existingTier, &openTiers[0], &otpPinTiers[0]); err != nil {
 			s.logger.Errorf("PIN update validation failed: %v", err)
 			return err
 		}
@@ -379,20 +361,20 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		s.logger.Infof("Updating existing tier...")
 
 		s.logger.Infof("Updating OPEN tier...")
-		openTier.LastModified = now
+		openTiers[0].LastModified = now
 
 		s.logger.Infof("Updating OTP_PIN tier...")
-		otpPinTier.LastModified = now
+		otpPinTiers[0].LastModified = now
 
 		data := map[string]interface{}{
 			"method": "PIN",
 			"data": map[string]interface{}{
-				"open_id":    openTier.ID.Hex(),
+				"open_id":    openTiers[0].ID.Hex(),
 				"pin_id":     existingTier.ID.Hex(),
-				"otp_pin_id": otpPinTier.ID.Hex(),
-				"open":       openTier,
+				"otp_pin_id": otpPinTiers[0].ID.Hex(),
+				"open":       &openTiers[0],
 				"pin":        existingTier,
-				"otp_pin":    otpPinTier,
+				"otp_pin":    &otpPinTiers[0],
 			},
 		}
 
@@ -418,9 +400,8 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		if len(pinTiers) == 0 {
 			return errors.New(localization.ErrorFileNotFound.Code)
 		}
-		pinTier := pinTiers[0]
 
-		if err := core.ApplyOtpPinUpdate(existingTier, pinTier); err != nil {
+		if err := core.ApplyOtpPinUpdate(existingTier, &pinTiers[0]); err != nil {
 			return err
 		}
 
@@ -430,9 +411,9 @@ func (s *amountBasedAuthService) UpdateAmountBasedAuth(ctx context.Context, id s
 		data := map[string]interface{}{
 			"method": "OTP_PIN",
 			"data": map[string]interface{}{
-				"pin_id":     pinTier.ID.Hex(),
+				"pin_id":     pinTiers[0].ID.Hex(),
 				"otp_pin_id": existingTier.ID.Hex(),
-				"pin":        pinTier,
+				"pin":        &pinTiers[0],
 				"otp_pin":    existingTier,
 			},
 		}

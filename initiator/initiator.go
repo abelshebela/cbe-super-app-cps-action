@@ -91,8 +91,6 @@ func Init(ctx context.Context) {
 
 	logger.Infof("Initializing persistence...")
 	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
-	// merchantApi := "https://ce-erp.starpayethiopia.com/api/v1/merchant/"
-	// merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/merchant/"
 	merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
 	merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
 	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, merchantApi, merchantXAPIKey, notificationApi, *notificationProducer, *clientOrchestrationProducer, cfg, logger)
@@ -176,7 +174,7 @@ func Init(ctx context.Context) {
 		fmt.Println("Goroutines: ", runtime.NumGoroutine())
 	}()
 
-	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.ServiceDetails, serviceLayer.Topup, logger)
+	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.Services, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, otlr)
 
 	grpcServer, lis := server.StartGrpcServer(grpcHandlers, logger)

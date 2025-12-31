@@ -11,7 +11,7 @@ import (
 
 func (c CreateBankRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.Name, validation.Required.Error(localization.MsgBankNameRequired), validation.Length(3, 25)),
+		validation.Field(&c.Name, validation.Required.Error(localization.MsgBankNameRequired)),
 		validation.Field(&c.Type,
 			validation.Required.Error(localization.MsgBankTypeRequired),
 			validation.In("BANK", "WALLET", "MFI").Error(localization.MsgInvalidRequestBankType),
@@ -25,7 +25,6 @@ func (u UpdateBankRequest) Validate() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.Name,
 			validation.NilOrNotEmpty,
-			validation.Length(3, 50),
 		),
 		validation.Field(&u.Logo, validation.By(func(value interface{}) error {
 			if value == nil {

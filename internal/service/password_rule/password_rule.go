@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/password_rule/core"
@@ -35,7 +36,7 @@ func NewPasswordRuleService(repo storage.PasswordRuleRepository, cpsService serv
 	}
 }
 
-func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]*model.PasswordRule], error) {
+func (p *passwordService) GetAllPasswordRules(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.PasswordRule], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllPasswordRules", "PasswordRule", "GetAllPasswordRules")
 	defer span.End()
 
@@ -101,7 +102,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		return false, fmt.Sprintf("password must be at most %d characters", rule.MaxLength)
 	}
 
-	if rule.Numbers {
+	if rule.Numbers != nil {
 		hasNumber := false
 		for _, c := range password {
 			if c >= '0' && c <= '9' {
@@ -114,7 +115,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.CapitalLetters {
+	if rule.CapitalLetters != nil {
 		hasUpper := false
 		for _, c := range password {
 			if c >= 'A' && c <= 'Z' {
@@ -127,7 +128,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.SmallLetters {
+	if rule.SmallLetters != nil {
 		hasLower := false
 		for _, c := range password {
 			if unicode.IsLower(c) {
@@ -140,7 +141,7 @@ func (p *passwordService) CheckPasswordRule(ctx context.Context, password string
 		}
 	}
 
-	if rule.Characters {
+	if rule.Characters != nil {
 		hasSpecial := false
 		for _, c := range password {
 			if (c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126) {
@@ -161,7 +162,7 @@ func (p *passwordService) Authorize(ctx context.Context, cpsAction *model.CPSAct
 
 	p.logger.Infof("[Authorize] authorizing password rule action: %s", cpsAction.RequestAction)
 
-	passwordRule, err := local_util.JsonUnmarshal[model.PasswordRule](cpsAction.CurrentAction)
+	passwordRule, err := local_util.JsonUnmarshal[local_model.PasswordRule](cpsAction.CurrentAction)
 	if err != nil {
 		p.logger.Errorf("[Authorize] failed to unmarshal password rule from action: %v", err)
 		span.AddEvent("Failed to unmarshal CurrentAction", trace.WithAttributes(

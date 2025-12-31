@@ -42,7 +42,7 @@ func ToAdvertResponse(advert model.Advert) ad.AdvertResponse {
 }
 
 // ToAdvertResponses converts a slice of entity.Advert to a slice of dto.AdvertResponse
-func ToAdvertResponses(adverts []*model.Advert) []*ad.AdvertResponse {
+func ToAdvertResponses(adverts []model.Advert) []*ad.AdvertResponse {
 	responses := make([]*ad.AdvertResponse, len(adverts))
 	for i, advert := range adverts {
 		responses[i] = &ad.AdvertResponse{

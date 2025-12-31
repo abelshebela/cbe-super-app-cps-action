@@ -7,5 +7,6 @@ type BPSUserHandler interface {
 	GetAllBPSUsers(w http.ResponseWriter, r *http.Request)
 	DisableUser(w http.ResponseWriter, r *http.Request)
 	EnableUser(w http.ResponseWriter, r *http.Request)
-	// CreateBPSUser(w http.ResponseWriter, r *http.Request)
+	CreateBPSUser(w http.ResponseWriter, r *http.Request)
+	UpdateBPSUser(w http.ResponseWriter, r *http.Request)
 }

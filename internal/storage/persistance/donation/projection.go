@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToDonationListResponse(donation *model.Donation, company *model.DonationCompany, category *model.DonationCategory) *donation_dto.DonationListResponse {
+func MapToDonationListResponse(donation model.Donation, company *model.DonationCompany, category *model.DonationCategory) *donation_dto.DonationListResponse {
 	donationImages := make([]shared_types.DonationImage, len(donation.DonationImages))
 	for i, img := range donation.DonationImages {
 		donationImages[i] = shared_types.DonationImage{

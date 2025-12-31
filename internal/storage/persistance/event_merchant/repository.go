@@ -135,7 +135,7 @@ func (m *EventMerchantRepository) FindByID(ctx context.Context, id string) (*mod
 	return result, nil
 }
 
-func (s *EventMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.EventMerchant], error) {
+func (s *EventMerchantRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "merchant_type", "merchant_id", "merchant_name", "email", "phone_number", "enabled", "bank_account_number"}
 
@@ -168,7 +168,7 @@ func (s *EventMerchantRepository) FindAllWithPagination(ctx context.Context, fil
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.EventMerchant]{
+	return &types.PaginatedResponse[[]model.EventMerchant]{
 		Data: data,
 		Meta: meta,
 	}, nil

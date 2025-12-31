@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -28,7 +29,9 @@ func RoleExistenChecker(ctx context.Context, types, roleId string, update imodel
 	if types == constants.CREATE {
 		resByName, err := roleRepo.Find(ctx, bson.M{"name": update.Name})
 		if err != nil {
-			return err
+			if err != mongo.ErrNoDocuments {
+				return err
+			}
 		}
 		// On create, both code and name must be unique
 		if resByName != nil {

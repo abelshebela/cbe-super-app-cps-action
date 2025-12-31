@@ -98,7 +98,7 @@ func (i *IconStorage) FindByID(ctx context.Context, id string) (*model.Icon, err
 	return result, nil
 }
 
-func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]*model.Icon], error) {
+func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Icon], error) {
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 
@@ -118,7 +118,7 @@ func (s *IconStorage) FindAllWithPagination(ctx context.Context, filterParam *ty
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.Icon]{
+	return &types.PaginatedResponse[[]model.Icon]{
 		Data: data,
 		Meta: meta,
 	}, nil

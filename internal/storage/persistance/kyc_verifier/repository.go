@@ -95,7 +95,7 @@ func (s *KYCVerifierStorage) FindByIDPopulated(ctx context.Context, id string) (
 }
 
 // FindAllWithPaginationPopulated returns populated list with pagination
-func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*dto.KYCVerifierResponse], error) {
+func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]dto.KYCVerifierResponse], error) {
 	searchKeys := bson.M{}
 	allowedKeys := []string{"kyc_status", "kyc_level", "kyc_approved", "enabled"}
 	if filterParam.Search != "" {
@@ -160,25 +160,19 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 	defer cur.Close(ctx)
 
 	var result []struct {
-		Data  []*dto.KYCVerifierResponse `bson:"data"`
+		Data  []dto.KYCVerifierResponse `bson:"data"`
 		Total []struct {
 			Count int64 `bson:"count"`
 		} `bson:"total"`
 	}
-	if err := cur.All(ctx, &result); err != nil {
+	if err := cur.All(ctx, result); err != nil {
 		s.logger.Errorf("decode kyc list: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
-	var data []*dto.KYCVerifierResponse
+	var data []dto.KYCVerifierResponse
 	var total int64
-	if len(result) > 0 {
-		data = result[0].Data
-		if len(result[0].Total) > 0 {
-			total = result[0].Total[0].Count
-		}
-	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]*dto.KYCVerifierResponse]{
+	return &types.PaginatedResponse[[]dto.KYCVerifierResponse]{
 		Data: data,
 		Meta: meta,
 	}, nil
@@ -254,7 +248,7 @@ func (s *KYCVerifierStorage) FindByID(ctx context.Context, id string) (*model.Cu
 	return result, nil
 }
 
-func (s *KYCVerifierStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerKYC], error) {
+func (s *KYCVerifierStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.CustomerKYC], error) {
 	filter := bson.M{"is_deleted": false, "kyc_status": "PENDING"}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"kyc_status", "kyc_level", "kyc_approved", "enabled"}
@@ -273,7 +267,7 @@ func (s *KYCVerifierStorage) FindAllWithPagination(ctx context.Context, filterPa
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	return &types.PaginatedResponse[[]*model.CustomerKYC]{
+	return &types.PaginatedResponse[[]model.CustomerKYC]{
 		Data: data,
 		Meta: meta,
 	}, nil

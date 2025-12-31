@@ -5,9 +5,12 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
 
@@ -15,7 +18,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+
 	// model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 )
 
 type paginated_resp *types.PaginatedResponse[[]*model.BPSUser]
@@ -186,32 +191,126 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 }
 
-// func (h *BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
-// 	var req bps_dto.BPSUserCreatePayload
-// 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-// 		localization.SendBadRequestResponse(w, "Invalid request payload")
-// 		return
-// 	}
+// CreateBPSUser creates a new BPS user
+//
+//	@Summary		Create BPS user
+//	@Description	Creates a new BPS user account
+//	@Tags			BPS Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		bps_user_dto.BPSUserCreateRequest						true	"BPS user create request"
+//	@Success		200		{object}	localization.StandardResponse{data=nil}					"BPS user created successfully"
+//	@Failure		400		{object}	localization.StandardResponse{data=nil}					"Bad request"
+//	@Failure		500		{object}	localization.StandardResponse{data=nil}					"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bps_users/ [post]
+func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
+	var req bps_user_dto.BPSUserCreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendBadRequestResponse(w, "Invalid request payload")
+		return
+	}
 
-// 	// Validate required fields
-// 	if req.FullName == "" || req.JobTitle == "" || req.ImpowerID == "" || req.PhoneNumber == "" || req.Email == "" {
-// 		localization.SendBadRequestResponse(w, "All fields are required")
-// 		return
-// 	}
+	// Validate required fields
+	if req.UserID == "" {
+		localization.SendBadRequestResponse(w, "user id requed")
+		return
+	}
 
-// 	// user := model.BPSUser{
-// 	// 	// ID:          primitive.NewObjectID(),
-// 	// 	UserCode:    userCode,
-// 	// 	FullName:    req.FullName,
-// 	// 	JobTitle:    req.JobTitle,
-// 	// 	ImpowerID:   req.ImpowerID,
-// 	// 	PhoneNumber: req.PhoneNumber,
-// 	// 	Email:       req.Email,
-// 	// 	// CreatedAt:   time.Now(),
-// 	// 	// Enabled:     true,
-// 	// }
+	concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	now := time.Now()
+	NewUser := model.BPSUser{
+		// ID:       primitive.NewObjectID(),
+		UserCode: req.UserID,
+		FullName: concatinated_name,
+		// JobTitle:    req.JobTitle,
+		// UserName:    req.ImpowerID,
+		PhoneNumber: req.PhoneNumber,
+		// Email:       req.Email,
+		CreatedAt:      now,
+		LastModifiedAt: now,
 
-// 	// // TODO: Save user to DB (implement your DB logic here)
+		Enabled: false,
+	}
 
-// 	// localization.SendSuccessResponse(w, "User created successfully", user)
-// }
+	err := h.Service.CreateBPSUser(r.Context(), NewUser)
+	if err != nil {
+		// span.RecordError(err)
+		h.logger.Errorf("[CreateUser] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
+}
+
+// UpdateBPSUser updates an existing BPS user
+//
+//	@Summary		Update BPS user
+//	@Description	Updates an existing BPS user account
+//	@Tags			BPS Users
+//	@Accept			json
+//	@Produce		json
+//	@Param			user_code	path		string											true	"User Code"
+//	@Param			request		body		bps_user_dto.BPSUserUpdateRequest				true	"BPS user update request"
+//	@Success		200			{object}	localization.StandardResponse{data=nil}			"BPS user updated successfully"
+//	@Failure		400			{object}	localization.StandardResponse{data=nil}			"Bad request"
+//	@Failure		404			{object}	localization.StandardResponse{data=nil}			"User not found"
+//	@Failure		500			{object}	localization.StandardResponse{data=nil}			"Internal server error"
+//	@Security		BearerAuth
+//	@Router			/bps_users/{user_code} [put]
+func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		localization.SendBadRequestResponse(w, "user code required")
+		return
+	}
+
+	var req bps_user_dto.BPSUserUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		localization.SendBadRequestResponse(w, "Invalid request payload")
+		return
+	}
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		localization.SendBadRequestResponse(w, "unable to convert object id")
+		return
+	}
+
+	updatedUser := model.BPSUser{
+		ID:             objID,
+		LastModifiedAt: time.Now(),
+	}
+
+	// Populate fields if not empty
+	if req.FullName.FirstName != "" || req.FullName.MiddleName != "" || req.FullName.LastName != "" {
+		updatedUser.FullName = req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	}
+	if req.PhoneNumber != "" {
+		updatedUser.PhoneNumber = req.PhoneNumber
+	}
+	// if req.Email != "" {
+	//     updatedUser.Email = req.Email
+	// }
+	if req.Role != "" {
+		updatedUser.Role = req.Role
+	}
+	if len(req.BranchCode) > 0 {
+		updatedUser.BranchCode = req.BranchCode
+	}
+	if req.HomeBranch != "" {
+		updatedUser.HomeBranch = req.HomeBranch
+	}
+	// if req.Realm != "" {
+	// 	updatedUser.Realm = req.Realm
+	// }
+	// Always update enabled (bool, so default is false if not set)
+	updatedUser.Enabled = req.Enabled
+
+	err = h.Service.UpdateBPSUser(r.Context(), id, updatedUser)
+	if err != nil {
+		h.logger.Errorf("[UpdateBPSUser] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
+}

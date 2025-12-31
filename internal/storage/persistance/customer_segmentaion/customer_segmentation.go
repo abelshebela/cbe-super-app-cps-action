@@ -7,18 +7,20 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type customerStorage struct {
-	dal        dal.MongoDal[model.CustomerSegmentation, model.CustomerSegmentation]
+	dal        dal.MongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation]
 	client     *mongo.Client
 	dbName     string
 	collection string
@@ -27,7 +29,7 @@ type customerStorage struct {
 
 func NewCustomerSegmentationRepository(client *mongo.Client, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
 	return &customerStorage{
-		dal:        dal.NewMongoDal[model.CustomerSegmentation, model.CustomerSegmentation](client, dbName, collection),
+		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client, dbName, collection),
 		client:     client,
 		dbName:     dbName,
 		collection: collection,
@@ -35,7 +37,7 @@ func NewCustomerSegmentationRepository(client *mongo.Client, dbName, collection 
 	}
 }
 
-func (r *customerStorage) Create(ctx context.Context, seg *model.CustomerSegmentation) error {
+func (r *customerStorage) Create(ctx context.Context, seg *imodel.CustomerSegmentation) error {
 	_, err := r.dal.InsertOne(ctx, *seg)
 	if err != nil {
 		r.logger.Errorf("Unable to create customer segmentation with error: %s", err)
@@ -44,7 +46,7 @@ func (r *customerStorage) Create(ctx context.Context, seg *model.CustomerSegment
 	return nil
 }
 
-func (r *customerStorage) Update(ctx context.Context, id string, seg *model.CustomerSegmentation) error {
+func (r *customerStorage) Update(ctx context.Context, id string, seg *imodel.CustomerSegmentation) error {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
@@ -55,6 +57,27 @@ func (r *customerStorage) Update(ctx context.Context, id string, seg *model.Cust
 	_, err = r.dal.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.Errorf("Unable to update customer segmentation with error: %s", err)
+		return err
+	}
+	return nil
+}
+
+func (r *customerStorage) EnableOrDisable(ctx context.Context, id string, enable bool) error {
+	obj, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	filter := bson.M{"_id": obj, "is_deleted": false}
+	update := bson.M{"is_enabled": enable, "last_modified_at": time.Now()}
+
+	_, err = r.dal.UpdateOne(ctx, filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			r.logger.Warnf("Customer segmentation not found for enable/disable, id: %s", id)
+			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		r.logger.Errorf("Unable to enable/disable customer segmentation with error: %s", err)
 		return err
 	}
 	return nil
@@ -75,7 +98,7 @@ func (r *customerStorage) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *customerStorage) FindByID(ctx context.Context, id string) (*model.CustomerSegmentation, error) {
+func (r *customerStorage) FindByID(ctx context.Context, id string) (*imodel.CustomerSegmentation, error) {
 	obj, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -95,7 +118,7 @@ func (r *customerStorage) FindByID(ctx context.Context, id string) (*model.Custo
 	return seg, nil
 }
 
-func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CustomerSegmentation], error) {
+func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerSegmentation], error) {
 	searchKeys := bson.M{}
 
 	allowedKeys := []string{"search"}
@@ -127,13 +150,13 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]*model.CustomerSegmentation]{
+	return &types.PaginatedResponse[[]imodel.CustomerSegmentation]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*model.CustomerSegmentation, error) {
+func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error) {
 	filter := bson.M{"customer_segment": customerSegment, "is_deleted": false}
 	result, err := r.dal.FindOne(ctx, filter, nil)
 	if err != nil {

@@ -55,11 +55,13 @@ var cpsActionRegistry = map[string]string{
 	"DELETE vault": "BANKVAULT",
 
 	// ActionRole (BPS)
+
 	"POST bps-action-roles":  "BPSACTIONEROLE",
 	"PATCH bps-action-roles": "BPSACTIONEROLE",
 
 	// BPSUser
-	"POST bps_users": "BPSUSER",
+	"POST bps_users":       "BPSUSER",
+	"PATCH bps_users/{id}": "BPSUSER",
 
 	// BudgetCategory
 	"POST budget-category":   "BUDGETCATEGORY",
@@ -148,8 +150,8 @@ var cpsActionRegistry = map[string]string{
 	"POST access_list_segmentation": "ACCESSLISTSEGMENTATION",
 
 	// PasswordRule
-	"PATCH password_rule": "PASSWORD",
-	"POST password_rule":  "PASSWORD",
+	"PATCH password_rule": "PASSWORDRULE",
+	"POST password_rule":  "PASSWORDRULE",
 
 	// PermissionGroup
 	"POST permissions":  "PermissionGroup",

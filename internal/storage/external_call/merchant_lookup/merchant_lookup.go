@@ -47,3 +47,24 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, 
 
 	return merchantInfo, nil
 }
+
+func (m *MerchantLookupAdapter) UpdateMerchant(ctx context.Context, merchantID string, payload merchantDto.ERPUpdateMerchantRequest, xAPIKey string) error {
+	xAPIKey = "d900978c8506d19bd18c0e18029f1f882734ba9b"
+	m.Url = "https://qaerpsuperapp.cbe.com.et/"
+	if xAPIKey == "" {
+		xAPIKey = m.x_api_key
+	}
+	res, err := ThreeClickMerchantUpdate(ctx, m.client, xAPIKey, m.Url, merchantID, payload, m.logger)
+	if err != nil {
+		m.logger.Errorf("failed to update merchant data to third party API: %v", err)
+		return err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		m.logger.Errorf("unexpected status code from third party API: %d", res.StatusCode)
+		return localization.ErrorUnexpectedError
+	}
+
+	return nil
+}
