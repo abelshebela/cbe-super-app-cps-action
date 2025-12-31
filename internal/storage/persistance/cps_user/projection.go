@@ -150,6 +150,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":          0,
 			"user_code":    1,
+			"role":         1,
 			"full_name":    1,
 			"username":     1,
 			"email":        1,
