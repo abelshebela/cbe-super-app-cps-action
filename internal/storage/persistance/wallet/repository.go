@@ -273,7 +273,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 		// Populate response fields
 		{{Key: "$addFields", Value: bson.M{
 			"service_code": "$temp_service.service_code",
-			"service_key":  "$temp_service.service_name",
+			"service_key":  "$temp_service.service_key",
 			"service_id": bson.M{
 				"$cond": bson.A{
 					bson.M{"$ifNull": bson.A{"$temp_service._id", false}},

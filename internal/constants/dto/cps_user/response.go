@@ -32,7 +32,7 @@ type CPSUserDTO struct {
 }
 
 type CPSUserResponse struct {
-	ID         bson.ObjectID      `json:"id" example:"507f1f77bcf86cd799439011"`
+	ID         string             `json:"id" example:"507f1f77bcf86cd799439011"`
 	UserCode   string             `json:"user_code" example:"USR001"`
 	FullName   string             `json:"full_name" example:"John Doe"`
 	Role       string             `json:"role" example:"Maker"`
