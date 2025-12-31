@@ -492,9 +492,9 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 	var allIDs []string
 	for _, group := range groups {
 		for _, id := range group {
-			if _, ok := seen[id]; ok {
-				return errors.New(localization.ErrorInvalidInputParameter.Code)
-			}
+			// if _, ok := seen[id]; ok {
+			// 	return errors.New(localization.ErrorInvalidInputParameter.Code)
+			// }
 			seen[id] = struct{}{}
 			allIDs = append(allIDs, id)
 		}
