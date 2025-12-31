@@ -24,31 +24,31 @@ func Validation(v any) error {
 		if strings.TrimSpace(req.BankAccountNumber) == "" {
 			return errors.New(localization.ErrorEventMerchantInvalidBankAccountNumber.Message)
 		}
-		if strings.TrimSpace(req.Email) == "" {
-			return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
-		} else {
-			if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
-				return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
-			}
-		}
-		if strings.TrimSpace(req.PhoneNumber) == "" {
+		// if strings.TrimSpace(req.Email) == "" {
+		// 	return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
+		// } else {
+		// 	if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
+		// 		return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
+		// 	}
+		// }
+		// if strings.TrimSpace(req.PhoneNumber) == "" {
 
-			return errors.New(localization.ErrorEventMerchantInvalidPhoneNumber.Message)
-		}
+		// 	return errors.New(localization.ErrorEventMerchantInvalidPhoneNumber.Message)
+		// }
 	case UpdateEventMerchantRequest:
-		if strings.TrimSpace(req.Email) != "" {
-			return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
-		} else {
-			if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
-				return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
-			}
-		}
-		if strings.TrimSpace(req.PhoneNumber) != "" {
-			length := len(req.PhoneNumber)
-			if length < 10 || length > 13 {
-				return errors.New(localization.ErrorEventMerchantInvalidPhoneNumber.Message)
-			}
-		}
+		// if strings.TrimSpace(req.Email) != "" {
+		// 	return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
+		// } else {
+		// 	if !strings.Contains(req.Email, "@") || !strings.Contains(req.Email, ".") {
+		// 		return errors.New(localization.ErrorEventMerchantInvalidEmail.Message)
+		// 	}
+		// }
+		// if strings.TrimSpace(req.PhoneNumber) != "" {
+		// 	length := len(req.PhoneNumber)
+		// 	if length < 10 || length > 13 {
+		// 		return errors.New(localization.ErrorEventMerchantInvalidPhoneNumber.Message)
+		// 	}
+		// }
 	default:
 		return errors.New("invalid request type for validation")
 	}

@@ -29,6 +29,7 @@ import (
 	event_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/event_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/icon"
 	"cbe-super-app-cps-action/internal/storage/persistance/linked_account"
+	logistics_merchant_repository "cbe-super-app-cps-action/internal/storage/persistance/logistics_merchant"
 	"cbe-super-app-cps-action/internal/storage/persistance/media"
 	newscategory_repo "cbe-super-app-cps-action/internal/storage/persistance/news_category"
 	newstag_repo "cbe-super-app-cps-action/internal/storage/persistance/news_tag"
@@ -113,7 +114,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
 		ServicesPersistence:               services_repo.NewServicesRepository(client, dbName, ServicesCollection, clientOrchestrationProducer, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
-		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),
+		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, ServicesCollection, logger),
 		TopupPersistence:                  Topup.NewTopupRepository(client, dbName, TopUpsCollection, logger),
 		DepartmentPersistence:             department.NewDepartmentRepository(client, dbName, DepartmentsCollection, logger),
 		FaydaPersistence:                  fayda.InitFaydaAccountPersistence(client, dbName, MembersCollection, logger),
@@ -137,6 +138,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		MiniAppMerchant:                   mini_app.NewMiniAppMerchantRepository(client, dbName, MiniAppMerchantCollection, logger),
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, dbName, CustomerSegmentationCollection, logger),
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, dbName, CPSRolesCollection, logger),
+		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, dbName, LogisticsMerchantsCollection, logger),
 	}
 
 	return data

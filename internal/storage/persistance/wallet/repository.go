@@ -23,13 +23,18 @@ import (
 type WalletStorage struct {
 	dal        dal.MongoDal[local_model.Wallet, local_model.Wallet]
 	serviceDal dal.MongoDal[model.Service, model.Service]
+	collection *mongo.Collection
 	logger     utils.Logger
 }
 
-func NewWalletRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.WalletRepository {
+func NewWalletRepository(client *mongo.Client, dbName string, collection, ServicesCollection string, logger utils.Logger) storage.WalletRepository {
+	collectionRef := client.Database(dbName).Collection(collection)
+
 	return &WalletStorage{
-		dal:    dal.NewMongoDal[local_model.Wallet, local_model.Wallet](client, dbName, collection),
-		logger: logger,
+		dal:        dal.NewMongoDal[local_model.Wallet, local_model.Wallet](client, dbName, collection),
+		serviceDal: dal.NewMongoDal[model.Service, model.Service](client, dbName, ServicesCollection),
+		collection: collectionRef,
+		logger:     logger,
 	}
 }
 
@@ -204,4 +209,146 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 		Data: docs,
 		Meta: meta,
 	}, nil
+}
+
+func (w *WalletStorage) FindAllWithPaginationForGRPC(
+	ctx context.Context,
+	filterParam types.Filter,
+) (*types.PaginatedResponse[[]local_model.GRPCWallet], error) {
+
+	allowedKeys := []string{"name", "code", "enabled"}
+	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		filter["$or"] = []bson.M{
+			{"name": searchRegex},
+			{"unique_code": searchRegex},
+		}
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+
+		// Make service_id always a string
+		{{Key: "$addFields", Value: bson.M{
+			"service_id_safe": bson.M{
+				"$ifNull": bson.A{"$service_id", ""},
+			},
+		}}},
+
+		// Convert to ObjectId only if valid
+		{{Key: "$addFields", Value: bson.M{
+			"service_obj_id": bson.M{
+				"$cond": bson.A{
+					bson.M{
+						"$and": bson.A{
+							bson.M{"$ne": bson.A{"$service_id_safe", ""}},
+							bson.M{"$eq": bson.A{
+								bson.M{"$strLenCP": "$service_id_safe"},
+								24,
+							}},
+						},
+					},
+					bson.M{"$toObjectId": "$service_id_safe"},
+					nil,
+				},
+			},
+		}}},
+
+		// Lookup services
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "services",
+			"localField":   "service_obj_id",
+			"foreignField": "_id",
+			"as":           "temp_service",
+		}}},
+
+		// Unwind safely
+		{{Key: "$unwind", Value: bson.M{
+			"path":                       "$temp_service",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+
+		// Populate response fields
+		{{Key: "$addFields", Value: bson.M{
+			"service_code": "$temp_service.service_code",
+			"service_key":  "$temp_service.service_name",
+			"service_id": bson.M{
+				"$cond": bson.A{
+					bson.M{"$ifNull": bson.A{"$temp_service._id", false}},
+					bson.M{"$toString": "$temp_service._id"},
+					"$service_id_safe",
+				},
+			},
+		}}},
+
+		// Cleanup
+		{{Key: "$project", Value: bson.M{
+			"temp_service":    0,
+			"service_obj_id":  0,
+			"service_id_safe": 0,
+		}}},
+
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+	}
+
+	cursor, err := w.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		w.logger.Errorf("Aggregate Wallet failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	defer cursor.Close(ctx)
+
+	var grpcWallets []local_model.GRPCWallet
+	if err := cursor.All(ctx, &grpcWallets); err != nil {
+		w.logger.Errorf("Decode Aggregate results failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	total, err := w.dal.TotalCount(ctx, filter)
+	if err != nil {
+		w.logger.Errorf("Count Wallet failed: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	return &types.PaginatedResponse[[]local_model.GRPCWallet]{
+		Data: grpcWallets,
+		Meta: meta,
+	}, nil
+}
+
+func (w *WalletStorage) FindByIDForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error) {
+	doc, err := w.FindByID(ctx, id)
+	if err != nil {
+		return nil, err // Wallet itself not found, this should still error
+	}
+
+	grpcWallet := ToGRPCWallet(*doc)
+
+	// Attempt to parse ServiceID
+	objID, err := bson.ObjectIDFromHex(grpcWallet.ServiceID)
+	if err != nil {
+		// Log it, but don't fail the request. Return the wallet as is.
+		w.logger.Debugf("Wallet %s has invalid ServiceID: %v", id, grpcWallet.ServiceID)
+		return &grpcWallet, nil
+	}
+
+	// Attempt to fetch Service
+	service, err := w.serviceDal.FindOne(ctx, bson.M{"_id": objID}, nil)
+	if err != nil {
+		w.logger.Warnf("Service not found for wallet %s: %v", id, err)
+		return &grpcWallet, nil // Return wallet even if service lookup fails
+	}
+
+	// Enrich if found
+	if service != nil {
+		grpcWallet.ServiceCode = service.ServiceCode
+		grpcWallet.ServiceKey = service.ServiceName
+	}
+
+	return &grpcWallet, nil
 }

@@ -4,7 +4,7 @@
 // 	protoc        v6.31.1
 // source: wallet.proto
 
-package wallet
+package grpcwallet
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -30,6 +30,9 @@ type Wallet struct {
 	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	IsDeleted     bool                   `protobuf:"varint,6,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
 	Services      *Services              `protobuf:"bytes,7,opt,name=services,proto3" json:"services,omitempty"`
+	ServiceCode   string                 `protobuf:"bytes,8,opt,name=service_code,json=serviceCode,proto3" json:"service_code,omitempty"`
+	ServiceKey    string                 `protobuf:"bytes,9,opt,name=service_key,json=serviceKey,proto3" json:"service_key,omitempty"`
+	ServiceId     string                 `protobuf:"bytes,10,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -111,6 +114,27 @@ func (x *Wallet) GetServices() *Services {
 		return x.Services
 	}
 	return nil
+}
+
+func (x *Wallet) GetServiceCode() string {
+	if x != nil {
+		return x.ServiceCode
+	}
+	return ""
+}
+
+func (x *Wallet) GetServiceKey() string {
+	if x != nil {
+		return x.ServiceKey
+	}
+	return ""
+}
+
+func (x *Wallet) GetServiceId() string {
+	if x != nil {
+		return x.ServiceId
+	}
+	return ""
 }
 
 type Services struct {
@@ -513,7 +537,7 @@ var File_wallet_proto protoreflect.FileDescriptor
 
 const file_wallet_proto_rawDesc = "" +
 	"\n" +
-	"\fwallet.proto\x12\x06wallet\"\xcc\x01\n" +
+	"\fwallet.proto\x12\x06wallet\"\xaf\x02\n" +
 	"\x06Wallet\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
@@ -523,7 +547,13 @@ const file_wallet_proto_rawDesc = "" +
 	"\aenabled\x18\x05 \x01(\bR\aenabled\x12\x1d\n" +
 	"\n" +
 	"is_deleted\x18\x06 \x01(\bR\tisDeleted\x12,\n" +
-	"\bservices\x18\a \x01(\v2\x10.wallet.ServicesR\bservices\"J\n" +
+	"\bservices\x18\a \x01(\v2\x10.wallet.ServicesR\bservices\x12!\n" +
+	"\fservice_code\x18\b \x01(\tR\vserviceCode\x12\x1f\n" +
+	"\vservice_key\x18\t \x01(\tR\n" +
+	"serviceKey\x12\x1d\n" +
+	"\n" +
+	"service_id\x18\n" +
+	" \x01(\tR\tserviceId\"J\n" +
 	"\bServices\x12\x12\n" +
 	"\x04self\x18\x01 \x01(\bR\x04self\x12\x14\n" +
 	"\x05other\x18\x02 \x01(\bR\x05other\x12\x14\n" +
@@ -553,7 +583,7 @@ const file_wallet_proto_rawDesc = "" +
 	"\bmetadata\x18\x02 \x01(\v2\f.wallet.MetaR\bmetadata2\x9c\x01\n" +
 	"\rWalletService\x12@\n" +
 	"\tGetWallet\x12\x18.wallet.GetWalletRequest\x1a\x19.wallet.GetWalletResponse\x12I\n" +
-	"\fGetAllWallet\x12\x1b.wallet.GetAllWalletRequest\x1a\x1c.wallet.GetAllWalletResponseBDZBgithub.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;walletb\x06proto3"
+	"\fGetAllWallet\x12\x1b.wallet.GetAllWalletRequest\x1a\x1c.wallet.GetAllWalletResponseBHZFgithub.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;grpcwalletb\x06proto3"
 
 var (
 	file_wallet_proto_rawDescOnce sync.Once

@@ -186,10 +186,12 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
 		return
 	}
+
 	if action.ActionStatus == string(constants.Rejected) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
 		return
 	}
+
 	if action.ActionStatus == string(constants.Canceled) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyRejected)
 		return
@@ -263,7 +265,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// }
 	// Build approval update inline (only mark Approved on final checker)
 	finalStatus := string(constants.Pending)
-	if int32(*idxDoc.CheckerIndex) == TotalCheckerCount {
+	if int32(currentIndex)+1 == TotalCheckerCount {
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := model.Checker{
