@@ -45,13 +45,13 @@ import (
 	"context"
 	"mime/multipart"
 
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )

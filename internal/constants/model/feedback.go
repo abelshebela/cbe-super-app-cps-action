@@ -70,6 +70,7 @@ func (k *KafkaMessage) UnmarshalPayload(v interface{}) error {
 type CustomerFeedback struct {
 	ID            bson.ObjectID `json:"id" bson:"_id,omitempty"`
 	CustomerName  string        `json:"customer_name" bson:"customer_name"`
+	CustomerCode  string        `json:"customer_code" bson:"customer_code"`
 	Email         string        `json:"email" bson:"email"`
 	PhoneNumber   string        `json:"phone_number" bson:"phone_number"`
 	AccountNumber string        `json:"account_number" bson:"account_number"`

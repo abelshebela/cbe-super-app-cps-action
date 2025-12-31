@@ -230,33 +230,26 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 
-		// Make service_id always a string
-		{{Key: "$addFields", Value: bson.M{
-			"service_id_safe": bson.M{
-				"$ifNull": bson.A{"$service_id", ""},
-			},
-		}}},
-
-		// Convert to ObjectId only if valid
+		// Convert service_id string to ObjectId for lookup
 		{{Key: "$addFields", Value: bson.M{
 			"service_obj_id": bson.M{
 				"$cond": bson.A{
 					bson.M{
 						"$and": bson.A{
-							bson.M{"$ne": bson.A{"$service_id_safe", ""}},
+							bson.M{"$ne": bson.A{"$service_id", ""}},
 							bson.M{"$eq": bson.A{
-								bson.M{"$strLenCP": "$service_id_safe"},
+								bson.M{"$strLenCP": "$service_id"},
 								24,
 							}},
 						},
 					},
-					bson.M{"$toObjectId": "$service_id_safe"},
+					bson.M{"$toObjectId": "$service_id"},
 					nil,
 				},
 			},
 		}}},
 
-		// Lookup services
+		// Lookup services using converted ObjectId
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "services",
 			"localField":   "service_obj_id",
@@ -270,7 +263,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 			"preserveNullAndEmptyArrays": true,
 		}}},
 
-		// Populate response fields
+		// Output fields
 		{{Key: "$addFields", Value: bson.M{
 			"service_code": "$temp_service.service_code",
 			"service_key":  "$temp_service.service_key",
@@ -285,9 +278,8 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 
 		// Cleanup
 		{{Key: "$project", Value: bson.M{
-			"temp_service":    0,
-			"service_obj_id":  0,
-			"service_id_safe": 0,
+			"temp_service":   0,
+			"service_obj_id": 0,
 		}}},
 
 		{{Key: "$skip", Value: skip}},
