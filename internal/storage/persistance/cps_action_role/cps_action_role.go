@@ -113,66 +113,65 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			"action_code": actionCode,
 		}}},
 
-		// 2️⃣ Normalize arrays (SAFE $cond syntax)
+		// 2️⃣ Normalize arrays (safety)
 		{{Key: "$addFields", Value: bson.M{
-			"assigned_viewers_roles": bson.M{
-				"$cond": bson.M{
-					"if":   bson.M{"$isArray": "$assigned_viewers_roles"},
-					"then": "$assigned_viewers_roles",
-					"else": bson.A{},
-				},
-			},
+			// "assigned_viewers_roles": bson.M{
+			// 	"$cond": bson.A{
+			// 		bson.M{"$isArray": "$assigned_viewers_roles"},
+			// 		"$assigned_viewers_roles",
+			// 		bson.A{},
+			// 	},
+			// },
 			"assigned_makers_roles": bson.M{
-				"$cond": bson.M{
-					"if":   bson.M{"$isArray": "$assigned_makers_roles"},
-					"then": "$assigned_makers_roles",
-					"else": bson.A{},
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_makers_roles"},
+					"$assigned_makers_roles",
+					bson.A{},
 				},
 			},
 			"assigned_checkers_roles": bson.M{
-				"$cond": bson.M{
-					"if":   bson.M{"$isArray": "$assigned_checkers_roles"},
-					"then": "$assigned_checkers_roles",
-					"else": bson.A{},
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_checkers_roles"},
+					"$assigned_checkers_roles",
+					bson.A{},
 				},
 			},
 			"assigned_auditor_roles": bson.M{
-				"$cond": bson.M{
-					"if":   bson.M{"$isArray": "$assigned_auditor_roles"},
-					"then": "$assigned_auditor_roles",
-					"else": bson.A{},
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_auditor_roles"},
+					"$assigned_auditor_roles",
+					bson.A{},
 				},
 			},
 		}}},
 
-		// 3️⃣ VIEWERS lookup + projection
-		{{
-			Key: "$lookup",
-			Value: bson.M{
-				"from":         rolesCollection,
-				"localField":   "assigned_viewers_roles",
-				"foreignField": "code",
-				"as":           "assigned_viewers_roles",
-			},
-		}},
-		{{Key: "$addFields", Value: bson.M{
-			"assigned_viewers_roles": bson.M{
-				"$map": bson.M{
-					"input": "$assigned_viewers_roles",
-					"as":    "r",
-					"in": bson.M{
-						"_id":          "$$r._id",
-						"code":         "$$r.code",
-						"name":         "$$r.name",
-						"portal_cards": "$$r.portal_cards",
-						"created_at":   "$$r.created_at",
-						"updated_at":   "$$r.updated_at",
-					},
-				},
-			},
-		}}},
-
-		// 4️⃣ MAKERS lookup + projection
+		// // 3️⃣ Lookup VIEWERS (by code) + FORCE projection
+		// {{
+		// 	Key: "$lookup",
+		// 	Value: bson.M{
+		// 		"from":         rolesCollection,
+		// 		"localField":   "assigned_viewers_roles",
+		// 		"foreignField": "code",
+		// 		"as":           "assigned_viewers_roles",
+		// 	},
+		// }},
+		// {{Key: "$addFields", Value: bson.M{
+		// 	"assigned_viewers_roles": bson.M{
+		// 		"$map": bson.M{
+		// 			"input": "$assigned_viewers_roles",
+		// 			"as":    "r",
+		// 			"in": bson.M{
+		// 				"_id":          "$$r._id",
+		// 				"code":         "$$r.code",
+		// 				"name":         "$$r.name",
+		// 				"portal_cards": "$$r.portal_cards",
+		// 				"created_at":   "$$r.created_at",
+		// 				"updated_at":   "$$r.updated_at",
+		// 			},
+		// 		},
+		// 	},
+		// }}},
+		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -199,7 +198,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}}},
 
-		// 5️⃣ CHECKERS – flatten all codes
+		// 4️⃣ Lookup ALL CHECKER ROLES (flatten by code)
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -213,10 +212,10 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 								"$concatArrays": bson.A{
 									"$$value",
 									bson.M{
-										"$cond": bson.M{
-											"if":   bson.M{"$isArray": "$$this"},
-											"then": "$$this",
-											"else": bson.A{},
+										"$cond": bson.A{
+											bson.M{"$isArray": "$$this"},
+											"$$this",
+											bson.A{},
 										},
 									},
 								},
@@ -227,7 +226,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 				"pipeline": mongo.Pipeline{
 					{{Key: "$match", Value: bson.M{
 						"$expr": bson.M{
-							"$in": bson.A{"$code", "$$allCheckerCodes"},
+							"$in": []interface{}{"$code", "$$allCheckerCodes"},
 						},
 					}}},
 				},
@@ -235,7 +234,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}},
 
-		// 6️⃣ Rebuild CHECKERS [][]JobRole (SAFE)
+		// 5️⃣ Rebuild CHECKERS [][]JobRole (FORCED projection)
 		{{
 			Key: "$addFields",
 			Value: bson.M{
@@ -244,9 +243,9 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 						"input": "$assigned_checkers_roles",
 						"as":    "level",
 						"in": bson.M{
-							"$cond": bson.M{
-								"if": bson.M{"$isArray": "$$level"},
-								"then": bson.M{
+							"$cond": bson.A{
+								bson.M{"$isArray": "$$level"},
+								bson.M{
 									"$map": bson.M{
 										"input": "$$level",
 										"as":    "code",
@@ -259,31 +258,25 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 																"input": "$checker_roles_all",
 																"as":    "r",
 																"cond": bson.M{
-																	"$eq": bson.A{"$$r.code", "$$code"},
+																	"$eq": []interface{}{"$$r.code", "$$code"},
 																},
 															},
 														},
 													},
 												},
 												"in": bson.M{
-													"$cond": bson.M{
-														"if": bson.M{"$ne": bson.A{"$$role", nil}},
-														"then": bson.M{
-															"_id":          "$$role._id",
-															"code":         "$$role.code",
-															"name":         "$$role.name",
-															"portal_cards": "$$role.portal_cards",
-															"created_at":   "$$role.created_at",
-															"updated_at":   "$$role.updated_at",
-														},
-														"else": nil,
-													},
+													"_id":          "$$role._id",
+													"code":         "$$role.code",
+													"name":         "$$role.name",
+													"portal_cards": "$$role.portal_cards",
+													"created_at":   "$$role.created_at",
+													"updated_at":   "$$role.updated_at",
 												},
 											},
 										},
 									},
 								},
-								"else": bson.A{},
+								bson.A{},
 							},
 						},
 					},
@@ -291,7 +284,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}},
 
-		// 7️⃣ AUDITORS lookup + projection
+		// 6️⃣ Lookup AUDITORS (by code) + FORCE projection
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -318,7 +311,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}}},
 
-		// 8️⃣ Cleanup helper field
+		// 7️⃣ Cleanup helper field
 		{{Key: "$project", Value: bson.M{
 			"checker_roles_all": 0,
 		}}},
