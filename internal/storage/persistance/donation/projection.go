@@ -2,17 +2,18 @@ package donation
 
 import (
 	donation_dto "cbe-super-app-cps-action/internal/constants/dto/donation"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func MapToDonationListResponse(donation model.Donation, company *model.DonationCompany, category *model.DonationCategory) *donation_dto.DonationListResponse {
-	donationImages := make([]shared_types.DonationImage, len(donation.DonationImages))
+func MapToDonationListResponse(donation imodel.Donation, company *imodel.DonationCompany, category *imodel.DonationCategory) *donation_dto.DonationListResponse {
+	donationImages := make([]types.DonationImage, len(donation.DonationImages))
 	for i, img := range donation.DonationImages {
-		donationImages[i] = shared_types.DonationImage{
+		donationImages[i] = types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
 			CreatedAt: img.CreatedAt,
@@ -40,10 +41,10 @@ func MapToDonationListResponse(donation model.Donation, company *model.DonationC
 		Category:            categoryResponse,
 		Title:               donation.Title,
 		IsFeatured:          donation.IsFeatured,
-		Target:              donation.Target,
+		Target:              string(donation.Target),
 		DonationDescription: donation.DonationDescription,
 		DonationImages:      donationImages,
-		CurrentAmount:       donation.CurrentAmount,
+		CurrentAmount:       string(donation.CurrentAmount),
 		CoverImage:          donation.CoverImage,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
@@ -54,7 +55,7 @@ func MapToDonationListResponse(donation model.Donation, company *model.DonationC
 	}
 }
 
-func DonationMapper(donation model.Donation) bson.M {
+func DonationMapper(donation imodel.Donation) bson.M {
 	updateData := bson.M{
 
 		"donation_code":        donation.DonationCode,
