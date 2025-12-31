@@ -334,77 +334,12 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyCanceled)
 		return
 	}
-	// idx32 := int32(action.CurrentCheckerIndex) + 1
-	// r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
-	// ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
 
-	// userData, err := local_util.ParseUserContext(r)
-	// if err != nil {
-	// 	localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
-	// 	return
-	// }
-
-	// if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-	// 	span.RecordError(err)
-	// 	localization.SendBadRequestResponse(w, localization.ErrorCPSActionRejectionPayloadDecodeFailed.Message)
-	// 	return
-	// }
-
-	// if req.Validate() != nil {
-	// 	localization.SendBadRequestResponse(w, localization.MsgCPSActionRejectionReason)
-	// 	return
-	// }
-
-	// span.SetAttributes(
-	// 	attribute.String("cps_action.code", actionCode),
-	// 	attribute.String("cps_action.rejection_reason", req.RejectionReason),
-	// )
-
-	// idx32 := int32(action.CurrentCheckerIndex) + 1
-	// r = r.WithContext(context.WithValue(r.Context(), constants.ContextKey("checker_index"), idx32))
-	// ctx = context.WithValue(ctx, constants.ContextKey("checker_index"), idx32)
-	// Enforce ordering and role-based approver index on rejection as well
-	// checkerCount := action.CheckerCount
-	// currentIndex := int32(action.CurrentCheckerIndex)
-	// if idx32 != currentIndex+1 || idx32 > checkerCount {
-	// 	span.RecordError(fmt.Errorf("out of order checker rejection"))
-	// 	localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
-	// 	return
-	// }
-	// {
 	makerData := local_util.ExtractUserFromContext(ctx)
 
-	// var idxDoc *imodel.CPSActionApproveIndex
-	// actionName := ""
-	// if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
-	// 	actionName = mod
-	// }
-	// if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-	// 	roleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
-	// 	roleID = roleID
-	// 	if roleID == "" {
-	// 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-	// 		return
-	// 	}
-	// 	idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
-	// 	if err != nil {
-	// 		span.RecordError(err)
-	// 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-	// 		return
-	// 	}
-	// 	for _, cu := range action.CheckerUsers {
-	// 		if cu.RoleID == roleID || cu.CheckerID == makerData.UserID {
-	// 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
-	// 			return
-	// 		}
-	// 	}
-	// }
-	// }
-
 	CheckerUser := model.Checker{
-		CheckerID: makerData.UserID,
-		RoleID:    r.Context().Value(constants.ContextKey("role_code")).(string),
-		// CheckerIndex:       int32(action.CurrentCheckerIndex) + 1,
+		CheckerID:          makerData.UserID,
+		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerName:        makerData.FullName,
 		CheckerPhoneNumber: makerData.PhoneNumber,
 		ApprovedAt:         time.Now(),
@@ -414,8 +349,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		ActionStatus:    constants.Rejected,
 		RejectionReason: req.RejectionReason,
 		CheckerUsers:    append(action.CheckerUsers, CheckerUser),
-		// CurrentCheckerIndex: float64(idx32),
-		Department: makerData.Department,
+		Department:      makerData.Department,
 	}); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
