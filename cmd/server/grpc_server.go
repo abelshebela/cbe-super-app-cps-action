@@ -121,15 +121,15 @@ func (s *server) GetWallet(ctx context.Context, req *walletpb.GetWalletRequest) 
 }
 func (s *server) walletMapper(data *local_model.GRPCWallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
-		Id:          data.ID.Hex(),
-		Name:        data.Name,
-		Avatar:      data.Avatar,
-		UniqueCode:  data.UniqueCode,
-		IsDeleted:   data.IsDeleted,
-		Enabled:     data.Enabled,
-		ServiceId:   data.ServiceID,
-		ServiceCode: data.ServiceCode,
-		ServiceKey:  data.ServiceKey,
+		Id:         data.ID.Hex(),
+		Name:       data.Name,
+		Avatar:     data.Avatar,
+		UniqueCode: data.UniqueCode,
+		IsDeleted:  data.IsDeleted,
+		Enabled:    data.Enabled,
+		// ServiceCode: data.ServiceCode,
+		ServiceId:  data.ServiceID,
+		ServiceKey: data.ServiceKey,
 		Services: &walletpb.Services{
 			Self:  data.Services.Self,
 			Other: data.Services.Other,
