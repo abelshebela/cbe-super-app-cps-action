@@ -28,6 +28,7 @@ type ServiceLists struct {
 	OverideTiers            []Tier `bson:"overide_tiers" json:"overide_tiers"`
 	IsEnabled               bool   `bson:"is_enabled" json:"is_enabled"`
 }
+
 type Service struct {
 	ID               bson.ObjectID  `bson:"_id,omitempty" json:"id"`
 	ServiceCode      string         `bson:"service_code" json:"service_code"`

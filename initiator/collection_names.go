@@ -60,6 +60,7 @@ var (
 	CPSActionRolesCollection         = "cps_action_roles"
 	CPSActionApproveIndexCollection  = "cps_action_approver_index"
 	EventMerchantsCollection         = "event_merchants"
+	LogisticsMerchantsCollection     = "logistics_merchants"
 	MiniAppProductCodes              = "mini_app_product_codes"
 	AccessListSegmentationCollection = "access_list_segmentation"
 	CustomerSegmentationCollection   = "customer_segmentations"
@@ -71,6 +72,7 @@ var (
 var (
 	AvatarsBucketName              = "avatar"
 	EventsBucketName               = "events"
+	LogisticsMerchantBucketName    = "logistics_merchant"
 	BanksBucketName                = "banks"
 	WalletsBucketName              = "wallets"
 	TopUpsBucketName               = "topups"

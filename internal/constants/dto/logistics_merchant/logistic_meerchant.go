@@ -1,8 +1,8 @@
-package event_merchant_dto
+package logistics_merchant_dto
 
 import "time"
 
-type EventMerchantResponse struct {
+type LogisticsMerchantResponse struct {
 	ID                string `json:"id" bson:"_id"`
 	MerchantID        string `json:"merchant_id" bson:"merchant_id"`
 	MerchantType      string `json:"merchant_type" bson:"merchant_type"`
@@ -18,7 +18,7 @@ type EventMerchantResponse struct {
 	DeletedAt time.Time `json:"deleted_at" bson:"deleted_at"`
 }
 
-type CreateEventMerchantRequest struct {
+type CreateLogisticsMerchantRequest struct {
 	MerchantID        string `json:"merchant_id" bson:"merchant_id"`
 	MerchantType      string `json:"merchant_type" bson:"merchant_type"`
 	SettlementMethod  string `json:"settlement_method" bson:"settlement_method"`
@@ -28,7 +28,7 @@ type CreateEventMerchantRequest struct {
 	// PhoneNumber       string `json:"phone_number" bson:"phone_number"`
 }
 
-type UpdateEventMerchantRequest struct {
+type UpdateLogisticsMerchantRequest struct {
 	MerchantID        string `json:"merchant_id" bson:"merchant_id"`
 	MerchantType      string `json:"merchant_type" bson:"merchant_type"`
 	SettlementMethod  string `json:"settlement_method" bson:"settlement_method"`

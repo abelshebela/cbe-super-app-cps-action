@@ -13,8 +13,6 @@ func CreateEventMerchantRequestToModel(req event_merchant_dto.CreateEventMerchan
 		SettlementMethod:  req.SettlementMethod,
 		MerchantName:      req.MerchantName,
 		BankAccountNumber: req.BankAccountNumber,
-		Email:             req.Email,
-		PhoneNumber:       req.PhoneNumber,
 	}
 }
 
@@ -25,7 +23,5 @@ func UpdateEventMerchantRequestToModel(req event_merchant_dto.UpdateEventMerchan
 		SettlementMethod:  req.SettlementMethod,
 		MerchantName:      req.MerchantName,
 		BankAccountNumber: req.BankAccountNumber,
-		Email:             req.Email,
-		PhoneNumber:       req.PhoneNumber,
 	}
 }

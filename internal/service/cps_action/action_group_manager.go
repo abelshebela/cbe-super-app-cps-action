@@ -68,6 +68,8 @@ var modulePriority = []string{
 	"BUDGETCATEGORY",
 	"MINIAPPCATEGORY",
 	"CPSACTIONROLE",
+	"LOGISTICSMERCHANT",
+	"EVENTMERCHANT",
 }
 
 func (m *actionGroupManager) ResolveModuleFor(action string) (string, bool) {

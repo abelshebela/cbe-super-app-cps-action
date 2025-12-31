@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -25,7 +26,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func HandleCPSActionForEventMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
+func HandleCPSActionForLogisticsMerchant(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	maker := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(maker) {
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
@@ -59,7 +60,7 @@ func ValidateAccountNumberWithExternalAPI(ctx context.Context, accountNumber str
 
 func CheckMerchantExists(
 	ctx context.Context,
-	merchantRepo storage.EventMerchantRepository,
+	merchantRepo storage.LogisticsMerchantRepository,
 	data *types.CheckMiniAppMerchant,
 	opts *types.MiniAppMerchantExistOptions,
 ) (bool, error) {
@@ -71,12 +72,6 @@ func CheckMerchantExists(
 
 	if data.BankAccountNumber != "" {
 		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
-	}
-	if data.Email != "" {
-		conditions = append(conditions, bson.M{"email": data.Email})
-	}
-	if data.PhoneNumber != "" {
-		conditions = append(conditions, bson.M{"phone_number": data.PhoneNumber})
 	}
 
 	if len(conditions) == 0 {
@@ -98,7 +93,7 @@ func CheckMerchantExists(
 
 	res, err := merchantRepo.FindOne(ctx, filter)
 	if err != nil {
-		if err.Error() == localization.ErrorEventMerchantNotFound.Code {
+		if err.Error() == localization.ErrorLogisticMerchantNotFound.Code {
 			return false, nil
 		}
 		return false, err
@@ -111,26 +106,18 @@ func CheckMerchantExists(
 	if res.BankAccountNumber == data.BankAccountNumber {
 		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-	if res.Email == data.Email {
-		return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
-	}
-	if res.PhoneNumber == data.PhoneNumber {
-		return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
-	}
 
 	return true, nil
 }
-func MergeEventMerchantData(old, data *model.EventMerchant) *model.EventMerchant {
+func MergeLogisticsMerchantData(old, data *local_model.LogisticsMerchant) *local_model.LogisticsMerchant {
 	now := time.Now()
 
-	return &model.EventMerchant{
+	return &local_model.LogisticsMerchant{
 		ID:                old.ID,
 		MerchantID:        local_util.NonEmptyString(data.MerchantID, old.MerchantID),
 		SettlementMethod:  local_util.NonEmptyString(data.SettlementMethod, old.SettlementMethod),
 		MerchantName:      local_util.NonEmptyString(data.MerchantName, old.MerchantName),
 		MerchantType:      local_util.NonEmptyString(data.MerchantType, old.MerchantType),
-		PhoneNumber:       local_util.NonEmptyString(data.PhoneNumber, old.PhoneNumber),
-		Email:             local_util.NonEmptyString(data.Email, old.Email),
 		BankAccountNumber: local_util.NonEmptyString(data.BankAccountNumber, old.BankAccountNumber),
 		Enabled:           old.Enabled,
 		IsDeleted:         old.IsDeleted,

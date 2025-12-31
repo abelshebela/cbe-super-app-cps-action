@@ -4,7 +4,7 @@ package wallet;
 
 
 
-option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;wallet";
+option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/wallet;grpcwallet";
 
 message Wallet {
   string id = 1;
@@ -15,6 +15,8 @@ message Wallet {
   bool is_deleted = 6;
   Services services = 7;
   string service_code = 8;
+  string service_key = 9;
+  string service_id = 10;
 }
 
 message Services {

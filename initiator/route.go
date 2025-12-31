@@ -21,6 +21,7 @@ import (
 	ecommerce_merchant "cbe-super-app-cps-action/internal/glue/routing/ecommerce-merchant"
 	event_merchant_routing "cbe-super-app-cps-action/internal/glue/routing/event_merchant"
 	kyc_routing "cbe-super-app-cps-action/internal/glue/routing/kyc_verifier"
+	logistic_merchant_router "cbe-super-app-cps-action/internal/glue/routing/logistic_merchant"
 	newscategory_routing "cbe-super-app-cps-action/internal/glue/routing/news_category"
 	newstag_routing "cbe-super-app-cps-action/internal/glue/routing/news_tag"
 	"cbe-super-app-cps-action/internal/glue/routing/transaction"
@@ -152,6 +153,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 	ecommerce_merchant.Init(r, handlerLayer.EcommerceMerchantHandler, authMiddleware)
 	customer_seg.Init(r, handlerLayer.CustomerSegmentationHandler, authMiddleware)
 	cps_roles.Init(r, handlerLayer.CPSRolesHandler, authMiddleware)
+	logistic_merchant_router.Init(r, handlerLayer.LogisticsMerchantHandler, authMiddleware)
 
 	roles.Init(r, handlerLayer.RoleHandler, authMiddleware)
 	// router.Mount("/api/v1/cbesuperapp/cps_action", r)

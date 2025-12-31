@@ -67,15 +67,18 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		span.AddEvent("failed to check email existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	if emailCheck {
 		span.AddEvent("email already exists", trace.WithAttributes(attribute.String("email", req.Email)))
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
+
 	phoneCheck, err := core.PhoneNumberExists(ctx, "", s.repo, req.PhoneNumber)
 	if err != nil {
 		span.AddEvent("failed to check phone number existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	if phoneCheck {
 		span.AddEvent("phone number already exists", trace.WithAttributes(attribute.String("phone_number", req.PhoneNumber)))
 		return errors.New(localization.ErrorExistPhoneNumber.Code)
@@ -312,7 +315,7 @@ func (s *cpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	return core.ConvertToDTO(portalCard, userData, makerAlloc, checkerAlloc, auditorAlloc, roles), nil
+	return core.ConvertToDTO(portalCard, userData, makerAlloc, checkerAlloc, auditorAlloc), nil
 }
 
 func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
@@ -375,7 +378,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
-	return core.ConvertToDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc, roles), nil
+	return core.ConvertToDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc), nil
 
 	// detail := cpsuser.BuildCpsUserDetail(populated)
 	// return populated, nil
