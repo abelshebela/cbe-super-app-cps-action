@@ -17,8 +17,13 @@ message Wallet {
   string service_code = 8;
   string service_key = 9;
   string service_id = 10;
+  repeated ChildServiceKey child_service_keys = 11;
 }
 
+message ChildServiceKey{
+  string service_key = 1;
+  string service_name = 2;
+}
 message Services {
   bool self = 1;
   bool other = 2;
