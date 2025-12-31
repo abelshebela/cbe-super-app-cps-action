@@ -66,13 +66,13 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, service *imodel.Services) error
-	Update(ctx context.Context, id string, service *imodel.Services) error
+	Create(ctx context.Context, service *imodel.Service) error
+	Update(ctx context.Context, id string, service *imodel.Service) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 
-	FindByID(ctx context.Context, id string) (*imodel.Services, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Services], error)
+	FindByID(ctx context.Context, id string) (*imodel.Service, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
 }
 
@@ -389,6 +389,9 @@ type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error)
+
+	FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
+	FindCustomerFeedbackByID(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 }
 
 type LinkedAccountRepository interface {
@@ -431,11 +434,11 @@ type PasswordRuleRepository interface {
 }
 
 type ServiceDetailsRepository interface {
-	Create(ctx context.Context, details *model.ServiceDetails) error
-	Update(ctx context.Context, id string, details *model.ServiceDetails) error
+	Create(ctx context.Context, details *imodel.ServiceDetails) error
+	Update(ctx context.Context, id string, details *imodel.ServiceDetails) error
 	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, projection bson.M, id string) (*model.ServiceDetails, error)
-	FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error)
+	FindByID(ctx context.Context, projection bson.M, id string) (*imodel.ServiceDetails, error)
+	FindAllWithPagination(ctx context.Context, projection bson.M, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceDetails], error)
 }
 
 type ValidationRuleRepository interface {
@@ -599,18 +602,18 @@ type BPSActionApproveIndexRepository interface {
 }
 
 type CPSActionApproveIndexRepository interface {
-	SaveIndices(ctx context.Context, indices []model.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []model.CPSActionApproveIndex) error
+	SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.CPSActionApproveIndex) error
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
-	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error)
-	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error)
-	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]model.CPSActionApproveIndex, error)
-	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, error)
-	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*model.CPSActionApproveIndex, error)
+	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
+	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
+	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
+	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, error)
+	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.CPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
-	DeleteAll(ctx context.Context, prev model.CPSActionRoleResposne) error
-	InsertAll(ctx context.Context, new model.CPSActionRole) error
+	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
+	InsertAll(ctx context.Context, new imodel.CPSActionRole) error
 }
 
 type SitotaRepository interface {

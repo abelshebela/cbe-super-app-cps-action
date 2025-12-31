@@ -291,6 +291,7 @@ const (
 	// RequestBpsUserEnable  RequestAction = "ENABLE_BPS_USER"
 	// RequestBpsUserDisable RequestAction = "DISABLE_BPS_USER"
 
+	RequestBpsUserUpdate         RequestAction = "UPDATE_BPS_USER"
 	RequestCreateBPSUser         RequestAction = "CREATE_BPS_USER"
 	RequestDisableBPSUser        RequestAction = "DISABLE_BPS_USER"
 	RequestEnableBPSUser         RequestAction = "ENABLE_BPS_USER"

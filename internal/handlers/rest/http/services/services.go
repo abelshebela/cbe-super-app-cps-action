@@ -8,7 +8,6 @@ import (
 	servicesdto "cbe-super-app-cps-action/internal/constants/dto/services"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -72,36 +71,7 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mapped := imodel.Services{
-		ServiceCode:         req.ServiceCode,
-		ServiceKey:          req.ServiceKey,
-		ServiceName:         req.ServiceName,
-		CbeGLProductAccount: req.ProductAccount,
-		ChargeCode:          req.ChargeCode,
-		CommissionCode:      req.CommissionCode,
-		Cap: imodel.Cap{
-			SingleCap:          req.Cap.SingleCap,
-			MinimumTransferCap: req.Cap.MinimumTransferCap,
-		},
-		Tiers: func() []imodel.Tier {
-			tiers := make([]imodel.Tier, 0, len(req.Tiers))
-			for _, t := range req.Tiers {
-				tiers = append(tiers, imodel.Tier{
-					FeeType:   imodel.FeeType(t.FeeType),
-					FeeAmount: t.FeeAmount,
-					Min:       t.Min,
-					Max:       t.Max,
-				})
-			}
-			return tiers
-		}(),
-		AboveAmount:     req.AboveAmount,
-		AboveServiceFee: req.AboveServiceFee,
-		PaymentType:     req.AbovePaymentType,
-		Enabled:         true,
-	}
-
-	if err := a.app.Create(ctx, mapped); err != nil {
+	if err := a.app.Create(ctx, req); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -144,36 +114,8 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	span.SetAttributes(attribute.String("service.id", id))
-	mapped := imodel.Services{
-		ServiceCode:         req.ServiceCode,
-		ServiceKey:          req.ServiceKey,
-		ServiceName:         req.ServiceName,
-		CbeGLProductAccount: req.ProductAccount,
-		ChargeCode:          req.ChargeCode,
-		CommissionCode:      req.CommissionCode,
-		Cap: imodel.Cap{
-			SingleCap:          req.Cap.SingleCap,
-			MinimumTransferCap: req.Cap.MinimumTransferCap,
-		},
-		Tiers: func() []imodel.Tier {
-			tiers := make([]imodel.Tier, 0, len(req.Tiers))
-			for _, t := range req.Tiers {
-				tiers = append(tiers, imodel.Tier{
-					FeeType:   imodel.FeeType(t.FeeType),
-					FeeAmount: t.FeeAmount,
-					Min:       t.Min,
-					Max:       t.Max,
-				})
-			}
-			return tiers
-		}(),
-		AboveAmount:     req.AboveAmount,
-		AboveServiceFee: req.AboveServiceFee,
-		PaymentType:     req.AbovePaymentType,
-		Enabled:         true,
-	}
 
-	if err := a.app.Update(ctx, id, mapped); err != nil {
+	if err := a.app.Update(ctx, id, req); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

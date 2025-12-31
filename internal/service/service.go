@@ -29,7 +29,6 @@ import (
 	hqDto "cbe-super-app-cps-action/internal/constants/dto/hq"
 	kyc_dto "cbe-super-app-cps-action/internal/constants/dto/kyc_verifier"
 	permission_dto "cbe-super-app-cps-action/internal/constants/dto/permission"
-	productcode_dto "cbe-super-app-cps-action/internal/constants/dto/productcode"
 	vault_amount_dto "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	vaultCategory_dto "cbe-super-app-cps-action/internal/constants/dto/vaultgroup_category"
 	walletDto "cbe-super-app-cps-action/internal/constants/dto/wallet"
@@ -38,7 +37,6 @@ import (
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	dtoEncryption "cbe-super-app-cps-action/internal/constants/dto/encryption"
-	dtoService "cbe-super-app-cps-action/internal/constants/dto/service_details"
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
@@ -52,20 +50,21 @@ import (
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
-	"go.mongodb.org/mongo-driver/v2/bson"
-
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ServicesService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	Create(ctx context.Context, req imodel.Services) error
-	Update(ctx context.Context, id string, req imodel.Services) error
+	Create(ctx context.Context, req service_dto.CreateServiceRequest) error
+	Update(ctx context.Context, id string, req service_dto.UpdateServiceRequest) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Services], error)
+	GetAll(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
 	GetAllServiceList(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
-	GetByID(ctx context.Context, id string) (*imodel.Services, error)
+	GetByID(ctx context.Context, id string) (*imodel.Service, error)
 }
 type CPSActionService interface {
 	ApproveCPSAction(ctx context.Context, action *model.CPSAction) error
@@ -210,6 +209,9 @@ type FeedbackService interface {
 	CreateFeedback(ctx context.Context, req fbdto.FeedbackRequest, userID string) (*model.Feedback, error)
 	GetFeedbackByID(ctx context.Context, id string) (*fbdto.FeedbackResponse, error)
 	GetFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponseForFeedback[[]*fbdto.FeedbackResponse], error)
+
+	GetAllCustomerFeedbacks(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
+	GetCustomerFeedback(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 }
 
 type HQService interface {
@@ -278,12 +280,12 @@ type PortalCardService interface {
 	ValidatePortalCard(ctx context.Context, names []string) (bool, error)
 }
 
-type ProductCodeService interface {
-	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
-	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
-	UpdateProductCode(ctx context.Context, request productcode_dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
-	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-}
+// type ProductCodeService interface {
+// 	FetchProductCodeByID(ctx context.Context, id string) (*model.ProductCode, error)
+// 	FetchAllProductCodes(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.ProductCode], error)
+// 	UpdateProductCode(ctx context.Context, request productcode_dto.UpdateProductCodeRequest) (*model.ProductCode, *model.ProductCode, error)
+// 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+// }
 
 type DeviceVersionServiceSrv interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
@@ -294,20 +296,20 @@ type DeviceVersionServiceSrv interface {
 	UpdateDeviceVersion(ctx context.Context, id string, req deviceversion.UpdateDeviceVersionRequest) error
 }
 
-type ServiceService interface {
-	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error)
-	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MinimumTransferCapResponse], error)
-	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MaximumTransferCapResponse], error)
-	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.ServiceFeeResponse], error)
-	GetAllTotalTransferCap(ctx context.Context) (*dtoService.TotalTransferCapResponse, error)
-	GetServiceFeeDetail(ctx context.Context, id string) (*dtoService.ServiceFeeDetailResponse, error)
-	UpdateServiceFee(ctx context.Context, id string, req dtoService.ServiceFeeDetailDTO) error
-	UpdateSingleMaxTransfer(ctx context.Context, id string, req dtoService.SingleMaxTransferRequest) error
-	UpdateTotalMaxTransferCap(ctx context.Context, newTotalCap dtoService.TotalMaxTransferUpdateRequest) error
-	UpdateMinimumTransferCap(ctx context.Context, id string, req dtoService.MinimumTransferUpdateRequest) error
-	DeleteServiceFeeTire(ctx context.Context, id string) error
-}
+// type ServiceService interface {
+// 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+// 	GetAllService(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ServiceDetails], error)
+// 	GetAllMinimumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MinimumTransferCapResponse], error)
+// 	GetAllMaximumTransferCap(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.MaximumTransferCapResponse], error)
+// 	GetAllServiceFee(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*dtoService.ServiceFeeResponse], error)
+// 	GetAllTotalTransferCap(ctx context.Context) (*dtoService.TotalTransferCapResponse, error)
+// 	GetServiceFeeDetail(ctx context.Context, id string) (*dtoService.ServiceFeeDetailResponse, error)
+// 	UpdateServiceFee(ctx context.Context, id string, req dtoService.ServiceFeeDetailDTO) error
+// 	UpdateSingleMaxTransfer(ctx context.Context, id string, req dtoService.SingleMaxTransferRequest) error
+// 	UpdateTotalMaxTransferCap(ctx context.Context, newTotalCap dtoService.TotalMaxTransferUpdateRequest) error
+// 	UpdateMinimumTransferCap(ctx context.Context, id string, req dtoService.MinimumTransferUpdateRequest) error
+// 	DeleteServiceFeeTire(ctx context.Context, id string) error
+// }
 
 type UnlinkService interface {
 	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
@@ -411,6 +413,7 @@ type BPSUserService interface {
 	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
 	CreateBPSUser(ctx context.Context, req model.BPSUser) error
+	UpdateBPSUser(ctx context.Context, userCode string, updatedUser model.BPSUser) error
 }
 
 type AccountSearchService interface {
@@ -507,10 +510,8 @@ type ServiceLayer struct {
 	AmountBasedAuth               AmountBasedAuthService
 	Permission                    PermissionService
 	CPSUser                       CPSUserService
-	ServiceDetails                ServiceService
 	Services                      ServicesService
 	AccountValidation             AccountValidationService
-	ProductCode                   ProductCodeService
 	BankVault                     BankVaultService
 	VaultGroupCategory            VaultGroupCategoryService
 	DonationCategory              DonationCategoryService
@@ -572,12 +573,10 @@ type ServiceContainer struct {
 	EcommerceMerchantContainer         EcommerceMerchantService
 	AccountLookup                      AccountSearchService
 	BulkServiceContainer               BulkService
-	ServiceCheckContainer              ServiceService
 	ServicesContainer                  ServicesService
 	DeviceVersionContainer             DeviceVersionServiceSrv
 	KeyGenService                      KeyGeneratorService
 	NotificationService                NotificationService
-	ProductCodeService                 ProductCodeService
 	DonationContainer                  DonationService
 	Unlink                             UnlinkService
 	DonationCategoryContainer          DonationCategoryService
