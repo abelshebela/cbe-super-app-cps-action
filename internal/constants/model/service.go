@@ -15,9 +15,9 @@ const (
 
 type Tier struct {
 	FeeType   FeeType `bson:"fee_type" json:"fee_type"`
-	FeeAmount float64 `bson:"fee_amount" json:"fee_amount"`
-	Min       float64 `bson:"min" json:"min"`
-	Max       float64 `bson:"max" json:"max"`
+	FeeAmount string  `bson:"fee_amount" json:"fee_amount"`
+	Min       string  `bson:"min" json:"min"`
+	Max       string  `bson:"max" json:"max"`
 }
 
 type ServiceLists struct {
@@ -46,6 +46,6 @@ type Service struct {
 }
 
 type Cap struct {
-	SingleCap          float64 `bson:"single_cap" json:"single_cap"`
-	MinimumTransferCap float64 `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
+	SingleCap          string `bson:"single_cap" json:"single_cap"`
+	MinimumTransferCap string `bson:"minimum_transfer_cap" json:"minimum_transfer_cap"`
 }

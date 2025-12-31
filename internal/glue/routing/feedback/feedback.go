@@ -14,13 +14,13 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 	routes := []glue.Route{
 		{
 			Method:      http.MethodPost,
-			Path:        "/feedback/create",
+			Path:        "/feedback-surveys/create",
 			Handler:     feedbackHandler.CreateFeedback,
 			Middlewares: []func(next http.Handler) http.Handler{},
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/feedback",
+			Path:    "/feedback-surveys",
 			Handler: feedbackHandler.GetFeedbacks,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -28,7 +28,7 @@ func Init(router chi.Router, feedbackHandler feedback.FeedbackAdapter, authMiddl
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/feedback/{id}",
+			Path:    "/feedback-surveys/{id}",
 			Handler: feedbackHandler.GetFeedbackByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,

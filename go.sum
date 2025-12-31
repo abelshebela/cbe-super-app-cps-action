@@ -413,6 +413,12 @@ gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.60 h1:XFggX/rJsfY4btBDk0
 gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.60/go.mod h1:o5O5TUTlehjwweVcE8lhOA0HKMxZvsjPNDnGl7bZEF4=
 gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.65 h1:f4SwOV+qaj6RTNiZwGhjLaYGK+nq21yyBIiRVDvsbpQ=
 gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.65/go.mod h1:o5O5TUTlehjwweVcE8lhOA0HKMxZvsjPNDnGl7bZEF4=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.72 h1:SB1V3Yme3Igo7Yr4/sTV0w5i/qkQWn9p+GIxbGEukJQ=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.72/go.mod h1:oqaYOl7tUQo3wKOJru5djGnL0hL/U/GDI6JvGIyrZ6Q=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.73 h1:3JTt7WLlA3wYD7lrEnAEaeCrEDaOJgLDLXA2sJZJ+g0=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.73/go.mod h1:oqaYOl7tUQo3wKOJru5djGnL0hL/U/GDI6JvGIyrZ6Q=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.75 h1:1tyh7FA9YORXd1y1ViB/zDHSuT/lnWgmRlIK/PqtiQ0=
+gitlab.com/bersufekadgetachew/cbe-super-app-shared v0.1.75/go.mod h1:oqaYOl7tUQo3wKOJru5djGnL0hL/U/GDI6JvGIyrZ6Q=
 go.mongodb.org/mongo-driver v1.17.6 h1:87JUG1wZfWsr6rIz3ZmpH90rL5tea7O3IHuSwHUpsss=
 go.mongodb.org/mongo-driver v1.17.6/go.mod h1:Hy04i7O2kC4RS06ZrhPRqj/u4DTYkFDAAccj+rVKqgQ=
 go.mongodb.org/mongo-driver/v2 v2.4.1 h1:hGDMngUao03OVQ6sgV5csk+RWOIkF+CuLsTPobNMGNI=

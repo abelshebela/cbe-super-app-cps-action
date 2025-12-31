@@ -11,9 +11,6 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"

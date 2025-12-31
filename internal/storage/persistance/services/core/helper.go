@@ -1,8 +1,10 @@
 package core
 
 import (
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"time"
+
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/imodel"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
