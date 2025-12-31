@@ -265,11 +265,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// }
 	// Build approval update inline (only mark Approved on final checker)
 	finalStatus := string(constants.Pending)
-<<<<<<< HEAD
-	if int32(currentIndex) == TotalCheckerCount {
-=======
 	if int32(currentIndex)+1 == TotalCheckerCount {
->>>>>>> c60ffa65f47cdba9450b20df5af8ed3addfe33d0
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := model.Checker{
