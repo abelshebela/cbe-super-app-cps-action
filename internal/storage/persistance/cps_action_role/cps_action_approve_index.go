@@ -34,6 +34,7 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 	var checkerAllocations []string
 	var auditorAllocations []string
 	var portalCard []string
+
 	cursor, err := r.collection.Find(ctx, bson.M{
 		"role_id": role_id,
 	})
@@ -47,15 +48,16 @@ func (r *CPSActionApproveIndexRepository) PopulateUserApproverAllocations(ctx co
 		r.logger.Errorf("PopulateUserApproverAllocations: Cursor.All failed: %v", err)
 		return nil, nil, nil, nil, err
 	}
+
 	for _, v := range results {
 		if v.MakerIndex != nil {
-			makerAllocations = append(makerAllocations, v.PortalCardName)
+			makerAllocations = append(makerAllocations, v.ActionName)
 		}
 		if v.CheckerIndex != nil {
-			checkerAllocations = append(checkerAllocations, v.PortalCardName)
+			checkerAllocations = append(checkerAllocations, v.ActionName)
 		}
 		if v.AuditorIndex != nil {
-			auditorAllocations = append(auditorAllocations, v.PortalCardName)
+			auditorAllocations = append(auditorAllocations, v.ActionName)
 		}
 		portalCard = append(portalCard, v.PortalCardName)
 	}

@@ -6,7 +6,6 @@ import (
 
 	topuppb "cbe-super-app-cps-action/grpc/topup/proto"
 	walletpb "cbe-super-app-cps-action/grpc/wallet/proto"
-	dto "cbe-super-app-cps-action/internal/constants/dto/service_details"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -16,7 +15,6 @@ import (
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -158,23 +156,23 @@ func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet 
 }
 
 // //////////////////////////service Details//////////////
-// func (s *server) GetAllServices(ctx context.Context, req *servicepb.GetAllServiceDetailsRequest) (*servicepb.GetAllServiceDetailsResponse, error) {
-// 	data, err := s.serviceHandler.GetAllService(ctx, &types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
-// 	if err != nil {
-// 		s.logger.Errorf("Failed to get all wallets: %v", err)
-// 		return nil, err
-// 	}
-// 	return &servicepb.GetAllServiceDetailsResponse{Services: s.serviceListMapper(data.Data), Metadata: buildPaginationService(data.Meta)}, nil
-// }
+func (s *server) GetAllServices(ctx context.Context, req *servicepb.GetAllServiceDetailsRequest) (*servicepb.GetAllServiceDetailsResponse, error) {
+	data, err := s.serviceHandler.GetAll(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
+	if err != nil {
+		s.logger.Errorf("Failed to get all wallets: %v", err)
+		return nil, err
+	}
+	return &servicepb.GetAllServiceDetailsResponse{Services: s.serviceListMapper(data.Data), Metadata: buildPaginationService(data.Meta)}, nil
+}
 
-// func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneServiceDetailRequest) (*servicepb.GetServiceDetailResponse, error) {
-// 	data, err := s.serviceHandler.GetServiceFeeDetail(ctx, req.Id)
-// 	if err != nil {
-// 		s.logger.Errorf("Failed to get wallet: %v", err)
-// 		return nil, err
-// 	}
-// 	return &servicepb.GetServiceDetailResponse{Service: s.MapOneServiceDetail(data)}, nil
-// }
+func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneServiceDetailRequest) (*servicepb.GetServiceDetailResponse, error) {
+	data, err := s.serviceHandler.GetByID(ctx, req.Id)
+	if err != nil {
+		s.logger.Errorf("Failed to get wallet: %v", err)
+		return nil, err
+	}
+	return &servicepb.GetServiceDetailResponse{Service: s.MapServiceDetails(data)}, nil
+}
 
 func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 	var nextPage int32
@@ -191,43 +189,38 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []imodel.ServiceDetails) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []imodel.Service) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
 	for i := range data {
 		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *imodel.ServiceDetails) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *imodel.Service) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:              data.ID.Hex(),
-		ServiceCode:     data.ServiceCode,
-		ServiceName:     data.ServiceName,
-		ServiceType:     data.ServiceType,
-		Key:             data.Key,
-		AboveAmount:     data.AboveAmount,
-		AboveServiceFee: data.AboveServiceFee,
-		PaymentType:     data.PaymentType,
-		Enabled:         data.Enabled,
-		IsDeleted:       data.IsDeleted,
+		Id:          data.ID.Hex(),
+		ServiceCode: data.ServiceCode,
+		ServiceName: data.ServiceName,
+		Enabled:     data.Enabled,
+		IsDeleted:   data.IsDeleted,
 	}
 }
 
 // dtoService.ServiceFeeDetailResponse
-func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servicepb.ServiceDetails {
-	return &servicepb.ServiceDetails{
-		Id:              data.ID.Hex(),
-		ServiceCode:     data.ServiceCode,
-		ServiceName:     data.ServiceName,
-		ServiceType:     data.ServiceType,
-		Key:             data.Key,
-		AboveAmount:     data.AboveAmount,
-		AboveServiceFee: data.AboveServiceFee,
-		PaymentType:     data.PaymentType,
-		Enabled:         data.Enabled,
-		IsDeleted:       data.IsDeleted,
-	}
-}
+// func (s *server) MapOneServiceDetail(data *dto.ServiceFeeDetailResponse) *servicepb.ServiceDetails {
+// 	return &servicepb.ServiceDetails{
+// 		Id:              data.ID.Hex(),
+// 		ServiceCode:     data.ServiceCode,
+// 		ServiceName:     data.ServiceName,
+// 		ServiceType:     data.ServiceType,
+// 		Key:             data.Key,
+// 		AboveAmount:     data.AboveAmount,
+// 		AboveServiceFee: data.AboveServiceFee,
+// 		PaymentType:     data.PaymentType,
+// 		Enabled:         data.Enabled,
+// 		IsDeleted:       data.IsDeleted,
+// 	}
+// }
 
 func (s *server) GetAllTopup(ctx context.Context, req *topuppb.TopupRequest) (*topuppb.TopupResponse, error) {
 	data, err := s.topupHandler.GetAllTopup(ctx, types.Filter{})

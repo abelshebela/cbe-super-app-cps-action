@@ -157,8 +157,21 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 }
 
 func (r *customerStorage) FindByCustomerSegmentation(ctx context.Context, customerSegment string) (*imodel.CustomerSegmentation, error) {
-	filter := bson.M{"customer_segment": customerSegment, "is_deleted": false}
-	result, err := r.dal.FindOne(ctx, filter, nil)
+	// New model: customer_segment is now inside t24_customer_sub_segments array
+	filter := bson.M{
+		"t24_customer_sub_segments.cust_segment": customerSegment,
+		"is_deleted":                             false,
+	}
+	// Project only relevant fields (optional, can be nil for all fields)
+	projection := bson.M{
+		"customer_role":             1,
+		"t24_customer_sub_segments": 1,
+		"is_enabled":                1,
+		"is_deleted":                1,
+		"created_at":                1,
+		"updated_at":                1,
+	}
+	result, err := r.dal.FindOne(ctx, filter, projection)
 	if err != nil {
 		r.logger.Errorf("[FindByCustomerSegmentation] failed to fetch customer segmentation: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)

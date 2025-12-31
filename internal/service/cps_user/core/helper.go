@@ -51,13 +51,12 @@ func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUs
 }
 
 // ConvertToDTO converts a CPSUser model to CPSUserDTO
-func ConvertToDTO(portalCard []string, user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, auditorAlloc []string, roles *model.Role) *cpsuser.CPSUserResponse {
+func ConvertToDTO(portalCard []string, user *cpsuser.CpsUserResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CPSUserResponse {
 	return &cpsuser.CPSUserResponse{
-		ID:       user.ID,
-		UserCode: user.UserCode,
-		FullName: user.FullName,
-		Role:     roles.Role,
-		// Department:         *user.Department,
+		ID:                 user.ID,
+		UserCode:           user.UserCode,
+		FullName:           user.FullName,
+		Role:               user.Role,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,

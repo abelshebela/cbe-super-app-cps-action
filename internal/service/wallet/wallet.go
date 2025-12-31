@@ -73,15 +73,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		}
 		return errors.New(localization.ErrorWalletServiceIDAlreadyExists.Code)
 	}
-	service, err := s.serviceRepo.FindByID(ctx, req.ServiceID)
-	if err != nil {
-		span.AddEvent("GetServiceFeeDetail error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("service_id", req.ServiceID)))
-		return err
-	}
-	if service == nil {
-		span.AddEvent("Service not found", trace.WithAttributes(attribute.String("service_id", req.ServiceID)))
-		return errors.New(localization.ErrorFileNotFound.Code)
-	}
+
 	code, err := core.GeneratePrefixedName("WAL", req.UniqueCode, s.logger)
 	if err != nil {
 		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -94,7 +86,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	wallet := core.ToCreateWalletDoc(req.Name, code, URL, service.ServiceCode, req.Self, req.Other, req.Agent)
+	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.ServiceID, req.Self, req.Other, req.Agent)
 	wallet.Enabled = true
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
@@ -151,12 +143,7 @@ func (s *walletService) UpdateWallet(ctx context.Context, id string, req walletD
 	} else {
 		avatarURL = prevWallet.Avatar
 	}
-	service, err := s.serviceRepo.FindByID(ctx, req.ServiceID)
-	if err != nil {
-		span.AddEvent("GetServiceFeeDetail error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("service_id", req.ServiceID)))
-		return err
-	}
-	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req, service.ServiceCode)
+	UpdateWallet, change_count := core.ToUpdateWalletDoc(*prevWallet, req, req.ServiceID)
 	if avatarURL != prevWallet.Avatar {
 		change_count++
 	}
@@ -246,6 +233,16 @@ func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.
 
 func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 	return s.repo.FindAllWithPagination(ctx, filterParams)
+}
+
+// GetAllWalletForGRPC implements service.WalletService.
+func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error) {
+	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
+}
+
+// GetWalletForGRPC implements service.WalletService.
+func (s *walletService) GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error) {
+	return s.repo.FindByIDForGRPC(ctx, id)
 }
 
 func (s *walletService) Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error) {

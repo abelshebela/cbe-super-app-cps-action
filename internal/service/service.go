@@ -45,13 +45,13 @@ import (
 	"context"
 	"mime/multipart"
 
+	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-
-	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
-	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -326,6 +326,8 @@ type WalletService interface {
 	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
 	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
+	GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
+	GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
 }
 
 type TopupService interface {
@@ -432,6 +434,16 @@ type EventMerchantService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
+type LogisticsMerchantService interface {
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Delete(ctx context.Context, id string) error
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+
 type MiniAppMerchant interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindByID(ctx context.Context, id string) (*mini_model.MiniAppMerchant, error)
@@ -522,6 +534,7 @@ type ServiceLayer struct {
 	CPSActionRole                 CPSActionRoleService
 	MiniappProductCode            MiniappProductCodeService
 	EventMerchantService          EventMerchantService
+	LogisticsMerchantService      LogisticsMerchantService
 	JobRoleService                JobRoleService
 	VaultAmountTierService        VaultAmountBasedTierService
 	AccessListSegmentationService AccessListSegmentationService
@@ -585,6 +598,7 @@ type ServiceContainer struct {
 	CPSActionRoleContainer             CPSActionRoleService
 	MiniappProductCodeServiceContainer MiniappProductCodeService
 	EventMerchantServiceContainer      EventMerchantService
+	LogisticsMerchantServiceContainer  LogisticsMerchantService
 	ServiceContainer                   ServicesService
 	VaultAmountTierContainer           VaultAmountBasedTierService
 	MiniAppProductCodeContainer        MiniappProductCodeService

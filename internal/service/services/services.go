@@ -6,10 +6,9 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
 
-	// imodel "cbe-super-app-cps-action/internal/constants/model"
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/services/core"
@@ -74,7 +73,7 @@ func (s *servicesService) Enable(ctx context.Context, id string) error {
 	if prev.Enabled {
 		return localization.ErrorAlreadyEnabled
 	}
-	payload := model.Service{Enabled: true}
+	payload := imodel.Service{Enabled: true}
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestEnableService, payload, prev, constants.ActionUpdate)
 }
 
@@ -89,7 +88,7 @@ func (s *servicesService) Disable(ctx context.Context, id string) error {
 	if !prev.Enabled {
 		return localization.ErrorAlreadyDisabled
 	}
-	payload := model.Service{Enabled: false}
+	payload := imodel.Service{Enabled: false}
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestDisableService, payload, prev, constants.ActionUpdate)
 }
 
