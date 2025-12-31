@@ -47,16 +47,13 @@ func UpdateMapper(wallet local_model.Wallet) bson.M {
 
 func ToGRPCWallet(wallet local_model.Wallet) local_model.GRPCWallet {
 	return local_model.GRPCWallet{
-		ID:             wallet.ID,
-		Name:           wallet.Name,
-		UniqueCode:     wallet.UniqueCode,
-		ServiceID:      wallet.ServiceID,
-		Avatar:         wallet.Avatar,
-		Enabled:        wallet.Enabled,
-		Services:       wallet.Services,
-		IsDeleted:      wallet.IsDeleted,
-		CreatedAt:      wallet.CreatedAt,
-		LastModifiedAt: wallet.LastModifiedAt,
-		DeletedAt:      wallet.DeletedAt,
+		ID:         wallet.ID,
+		Name:       wallet.Name,
+		UniqueCode: wallet.UniqueCode,
+		ServiceID:  wallet.ServiceID,
+		Avatar:     wallet.Avatar,
+		Enabled:    wallet.Enabled,
+		Services:   wallet.Services,
+		IsDeleted:  wallet.IsDeleted,
 	}
 }
