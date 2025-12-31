@@ -31,12 +31,12 @@ type server struct {
 	topuppb.UnimplementedTopupServiceServer
 	bankHandler    service.BankService
 	walletHandler  service.WalletService
-	serviceHandler service.ServiceService
+	serviceHandler service.ServicesService
 	topupHandler   service.TopupService
 	logger         utils.Logger
 }
 
-func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServiceService, topupHandler service.TopupService, logger utils.Logger) *server {
+func NewGrpcServer(bankHandler service.BankService, walletHandler service.WalletService, serviceHandler service.ServicesService, topupHandler service.TopupService, logger utils.Logger) *server {
 	return &server{
 		bankHandler:    bankHandler,
 		walletHandler:  walletHandler,
@@ -159,21 +159,21 @@ func (s *server) walletListMapper(data []local_model.GRPCWallet) []*walletpb.Wal
 
 // //////////////////////////service Details//////////////
 func (s *server) GetAllServices(ctx context.Context, req *servicepb.GetAllServiceDetailsRequest) (*servicepb.GetAllServiceDetailsResponse, error) {
-	data, err := s.serviceHandler.GetAllService(ctx, &types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
-	if err != nil {
-		s.logger.Errorf("Failed to get all wallets: %v", err)
-		return nil, err
-	}
-	return &servicepb.GetAllServiceDetailsResponse{Services: s.serviceListMapper(data.Data), Metadata: buildPaginationService(data.Meta)}, nil
+	// data, err := s.serviceHandler.GetAllService(ctx, &types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
+	// if err != nil {
+	// 	s.logger.Errorf("Failed to get all wallets: %v", err)
+	// 	return nil, err
+	// }
+	return &servicepb.GetAllServiceDetailsResponse{}, nil
 }
 
 func (s *server) GetOneServiceDetail(ctx context.Context, req *servicepb.GetOneServiceDetailRequest) (*servicepb.GetServiceDetailResponse, error) {
-	data, err := s.serviceHandler.GetServiceFeeDetail(ctx, req.Id)
-	if err != nil {
-		s.logger.Errorf("Failed to get wallet: %v", err)
-		return nil, err
-	}
-	return &servicepb.GetServiceDetailResponse{Service: s.MapOneServiceDetail(data)}, nil
+	// data, err := s.serviceHandler.GetAllServiceList(ctx,)
+	// if err != nil {
+	// 	s.logger.Errorf("Failed to get wallet: %v", err)
+	// 	return nil, err
+	// }
+	return &servicepb.GetServiceDetailResponse{}, nil
 }
 
 func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
@@ -191,25 +191,25 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []model.ServiceDetails) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
 	for i := range data {
 		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *model.ServiceDetails) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
-		Id:              data.ID.Hex(),
-		ServiceCode:     data.ServiceCode,
-		ServiceName:     data.ServiceName,
-		ServiceType:     data.ServiceType,
-		Key:             data.Key,
-		AboveAmount:     data.AboveAmount,
-		AboveServiceFee: data.AboveServiceFee,
-		PaymentType:     data.PaymentType,
-		Enabled:         data.Enabled,
-		IsDeleted:       data.IsDeleted,
+		// Id:              data.ID.Hex(),
+		// ServiceCode:     data.ServiceCode,
+		// ServiceName:     data.ServiceName,
+		// ServiceType:     data.ServiceType,
+		// Key:             data.Key,
+		// AboveAmount:     data.AboveAmount,
+		// AboveServiceFee: data.AboveServiceFee,
+		// PaymentType:     data.PaymentType,
+		// Enabled:         data.Enabled,
+		// IsDeleted:       data.IsDeleted,
 	}
 }
 
