@@ -35,7 +35,7 @@ type GetActionRoleByActionCodeRes struct {
 	ID                   bson.ObjectID     `json:"_id" bson:"_id"`
 	ActionCode           string            `json:"action_code" bson:"action_code"`
 	ActionName           string            `json:"action_name" bson:"action_name"`
-	AssignedViewersRoles []string          `json:"assigned_viewers_roles" bson:"assigned_viewers_roles"`
+	AssignedViewersRoles []model.JobRole   `json:"assigned_viewers_roles" bson:"assigned_viewers_roles"`
 	AssignedMakersRoles  []model.JobRole   `json:"assigned_makers_roles" bson:"assigned_makers_roles"`
 	AssignedCheckerRoles [][]model.JobRole `json:"assigned_checkers_roles" bson:"assigned_checkers_roles"`
 	AssignedAuditorRoles []model.JobRole   `json:"assigned_auditor_roles" bson:"assigned_auditor_roles"`
