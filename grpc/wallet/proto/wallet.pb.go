@@ -7,12 +7,11 @@
 package grpcwallet
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -26,14 +25,14 @@ type Wallet struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	UniqueCode    string                 `protobuf:"bytes,3,opt,name=unique_code,json=unique_code,proto3" json:"unique_code,omitempty"`
+	UniqueCode    string                 `protobuf:"bytes,3,opt,name=unique_code,json=uniqueCode,proto3" json:"unique_code,omitempty"`
 	Avatar        string                 `protobuf:"bytes,4,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	IsDeleted     bool                   `protobuf:"varint,6,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
 	Services      *Services              `protobuf:"bytes,7,opt,name=services,proto3" json:"services,omitempty"`
-	ServiceCode   string                 `protobuf:"bytes,8,opt,name=service_code,json=service_code,proto3" json:"service_code,omitempty"`
-	ServiceKey    string                 `protobuf:"bytes,9,opt,name=service_key,json=service_key,proto3" json:"service_key,omitempty"`
-	ServiceId     string                 `protobuf:"bytes,10,opt,name=service_id,json=service_id,proto3" json:"service_id,omitempty"`
+	ServiceCode   string                 `protobuf:"bytes,8,opt,name=service_code,json=serviceCode,proto3" json:"service_code,omitempty"`
+	ServiceKey    string                 `protobuf:"bytes,9,opt,name=service_key,json=serviceKey,proto3" json:"service_key,omitempty"`
+	ServiceId     string                 `protobuf:"bytes,10,opt,name=service_id,json=serviceId,proto3" json:"service_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -168,7 +168,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AmountBasedAuthContainer:          amountBased,
 		AvatarDomian:                      avatarService,
 		NotificationService:               notificationsvc,
-		ProductCodeService:                productCodeService,
 		DonationContainer:                 donationService,
 		DonationCategoryContainer:         donationCategoryService,
 		DonationCompanyContainer:          donationCompanyService,

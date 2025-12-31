@@ -22,7 +22,7 @@ import (
 
 type WalletStorage struct {
 	dal        dal.MongoDal[local_model.Wallet, local_model.Wallet]
-	serviceDal dal.MongoDal[model.Services, model.Services]
+	serviceDal dal.MongoDal[model.Service, model.Service]
 	collection *mongo.Collection
 	logger     utils.Logger
 }
@@ -32,7 +32,7 @@ func NewWalletRepository(client *mongo.Client, dbName string, collection, Servic
 
 	return &WalletStorage{
 		dal:        dal.NewMongoDal[local_model.Wallet, local_model.Wallet](client, dbName, collection),
-		serviceDal: dal.NewMongoDal[model.Services, model.Services](client, dbName, ServicesCollection),
+		serviceDal: dal.NewMongoDal[model.Service, model.Service](client, dbName, ServicesCollection),
 		collection: collectionRef,
 		logger:     logger,
 	}
