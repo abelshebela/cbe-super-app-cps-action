@@ -115,6 +115,13 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 
 		// 2️⃣ Normalize arrays (safety)
 		{{Key: "$addFields", Value: bson.M{
+			"assigned_viewers_roles": bson.M{
+				"$cond": bson.A{
+					bson.M{"$isArray": "$assigned_viewers_roles"},
+					"$assigned_viewers_roles",
+					bson.A{},
+				},
+			},
 			"assigned_makers_roles": bson.M{
 				"$cond": bson.A{
 					bson.M{"$isArray": "$assigned_makers_roles"},
@@ -139,6 +146,34 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 		}}},
 
 		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
+
+		{{
+			Key: "$lookup",
+			Value: bson.M{
+				"from":         rolesCollection,
+				"localField":   "assigned_viewers_roles",
+				"foreignField": "code",
+				"as":           "assigned_viewers_roles",
+			},
+		}},
+		{{Key: "$addFields", Value: bson.M{
+			"assigned_viewers_roles": bson.M{
+				"$map": bson.M{
+					"input": "$assigned_viewers_roles",
+					"as":    "r",
+					"in": bson.M{
+						"_id":          "$$r._id",
+						"code":         "$$r.code",
+						"name":         "$$r.name",
+						"portal_cards": "$$r.portal_cards",
+						"created_at":   "$$r.created_at",
+						"updated_at":   "$$r.updated_at",
+					},
+				},
+			},
+		}}},
+		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
+
 		{{
 			Key: "$lookup",
 			Value: bson.M{

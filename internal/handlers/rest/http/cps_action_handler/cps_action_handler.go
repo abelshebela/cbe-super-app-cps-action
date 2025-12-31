@@ -374,8 +374,8 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 			actionName = mod
 		}
 		if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-			roleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
-			roleID = local_util.FirstHex24(roleID)
+			roleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+			roleID = roleID
 			if roleID == "" {
 				localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 				return
@@ -409,7 +409,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 
 	CheckerUser := model.Checker{
 		CheckerID:          userData.UserID,
-		RoleID:             r.Context().Value(constants.ContextKey("role_id")).(string),
+		RoleID:             r.Context().Value(constants.ContextKey("role_code")).(string),
 		CheckerIndex:       idx32,
 		CheckerName:        userData.FullName,
 		CheckerPhoneNumber: userData.PhoneNumber,
