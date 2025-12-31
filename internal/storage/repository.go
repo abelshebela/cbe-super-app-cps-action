@@ -467,6 +467,8 @@ type WalletRepository interface {
 	FindByID(ctx context.Context, id string) (*local_model.Wallet, error)
 	Find(ctx context.Context, key, value string) (*local_model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
+	FindByIDForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
+	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
 }
 type TopupRepository interface {
 	Create(ctx context.Context, topup *model.Topup) error
@@ -646,6 +648,15 @@ type EventMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*model.EventMerchant, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.EventMerchant], error)
+}
+type LogisticsMerchantRepository interface {
+	FindOne(ctx context.Context, filter bson.M) (*local_model.LogisticsMerchant, error)
+	Update(ctx context.Context, id string, logisticsMerchant local_model.LogisticsMerchant) error
+	Create(ctx context.Context, logisticsMerchant local_model.LogisticsMerchant) error
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
+	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
 }
 
 type AccessListSegmentationRepository interface {

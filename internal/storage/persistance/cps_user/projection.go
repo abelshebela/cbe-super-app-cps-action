@@ -94,21 +94,47 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"user_code": userCode,
 		}}},
 
-		// 2️⃣ Lookup role using job_title
+		// 2️⃣ Lookup role by job_title
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from": "roles",
 			"let": bson.M{
 				"jobTitle": "$job_title",
 			},
 			"pipeline": mongo.Pipeline{
+
+				// match roles.job_title == user.job_title
 				bson.D{{Key: "$match", Value: bson.M{
 					"$expr": bson.M{
 						"$eq": []interface{}{"$job_title", "$$jobTitle"},
 					},
 				}}},
+
+				// lookup job_roles using role code
+				bson.D{{Key: "$lookup", Value: bson.M{
+					"from": "job_roles",
+					"let": bson.M{
+						"roleCode": "$role",
+					},
+					"pipeline": mongo.Pipeline{
+						bson.D{{Key: "$match", Value: bson.M{
+							"$expr": bson.M{
+								"$eq": []interface{}{"$code", "$$roleCode"},
+							},
+						}}},
+					},
+					"as": "job_role",
+				}}},
+
+				// unwind job_role
+				bson.D{{Key: "$unwind", Value: bson.M{
+					"path":                       "$job_role",
+					"preserveNullAndEmptyArrays": false,
+				}}},
+
+				// project role_id from job_roles._id
 				bson.D{{Key: "$project", Value: bson.M{
 					"_id":     0,
-					"role_id": "$role", // ObjectID
+					"role_id": "$job_role._id",
 				}}},
 			},
 			"as": "role_doc",
@@ -120,7 +146,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"preserveNullAndEmptyArrays": false,
 		}}},
 
-		// 6️⃣ Final projection
+		// 4️⃣ Final projection
 		bson.D{{Key: "$project", Value: bson.M{
 			"_id":          0,
 			"user_code":    1,
@@ -131,8 +157,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"gender":       1,
 			"realm":        1,
 			"job_title":    1,
-
-			"role_id": "$role_doc.role_id",
+			"role_id":      "$role_doc.role_id",
 		}}},
 	}
 }
