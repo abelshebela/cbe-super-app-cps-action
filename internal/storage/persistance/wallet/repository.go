@@ -230,36 +230,10 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 
-		// Make service_id always a string
-		{{Key: "$addFields", Value: bson.M{
-			"service_id_safe": bson.M{
-				"$ifNull": bson.A{"$service_id", ""},
-			},
-		}}},
-
-		// Convert to ObjectId only if valid
-		{{Key: "$addFields", Value: bson.M{
-			"service_obj_id": bson.M{
-				"$cond": bson.A{
-					bson.M{
-						"$and": bson.A{
-							bson.M{"$ne": bson.A{"$service_id_safe", ""}},
-							bson.M{"$eq": bson.A{
-								bson.M{"$strLenCP": "$service_id_safe"},
-								24,
-							}},
-						},
-					},
-					bson.M{"$toObjectId": "$service_id_safe"},
-					nil,
-				},
-			},
-		}}},
-
-		// Lookup services
+		// Lookup services directly by ObjectId
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "services",
-			"localField":   "service_obj_id",
+			"localField":   "service_id",
 			"foreignField": "_id",
 			"as":           "temp_service",
 		}}},
@@ -270,24 +244,26 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 			"preserveNullAndEmptyArrays": true,
 		}}},
 
-		// Populate response fields
+		// Always output service_id as string
 		{{Key: "$addFields", Value: bson.M{
 			"service_code": "$temp_service.service_code",
 			"service_key":  "$temp_service.service_name",
-			"service_id": bson.M{
-				"$cond": bson.A{
-					bson.M{"$ifNull": bson.A{"$temp_service._id", false}},
-					bson.M{"$toString": "$temp_service._id"},
-					"$service_id_safe",
+			"service_id":   bson.M{"$toString": "$service_id"},
+			"child_service_keys": bson.M{
+				"$map": bson.M{
+					"input": bson.M{"$ifNull": bson.A{"$temp_service.service_list", bson.A{}}},
+					"as":    "item",
+					"in": bson.M{
+						"service_key":  "$$item.service_key",
+						"service_name": "$$item.service_name",
+					},
 				},
 			},
 		}}},
 
 		// Cleanup
 		{{Key: "$project", Value: bson.M{
-			"temp_service":    0,
-			"service_obj_id":  0,
-			"service_id_safe": 0,
+			"temp_service": 0,
 		}}},
 
 		{{Key: "$skip", Value: skip}},
