@@ -125,7 +125,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 		actionName = mod
 	}
 	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
-		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_id")).(string)
+		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
 		roleID := local_util.FirstHex24(rawRoleID)
 		if roleID == "" {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -263,7 +263,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	// }
 	// Build approval update inline (only mark Approved on final checker)
 	finalStatus := string(constants.Pending)
-	if int32(currentIndex+1) == TotalCheckerCount {
+	if int32(currentIndex) == TotalCheckerCount {
 		finalStatus = string(constants.Approved)
 	}
 	checkerUser := model.Checker{
