@@ -53,7 +53,6 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/portal_card"
 	"cbe-super-app-cps-action/internal/storage/persistance/reset_session"
 	role_repo "cbe-super-app-cps-action/internal/storage/persistance/role"
-	"cbe-super-app-cps-action/internal/storage/persistance/service_details"
 	services_repo "cbe-super-app-cps-action/internal/storage/persistance/services"
 	Topup "cbe-super-app-cps-action/internal/storage/persistance/topup"
 	"cbe-super-app-cps-action/internal/storage/persistance/users"
@@ -112,7 +111,6 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, dbName, EcommerceMerchantCollection, logger),
 		NotificationPersistence:           notification.NewNotificationRepository(client, dbName, NotificationsCollection, clientOrchestrationProducer, logger),
 		PasswordRulePersistence:           password.NewPasswordRuleRepository(client, dbName, PasswordRulesCollection, logger),
-		ServiceDetailsPersistence:         service_details.NewServiceDetailsRepository(client, dbName, ServicesCollection, logger),
 		ServicesPersistence:               services_repo.NewServicesRepository(client, dbName, ServicesCollection, clientOrchestrationProducer, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
 		WalletPersistence:                 wallet.NewWalletRepository(client, dbName, WalletsCollection, logger),

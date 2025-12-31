@@ -5,7 +5,7 @@ import (
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
-	imodel "cbe-super-app-cps-action/internal/constants/model"
+	"cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -52,21 +52,21 @@ func ValidateCreate(req service_dto.CreateServiceRequest, service storage.Servic
 	return nil
 }
 
-func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
-	mapped := imodel.Service{
+func MapToServiceModel(req service_dto.CreateServiceRequest) model.Service {
+	mapped := model.Service{
 		ServiceCode:      req.ServiceCode,
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: imodel.Cap{
+		Cap: model.Cap{
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},
-		Tiers: func() []imodel.Tier {
-			tiers := make([]imodel.Tier, 0, len(req.Tiers))
+		Tiers: func() []model.Tier {
+			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, imodel.Tier{
-					FeeType:   imodel.FeeType(t.FeeType),
+				tiers = append(tiers, model.Tier{
+					FeeType:   model.FeeType(t.FeeType),
 					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
@@ -74,23 +74,23 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 			}
 			return tiers
 		}(),
-		ServiceList: func() []imodel.ServiceLists {
-			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
+		ServiceList: func() []model.ServiceLists {
+			lists := make([]model.ServiceLists, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
-				lists = append(lists, imodel.ServiceLists{
+				lists = append(lists, model.ServiceLists{
 					ServiceName:             sl.ServiceName,
 					ServiceKey:              sl.ServiceKey,
 					OverideProductGlAccount: sl.OverideProductGlAccount,
 					IsEnabled:               true,
-					OverideCap: imodel.Cap{
+					OverideCap: model.Cap{
 						SingleCap:          sl.OverideCap.SingleCap,
 						MinimumTransferCap: sl.OverideCap.MinimumTransferCap,
 					},
-					OverideTiers: func() []imodel.Tier {
-						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
+					OverideTiers: func() []model.Tier {
+						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, imodel.Tier{
-								FeeType:   imodel.FeeType(t.FeeType),
+							tiers = append(tiers, model.Tier{
+								FeeType:   model.FeeType(t.FeeType),
 								FeeAmount: t.FeeAmount,
 								Min:       t.Min,
 								Max:       t.Max,
@@ -110,24 +110,24 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 	return mapped
 }
 
-func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Service {
-	return imodel.Service{
+func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) model.Service {
+	return model.Service{
 		ServiceCode:      req.ServiceCode,
 		ServiceKey:       req.ServiceKey,
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
-		Cap: imodel.Cap{
+		Cap: model.Cap{
 			SingleCap:          req.Cap.SingleCap,
 			MinimumTransferCap: req.Cap.MinimumTransferCap,
 		},
-		Tiers: func() []imodel.Tier {
+		Tiers: func() []model.Tier {
 			if len(req.Tiers) == 0 {
 				return nil
 			}
-			tiers := make([]imodel.Tier, 0, len(req.Tiers))
+			tiers := make([]model.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
-				tiers = append(tiers, imodel.Tier{
-					FeeType:   imodel.FeeType(t.FeeType),
+				tiers = append(tiers, model.Tier{
+					FeeType:   model.FeeType(t.FeeType),
 					FeeAmount: t.FeeAmount,
 					Min:       t.Min,
 					Max:       t.Max,
@@ -135,28 +135,28 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 			}
 			return tiers
 		}(),
-		ServiceList: func() []imodel.ServiceLists {
+		ServiceList: func() []model.ServiceLists {
 			if len(req.ServiceList) == 0 {
 				return nil
 			}
-			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
+			lists := make([]model.ServiceLists, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
-				lists = append(lists, imodel.ServiceLists{
+				lists = append(lists, model.ServiceLists{
 					ServiceName:             sl.ServiceName,
 					ServiceKey:              sl.ServiceKey,
 					OverideProductGlAccount: sl.OverideProductGlAccount,
-					OverideCap: imodel.Cap{
+					OverideCap: model.Cap{
 						SingleCap:          sl.OverideCap.SingleCap,
 						MinimumTransferCap: sl.OverideCap.MinimumTransferCap,
 					},
-					OverideTiers: func() []imodel.Tier {
+					OverideTiers: func() []model.Tier {
 						if len(sl.OverideTiers) == 0 {
 							return nil
 						}
-						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
+						tiers := make([]model.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
-							tiers = append(tiers, imodel.Tier{
-								FeeType:   imodel.FeeType(t.FeeType),
+							tiers = append(tiers, model.Tier{
+								FeeType:   model.FeeType(t.FeeType),
 								FeeAmount: t.FeeAmount,
 								Min:       t.Min,
 								Max:       t.Max,
