@@ -57,7 +57,7 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
 
-func (s *server) walletMapper(data *local_model.GRPCWallet) *walletpb.Wallet {
+func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
 		Id:          data.ID.Hex(),
 		Name:        data.Name,
@@ -132,7 +132,7 @@ func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 
 // ///////////////////wallet///////////////////
 func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletRequest) (*walletpb.GetAllWalletResponse, error) {
-	data, err := s.walletHandler.GetAllWalletForGRPC(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
+	data, err := s.walletHandler.GetAllWallet(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
 		s.logger.Errorf("Failed to get all wallets: %v", err)
 		return nil, err
@@ -160,7 +160,7 @@ func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
 		// HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) walletListMapper(data []local_model.GRPCWallet) []*walletpb.Wallet {
+func (s *server) walletListMapper(data []local_model.Wallet) []*walletpb.Wallet {
 	var wallets []*walletpb.Wallet
 	for i := range data {
 		wallets = append(wallets, s.walletMapper(&data[i]))
