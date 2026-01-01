@@ -57,7 +57,7 @@ func (s ServiceList) Validate() error {
 	err := validation.ValidateStruct(&s,
 		validation.Field(&s.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&s.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&s.OverideProductGlAccount, validation.Required),
+		validation.Field(&s.OverideProductGlAccount),
 	)
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (r CreateServiceRequest) Validate() error {
 		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ProductGlAccount, validation.Required),
+		validation.Field(&r.ProductGlAccount),
 	)
 	if err != nil {
 		return err
