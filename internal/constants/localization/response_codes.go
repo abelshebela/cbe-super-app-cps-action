@@ -596,6 +596,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// BPS Action Role related error codes
 	ErrorBpsActionRoleNotFound,
+	ErrorUsernameAlreadyExists,
 	ErrorCpsActionRoleNotFound,
 	ErrorRoleNotFound,
 	ErrorUsedRoleExisting,
