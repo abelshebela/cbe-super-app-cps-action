@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type CPSUserStorage struct {
@@ -30,10 +31,10 @@ type CPSUserStorage struct {
 	logger            utils.Logger
 }
 
-func NewCPSUserRepository(client *mongo.Client, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
+func NewCPSUserRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
-		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, dbName, collection),
-		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client, dbName, "cps_actions"),
+		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client,cfg, dbName, collection),
+		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client,cfg, dbName, "cps_actions"),
 		client:            client,
 		collection:        client.Database(dbName).Collection(collection),
 		relatedCollection: relatedCollection,

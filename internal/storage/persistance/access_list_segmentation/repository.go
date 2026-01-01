@@ -11,7 +11,7 @@ import (
 	"context"
 	"errors"
 	"time"
-
+"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -260,9 +260,9 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	return nil
 }
 
-func NewAccessListSegmentationRepository(client *mongo.Client, dbName, collectionName string, logger utils.Logger) storage.AccessListSegmentationRepository {
+func NewAccessListSegmentationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
-		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, dbName, collectionName),
+		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client,cfg, dbName, collectionName),
 		client:         client,
 		dbName:         dbName,
 		collectionName: collectionName,

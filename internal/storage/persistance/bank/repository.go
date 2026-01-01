@@ -17,6 +17,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type BankStorage struct {
@@ -25,9 +26,9 @@ type BankStorage struct {
 	logger utils.Logger
 }
 
-func NewBankRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.BankRepository {
+func NewBankRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
 	return &BankStorage{
-		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg,dbName, collection),
 		client: client,
 		logger: logger,
 	}

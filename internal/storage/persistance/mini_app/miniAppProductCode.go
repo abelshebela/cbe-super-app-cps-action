@@ -15,6 +15,7 @@ import (
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type miniAppProductCode struct {
@@ -23,10 +24,10 @@ type miniAppProductCode struct {
 	client                *mongo.Client
 }
 
-func NewMiniAppProdutCodeRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.MiniAppProductCodeRepository {
+func NewMiniAppProdutCodeRepository(logger shared_utils.Logger, client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string) storage.MiniAppProductCodeRepository {
 	return &miniAppProductCode{
 		logger:                logger,
-		miniAppProductCodeDal: dal.NewMongoDal[model.MiniAppProductCode, model.MiniAppProductCode](client, dbName, collectionName),
+		miniAppProductCodeDal: dal.NewMongoDal[model.MiniAppProductCode, model.MiniAppProductCode](client,cfg, dbName, collectionName),
 		client:                client,
 	}
 }

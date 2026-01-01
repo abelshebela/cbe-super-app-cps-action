@@ -14,6 +14,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type ArchivedLinkedAccountStorage struct {
@@ -28,9 +29,9 @@ type ArchivedLinkedAccountRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
 }
 
-func NewArchivedLinkedAccountRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
+func NewArchivedLinkedAccountRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
 	return &ArchivedLinkedAccountStorage{
-		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client,cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}

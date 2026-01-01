@@ -24,6 +24,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type CustomerRepository struct {
@@ -35,9 +36,9 @@ type CustomerRepository struct {
 	kafkaProducer    kafka.ClientOrchestrationProducer
 }
 
-func InitCustomerDetail(client *mongo.Client, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
-	mongoDal := dal.NewMongoDal[member.User, member.User](client, database, collection[0])
-	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, database, collection[1])
+func InitCustomerDetail(client *mongo.Client,cfg *config.VaultConfig, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
+	mongoDal := dal.NewMongoDal[member.User, member.User](client,cfg, database, collection[0])
+	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client,cfg, database, collection[1])
 	return &CustomerRepository{
 		client:           client,
 		mongoDal:         mongoDal,
