@@ -24,6 +24,7 @@ type BPSUserUpdateRequest struct {
 	FullName    string `json:"full_name"`
 	PhoneNumber string `json:"phone_number"`
 	Email       string `json:"email"`
+	JobTitle    string `json:"job_title"`
 	// Role        string   `json:"role"`
 	BranchCode []string `json:"branch_code"`
 	// HomeBranch  string   `json:"home_branch"`

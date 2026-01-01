@@ -25,6 +25,9 @@ func BPSUserMapper(data local_model.BPSUser) bson.M {
 	if data.Role != "" {
 		result["role"] = data.Role
 	}
+	if len(data.BranchCode) > 0 {
+		result["branch_code"] = data.BranchCode
+	}
 
 	if data.UserCode != "" {
 		result["user_code"] = data.UserCode

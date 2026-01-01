@@ -291,6 +291,12 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	if req.PhoneNumber != "" {
 		updatedUser.PhoneNumber = req.PhoneNumber
 	}
+	if req.JobTitle != "" {
+		updatedUser.JobTitle = req.JobTitle
+	}
+	if req.UserID != "" {
+		updatedUser.UserName = req.UserID
+	}
 	// if req.Email != "" {
 	//     updatedUser.Email = req.Email
 	// }

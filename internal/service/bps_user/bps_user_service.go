@@ -324,7 +324,17 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, upd
 		}
 	}
 
-	// Build CPS action model for update
+	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.JobTitle)
+	// Build CPS action model for updateroles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.HomeBranch)
+	if err != nil {
+		b.logger.Errorf("[UpdateBPSUser] error finding role for job_title: %s, err: %v", updatedUser.HomeBranch, err)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if roles == nil || roles.Role == "" {
+		b.logger.Errorf("[UpdateBPSUser] role not found or invalid for job_title: %s", updatedUser.HomeBranch)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
 		existingUser.ID.Hex(),                  // unique id
 		makerData,                              // maker data
