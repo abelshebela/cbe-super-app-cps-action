@@ -196,3 +196,28 @@ func (r *RoleRepository) FindAllWithPagination(ctx context.Context, filterParam 
 		Meta: meta,
 	}, nil
 }
+
+func (r *RoleRepository) FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error) {
+	var filter bson.M
+
+	if field == "id" || field == "_id" {
+		objID, err := bson.ObjectIDFromHex(value)
+		if err != nil {
+			r.logger.Errorf("[RoleRepository][FindByFilterKey] invalid ObjectID: %v", err)
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+		filter = bson.M{"_id": objID}
+	} else {
+		filter = bson.M{field: value}
+	}
+
+	result, err := r.mongoDal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		r.logger.Errorf("[RoleRepository][FindByFilterKey] failed to find: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return result, nil
+}
