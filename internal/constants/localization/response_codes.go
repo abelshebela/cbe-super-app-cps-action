@@ -3588,6 +3588,12 @@ var (
 		Message:    MsgUserAlreadyExists,
 		Type:       "error",
 	}
+	ErrorUsernameAlreadyExists = ResponseCode{
+		Code:       "ERROR_USERNAME_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgUserExistWithUserName,
+		Type:       "error",
+	}
 
 	ErrorUserUnauthorized = ResponseCode{
 		Code:       "ERROR_USER_UNAUTHORIZED",

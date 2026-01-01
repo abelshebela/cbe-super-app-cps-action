@@ -44,6 +44,8 @@ type RoleRepository interface {
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
 	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
+
+	FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error)
 }
 
 type JobRoleRepository interface {
@@ -188,11 +190,11 @@ type AvatarRepository interface {
 
 // BPSUser persistence
 type BPSUserRepository interface {
-	GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error)
-	Update(ctx context.Context, BpsUser *model.BPSUser) error
-	Create(ctx context.Context, BpsUser model.BPSUser) error
-	FindByFilterKey(ctx context.Context, field, value string) (*model.BPSUser, error)
+	GetByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error)
+	Update(ctx context.Context, BpsUser *local_model.BPSUser) error
+	Create(ctx context.Context, BpsUser local_model.BPSUser) error
+	FindByFilterKey(ctx context.Context, field, value string) (*local_model.BPSUser, error)
 }
 
 type BudgetCategoryRepository interface {

@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"time"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -26,13 +28,15 @@ import (
 type bpsUserService struct {
 	cpsService service.CPSActionService
 	repo       storage.BPSUserRepository
+	roles_repo storage.RoleRepository
 	logger     utils.Logger
 }
 
-func NewBPSUserService(repo storage.BPSUserRepository, cpsService service.CPSActionService, logger utils.Logger) service.BPSUserService {
+func NewBPSUserService(repo storage.BPSUserRepository, rolesRepo storage.RoleRepository, cpsService service.CPSActionService, logger utils.Logger) service.BPSUserService {
 	return &bpsUserService{
 		cpsService: cpsService,
 		repo:       repo,
+		roles_repo: rolesRepo,
 		logger:     logger,
 	}
 }
@@ -78,6 +82,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 	}
 
 	actionData.LastModifiedAt = time.Now()
+	// local_actionData := bps_user_core.MapBPSUserToWithJobTitle(actionData)
 
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateBPSUser):
@@ -126,7 +131,7 @@ func (b *bpsUserService) Authorize(ctx context.Context, cpsAction *model.CPSActi
 }
 
 // FetchUserByUserCode implements service.BPSUserService.
-func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) {
+func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "FetchUserByUserCode", "BPS User", "FetchUserByUserCode")
 	defer span.End()
 
@@ -144,7 +149,7 @@ func (b *bpsUserService) FetchUserByUserCode(ctx context.Context, userCode strin
 }
 
 // GetAllBPSUsers implements service.BPSUserService.
-func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error) {
+func (b *bpsUserService) GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetAllBPSUsers", "BPS User", "GetAllBPSUsers")
 	defer span.End()
 
@@ -219,7 +224,7 @@ func (b *bpsUserService) UpdateBpsUser(ctx context.Context, userCode string, sta
 	b.logger.Infof("[UpdateBpsUser] BPS user update request created successfully for user_code: %s", userCode)
 	return nil
 }
-func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) error {
+func (b *bpsUserService) CreateBPSUser(ctx context.Context, req local_model.BPSUser) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
@@ -227,10 +232,10 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) e
 	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
 
 	// Check if user already exists by user_code
-	existingUser, err := b.repo.GetByUserCode(ctx, req.UserCode)
+	existingUser, err := b.repo.FindByFilterKey(ctx, "username", req.UserName)
 	if err == nil && existingUser != nil {
-		b.logger.Errorf("[CreateBPSUser] user already exists: %s", req.UserCode)
-		return errors.New(localization.ErrorUserAlreadyExists.Code)
+		b.logger.Errorf("[CreateBPSUser] user already exists: %s", req.UserName)
+		return errors.New(localization.ErrorUsernameAlreadyExists.Code)
 	}
 
 	// Check if email already exists
@@ -242,7 +247,6 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) e
 	// 		return errors.New(localization.ErrorExistEmail.Code)
 	// 	}
 	// }
-
 	// Check if phone number already exists
 	if req.PhoneNumber != "" {
 		phoneUser, err := b.repo.FindByFilterKey(ctx, "phone_number", req.PhoneNumber)
@@ -251,6 +255,17 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) e
 			return errors.New(localization.ErrorExistPhoneNumber.Code)
 		}
 	}
+
+	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", req.JobTitle)
+	if err != nil {
+		b.logger.Errorf("[CreateBPSUser] error finding role for job_title: %s, err: %v", req.JobTitle, err)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	if roles == nil || roles.Role == "" {
+		b.logger.Errorf("[CreateBPSUser] role not found or invalid for job_title: %s", req.JobTitle)
+		return errors.New(localization.ErrorRoleNotFound.Code)
+	}
+	req.Role = roles.Role
 
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
@@ -276,7 +291,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req model.BPSUser) e
 	return nil
 }
 
-func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, updatedUser model.BPSUser) error {
+func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, updatedUser local_model.BPSUser) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBPSUser", "BPS User", "UpdateBPSUser")
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)

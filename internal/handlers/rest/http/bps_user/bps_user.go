@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	model "cbe-super-app-cps-action/internal/constants/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
@@ -221,11 +223,12 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	NewUser := model.BPSUser{
 		// ID:       primitive.NewObjectID(),
-		UserCode: req.UserID,
+		UserName: req.UserID,
 		FullName: req.FullName,
-		// JobTitle:    req.JobTitle,
+		JobTitle: req.JobTitle,
 		// UserName:    req.ImpowerID,
 		PhoneNumber: req.PhoneNumber,
+		BranchCode:  req.BranchCode,
 		// Email:       req.Email,
 		CreatedAt:      now,
 		LastModifiedAt: now,

@@ -377,6 +377,7 @@ const (
 	// User related error messages
 	MsgUserNotFound                 = "User not found"
 	MsgUserAlreadyExists            = "User already exists"
+	MsgUserExistWithUserName        = "user with Username already exists"
 	MsgUserAccountBlocked           = "User account is blocked"
 	MsgUserUnauthorized             = "User is not authorized"
 	MsgThirdApiRequestNotAuthorized = "Third API request is not authorized"
@@ -439,7 +440,7 @@ const (
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgExistEmail                            = "cps user with this email already exist"
-	MsgExistPhoneNumber                      = "cps user with this  phone Number already exist"
+	MsgExistPhoneNumber                      = "user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"
 	MsgFieldTooLong                          = "Field value is too long"
