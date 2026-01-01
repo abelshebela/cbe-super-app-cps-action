@@ -292,7 +292,7 @@ func (c *CustomerRepository) FetchLinkedAccount(ctx context.Context, id string) 
 	return linkedAccount, nil
 }
 
-func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
+func (p *CustomerRepository) FindCustomerDetailByiD(ctx context.Context, id string) (*customer_dto.CustomerDetailRespons, error) {
 	p.logger.Infof("[FindCustomerDetailByID] fetching customer detail by id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {
@@ -302,18 +302,22 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: bson.D{{Key: "_id", Value: objID}}}},
-		// Lookup Linked Accounts using user_id (ObjectId)
+		// Add _id_str for lookup
+		{{Key: "$addFields", Value: bson.D{{Key: "_id_str", Value: bson.D{{Key: "$toString", Value: "$_id"}}}}}},
+		// Lookup Linked Accounts using user_id (string)
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "linked_account"},
-			{Key: "localField", Value: "_id"},
+			{Key: "localField", Value: "_id_str"},
 			{Key: "foreignField", Value: "user_id"},
 			{Key: "as", Value: "linked_accounts"},
 		}}},
-		// Lookup KYC Data
+		// Lookup KYC Data (convert _id to string for match)
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "customer_kyc"},
-			{Key: "localField", Value: "_id"},
-			{Key: "foreignField", Value: "user_id"},
+			{Key: "let", Value: bson.D{{Key: "id_str", Value: bson.D{{Key: "$toString", Value: "$_id"}}}}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$user_id", "$$id_str"}}}}}}},
+			}},
 			{Key: "as", Value: "kyc_data"},
 		}}},
 		// Lookup Branch Info from account_block using branch_code
@@ -399,7 +403,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 		lastName = strings.Join(parts[2:], " ")
 	}
 
-	response := &customer_dto.CustomerDetailResponse{
+	response := &customer_dto.CustomerDetailRespons{
 		ID:             res.ID.Hex(),
 		CustomerCode:   res.CustomerCode,
 		FirstName:      firstName,
@@ -440,6 +444,139 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 	// member
 	// account_branch_name
 	// email
+}
+
+func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error) {
+	p.logger.Infof("[FindCustomerDetailByID] fetching customer detail by id: %s", id)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		p.logger.Errorf("[FindCustomerDetailByID] invalid object id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.D{{Key: "_id", Value: objID}}}},
+
+		// 1. Lookup Linked Accounts (Returns Array)
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "linked_account"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "user_id"},
+			{Key: "as", Value: "linked_accounts_raw"},
+		}}},
+
+		// 2. Lookup Members (Returns Array)
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "members"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "member_info"},
+		}}},
+
+		// 3. Lookup KYC Data (Returns Array)
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "customer_kyc"},
+			{Key: "let", Value: bson.D{{Key: "id_str", Value: bson.D{{Key: "$toString", Value: "$_id"}}}}},
+			{Key: "pipeline", Value: mongo.Pipeline{
+				{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$user_id", "$$id_str"}}}}}}},
+			}},
+			{Key: "as", Value: "kyc_root"},
+		}}},
+
+		// 4. Flatten the single-match arrays
+		{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$member_info"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
+		{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$kyc_root"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
+
+		// 5. Final Projection
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 1},
+			{Key: "linked_account", Value: bson.D{{Key: "$map", Value: bson.D{
+				{Key: "input", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$linked_accounts_raw", bson.A{}}}}},
+				{Key: "as", Value: "acc"},
+				{Key: "in", Value: bson.D{
+					{Key: "account_number", Value: "$$acc.account_number"},
+					{Key: "account_holder_name", Value: "$$acc.account_holder_name"},
+					{Key: "account_type", Value: "$$acc.account_type"},
+					{Key: "account_branch_code", Value: "$$acc.account_branch_code"},
+					{Key: "is_active", Value: "$$acc.is_active"},
+					// Accessing flattened member_info
+					{Key: "account_branch_name", Value: "$member_info.account_branch_name"},
+				}},
+			}}}},
+			{Key: "personal_info", Value: bson.D{
+				// Using your double nested path here
+				{Key: "full_name", Value: "$kyc_root.kyc_data.full_name"},
+				{Key: "gender", Value: "$kyc_root.kyc_data.gender"},
+				{Key: "phone_number", Value: "$kyc_root.kyc_data.phone_number"},
+				{Key: "date_of_birth", Value: "$kyc_root.kyc_data.birth_date"},
+				// Corrected email path (from members collection)
+				{Key: "email", Value: "$member_info.email"},
+			}},
+		}}},
+	}
+
+	cursor, err := p.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		p.logger.Errorf("[FindCustomerDetailByID] aggregation failed: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var results []struct {
+		ID            bson.ObjectID `bson:"_id"`
+		LinkedAccount []struct {
+			AccountNumber     string `bson:"account_number"`
+			AccountHolderName string `bson:"account_holder_name"`
+			AccountType       string `bson:"account_type"`
+			AccountBranchCode string `bson:"account_branch_code"`
+			IsActive          bool   `bson:"is_active"`
+		} `bson:"linked_account"`
+		PersonalInfo struct {
+			FullName    string `bson:"full_name"`
+			Gender      string `bson:"gender"`
+			PhoneNumber string `bson:"phone_number"`
+			Email       string `bson:"email"`
+			DateOfBirth string `bson:"date_of_birth"`
+		} `bson:"personal_info"`
+	}
+
+	if err = cursor.All(ctx, &results); err != nil {
+		p.logger.Errorf("[FindCustomerDetailByID] cursor decode failed: %v", err)
+		return nil, err
+	}
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("customer not found")
+	}
+
+	// Optionally, you may want to fill AccountBranchName by joining with members/account_block if needed
+
+	res := results[0]
+	linkedAccounts := make([]customer_dto.LinkedAccount, len(res.LinkedAccount))
+	for i, acc := range res.LinkedAccount {
+		linkedAccounts[i] = customer_dto.LinkedAccount{
+			AccountNumber:     acc.AccountNumber,
+			AccountHolderName: acc.AccountHolderName,
+			AccountType:       acc.AccountType,
+			AccountBranchCode: acc.AccountBranchCode,
+			IsActive:          acc.IsActive,
+			// AccountBranchName: to be filled if needed
+		}
+	}
+
+	response := &customer_dto.CustomerDetailResponse{
+		ID:            res.ID.Hex(),
+		LinkedAccount: linkedAccounts,
+		PersonalInfo: customer_dto.PersonalInfo{
+			FullName:    res.PersonalInfo.FullName,
+			Gender:      res.PersonalInfo.Gender,
+			PhoneNumber: res.PersonalInfo.PhoneNumber,
+			Email:       res.PersonalInfo.Email,
+			DateOfBirth: res.PersonalInfo.DateOfBirth,
+		},
+	}
+
+	return response, nil
 }
 
 // func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {
