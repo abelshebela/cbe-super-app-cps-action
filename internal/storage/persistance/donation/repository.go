@@ -10,7 +10,8 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -23,9 +24,9 @@ import (
 )
 
 type DonationStorage struct {
-	dal                 dal.MongoDal[model.Donation, model.Donation]
-	donationCompanyDal  dal.MongoDal[model.DonationCompany, model.DonationCompany]
-	donationCategoryDal dal.MongoDal[model.DonationCategory, model.DonationCategory]
+	dal                 dal.MongoDal[imodel.Donation, imodel.Donation]
+	donationCompanyDal  dal.MongoDal[imodel.DonationCompany, imodel.DonationCompany]
+	donationCategoryDal dal.MongoDal[imodel.DonationCategory, imodel.DonationCategory]
 	client              *mongo.Client
 	kafkaProducer       kafka.ClientOrchestrationProducer
 	logger              utils.Logger
@@ -33,16 +34,16 @@ type DonationStorage struct {
 
 func NewDonationRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
-		dal:                 dal.NewMongoDal[model.Donation, model.Donation](client, dbName, collection),
-		donationCompanyDal:  dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, dbName, "donation_companies"),
-		donationCategoryDal: dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, dbName, "donation_categories"),
+		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client, dbName, collection),
+		donationCompanyDal:  dal.NewMongoDal[imodel.DonationCompany, imodel.DonationCompany](client, dbName, "donation_companies"),
+		donationCategoryDal: dal.NewMongoDal[imodel.DonationCategory, imodel.DonationCategory](client, dbName, "donation_categories"),
 		client:              client,
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,
 	}
 }
 
-func (d *DonationStorage) Create(ctx context.Context, donation *model.Donation) error {
+func (d *DonationStorage) Create(ctx context.Context, donation *imodel.Donation) error {
 	d.logger.Infof("[Create] creating donation")
 	newDonation, err := d.dal.InsertOne(ctx, *donation)
 	if err != nil {
@@ -55,7 +56,7 @@ func (d *DonationStorage) Create(ctx context.Context, donation *model.Donation) 
 	return nil
 }
 
-func (d *DonationStorage) Update(ctx context.Context, id string, donation *model.Donation) error {
+func (d *DonationStorage) Update(ctx context.Context, id string, donation *imodel.Donation) error {
 	d.logger.Infof("[Update] updating donation for id: %s", id)
 	objID, err := bson.ObjectIDFromHex(id)
 	if err != nil {

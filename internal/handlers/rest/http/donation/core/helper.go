@@ -66,7 +66,7 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 		if target, err := converter.ToInt32(targetStr, "target"); err != nil {
 			return req, err
 		} else {
-			req.Target = target
+			req.Target = string(target)
 		}
 	}
 
@@ -120,7 +120,7 @@ func ValidateForUpdate(req donation.DonationRequest) error {
 			validation.When(req.Title != "", validation.By(utils.NoSpecialChars)),
 		),
 		validation.Field(&req.Target,
-			validation.When(req.Target != 0,
+			validation.When(req.Target != "",
 				validation.Min(0).Error("donation amount must be greater than or equal to 0"),
 				validation.By(validateDonationAmount)),
 		),

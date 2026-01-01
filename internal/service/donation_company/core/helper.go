@@ -12,8 +12,10 @@ import (
 	"errors"
 	"time"
 
+	imodel "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -237,13 +239,13 @@ func CheckDataSimilarityAndValidation(ctx context.Context, request dto.DonationC
 
 // ConvertDonationListResponseToModel converts a DonationListResponse DTO to a model.Donation
 // This is used when we need to update donations and preserve all existing fields
-func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *model.Donation {
+func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationListResponse) *imodel.Donation {
 	companyObjID, _ := bson.ObjectIDFromHex(donationResponse.Company.ID)
 	categoryObjID, _ := bson.ObjectIDFromHex(donationResponse.Category.ID)
 
-	donationImages := make([]shared_types.DonationImage, len(donationResponse.DonationImages))
+	donationImages := make([]types.DonationImage, len(donationResponse.DonationImages))
 	for i, img := range donationResponse.DonationImages {
-		donationImages[i] = shared_types.DonationImage{
+		donationImages[i] = types.DonationImage{
 			ID:        img.ID,
 			PhotoURL:  img.PhotoURL,
 			CreatedAt: img.CreatedAt,
@@ -257,7 +259,7 @@ func ConvertDonationListResponseToModel(donationResponse *donation_dto.DonationL
 
 	donationID, _ := bson.ObjectIDFromHex(donationResponse.ID)
 
-	return &model.Donation{
+	return &imodel.Donation{
 		ID:                  donationID,
 		DonationCode:        donationResponse.DonationCode,
 		CompanyID:           companyObjID,
