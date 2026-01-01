@@ -63,7 +63,19 @@ func (s ServiceList) Validate() error {
 		return err
 	}
 
-	return validateCapAndTiers(s.OverideCap, s.OverideTiers)
+	fmt.Println("====", s.HaveAnOverideTiers)
+	if s.HaveAnOverideTiers {
+		err := validation.ValidateStruct(&s,
+			validation.Field(&s.OverideCap, validation.Required),
+			validation.Field(&s.OverideTiers, validation.Required, validation.Length(1, 0)),
+		)
+		if err != nil {
+			return err
+		}
+		return validateCapAndTiers(s.OverideCap, s.OverideTiers)
+	}
+
+	return nil
 }
 
 func (r CreateServiceRequest) Validate() error {

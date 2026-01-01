@@ -18,6 +18,7 @@ type ServiceList struct {
 	OverideCap              CapRequest    `bson:"overide_cap" json:"overide_cap"`
 	OverideProductGlAccount string        `bson:"overide_product_gl_account" json:"overide_product_gl_account"`
 	OverideTiers            []TierRequest `bson:"overide_tiers" json:"overide_tiers"`
+	HaveAnOverideTiers      bool          `bson:"have_an_overide_tiers" json:"have_an_overide_tiers"`
 	IsEnabled               *bool         `bson:"is_enabled" json:"is_enabled"`
 }
 
