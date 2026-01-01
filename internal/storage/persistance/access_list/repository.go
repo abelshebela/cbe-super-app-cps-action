@@ -14,6 +14,7 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	config "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -27,9 +28,9 @@ type AccessListStorage struct {
 	logger        utils.Logger
 }
 
-func NewAccessListRepository(client *mongo.Client, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AppAccessListRepository {
+func NewAccessListRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AppAccessListRepository {
 	return &AccessListStorage{
-		dal:           dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, dbName, collection),
+		dal:           dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client,cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: clientOrchestrationProducer,
 		logger:        logger,

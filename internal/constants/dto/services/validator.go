@@ -9,17 +9,33 @@ import (
 
 func (c CapRequest) Validate() error {
 	return validation.ValidateStruct(&c,
-		validation.Field(&c.SingleCap, validation.Required, validation.Min(0.0)),
-		validation.Field(&c.MinimumTransferCap, validation.Required, validation.Min(0.0), validation.Max(c.SingleCap).Error("minimum transfer cap must not be greater than the single maximum transfer cap")),
+		validation.Field(&c.SingleCap, validation.NotNil, validation.Min(0.0)),
+		validation.Field(&c.MinimumTransferCap, validation.NotNil, validation.Min(0.0), validation.By(func(value interface{}) error {
+			if c.SingleCap == nil || c.MinimumTransferCap == nil {
+				return nil
+			}
+			if *c.MinimumTransferCap > *c.SingleCap {
+				return fmt.Errorf("minimum transfer cap must not be greater than the single maximum transfer cap")
+			}
+			return nil
+		})),
 	)
 }
 
 func (t TierRequest) Validate() error {
 	return validation.ValidateStruct(&t,
-		validation.Field(&t.Min, validation.Required, validation.Min(0.0)),
-		validation.Field(&t.Max, validation.Required, validation.Min(0.0), validation.Min(t.Min).Error("maximum amount cannot be less than minimum amount")),
+		validation.Field(&t.Min, validation.NotNil, validation.Min(0.0)),
+		validation.Field(&t.Max, validation.NotNil, validation.Min(0.0), validation.By(func(value interface{}) error {
+			if t.Min == nil || t.Max == nil {
+				return nil
+			}
+			if *t.Max < *t.Min {
+				return fmt.Errorf("maximum amount cannot be less than minimum amount")
+			}
+			return nil
+		})),
 		validation.Field(&t.FeeType, validation.Required, validation.In("PERCENT", "FLAT").Error("fee type must be either 'PERCENT' or 'FLAT'")),
-		validation.Field(&t.FeeAmount, validation.Required, validation.Min(0.0)),
+		validation.Field(&t.FeeAmount, validation.NotNil, validation.Min(0.0)),
 	)
 }
 
@@ -35,19 +51,19 @@ func validateCapAndTiers(cap CapRequest, tiers []TierRequest) error {
 
 		// Tier chaining: first tier's max amount is the seconds min amount
 		if i > 0 {
-			if tier.Min != tiers[i-1].Max {
-				return fmt.Errorf("tier %d: minimum amount (%f) must be equal to previous tier's maximum amount (%f)", i, tier.Min, tiers[i-1].Max)
+			if *tier.Min != *tiers[i-1].Max {
+				return fmt.Errorf("tier %d: minimum amount (%f) must be equal to previous tier's maximum amount (%f)", i, *tier.Min, *tiers[i-1].Max)
 			}
 		}
 
 		// Tiers max amount cannot be greater than the single maximum transfer cap
-		if tier.Max > cap.SingleCap {
-			return fmt.Errorf("tier %d: max amount (%f) cannot be greater than single maximum transfer cap (%f)", i, tier.Max, cap.SingleCap)
+		if cap.SingleCap != nil && *tier.Max > *cap.SingleCap {
+			return fmt.Errorf("tier %d: max amount (%f) cannot be greater than single maximum transfer cap (%f)", i, *tier.Max, *cap.SingleCap)
 		}
 
 		// Tiers min amount cannot be less than the minimum transfer cap
-		if i == 0 && tier.Min < cap.MinimumTransferCap {
-			return fmt.Errorf("first tier: min amount (%f) cannot be less than minimum transfer cap (%f)", tier.Min, cap.MinimumTransferCap)
+		if i == 0 && cap.MinimumTransferCap != nil && *tier.Min < *cap.MinimumTransferCap {
+			return fmt.Errorf("first tier: min amount (%f) cannot be less than minimum transfer cap (%f)", *tier.Min, *cap.MinimumTransferCap)
 		}
 	}
 	return nil
@@ -63,7 +79,18 @@ func (s ServiceList) Validate() error {
 		return err
 	}
 
-	return validateCapAndTiers(s.OverideCap, s.OverideTiers)
+	if s.HaveAnOverideTiers {
+		err := validation.ValidateStruct(&s,
+			validation.Field(&s.OverideCap, validation.Required),
+			validation.Field(&s.OverideTiers, validation.Required, validation.Length(1, 0)),
+		)
+		if err != nil {
+			return err
+		}
+		return validateCapAndTiers(s.OverideCap, s.OverideTiers)
+	}
+
+	return nil
 }
 
 func (r CreateServiceRequest) Validate() error {
@@ -116,7 +143,7 @@ func (r UpdateServiceRequest) Validate() error {
 	}
 
 	if r.HaveATier {
-		if r.Cap.SingleCap != 0 || r.Cap.MinimumTransferCap != 0 || len(r.Tiers) > 0 {
+		if r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil || len(r.Tiers) > 0 {
 			if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
 				return err
 			}

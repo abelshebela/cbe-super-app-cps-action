@@ -17,6 +17,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type TopupStorage struct {
@@ -24,9 +25,9 @@ type TopupStorage struct {
 	logger utils.Logger
 }
 
-func NewTopupRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.TopupRepository {
+func NewTopupRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.TopupRepository {
 	return &TopupStorage{
-		dal:    dal.NewMongoDal[model.Topup, model.Topup](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.Topup, model.Topup](client, cfg,dbName, collection),
 		logger: logger,
 	}
 }

@@ -13,6 +13,8 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -25,7 +27,7 @@ type BPSUserStorage struct {
 	logger utils.Logger
 }
 
-func NewBPSUserRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
+func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
 	return &BPSUserStorage{
 		dal:    dal.NewMongoDal[local_model.BPSUser, local_model.BPSUser](client, dbName, collection),
 		client: client,

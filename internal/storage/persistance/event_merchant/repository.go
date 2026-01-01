@@ -21,6 +21,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type EventMerchantRepository struct {
@@ -187,9 +188,9 @@ func (m *EventMerchantRepository) FindOne(ctx context.Context, filter bson.M) (*
 	return result, nil
 }
 
-func NewEventMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.EventMerchantRepository {
+func NewEventMerchantRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.EventMerchantRepository {
 	return &EventMerchantRepository{
-		dal:    dal.NewMongoDal[model.EventMerchant, model.EventMerchant](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.EventMerchant, model.EventMerchant](client,cfg, dbName, collection),
 		logger: logger,
 	}
 }

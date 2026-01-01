@@ -24,6 +24,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type ServicesStorage struct {
@@ -33,10 +34,10 @@ type ServicesStorage struct {
 	logger        utils.Logger
 }
 
-func NewServicesRepository(client *mongo.Client, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
+func NewServicesRepository(client *mongo.Client,cfg *config.VaultConfig, dbName, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ServicesRepository {
 	return &ServicesStorage{
-		dal:           dal.NewMongoDal[imodel.Service, imodel.Service](client, dbName, collection),
-		serviceDal:    dal.NewMongoDal[imodel.ServiceList, imodel.ServiceList](client, dbName, "service_list"),
+		dal:           dal.NewMongoDal[imodel.Service, imodel.Service](client,cfg, dbName, collection),
+		serviceDal:    dal.NewMongoDal[imodel.ServiceList, imodel.ServiceList](client,cfg, dbName, "service_list"),
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
 	}

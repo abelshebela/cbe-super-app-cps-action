@@ -1,15 +1,15 @@
 package services
 
 type CapRequest struct {
-	SingleCap          float64 `json:"single_cap" example:"1000000"`
-	MinimumTransferCap float64 `json:"minimum_transfer_cap" example:"10"`
+	SingleCap          *float64 `json:"single_cap" example:"1000000"`
+	MinimumTransferCap *float64 `json:"minimum_transfer_cap" example:"10"`
 }
 
 type TierRequest struct {
-	FeeType   string  `json:"fee_type" example:"PERCENT"`
-	FeeAmount float64 `json:"fee_amount" example:"1"`
-	Min       float64 `json:"min" example:"0"`
-	Max       float64 `json:"max" example:"5000"`
+	FeeType   string   `json:"fee_type" example:"PERCENT"`
+	FeeAmount *float64 `json:"fee_amount" example:"1"`
+	Min       *float64 `json:"min" example:"0"`
+	Max       *float64 `json:"max" example:"5000"`
 }
 
 type ServiceList struct {
@@ -18,6 +18,7 @@ type ServiceList struct {
 	OverideCap              CapRequest    `bson:"overide_cap" json:"overide_cap"`
 	OverideProductGlAccount string        `bson:"overide_product_gl_account" json:"overide_product_gl_account"`
 	OverideTiers            []TierRequest `bson:"overide_tiers" json:"overide_tiers"`
+	HaveAnOverideTiers      bool          `bson:"have_an_overide_tiers" json:"have_an_overide_tiers"`
 	IsEnabled               *bool         `bson:"is_enabled" json:"is_enabled"`
 }
 

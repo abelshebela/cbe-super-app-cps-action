@@ -17,6 +17,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type customerStorage struct {
@@ -27,9 +28,9 @@ type customerStorage struct {
 	logger     utils.Logger
 }
 
-func NewCustomerSegmentationRepository(client *mongo.Client, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
+func NewCustomerSegmentationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
 	return &customerStorage{
-		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client, dbName, collection),
+		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client,cfg, dbName, collection),
 		client:     client,
 		dbName:     dbName,
 		collection: collection,

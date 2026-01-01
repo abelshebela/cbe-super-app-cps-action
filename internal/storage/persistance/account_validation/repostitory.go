@@ -17,6 +17,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type AccountValidationStore struct {
@@ -28,9 +29,9 @@ type AccountValidationStore struct {
 }
 
 // NewAccountValidationStore returns a ValidationRuleRepository
-func NewAccountValidationStore(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ValidationRuleRepository {
+func NewAccountValidationStore(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.ValidationRuleRepository {
 	return &AccountValidationStore{
-		dal:           dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client, dbName, collection),
+		dal:           dal.NewMongoDal[model.ValidationRule, model.ValidationRule](client,cfg, dbName, collection),
 		client:        client,
 		logger:        logger,
 		kafkaProducer: kafkaProducer,
