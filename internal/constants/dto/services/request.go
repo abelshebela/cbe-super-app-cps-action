@@ -29,6 +29,8 @@ type CreateServiceRequest struct {
 	ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
 	Cap              CapRequest    `json:"cap"`
 	Tiers            []TierRequest `json:"tiers"`
+	HaveATier        bool          `json:"have_a_tier"`
+	HaveAChild       bool          `json:"have_a_child"`
 	Enabled          *bool         `bson:"enabled" json:"enabled"`
 	IsDeleted        *bool         `bson:"is_deleted" json:"is_deleted"`
 }
@@ -41,6 +43,8 @@ type UpdateServiceRequest struct {
 	ServiceList      []ServiceList `bson:"service_list" json:"service_list"`
 	Cap              CapRequest    `json:"cap"`
 	Tiers            []TierRequest `json:"tiers"`
+	HaveATier        bool          `json:"have_a_tier"`
+	HaveAChild       bool          `json:"have_a_child"`
 	Enabled          *bool         `bson:"enabled" json:"enabled"`
 	IsDeleted        *bool         `bson:"is_deleted" json:"is_deleted"`
 }
