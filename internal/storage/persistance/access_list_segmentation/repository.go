@@ -11,7 +11,7 @@ import (
 	"context"
 	"errors"
 	"time"
-
+"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -25,6 +25,19 @@ type AccessListSegmentation struct {
 	dbName         string
 	collectionName string
 	logger         utils.Logger
+}
+
+// FindByAccountSegmentationAndServiceID implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByAccountSegmentationAndServiceID(ctx context.Context, customerSegments string, serviceID string) (*local_model.AccessListSegmentation, error) {
+	seg, err := a.repo.FindOne(ctx, bson.M{"segmentation_code": customerSegments, "service_id": serviceID}, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		a.logger.Errorf("[FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return seg, nil
 }
 
 // FindBySegmentationAndServiceID implements storage.AccessListSegmentationRepository.
@@ -247,9 +260,9 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	return nil
 }
 
-func NewAccessListSegmentationRepository(client *mongo.Client, dbName, collectionName string, logger utils.Logger) storage.AccessListSegmentationRepository {
+func NewAccessListSegmentationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
-		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, dbName, collectionName),
+		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client,cfg, dbName, collectionName),
 		client:         client,
 		dbName:         dbName,
 		collectionName: collectionName,

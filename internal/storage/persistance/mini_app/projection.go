@@ -62,14 +62,9 @@ func MiniAppDocumentToBsonM(miniApp mini_model.MiniApp) bson.M {
 	if miniApp.URL != "" {
 		update["url"] = miniApp.URL
 	}
-	if miniApp.CommissionGLAccount != "" {
-		update["commission_gl_account"] = miniApp.CommissionGLAccount
-	}
 	update["is_featured"] = miniApp.IsFeatured
 	update["enabled"] = miniApp.Enabled
-	if miniApp.AppCode != "" {
-		update["app_code"] = miniApp.AppCode
-	}
+
 
 	return update
 }

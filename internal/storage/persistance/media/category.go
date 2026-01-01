@@ -14,6 +14,7 @@ import (
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 var (
@@ -26,10 +27,10 @@ type articleCategory struct {
 	client             *mongo.Client
 }
 
-func NewArticleCategoryRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string) storage.ArticleCategoryRepository {
+func NewArticleCategoryRepository(logger shared_utils.Logger, client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string) storage.ArticleCategoryRepository {
 	return &articleCategory{
 		logger:             logger,
-		articleCategoryDal: dal.NewMongoDal[model.NewsCategoryModel, model.NewsCategoryModel](client, dbName, collectionName),
+		articleCategoryDal: dal.NewMongoDal[model.NewsCategoryModel, model.NewsCategoryModel](client,cfg, dbName, collectionName),
 		client:             client,
 	}
 }

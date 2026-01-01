@@ -131,9 +131,18 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 			a.logger.Errorf("[Create] no customer sub segments found for segment code: %s", req.SegmentCode)
 			return errors.New(localization.ErrorCustomerSegmentationCodeNotFound.Code)
 		}
+		if seg, err := a.repo.FindByAccountSegmentationAndServiceID(ctx, req.SegmentCode, req.ServiceID); err != nil || seg != nil {
+			a.logger.Errorf("[Create] access list segmentation already exists with segmentation code and service id: %v", err)
+			return errors.New(localization.ErrorAccessListSegmentationNameAlreadyExists.Code)
+		}
+		for _, seg := range seg.CustomerSubSegments {
+			if seg.CustomerSegment == req.SegmentCode {
+				req.SegmentName = seg.CustomerGroup
+				break
+			}
+		}
 		// req.SegmentName = seg.CustomerSubSegments[0].CustomerGroup
 	}
-
 	cpsAction := lib.CpsModelBuilder("", makerData, nil, req, string(constants.RequestCreateAccessListSegmentation), constants.CREATE)
 
 	if err := a.cpsAction.CreateCPSAction(ctx, &cpsAction); err != nil {

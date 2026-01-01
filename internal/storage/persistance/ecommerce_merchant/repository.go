@@ -20,6 +20,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type EcommerceMerchantStorage struct {
@@ -30,9 +31,9 @@ type EcommerceMerchantStorage struct {
 	collection string
 }
 
-func NewEcommerceMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.EcommerceMerchantRepository {
+func NewEcommerceMerchantRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.EcommerceMerchantRepository {
 	return &EcommerceMerchantStorage{
-		dal:        dal.NewMongoDal[model.EcommerceMerchant, model.EcommerceMerchant](client, dbName, collection),
+		dal:        dal.NewMongoDal[model.EcommerceMerchant, model.EcommerceMerchant](client,cfg, dbName, collection),
 		client:     client,
 		logger:     logger,
 		dbName:     dbName,

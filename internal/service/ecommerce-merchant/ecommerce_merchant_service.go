@@ -340,7 +340,6 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		err = m.updateERP(ctx, merchant)
 		if err != nil {
 			m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
-			return nil, err
 		}
 
 		_, err = m.repo.Create(ctx, merchant)

@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type DonationCompanyStorage struct {
@@ -27,9 +28,9 @@ type DonationCompanyStorage struct {
 	logger        utils.Logger
 }
 
-func NewDonationCompanyRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCompanyRepository {
+func NewDonationCompanyRepository(client *mongo.Client, cfg *config.VaultConfig,dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCompanyRepository {
 	return &DonationCompanyStorage{
-		dal:           dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client, dbName, collection),
+		dal:           dal.NewMongoDal[model.DonationCompany, model.DonationCompany](client,cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,

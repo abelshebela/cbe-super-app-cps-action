@@ -19,6 +19,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type KYCVerifierStorage struct {
@@ -178,9 +179,9 @@ func (s *KYCVerifierStorage) FindAllWithPaginationPopulated(ctx context.Context,
 	}, nil
 }
 
-func NewKYCVerifierRepository(client *mongo.Client, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.KYCVerifierRepository {
+func NewKYCVerifierRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.KYCVerifierRepository {
 	return &KYCVerifierStorage{
-		dal:           dal.NewMongoDal[model.CustomerKYC, model.CustomerKYC](client, dbName, collection),
+		dal:           dal.NewMongoDal[model.CustomerKYC, model.CustomerKYC](client,cfg, dbName, collection),
 		client:        client,
 		logger:        logger,
 		coll:          client.Database(dbName).Collection(collection),

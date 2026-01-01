@@ -21,6 +21,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type DonationStorage struct {
@@ -32,11 +33,11 @@ type DonationStorage struct {
 	logger              utils.Logger
 }
 
-func NewDonationRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
+func NewDonationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
-		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client, dbName, collection),
-		donationCompanyDal:  dal.NewMongoDal[imodel.DonationCompany, imodel.DonationCompany](client, dbName, "donation_companies"),
-		donationCategoryDal: dal.NewMongoDal[imodel.DonationCategory, imodel.DonationCategory](client, dbName, "donation_categories"),
+		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client,cfg, dbName, collection),
+		donationCompanyDal:  dal.NewMongoDal[imodel.DonationCompany, imodel.DonationCompany](client,cfg, dbName, "donation_companies"),
+		donationCategoryDal: dal.NewMongoDal[imodel.DonationCategory, imodel.DonationCategory](client,cfg, dbName, "donation_categories"),
 		client:              client,
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,

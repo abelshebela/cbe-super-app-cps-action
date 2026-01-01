@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type WalletStorage struct {
@@ -27,12 +28,12 @@ type WalletStorage struct {
 	logger     utils.Logger
 }
 
-func NewWalletRepository(client *mongo.Client, dbName string, collection, ServicesCollection string, logger utils.Logger) storage.WalletRepository {
+func NewWalletRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection, ServicesCollection string, logger utils.Logger) storage.WalletRepository {
 	collectionRef := client.Database(dbName).Collection(collection)
 
 	return &WalletStorage{
-		dal:        dal.NewMongoDal[local_model.Wallet, local_model.Wallet](client, dbName, collection),
-		serviceDal: dal.NewMongoDal[model.Service, model.Service](client, dbName, ServicesCollection),
+		dal:        dal.NewMongoDal[local_model.Wallet, local_model.Wallet](client,cfg, dbName, collection),
+		serviceDal: dal.NewMongoDal[model.Service, model.Service](client,cfg, dbName, ServicesCollection),
 		collection: collectionRef,
 		logger:     logger,
 	}

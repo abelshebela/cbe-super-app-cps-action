@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type BPSActionRoleRepository struct {
@@ -28,11 +29,11 @@ type BPSActionRoleRepository struct {
 	collection    *mongo.Collection
 }
 
-func NewBPSActionRoleRepository(client *mongo.Client, database string, collection []string, logger utils.Logger) storage.BPSActionRoleRepository {
+func NewBPSActionRoleRepository(client *mongo.Client,cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.BPSActionRoleRepository {
 	return &BPSActionRoleRepository{
 		client:        client,
-		mongoDal:      dal.NewMongoDal[model.ActionRole, model.ActionRole](client, database, collection[0]),
-		actionListDal: dal.NewMongoDal[imodel.BPSActionList, imodel.BPSActionList](client, database, collection[1]),
+		mongoDal:      dal.NewMongoDal[model.ActionRole, model.ActionRole](client,cfg, database, collection[0]),
+		actionListDal: dal.NewMongoDal[imodel.BPSActionList, imodel.BPSActionList](client,cfg, database, collection[1]),
 		logger:        logger,
 		collection:    client.Database(database).Collection(collection[0]),
 	}
