@@ -29,7 +29,7 @@ type BPSUserStorage struct {
 
 func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
 	return &BPSUserStorage{
-		dal:    dal.NewMongoDal[local_model.BPSUser, local_model.BPSUser](client, dbName, collection),
+		dal:    dal.NewMongoDal[local_model.BPSUser, local_model.BPSUser](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
