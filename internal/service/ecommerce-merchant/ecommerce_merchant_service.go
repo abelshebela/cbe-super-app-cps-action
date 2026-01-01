@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/storage"
@@ -422,8 +423,7 @@ func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.
 		Branches:         erpBranches,
 	}
 
-	// url := m.cfg.CPS_ECOMMERCE_UPDATE
-	url := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/update/"
+	url := m.cfg.OddoEcommerceBaseUrl + "/cps/merchant/update/"
 	xAPIKey := m.cfg.ApiKey
 	err := m.merchantLookup.UpdateMerchant(ctx, merchant.Code, payload, xAPIKey, url)
 	if err != nil {
@@ -454,8 +454,8 @@ func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID 
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
-	// url := m.cfg.CPS_ECOMMERCE_LOOKUP
-	url := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
+	base := strings.TrimRight(m.cfg.OddoEcommerceBaseUrl, "/")
+	url := base + "/cps/merchant/"
 	xAPIKey := m.cfg.ApiKey
 	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
 	if err != nil {
