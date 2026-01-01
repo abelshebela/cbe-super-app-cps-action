@@ -17,6 +17,13 @@ import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
+func formatFloatPointer(f *float64) string {
+	if f == nil {
+		return ""
+	}
+	return strconv.FormatFloat(*f, 'f', -1, 64)
+}
+
 func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, uniqueID string, requestAction constants.RequestAction, curData, prevData interface{}, actionType constants.ActionType) error {
 	userData := local_util.ExtractUserFromContext(ctx)
 	// if incomplet := local_util.IsIncomplete(userData); incomplet {
@@ -60,17 +67,17 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
 		Cap: imodel.Cap{
-			SingleCap:          strconv.FormatFloat(req.Cap.SingleCap, 'f', -1, 64),
-			MinimumTransferCap: strconv.FormatFloat(req.Cap.MinimumTransferCap, 'f', -1, 64),
+			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
+			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
 		},
 		Tiers: func() []imodel.Tier {
 			tiers := make([]imodel.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
 				tiers = append(tiers, imodel.Tier{
 					FeeType:   imodel.FeeType(t.FeeType),
-					FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
-					Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
-					Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
+					FeeAmount: formatFloatPointer(t.FeeAmount),
+					Min:       formatFloatPointer(t.Min),
+					Max:       formatFloatPointer(t.Max),
 				})
 			}
 			return tiers
@@ -84,17 +91,17 @@ func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 					OverideProductGlAccount: sl.OverideProductGlAccount,
 					IsEnabled:               true,
 					OverideCap: imodel.Cap{
-						SingleCap:          strconv.FormatFloat(sl.OverideCap.SingleCap, 'f', -1, 64),
-						MinimumTransferCap: strconv.FormatFloat(sl.OverideCap.MinimumTransferCap, 'f', -1, 64),
+						SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
+						MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
 					},
 					OverideTiers: func() []imodel.Tier {
 						tiers := make([]imodel.Tier, 0, len(sl.OverideTiers))
 						for _, t := range sl.OverideTiers {
 							tiers = append(tiers, imodel.Tier{
 								FeeType:   imodel.FeeType(t.FeeType),
-								FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
-								Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
-								Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
+								FeeAmount: formatFloatPointer(t.FeeAmount),
+								Min:       formatFloatPointer(t.Min),
+								Max:       formatFloatPointer(t.Max),
 							})
 						}
 						return tiers
@@ -118,8 +125,8 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 		ServiceName:      req.ServiceName,
 		ProductGlAccount: req.ProductGlAccount,
 		Cap: imodel.Cap{
-			SingleCap:          strconv.FormatFloat(req.Cap.SingleCap, 'f', -1, 64),
-			MinimumTransferCap: strconv.FormatFloat(req.Cap.MinimumTransferCap, 'f', -1, 64),
+			SingleCap:          formatFloatPointer(req.Cap.SingleCap),
+			MinimumTransferCap: formatFloatPointer(req.Cap.MinimumTransferCap),
 		},
 		Tiers: func() []imodel.Tier {
 			if len(req.Tiers) == 0 {
@@ -129,9 +136,9 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 			for _, t := range req.Tiers {
 				tiers = append(tiers, imodel.Tier{
 					FeeType:   imodel.FeeType(t.FeeType),
-					FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
-					Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
-					Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
+					FeeAmount: formatFloatPointer(t.FeeAmount),
+					Min:       formatFloatPointer(t.Min),
+					Max:       formatFloatPointer(t.Max),
 				})
 			}
 			return tiers
@@ -147,8 +154,8 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 					ServiceKey:              sl.ServiceKey,
 					OverideProductGlAccount: sl.OverideProductGlAccount,
 					OverideCap: imodel.Cap{
-						SingleCap:          strconv.FormatFloat(sl.OverideCap.SingleCap, 'f', -1, 64),
-						MinimumTransferCap: strconv.FormatFloat(sl.OverideCap.MinimumTransferCap, 'f', -1, 64),
+						SingleCap:          formatFloatPointer(sl.OverideCap.SingleCap),
+						MinimumTransferCap: formatFloatPointer(sl.OverideCap.MinimumTransferCap),
 					},
 					OverideTiers: func() []imodel.Tier {
 						if len(sl.OverideTiers) == 0 {
@@ -158,9 +165,9 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 						for _, t := range sl.OverideTiers {
 							tiers = append(tiers, imodel.Tier{
 								FeeType:   imodel.FeeType(t.FeeType),
-								FeeAmount: strconv.FormatFloat(t.FeeAmount, 'f', -1, 64),
-								Min:       strconv.FormatFloat(t.Min, 'f', -1, 64),
-								Max:       strconv.FormatFloat(t.Max, 'f', -1, 64),
+								FeeAmount: formatFloatPointer(t.FeeAmount),
+								Min:       formatFloatPointer(t.Min),
+								Max:       formatFloatPointer(t.Max),
 							})
 						}
 						return tiers
