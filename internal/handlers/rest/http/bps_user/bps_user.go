@@ -217,12 +217,12 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	// concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
 	now := time.Now()
 	NewUser := model.BPSUser{
 		// ID:       primitive.NewObjectID(),
 		UserCode: req.UserID,
-		FullName: concatinated_name,
+		FullName: req.FullName,
 		// JobTitle:    req.JobTitle,
 		// UserName:    req.ImpowerID,
 		PhoneNumber: req.PhoneNumber,
@@ -282,8 +282,8 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Populate fields if not empty
-	if req.FullName.FirstName != "" || req.FullName.MiddleName != "" || req.FullName.LastName != "" {
-		updatedUser.FullName = req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	if req.FullName != "" {
+		updatedUser.FullName = req.FullName
 	}
 	if req.PhoneNumber != "" {
 		updatedUser.PhoneNumber = req.PhoneNumber
@@ -291,15 +291,15 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	// if req.Email != "" {
 	//     updatedUser.Email = req.Email
 	// }
-	if req.Role != "" {
-		updatedUser.Role = req.Role
-	}
+	// if req.Role != "" {
+	// 	updatedUser.Role = req.Role
+	// }
 	if len(req.BranchCode) > 0 {
 		updatedUser.BranchCode = req.BranchCode
 	}
-	if req.HomeBranch != "" {
-		updatedUser.HomeBranch = req.HomeBranch
-	}
+	// if req.HomeBranch != "" {
+	// 	updatedUser.HomeBranch = req.HomeBranch
+	// }
 	// if req.Realm != "" {
 	// 	updatedUser.Realm = req.Realm
 	// }
