@@ -63,7 +63,6 @@ func (s ServiceList) Validate() error {
 		return err
 	}
 
-	fmt.Println("====", s.HaveAnOverideTiers)
 	if s.HaveAnOverideTiers {
 		err := validation.ValidateStruct(&s,
 			validation.Field(&s.OverideCap, validation.Required),
