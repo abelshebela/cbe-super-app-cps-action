@@ -422,7 +422,10 @@ func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.
 		Branches:         erpBranches,
 	}
 
-	err := m.merchantLookup.UpdateMerchant(ctx, merchant.Code, payload, "")
+	// url := m.cfg.CPS_ECOMMERCE_UPDATE
+	url := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/update/"
+	xAPIKey := m.cfg.ApiKey
+	err := m.merchantLookup.UpdateMerchant(ctx, merchant.Code, payload, xAPIKey, url)
 	if err != nil {
 		m.logger.Errorf("ERP update failed for merchant %s: %v", merchant.Code, err)
 		return err
@@ -451,8 +454,10 @@ func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID 
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
+	// url := m.cfg.CPS_ECOMMERCE_LOOKUP
+	url := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
 	xAPIKey := m.cfg.ApiKey
-	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey)
+	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
 	if err != nil {
 		m.logger.Errorf("Merchant lookup error : %v", err)
 		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
