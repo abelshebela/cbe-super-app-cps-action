@@ -17,6 +17,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type JobRoleStorage struct {
@@ -26,12 +27,12 @@ type JobRoleStorage struct {
 	dal        dal.MongoDal[imodel.JobRole, imodel.JobRole]
 }
 
-func NewJobRoleRepository(client *mongo.Client, database, collection string, logger utils.Logger) storage.JobRoleRepository {
+func NewJobRoleRepository(client *mongo.Client,cfg *config.VaultConfig, database, collection string, logger utils.Logger) storage.JobRoleRepository {
 	return &JobRoleStorage{
 		client:     client,
 		collection: client.Database(database).Collection(collection),
 		logger:     logger,
-		dal:        dal.NewMongoDal[imodel.JobRole, imodel.JobRole](client, database, collection),
+		dal:        dal.NewMongoDal[imodel.JobRole, imodel.JobRole](client,cfg, database, collection),
 	}
 }
 

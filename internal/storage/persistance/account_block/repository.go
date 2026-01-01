@@ -17,6 +17,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -29,9 +30,9 @@ type AccountBlockStorage struct {
 	logger        utils.Logger
 }
 
-func NewAccountBlockRepository(client *mongo.Client, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
+func NewAccountBlockRepository(client *mongo.Client, cfg *config.VaultConfig,dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AccountBlockRepository {
 	return &AccountBlockStorage{
-		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client, dbName, collection),
+		accountBlock:  dal.NewMongoDal[model.AccountBlock, model.AccountBlock](client,cfg, dbName, collection),
 		client:        client,
 		dbName:        dbName,
 		kafkaProducer: kafkaProducer,

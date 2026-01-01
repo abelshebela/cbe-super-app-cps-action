@@ -19,6 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type LogisticsMerchantRepository struct {
@@ -185,9 +186,9 @@ func (m *LogisticsMerchantRepository) FindOne(ctx context.Context, filter bson.M
 	return result, nil
 }
 
-func NewLogisticsMerchantRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.LogisticsMerchantRepository {
+func NewLogisticsMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.LogisticsMerchantRepository {
 	return &LogisticsMerchantRepository{
-		dal:    dal.NewMongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant](client, dbName, collection),
+		dal:    dal.NewMongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant](client,cfg, dbName, collection),
 		logger: logger,
 	}
 }

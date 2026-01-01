@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type MiniAppStorage struct {
@@ -27,9 +28,9 @@ type MiniAppStorage struct {
 	logger     utils.Logger
 }
 
-func NewMiniAppRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.MiniAppRepository {
+func NewMiniAppRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.MiniAppRepository {
 	return &MiniAppStorage{
-		dal:        dal.NewMongoDal[mini_model.MiniApp, mini_model.MiniApp](client, dbName, collection),
+		dal:        dal.NewMongoDal[mini_model.MiniApp, mini_model.MiniApp](client,cfg, dbName, collection),
 		client:     client,
 		collection: client.Database(dbName).Collection(collection),
 		logger:     logger,

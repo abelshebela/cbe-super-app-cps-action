@@ -16,6 +16,7 @@ import (
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 var (
@@ -29,10 +30,10 @@ type shortVideoRepo struct {
 	client        *mongo.Client
 }
 
-func NewShortVideoRepository(logger shared_utils.Logger, client *mongo.Client, dbName, collectionName string, kafkaProducer kafka.ClientOrchestrationProducer) storage.ShortVideoRepository {
+func NewShortVideoRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig,dbName, collectionName string, kafkaProducer kafka.ClientOrchestrationProducer) storage.ShortVideoRepository {
 	return &shortVideoRepo{
 		logger:        logger,
-		shortVideoDal: dal.NewMongoDal[model.ShortVideo, model.ShortVideo](client, dbName, collectionName),
+		shortVideoDal: dal.NewMongoDal[model.ShortVideo, model.ShortVideo](client, cfg,dbName, collectionName),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 	}

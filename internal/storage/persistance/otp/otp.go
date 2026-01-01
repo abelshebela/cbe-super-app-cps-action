@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type OTPRepository struct {
@@ -22,9 +23,9 @@ type OTPRepository struct {
 	logger utils.Logger
 }
 
-func NewOtpRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.OTPRepository {
+func NewOtpRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.OTPRepository {
 	return &OTPRepository{
-		otpDal: dal.NewMongoDal[model.OTP, model.OTP](client, dbName, collection),
+		otpDal: dal.NewMongoDal[model.OTP, model.OTP](client,cfg, dbName, collection),
 		logger: logger,
 	}
 }
