@@ -57,7 +57,7 @@ func (s ServiceList) Validate() error {
 	err := validation.ValidateStruct(&s,
 		validation.Field(&s.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&s.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&s.OverideProductGlAccount, validation.Required),
+		validation.Field(&s.OverideProductGlAccount),
 	)
 	if err != nil {
 		return err
@@ -71,22 +71,36 @@ func (r CreateServiceRequest) Validate() error {
 		validation.Field(&r.ServiceName, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceKey, validation.Required, validation.By(utils.NoSpecialChars)),
 		validation.Field(&r.ServiceCode, validation.Required, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ProductGlAccount, validation.Required),
-		validation.Field(&r.Cap, validation.Required),
-		validation.Field(&r.Tiers, validation.Required, validation.Length(1, 0)),
-		validation.Field(&r.ServiceList, validation.Each(validation.Required)),
+		validation.Field(&r.ProductGlAccount),
 	)
 	if err != nil {
 		return err
 	}
 
-	if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
-		return err
+	if r.HaveATier {
+		err := validation.ValidateStruct(&r,
+			validation.Field(&r.Cap, validation.Required),
+			validation.Field(&r.Tiers, validation.Required, validation.Length(1, 0)),
+		)
+		if err != nil {
+			return err
+		}
+		if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
+			return err
+		}
 	}
 
-	for i, sl := range r.ServiceList {
-		if err := sl.Validate(); err != nil {
-			return fmt.Errorf("service list %d: %w", i, err)
+	if r.HaveAChild {
+		err := validation.ValidateStruct(&r,
+			validation.Field(&r.ServiceList, validation.Required, validation.Length(1, 0), validation.Each(validation.Required)),
+		)
+		if err != nil {
+			return err
+		}
+		for i, sl := range r.ServiceList {
+			if err := sl.Validate(); err != nil {
+				return fmt.Errorf("service list %d: %w", i, err)
+			}
 		}
 	}
 
@@ -96,21 +110,30 @@ func (r CreateServiceRequest) Validate() error {
 func (r UpdateServiceRequest) Validate() error {
 	err := validation.ValidateStruct(&r,
 		validation.Field(&r.ServiceCode, validation.By(utils.NoSpecialChars)),
-		validation.Field(&r.ServiceList, validation.Each(validation.Required)),
 	)
 	if err != nil {
 		return err
 	}
 
-	if r.Cap.SingleCap != 0 || r.Cap.MinimumTransferCap != 0 || len(r.Tiers) > 0 {
-		if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
-			return err
+	if r.HaveATier {
+		if r.Cap.SingleCap != 0 || r.Cap.MinimumTransferCap != 0 || len(r.Tiers) > 0 {
+			if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
+				return err
+			}
 		}
 	}
 
-	for i, sl := range r.ServiceList {
-		if err := sl.Validate(); err != nil {
-			return fmt.Errorf("service list %d: %w", i, err)
+	if r.HaveAChild {
+		err := validation.ValidateStruct(&r,
+			validation.Field(&r.ServiceList, validation.Each(validation.Required)),
+		)
+		if err != nil {
+			return err
+		}
+		for i, sl := range r.ServiceList {
+			if err := sl.Validate(); err != nil {
+				return fmt.Errorf("service list %d: %w", i, err)
+			}
 		}
 	}
 
