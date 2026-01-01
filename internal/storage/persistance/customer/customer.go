@@ -419,6 +419,27 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 	}
 
 	return response, nil
+	// linked_account
+	// 	{
+	// 		account_number
+	// 		account_holder_name
+	// 		account_type
+	// 		account_type
+	// 		account_branch_code
+	// 		linked_status which is is_active
+	// }
+
+	// personal information
+	// {
+	// 	full_name
+	// 	gender
+	// 	phone_number
+	// 	birth_date
+	// }
+
+	// member
+	// account_branch_name
+	// email
 }
 
 // func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error) {

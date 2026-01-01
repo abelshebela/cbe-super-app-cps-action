@@ -27,6 +27,19 @@ type AccessListSegmentation struct {
 	logger         utils.Logger
 }
 
+// FindByAccountSegmentationAndServiceID implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByAccountSegmentationAndServiceID(ctx context.Context, customerSegments string, serviceID string) (*local_model.AccessListSegmentation, error) {
+	seg, err := a.repo.FindOne(ctx, bson.M{"segmentation_code": customerSegments, "service_id": serviceID}, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		a.logger.Errorf("[FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return seg, nil
+}
+
 // FindBySegmentationAndServiceID implements storage.AccessListSegmentationRepository.
 func (a *AccessListSegmentation) FindBySegmentationAndServiceID(ctx context.Context, segmentationID string, serviceID string) (*local_model.AccessListSegmentation, error) {
 	seg, err := a.repo.FindOne(ctx, bson.M{"segmented_id": segmentationID, "service_id": serviceID}, nil)
