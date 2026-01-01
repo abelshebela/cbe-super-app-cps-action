@@ -13,28 +13,24 @@ import (
 )
 
 type MerchantLookupAdapter struct {
-	Url       string
-	cfg       config.VaultConfig
-	x_api_key string
-	logger    utils.Logger
-	client    *http.Client
+	cfg    config.VaultConfig
+	logger utils.Logger
+	client *http.Client
 }
 
-func NewMerchantLookupAdapter(url string, cfg config.VaultConfig, x_api_key string, logger utils.Logger) *MerchantLookupAdapter {
+func NewMerchantLookupAdapter(cfg config.VaultConfig, logger utils.Logger) *MerchantLookupAdapter {
 	return &MerchantLookupAdapter{
-		Url:       url,
-		cfg:       cfg,
-		logger:    logger,
-		x_api_key: x_api_key,
+		cfg:    cfg,
+		logger: logger,
 		client: &http.Client{
 			Timeout: 2 * time.Second,
 		},
 	}
 }
 
-func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, xAPIKey string) (merchantDto.MerchantLookUpResponse, error) {
+func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, xAPIKey, url string) (merchantDto.MerchantLookUpResponse, error) {
 
-	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, xAPIKey, m.Url, merchantID, m.logger)
+	res, merchantInfo, err := ThreeClickMerchantLookup(ctx, m.client, xAPIKey, url, merchantID, m.logger)
 	if err != nil {
 		m.logger.Errorf("failed to lookup merchant data from third party API: %v", err)
 		return merchantDto.MerchantLookUpResponse{}, err
@@ -48,13 +44,8 @@ func (m *MerchantLookupAdapter) LookupMerchant(ctx context.Context, merchantID, 
 	return merchantInfo, nil
 }
 
-func (m *MerchantLookupAdapter) UpdateMerchant(ctx context.Context, merchantID string, payload merchantDto.ERPUpdateMerchantRequest, xAPIKey string) error {
-	xAPIKey = "d900978c8506d19bd18c0e18029f1f882734ba9b"
-	m.Url = "https://qaerpsuperapp.cbe.com.et/"
-	if xAPIKey == "" {
-		xAPIKey = m.x_api_key
-	}
-	res, err := ThreeClickMerchantUpdate(ctx, m.client, xAPIKey, m.Url, merchantID, payload, m.logger)
+func (m *MerchantLookupAdapter) UpdateMerchant(ctx context.Context, merchantID string, payload merchantDto.ERPUpdateMerchantRequest, xAPIKey, url string) error {
+	res, err := ThreeClickMerchantUpdate(ctx, m.client, xAPIKey, url, merchantID, payload, m.logger)
 	if err != nil {
 		m.logger.Errorf("failed to update merchant data to third party API: %v", err)
 		return err

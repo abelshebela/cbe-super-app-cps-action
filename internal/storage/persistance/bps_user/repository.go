@@ -8,32 +8,34 @@ import (
 	"context"
 	"errors"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/local_model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type BPSUserStorage struct {
-	dal    dal.MongoDal[model.BPSUser, model.BPSUser]
+	dal    dal.MongoDal[local_model.BPSUser, local_model.BPSUser]
 	client *mongo.Client
 	logger utils.Logger
 }
 
-func NewBPSUserRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
+func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
 	return &BPSUserStorage{
-		dal:    dal.NewMongoDal[model.BPSUser, model.BPSUser](client, cfg,dbName, collection),
+		dal:    dal.NewMongoDal[local_model.BPSUser, local_model.BPSUser](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
 }
 
-func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error) {
+func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error) {
 	b.logger.Infof("[GetByUserCode] fetching BPS user by user code")
 	filter := bson.M{"user_code": userCode, "is_deleted": false}
 	result, err := b.dal.FindOne(ctx, filter, bson.M{})
@@ -45,7 +47,7 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*m
 	return result, nil
 }
 
-func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error) {
+func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error) {
 	// 1. Base filter (only active records)
 	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
@@ -85,13 +87,13 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
 
 	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]model.BPSUser]{
+	return &types.PaginatedResponse[[]local_model.BPSUser]{
 		Data: data,
 		Meta: meta,
 	}, nil
 }
 
-func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) error {
+func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *local_model.BPSUser) error {
 	b.logger.Infof("[Update] updating BPS user")
 	filter := bson.M{"_id": BpsUser.ID, "is_deleted": false}
 	_, err := b.dal.UpdateOne(ctx, filter, BPSUserMapper(*BpsUser))
@@ -108,7 +110,7 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *model.BPSUser) err
 
 }
 
-func (b *BPSUserStorage) Create(ctx context.Context, req model.BPSUser) error {
+func (b *BPSUserStorage) Create(ctx context.Context, req local_model.BPSUser) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
 	defer span.End()
 
@@ -129,7 +131,7 @@ func (b *BPSUserStorage) Create(ctx context.Context, req model.BPSUser) error {
 	return nil
 }
 
-func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value string) (*model.BPSUser, error) {
+func (b *BPSUserStorage) FindByFilterKey(ctx context.Context, field, value string) (*local_model.BPSUser, error) {
 	b.logger.Infof("[FindByFilterKey] searching BPS user by %s: %s", field, value)
 	var filter bson.M
 

@@ -409,11 +409,11 @@ type BankService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*model.BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.BPSUser], error)
+	FetchUserByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error)
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error)
 	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
-	CreateBPSUser(ctx context.Context, req model.BPSUser) error
-	UpdateBPSUser(ctx context.Context, userCode string, updatedUser model.BPSUser) error
+	CreateBPSUser(ctx context.Context, req local_model.BPSUser) error
+	UpdateBPSUser(ctx context.Context, userCode string, updatedUser local_model.BPSUser) error
 }
 
 type AccountSearchService interface {

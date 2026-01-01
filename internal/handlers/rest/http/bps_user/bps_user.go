@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	model "cbe-super-app-cps-action/internal/constants/model"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
@@ -217,15 +219,16 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	// concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
 	now := time.Now()
 	NewUser := model.BPSUser{
 		// ID:       primitive.NewObjectID(),
-		UserCode: req.UserID,
-		FullName: concatinated_name,
-		// JobTitle:    req.JobTitle,
+		UserName: req.UserID,
+		FullName: req.FullName,
+		JobTitle: req.JobTitle,
 		// UserName:    req.ImpowerID,
 		PhoneNumber: req.PhoneNumber,
+		BranchCode:  req.BranchCode,
 		// Email:       req.Email,
 		CreatedAt:      now,
 		LastModifiedAt: now,
@@ -282,24 +285,30 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Populate fields if not empty
-	if req.FullName.FirstName != "" || req.FullName.MiddleName != "" || req.FullName.LastName != "" {
-		updatedUser.FullName = req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
+	if req.FullName != "" {
+		updatedUser.FullName = req.FullName
 	}
 	if req.PhoneNumber != "" {
 		updatedUser.PhoneNumber = req.PhoneNumber
 	}
+	if req.JobTitle != "" {
+		updatedUser.JobTitle = req.JobTitle
+	}
+	if req.UserID != "" {
+		updatedUser.UserName = req.UserID
+	}
 	// if req.Email != "" {
 	//     updatedUser.Email = req.Email
 	// }
-	if req.Role != "" {
-		updatedUser.Role = req.Role
-	}
+	// if req.Role != "" {
+	// 	updatedUser.Role = req.Role
+	// }
 	if len(req.BranchCode) > 0 {
 		updatedUser.BranchCode = req.BranchCode
 	}
-	if req.HomeBranch != "" {
-		updatedUser.HomeBranch = req.HomeBranch
-	}
+	// if req.HomeBranch != "" {
+	// 	updatedUser.HomeBranch = req.HomeBranch
+	// }
 	// if req.Realm != "" {
 	// 	updatedUser.Realm = req.Realm
 	// }

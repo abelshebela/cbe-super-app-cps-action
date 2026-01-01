@@ -3,13 +3,18 @@ package bps_user_core
 import (
 	"time"
 
+	local_model "cbe-super-app-cps-action/internal/constants/model"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+
 	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	// local_model "cbe-super-app-cps-action/internal/constants/model"
 )
 
-func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
-	var user model.BPSUser
+func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
+	var user local_model.BPSUser
 
 	if v, ok := action["user_code"]; ok {
 		if s, ok := v.(string); ok {
@@ -26,6 +31,13 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 			user.UserName = s
 		}
 	}
+
+	if v, ok := action["job_title"]; ok {
+		if s, ok := v.(string); ok {
+			user.JobTitle = s
+		}
+	}
+
 	if v, ok := action["phone_number"]; ok {
 		if s, ok := v.(string); ok {
 			user.PhoneNumber = s
@@ -69,7 +81,7 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 	}
 	if v, ok := action["password"]; ok {
 		if p, ok := v.(shared_types.Password); ok {
-			user.Password = p
+			user.Password = mapPassword(p)
 		}
 	}
 	if v, ok := action["first_password_set"]; ok {
@@ -134,4 +146,85 @@ func BPSUser_mapper(action map[string]interface{}) model.BPSUser {
 	}
 
 	return user
+}
+
+// Helper to map Password struct field-by-field
+func mapPassword(src types.Password) local_model.Password {
+	return local_model.Password{
+		Salt:             src.Salt,
+		CurrentPassword:  src.CurrentPassword,
+		OldPassword:      src.OldPassword,
+		PasswordChangeAt: src.PasswordChangeAt,
+	}
+}
+func mapPasswordToShared(src local_model.Password) types.Password {
+	return types.Password{
+		Salt:             src.Salt,
+		CurrentPassword:  src.CurrentPassword,
+		OldPassword:      src.OldPassword,
+		PasswordChangeAt: src.PasswordChangeAt,
+	}
+}
+
+// MapBPSUserToWithJobTitle maps model.BPSUser to BPSUserWithJobTitle
+func MapBPSUserToWithJobTitle(u model.BPSUser, jobTitle string) local_model.BPSUser {
+	return local_model.BPSUser{
+		ID:                u.ID,
+		UserCode:          u.UserCode,
+		FullName:          u.FullName,
+		UserName:          u.UserName,
+		PhoneNumber:       u.PhoneNumber,
+		BranchCode:        u.BranchCode,
+		BranchName:        u.BranchName,
+		HomeBranch:        u.HomeBranch,
+		JobTitle:          jobTitle,
+		Role:              u.Role,
+		LoginAttemptCount: u.LoginAttemptCount,
+		Password:          mapPassword(u.Password),
+		FirstPasswordSet:  u.FirstPasswordSet,
+		Enabled:           u.Enabled,
+		IsDeleted:         u.IsDeleted,
+		OTPVerifyCount:    u.OTPVerifyCount,
+		OTPLastTriedAt:    u.OTPLastTriedAt,
+		OTPLastVerifiedAt: u.OTPLastVerifiedAt,
+		PermissionGroup:   u.PermissionGroup,
+		Permissions:       u.Permissions,
+		LastLoginAttempt:  u.LastLoginAttempt,
+		NextLoginAttempt:  u.NextLoginAttempt,
+		IsFirstTimeLogin:  u.IsFirstTimeLogin,
+		LastLogin:         u.LastLogin,
+		CreatedAt:         u.CreatedAt,
+		LastModifiedAt:    u.LastModifiedAt,
+	}
+}
+
+// MapWithJobTitleToBPSUser maps BPSUserWithJobTitle to model.BPSUser (drops JobTitle)
+func MapWithJobTitleToBPSUser(u local_model.BPSUser) model.BPSUser {
+	return model.BPSUser{
+		ID:                u.ID,
+		UserCode:          u.UserCode,
+		FullName:          u.FullName,
+		UserName:          u.UserName,
+		PhoneNumber:       u.PhoneNumber,
+		BranchCode:        u.BranchCode,
+		BranchName:        u.BranchName,
+		HomeBranch:        u.HomeBranch,
+		Role:              u.Role,
+		LoginAttemptCount: u.LoginAttemptCount,
+		Password:          mapPasswordToShared(u.Password),
+		FirstPasswordSet:  u.FirstPasswordSet,
+		Enabled:           u.Enabled,
+		IsDeleted:         u.IsDeleted,
+		OTPVerifyCount:    u.OTPVerifyCount,
+		OTPLastTriedAt:    u.OTPLastTriedAt,
+		OTPLastVerifiedAt: u.OTPLastVerifiedAt,
+		PermissionGroup:   u.PermissionGroup,
+		Permissions:       u.Permissions,
+		LastLoginAttempt:  u.LastLoginAttempt,
+		NextLoginAttempt:  u.NextLoginAttempt,
+		IsFirstTimeLogin:  u.IsFirstTimeLogin,
+		LastLogin:         u.LastLogin,
+		CreatedAt:         u.CreatedAt,
+		LastModifiedAt:    u.LastModifiedAt,
+	}
 }

@@ -1,13 +1,14 @@
 package bps_user
 
 import (
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // BPSUserMapper maps BPSUser model to BSON for database operations
-func BPSUserMapper(data model.BPSUser) bson.M {
+func BPSUserMapper(data local_model.BPSUser) bson.M {
 	result := bson.M{}
 	if data.UserCode != "" {
 		result["user_code"] = data.UserCode
@@ -23,6 +24,9 @@ func BPSUserMapper(data model.BPSUser) bson.M {
 	}
 	if data.Role != "" {
 		result["role"] = data.Role
+	}
+	if len(data.BranchCode) > 0 {
+		result["branch_code"] = data.BranchCode
 	}
 
 	if data.UserCode != "" {
