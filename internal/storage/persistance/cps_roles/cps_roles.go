@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type cpsRoleStorage struct {
@@ -25,9 +26,9 @@ type cpsRoleStorage struct {
 	logger     utils.Logger
 }
 
-func NewCPSRolesStorage(client *mongo.Client, dbName, collection string, logger utils.Logger) storage.CPSRolesRepository {
+func NewCPSRolesStorage(client *mongo.Client,cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CPSRolesRepository {
 	return &cpsRoleStorage{
-		dal:        dal.NewMongoDal[model.CPSRoles, model.CPSRoles](client, dbName, collection),
+		dal:        dal.NewMongoDal[model.CPSRoles, model.CPSRoles](client,cfg, dbName, collection),
 		client:     client,
 		dbName:     dbName,
 		collection: collection,

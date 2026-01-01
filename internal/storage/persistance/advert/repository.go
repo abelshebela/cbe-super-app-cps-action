@@ -18,6 +18,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type AdvertStorage struct {
@@ -27,9 +28,9 @@ type AdvertStorage struct {
 	collection *mongo.Collection
 }
 
-func NewAdvertRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AdvertRepository {
+func NewAdvertRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.AdvertRepository {
 	return &AdvertStorage{
-		dal:        dal.NewMongoDal[model.Advert, model.Advert](client, dbName, collection),
+		dal:        dal.NewMongoDal[model.Advert, model.Advert](client,cfg, dbName, collection),
 		client:     client,
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),

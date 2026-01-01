@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type AmountBasedAuthStorage struct {
@@ -23,9 +24,9 @@ type AmountBasedAuthStorage struct {
 	logger utils.Logger
 }
 
-func NewAmountBasedAuthRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.AmountBasedAuthRepository {
+func NewAmountBasedAuthRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.AmountBasedAuthRepository {
 	return &AmountBasedAuthStorage{
-		dal:    dal.NewMongoDal[model.AuthTier, model.AuthTier](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.AuthTier, model.AuthTier](client,cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}

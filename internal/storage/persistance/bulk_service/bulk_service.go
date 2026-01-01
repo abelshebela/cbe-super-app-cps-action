@@ -18,6 +18,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type BulkServicePersistence struct {
@@ -26,9 +27,9 @@ type BulkServicePersistence struct {
 	logger              utils.Logger
 }
 
-func InitBulkServicePersistence(client *mongo.Client, dbName string, collections []string, logger utils.Logger) storage.BulkServiceRepository {
-	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, dbName, collections[0])
-	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, dbName, collections[1])
+func InitBulkServicePersistence(client *mongo.Client,cfg *config.VaultConfig, dbName string, collections []string, logger utils.Logger) storage.BulkServiceRepository {
+	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client,cfg, dbName, collections[0])
+	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client,cfg, dbName, collections[1])
 	return &BulkServicePersistence{
 		mongoDalCpsAction:   mongoDalCpsAction,
 		mongoDalbulkService: mongoDalbulkService,

@@ -16,6 +16,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type IconStorage struct {
@@ -24,9 +25,9 @@ type IconStorage struct {
 	logger utils.Logger
 }
 
-func NewIconRepository(client *mongo.Client, dbName string, collection string, logger utils.Logger) storage.IconRepository {
+func NewIconRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.IconRepository {
 	return &IconStorage{
-		dal:    dal.NewMongoDal[model.Icon, model.Icon](client, dbName, collection),
+		dal:    dal.NewMongoDal[model.Icon, model.Icon](client,cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
