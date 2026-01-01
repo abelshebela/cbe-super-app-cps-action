@@ -70,7 +70,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
-func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, merchantApi, merchantXAPIKey string, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
+func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.CBECoreCredential, notificationApi string, notificationProducer kafka.NotificationProducer, clientOrchestrationProducer kafka.ClientOrchestrationProducer, cfg *config.VaultConfig, logger utils.Logger) persistance.Persistence {
 
 	data := persistance.Persistence{
 		JobRolePersistence:              job_repo.NewJobRoleRepository(client, dbName, JobRolesCollection, logger),
@@ -86,7 +86,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		AccountBlockPersistence:         account_block.NewAccountBlockRepository(client, dbName, AccountBlockCollection, clientOrchestrationProducer, logger),
 		PortalCardPersistence:           portal_card.NewPortalCardRepository(client, dbName, CardsCollection, logger),
 		MiniAppPersistence:              mini_app.NewMiniAppRepository(client, dbName, MiniAppsCollection, logger),
-		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(merchantApi, *cfg, merchantXAPIKey, logger),
+		MerchantLookup:                  *merchant_lookup.NewMerchantLookupAdapter(*cfg, logger),
 		SMSSenderApi:                    notificationProducer,
 		// Additional repositories
 		AccessListPersistence:             access_list.NewAccessListRepository(client, dbName, AccessListCollection, clientOrchestrationProducer, logger),
