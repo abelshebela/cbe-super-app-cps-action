@@ -312,6 +312,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 	defer span.End()
 	actionCode := chi.URLParam(r, string(constants.ActionCode))
 	var req cpsactionDto.ActionRequest
+	makerData := local_util.ExtractUserFromContext(ctx)
 
 	// Fetch action and attach checker_index context for this approver
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
@@ -334,8 +335,6 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyCanceled)
 		return
 	}
-
-	makerData := local_util.ExtractUserFromContext(ctx)
 
 	CheckerUser := model.Checker{
 		CheckerID:          makerData.UserID,
@@ -394,6 +393,42 @@ func (a *cpsActionAdapter) GetCPSActionsByDepartment(w http.ResponseWriter, r *h
 
 	span.SetAttributes(attribute.String("cps_action.department", userData.Department))
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
+}
+
+func (a *cpsActionAdapter) GetUserApprovedCPSActions(w http.ResponseWriter, r *http.Request) {
+	filterParams := local_util.ExtractFilterParams(r)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApprovedCpsActions", "handler", "cpsAction")
+	defer span.End()
+	userID := chi.URLParam(r, "id")
+	if userID == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
+		return
+	}
+	res, err := a.cpsActionApplication.GetUserApprovedCPSActions(ctx, userID, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+}
+
+func (a *cpsActionAdapter) GetUserPendingCPSActions(w http.ResponseWriter, r *http.Request) {
+	filterParams := local_util.ExtractFilterParams(r)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserPendingCpsActions", "handler", "cpsAction")
+	defer span.End()
+	userID := chi.URLParam(r, "id")
+	if userID == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
+		return
+	}
+	res, err := a.cpsActionApplication.GetUserPendingCPSActions(ctx, userID, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
 }
 
 // GetCPSActionByID retrieves a CPS action by ID

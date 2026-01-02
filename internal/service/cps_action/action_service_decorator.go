@@ -90,6 +90,16 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	return nil
 }
 
+func (s *cpsActionServiceWithRoles) GetUserApprovedCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetUserApprovedCPSActions(ctx, userID, filterParams)
+}
+func (s *cpsActionServiceWithRoles) GetUserPendingCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetUserPendingCPSActions(ctx, userID, filterParams)
+}
+
+//	func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
+//		return s.base.ReverseCPSAction(ctx, actionCode)
+//	}
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	return s.base.ApproveCPSAction(ctx, action)
 }
