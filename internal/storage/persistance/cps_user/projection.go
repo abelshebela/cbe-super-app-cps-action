@@ -157,6 +157,7 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 			"phone_number": 1,
 			"gender":       1,
 			"realm":        1,
+			"enabled":      1,
 			"job_title":    1,
 			"role_id":      "$role_doc.role_id",
 		}}},
@@ -164,6 +165,110 @@ func PipelineBuilder(userCode string) mongo.Pipeline {
 }
 
 func CPSUserMapper(u imodel.CPSUser) *model.CPSUser {
+	return &model.CPSUser{
+		UserCode:           u.UserCode,
+		FullName:           u.FullName,
+		Gender:             u.Gender,
+		PhoneNumber:        u.PhoneNumber,
+		Email:              u.Email,
+		UserName:           u.UserName,
+		Realm:              u.Realm,
+		PermissionCategory: u.PermissionCategory,
+		PermissionGroup:    u.PermissionGroup,
+		JobTitle:           u.JobTitle,
+		PasswordDisable:    u.PasswordDisable,
+		SyncDisabled:       u.SyncDisabled,
+		IsFirstTimeLogin:   u.IsFirstTimeLogin,
+		Enabled:            true,
+		IsDeleted:          u.IsDeleted,
+		DateJoined:         u.DateJoined,
+		LastModified:       u.LastModified,
+	}
+}
+
+func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl string) mongo.Pipeline {
+	return mongo.Pipeline{
+
+		// 1️⃣ Match CPS user by user_code
+		bson.D{{Key: "$match", Value: bson.M{
+			"user_code": userCode,
+		}}},
+
+		// 2️⃣ Lookup role by job_title
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": rolesColl,
+			"let": bson.M{
+				"jobTitle": "$job_title",
+			},
+			"pipeline": mongo.Pipeline{
+
+				// match roles.job_title == user.job_title
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$eq": []interface{}{"$job_title", "$$jobTitle"},
+					},
+				}}},
+
+				// lookup job_roles using role code
+				bson.D{{Key: "$lookup", Value: bson.M{
+					"from": jobRolesColl,
+					"let": bson.M{
+						"roleCode": "$role",
+					},
+					"pipeline": mongo.Pipeline{
+						bson.D{{Key: "$match", Value: bson.M{
+							"$expr": bson.M{
+								"$eq": []interface{}{"$code", "$$roleCode"},
+							},
+						}}},
+					},
+					"as": "job_role",
+				}}},
+
+				// unwind job_role
+				bson.D{{Key: "$unwind", Value: bson.M{
+					"path":                       "$job_role",
+					"preserveNullAndEmptyArrays": false,
+				}}},
+
+				// project role_id and name from job_roles
+				bson.D{{Key: "$project", Value: bson.M{
+					"_id":     0,
+					"role_id": "$job_role._id",
+					"name":    "$job_role.name", // Assuming 'name' is the field in job_roles
+				}}},
+			},
+			"as": "role_doc",
+		}}},
+
+		// 3️⃣ Unwind role_doc
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$role_doc",
+			"preserveNullAndEmptyArrays": false,
+		}}},
+
+		// 4️⃣ Final projection
+		bson.D{{Key: "$project", Value: bson.M{
+			"_id":       1,
+			"user_code": 1,
+			"role": bson.M{
+				"code": "$role",          // Role code from user
+				"name": "$role_doc.name", // Role name from job_roles via role_doc
+			},
+			"full_name":    1,
+			"username":     1,
+			"email":        1,
+			"phone_number": 1,
+			"gender":       1,
+			"realm":        1,
+			"enabled":      1,
+			"job_title":    1,
+			"role_id":      "$role_doc.role_id",
+		}}},
+	}
+}
+
+func CPSUserPopulated(u imodel.CPSUser) *model.CPSUser {
 	return &model.CPSUser{
 		UserCode:           u.UserCode,
 		FullName:           u.FullName,

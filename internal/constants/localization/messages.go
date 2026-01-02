@@ -377,7 +377,7 @@ const (
 	// User related error messages
 	MsgUserNotFound                 = "User not found"
 	MsgUserAlreadyExists            = "User already exists"
-	MsgUserExistWithUserName        = "user with Username already exists"
+	MsgUserExistWithUserName        = "user already exists with this username"
 	MsgUserAccountBlocked           = "User account is blocked"
 	MsgUserUnauthorized             = "User is not authorized"
 	MsgThirdApiRequestNotAuthorized = "Third API request is not authorized"

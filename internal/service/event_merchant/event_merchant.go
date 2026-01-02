@@ -54,13 +54,13 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			))
 			return nil, err
 		}
-		if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, e.logger); err != nil {
+		if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
 			e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			// return nil, err
 		}
 	case string(constants.RequestUpdateEventMerchant):
 		err = e.repo.Update(ctx, cpsAction.UniqueId, *merchant)
@@ -81,13 +81,13 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 		}
 		if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
-			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, e.logger); err != nil {
+			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
 				e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
 				))
-				return nil, err
+				// return nil, err
 			}
 		}
 
@@ -391,11 +391,12 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	return nil
 }
 
-func NewEventMerchantService(repo storage.EventMerchantRepository, cpsService service.CPSActionService, cfg *config.VaultConfig, logger utils.Logger) service.EventMerchantService {
+func NewEventMerchantService(repo storage.EventMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.EventMerchantService {
 	return &EventMerchantService{
-		repo:       repo,
-		cpsService: cpsService,
-		cfg:        cfg,
-		logger:     logger,
+		repo:                 repo,
+		cpsService:           cpsService,
+		accountLookupService: accountLookupService,
+		cfg:                  cfg,
+		logger:               logger,
 	}
 }

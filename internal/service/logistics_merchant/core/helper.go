@@ -126,12 +126,19 @@ func MergeLogisticsMerchantData(old, data *local_model.LogisticsMerchant) *local
 	}
 }
 
-func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber string, logger utils.Logger) error {
+func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber, merchantID string, logger utils.Logger) error {
 	ctx, span := local_util.TraceLogger(ctx, "core", "UpdateERP", "LogisticsMerchant", "UpdateERP")
 	defer span.End()
 
-	endpoint := "cfg.GetERPApiEndpoint()"
-	apiKey := "cfg.GetERPApiKey()"
+	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
+	if cfg.OddoEcommerceBaseUrl != "" {
+		base = cfg.OddoEcommerceBaseUrl
+	}
+	base += "/cps/merchant/update/" + merchantID
+	apiKey := ""
+	if cfg.ApiKey != "" {
+		apiKey = cfg.ApiKey
+	}
 
 	reqBody := map[string]string{
 		"cps_account_number": bankAccountNumber,
@@ -142,7 +149,7 @@ func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber s
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, base, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		logger.Errorf("Failed to build ERP update request: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
