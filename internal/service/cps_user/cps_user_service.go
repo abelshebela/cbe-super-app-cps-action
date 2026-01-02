@@ -329,6 +329,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	}
 
 	user, err := s.repo.GetPopulatedByID(ctx, userCode)
+	// user, err := s.repo.GetPopulatedByID(ctx, userCode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
 			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
@@ -342,7 +343,7 @@ func (s *cpsUserService) GetPopulatedCpsUser(ctx context.Context, userCode strin
 	return user, nil
 }
 
-func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error) {
+func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCpsUserDetail", "CPSUser", "GetCpsUserDetail")
 	defer span.End()
 
@@ -351,8 +352,8 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		return nil, errors.New(localization.ErrorUserCodeRequired.Code)
 	}
 
-	populated, err := s.repo.GetPopulatedByID(ctx, userCode)
-	// populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
+	// populated, err := s.repo.GetPopulatedByID(ctx, userCode)
+	populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
 			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
@@ -380,7 +381,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 		}
 	}
 
-	return core.ConvertToDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc), nil
+	return core.ConvertToResponseDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc), nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
