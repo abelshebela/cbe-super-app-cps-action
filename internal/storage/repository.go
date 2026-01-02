@@ -30,6 +30,8 @@ import (
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -190,11 +192,11 @@ type AvatarRepository interface {
 
 // BPSUser persistence
 type BPSUserRepository interface {
-	GetByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error)
-	Update(ctx context.Context, BpsUser *local_model.BPSUser) error
-	Create(ctx context.Context, BpsUser local_model.BPSUser) error
-	FindByFilterKey(ctx context.Context, field, value string) (*local_model.BPSUser, error)
+	GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error)
+	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
+	Create(ctx context.Context, BpsUser bps_model.BPSUser) error
+	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
 }
 
 type BudgetCategoryRepository interface {
