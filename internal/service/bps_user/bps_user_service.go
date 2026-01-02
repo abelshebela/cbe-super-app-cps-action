@@ -266,7 +266,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req local_model.BPSU
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
 	req.Role = roles.Role
-
+	req.UserCode = local_util.GenerateBPSUserCode()
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
 		"",                                     // unique id
