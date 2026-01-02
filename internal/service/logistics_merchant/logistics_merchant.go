@@ -65,13 +65,13 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			))
 			return nil, err
 		}
-		if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, e.logger); err != nil {
+		if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
 			e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
-			return nil, err
+			// return nil, err
 		}
 
 	case string(constants.RequestUpdateLogisticsMerchant):
@@ -93,13 +93,13 @@ func (e *LogisticsMerchantService) Authorize(ctx context.Context, cpsAction *mod
 			return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 		}
 		if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
-			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, e.logger); err != nil {
+			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
 				e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
 				))
-				return nil, err
+				// return nil, err
 			}
 		}
 
