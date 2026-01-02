@@ -53,6 +53,8 @@ import (
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -73,6 +75,8 @@ type CPSActionService interface {
 	CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
 	ReverseCPSAction(ctx context.Context, actionCode string) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetUserApprovedCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetUserPendingCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
@@ -110,7 +114,7 @@ type CPSUserService interface {
 	DisableUser(ctx context.Context, userCode string) error
 	EnableUser(ctx context.Context, userCode string) error
 	GetPopulatedCpsUser(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error)
-	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CPSUserResponse, error)
+	GetCpsUserDetail(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
 }
 
 type NotificationService interface {
@@ -409,11 +413,11 @@ type BankService interface {
 
 type BPSUserService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
-	FetchUserByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error)
-	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error)
-	UpdateBpsUser(ctx context.Context, userCode string, status bool) error
-	CreateBPSUser(ctx context.Context, req local_model.BPSUser) error
-	UpdateBPSUser(ctx context.Context, userCode string, updatedUser local_model.BPSUser) error
+	FetchUserByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
+	GetAllBPSUsers(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error)
+	UpdateStatusBpsUser(ctx context.Context, userCode string, status bool) error
+	CreateBPSUser(ctx context.Context, req bps_model.BPSUser) error
+	UpdateBPSUser(ctx context.Context, userCode string, updatedUser bps_model.BPSUser) error
 }
 
 type AccountSearchService interface {

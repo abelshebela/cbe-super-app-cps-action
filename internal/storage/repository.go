@@ -11,6 +11,7 @@ import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	cps_user_dto "cbe-super-app-cps-action/internal/constants/dto/cps_user"
+	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/dto/donation_category"
@@ -29,6 +30,8 @@ import (
 
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
@@ -190,11 +193,11 @@ type AvatarRepository interface {
 
 // BPSUser persistence
 type BPSUserRepository interface {
-	GetByUserCode(ctx context.Context, userCode string) (*local_model.BPSUser, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.BPSUser], error)
-	Update(ctx context.Context, BpsUser *local_model.BPSUser) error
-	Create(ctx context.Context, BpsUser local_model.BPSUser) error
-	FindByFilterKey(ctx context.Context, field, value string) (*local_model.BPSUser, error)
+	GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error)
+	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
+	Create(ctx context.Context, BpsUser bps_model.BPSUser) error
+	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
 }
 
 type BudgetCategoryRepository interface {
@@ -305,6 +308,7 @@ type CpsUserRepository interface {
 	FindByID(ctx context.Context, id string) (*imodel.CPSUser, error)
 	FindByUsername(ctx context.Context, username string) (*imodel.CPSUser, error)
 	GetPopulatedByID(ctx context.Context, id string) (*cps_user_dto.CpsUserResponse, error)
+	GetPopulatedWithRole(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*cps_user_dto.CPSUserWithDepartment], error)
 	FindByPhoneNumber(ctx context.Context, phoneNumber string) (*imodel.CPSUser, error)
 	FindByEmail(ctx context.Context, email string) (*imodel.CPSUser, error)

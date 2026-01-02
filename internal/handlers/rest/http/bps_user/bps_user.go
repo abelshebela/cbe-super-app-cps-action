@@ -21,8 +21,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
+	local_utils "cbe-super-app-cps-action/pkgs/utils"
+
 	// model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 )
 
 type paginated_resp *types.PaginatedResponse[[]*model.BPSUser]
@@ -145,7 +149,7 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bps_user.code", userCode))
 
-	err := h.Service.UpdateBpsUser(ctx, userCode, false)
+	err := h.Service.UpdateStatusBpsUser(ctx, userCode, false)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("[DisableUser] service error: %v", err)
@@ -181,7 +185,7 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(attribute.String("bps_user.code", userCode))
 
-	err := h.Service.UpdateBpsUser(ctx, userCode, true)
+	err := h.Service.UpdateStatusBpsUser(ctx, userCode, true)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("[EnableUser] service error: %v", err)
@@ -218,18 +222,19 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, "user id requed")
 		return
 	}
+	userCodeGenerated := local_utils.RandomGenerator(8)
 
-	// concatinated_name := req.FullName.FirstName + " " + req.FullName.MiddleName + " " + req.FullName.LastName
 	now := time.Now()
-	NewUser := model.BPSUser{
+	NewUser := bps_model.BPSUser{
 		// ID:       primitive.NewObjectID(),
-		UserName: req.UserID,
+		Username: req.UserID,
 		FullName: req.FullName,
 		JobTitle: req.JobTitle,
+		UserCode: userCodeGenerated,
 		// UserName:    req.ImpowerID,
-		PhoneNumber: req.PhoneNumber,
-		BranchCode:  req.BranchCode,
-		// Email:       req.Email,
+		PhoneNumber:    req.PhoneNumber,
+		BranchCode:     req.BranchCode,
+		Email:          req.Email,
 		CreatedAt:      now,
 		LastModifiedAt: now,
 
@@ -279,7 +284,7 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedUser := model.BPSUser{
+	updatedUser := bps_model.BPSUser{
 		ID:             objID,
 		LastModifiedAt: time.Now(),
 	}
@@ -295,11 +300,11 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		updatedUser.JobTitle = req.JobTitle
 	}
 	if req.UserID != "" {
-		updatedUser.UserName = req.UserID
+		updatedUser.Username = req.UserID
 	}
-	// if req.Email != "" {
-	//     updatedUser.Email = req.Email
-	// }
+	if req.Email != "" {
+		updatedUser.Email = req.Email
+	}
 	// if req.Role != "" {
 	// 	updatedUser.Role = req.Role
 	// }
@@ -313,7 +318,7 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	// 	updatedUser.Realm = req.Realm
 	// }
 	// Always update enabled (bool, so default is false if not set)
-	updatedUser.Enabled = req.Enabled
+	// updatedUser.Enabled = req.Enabled
 
 	err = h.Service.UpdateBPSUser(r.Context(), id, updatedUser)
 	if err != nil {

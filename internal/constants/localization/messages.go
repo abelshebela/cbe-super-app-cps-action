@@ -215,7 +215,7 @@ const (
 	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
-	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully"
+	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully submitted successfully"
 
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully = "Update request submitted for approval"
@@ -377,7 +377,7 @@ const (
 	// User related error messages
 	MsgUserNotFound                 = "User not found"
 	MsgUserAlreadyExists            = "User already exists"
-	MsgUserExistWithUserName        = "user with Username already exists"
+	MsgUserExistWithUserName        = "user already exists with this username"
 	MsgUserAccountBlocked           = "User account is blocked"
 	MsgUserUnauthorized             = "User is not authorized"
 	MsgThirdApiRequestNotAuthorized = "Third API request is not authorized"

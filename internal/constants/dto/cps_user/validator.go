@@ -3,6 +3,7 @@ package cpsuser
 import (
 	"cbe-super-app-cps-action/pkgs/utils"
 	"fmt"
+	"regexp"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -69,7 +70,6 @@ func IsStringSliceRequired(value interface{}) error {
 					fmt.Sprintf("item at index %d cannot be empty", i))
 			}
 
-			// Reuse your existing utils.NoSpecialChars
 			if err := utils.NoSpecialChars(trimmed); err != nil {
 				return validation.NewError("validation_string_slice_required",
 					fmt.Sprintf("item at index %d is invalid: %s", i, err.Error()))
@@ -84,6 +84,7 @@ func (r CreateUserRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.UserName,
 			validation.Required.Error("username is required"),
+			validation.Length(4, 0).Error("username length must be greater that 3 character"),
 			validation.By(utils.NoSpecialChars),
 			validation.By(func(value interface{}) error {
 				if s, ok := value.(string); ok {
@@ -94,7 +95,11 @@ func (r CreateUserRequest) Validate() error {
 				return nil
 			}),
 		),
-		validation.Field(&r.FullName, validation.Required.Error("full_name is required"), validation.By(utils.NoSpecialChars)),
+		validation.Field(&r.FullName,
+			validation.Required.Error("full_name is required"),
+			validation.By(utils.NoSpecialChars),
+			validation.By(utils.ThreeNamesMinLength),
+		),
 		validation.Field(&r.PhoneNumber,
 			validation.Required.Error("phone_number is required"),
 			validation.By(func(value interface{}) error {
@@ -109,7 +114,13 @@ func (r CreateUserRequest) Validate() error {
 		),
 		validation.Field(&r.Gender, validation.Required.Error("gender is required")),
 		validation.Field(&r.JobTitle, validation.Required.Error("job_title is required")),
-		validation.Field(&r.Email, validation.Required.Error("email is required")),
+		validation.Field(
+			&r.Email,
+			validation.Required.Error("email is required"),
+			validation.Match(
+				regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`),
+			).Error("email must be a valid cbe.com.et email"),
+		),
 	)
 }
 
@@ -120,7 +131,7 @@ func (r UpdateUserRequest) Validate() error {
 
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.UserName, validation.When(r.UserName != "",
-			validation.Length(1, 100).Error("user_name cannot be empty"),
+			validation.Length(4, 0).Error("username length must be greater that 3 character"),
 			validation.By(utils.NoSpecialChars),
 			validation.By(func(value interface{}) error {
 				if s, ok := value.(string); ok {
@@ -153,6 +164,14 @@ func (r UpdateUserRequest) Validate() error {
 		validation.Field(&r.JobTitle, validation.When(r.JobTitle != "",
 			validation.By(utils.NoSpecialChars),
 		)),
+		validation.Field(
+			&r.Email,
+			validation.When(r.Email != "",
+				validation.Match(
+					regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`),
+				).Error("email must be a valid cbe.com.et email"),
+			),
+		),
 	)
 }
 

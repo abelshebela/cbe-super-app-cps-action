@@ -11,11 +11,16 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-// UsernameExists checks if a username already exists in the database
-func UsernameExists(ctx context.Context, repo storage.CpsUserRepository, username string) (bool, error) {
+func UsernameExists(ctx context.Context, userCode string, repo storage.CpsUserRepository, username string) (bool, error) {
 	user, err := repo.FindByUsername(ctx, username)
 	if err != nil {
 		return false, err
+	}
+	if user == nil {
+		return false, nil
+	}
+	if userCode != "" && userCode == user.UserCode {
+		return false, nil
 	}
 	return user != nil, nil
 }
@@ -26,15 +31,17 @@ func EmailExists(ctx context.Context, user_code string, repo storage.CpsUserRepo
 		return false, err
 	}
 
-	if user != nil {
-		user_code = user.UserCode
-	}
-	if user_code != "" &&
-		user_code == user.UserCode {
+	if user == nil {
 		return false, nil
 	}
+
+	if user_code != "" && user_code == user.UserCode {
+		return false, nil
+	}
+
 	return user != nil, nil
 }
+
 func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUserRepository, phoneNumber string) (bool, error) {
 	user, err := repo.FindByPhoneNumber(ctx, phoneNumber)
 	if err != nil {
@@ -43,8 +50,7 @@ func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUs
 	if user == nil {
 		return false, nil
 	}
-	if user_code != "" &&
-		user_code == user.UserCode {
+	if user_code != "" && user_code == user.UserCode {
 		return false, nil
 	}
 	return user != nil, nil
@@ -70,6 +76,33 @@ func ConvertToDTO(portalCard []string, user *cpsuser.CpsUserResponse, makerAlloc
 		Enabled:            user.Enabled,
 		DateJoined:         &user.DateJoined,
 		LastModified:       &user.LastModified,
+		Country:            user.Country,
+		Region:             user.Region,
+	}
+}
+
+func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CpsUserPopulatedResponse {
+	return &cpsuser.CpsUserPopulatedResponse{
+		ID:       user.ID,
+		UserCode: user.UserCode,
+		FullName: user.FullName,
+		Role: cpsuser.RoleResponse{
+			Code: user.Role.Code,
+			Name: user.Role.Name,
+		},
+		Gender:             user.Gender,
+		PhoneNumber:        user.PhoneNumber,
+		Email:              user.Email,
+		UserName:           user.UserName,
+		Realm:              user.Realm,
+		JobTitle:           user.JobTitle,
+		MakerAllocations:   makerAlloc,
+		CheckerAllocations: checkerAlloc,
+		AuditorAllocations: auditorAlloc,
+		PortalCards:        portalCard,
+		Enabled:            user.Enabled,
+		DateJoined:         user.DateJoined,
+		LastModified:       user.LastModified,
 		Country:            user.Country,
 		Region:             user.Region,
 	}
