@@ -131,12 +131,12 @@ func UpdateERP(ctx context.Context, cfg *config.VaultConfig, bankAccountNumber, 
 	defer span.End()
 
 	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
-	if cfg.OddoEcommerceBaseUrl != "" {
+	if cfg != nil && cfg.OddoEcommerceBaseUrl != "" {
 		base = cfg.OddoEcommerceBaseUrl
 	}
 	base += "/cps/merchant/update/" + merchantID
 	apiKey := ""
-	if cfg.ApiKey != "" {
+	if cfg != nil && cfg.ApiKey != "" {
 		apiKey = cfg.ApiKey
 	}
 
