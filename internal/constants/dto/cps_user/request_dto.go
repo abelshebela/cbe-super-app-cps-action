@@ -28,8 +28,6 @@ type ApproveCPSAction struct {
 	Reason   *string `json:"reason" example:"Approved after thorough review"`
 }
 
-// CPSUserActionPayload is used for CPS action CurrentAction field
-// It includes the user data plus populated permission structures for display
 type CPSUserActionPayload struct {
 	User                 interface{}                  `json:"user" bson:"user"`
 	PermissionCategories []PermissionCategoryResponse `json:"permission_categories,omitempty" bson:"permission_categories,omitempty"`
