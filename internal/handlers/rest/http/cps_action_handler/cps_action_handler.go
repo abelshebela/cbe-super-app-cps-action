@@ -415,13 +415,11 @@ func (a *cpsActionAdapter) GetUserApprovedCPSActions(w http.ResponseWriter, r *h
 
 func (a *cpsActionAdapter) GetUserPendingCPSActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
+	userData := local_util.ExtractUserContext(r)
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserPendingCpsActions", "handler", "cpsAction")
 	defer span.End()
-	userID := chi.URLParam(r, "id")
-	if userID == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
-		return
-	}
+
+	userID := userData.UserID
 	res, err := a.cpsActionApplication.GetUserPendingCPSActions(ctx, userID, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -508,6 +506,14 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
+}
+
+func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {

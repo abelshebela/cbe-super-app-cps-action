@@ -9,6 +9,8 @@ type CPSActionAdapter interface {
 	ReverseCPSAction(w http.ResponseWriter, r *http.Request)
 	GetCPSActionsByDepartment(w http.ResponseWriter, r *http.Request)
 	GetUserApprovedCPSActions(w http.ResponseWriter, r *http.Request)
+	GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request)
+	GetUserApproverPendingActions(w http.ResponseWriter, r *http.Request)
 	GetUserPendingCPSActions(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByID(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)

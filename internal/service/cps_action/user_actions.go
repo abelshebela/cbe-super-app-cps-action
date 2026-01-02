@@ -21,6 +21,7 @@ var _ = storage.CPSActionRepository(nil)
 func (ca *cpsActionService) GetUserApprovedCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserApprovedCPSActions", "CPSAction", "GetUserApprovedCPSActions")
 	defer span.End()
+
 	if filterParams == nil {
 		filterParams = &types.Filter{}
 	}
