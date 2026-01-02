@@ -31,12 +31,13 @@ type LogisticsMerchantService struct {
 	logger               utils.Logger
 }
 
-func NewLogisticsMerchantService(repo storage.LogisticsMerchantRepository, cpsService service.CPSActionService, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
+func NewLogisticsMerchantService(repo storage.LogisticsMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.LogisticsMerchantService {
 	return &LogisticsMerchantService{
-		repo:       repo,
-		cpsService: cpsService,
-		cfg:        cfg,
-		logger:     logger,
+		repo:                 repo,
+		cpsService:           cpsService,
+		accountLookupService: accountLookupService,
+		cfg:                  cfg,
+		logger:               logger,
 	}
 }
 
