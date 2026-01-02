@@ -308,7 +308,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 	return &resp, nil
 }
 
-func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
+func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode string) (*cpsuser.CpsUserPopulatedResponse, error) {
 	r.logger.Infof("[GetPopulatedByID] fetching populated CPS user")
 	// relatedCollection: [DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection]
 	pipeline := PipelineBuilderWithRole(userCode, r.relatedCollection[0], r.relatedCollection[4], r.relatedCollection[5])
@@ -326,7 +326,7 @@ func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode stri
 		return nil, errors.New(localization.ErrorFileNotFound.Code)
 	}
 
-	var resp cpsuser.CpsUserResponse
+	var resp cpsuser.CpsUserPopulatedResponse
 	if err := cursor.Decode(&resp); err != nil {
 		r.logger.Errorf("[GetPopulatedByID] failed to decode CPS user response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)

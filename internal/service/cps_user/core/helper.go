@@ -76,6 +76,33 @@ func ConvertToDTO(portalCard []string, user *cpsuser.CpsUserResponse, makerAlloc
 	}
 }
 
+func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedResponse, makerAlloc, checkerAlloc, auditorAlloc []string) *cpsuser.CpsUserPopulatedResponse {
+	return &cpsuser.CpsUserPopulatedResponse{
+		ID:       user.ID,
+		UserCode: user.UserCode,
+		FullName: user.FullName,
+		Role: cpsuser.RoleResponse{
+			Code: user.Role.Code,
+			Name: user.Role.Name,
+		},
+		Gender:             user.Gender,
+		PhoneNumber:        user.PhoneNumber,
+		Email:              user.Email,
+		UserName:           user.UserName,
+		Realm:              user.Realm,
+		JobTitle:           user.JobTitle,
+		MakerAllocations:   makerAlloc,
+		CheckerAllocations: checkerAlloc,
+		AuditorAllocations: auditorAlloc,
+		PortalCards:        portalCard,
+		Enabled:            user.Enabled,
+		DateJoined:         user.DateJoined,
+		LastModified:       user.LastModified,
+		Country:            user.Country,
+		Region:             user.Region,
+	}
+}
+
 func CPSUModel(req cpsuser.CreateUserRequest) imodel.CPSUser {
 	return imodel.CPSUser{
 		UserCode:         local_util.GenerateCPSUserCode(),
