@@ -15,11 +15,11 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type CPSUserStorage struct {
@@ -31,10 +31,10 @@ type CPSUserStorage struct {
 	logger            utils.Logger
 }
 
-func NewCPSUserRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
+func NewCPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, relatedCollection []string, logger utils.Logger) storage.CpsUserRepository {
 	return &CPSUserStorage{
-		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client,cfg, dbName, collection),
-		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client,cfg, dbName, "cps_actions"),
+		dal:               dal.NewMongoDal[imodel.CPSUser, imodel.CPSUser](client, cfg, dbName, collection),
+		cpsAction:         dal.NewMongoDal[imodel.CPSAction, imodel.CPSAction](client, cfg, dbName, "cps_actions"),
 		client:            client,
 		collection:        client.Database(dbName).Collection(collection),
 		relatedCollection: relatedCollection,
@@ -303,6 +303,35 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 		r.logger.Errorf("[GetPopulatedByID] failed to decode CPS user response: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
+	fmt.Println("Decoded CPS User Response:", resp)
+	r.logger.Infof("[GetPopulatedByID] populated CPS user retrieved successfully")
+	return &resp, nil
+}
+
+func (r *CPSUserStorage) GetPopulatedWithRole(ctx context.Context, userCode string) (*cpsuser.CpsUserResponse, error) {
+	r.logger.Infof("[GetPopulatedByID] fetching populated CPS user")
+	// relatedCollection: [DepartmentsCollection, PermissionCollection, PermissionCategoryCollection, PermissionGroupsCollection, RolesCollection, JobRolesCollection]
+	pipeline := PipelineBuilderWithRole(userCode, r.relatedCollection[0], r.relatedCollection[4], r.relatedCollection[5])
+
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		r.logger.Errorf("[GetPopulatedByID] failed to aggregate CPS user: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	defer cursor.Close(ctx)
+
+	if !cursor.Next(ctx) {
+		r.logger.Errorf("[GetPopulatedByID] CPS user not found")
+		return nil, errors.New(localization.ErrorFileNotFound.Code)
+	}
+
+	var resp cpsuser.CpsUserResponse
+	if err := cursor.Decode(&resp); err != nil {
+		r.logger.Errorf("[GetPopulatedByID] failed to decode CPS user response: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
 	fmt.Println("Decoded CPS User Response:", resp)
 	r.logger.Infof("[GetPopulatedByID] populated CPS user retrieved successfully")
 	return &resp, nil

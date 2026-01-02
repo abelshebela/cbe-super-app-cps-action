@@ -312,6 +312,26 @@ func FormatPhoneNumber(phoneNumber string) string {
 	return ""
 }
 
+func ThreeNamesMinLength(value interface{}) error {
+	name, ok := value.(string)
+	if !ok {
+		return errors.New("invalid full_name")
+	}
+
+	parts := strings.Fields(name)
+	if len(parts) != 3 {
+		return errors.New("full_name must contain first, middle, and last name")
+	}
+
+	for _, p := range parts {
+		if len(p) <= 3 {
+			return errors.New("each of first, middle, and last name must be longer than 3 characters")
+		}
+	}
+
+	return nil
+}
+
 func TrimWhiteSpace(value interface{}) error {
 	if s, ok := value.(string); ok {
 		if strings.TrimSpace(s) == "" {

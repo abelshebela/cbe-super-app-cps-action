@@ -59,8 +59,9 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 		return err
 	}
 	if exists {
+		s.logger.Errorf("user already existing with username: %v", req.UserName)
 		span.AddEvent("username already exists", trace.WithAttributes(attribute.String("username", req.UserName)))
-		return errors.New(localization.ErrorUserAlreadyExists.Code)
+		return errors.New(localization.ErrorUsernameAlreadyExists.Code)
 	}
 	emailCheck, err := core.EmailExists(ctx, "", s.repo, req.Email)
 	if err != nil {
@@ -351,6 +352,7 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	populated, err := s.repo.GetPopulatedByID(ctx, userCode)
+	// populated, err := s.repo.GetPopulatedWithRole(ctx, userCode)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) || err.Error() == localization.ErrorResourceNotFound.Code {
 			span.AddEvent("user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
@@ -379,9 +381,6 @@ func (s *cpsUserService) GetCpsUserDetail(ctx context.Context, userCode string) 
 	}
 
 	return core.ConvertToDTO(portalCard, populated, makerAlloc, checkerAlloc, auditorAlloc), nil
-
-	// detail := cpsuser.BuildCpsUserDetail(populated)
-	// return populated, nil
 }
 
 func (s *cpsUserService) GetAllCPSUsers(ctx context.Context, filter *types.Filter) (*types.PaginatedResponse[[]*cpsuser.CPSUserWithDepartment], error) {
