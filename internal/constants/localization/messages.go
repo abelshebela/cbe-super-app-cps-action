@@ -215,7 +215,7 @@ const (
 	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
-	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully"
+	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully submitted successfully"
 
 	// Account Validation related success messages
 	MsgValidationRuleApprovedSuccessfully = "Update request submitted for approval"
