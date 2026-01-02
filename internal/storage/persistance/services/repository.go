@@ -161,7 +161,7 @@ func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*imodel.Serv
 }
 
 func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Service], error) {
-	allowed := []string{"service_name", "service_code", "service_type", "enabled"}
+	allowed := []string{"search", "service_name", "service_code", "service_type", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
