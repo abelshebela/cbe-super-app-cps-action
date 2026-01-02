@@ -10,11 +10,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	shared_utils "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type article struct {
@@ -24,10 +24,10 @@ type article struct {
 	client        *mongo.Client
 }
 
-func NewsArticleRepository(logger shared_utils.Logger, client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string, kafkaProducer kafka.ClientOrchestrationProducer) storage.ArticleRepository {
+func NewsArticleRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, kafkaProducer kafka.ClientOrchestrationProducer) storage.ArticleRepository {
 	return &article{
 		logger:        logger,
-		articleDal:    dal.NewMongoDal[model.NewsArticle, model.NewsArticle](client,cfg, dbName, collectionName),
+		articleDal:    dal.NewMongoDal[model.NewsArticle, model.NewsArticle](client, cfg, dbName, collectionName),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 	}
@@ -132,10 +132,6 @@ func buildUpdate(updateFields model.NewsArticle) bson.M {
 	}
 	if updateFields.Content != "" {
 		update["content"] = updateFields.Content
-	}
-
-	if updateFields.Slug != "" {
-		update["slug"] = updateFields.Slug
 	}
 
 	if updateFields.ThumbnailAltText != "" {

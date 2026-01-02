@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/service/ecommerce-merchant/core"
+	"strings"
 	"time"
 
 	"cbe-super-app-cps-action/internal/storage"
@@ -422,7 +423,9 @@ func (m *miniAppMerchantService) updateERP(ctx context.Context, merchant *model.
 		Branches:         erpBranches,
 	}
 
-	err := m.merchantLookup.UpdateMerchant(ctx, merchant.Code, payload, "")
+	url := m.cfg.OddoEcommerceBaseUrl + "/cps/merchant/update/"
+	xAPIKey := m.cfg.ApiKey
+	err := m.merchantLookup.UpdateMerchant(ctx, merchant.Code, payload, xAPIKey, url)
 	if err != nil {
 		m.logger.Errorf("ERP update failed for merchant %s: %v", merchant.Code, err)
 		return err
@@ -451,8 +454,10 @@ func (m *miniAppMerchantService) MerchantLookup(ctx context.Context, merchantID 
 	ctx, span := local_util.TraceLogger(ctx, "service", "MerchantLookup", "MiniAppMerchant", "MerchantLookup")
 	defer span.End()
 
+	base := strings.TrimRight(m.cfg.OddoEcommerceBaseUrl, "/")
+	url := base + "/cps/merchant/"
 	xAPIKey := m.cfg.ApiKey
-	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey)
+	merchantData, err := m.merchantLookup.LookupMerchant(ctx, merchantID, xAPIKey, url)
 	if err != nil {
 		m.logger.Errorf("Merchant lookup error : %v", err)
 		span.AddEvent("Merchant lookup failed", trace.WithAttributes(
