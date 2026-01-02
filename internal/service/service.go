@@ -73,6 +73,8 @@ type CPSActionService interface {
 	CancelCPSAction(ctx context.Context, action_code string, action *model.CPSAction) error
 	ReverseCPSAction(ctx context.Context, actionCode string) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetUserApprovedCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetUserPendingCPSActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
