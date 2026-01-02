@@ -192,13 +192,9 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q}}
 	}
 
-	count, err := s.dal.TotalCount(ctx, bson.M{})
-	if err != nil {
-		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-	}
-	if count < limit {
-		limit = count
-	}
+	// if count < limit {
+	// 	limit = count
+	// }
 
 	items, err := s.serviceDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
@@ -208,6 +204,11 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	// count, err := s.dal.TotalCount(ctx, bson.M{})
+	// if err != nil {
+	// 	return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	// }
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 	return &types.PaginatedResponse[[]imodel.ServiceList]{
 		Data: items,
