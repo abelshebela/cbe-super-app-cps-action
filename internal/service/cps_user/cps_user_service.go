@@ -53,7 +53,7 @@ func (s *cpsUserService) CreateUserRequest(ctx context.Context, req cpsuser.Crea
 
 	normalized := local_util.FormatPhoneNumber(req.PhoneNumber)
 	req.PhoneNumber = normalized
-	exists, err := core.UsernameExists(ctx, s.repo, req.UserName)
+	exists, err := core.UsernameExists(ctx, "", s.repo, req.UserName)
 	if err != nil {
 		span.AddEvent("failed to check username existence", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -123,7 +123,7 @@ func (s *cpsUserService) UpdateUserRequest(ctx context.Context, usercode string,
 	}
 	if req.UserName != "" {
 		if currentUser.UserName != req.UserName {
-			exists, err := core.UsernameExists(ctx, s.repo, req.UserName)
+			exists, err := core.UsernameExists(ctx, currentUser.UserCode, s.repo, req.UserName)
 			if err != nil {
 				span.AddEvent("failed to check username existence", trace.WithAttributes(attribute.String("error", err.Error())))
 				return err
