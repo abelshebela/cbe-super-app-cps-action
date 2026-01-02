@@ -391,11 +391,12 @@ func (e *EventMerchantService) Update(ctx context.Context, id string, eventMerch
 	return nil
 }
 
-func NewEventMerchantService(repo storage.EventMerchantRepository, cpsService service.CPSActionService, cfg *config.VaultConfig, logger utils.Logger) service.EventMerchantService {
+func NewEventMerchantService(repo storage.EventMerchantRepository, cpsService service.CPSActionService, accountLookupService account_lookup.Account, cfg *config.VaultConfig, logger utils.Logger) service.EventMerchantService {
 	return &EventMerchantService{
-		repo:       repo,
-		cpsService: cpsService,
-		cfg:        cfg,
-		logger:     logger,
+		repo:                 repo,
+		cpsService:           cpsService,
+		accountLookupService: accountLookupService,
+		cfg:                  cfg,
+		logger:               logger,
 	}
 }
