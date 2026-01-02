@@ -61,14 +61,14 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 		req.IsFeatured = &val
 	}
 
-	if targetStr := r.FormValue("target"); targetStr != "" {
-		converter := utils.NewNumericConverter()
-		if target, err := converter.ToInt32(targetStr, "target"); err != nil {
-			return req, err
-		} else {
-			req.Target = string(target)
-		}
-	}
+	// if targetStr := r.FormValue("target"); targetStr != "" {
+	// 	converter := utils.NewNumericConverter()
+	// 	if target, err := converter.ToInt32(targetStr, "target"); err != nil {
+	// 		return req, err
+	// 	} else {
+	// 		req.Target = string(target)
+	// 	}
+	// }
 
 	if enabledStr := r.FormValue("enabled"); enabledStr != "" {
 		req.Enabled = enabledStr == "true"

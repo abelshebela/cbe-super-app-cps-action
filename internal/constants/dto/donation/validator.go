@@ -2,6 +2,7 @@ package donation
 
 import (
 	"mime/multipart"
+	"strconv"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -26,8 +27,7 @@ func (d DonationRequest) Validate() error {
 		),
 		validation.Field(&d.Target,
 			validation.Required.Error("target is required"),
-			validation.Min(1).Error("donation amount must be greater than 0"),
-			validation.By(validateDonationAmount),
+			validation.By(validateDonationTarget),
 		),
 		validation.Field(&d.DonationDescription,
 			validation.By(utils.TrimWhiteSpace),
@@ -51,6 +51,26 @@ func (d DonationRequest) Validate() error {
 	)
 }
 
+func validateDonationTarget(value interface{}) error {
+	targetStr, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation_target_invalid", "invalid target value")
+	}
+	if targetStr == "" {
+		return validation.NewError("validation_target_required", "target is required")
+	}
+	targetInt, err := strconv.Atoi(targetStr)
+	if err != nil {
+		return validation.NewError("validation_target_invalid", "target must be a valid number")
+	}
+	if targetInt <= 0 {
+		return validation.NewError("validation_target_zero", "donation amount must be greater than 0")
+	}
+	if targetInt > 100000000 {
+		return validation.NewError("validation_target_too_large", "donation amount must not exceed 100,000,000")
+	}
+	return nil
+}
 func validateDonationAmount(value interface{}) error {
 	amount, ok := value.(int32)
 	if !ok {
