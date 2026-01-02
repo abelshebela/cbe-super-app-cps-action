@@ -8,13 +8,14 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
-	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
-	"go.mongodb.org/mongo-driver/v2/bson"
+	// shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
+	// "go.mongodb.org/mongo-driver/v2/bson"
+	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	// local_model "cbe-super-app-cps-action/internal/constants/model"
 )
 
-func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
-	var user local_model.BPSUser
+func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
+	var user bps_model.BPSUser
 
 	if v, ok := action["user_code"]; ok {
 		if s, ok := v.(string); ok {
@@ -28,7 +29,7 @@ func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
 	}
 	if v, ok := action["username"]; ok {
 		if s, ok := v.(string); ok {
-			user.UserName = s
+			user.Username = s
 		}
 	}
 
@@ -41,6 +42,11 @@ func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
 	if v, ok := action["phone_number"]; ok {
 		if s, ok := v.(string); ok {
 			user.PhoneNumber = s
+		}
+	}
+	if v, ok := action["email"]; ok {
+		if s, ok := v.(string); ok {
+			user.Email = s
 		}
 	}
 	if v, ok := action["branch_code"]; ok {
@@ -80,8 +86,8 @@ func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
 		}
 	}
 	if v, ok := action["password"]; ok {
-		if p, ok := v.(shared_types.Password); ok {
-			user.Password = mapPassword(p)
+		if p, ok := v.(bps_model.Password); ok {
+			user.Password = p
 		}
 	}
 	if v, ok := action["first_password_set"]; ok {
@@ -114,16 +120,16 @@ func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
 			user.OTPLastVerifiedAt = t
 		}
 	}
-	if v, ok := action["permission_group"]; ok {
-		if arr, ok := v.([]bson.ObjectID); ok {
-			user.PermissionGroup = arr
-		}
-	}
-	if v, ok := action["permissions"]; ok {
-		if arr, ok := v.([]bson.ObjectID); ok {
-			user.Permissions = arr
-		}
-	}
+	// if v, ok := action["permission_group"]; ok {
+	// 	if arr, ok := v.([]bson.ObjectID); ok {
+	// 		user.PermissionGroup = arr
+	// 	}
+	// }
+	// if v, ok := action["permissions"]; ok {
+	// 	if arr, ok := v.([]bson.ObjectID); ok {
+	// 		user.Permissions = arr
+	// 	}
+	// }
 	if v, ok := action["last_login_attempt"]; ok {
 		if t, ok := v.(time.Time); ok {
 			user.LastLoginAttempt = t
@@ -134,11 +140,11 @@ func BPSUser_mapper(action map[string]interface{}) local_model.BPSUser {
 			user.NextLoginAttempt = t
 		}
 	}
-	if v, ok := action["is_first_time_login"]; ok {
-		if b, ok := v.(bool); ok {
-			user.IsFirstTimeLogin = b
-		}
-	}
+	// if v, ok := action["is_first_time_login"]; ok {
+	// 	if b, ok := v.(bool); ok {
+	// 		user.IsFirstTimeLogin = b
+	// 	}
+	// }
 	if v, ok := action["last_login"]; ok {
 		if t, ok := v.(time.Time); ok {
 			user.LastLogin = t
