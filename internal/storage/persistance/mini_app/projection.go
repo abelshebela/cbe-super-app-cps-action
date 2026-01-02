@@ -59,12 +59,17 @@ func MiniAppDocumentToBsonM(miniApp mini_model.MiniApp) bson.M {
 	if miniApp.AppViewType != "" {
 		update["app_view_type"] = miniApp.AppViewType
 	}
+	if miniApp.ServiceCode != "" {
+		update["service_code"] = miniApp.ServiceCode
+	}
+	if miniApp.ServiceKey != "" {
+		update["service_key"] = miniApp.ServiceKey
+	}
 	if miniApp.URL != "" {
 		update["url"] = miniApp.URL
 	}
 	update["is_featured"] = miniApp.IsFeatured
 	update["enabled"] = miniApp.Enabled
-
 
 	return update
 }
