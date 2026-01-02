@@ -11,10 +11,16 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 )
 
-func UsernameExists(ctx context.Context, repo storage.CpsUserRepository, username string) (bool, error) {
+func UsernameExists(ctx context.Context, userCode string, repo storage.CpsUserRepository, username string) (bool, error) {
 	user, err := repo.FindByUsername(ctx, username)
 	if err != nil {
 		return false, err
+	}
+	if user == nil {
+		return false, nil
+	}
+	if userCode != "" && userCode == user.UserCode {
+		return false, nil
 	}
 	return user != nil, nil
 }
@@ -44,8 +50,7 @@ func PhoneNumberExists(ctx context.Context, user_code string, repo storage.CpsUs
 	if user == nil {
 		return false, nil
 	}
-	if user_code != "" &&
-		user_code == user.UserCode {
+	if user_code != "" && user_code == user.UserCode {
 		return false, nil
 	}
 	return user != nil, nil

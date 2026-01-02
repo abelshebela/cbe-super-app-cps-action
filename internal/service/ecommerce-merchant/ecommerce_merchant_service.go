@@ -352,6 +352,11 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			return nil, err
 		}
 	case string(constants.RequestUpdateEcommerceMerchant):
+		err = m.updateERP(ctx, merchant)
+		if err != nil {
+			m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
+		}
+
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
 		if err != nil {
 			span.AddEvent("Failed to update mini app merchant", trace.WithAttributes(
