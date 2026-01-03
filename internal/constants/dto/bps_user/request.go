@@ -16,7 +16,7 @@ type BPSUserCreateRequest struct {
 	BranchCode []string `json:"branch_code"`
 	// HomeBranch  string   `json:"home_branch"`
 	// Realm       string   `json:"realm"`
-	Enabled bool `json:"enabled"`
+	// Enabled bool `json:"enabled"`
 }
 
 type BPSUserUpdateRequest struct {
@@ -29,5 +29,5 @@ type BPSUserUpdateRequest struct {
 	BranchCode []string `json:"branch_code"`
 	// HomeBranch  string   `json:"home_branch"`
 	// Realm       string   `json:"realm"`
-	Enabled bool `json:"enabled"`
+	// Enabled bool `json:"enabled"`
 }

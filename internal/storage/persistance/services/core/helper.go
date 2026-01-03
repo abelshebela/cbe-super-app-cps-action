@@ -34,15 +34,16 @@ func MapToServiceUpdate(service imodel.Service, existing imodel.Service) bson.M 
 		update["tiers"] = service.Tiers
 	}
 
-	for i, _ := range service.ServiceList {
-		existing := existing.ServiceList[i]
-		service.ServiceList[i].IsEnabled = existing.IsEnabled
-	}
+	// for i, _ := range service.ServiceList {
+	// 	existing := existing.ServiceList[i]
+	// 	service.ServiceList[i].IsEnabled = existing.IsEnabled
+	// }
+
 	update["service_list"] = service.ServiceList
 
-	if len(service.ServiceList) > 0 {
-		update["service_list"] = service.ServiceList
-	}
+	// if len(service.ServiceList) > 0 {
+	// 	update["service_list"] = service.ServiceList
+	// }
 
 	if service.Cap != (imodel.Cap{}) {
 		update["cap"] = service.Cap

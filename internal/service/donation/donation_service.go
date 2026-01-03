@@ -212,15 +212,16 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 			CategoryName: category.CategoryName,
 			Icon:         category.Icon,
 		},
-		Title:               donation.Title,
-		IsFeatured:          donation.IsFeatured,
-		Target:              donation.Target,
+		Title:      donation.Title,
+		IsFeatured: donation.IsFeatured,
+		Target:     donation.Target,
+
 		DonationDescription: donation.DonationDescription,
 		DonationImages:      core.ConvertToDonationImages(donationImages),
 		CoverImage:          coverImageURL,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
-		Enabled:             true,
+		Enabled:             false,
 	}
 	d.logger.Infof("CPS request created with target: %d, donation images count: %d", result.Target, len(result.DonationImages))
 

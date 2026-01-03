@@ -46,20 +46,34 @@ func ValidateCreate(req service_dto.CreateServiceRequest, service storage.Servic
 		return localization.ErrorRequiredFieldMissing
 	}
 
-	serviceDoc, err := service.FindAllWithPagination(context.Background(), types.Filter{Filters: map[string]interface{}{
-		"service_code": req.ServiceCode,
-		"service_name": req.ServiceName,
-	}})
+	filterCode := types.Filter{
+		Filters: map[string]interface{}{
+			"service_code": req.ServiceCode,
+		},
+	}
+	serviceDocCode, err := service.FindAllWithPagination(context.Background(), filterCode)
 	if err != nil {
 		return err
 	}
-	if len(serviceDoc.Data) > 0 {
+	if len(serviceDocCode.Data) > 0 {
+		return localization.ErrorServiceExists
+	}
+
+	filterName := types.Filter{
+		Filters: map[string]interface{}{
+			"service_name": req.ServiceName,
+		},
+	}
+	serviceDocName, err := service.FindAllWithPagination(context.Background(), filterName)
+	if err != nil {
+		return err
+	}
+	if len(serviceDocName.Data) > 0 {
 		return localization.ErrorServiceExists
 	}
 
 	return nil
 }
-
 func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 	mapped := imodel.Service{
 		ServiceCode:      req.ServiceCode,
@@ -172,6 +186,7 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 						}
 						return tiers
 					}(),
+					IsEnabled: true,
 				})
 			}
 			return lists
