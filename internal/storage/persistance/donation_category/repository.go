@@ -14,11 +14,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type DonationCategoryStorage struct {
@@ -28,9 +28,9 @@ type DonationCategoryStorage struct {
 	logger        utils.Logger
 }
 
-func NewDonationCategoryRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCategoryRepository {
+func NewDonationCategoryRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationCategoryRepository {
 	return &DonationCategoryStorage{
-		dal:           dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, cfg,dbName, collection),
+		dal:           dal.NewMongoDal[model.DonationCategory, model.DonationCategory](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
@@ -127,7 +127,7 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
+	data, err := s.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch donation categories: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)

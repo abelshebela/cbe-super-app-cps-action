@@ -10,13 +10,13 @@ import (
 	"context"
 	"errors"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 // 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -36,9 +36,9 @@ type archivedUserStorage struct {
 	logger     utils.Logger
 }
 
-func NewArchivedUserRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ArchivedUserRepository {
+func NewArchivedUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ArchivedUserRepository {
 	return &archivedUserStorage{
-		dal:        dal.NewMongoDal[model.ArchivedUser, model.ArchivedUser](client,cfg, dbName, collection),
+		dal:        dal.NewMongoDal[model.ArchivedUser, model.ArchivedUser](client, cfg, dbName, collection),
 		client:     client,
 		collection: client.Database(dbName).Collection(collection),
 		logger:     logger,
@@ -91,7 +91,7 @@ func (s *archivedUserStorage) FindAllWithPagination(ctx context.Context, filterP
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}

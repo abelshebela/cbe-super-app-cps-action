@@ -16,11 +16,11 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type NotificationStorage struct {
@@ -30,9 +30,9 @@ type NotificationStorage struct {
 	logger        utils.Logger
 }
 
-func NewNotificationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NotificationRepository {
+func NewNotificationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.NotificationRepository {
 	return &NotificationStorage{
-		dal:           dal.NewMongoDal[model.Notification, model.Notification](client,cfg, dbName, collection),
+		dal:           dal.NewMongoDal[model.Notification, model.Notification](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: kafkaProducer,
 		logger:        logger,
@@ -127,7 +127,7 @@ func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterP
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
-	data, err := n.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := n.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		n.logger.Errorf("[FindAllWithPagination] failed to fetch notifications: %v", err)
 		return nil, err
