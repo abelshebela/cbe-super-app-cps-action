@@ -186,7 +186,7 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest) imodel.Servic
 						}
 						return tiers
 					}(),
-					IsEnabled: *sl.IsEnabled,
+					IsEnabled: true,
 				})
 			}
 			return lists
