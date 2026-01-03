@@ -94,7 +94,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 	}
 
 	topup := core.ToCreateTopupDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
-	topup.Enabled = true
+	topup.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
 	if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreateTopup, topup, nil, constants.ActionCreate); err != nil {

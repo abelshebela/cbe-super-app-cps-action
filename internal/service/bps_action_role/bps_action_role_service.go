@@ -123,6 +123,9 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		return errors.New(localization.ErrorIncompleteUserInfo.Code)
 	}
 
+	if err := s.validateUniqueIDs(req.AssignedViewersRoles); err != nil {
+		return err
+	}
 	if err := s.validateUniqueIDs(req.AssignedMakersRoles); err != nil {
 		return err
 	}
@@ -134,44 +137,38 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 	}
 
 	// Convert strings to ObjectIDs
-	makers := make([]bson.ObjectID, 0, len(req.AssignedMakersRoles))
+	makers := make([]string, 0, len(req.AssignedMakersRoles))
 	for _, id := range req.AssignedMakersRoles {
-		oid, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		makers = append(makers, oid)
+		makers = append(makers, id)
 	}
 
-	var checkers [][]bson.ObjectID
+	var checkers [][]string
 	if !req.IsMakerOnly {
-		checkers = make([][]bson.ObjectID, 0, len(req.AssignedCheckerRoles))
+		checkers = make([][]string, 0, len(req.AssignedCheckerRoles))
 		for _, group := range req.AssignedCheckerRoles {
-			g := make([]bson.ObjectID, 0, len(group))
+			g := make([]string, 0, len(group))
 			for _, id := range group {
-				oid, err := bson.ObjectIDFromHex(id)
-				if err != nil {
-					return errors.New(localization.ErrorInvalidID.Code)
-				}
-				g = append(g, oid)
+				g = append(g, id)
 			}
 			checkers = append(checkers, g)
 		}
 	}
 
-	auditors := make([]bson.ObjectID, 0, len(req.AssignedAuditorRoles))
+	auditors := make([]string, 0, len(req.AssignedAuditorRoles))
 	for _, id := range req.AssignedAuditorRoles {
-		oid, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return errors.New(localization.ErrorInvalidID.Code)
-		}
-		auditors = append(auditors, oid)
+		auditors = append(auditors, id)
+	}
+
+	viewers := make([]string, 0, len(req.AssignedAuditorRoles))
+	for _, id := range req.AssignedAuditorRoles {
+		auditors = append(auditors, id)
 	}
 
 	// build CPS action payload
-	payload := model.ActionRole{
+	payload := imodel.BPSActionRole{
 		ActionCode:           req.ActionCode,
 		ActionName:           req.ActionName,
+		AssignedViewersRoles: viewers,
 		AssignedMakersRoles:  makers,
 		AssignedCheckerRoles: checkers,
 		AssignedAuditorRoles: auditors,
@@ -179,6 +176,7 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		Enabled:              true,
 		ApproverCount:        int32(len(checkers)),
 	}
+
 	cpsAction := lib.CpsModelBuilder(
 		req.ActionCode,
 		maker,
