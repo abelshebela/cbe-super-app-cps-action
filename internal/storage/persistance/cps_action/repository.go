@@ -231,6 +231,73 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 	}, nil
 }
 
+func (r *CPSActionStorage) SanitizedFindAllWithPaginationForApprover(ctx context.Context, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	r.logger.Infof("Finding all CPSActions with pagination. Department: %s, Filter: %+v", RAList, filterParam)
+	// 1. Base filter (only active records)
+	baseFilter := bson.M{
+		"is_deleted": false,
+	}
+	searchKeys := bson.M{}
+
+	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id"}
+
+	if filterParam.Search != "" {
+		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+		baseFilter["$or"] = []bson.M{
+			{"maker_name": searchRegex},
+			{"maker_phone_number": searchRegex},
+			{"action_status": searchRegex},
+			{"action_type": searchRegex},
+			{"request_action": searchRegex},
+		}
+	}
+
+	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
+
+	for k, v := range baseFilter {
+		dynamicFilter[k] = v
+	}
+	delete(dynamicFilter, "created_at")
+	filter := dynamicFilter
+	filter["request_action"] = bson.M{"$in": RAList}
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+		{{Key: "$project", Value: Projection}},
+		cps_action_core.SanitizePipeline(exclude),
+	}
+
+	cur, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	var results []*model.CPSAction
+	if err := cur.All(ctx, &results); err != nil {
+		return nil, err
+	}
+	total, err := r.dal.TotalCount(ctx, filter)
+	if err != nil {
+		r.logger.Errorf("Error counting total CPSActions: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+
+	// 7. Build pagination metadata
+	meta := local_utils.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+
+	// 8. Return standard paginated response
+	r.logger.Infof("Successfully fetched paginated CPSActions. Total: %d", total)
+	return &types.PaginatedResponse[[]*model.CPSAction]{
+		Data: results,
+		Meta: meta,
+	}, nil
+}
+
 func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error) {
 	exclude := []string{"password", "first_password_set", "login_attempt_count", "is_deleted", "otp_verfy_count", "otp_last_tried_at", "otp_last_verified_at", "permission_group", "permissions", "last_login_attempt", "next_login_attempt", "is_first_time_login", "last_login"}
 	pipeline := mongo.Pipeline{

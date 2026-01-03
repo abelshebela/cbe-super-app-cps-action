@@ -41,7 +41,6 @@ func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, cur
 		MakerID:          makerUser.UserID,
 		MakerName:        makerUser.FullName,
 		MakerPhoneNumber: makerUser.PhoneNumber,
-		Department:       makerUser.Department,
 		PreviousAction:   prevAction,
 		CurrentAction:    currentAction,
 		ActionStatus:     string(constants.Pending),
