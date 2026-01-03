@@ -52,6 +52,7 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	if err != nil {
 		return err
 	}
+
 	for _, svc := range services.Data {
 		if svc.ID.Hex() != id && (svc.ServiceCode == req.ServiceCode || svc.ServiceName == req.ServiceName) {
 			return errors.New(localization.ErrorServiceExists.Code)

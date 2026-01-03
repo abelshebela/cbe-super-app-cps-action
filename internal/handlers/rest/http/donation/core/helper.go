@@ -4,6 +4,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/donation"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"strconv"
 
 	"cbe-super-app-cps-action/pkgs/utils"
 	"errors"
@@ -17,6 +18,13 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
+func StringToInt32(s string) (int32, error) {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+	return int32(i), nil
+}
 func ParseImageUpdateRequestFromMultipartForm(r *http.Request) (donation.DonationImageUpdateRequest, error) {
 	var req donation.DonationImageUpdateRequest
 
@@ -62,11 +70,10 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	}
 
 	if targetStr := r.FormValue("target"); targetStr != "" {
-		converter := utils.NewNumericConverter()
-		if target, err := converter.ToInt32(targetStr, "target"); err != nil {
+		if _, err := StringToInt32(targetStr); err != nil {
 			return req, err
 		} else {
-			req.Target = string(target)
+			req.Target = targetStr // or fmt.Sprintf("%d", target) if you want string
 		}
 	}
 

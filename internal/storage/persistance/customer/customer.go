@@ -52,7 +52,7 @@ func InitCustomerDetail(client *mongo.Client, cfg *config.VaultConfig, database 
 
 func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
+	allowedKeys := []string{"search", "gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
 	if filterParam.Search != "" {
 		// Build regex for Ethiopian phone numbers
@@ -80,6 +80,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		// Lookup Branch Info from account_block using branch_code
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "account_block"},

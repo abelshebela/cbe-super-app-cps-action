@@ -205,13 +205,13 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *imodel.Don
 	}
 
 	return &imodel.Donation{
-		DonationCode: cpsRequest.DonationCode,
-		CompanyID:    companyObjID,
-		CategoryID:   categoryObjID,
-		Title:        cpsRequest.Title,
-		IsFeatured:   *cpsRequest.IsFeatured,
-		Target:       cpsRequest.Target,
-		// CurrentAmount:       ,
+		DonationCode:        cpsRequest.DonationCode,
+		CompanyID:           companyObjID,
+		CategoryID:          categoryObjID,
+		Title:               cpsRequest.Title,
+		IsFeatured:          *cpsRequest.IsFeatured,
+		Target:              cpsRequest.Target,
+		CurrentAmount:       "0",
 		DonationDescription: cpsRequest.DonationDescription,
 		DonationImages:      donationImages,
 		CoverImage:          cpsRequest.CoverImage,
