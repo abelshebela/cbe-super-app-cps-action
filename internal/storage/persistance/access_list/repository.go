@@ -9,6 +9,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/kafka"
 	"context"
 	"errors"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -164,4 +165,79 @@ func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, departmen
 		Data: data,
 		Meta: meta,
 	}, nil
+}
+
+func (a *AccessListStorage) FindByKeys(ctx context.Context, keys []string) (map[string]string, error) {
+	a.logger.Infof("[FindByKeys] checking access list for keys")
+	// Match if any key in keys is present in either the parent key or any sub_access_list.key
+	filter := bson.M{
+		"$or": []bson.M{
+			{"key": bson.M{"$in": keys}},
+			{"sub_access_list.key": bson.M{"$in": keys}},
+		},
+	}
+
+	als, err := a.dal.FindAll(ctx, filter, nil)
+	if err != nil {
+		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
+		return map[string]string{}, err
+	}
+
+	// Build a set of found keys from both key and sub_access_list.key
+	foundKeys := make(map[string]string)
+	for _, al := range als {
+		foundKeys[al.Key] = al.AccessListName
+		// Sub access list keys
+		if al.SubAccessList != nil {
+			for _, sub := range al.SubAccessList {
+				foundKeys[sub.Key] = sub.AccessListName
+			}
+		}
+	}
+
+	var missing []string
+	for _, key := range keys {
+		if _, ok := foundKeys[key]; !ok {
+			missing = append(missing, key)
+		}
+	}
+
+	if len(missing) > 0 {
+		msg := "keys: " + strings.Join(missing, ", ") + " not found in access list"
+		if len(missing) == 1 {
+			msg = "key: " + strings.Join(missing, ", ") + " not found in access list"
+		}
+		a.logger.Errorf("[FindByKeys] %s", msg)
+		return map[string]string{}, errors.New(msg)
+	}
+	return foundKeys, nil
+}
+
+func (a *AccessListStorage) FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error) {
+	a.logger.Infof("[FindByKeys] checking access list for keys")
+	filter := bson.M{"enabled": true}
+	// Match if any key in keys is present in either the parent key or any sub_access_list.key
+	// filter := bson.M{
+	// 	"$or": []bson.M{
+	// 		{"key": bson.M{"$nin": keys}},
+	// 		{"sub_access_list.key": bson.M{"$nin": keys}},
+	// 	},
+	// }
+	// filter := bson.M{
+	// 	"key":                 bson.M{"$nin": keys},
+	// 	"sub_access_list.key": bson.M{"$nin": keys},
+	// }
+	if len(keys) == 0 {
+		filter = bson.M{}
+	}
+
+	als, err := a.dal.FindAll(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New(localization.ErrorFileNotFound.Code)
+		}
+		a.logger.Errorf("[FindByKeys] failed to count access lists: %v", err)
+		return []model.APPAccessList{}, err
+	}
+	return als, nil
 }

@@ -11,7 +11,8 @@ import (
 	"context"
 	"errors"
 	"time"
-"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
+
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -27,14 +28,35 @@ type AccessListSegmentation struct {
 	logger         utils.Logger
 }
 
+// FindBySegmentIDAndAccessListKeys implements [storage.AccessListSegmentationRepository].
+func (a *AccessListSegmentation) FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("[FindByID] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"segmented_id": objID, "access_list_key": bson.M{"$in": keys}}
+	response, err := a.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("[FindByID] access list with segmentationID%v and keys:%v not found", id, keys)
+			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		}
+		a.logger.Errorf("[FindByID] find error: %v", err)
+		return nil, err
+	}
+
+	return response, nil
+}
+
 // FindByAccountSegmentationAndServiceID implements storage.AccessListSegmentationRepository.
-func (a *AccessListSegmentation) FindByAccountSegmentationAndServiceID(ctx context.Context, customerSegments string, serviceID string) (*local_model.AccessListSegmentation, error) {
-	seg, err := a.repo.FindOne(ctx, bson.M{"segmentation_code": customerSegments, "service_id": serviceID}, nil)
+func (a *AccessListSegmentation) FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error) {
+	seg, err := a.repo.FindOne(ctx, bson.M{"segmentation_code": customerSegments, "service_id": bson.M{"$in": segmentKeys}}, nil)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		a.logger.Errorf("[FindBySegmentationAndServiceID] failed to find access list segmentation by segmentation id and service id: %v", err)
+		a.logger.Errorf("[FindByAccountSegmentationAndAccessListKeys] failed to find access list segmentation by segmentation id and service id: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return seg, nil
@@ -79,25 +101,26 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 }
 
 func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
-	serviceObjID, err := bson.ObjectIDFromHex(accessListSegmentation.ServiceID)
+	docs := []local_model.AccessListSegmentation{}
+	for i, idStr := range accessListSegmentation.AccessListNames {
+		doc := local_model.AccessListSegmentation{
+			ID:               bson.NewObjectID(),
+			Type:             accessListSegmentation.Type,
+			AccessListKey:    idStr,
+			AccessListName:   accessListSegmentation.AccessListNames[i],
+			SegmentationCode: accessListSegmentation.SegmentCode,
+			SegmentationName: accessListSegmentation.SegmentName,
+			SegmentationType: accessListSegmentation.SegmentType,
+			CreatedAt:        time.Now(),
+			UpdatedAt:        time.Now(),
+		}
+		docs = append(docs, doc)
+	}
+
+	collection := a.client.Database(a.dbName).Collection(a.collectionName)
+	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
-		a.logger.Errorf("invalid ServiceID ObjectID: %s", accessListSegmentation.ServiceID)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
-	doc := local_model.AccessListSegmentation{
-		ID:               bson.NewObjectID(),
-		Type:             accessListSegmentation.Type,
-		ServiceID:        serviceObjID,
-		ServiceName:      accessListSegmentation.ServiceName,
-		SegmentationCode: accessListSegmentation.SegmentCode,
-		SegmentationName: accessListSegmentation.SegmentName,
-		SegmentationType: accessListSegmentation.SegmentType,
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
-	}
-	if _, err := a.repo.InsertOne(ctx, doc); err != nil {
-		a.logger.Errorf("[CreateAccountSegment] failed to insert document: %v", err)
-		return err
+		a.logger.Errorf("failed to insert documents: %v", err)
 	}
 	return nil
 }
@@ -106,23 +129,19 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	if len(accessListSegmentation.SegmentedID) == 0 {
 		return errors.New(localization.ErrorAccessListSegmentationIDSRequired.Code)
 	}
-	serviceObjID, err := bson.ObjectIDFromHex(accessListSegmentation.ServiceID)
-	if err != nil {
-		a.logger.Errorf("invalid ServiceID ObjectID: %s", accessListSegmentation.ServiceID)
-		return errors.New(localization.ErrorInvalidID.Code)
-	}
+
 	var docs []interface{}
-	for _, idStr := range accessListSegmentation.SegmentedID {
-		objID, err := bson.ObjectIDFromHex(idStr)
+	for i, idStr := range accessListSegmentation.AccessListKeys {
+		objID, err := bson.ObjectIDFromHex(accessListSegmentation.SegmentedID)
 		if err != nil {
-			a.logger.Errorf("invalid ObjectID: %s", idStr)
+			a.logger.Errorf("invalid ObjectID: %s", accessListSegmentation.SegmentedID)
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
 		doc := local_model.AccessListSegmentation{
 			ID:               bson.NewObjectID(),
 			Type:             accessListSegmentation.Type,
-			ServiceID:        serviceObjID,
-			ServiceName:      accessListSegmentation.ServiceName,
+			AccessListKey:    idStr,
+			AccessListName:   accessListSegmentation.AccessListNames[i],
 			SegmentationType: accessListSegmentation.SegmentType,
 			SegmentedID:      objID,
 			CreatedAt:        time.Now(),
@@ -132,7 +151,7 @@ func (a *AccessListSegmentation) CreateBlockSegment(ctx context.Context, accessL
 	}
 
 	collection := a.client.Database(a.dbName).Collection(a.collectionName)
-	_, err = collection.InsertMany(ctx, docs)
+	_, err := collection.InsertMany(ctx, docs)
 	if err != nil {
 		a.logger.Errorf("failed to insert documents: %v", err)
 	}
@@ -218,6 +237,28 @@ func (a *AccessListSegmentation) FindByID(ctx context.Context, id string) (*loca
 
 }
 
+// FindByIDAndType implements storage.AccessListSegmentationRepository.
+func (a *AccessListSegmentation) FindByIDAndType(ctx context.Context, id string, t string) (*local_model.AccessListSegmentation, error) {
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		a.logger.Errorf("[FindByID] invalid ObjectID: %s", id)
+		return nil, errors.New(localization.ErrorInvalidID.Code)
+	}
+	filter := bson.M{"segmented_id": objID, "type": t}
+	response, err := a.repo.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("[FindByID] access list segmentation not found")
+			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		}
+		a.logger.Errorf("[FindByID] find error: %v", err)
+		return nil, err
+	}
+
+	return response, nil
+
+}
+
 // Update implements storage.AccessListSegmentationRepository.
 func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error {
 	objID, err := bson.ObjectIDFromHex(id)
@@ -237,14 +278,14 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	if !accessListSegmentation.SegmentedID.IsZero() {
 		update["segmented_id"] = accessListSegmentation.SegmentedID
 	}
-	if !accessListSegmentation.ServiceID.IsZero() {
-		update["service_id"] = accessListSegmentation.ServiceID
+	if accessListSegmentation.AccessListKey != "" {
+		update["access_list_key"] = accessListSegmentation.AccessListKey
 	}
 	if accessListSegmentation.SegmentationCode != "" {
 		update["segmentation_code"] = accessListSegmentation.SegmentationCode
 	}
-	if accessListSegmentation.SegmentationName != "" {
-		update["service_name"] = accessListSegmentation.SegmentationName
+	if accessListSegmentation.AccessListName != "" {
+		update["access_list_name"] = accessListSegmentation.AccessListName
 	}
 	update["updated_at"] = time.Now()
 
@@ -259,10 +300,35 @@ func (a *AccessListSegmentation) Update(ctx context.Context, id string, accessLi
 	}
 	return nil
 }
-
-func NewAccessListSegmentationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string, logger utils.Logger) storage.AccessListSegmentationRepository {
+func (a *AccessListSegmentation) FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error) {
+	var filter bson.M
+	var objID bson.ObjectID
+	objID, err := bson.ObjectIDFromHex(segmentIDorCode)
+	if err != nil {
+		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is not a valid ObjectID, treating as segmentation code")
+		filter = bson.M{
+			"segmentation_code": segmentIDorCode,
+		}
+	} else {
+		a.logger.Infof("[FindAllBySegmentIDorSegmentCode] segmentIDorCode is a valid ObjectID, treating as segmented ID")
+		filter = bson.M{
+			"segmented_id": objID,
+		}
+	}
+	als, err := a.repo.FindAll(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] access list segmentation not found")
+			return nil, errors.New(localization.ErrorAccessListSegmentationNotFound.Code)
+		}
+		a.logger.Errorf("[FindAllBySegmentIDorSegmentCode] failed to find access list segmentation by segmentation id or segment code: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return als, nil
+}
+func NewAccessListSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string, logger utils.Logger) storage.AccessListSegmentationRepository {
 	return &AccessListSegmentation{
-		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client,cfg, dbName, collectionName),
+		repo:           dal.NewMongoDal[local_model.AccessListSegmentation, local_model.AccessListSegmentation](client, cfg, dbName, collectionName),
 		client:         client,
 		dbName:         dbName,
 		collectionName: collectionName,

@@ -129,6 +129,26 @@ func (a *accessListSegmentation) UpdateAccessListSegmentation(w http.ResponseWri
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationUpdated, nil)
 }
 
+func (a *accessListSegmentation) GetAllAccessListSegmentationBySegmentIDorSegmentCode(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		a.logger.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] missing id parameter")
+		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
+		return
+	}
+	accesssList, accessListSegmentations, err := a.service.GetAllAccessListSegmentationBySegmentIDorSegmentCode(r.Context(), id)
+	if err != nil {
+		a.logger.Errorf("[GetAllAccessListSegmentationBySegmentIDorSegmentCode] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationRetrieved, map[string]interface{}{
+		"access_lists":              accesssList,
+		"access_list_segmentations": accessListSegmentations,
+	})
+}
+
 func InitAccessListSegmentationAdapter(accessListSegmentationApplication service.AccessListSegmentationService, logger utils.Logger) accesslistsegmentation.AccessListSegmentationHandler {
 	return &accessListSegmentation{
 		service: accessListSegmentationApplication,
