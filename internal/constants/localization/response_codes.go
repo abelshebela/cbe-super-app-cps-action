@@ -644,7 +644,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccessListSegmentationIDSRequired,
 	ErrorAccessListSegmentationNameAlreadyExists,
 	ErrorCustomerSegmentationCodeNotFound,
-	ErrorServiceIdRequired,
+	ErrorAccessListKeysRequired,
 
 	// Access List Segmentaion Success Code
 	SuccessAccessListSegmentationRetrieved,
@@ -6492,10 +6492,10 @@ var (
 		Message:    MsgAccessListSegmentationIDsRequired,
 		Type:       "error",
 	}
-	ErrorServiceIdRequired = ResponseCode{
-		Code:       "ERROR_SERVICE_ID_REQUIRED",
+	ErrorAccessListKeysRequired = ResponseCode{
+		Code:       "ERROR_ACCESS_LIST_KEYS_REQUIRED",
 		StatusCode: StatusBadRequest,
-		Message:    MsgServiceIdRequired,
+		Message:    MsgAccessListKeysRequired,
 		Type:       "error",
 	}
 )
