@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package BankService;
+
+option go_package = "./bank";
+
+message Bank {
+    string id = 1;
+    string name = 2;
+    string logo = 3;
+    string bic_code = 4;
+    string type = 5;
+    bool enabled = 6;
+}
+
+message docs {
+    repeated Bank banks = 1;
+}
+
+message GetOneBankRequest {
+    string id = 1;
+}
+
+message GetAllBankRequest {
+    int32 page = 1;
+    int32 per_page = 2;
+    string search = 3;
+}
+
+message GetOneBankResponse {
+    Bank bank = 1;
+}
+
+message Meta {
+    int32 total_pages = 2;
+    int32 limit = 1;
+    int32 total_docs = 3;
+    int32 page = 4;
+    bool has_next_page = 5;
+    bool has_prev_page = 6;
+    int32 next_page = 7;
+}
+message GetAllBankResponse {
+    repeated Bank banks = 1;
+    Meta metadata = 2;
+}
+
+
+service BankService {
+    rpc GetOneBank (GetOneBankRequest) returns (GetOneBankResponse);
+    rpc GetAllBank (GetAllBankRequest) returns (GetAllBankResponse);
+}

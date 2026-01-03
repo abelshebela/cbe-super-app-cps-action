@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package topup;
+
+option go_package = "github.com/cbesuperapp/cbe-super-app-cps-action/grpc/topup;topup";
+import "google/protobuf/timestamp.proto";
+
+message TopupRequest {
+}
+
+message Topup {
+    string id = 1;
+    string name = 2;
+    string code = 3;
+    string avatar = 4;
+    bool enabled = 5;
+    bool is_deleted = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp last_modified_at = 9;
+    google.protobuf.Timestamp deleted_at = 10;
+}
+message TopupResponse {
+  repeated Topup topups = 1;
+}
+
+service TopupService {
+    rpc GetAllTopup (TopupRequest) returns (TopupResponse);
+}

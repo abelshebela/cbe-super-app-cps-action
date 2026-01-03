@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cps-action",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd",
+            "envFile": "${workspaceFolder}/.env",
+            "env": {
+                "PATH": "C:\\instantclient_23_9;${env:PATH}",
+                "OCI_LIB_DIR": "C:\\instantclient_23_9",
+                "OCI_INC_DIR": "C:\\instantclient_23_9\\sdk\\include",
+                "TNS_ADMIN": "C:\\instantclient_23_9\\network\\admin",
+                "CGO_ENABLED": "1",
+                "CC": "gcc",
+                "CXX": "g++"
+            }
+        }
+    ]
+}
