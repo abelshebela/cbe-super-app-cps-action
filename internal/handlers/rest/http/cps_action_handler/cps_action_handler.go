@@ -518,6 +518,7 @@ func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, 
 		return
 	}
 
+	fmt.Println("Role ID", rawRoleID)
 	// fetch checker allocations for this role
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {

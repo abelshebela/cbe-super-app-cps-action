@@ -131,11 +131,12 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 	}
 	return action, nil
 }
-func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
+func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, role_code string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByUniqueID", "CPSAction", "GetCPSActionByUniqueID")
 	defer span.End()
+
 	filter := bson.M{
-		"department":     department,
+		"role_code":      role_code,
 		"action_status":  string(constants.Pending),
 		"request_action": requestAction,
 	}
