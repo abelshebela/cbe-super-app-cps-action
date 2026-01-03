@@ -114,6 +114,7 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 	}
 	return result, nil
 }
+
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByID", "CPSAction", "GetCPSActionByID")
 	defer span.End()
@@ -130,11 +131,12 @@ func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department
 	}
 	return action, nil
 }
-func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, department string) (*model.CPSAction, error) {
+func (ca *cpsActionService) GetCPSActionByUniqueID(ctx context.Context, requestAction, role_code string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByUniqueID", "CPSAction", "GetCPSActionByUniqueID")
 	defer span.End()
+
 	filter := bson.M{
-		"department":     department,
+		"role_code":      role_code,
 		"action_status":  string(constants.Pending),
 		"request_action": requestAction,
 	}
@@ -180,4 +182,42 @@ func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, dep
 		return nil, err
 	}
 	return count, nil
+}
+
+func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCreatedActions", "CPSAction", "GetUserCreatedActions")
+	defer span.End()
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	filterParams.Filters["maker_id"] = userID
+
+	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
+	if err != nil {
+		span.AddEvent("failed to find pending cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
+}
+
+func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCheckedActions", "CPSAction", "GetUserCheckedActions")
+	defer span.End()
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	filterParams.Filters["maker_id"] = userID
+
+	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
+	if err != nil {
+		span.AddEvent("failed to find approver cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
 }

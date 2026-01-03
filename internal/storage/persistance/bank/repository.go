@@ -13,11 +13,11 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type BankStorage struct {
@@ -26,9 +26,9 @@ type BankStorage struct {
 	logger utils.Logger
 }
 
-func NewBankRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
+func NewBankRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BankRepository {
 	return &BankStorage{
-		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg,dbName, collection),
+		dal:    dal.NewMongoDal[model.Bank, model.Bank](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
@@ -182,7 +182,7 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			s.logger.Infof("[FindAllWithPagination] no banks found")

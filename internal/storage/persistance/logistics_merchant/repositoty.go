@@ -14,12 +14,12 @@ import (
 
 	"time"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type LogisticsMerchantRepository struct {
@@ -153,7 +153,7 @@ func (s *LogisticsMerchantRepository) FindAllWithPagination(ctx context.Context,
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("Failed to fetch paginated logistics merchants: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
@@ -188,7 +188,7 @@ func (m *LogisticsMerchantRepository) FindOne(ctx context.Context, filter bson.M
 
 func NewLogisticsMerchantRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.LogisticsMerchantRepository {
 	return &LogisticsMerchantRepository{
-		dal:    dal.NewMongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant](client,cfg, dbName, collection),
+		dal:    dal.NewMongoDal[local_model.LogisticsMerchant, local_model.LogisticsMerchant](client, cfg, dbName, collection),
 		logger: logger,
 	}
 }
