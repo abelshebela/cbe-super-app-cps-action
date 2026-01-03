@@ -266,9 +266,16 @@ func RandomGenerator(length uint8) string {
 var allowedChars = "a-zA-Z0-9\\s._-"
 
 func NoSpecialChars(value any) error {
-	str, ok := value.(string)
-	if !ok {
-
+	var str string
+	switch v := value.(type) {
+	case string:
+		str = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		str = *v
+	default:
 		return validation.NewError("validation", "invalid type")
 	}
 	str = strings.TrimSpace(str)
@@ -313,8 +320,16 @@ func FormatPhoneNumber(phoneNumber string) string {
 }
 
 func ThreeNamesMinLength(value interface{}) error {
-	name, ok := value.(string)
-	if !ok {
+	var name string
+	switch v := value.(type) {
+	case string:
+		name = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		name = *v
+	default:
 		return errors.New("invalid full_name")
 	}
 
@@ -333,13 +348,22 @@ func ThreeNamesMinLength(value interface{}) error {
 }
 
 func TrimWhiteSpace(value interface{}) error {
-	if s, ok := value.(string); ok {
-		if strings.TrimSpace(s) == "" {
-			return errors.New("value cannot be empty or whitespace")
+	var s string
+	switch v := value.(type) {
+	case string:
+		s = v
+	case *string:
+		if v == nil {
+			return nil
 		}
+		s = *v
+	default:
+		return nil // Non-string types are not trimmed
+	}
+	if strings.TrimSpace(s) == "" {
+		return errors.New("value cannot be empty or whitespace")
 	}
 	return nil
-
 }
 
 func JsonUnmarshal[T any](data any) (*T, error) {
@@ -521,8 +545,16 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 }
 
 func NumbersOnly(value any) error {
-	str, ok := value.(string)
-	if !ok {
+	var str string
+	switch v := value.(type) {
+	case string:
+		str = v
+	case *string:
+		if v == nil {
+			return nil
+		}
+		str = *v
+	default:
 		return validation.NewError("validation", "unsupported type")
 	}
 	re := regexp.MustCompile(`^\d+$`)

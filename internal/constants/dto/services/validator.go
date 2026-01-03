@@ -79,7 +79,7 @@ func (s ServiceList) Validate() error {
 		return err
 	}
 
-	if s.HaveAnOverideTiers {
+	if BoolPointer(s.HaveAnOverideTiers, false) {
 		err := validation.ValidateStruct(&s,
 			validation.Field(&s.OverideCap, validation.Required),
 			validation.Field(&s.OverideTiers, validation.Required, validation.Length(1, 0)),
@@ -87,7 +87,7 @@ func (s ServiceList) Validate() error {
 		if err != nil {
 			return err
 		}
-		return validateCapAndTiers(s.OverideCap, s.OverideTiers)
+		return validateCapAndTiers(*s.OverideCap, s.OverideTiers)
 	}
 
 	return nil
@@ -142,15 +142,15 @@ func (r UpdateServiceRequest) Validate() error {
 		return err
 	}
 
-	if r.HaveATier {
-		if r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil || len(r.Tiers) > 0 {
-			if err := validateCapAndTiers(r.Cap, r.Tiers); err != nil {
+	if BoolPointer(r.HaveATier, false) {
+		if r.Cap != nil && (r.Cap.SingleCap != nil || r.Cap.MinimumTransferCap != nil) || len(r.Tiers) > 0 {
+			if err := validateCapAndTiers(*r.Cap, r.Tiers); err != nil {
 				return err
 			}
 		}
 	}
 
-	if r.HaveAChild {
+	if BoolPointer(r.HaveAChild, false) {
 		err := validation.ValidateStruct(&r,
 			validation.Field(&r.ServiceList, validation.Each(validation.Required)),
 		)
