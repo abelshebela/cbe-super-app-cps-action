@@ -447,6 +447,7 @@ const (
 	MsgFieldTooShort                         = "Field value is too short"
 	MsgBankDisableRequestSuccessfullyCreated = "Bank Disable request successfully created"
 	MsgBankDisableRequestFailed              = "Bank Disable request  failed"
+	MsgRoleNotFoundWithGivenJobTitle         = "Role does not exist with the given job title"
 
 	MsgBankEnableRequestSuccessfullyCreated = "Bank Enable request successfully created"
 	MsgBankEnableRequestFailed              = "Bank Enable request  failed"
