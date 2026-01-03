@@ -60,11 +60,12 @@ type LinkedAccount struct {
 }
 
 type PersonalInfo struct {
-	FullName    string `json:"full_name" bson:"full_name"`         // customer_kyc.kyc_data
-	Gender      string `json:"gender" bson:"gender"`               //customer_kyc.kyc_data
-	PhoneNumber string `json:"phone_number" bson:"phone_number"`   //customer_kyc.kyc_data
-	Email       string `json:"email" bson:"email"`                 // members
-	DateOfBirth string `json:"date_of_birth" bson:"date_of_birth"` // customer_kyc.kyc_data
+	FullName       string `json:"full_name" bson:"full_name"`             // customer_kyc.kyc_data
+	Gender         string `json:"gender" bson:"gender"`                   //customer_kyc.kyc_data
+	PhoneNumber    string `json:"phone_number" bson:"phone_number"`       //customer_kyc.kyc_data
+	Email          string `json:"email" bson:"email"`                     // members
+	CustomerNumber string `json:"customer_number" bson:"customer_number"` // members
+	DateOfBirth    string `json:"date_of_birth" bson:"date_of_birth"`     // customer_kyc.kyc_data
 }
 
 type CustomerDetailResponse struct {
