@@ -17,11 +17,11 @@ import (
 
 	"cbe-super-app-cps-action/internal/constants/lib"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type DonationStorage struct {
@@ -33,11 +33,11 @@ type DonationStorage struct {
 	logger              utils.Logger
 }
 
-func NewDonationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
+func NewDonationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, kafkaProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.DonationRepository {
 	return &DonationStorage{
-		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client,cfg, dbName, collection),
-		donationCompanyDal:  dal.NewMongoDal[imodel.DonationCompany, imodel.DonationCompany](client,cfg, dbName, "donation_companies"),
-		donationCategoryDal: dal.NewMongoDal[imodel.DonationCategory, imodel.DonationCategory](client,cfg, dbName, "donation_categories"),
+		dal:                 dal.NewMongoDal[imodel.Donation, imodel.Donation](client, cfg, dbName, collection),
+		donationCompanyDal:  dal.NewMongoDal[imodel.DonationCompany, imodel.DonationCompany](client, cfg, dbName, "donation_companies"),
+		donationCategoryDal: dal.NewMongoDal[imodel.DonationCategory, imodel.DonationCategory](client, cfg, dbName, "donation_categories"),
 		client:              client,
 		kafkaProducer:       kafkaProducer,
 		logger:              logger,
@@ -161,7 +161,7 @@ func (d *DonationStorage) FindAllWithPagination(ctx context.Context, filterParam
 		}
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	data, err := d.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := d.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch donations: %v", err)
 		return nil, err

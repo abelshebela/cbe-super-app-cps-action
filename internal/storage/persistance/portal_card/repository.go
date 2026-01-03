@@ -14,11 +14,11 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type PortalCardStorage struct {
@@ -27,9 +27,9 @@ type PortalCardStorage struct {
 	logger utils.Logger
 }
 
-func NewPortalCardRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.PortalCardRepository {
+func NewPortalCardRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.PortalCardRepository {
 	return &PortalCardStorage{
-		dal:    dal.NewMongoDal[model.Card, model.Card](client, cfg,dbName, collection),
+		dal:    dal.NewMongoDal[model.Card, model.Card](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
@@ -64,7 +64,7 @@ func (s *PortalCardStorage) FindAllWithPagination(ctx context.Context, filterPar
 	}
 
 	// 5. Fetch data
-	data, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("[FindAllWithPagination] failed to fetch portal cards: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)

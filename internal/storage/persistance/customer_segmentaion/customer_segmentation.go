@@ -14,10 +14,10 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type customerStorage struct {
@@ -28,9 +28,9 @@ type customerStorage struct {
 	logger     utils.Logger
 }
 
-func NewCustomerSegmentationRepository(client *mongo.Client,cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
+func NewCustomerSegmentationRepository(client *mongo.Client, cfg *config.VaultConfig, dbName, collection string, logger utils.Logger) storage.CustomerSegmentationRepository {
 	return &customerStorage{
-		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client,cfg, dbName, collection),
+		dal:        dal.NewMongoDal[imodel.CustomerSegmentation, imodel.CustomerSegmentation](client, cfg, dbName, collection),
 		client:     client,
 		dbName:     dbName,
 		collection: collection,
@@ -137,7 +137,7 @@ func (r *customerStorage) FindAllWithPagination(ctx context.Context, filterParam
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 	filter["is_deleted"] = false
 
-	data, err := r.dal.FindAllWithPagination(ctx, filter, projection, skip, limit)
+	data, err := r.dal.FindAllWithPaginationE(ctx, filter, projection, skip, limit)
 	if err != nil {
 		r.logger.Errorf("[FindAllWithPagination] failed to fetch customer segmentations: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
