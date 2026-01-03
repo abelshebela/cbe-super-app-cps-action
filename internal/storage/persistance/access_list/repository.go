@@ -28,9 +28,9 @@ type AccessListStorage struct {
 	logger        utils.Logger
 }
 
-func NewAccessListRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AppAccessListRepository {
+func NewAccessListRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.AppAccessListRepository {
 	return &AccessListStorage{
-		dal:           dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client,cfg, dbName, collection),
+		dal:           dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, collection),
 		client:        client,
 		kafkaProducer: clientOrchestrationProducer,
 		logger:        logger,
@@ -137,7 +137,7 @@ func (a *AccessListStorage) FindByID(ctx context.Context, id string) (*model.APP
 
 func (a *AccessListStorage) FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"access_list_name", "ussd_enabled", "enabled"}
+	allowedKeys := []string{"search", "access_list_name", "ussd_enabled", "enabled"}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["access_list_name"] = searchRegex
