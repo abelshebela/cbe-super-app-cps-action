@@ -82,6 +82,7 @@ func (f *FeedbackStorage) FindByID(ctx context.Context, id string) (*feedback.Fe
 				{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
 				{Key: "user_code", Value: "$user.user_code"},
 				{Key: "full_name", Value: "$user.full_name"},
+				{Key: "phone_number", Value: "$user.phone_number"},
 			}},
 		}}},
 	}
@@ -147,6 +148,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 						{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
 						{Key: "user_code", Value: "$user.user_code"},
 						{Key: "full_name", Value: "$user.full_name"},
+						{Key: "phone_number", Value: "$user.phone_number"},
 					}},
 				}}},
 			}},
