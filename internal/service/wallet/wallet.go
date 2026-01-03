@@ -87,7 +87,7 @@ func (s *walletService) CreateWallet(ctx context.Context, req walletDto.WalletRe
 	}
 
 	wallet := core.ToCreateWalletDoc(req.Name, code, URL, req.ServiceID, req.Self, req.Other, req.Agent)
-	wallet.Enabled = true
+	wallet.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, wallet.ID.Hex(), constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
 	if err := core.HandleCPSAction(ctx, s.cpsService, "", constants.RequestCreateWallet, wallet, nil, constants.ActionCreate); err != nil {
