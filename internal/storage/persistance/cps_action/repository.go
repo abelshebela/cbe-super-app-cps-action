@@ -15,11 +15,11 @@ import (
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	local_utils "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type CPSActionStorage struct {
@@ -29,9 +29,9 @@ type CPSActionStorage struct {
 	logger     utils.Logger
 }
 
-func NewCPSActionRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.CPSActionRepository {
+func NewCPSActionRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.CPSActionRepository {
 	return &CPSActionStorage{
-		dal:        dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg,dbName, collection),
+		dal:        dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collection),
 		client:     client,
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
@@ -180,8 +180,6 @@ func (r *CPSActionStorage) SanitizedFindAllWithPagination(ctx context.Context, f
 		baseFilter["$or"] = []bson.M{
 			{"maker_name": searchRegex},
 			{"maker_phone_number": searchRegex},
-			{"checker_name": searchRegex},
-			{"checker_phone_number": searchRegex},
 			{"action_status": searchRegex},
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
