@@ -24,6 +24,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
@@ -36,9 +37,9 @@ type CustomerRepository struct {
 	kafkaProducer    kafka.ClientOrchestrationProducer
 }
 
-func InitCustomerDetail(client *mongo.Client,cfg *config.VaultConfig, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
-	mongoDal := dal.NewMongoDal[member.User, member.User](client,cfg, database, collection[0])
-	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client,cfg, database, collection[1])
+func InitCustomerDetail(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, clientOrchestrationProducer kafka.ClientOrchestrationProducer, logger utils.Logger) storage.CustomerRepository {
+	mongoDal := dal.NewMongoDal[member.User, member.User](client, cfg, database, collection[0])
+	linkedAccountDal := dal.NewMongoDal[model.LinkedAccount, model.LinkedAccount](client, cfg, database, collection[1])
 	return &CustomerRepository{
 		client:           client,
 		mongoDal:         mongoDal,
@@ -51,7 +52,7 @@ func InitCustomerDetail(client *mongo.Client,cfg *config.VaultConfig, database s
 
 func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
+	allowedKeys := []string{"search", "gender", "branch_code", "kyc_level", "is_blocked", "enabled", "bps_reject_status"}
 
 	if filterParam.Search != "" {
 		// Build regex for Ethiopian phone numbers
@@ -79,6 +80,7 @@ func (p *CustomerRepository) FindAllWithPagination(ctx context.Context, filterPa
 
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
+		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		// Lookup Branch Info from account_block using branch_code
 		{{Key: "$lookup", Value: bson.D{
 			{Key: "from", Value: "account_block"},
