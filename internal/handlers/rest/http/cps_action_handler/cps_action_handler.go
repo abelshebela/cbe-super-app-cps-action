@@ -532,7 +532,7 @@ func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, 
 	}
 
 	if checkerActions == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, nil)
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
 		return
 	}
 
