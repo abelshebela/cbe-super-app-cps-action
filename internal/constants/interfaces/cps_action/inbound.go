@@ -13,4 +13,8 @@ type CPSActionAdapter interface {
 	GetCPSActionByID(w http.ResponseWriter, r *http.Request)
 	GetCPSActionByActionCode(w http.ResponseWriter, r *http.Request)
 	GetActionCounts(w http.ResponseWriter, r *http.Request)
+	ApproverCheckerAllocations(w http.ResponseWriter, r *http.Request)
+	ApproverAuditorAllocations(w http.ResponseWriter, r *http.Request)
+	GetUserApproverPendingActions(w http.ResponseWriter, r *http.Request)
+	GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request)
 }

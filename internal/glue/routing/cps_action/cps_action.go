@@ -93,6 +93,30 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 				authMiddleware.AuthenticateToken,
 			},
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/actions/approver/checker-allocations",
+			Handler: handler.ApproverCheckerAllocations,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/actions/approver/auditor-allocations",
+			Handler: handler.ApproverAuditorAllocations,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/actions/approver/checker/actions/pending",
+			Handler: handler.GetUserApproverPendingActions,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
 	}
 
 	glue.RegisterRoutes(router, routes)
