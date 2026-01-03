@@ -180,7 +180,7 @@ func (b *BankService) CreateOneBank(ctx context.Context, bank_request bank_dto.C
 		BICCode: bank_request.BICCode,
 		Type:    string(bank_request.Type),
 		Logo:    URL,
-		Enabled: true,
+		Enabled: false,
 	}
 
 	result, err := b.repo.FindByNameOrBIC(ctx, bank_request.BICCode, bank_request.Name)
