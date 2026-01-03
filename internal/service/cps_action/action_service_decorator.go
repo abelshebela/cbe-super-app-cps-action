@@ -97,6 +97,10 @@ func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, u
 	return s.base.GetUserCreatedActions(ctx, userID, filterParams)
 }
 
+func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsForApprover(ctx, RAList, filterParams)
+}
+
 //	func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
 //		return s.base.ReverseCPSAction(ctx, actionCode)
 //	}

@@ -38,8 +38,8 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateCPSAction", "CPSAction", "CreateCPSAction")
 	defer span.End()
 
-	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, cpsAction.Department)
-
+	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
+	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, roleCode)
 	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
 		span.AddEvent("failed to get cps action by unique id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
@@ -50,6 +50,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 		return errors.New(localization.ErrorPendingCpsActionExists.Code)
 	}
 
+	cpsAction.RoleCode = roleCode
 	err = ca.repo.Save(ctx, cpsAction)
 	if err != nil {
 		span.AddEvent("failed to save cps action", trace.WithAttributes(attribute.String("error", err.Error())))
@@ -108,6 +109,17 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsByDepartment", "CPSAction", "GetCPSActionsByDepartment")
 	defer span.End()
 	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, department)
+	if err != nil {
+		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
+}
+
+func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForApprover", "CPSAction", "GetCPSActionsForApprover")
+	defer span.End()
+	result, err := ca.repo.SanitizedFindAllWithPaginationForApprover(ctx, *filterParams, RAList)
 	if err != nil {
 		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
 		return nil, err
