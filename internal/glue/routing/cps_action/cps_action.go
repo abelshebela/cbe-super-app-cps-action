@@ -95,15 +95,7 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/approver/checker-allocations",
-			Handler: handler.ApproverCheckerAllocations,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/actions/approver/auditor-allocations",
+			Path:    "/actions/approver/auditor/actions",
 			Handler: handler.ApproverAuditorAllocations,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
@@ -111,8 +103,8 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/approver/checker/actions/pending",
-			Handler: handler.GetUserApproverPendingActions,
+			Path:    "/actions/approver/checker/actions",
+			Handler: handler.GetUserApproverActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},

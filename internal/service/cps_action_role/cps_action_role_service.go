@@ -641,10 +641,10 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 						CreatedAt:      now,
 					})
 
-					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID)))
 					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID, val)
 				} else {
-					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID)))
 					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID, val)
 				}
 			}

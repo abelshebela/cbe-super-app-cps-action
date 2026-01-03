@@ -15,6 +15,6 @@ type CPSActionAdapter interface {
 	GetActionCounts(w http.ResponseWriter, r *http.Request)
 	ApproverCheckerAllocations(w http.ResponseWriter, r *http.Request)
 	ApproverAuditorAllocations(w http.ResponseWriter, r *http.Request)
-	GetUserApproverPendingActions(w http.ResponseWriter, r *http.Request)
+	GetUserApproverActions(w http.ResponseWriter, r *http.Request)
 	GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request)
 }
