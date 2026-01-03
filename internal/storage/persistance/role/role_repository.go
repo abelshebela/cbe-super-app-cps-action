@@ -50,16 +50,12 @@ func (r *RoleRepository) ExistsMany(ctx context.Context, ids []string) (bool, er
 	if len(ids) == 0 {
 		return true, nil
 	}
-	oids := make([]bson.ObjectID, 0, len(ids))
+	oids := make([]string, 0, len(ids))
 	for _, id := range ids {
-		oid, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return false, err
-		}
-		oids = append(oids, oid)
+		oids = append(oids, id)
 	}
 
-	count, err := r.collection.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": oids}})
+	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": oids}})
 	if err != nil {
 		return false, err
 	}
