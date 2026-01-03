@@ -14,37 +14,15 @@ func MapToServiceUpdate(service imodel.Service, existing imodel.Service) bson.M 
 		"last_modified_at": time.Now(),
 	}
 
-	if service.ServiceCode != "" {
-		update["service_code"] = service.ServiceCode
-	}
-
-	if service.ServiceKey != "" {
-		update["service_key"] = service.ServiceKey
-	}
-
-	if service.ServiceName != "" {
-		update["service_name"] = service.ServiceName
-	}
-
-	if service.ProductGlAccount != "" {
-		update["product_gl_account"] = service.ProductGlAccount
-	}
+	update["service_code"] = service.ServiceCode
+	update["service_key"] = service.ServiceKey
+	update["service_name"] = service.ServiceName
+	update["product_gl_account"] = service.ProductGlAccount
 
 	if len(service.Tiers) > 0 {
 		update["tiers"] = service.Tiers
 	}
-
-	// for i, _ := range service.ServiceList {
-	// 	existing := existing.ServiceList[i]
-	// 	service.ServiceList[i].IsEnabled = existing.IsEnabled
-	// }
-
 	update["service_list"] = service.ServiceList
-
-	// if len(service.ServiceList) > 0 {
-	// 	update["service_list"] = service.ServiceList
-	// }
-
 	if service.Cap != (imodel.Cap{}) {
 		update["cap"] = service.Cap
 	}

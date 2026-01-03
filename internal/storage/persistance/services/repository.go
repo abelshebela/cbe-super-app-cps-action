@@ -168,7 +168,7 @@ func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam
 		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q}}
 	}
 
-	items, err := s.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	items, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		s.logger.Errorf("failed to get all services: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

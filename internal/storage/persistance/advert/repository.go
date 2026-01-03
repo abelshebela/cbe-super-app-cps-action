@@ -14,11 +14,11 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type AdvertStorage struct {
@@ -28,9 +28,9 @@ type AdvertStorage struct {
 	collection *mongo.Collection
 }
 
-func NewAdvertRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.AdvertRepository {
+func NewAdvertRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.AdvertRepository {
 	return &AdvertStorage{
-		dal:        dal.NewMongoDal[model.Advert, model.Advert](client,cfg, dbName, collection),
+		dal:        dal.NewMongoDal[model.Advert, model.Advert](client, cfg, dbName, collection),
 		client:     client,
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
@@ -150,7 +150,7 @@ func (a *AdvertStorage) FindAllWithPagination(ctx context.Context, filterParam t
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// Fetch data with final filter
-	data, err := a.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := a.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		a.logger.Errorf("[FindAllWithPagination] failed to fetch adverts: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

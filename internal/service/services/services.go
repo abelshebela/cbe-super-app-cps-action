@@ -45,8 +45,11 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 		return err
 	}
 
+	searchCode := service_dto.StringPointer(req.ServiceCode, prev.ServiceCode)
+	searchName := service_dto.StringPointer(req.ServiceName, prev.ServiceName)
+
 	filterParam := types.Filter{
-		Search: req.ServiceCode,
+		Search: searchCode,
 	}
 	services, err := s.repo.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
@@ -54,12 +57,11 @@ func (s *servicesService) Update(ctx context.Context, id string, req service_dto
 	}
 
 	for _, svc := range services.Data {
-		if svc.ID.Hex() != id && (svc.ServiceCode == req.ServiceCode || svc.ServiceName == req.ServiceName) {
+		if svc.ID.Hex() != id && (svc.ServiceCode == searchCode || svc.ServiceName == searchName) {
 			return errors.New(localization.ErrorServiceExists.Code)
 		}
 	}
-
-	mapped := core.MapToServiceUpdateModel(req)
+	mapped := core.MapToServiceUpdateModel(req, *prev)
 	return core.HandleCPSAction(ctx, s.cps, id, constants.RequestUpdateService, mapped, prev, constants.ActionUpdate)
 }
 
