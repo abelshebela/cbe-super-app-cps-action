@@ -664,6 +664,8 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorJobTitleAlreadyExists,
 	ErrorRoleAlreadyExists,
+
+	ErrorAccessListSegmentationKeyNotFound,
 }
 
 // Success Response Codes
@@ -6496,6 +6498,12 @@ var (
 		Code:       "ERROR_ACCESS_LIST_KEYS_REQUIRED",
 		StatusCode: StatusBadRequest,
 		Message:    MsgAccessListKeysRequired,
+		Type:       "error",
+	}
+	ErrorAccessListSegmentationKeyNotFound = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_KEY_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgAccessListSegmentationKeyNotFound,
 		Type:       "error",
 	}
 )
