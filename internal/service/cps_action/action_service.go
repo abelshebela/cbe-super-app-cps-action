@@ -114,6 +114,7 @@ func (ca *cpsActionService) GetCPSActionsByDepartment(ctx context.Context, depar
 	}
 	return result, nil
 }
+
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByID", "CPSAction", "GetCPSActionByID")
 	defer span.End()
@@ -180,4 +181,42 @@ func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, dep
 		return nil, err
 	}
 	return count, nil
+}
+
+func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCreatedActions", "CPSAction", "GetUserCreatedActions")
+	defer span.End()
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	filterParams.Filters["maker_id"] = userID
+
+	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
+	if err != nil {
+		span.AddEvent("failed to find pending cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
+}
+
+func (ca *cpsActionService) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserCheckedActions", "CPSAction", "GetUserCheckedActions")
+	defer span.End()
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	filterParams.Filters["maker_id"] = userID
+
+	result, err := ca.repo.SanitizedFindAllWithPagination(ctx, *filterParams, "")
+	if err != nil {
+		span.AddEvent("failed to find approver cps actions by user", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
 }

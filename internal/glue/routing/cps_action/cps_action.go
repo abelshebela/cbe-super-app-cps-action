@@ -55,32 +55,16 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/pending/user",
-			Handler: handler.GetUserPendingCPSActions,
+			Path:    "/actions/user/created/actions",
+			Handler: handler.GetUserCreatedActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
 		},
 		{
 			Method:  http.MethodGet,
-			Path:    "/actions/approved/user",
-			Handler: handler.GetUserApprovedCPSActions,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/actions/approver/pending/actions",
-			Handler: handler.GetUserApproverPendingActions,
-			Middlewares: []func(next http.Handler) http.Handler{
-				authMiddleware.AuthenticateToken,
-			},
-		},
-		{
-			Method:  http.MethodGet,
-			Path:    "/actions/approver/approved/actions",
-			Handler: handler.GetUserApproverApprovedActions,
+			Path:    "/actions/user/checked/actions",
+			Handler: handler.GetUserCheckedActions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
 			},
