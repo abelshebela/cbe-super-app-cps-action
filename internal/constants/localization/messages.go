@@ -1153,5 +1153,5 @@ const (
 	MsgCustomerSegmentationCodeNotFound            = "Customer segmentation code not found"
 	MsgCustomerSegmentationEnableSuccessfully      = "Customer segmentation enable request submitted successfully"
 	MsgCustomerSegmentationDisableSuccessfully     = "Customer segmentation disable request submitted successfully"
-	MsgServiceIdRequired                           = "Service ID is required"
+	MsgAccessListKeysRequired                      = "Access List Keys are required"
 )

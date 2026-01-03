@@ -7,8 +7,8 @@ import (
 )
 
 func (c CreateAccessListSegmentationRequest) Validate() error {
-	if c.ServiceID == "" {
-		return errors.New(localization.ErrorServiceIdRequired.Code)
+	if c.AccessListKeys == nil {
+		return errors.New(localization.ErrorAccessListKeysRequired.Code)
 	}
 	validTypes := map[string]struct{}{"R": {}, "D": {}, "C": {}, "U": {}, "B": {}}
 	t := strings.TrimSpace(c.Type)

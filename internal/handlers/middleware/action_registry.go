@@ -152,7 +152,8 @@ var cpsActionRegistry = map[string]string{
 	"PATCH job_roles": "JOBROLE",
 
 	// Access list segmentation
-	"POST access_list_segmentation": "ACCESSLISTSEGMENTATION",
+	"POST access_list_segmentation":  "ACCESSLISTSEGMENTATION",
+	"PATCH access_list_segmentation": "ACCESSLISTSEGMENTATION",
 
 	// PasswordRule
 	"PATCH password_rule": "PASSWORDRULE",

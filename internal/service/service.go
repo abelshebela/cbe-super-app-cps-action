@@ -728,4 +728,5 @@ type AccessListSegmentationService interface {
 	UpdateAccessListSegmentation(ctx context.Context, req access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
+	GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []local_model.AccessListSegmentation, error)
 }
