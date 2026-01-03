@@ -16,9 +16,9 @@ import (
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type BulkServicePersistence struct {
@@ -27,9 +27,9 @@ type BulkServicePersistence struct {
 	logger              utils.Logger
 }
 
-func InitBulkServicePersistence(client *mongo.Client,cfg *config.VaultConfig, dbName string, collections []string, logger utils.Logger) storage.BulkServiceRepository {
-	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client,cfg, dbName, collections[0])
-	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client,cfg, dbName, collections[1])
+func InitBulkServicePersistence(client *mongo.Client, cfg *config.VaultConfig, dbName string, collections []string, logger utils.Logger) storage.BulkServiceRepository {
+	mongoDalCpsAction := dal.NewMongoDal[model.CPSAction, model.CPSAction](client, cfg, dbName, collections[0])
+	mongoDalbulkService := dal.NewMongoDal[model.APPAccessList, model.APPAccessList](client, cfg, dbName, collections[1])
 	return &BulkServicePersistence{
 		mongoDalCpsAction:   mongoDalCpsAction,
 		mongoDalbulkService: mongoDalbulkService,
@@ -57,7 +57,7 @@ func (b BulkServicePersistence) FindAllWithPagination(ctx context.Context, filte
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := b.mongoDalbulkService.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := b.mongoDalbulkService.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// Return empty paginated response

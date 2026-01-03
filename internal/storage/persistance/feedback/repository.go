@@ -14,11 +14,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type FeedbackStorage struct {
@@ -30,10 +30,10 @@ type FeedbackStorage struct {
 	logger              utils.Logger
 }
 
-func NewFeedbackRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, feedbackCollection, customerFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
+func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, feedbackCollection, customerFeedbackCollection string, logger utils.Logger) storage.FeedbackRepository {
 	return &FeedbackStorage{
-		dal:                 dal.NewMongoDal[model.Feedback, model.Feedback](client, cfg,dbName, feedbackCollection),
-		customerFeedbackDal: dal.NewMongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback](client,cfg, dbName, customerFeedbackCollection),
+		dal:                 dal.NewMongoDal[model.Feedback, model.Feedback](client, cfg, dbName, feedbackCollection),
+		customerFeedbackDal: dal.NewMongoDal[local_model.CustomerFeedback, local_model.CustomerFeedback](client, cfg, dbName, customerFeedbackCollection),
 		client:              client,
 		feedbackCollection:  client.Database(dbName).Collection(feedbackCollection),
 		customerCollection:  client.Database(dbName).Collection(customerFeedbackCollection),
@@ -243,7 +243,7 @@ func (f *FeedbackStorage) FindAllCustomerFeedbacks(ctx context.Context, filterPa
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	f.logger.Infof("[FindAllCustomerFeedbacks] fetching customer feedbacks with pagination")
-	data, err := f.customerFeedbackDal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := f.customerFeedbackDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		f.logger.Errorf("[FindAllCustomerFeedbacks] failed to fetch customer feedbacks: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)

@@ -10,11 +10,11 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type ArchivedLinkedAccountStorage struct {
@@ -29,9 +29,9 @@ type ArchivedLinkedAccountRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.ArchivedLinkedAccount], error)
 }
 
-func NewArchivedLinkedAccountRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
+func NewArchivedLinkedAccountRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.ArchivedLinkedAccountRepository {
 	return &ArchivedLinkedAccountStorage{
-		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client,cfg, dbName, collection),
+		dal:    dal.NewMongoDal[model.LinkedAccount, model.ArchivedLinkedAccount](client, cfg, dbName, collection),
 		client: client,
 		logger: logger,
 	}
@@ -121,7 +121,7 @@ func (l *ArchivedLinkedAccountStorage) FindAllWithPagination(ctx context.Context
 	skip := int64((filterParam.Page - 1) * filterParam.PerPage)
 	limit := int64(filterParam.PerPage)
 
-	data, err := l.dal.FindAllWithPagination(ctx, filter, bson.M{}, skip, limit)
+	data, err := l.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		return nil, err
 	}
