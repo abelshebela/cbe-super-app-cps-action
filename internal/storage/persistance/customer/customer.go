@@ -514,6 +514,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				{Key: "date_of_birth", Value: "$kyc_root.kyc_data.birth_date"},
 				// Corrected email path (from members collection)
 				{Key: "email", Value: "$member_info.email"},
+				{Key: "customer_number", Value: "$member_info.customer_number"},
 			}},
 		}}},
 	}
@@ -535,11 +536,12 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			IsActive          bool   `bson:"is_active"`
 		} `bson:"linked_account"`
 		PersonalInfo struct {
-			FullName    string `bson:"full_name"`
-			Gender      string `bson:"gender"`
-			PhoneNumber string `bson:"phone_number"`
-			Email       string `bson:"email"`
-			DateOfBirth string `bson:"date_of_birth"`
+			FullName       string `bson:"full_name"`
+			Gender         string `bson:"gender"`
+			PhoneNumber    string `bson:"phone_number"`
+			Email          string `bson:"email"`
+			CustomerNumber string `bson:"customer_number"`
+			DateOfBirth    string `bson:"date_of_birth"`
 		} `bson:"personal_info"`
 	}
 
@@ -563,7 +565,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			AccountType:       acc.AccountType,
 			AccountBranchCode: acc.AccountBranchCode,
 			IsActive:          acc.IsActive,
-			// AccountBranchName: to be filled if needed
+			// AccountBranchName: to be filled when linked_account model supports it
 		}
 	}
 
@@ -571,11 +573,12 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 		ID:            res.ID.Hex(),
 		LinkedAccount: linkedAccounts,
 		PersonalInfo: customer_dto.PersonalInfo{
-			FullName:    res.PersonalInfo.FullName,
-			Gender:      res.PersonalInfo.Gender,
-			PhoneNumber: res.PersonalInfo.PhoneNumber,
-			Email:       res.PersonalInfo.Email,
-			DateOfBirth: res.PersonalInfo.DateOfBirth,
+			FullName:       res.PersonalInfo.FullName,
+			Gender:         res.PersonalInfo.Gender,
+			PhoneNumber:    res.PersonalInfo.PhoneNumber,
+			Email:          res.PersonalInfo.Email,
+			CustomerNumber: res.PersonalInfo.CustomerNumber,
+			DateOfBirth:    res.PersonalInfo.DateOfBirth,
 		},
 	}
 
