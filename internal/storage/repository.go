@@ -118,7 +118,10 @@ type AppAccessListRepository interface {
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.APPAccessList, error)
+	FindByKeys(ctx context.Context, keys []string) (map[string]string, error)
+	// FindByKey(ctx context.Context, key string) (string, error)
 	FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
+	FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error)
 }
 
 type ResetSessionRepository interface {
@@ -671,11 +674,14 @@ type AccessListSegmentationRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.AccessListSegmentation], error)
 	FindByID(ctx context.Context, id string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentationAndServiceID(ctx context.Context, segmentationID, serviceID string) (*local_model.AccessListSegmentation, error)
-	FindByAccountSegmentationAndServiceID(ctx context.Context, customerSegments, serviceID string) (*local_model.AccessListSegmentation, error)
+	FindByAccountSegmentationAndAccessListKeys(ctx context.Context, customerSegments string, segmentKeys []string) (*local_model.AccessListSegmentation, error)
 	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
+	FindByIDAndType(ctx context.Context, ids string, t string) (*local_model.AccessListSegmentation, error)
+	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
 	// Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)
 }
 
 type MiniAppMerchant interface {
