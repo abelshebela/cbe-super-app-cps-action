@@ -21,7 +21,7 @@ type CPSAction struct {
 	CurrentAuditorIndex float32       `bson:"current_auditor_index" json:"current_auditor_index"`
 	CheckerCount        int32         `bson:"checker_count" json:"checker_count"`
 	CurrentCheckerIndex float32       `bson:"current_checker_index" json:"current_checker_index"`
-	Department          string        `bson:"department" json:"department"`
+	RoleCode            string        `bson:"role_code" json:"role_code"`
 	RejectionReason     string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
 	PreviousAction      interface{}   `bson:"previous_action" json:"previous_action,omitempty"`
 	CurrentAction       interface{}   `bson:"current_action" json:"current_action,omitempty"`

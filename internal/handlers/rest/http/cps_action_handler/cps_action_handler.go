@@ -12,7 +12,6 @@ import (
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
-	"fmt"
 	"net/http"
 
 	"strings"
@@ -518,6 +517,7 @@ func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, 
 		return
 	}
 
+	a.logger.Infof("Role ID: %s", rawRoleID)
 	// fetch checker allocations for this role
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {
@@ -532,11 +532,12 @@ func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, 
 	}
 
 	if checkerActions == nil {
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, nil)
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
 		return
 	}
 
-	fmt.Println("Checker Actions", checkerActions)
+	a.logger.Infof("Checker Actions: %v", checkerActions)
+
 	// resolve action_names -> request_actions
 	var reqs []string
 	seen := map[string]struct{}{}

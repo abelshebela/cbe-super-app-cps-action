@@ -171,12 +171,14 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
+
 	var req actionrole_dto.UpdateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
+
 	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	err := h.service.Update(ctx, code, req)
 	if err != nil {
