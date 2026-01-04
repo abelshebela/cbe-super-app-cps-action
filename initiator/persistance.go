@@ -140,7 +140,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, logger),
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
-		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, CustomersKYCCollection, logger),
+		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
 	}
 
 	return data

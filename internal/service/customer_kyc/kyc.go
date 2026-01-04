@@ -64,8 +64,8 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 	var (
 		idCardFront string
 		idCardBack  string
-		// video       string
-		err error
+		video       string
+		err         error
 	)
 
 	if req.LivenessCheck.IDCardFront != nil {
@@ -88,15 +88,15 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 		}
 	}
 
-	// if req.LivenessCheck.Video != nil {
-	// 	video, err := lib.UploadVideoToMinio(ctx, s.minio, s.bucketName, req.LivenessCheck.Video, string(constants.CustomerKYCFolderName), *s.cfg, "", s.logger)
-	// 	if err != nil {
-	// 		span.AddEvent("Failed to files", trace.WithAttributes(
-	// 			attribute.String("error", err.Error()),
-	// 		))
-	// 		return err
-	// 	}
-	// }
+	if req.LivenessCheck.LivenessCheckVideo != nil {
+		video, err = lib.UploadVideoToMinio(ctx, s.minio, s.bucketName, req.LivenessCheck.LivenessCheckVideo, string(constants.CustomerKYCFolderName), *s.cfg, "", s.logger)
+		if err != nil {
+			span.AddEvent("Failed to files", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+			))
+			return err
+		}
+	}
 
 	kyc := &imodel.CustomerKYC{
 		CustomerCode: local_util.GenerateCustomerCode(),
@@ -132,9 +132,9 @@ func (s *customerKYCService) Create(ctx context.Context, req dto.CreateCustomerK
 		MoneyLaunderingFree:  true,
 		TermsAndConditions:   req.TermsAndConditions,
 		LivenessCheck: imodel.LivenessCheck{
-			IDCardFront: idCardFront,
-			IDCardBack:  idCardBack,
-			// LivenessCheckVideo: video,
+			IDCardFront:        idCardFront,
+			IDCardBack:         idCardBack,
+			LivenessCheckVideo: video,
 		},
 		VerificationResult: imodel.VerificationResult{
 			FaceMatchScore:             req.VerificationResult.FaceMatchScore,
