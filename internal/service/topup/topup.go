@@ -124,15 +124,17 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 			span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
+		existingStringID := exist.ID.Hex()
+		if existingStringID != id {
+			if exist != nil && strings.EqualFold(exist.Name, req.Name) {
+				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+				return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+			}
 
-		if exist != nil && strings.EqualFold(exist.Name, req.Name) {
-			span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
-		}
-
-		if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
-			span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+			if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
+				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+				return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+			}
 		}
 	}
 
@@ -144,7 +146,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		}
 		req.Code = code
 
-		exist, err := s.repo.Find(ctx, "code", req.Code)
+		exist, err := s.repo.FindByKeyValue(ctx, "code", req.Code)
 		if err != nil {
 			span.AddEvent("Repo find by code error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", req.Code)))
 			return errors.New(localization.ErrorUnhandledServer.Code)
