@@ -52,11 +52,8 @@ var (
 	BPSActionListCollection          = "bps_action_list"
 	CPSActionListCollection          = "cps_action_list"
 	RolesCollection                  = "roles"
-
-	BPSActionApproveIndexCollection = "bps_action_approver_index"
-
-	MiniAppCategoryCollection = "mini_app_categories"
-
+	BPSActionApproveIndexCollection  = "bps_action_approver_index"
+	MiniAppCategoryCollection        = "mini_app_categories"
 	CPSActionRolesCollection         = "cps_action_roles"
 	CPSActionApproveIndexCollection  = "cps_action_approver_index"
 	EventMerchantsCollection         = "event_merchants"
@@ -66,6 +63,7 @@ var (
 	CustomerSegmentationCollection   = "customer_segmentations"
 	CPSRolesCollection               = "cps_roles"
 	CustomerFeedbackCollection       = "customer_feedbacks"
+	FaydaKYCollection                = "fayda_kyc"
 )
 
 // Minio Bucket Names

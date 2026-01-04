@@ -47,6 +47,7 @@ import (
 
 	cps_action_role_service "cbe-super-app-cps-action/internal/service/cps_action_role"
 	cps_role "cbe-super-app-cps-action/internal/service/cps_roles"
+	kyc_service "cbe-super-app-cps-action/internal/service/customer_kyc"
 	customer_segmentation "cbe-super-app-cps-action/internal/service/customer_segmentation"
 	donation "cbe-super-app-cps-action/internal/service/donation"
 	donation_category "cbe-super-app-cps-action/internal/service/donation_category"
@@ -137,6 +138,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService := job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, nil, *cfg, logger)
 	RoleService := roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, nil, *cfg, logger)
 	CPSRolesService := cps_role.NewCPSRoleService(persistence.CPSRoles, nil, logger)
+	customerKYCService := kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, nil, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
 	// Attach Service to Container
 	serviceContainer := service.ServiceContainer{
@@ -197,6 +199,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		MiniAppMerchantContainer:          miniMerchant,
 		EcommerceMerchantContainer:        ecommerceMerchantService,
 		CPSRolesContainer:                 CPSRolesService,
+		CustomerKYCContainer:              customerKYCService,
 	}
 
 	// CPSActionService Appended
@@ -292,6 +295,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	jobRoleService = job_role.NewJobRoleService(persistence.JobRolePersistence, persistence.RolePersistence, cpsActionService, *cfg, logger)
 	RoleService = roles.NewRoleService(persistence.JobRolePersistence, persistence.PortalCardPersistence, cpsActionService, *cfg, logger)
 	CPSRolesService = cps_role.NewCPSRoleService(persistence.CPSRoles, cpsActionService, logger)
+	customerKYCService = kyc_service.NewCustomerKYCService(persistence.CustomerKYCPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 
 	return service.ServiceLayer{
 		RoleService:       RoleService,
@@ -350,5 +354,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		AccessListSegmentationService: accessListSegmentationService,
 		CustomerSegmentation:          customerSegmentationService,
 		CPSRoles:                      CPSRolesService,
+		CustomerKYC:                   customerKYCService,
 	}
 }

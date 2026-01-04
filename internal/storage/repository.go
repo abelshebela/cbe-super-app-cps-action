@@ -746,3 +746,11 @@ type CPSRolesRepository interface {
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 }
+
+type CustomerKYCRepository interface {
+	Create(ctx context.Context, req *imodel.CustomerKYC) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	UpdateKYCStatus(ctx context.Context, id string, status string) error
+	Delete(ctx context.Context, id string) error
+}
