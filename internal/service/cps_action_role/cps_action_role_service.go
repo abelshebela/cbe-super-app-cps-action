@@ -99,6 +99,7 @@ func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "CPSActionRole", "Create")
 	defer span.End()
+
 	if req.ActionName == "" {
 		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
@@ -641,10 +642,10 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 						CreatedAt:      now,
 					})
 
-					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", checkerID)))
 					s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", checkerID, val)
 				} else {
-					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID), attribute.Float64("value", val)))
+					span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", checkerID)))
 					s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", checkerID, val)
 				}
 			}

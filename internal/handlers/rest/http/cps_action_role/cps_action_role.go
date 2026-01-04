@@ -119,6 +119,7 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)

@@ -17,10 +17,9 @@ type CPSAction struct {
 	AuditorUsers        []Auditor     `bson:"auditor_users" json:"auditor_users"`
 	AuditorCount        int32         `bson:"auditor_count" json:"auditor_count"`
 	AuditorStatus       AuditorStatus `bson:"auditor_status" json:"auditor_status"`
-	AuditorReason       string        `bson:"auditor_reason" json:"auditor_reason"`
-	CurrentAuditorIndex float32       `bson:"current_auditor_index" json:"current_auditor_index"`
+	CurrentAuditorIndex float64       `bson:"current_auditor_index" json:"current_auditor_index"`
 	CheckerCount        int32         `bson:"checker_count" json:"checker_count"`
-	CurrentCheckerIndex float32       `bson:"current_checker_index" json:"current_checker_index"`
+	CurrentCheckerIndex float64       `bson:"current_checker_index" json:"current_checker_index"`
 	RoleCode            string        `bson:"role_code" json:"role_code"`
 	RejectionReason     string        `bson:"rejection_reason" json:"rejection_reason,omitempty"`
 	PreviousAction      interface{}   `bson:"previous_action" json:"previous_action,omitempty"`
@@ -36,14 +35,20 @@ type CPSAction struct {
 	CreatedAt           time.Time     `bson:"created_at" json:"created_at,omitempty"`
 	LastModifiedAt      time.Time     `bson:"last_modified_at" json:"last_modified_at,omitempty"`
 	MakerActionTime     time.Time     `bson:"maker_action_time" json:"maker_action_time,omitempty"`
-	CheckerActionTime   *time.Time    `bson:"checker_action_time" json:"checker_action_time,omitempty"`
 }
 
 type AuditorStatus string
+type AuditorMark string
 
 const (
-	MARKEDASRIGHT AuditorStatus = "MARKEDASRIGHT"
-	MARKEDASWRONG AuditorStatus = "MARKEDASWRONG"
+	MARKEDASRIGHT AuditorMark = "MARKEDASRIGHT"
+	MARKEDASWRONG AuditorMark = "MARKEDASWRONG"
+)
+
+const (
+	AUDITORNOTCHECKED AuditorStatus = "NOTCHECKED"
+	AUDITORINPROGRESS AuditorStatus = "INPROGRESS"
+	AUDITORCHECKED    AuditorStatus = "CHECKED"
 )
 
 type CheckCPSAction struct {
@@ -64,10 +69,12 @@ type Checker struct {
 }
 
 type Auditor struct {
-	AuditorID          string    `bson:"auditor_id" json:"auditor_id,omitempty"`
-	RoleID             string    `bson:"role_id" json:"role_id,omitempty"`
-	AuditorIndex       int32     `bson:"auditor_index" json:"auditor_index,omitempty"`
-	AuditorName        string    `bson:"auditor_name" json:"auditor_name,omitempty"`
-	AuditorPhoneNumber string    `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
-	ApprovedAt         time.Time `bson:"approved_at" json:"approved_at,omitempty"`
+	AuditorID          string      `bson:"auditor_id" json:"auditor_id,omitempty"`
+	RoleID             string      `bson:"role_id" json:"role_id,omitempty"`
+	AuditorIndex       int32       `bson:"auditor_index" json:"auditor_index,omitempty"`
+	AuditorName        string      `bson:"auditor_name" json:"auditor_name,omitempty"`
+	AuditorPhoneNumber string      `bson:"auditor_phone_number" json:"auditor_phone_number,omitempty"`
+	AuditorReason      string      `bson:"auditor_reason" json:"auditor_reason"`
+	AuditorMark        AuditorMark `bson:"auditor_mark" json:"auditor_mark,omitempty"`
+	ApprovedAt         time.Time   `bson:"approved_at" json:"approved_at,omitempty"`
 }

@@ -175,6 +175,7 @@ type CPSActionRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (types.PaginatedResponse[[]model.CPSAction], error)
 	FindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	SanitizedFindAllWithPagination(ctx context.Context, filterParam types.Filter, department string) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	SanitizedFindAllWithPaginationForApprover(ctx context.Context, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	SanitizedFindOne(ctx context.Context, filter bson.M) (*model.CPSAction, error)
 	Update(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error)
 	UpdateCustome(ctx context.Context, filter, update bson.M) error
@@ -484,6 +485,7 @@ type TopupRepository interface {
 	Update(ctx context.Context, id string, Topup *model.Topup) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByKeyValue(ctx context.Context, key string, value string) (*model.Topup, error)
 
 	FindByID(ctx context.Context, id string) (*model.Topup, error)
 	Find(ctx context.Context, key, value string) (*model.Topup, error)
@@ -682,6 +684,8 @@ type AccessListSegmentationRepository interface {
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)
+	FindAllBySegmentIDorSegmentCodeAndKeys(ctx context.Context, segmentIDorCode string, keys []string) ([]local_model.AccessListSegmentation, error)
+	BulkDisable(ctx context.Context, req access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest) error
 }
 
 type MiniAppMerchant interface {

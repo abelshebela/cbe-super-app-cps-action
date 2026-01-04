@@ -237,7 +237,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_index"), *idxDoc.CheckerIndex)
 		ctx = context.WithValue(ctx, constants.ContextKey("role_checker_group"), expected)
 		r = r.WithContext(ctx)
-		if currentIndex == Current_role_level {
+		if currentIndex == float64(Current_role_level) {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionApprovedByThisRole)
 			return
 		}
@@ -277,9 +277,9 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 	update := &model.CPSAction{
 		ActionCode:          action.ActionCode,
 		ActionStatus:        finalStatus,
-		CurrentCheckerIndex: *idxDoc.CheckerIndex,
+		CurrentCheckerIndex: float64(*idxDoc.CheckerIndex),
 		CheckerUsers:        append(action.CheckerUsers, checkerUser),
-		Department:          userData.Department,
+		RoleCode:            r.Context().Value(constants.ContextKey("role_code")).(string),
 	}
 
 	// Then, approve the action
@@ -348,7 +348,7 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		ActionStatus:    constants.Rejected,
 		RejectionReason: req.RejectionReason,
 		CheckerUsers:    append(action.CheckerUsers, CheckerUser),
-		Department:      makerData.Department,
+		RoleCode:        r.Context().Value(constants.ContextKey("role_code")).(string),
 	}); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -505,7 +505,7 @@ func (a *cpsActionAdapter) GetCPSActionByActionCode(w http.ResponseWriter, r *ht
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionFetched, action)
 }
 
-func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, r *http.Request) {
+func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
 	defer span.End()
@@ -517,7 +517,6 @@ func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, 
 		return
 	}
 
-	a.logger.Infof("Role ID: %s", rawRoleID)
 	// fetch checker allocations for this role
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {
@@ -565,7 +564,73 @@ func (a *cpsActionAdapter) GetUserApproverPendingActions(w http.ResponseWriter, 
 	}
 	// do not force action_status; let API-provided filters decide
 
-	res, err := a.cpsActionApplication.GetCPSActionsByDepartment(ctx, "", filterParams)
+	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, res)
+}
+
+func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
+	filterParams := local_util.ExtractFilterParams(r)
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
+
+	// roleCode from context
+	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if rawRoleID == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	// fetch checker allocations for this role
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+	_, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
+	if err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if auditorAllocations == nil {
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, map[string]interface{}{})
+		return
+	}
+
+	// resolve action_names -> request_actions
+	var reqs []string
+	seen := map[string]struct{}{}
+	for _, mod := range auditorAllocations {
+		upper := strings.ToUpper(strings.TrimSpace(mod))
+		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+			for _, ra := range lst {
+				key := string(ra)
+				if _, ok := seen[key]; ok {
+					continue
+				}
+				seen[key] = struct{}{}
+				reqs = append(reqs, key)
+			}
+		}
+	}
+	if filterParams == nil {
+		filterParams = &types.Filter{}
+	}
+	if filterParams.Filters == nil {
+		filterParams.Filters = map[string]interface{}{}
+	}
+	if len(reqs) > 0 {
+		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
+	}
+	// do not force action_status; let API-provided filters decide
+
+	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -624,7 +689,7 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	}
 	// do not force action_status; let API-provided filters decide
 
-	res, err := a.cpsActionApplication.GetCPSActionsByDepartment(ctx, "", filterParams)
+	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())

@@ -92,7 +92,7 @@ func BuildCPSActionUpdateMap(cps model.CPSAction) bson.M {
 	if cps.CurrentCheckerIndex > 0 {
 		update["current_checker_index"] = cps.CurrentCheckerIndex
 	}
-	addString("department", cps.Department)
+	addString("role_code", cps.RoleCode)
 	addTime("last_modified_at", time.Now())
 	addTime("checker_action_time", time.Now())
 

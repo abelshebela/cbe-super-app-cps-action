@@ -47,7 +47,20 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false); err != nil {
+	var req access_list_segmentation_dto.EnableDisableAccessListSegmentationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.logger.Errorf("[DisableAccessListSegmentation] failed to decode request body: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		a.logger.Errorf("[DisableAccessListSegmentation] validation error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, false, req.AccessListKeys); err != nil {
 		a.logger.Errorf("[DisableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -63,7 +76,7 @@ func (a *accessListSegmentation) EnableAccessListSegmentation(w http.ResponseWri
 		localization.SendErrorByCodeResponse(w, localization.ErrorAccessListSegmentationInvalidID.Code)
 		return
 	}
-	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true); err != nil {
+	if err := a.service.EnableDisableAccessListSegmentation(r.Context(), id, true, nil); err != nil {
 		a.logger.Errorf("[EnableAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
