@@ -39,6 +39,23 @@ type BankService struct {
 	bucketName  string
 }
 
+// GetOneBankByBIC implements [service.BankService].
+func (b *BankService) GetOneBankByBIC(ctx context.Context, bicCode string) (*model.Bank, error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetOneBankByBIC", "Bank", "GetOneBankByBIC")
+	defer span.End()
+	b.logger.Infof("[GetOneBankByBIC] fetching bank for BIC: %s", bicCode)
+	result, err := b.repo.FindByBIC(ctx, bicCode)
+	if err != nil {
+		span.AddEvent("[GetOneBankByBIC] failed to fetch bank", trace.WithAttributes(
+			attribute.String("error", err.Error()),
+			attribute.String("bic_code", bicCode),
+		))
+		b.logger.Errorf("[GetOneBankByBIC] failed to fetch bank: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func NewBankService(logger utils.Logger, repo storage.BankRepository, cpsService service.CPSActionService, minio *s3.Client, minioPubUrl string, cfg *config.VaultConfig, bucketName string) service.BankService {
 	return &BankService{
 		logger:      logger,

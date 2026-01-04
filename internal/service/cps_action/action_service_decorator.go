@@ -31,6 +31,7 @@ func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSAction
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
 	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) || actType == string(constants.ActionDelete) ||
 		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
@@ -45,7 +46,6 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 			var role *imodel.CPSActionRole
 			var approverData model.CPSActionApproveIndex
-			roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
 			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
 				role = r

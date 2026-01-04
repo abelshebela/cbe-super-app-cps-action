@@ -1024,12 +1024,12 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDisableNewsTag,
 		RequestDeleteNewsTag,
 	},
-	"ACTIONROLE": {
-		RequestCreateActionRole,
-		RequestUpdateActionRole,
-		RequestEnableActionRole,
-		RequestDisableActionRole,
-	},
+	// "ACTIONROLE": {
+	// 	RequestCreateActionRole,
+	// 	RequestUpdateActionRole,
+	// 	RequestEnableActionRole,
+	// 	RequestDisableActionRole,
+	// },
 	"CPSACTIONROLE": {
 		RequestCreateCpsActionRole,
 		RequestUpdateCpsActionRole,
