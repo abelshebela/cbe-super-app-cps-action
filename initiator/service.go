@@ -124,7 +124,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	encryptionService := encryption_service.NewEncryptionService(cfg, logger)
 	bankVaultProductService := bankvault.NewBankVaultService(oracle.BankVault, nil, logger)
 	vaultGroupCategoryService := vaultGroupCategory.NewVaultGroupCategoryService(oracle.vaultGroupCategory, nil, logger, minioClient, minioPubUrl, VaultCategoryBucketName, cfg)
-	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, nil, logger)
+	bpsActionRoleService := bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	miniAppCategory := miniapp.NewMiniAppCategoryService(persistence.MiniAppCategoryPersistence, logger)
 	cpsActionRoleService := cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, nil, logger)
 	eventMerchantService := event_merchant_service.NewEventMerchantService(persistence.EventMerchantPersistence, nil, accountLookupAdapter, nil, logger)
@@ -201,7 +201,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 
 	// CPSActionService Appended
 	dispatcher := cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, logger, *dispatcher)
+	cpsActionService := cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, logger, *dispatcher)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence)
 	// eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, miniAppMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
@@ -244,12 +244,12 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	cpsUserService = cpsusersvc.NewCPSUserService(persistence.CpsUserPersistence, persistence.RolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.DepartmentPersistence, permissionService, cpsActionService, logger)
 	amountBased = amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, cpsActionService, cfg, logger)
 	serviceContainer.AmountBasedAuthContainer = amountBased
-	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.RolePersistence, cpsActionService, logger)
+	bpsActionRoleService = bps_action_role_service.NewBPSActionRoleService(persistence.BPSActionRolePersistence, persistence.BPSActionApproveIndexPersistence, persistence.JobRolePersistence, cpsActionService, logger)
 	serviceContainer.BPSActionRoleContainer = bpsActionRoleService
 	cpsActionRoleService = cps_action_role_service.NewCPSActionRoleService(persistence.CPSActionRolePersistence, persistence.CPSActionApproveIndexPersistence, persistence.JobRolePersistence, cpsActionService, logger)
 	serviceContainer.CPSActionRoleContainer = cpsActionRoleService
 	dispatcher = cpsaction.NewDispatcher(serviceContainer)
-	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSAction, logger, *dispatcher)
+	cpsActionService = cpsaction.NewCPSActionService(persistence.CPSActionRolePersistence, persistence.CPSAction, logger, *dispatcher)
 	cpsActionService = cpsaction.WithActionRolePolicy(cpsActionService, persistence.CPSActionRolePersistence)
 	serviceContainer.CPSActionContainer = cpsActionService
 

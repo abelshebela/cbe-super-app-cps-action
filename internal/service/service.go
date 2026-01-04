@@ -1,10 +1,12 @@
 package service
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
 	"cbe-super-app-cps-action/internal/constants/dto/bankvault"
 	budget_category "cbe-super-app-cps-action/internal/constants/dto/budget_category"
+	cps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	cpsuser "cbe-super-app-cps-action/internal/constants/dto/cps_user"
 	deviceversion "cbe-super-app-cps-action/internal/constants/dto/device_version"
 	passwordrule "cbe-super-app-cps-action/internal/constants/dto/password_rule"
@@ -76,8 +78,10 @@ type CPSActionService interface {
 	ReverseCPSAction(ctx context.Context, actionCode string) error
 	GetCPSActionsByDepartment(ctx context.Context, department string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetCPSActionsForApprover(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetCPSActionsForAuditor(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
 	GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error)
+	GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (model.CPSActionApproveIndex, error)
 	GetActionCountsByDepartemnt(ctx context.Context, department string) (*actionDto.CPSActionCountResponse, error)
 	GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error)
 	GetCPSActionByUniqueID(ctx context.Context, id, department string) (*model.CPSAction, error)
@@ -616,7 +620,7 @@ type ServiceContainer struct {
 type BPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error)
-	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]model.ActionRole], error)
+	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionRoleResposne], error)
 	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
 	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
 	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
@@ -712,9 +716,9 @@ type CPSActionRoleService interface {
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	FindAllActionListWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filter types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
-	GetByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-	Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error
-	Update(ctx context.Context, actionCode string, req actionrole_dto.UpdateActionRoleRequest) error
+	GetByActionCode(ctx context.Context, actionCode string) (*cps_actionrole_dto.GetActionRoleByActionCodeRes, error)
+	Create(ctx context.Context, req cps_actionrole_dto.CreateActionRoleRequest) error
+	Update(ctx context.Context, actionCode string, req cps_actionrole_dto.UpdateActionRoleRequest) error
 	Enable(ctx context.Context, actionCode string) error
 	Disable(ctx context.Context, actionCode string) error
 }

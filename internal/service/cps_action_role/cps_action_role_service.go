@@ -2,7 +2,7 @@ package cps_action_role_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
-	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -133,7 +133,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("failed to validate unique checker IDs in groups", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
-	if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+	if err := s.validateUniqueIDsInGroups(req.AssignedAuditorRoles); err != nil {
 		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
@@ -165,12 +165,16 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		}
 	}
 
-	// Auditor
-	auditors := make([]string, 0, len(req.AssignedAuditorRoles))
-	if !req.IsViewOnly {
-		for _, code := range req.AssignedAuditorRoles {
-
-			auditors = append(auditors, code)
+	// Auditors
+	var auditors [][]string
+	if !req.IsMakerOnly && !req.IsViewOnly {
+		auditors = make([][]string, 0, len(req.AssignedAuditorRoles))
+		for _, group := range req.AssignedAuditorRoles {
+			g := make([]string, 0, len(group))
+			for _, code := range group {
+				g = append(g, code)
+			}
+			auditors = append(auditors, g)
 		}
 	}
 
@@ -187,6 +191,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		IsViweOnly:           req.IsViewOnly,
 		Enabled:              true,
 		ApproverCount:        int32(len(checkers)),
+		AuditorCount:         int32(len(auditors)),
 	}
 
 	cpsAction := lib.CpsModelBuilder(
@@ -247,7 +252,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
-		if err := s.validateUniqueIDs(req.AssignedAuditorRoles); err != nil {
+		if err := s.validateUniqueIDsInGroups(req.AssignedAuditorRoles); err != nil {
 			span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 			return err
 		}
@@ -256,6 +261,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	payload := imodel.CPSActionRole{
 		ActionCode:     actionCode,
 		PortalCardName: req.PortalCardName,
+		AuditorCount:   int32(len(req.AssignedCheckerRoles)),
 		ActionName:     local_util.NonEmptyString(req.ActionName, old.ActionName),
 		IsMakerOnly:    req.IsMakerOnly || int32(len(req.AssignedCheckerRoles)) == 0,
 		IsViweOnly:     req.IsViewOnly || (int32(len(req.AssignedViewersRoles)) > 0 && len(req.AssignedViewersRoles) == 0 && len(req.AssignedCheckerRoles) == 0),
@@ -284,7 +290,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		payload.AssignedCheckerRoles = [][]string{}
 	} else if req.IsViewOnly {
 		payload.AssignedMakersRoles = []string{}
-		payload.AssignedAuditorRoles = []string{}
+		payload.AssignedAuditorRoles = [][]string{}
 		payload.AssignedCheckerRoles = [][]string{}
 	} else {
 		if req.AssignedCheckerRoles != nil {
@@ -300,7 +306,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 	if req.AssignedAuditorRoles != nil {
-		auditors := make([]string, 0, len(req.AssignedAuditorRoles))
+		auditors := make([][]string, 0, len(req.AssignedAuditorRoles))
 		for _, code := range req.AssignedAuditorRoles {
 			auditors = append(auditors, code)
 		}
@@ -586,14 +592,13 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 		}
 	}
 
-	// Auditors
-	if len(role.AssignedAuditorRoles) > 0 {
-		for k, auditorID := range role.AssignedAuditorRoles {
-			idx := int64(k + 1)
+	for outer, group := range role.AssignedAuditorRoles {
+		for inner, auditorID := range group {
+			val := float64(outer+1) + float64(inner+1)/10.0
 			found := false
 			for j := range indices {
 				if indices[j].RoleId == auditorID {
-					indices[j].AuditorIndex = &idx
+					indices[j].CheckerIndex = &val
 					found = true
 					break
 				}
@@ -604,16 +609,16 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 					RoleId:         auditorID,
 					PortalCardName: role.PortalCardName,
 					ActionName:     role.ActionName,
-					AuditorIndex:   &idx,
+					AuditorIndex:   &val,
 					UpdatedAt:      now,
 					CreatedAt:      now,
 				})
 
-				span.AddEvent("auditor index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
-				s.logger.Infof("generateIndices: Added Auditor index for RoleID %s", auditorID)
+				span.AddEvent("checker index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+				s.logger.Infof("generateIndices: Added Checker index for RoleID %s (val: %f)", auditorID, val)
 			} else {
-				span.AddEvent("auditor index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
-				s.logger.Infof("generateIndices: Updated Auditor index for RoleID %s", auditorID)
+				span.AddEvent("checker index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+				s.logger.Infof("generateIndices: Updated Checker index for RoleID %s (val: %f)", auditorID, val)
 			}
 		}
 	}

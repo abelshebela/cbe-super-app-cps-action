@@ -5,6 +5,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"strings"
 
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/storage"
@@ -22,14 +23,16 @@ import (
 
 type cpsActionService struct {
 	repo       storage.CPSActionRepository
+	roles      storage.CPSActionRoleRepository
 	logger     utils.Logger
 	dispatcher Dispatcher
 }
 
-func NewCPSActionService(repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
+func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
 	return &cpsActionService{
 		repo:       repo,
 		logger:     logger,
+		roles:      roles,
 		dispatcher: dispatcher,
 	}
 }
@@ -127,6 +130,17 @@ func (ca *cpsActionService) GetCPSActionsForApprover(ctx context.Context, RAList
 	return result, nil
 }
 
+func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionsForAuditor", "CPSAction", "GetCPSActionsForAuditor")
+	defer span.End()
+	result, err := ca.repo.SanitizedFindAllWithPaginationForAuditor(ctx, *filterParams, RAList)
+	if err != nil {
+		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+	return result, nil
+}
+
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByID", "CPSAction", "GetCPSActionByID")
 	defer span.End()
@@ -194,6 +208,21 @@ func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, dep
 		return nil, err
 	}
 	return count, nil
+}
+
+func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (model.CPSActionApproveIndex, error) {
+	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
+	var approverData model.CPSActionApproveIndex
+
+	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
+		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
+			approverData = approver
+		}
+	} else {
+		return model.CPSActionApproveIndex{}, errors.New(localization.ErrorOperationNotAllowed.Message)
+	}
+
+	return approverData, nil
 }
 
 func (ca *cpsActionService) GetUserCreatedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {

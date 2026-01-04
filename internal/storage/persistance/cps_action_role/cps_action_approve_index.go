@@ -367,19 +367,20 @@ func (r *CPSActionApproveIndexRepository) InsertAll(ctx context.Context, new mod
 		}
 	}
 
-	// Auditors: 1-based index
-	for i, auditorId := range new.AssignedAuditorRoles {
-		idx := int64(i + 1)
-		indices = append(indices, imodel.CPSActionApproveIndex{
-			ID:           bson.NewObjectID(),
-			RoleId:       auditorId,
-			ActionName:   new.ActionName,
-			MakerIndex:   nil,
-			CheckerIndex: nil,
-			AuditorIndex: &idx,
-			UpdatedAt:    now,
-			CreatedAt:    now,
-		})
+	for i, auditorGroup := range new.AssignedAuditorRoles {
+		for j, auditorId := range auditorGroup {
+			idx := float64(i+1) + float64(j+1)*0.1
+			indices = append(indices, imodel.CPSActionApproveIndex{
+				ID:           bson.NewObjectID(),
+				RoleId:       auditorId,
+				ActionName:   new.ActionName,
+				MakerIndex:   nil,
+				CheckerIndex: nil,
+				AuditorIndex: &idx,
+				UpdatedAt:    now,
+				CreatedAt:    now,
+			})
+		}
 	}
 
 	if len(indices) == 0 {
