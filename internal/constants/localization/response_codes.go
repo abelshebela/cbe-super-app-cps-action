@@ -561,6 +561,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrMarshalingData,
 	ErrInvalidKeyOrIv,
 
+	//bps error
+	ErrorExistBpsUserEmail,
 	// Vault related
 	SuccessVaultGroupCategoryCreationRequestSubmitted,
 	SuccessVaultGroupCategoriesRetrieved,
@@ -4127,6 +4129,12 @@ var (
 		Code:       "ERROR_EXIST_EMAIL",
 		StatusCode: StatusBadRequest,
 		Message:    MsgExistEmail,
+		Type:       "error",
+	}
+	ErrorExistBpsUserEmail = ResponseCode{
+		Code:       "ERROR_EXIST_EMAIL",
+		StatusCode: StatusBadRequest,
+		Message:    MsgBpsUserEmailExist,
 		Type:       "error",
 	}
 
