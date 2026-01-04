@@ -4130,6 +4130,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorRoleNotExistWithGivenJobTitle = ResponseCode{
+		Code:       "ERROR_ROLE_NOT_EXIST_WITH_GIVEN_JOB_TITLE",
+		StatusCode: StatusNotFound,
+		Message:    MsgRoleNotFoundWithGivenJobTitle,
+		Type:       "error",
+	}
+
 	ErrorExistPhoneNumber = ResponseCode{
 		Code:       "ERROR_EXIST_PHONE_NUMBER",
 		StatusCode: StatusBadRequest,

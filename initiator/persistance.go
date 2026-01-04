@@ -128,7 +128,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		NewsTagsServiceContainer:          media.NewNewsTagsRepository(logger, client, cfg, dbName, NewsTagsCollection),
 		BPSActionRolePersistence:          actionrole_repo.NewBPSActionRoleRepository(client, cfg, dbName, []string{BPSActionRolesCollection, BPSActionListCollection}, logger),
 		BPSActionApproveIndexPersistence:  actionrole_repo.NewBPSActionApproveIndexRepository(client, dbName, BPSActionApproveIndexCollection, logger),
-		RolePersistence:                   role_repo.NewRoleRepository(client, cfg, dbName, RolesCollection, logger),
+		RolePersistence:                   role_repo.NewRoleRepository(client, cfg, dbName, []string{RolesCollection, JobRolesCollection}, logger),
 		MiniAppCategoryPersistence:        mini_app.NewMiniAppCategoryRepository(logger, client, cfg, dbName, MiniAppCategoryCollection),
 		CPSActionRolePersistence:          cps_actionrole_repo.NewCPSActionRoleRepository(client, cfg, dbName, []string{CPSActionRolesCollection, CPSActionListCollection, CPSActionApproveIndexCollection}, logger),
 		CPSActionApproveIndexPersistence:  cps_actionrole_repo.NewCPSActionApproveIndexRepository(client, dbName, CPSActionApproveIndexCollection, logger),
