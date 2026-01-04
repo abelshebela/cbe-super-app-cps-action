@@ -203,3 +203,29 @@ func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam ty
 		Meta: meta,
 	}, nil
 }
+
+func (w *TopupStorage) FindByKeyValue(ctx context.Context, key string, value string) (*model.Topup, error) {
+	filter := bson.M{"is_deleted": false}
+
+	// Convert value to ObjectID if key is "_id" or "id"
+	if key == "_id" || key == "id" {
+		objID, err := bson.ObjectIDFromHex(value)
+		if err != nil {
+			return nil, errors.New(localization.ErrorInvalidID.Code)
+		}
+		filter[key] = objID
+	} else {
+		filter[key] = value
+	}
+
+	doc, err := w.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			w.logger.Warnf("No Topup found with %s: %v", key, value)
+			return nil, nil
+		}
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return doc, nil
+}

@@ -485,6 +485,7 @@ type TopupRepository interface {
 	Update(ctx context.Context, id string, Topup *model.Topup) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+	FindByKeyValue(ctx context.Context, key string, value string) (*model.Topup, error)
 
 	FindByID(ctx context.Context, id string) (*model.Topup, error)
 	Find(ctx context.Context, key, value string) (*model.Topup, error)

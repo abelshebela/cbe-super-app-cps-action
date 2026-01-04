@@ -98,18 +98,14 @@ func (s *bpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "BPS Action Role", "Create")
 	defer span.End()
-
 	if req.ActionName == "" {
 		span.AddEvent("[Create] action name is required")
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
 	}
-	// Format Action Name: Uppercase and replace spaces with underscores
 	req.ActionName = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(req.ActionName), " ", "_"))
 
-	// Generate Action Code from Action Name
 	req.ActionCode = req.ActionName
 
-	// Check if Action Name already exists
 	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
 	if err == nil && existing != nil {
 		span.AddEvent("[Create] action name already exists", trace.WithAttributes(attribute.String("action_name", req.ActionName)))
@@ -136,7 +132,6 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		return err
 	}
 
-	// Convert strings to ObjectIDs
 	makers := make([]string, 0, len(req.AssignedMakersRoles))
 	for _, id := range req.AssignedMakersRoles {
 		makers = append(makers, id)
@@ -185,6 +180,7 @@ func (s *bpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		string(constants.RequestCreateActionRole),
 		constants.CREATE,
 	)
+
 	if err := s.cpsService.CreateCPSAction(ctx, &cpsAction); err != nil {
 		span.AddEvent("[Create] failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
