@@ -62,6 +62,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/bulk_service"
 	cps_roles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
+	persistence_kyc "cbe-super-app-cps-action/internal/storage/persistance/customer_kyc"
 
 	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -139,6 +140,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CustomerSegmentation:              customer_segmentation_repo.NewCustomerSegmentationRepository(client, cfg, dbName, CustomerSegmentationCollection, logger),
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
+		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, CustomersKYCCollection, logger),
 	}
 
 	return data

@@ -40,6 +40,7 @@ import (
 
 	cps_role_dto "cbe-super-app-cps-action/internal/constants/dto/cps_roles"
 	customer_dto "cbe-super-app-cps-action/internal/constants/dto/customer"
+	customer_kyc_dto "cbe-super-app-cps-action/internal/constants/dto/customer_kyc"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 
 	"context"
@@ -545,6 +546,7 @@ type ServiceLayer struct {
 	AccessListSegmentationService AccessListSegmentationService
 	CustomerSegmentation          CustomerSegmentationService
 	CPSRoles                      CPSRolesService
+	CustomerKYC                   CustomerKYCService
 }
 
 type ServiceContainer struct {
@@ -610,6 +612,7 @@ type ServiceContainer struct {
 	AccessListSegmentationContainer    AccessListSegmentationService
 	CustomerSegmentationContainer      CustomerSegmentationService
 	CPSRolesContainer                  CPSRolesService
+	CustomerKYCContainer               CustomerKYCService
 }
 
 type BPSActionRoleService interface {
@@ -730,4 +733,13 @@ type AccessListSegmentationService interface {
 	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
 	GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []local_model.AccessListSegmentation, error)
+}
+
+type CustomerKYCService interface {
+	Create(ctx context.Context, req customer_kyc_dto.CreateCustomerKYCRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	UpdateKYCStatus(ctx context.Context, id, status string) error
+	Delete(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
