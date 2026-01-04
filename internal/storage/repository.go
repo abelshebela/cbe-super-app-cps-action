@@ -286,6 +286,7 @@ type BankRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error)
 	FindByNameOrBIC(ctx context.Context, bic, name string) (*model.Bank, error)
+	FindByBIC(ctx context.Context, bic string) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {

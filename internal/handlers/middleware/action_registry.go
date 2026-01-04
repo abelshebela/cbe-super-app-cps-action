@@ -175,9 +175,11 @@ var cpsActionRegistry = map[string]string{
 	"PATCH services": "SERVICE",
 
 	// Topup
-	"POST topups":   "TOPUP",
-	"PATCH topups":  "TOPUP",
-	"DELETE topups": "TOPUP",
+	"POST topups":                     "TOPUP",
+	"PATCH topups":                    "TOPUP",
+	"DELETE topups":                   "TOPUP",
+	"PATCH topups/{topup_id}/disable": "TOPUP",
+	"PATCH topups/{topup_id}/enable":  "TOPUP",
 
 	// UnlinkDevice
 	"PATCH unlink": "UNLINKDEVICE",

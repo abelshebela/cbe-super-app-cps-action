@@ -403,6 +403,7 @@ type BankService interface {
 	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.Bank], error)
 
 	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
+	GetOneBankByBIC(ctx context.Context, bicCode string) (*model.Bank, error)
 
 	CreateOneBank(ctx context.Context, req bank_dto.CreateBankRequest) error
 	UpdateOneBank(ctx context.Context, id string, req bank_dto.UpdateBankRequest) error
