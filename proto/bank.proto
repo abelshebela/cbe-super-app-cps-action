@@ -21,6 +21,10 @@ message GetOneBankRequest {
     string id = 1;
 }
 
+message GetOneBankByBICRequest {
+    string bic_code = 1;
+}
+
 message GetAllBankRequest {
     int32 page = 1;
     int32 per_page = 2;
@@ -49,4 +53,5 @@ message GetAllBankResponse {
 service BankService {
     rpc GetOneBank (GetOneBankRequest) returns (GetOneBankResponse);
     rpc GetAllBank (GetAllBankRequest) returns (GetAllBankResponse);
+    rpc GetBankByBIC (GetOneBankByBICRequest) returns (GetOneBankResponse);
 }

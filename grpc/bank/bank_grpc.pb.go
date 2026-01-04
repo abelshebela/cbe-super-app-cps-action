@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BankService_GetOneBank_FullMethodName = "/BankService.BankService/GetOneBank"
-	BankService_GetAllBank_FullMethodName = "/BankService.BankService/GetAllBank"
+	BankService_GetOneBank_FullMethodName   = "/BankService.BankService/GetOneBank"
+	BankService_GetAllBank_FullMethodName   = "/BankService.BankService/GetAllBank"
+	BankService_GetBankByBIC_FullMethodName = "/BankService.BankService/GetBankByBIC"
 )
 
 // BankServiceClient is the client API for BankService service.
@@ -29,6 +30,7 @@ const (
 type BankServiceClient interface {
 	GetOneBank(ctx context.Context, in *GetOneBankRequest, opts ...grpc.CallOption) (*GetOneBankResponse, error)
 	GetAllBank(ctx context.Context, in *GetAllBankRequest, opts ...grpc.CallOption) (*GetAllBankResponse, error)
+	GetBankByBIC(ctx context.Context, in *GetOneBankByBICRequest, opts ...grpc.CallOption) (*GetOneBankResponse, error)
 }
 
 type bankServiceClient struct {
@@ -59,12 +61,23 @@ func (c *bankServiceClient) GetAllBank(ctx context.Context, in *GetAllBankReques
 	return out, nil
 }
 
+func (c *bankServiceClient) GetBankByBIC(ctx context.Context, in *GetOneBankByBICRequest, opts ...grpc.CallOption) (*GetOneBankResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetOneBankResponse)
+	err := c.cc.Invoke(ctx, BankService_GetBankByBIC_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BankServiceServer is the server API for BankService service.
 // All implementations must embed UnimplementedBankServiceServer
 // for forward compatibility.
 type BankServiceServer interface {
 	GetOneBank(context.Context, *GetOneBankRequest) (*GetOneBankResponse, error)
 	GetAllBank(context.Context, *GetAllBankRequest) (*GetAllBankResponse, error)
+	GetBankByBIC(context.Context, *GetOneBankByBICRequest) (*GetOneBankResponse, error)
 	mustEmbedUnimplementedBankServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedBankServiceServer) GetOneBank(context.Context, *GetOneBankReq
 }
 func (UnimplementedBankServiceServer) GetAllBank(context.Context, *GetAllBankRequest) (*GetAllBankResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllBank not implemented")
+}
+func (UnimplementedBankServiceServer) GetBankByBIC(context.Context, *GetOneBankByBICRequest) (*GetOneBankResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBankByBIC not implemented")
 }
 func (UnimplementedBankServiceServer) mustEmbedUnimplementedBankServiceServer() {}
 func (UnimplementedBankServiceServer) testEmbeddedByValue()                     {}
@@ -138,6 +154,24 @@ func _BankService_GetAllBank_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BankService_GetBankByBIC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOneBankByBICRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankServiceServer).GetBankByBIC(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BankService_GetBankByBIC_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankServiceServer).GetBankByBIC(ctx, req.(*GetOneBankByBICRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BankService_ServiceDesc is the grpc.ServiceDesc for BankService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var BankService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllBank",
 			Handler:    _BankService_GetAllBank_Handler,
+		},
+		{
+			MethodName: "GetBankByBIC",
+			Handler:    _BankService_GetBankByBIC_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
