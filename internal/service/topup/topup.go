@@ -124,8 +124,8 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 			span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorUnhandledServer.Code)
 		}
-		existingStringID := exist.ID.Hex()
-		if existingStringID != id {
+		// existingStringID := exist.ID.Hex()
+		if exist != nil && exist.ID.Hex() != id {
 			if exist != nil && strings.EqualFold(exist.Name, req.Name) {
 				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
 				return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
