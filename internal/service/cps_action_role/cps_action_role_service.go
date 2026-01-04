@@ -99,6 +99,7 @@ func (s *cpsActionRoleService) GetByActionCode(ctx context.Context, actionCode s
 func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.CreateActionRoleRequest) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "Create", "CPSActionRole", "Create")
 	defer span.End()
+
 	if req.ActionName == "" {
 		span.AddEvent("action name is empty", trace.WithAttributes(attribute.String("error", "action name is empty")))
 		return errors.New(localization.ErrorActionNameIsRequired.Code)
