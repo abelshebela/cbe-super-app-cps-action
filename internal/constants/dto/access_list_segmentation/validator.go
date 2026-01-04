@@ -6,6 +6,12 @@ import (
 	"strings"
 )
 
+func (c EnableDisableAccessListSegmentationRequest) Validate() error {
+	if c.AccessListKeys == nil {
+		return errors.New(localization.ErrorAccessListKeysRequired.Code)
+	}
+	return nil
+}
 func (c CreateAccessListSegmentationRequest) Validate() error {
 	if c.AccessListKeys == nil {
 		return errors.New(localization.ErrorAccessListKeysRequired.Code)
