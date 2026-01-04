@@ -55,6 +55,7 @@ import (
 	logistics_merchant_handler "cbe-super-app-cps-action/internal/handlers/rest/http/logistics_merchant"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/roles"
 
+	customerKycInbound "cbe-super-app-cps-action/internal/constants/interfaces/customer_kyc"
 	donation "cbe-super-app-cps-action/internal/constants/interfaces/donation"
 	donation_category "cbe-super-app-cps-action/internal/constants/interfaces/donation_category"
 	donation_company "cbe-super-app-cps-action/internal/constants/interfaces/donation_company"
@@ -76,6 +77,7 @@ import (
 	cpsRoleHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_roles"
 	cpsUserHandler "cbe-super-app-cps-action/internal/handlers/rest/http/cps_user"
 	CustomerHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer"
+	CustomerKYCHandler "cbe-super-app-cps-action/internal/handlers/rest/http/customer_kyc"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/department"
 	deviceversionhandler "cbe-super-app-cps-action/internal/handlers/rest/http/device_version"
 	donationHandler "cbe-super-app-cps-action/internal/handlers/rest/http/donation"
@@ -156,6 +158,7 @@ type Handler struct {
 	AccessLostSegmentationHandler accesslistsegmentation.AccessListSegmentationHandler
 	CustomerSegmentationHandler   customer_seg.CustomerSegmentation
 	CPSRolesHandler               cpsRoleInbound.CPSRolesAdapter
+	CustomerKYCHandler            customerKycInbound.CustomerKYC
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -209,5 +212,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		AccessLostSegmentationHandler: accesslistsegmentaion.InitAccessListSegmentationAdapter(serviceLayer.AccessListSegmentationService, logger),
 		CustomerSegmentationHandler:   customer_hand.NewCustomerSegmentation(serviceLayer.CustomerSegmentation, logger),
 		CPSRolesHandler:               cpsRoleHandler.NewCPSRolesHandler(serviceLayer.CPSRoles, logger),
+		CustomerKYCHandler:            CustomerKYCHandler.NewCustomerKYCAdapter(serviceLayer.CustomerKYC, logger),
 	}
 }

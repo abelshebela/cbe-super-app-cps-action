@@ -39,6 +39,11 @@ func IsValidActionType(actionType string) bool {
 type RequestAction string
 
 const (
+	// Customer KYC
+	RequestCreateCustomerKYC RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
+	RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
+
 	RequestCreateCpsRole  RequestAction = "CREATE_CPS_ROLE"
 	RequestUpdateCpsRole  RequestAction = "UPDATE_CPS_ROLE"
 	RequestDeleteCpsRole  RequestAction = "DELETE_CPS_ROLE"
@@ -656,6 +661,10 @@ var validRequestActions = map[RequestAction]struct{}{
 	RequestCreateAccessListSegmentation:        {},
 	RequestUpdateAccessListSegmentation:        {},
 	RequestEnableDisableAccessListSegmentation: {},
+
+	RequestCreateCustomerKYC: {},
+	RequestUpdateCustomerKYC: {},
+	RequestDeleteCustomerKYC: {},
 }
 
 func IsValidRequestAction(requestAction string) bool {
@@ -1104,6 +1113,11 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestDeleteCpsRole,
 		RequestEnableCpsRole,
 		RequestDisableCpsRole,
+	},
+	"CUSTOMERKYC": {
+		RequestCreateCustomerKYC,
+		RequestUpdateCustomerKYC,
+		RequestDeleteCustomerKYC,
 	},
 }
 
