@@ -16,6 +16,9 @@ const specialChars = "`~!@#$%^&*()-_=+[]{}\\|;:'\",<.>/?"
 func (w WalletRequest) IsEmpty() bool {
 	return strings.TrimSpace(w.Name) == "" &&
 		strings.TrimSpace(w.UniqueCode) == "" &&
+		w.Self == nil &&
+		w.Other == nil &&
+		w.Agent == nil &&
 		w.Avatar == nil
 }
 

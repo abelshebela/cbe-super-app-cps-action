@@ -267,7 +267,7 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] role not found or invalid for job_title: %s", req.JobTitle)
 		return errors.New(localization.ErrorRoleNotFound.Code)
 	}
-	req.Role = roles.Role
+	// req.Role = roles.Role
 	req.UserCode = local_util.GenerateBPSUserCode()
 	// Build CPS action model for create
 	cpsActionModel := lib.CpsModelBuilder(
@@ -338,7 +338,11 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, upd
 		b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
-	updatedUser.Role = roles.Role
+
+	if roles == nil {
+		return errors.New(localization.ErrorRoleNotExistWithGivenJobTitle.Code)
+	}
+	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
 		existingUser.ID.Hex(),                  // unique id
 		makerData,                              // maker data
