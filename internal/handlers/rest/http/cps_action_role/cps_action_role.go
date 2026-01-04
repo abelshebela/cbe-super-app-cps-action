@@ -1,7 +1,7 @@
 package cps_actionrole_handler
 
 import (
-	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	cps_actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
@@ -123,7 +123,8 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		h.logger.Errorf("[CPSActionRoleHandler] invalid input payload: %v", err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
 	if req.ActionName == "" {
@@ -144,12 +145,14 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	// actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedCheckerRoles: req.AssignedCheckerRoles, AssignedAuditorRoles: req.AssignedAuditorRoles}
 	err := h.service.Create(ctx, action_role)
+
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("create action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
 }
 

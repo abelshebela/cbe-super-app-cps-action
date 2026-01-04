@@ -1,4 +1,4 @@
-package actionrole_handler
+package cps_actionrole_handler
 
 import (
 	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
@@ -8,6 +8,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -23,6 +24,33 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 	return &BPSActionRoleHandler{service: svc, logger: logger}
 }
 
+// GetAllActionList godoc
+//
+//	@Summary	List of Action for Cps
+//	@Tags		ActionList
+//	@Accept		json
+//	@Produce	json
+//	@Param		page		query		int		false	"Page"
+//	@Param		per_page	query		int		false	"Per Page"
+//	@Param		search		query		string	false	"Search"
+//	@Success	200			{object}	localization.StandardResponse
+//	@Security	BearerAuth
+//	@Router		/action-roles/action-list [get]
+func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
+	defer span.End()
+	filter := *local_util.ExtractFilterParams(r)
+	res, err := h.service.FindAllActionListWithPagination(ctx, filter)
+	if err != nil {
+		span.RecordError(err)
+		h.logger.Errorf("list action list error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	span.SetAttributes(attribute.Int("cps_action_role.count", len(res.Data)))
+	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
+}
+
 // GetAll godoc
 //
 //	@Summary	List action roles
@@ -36,46 +64,17 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 //	@Security	BearerAuth
 //	@Router		/action-roles [get]
 func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllActionRoles", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllWithPagination(ctx, filter)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetAll] service error: %v", err)
+		h.logger.Errorf("list action roles error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	span.SetAttributes(attribute.Int("action_role.count", len(res.Data)))
-	h.logger.Infof("[GetAll] retrieved %d action roles", len(res.Data))
-	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
-}
-
-// GetAllActionList godoc
-//
-//	@Summary	List action roles
-//	@Tags		ActionRole
-//	@Accept		json
-//	@Produce	json
-//	@Param		page		query		int		false	"Page"
-//	@Param		per_page	query		int		false	"Per Page"
-//	@Param		search		query		string	false	"Search"
-//	@Success	200			{object}	localization.StandardResponse
-//	@Security	BearerAuth
-//	@Router		/action-roles/action-list [get]
-func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllActionList", "handler", "actionRole")
-	defer span.End()
-	filter := *local_util.ExtractFilterParams(r)
-	res, err := h.service.FindAllActionListWithPagination(ctx, filter)
-	if err != nil {
-		span.RecordError(err)
-		h.logger.Errorf("[GetAllActionList] service error: %v", err)
-		localization.SendErrorByCodeResponse(w, err.Error())
-		return
-	}
-	span.SetAttributes(attribute.Int("action_role.count", len(res.Data)))
-	h.logger.Infof("[GetAllActionList] retrieved %d action roles", len(res.Data))
+	span.SetAttributes(attribute.Int("cps_action_role.count", len(res.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
 }
 
@@ -89,22 +88,21 @@ func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code} [get]
 func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getActionRoleByCode", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	span.SetAttributes(attribute.String("action_role.code", code))
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	res, err := h.service.GetByActionCode(ctx, code)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[GetByActionCode] service error: %v", err)
+		h.logger.Errorf("get action role error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[GetByActionCode] action role retrieved successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleFetched, res)
 }
 
@@ -119,31 +117,42 @@ func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 //	@Security	BearerAuth
 //	@Router		/action-roles [post]
 func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[Create] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		h.logger.Errorf("[BPSActionRoleHandler] invalid input payload: %v", err)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
 	if req.ActionName == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
 		return
 	}
-	span.SetAttributes(
-		attribute.String("action_role.code", req.ActionCode),
-		attribute.String("action_role.name", req.ActionName),
-	)
-	err := h.service.Create(ctx, req)
+	span.SetAttributes(attribute.String("cps_action_role.code", req.ActionCode))
+	action_role := actionrole_dto.CreateActionRoleRequest{
+		ActionName:           strings.ToUpper(strings.TrimSpace(req.ActionName)),
+		ActionCode:           strings.ToUpper(strings.TrimSpace(req.ActionCode)),
+		PortalCardName:       req.PortalCardName,
+		IsMakerOnly:          req.IsMakerOnly,
+		AssignedViewersRoles: req.AssignedViewersRoles,
+		AssignedMakersRoles:  req.AssignedMakersRoles,
+		AssignedCheckerRoles: req.AssignedCheckerRoles,
+		AssignedAuditorRoles: req.AssignedAuditorRoles,
+	}
+
+	// actionrole_dto.CreateActionRoleRequest{ActionCode: req.ActionCode, ActionName: req.ActionName, AssignedCheckerRoles: req.AssignedCheckerRoles, AssignedAuditorRoles: req.AssignedAuditorRoles}
+	err := h.service.Create(ctx, action_role)
+
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[Create] service error: %v", err)
+		h.logger.Errorf("create action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[Create] request sent successfully for action_code: %s", req.ActionCode)
+
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
 }
 
@@ -159,29 +168,29 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code} [patch]
 func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
+
 	var req actionrole_dto.UpdateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[Update] failed to decode request: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
-	span.SetAttributes(attribute.String("action_role.code", code))
+
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	err := h.service.Update(ctx, code, req)
 	if err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[Update] service error: %v", err)
+		h.logger.Errorf("update action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[Update] request sent successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
 }
 
@@ -195,21 +204,20 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code}/enable [patch]
 func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	span.SetAttributes(attribute.String("action_role.code", code))
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Enable(ctx, code); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[Enable] service error: %v", err)
+		h.logger.Errorf("enable action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[Enable] request sent successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
 }
 
@@ -223,20 +231,19 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code}/disable [patch]
 func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableActionRole", "handler", "actionRole")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
 		return
 	}
-	span.SetAttributes(attribute.String("action_role.code", code))
+	span.SetAttributes(attribute.String("cps_action_role.code", code))
 	if err := h.service.Disable(ctx, code); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[Disable] service error: %v", err)
+		h.logger.Errorf("disable action role failed: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[Disable] request sent successfully for code: %s", code)
 	localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
 }

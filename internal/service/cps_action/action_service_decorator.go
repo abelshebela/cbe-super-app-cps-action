@@ -90,6 +90,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	return nil
 }
 
+func (s *cpsActionServiceWithRoles) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (model.CPSActionApproveIndex, error) {
+	return s.base.GetUserAuthorizerIndex(ctx, requestAction)
+}
 func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	return s.base.GetUserCheckedActions(ctx, userID, filterParams)
 }
@@ -99,6 +102,10 @@ func (s *cpsActionServiceWithRoles) GetUserCreatedActions(ctx context.Context, u
 
 func (s *cpsActionServiceWithRoles) GetCPSActionsForApprover(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	return s.base.GetCPSActionsForApprover(ctx, RAList, filterParams)
+}
+
+func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActionsForAuditor(ctx, RAList, filterParams)
 }
 
 //	func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {

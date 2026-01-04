@@ -619,18 +619,15 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 			}
 		}
 	}
+
 	if filterParams == nil {
 		filterParams = &types.Filter{}
 	}
 	if filterParams.Filters == nil {
 		filterParams.Filters = map[string]interface{}{}
 	}
-	if len(reqs) > 0 {
-		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
-	}
 	// do not force action_status; let API-provided filters decide
-
-	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
+	res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -718,6 +715,28 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
+}
+
+func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserAuthorizerIndex", "handler", "cpsAction")
+	defer span.End()
+	requestAction := chi.URLParam(r, "request_action")
+
+	if requestAction == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	authorizerIndex, err := a.cpsActionApplication.GetUserAuthorizerIndex(ctx, constants.RequestAction(requestAction))
+	if err != nil {
+		span.RecordError(err)
+		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, authorizerIndex)
+
 }
 
 // ApproverCheckerAllocations returns checker allocations for the caller's role,
