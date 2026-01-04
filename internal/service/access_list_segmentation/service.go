@@ -70,16 +70,13 @@ func (a *AccessListSegmentationService) Authorize(ctx context.Context, cpsAction
 			return nil, err
 		}
 	case string(constants.RequestEnableDisableAccessListSegmentation):
-		action, err := local_util.JsonUnmarshal[local_model.AccessListSegmentation](cpsAction.CurrentAction)
+		bulkDisable, err := local_util.JsonUnmarshal[access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest](cpsAction.CurrentAction)
 		if err != nil {
 			a.logger.Errorf("[Authorize] failed to unmarshal current action: %v", err)
 			return nil, errors.New(localization.ErrorInvalidActionData.Code)
 		}
-		if action.ID.IsZero() {
-			a.logger.Errorf("[Authorize] missing access list segmentation ID")
-			return nil, errors.New(localization.ErrorAccessListSegmentationInvalidID.Code)
-		}
-		if err := a.repo.EnableOrDisable(ctx, action.ID.Hex(), action.Enabled); err != nil {
+
+		if err := a.repo.BulkDisable(ctx, *bulkDisable); err != nil {
 			a.logger.Errorf("[Authorize] failed to enable or disable access list segmentation: %v", err)
 			return nil, err
 		}
@@ -159,32 +156,36 @@ func (a *AccessListSegmentationService) CreateAccessListSegmentation(ctx context
 }
 
 // EnableDisableAccessListSegmentation implements service.AccessListSegmentationService.
-func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool) error {
+func (a *AccessListSegmentationService) EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string) error {
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if incomplete := local_util.IsIncomplete(makerData); incomplete {
 		a.logger.Errorf("[EnableDisable] incomplete user information")
 		return errors.New(localization.ErrorAccountNumberRequired.Code)
 	}
 
-	accessListSegmentation, err := a.repo.FindByID(ctx, id)
+	accessListSegmentation, err := a.repo.FindAllBySegmentIDorSegmentCodeAndKeys(ctx, id, keys)
 	if err != nil {
 		a.logger.Errorf("[EnableDisable] failed to find access list segmentation by id: %v", err)
 		return err
 	}
 
-	if accessListSegmentation != nil && accessListSegmentation.Enabled == enabled {
-		a.logger.Errorf("[EnableDisable] access list segmentation already in the desired state: %v", enabled)
-		if enabled {
-			return errors.New(localization.ErrorAccessListSegmentationAlreadyEnabled.Code)
-		} else {
-			return errors.New(localization.ErrorAccessListSegmentationAlreadyDisabled.Code)
-		}
+	if accessListSegmentation != nil && len(keys) != len(accessListSegmentation) {
+		a.logger.Errorf("[EnableDisable] some access list segmentation keys not found for id: %s", id)
+		return errors.New(localization.ErrorAccessListSegmentationKeyNotFound.Code)
 	}
 
-	updatedAccessListSegmentation := *accessListSegmentation
-	updatedAccessListSegmentation.Enabled = enabled
+	bulkDisable := access_list_segmentation_dto.BulkDisableAccessListSegmentationRequest{
+		Keys: keys,
+		ID:   id,
+	}
 
-	cpsAction := lib.CpsModelBuilder(id, makerData, accessListSegmentation, updatedAccessListSegmentation, string(constants.RequestEnableDisableAccessListSegmentation), constants.UPDATE)
+	// updatedAccessListSegmentation := accessListSegmentation
+	// for _, accessListSegmentation := range updatedAccessListSegmentation {
+	// 	accessListSegmentation.Enabled = enabled
+
+	// }
+
+	cpsAction := lib.CpsModelBuilder(id, makerData, accessListSegmentation, bulkDisable, string(constants.RequestEnableDisableAccessListSegmentation), constants.UPDATE)
 
 	if err := a.cpsAction.CreateCPSAction(ctx, &cpsAction); err != nil {
 		a.logger.Errorf("[EnableDisable] failed to create CPS action: %v", err)
