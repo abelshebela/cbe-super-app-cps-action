@@ -53,7 +53,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 	defer span.End()
 	s.logger.Infof("Createtopup called", "topup_name", req.Name)
 
-	exist, err := s.repo.Find(ctx, "TOP-"+req.Code, req.Name)
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
 	if err != nil {
 		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return errors.New(localization.ErrorUnhandledServer.Code)
@@ -64,18 +64,18 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 	}
 
-	if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
-		span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
-	}
+	// if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
+	// 	span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+	// 	return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	// }
 
-	code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
-	if err != nil {
-		span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-		return errors.New(localization.ErrorUnhandledServer.Code)
-	}
+	// code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+	// if err != nil {
+	// 	span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	return errors.New(localization.ErrorUnhandledServer.Code)
+	// }
 
-	req.Code = code
+	// req.Code = code
 
 	existCode, err := s.repo.Find(ctx, "code", req.Code)
 	if err != nil {
@@ -93,7 +93,7 @@ func (s *topupService) CreateTopup(ctx context.Context, req topupDto.TopupReques
 		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	topup := core.ToCreateTopupDoc(req.Name, code, URL, req.Self, req.Other, req.Agent)
+	topup := core.ToCreateTopupDoc(req.Name, req.Code, URL, req.Self, req.Other, req.Agent)
 	topup.Enabled = false
 	//here since the unique id is nil 000.. use other unique id like the code
 	// if err := core.HandleCPSAction(ctx, s.cpsService, topup.ID.Hex(), constants.RequestCreatetopup, topup, nil, constants.ActionCreate); err != nil {
@@ -119,7 +119,7 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	}
 
 	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, "TOP-"+req.Code, req.Name)
+		exist, err := s.repo.Find(ctx, req.Code, req.Name)
 		if err != nil {
 			span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
 			return errors.New(localization.ErrorUnhandledServer.Code)
@@ -131,20 +131,20 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 				return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 			}
 
-			if exist != nil && strings.EqualFold(exist.Code, "TOP-"+req.Code) {
-				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-				return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
-			}
+			// if exist != nil && strings.EqualFold(exist.Code, req.Code) {
+			// 	span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+			// 	return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+			// }
 		}
 	}
 
 	if req.Code != "" {
-		code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
-		if err != nil {
-			span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		req.Code = code
+		// code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+		// if err != nil {
+		// 	span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
+		// 	return errors.New(localization.ErrorUnhandledServer.Code)
+		// }
+		// req.Code = code
 
 		exist, err := s.repo.FindByKeyValue(ctx, "code", req.Code)
 		if err != nil {
