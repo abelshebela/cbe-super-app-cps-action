@@ -29,7 +29,7 @@ type BankStorage struct {
 // FindBIC implements [storage.BankRepository].
 func (b *BankStorage) FindByBIC(ctx context.Context, bic string) (*model.Bank, error) {
 	b.logger.Infof("[FindBIC] fetching bank by BIC: %s", bic)
-	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic}, nil)
+	bank, err := b.dal.FindOne(ctx, bson.M{"bic_code": bic, "enabled": true, "is_deleted": false}, nil)
 	if err != nil {
 		b.logger.Errorf("[FindBIC] failed to fetch bank: %v", err)
 		return nil, err
@@ -176,7 +176,7 @@ func (s *BankStorage) FindByNameOrBIC(
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
-	filter := bson.M{"is_deleted": false}
+	filter := bson.M{"is_deleted": false, "enabled": true}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
@@ -192,7 +192,8 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-
+	filter["is_deleted"] = false
+	filter["enabled"] = true
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
