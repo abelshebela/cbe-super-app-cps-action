@@ -193,6 +193,50 @@ func (x *GetOneBankRequest) GetId() string {
 	return ""
 }
 
+type GetOneBankByBICRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BicCode       string                 `protobuf:"bytes,1,opt,name=bic_code,json=bicCode,proto3" json:"bic_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOneBankByBICRequest) Reset() {
+	*x = GetOneBankByBICRequest{}
+	mi := &file_bank_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOneBankByBICRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOneBankByBICRequest) ProtoMessage() {}
+
+func (x *GetOneBankByBICRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bank_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOneBankByBICRequest.ProtoReflect.Descriptor instead.
+func (*GetOneBankByBICRequest) Descriptor() ([]byte, []int) {
+	return file_bank_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetOneBankByBICRequest) GetBicCode() string {
+	if x != nil {
+		return x.BicCode
+	}
+	return ""
+}
+
 type GetAllBankRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
@@ -204,7 +248,7 @@ type GetAllBankRequest struct {
 
 func (x *GetAllBankRequest) Reset() {
 	*x = GetAllBankRequest{}
-	mi := &file_bank_proto_msgTypes[3]
+	mi := &file_bank_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -216,7 +260,7 @@ func (x *GetAllBankRequest) String() string {
 func (*GetAllBankRequest) ProtoMessage() {}
 
 func (x *GetAllBankRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bank_proto_msgTypes[3]
+	mi := &file_bank_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -229,7 +273,7 @@ func (x *GetAllBankRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllBankRequest.ProtoReflect.Descriptor instead.
 func (*GetAllBankRequest) Descriptor() ([]byte, []int) {
-	return file_bank_proto_rawDescGZIP(), []int{3}
+	return file_bank_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetAllBankRequest) GetPage() int32 {
@@ -262,7 +306,7 @@ type GetOneBankResponse struct {
 
 func (x *GetOneBankResponse) Reset() {
 	*x = GetOneBankResponse{}
-	mi := &file_bank_proto_msgTypes[4]
+	mi := &file_bank_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -274,7 +318,7 @@ func (x *GetOneBankResponse) String() string {
 func (*GetOneBankResponse) ProtoMessage() {}
 
 func (x *GetOneBankResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_bank_proto_msgTypes[4]
+	mi := &file_bank_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -287,7 +331,7 @@ func (x *GetOneBankResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOneBankResponse.ProtoReflect.Descriptor instead.
 func (*GetOneBankResponse) Descriptor() ([]byte, []int) {
-	return file_bank_proto_rawDescGZIP(), []int{4}
+	return file_bank_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetOneBankResponse) GetBank() *Bank {
@@ -312,7 +356,7 @@ type Meta struct {
 
 func (x *Meta) Reset() {
 	*x = Meta{}
-	mi := &file_bank_proto_msgTypes[5]
+	mi := &file_bank_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -324,7 +368,7 @@ func (x *Meta) String() string {
 func (*Meta) ProtoMessage() {}
 
 func (x *Meta) ProtoReflect() protoreflect.Message {
-	mi := &file_bank_proto_msgTypes[5]
+	mi := &file_bank_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -337,7 +381,7 @@ func (x *Meta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Meta.ProtoReflect.Descriptor instead.
 func (*Meta) Descriptor() ([]byte, []int) {
-	return file_bank_proto_rawDescGZIP(), []int{5}
+	return file_bank_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Meta) GetTotalPages() int32 {
@@ -399,7 +443,7 @@ type GetAllBankResponse struct {
 
 func (x *GetAllBankResponse) Reset() {
 	*x = GetAllBankResponse{}
-	mi := &file_bank_proto_msgTypes[6]
+	mi := &file_bank_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -411,7 +455,7 @@ func (x *GetAllBankResponse) String() string {
 func (*GetAllBankResponse) ProtoMessage() {}
 
 func (x *GetAllBankResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_bank_proto_msgTypes[6]
+	mi := &file_bank_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -424,7 +468,7 @@ func (x *GetAllBankResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAllBankResponse.ProtoReflect.Descriptor instead.
 func (*GetAllBankResponse) Descriptor() ([]byte, []int) {
-	return file_bank_proto_rawDescGZIP(), []int{6}
+	return file_bank_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetAllBankResponse) GetBanks() []*Bank {
@@ -457,7 +501,9 @@ const file_bank_proto_rawDesc = "" +
 	"\x04docs\x12'\n" +
 	"\x05banks\x18\x01 \x03(\v2\x11.BankService.BankR\x05banks\"#\n" +
 	"\x11GetOneBankRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"Z\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"3\n" +
+	"\x16GetOneBankByBICRequest\x12\x19\n" +
+	"\bbic_code\x18\x01 \x01(\tR\abicCode\"Z\n" +
 	"\x11GetAllBankRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x19\n" +
 	"\bper_page\x18\x02 \x01(\x05R\aperPage\x12\x16\n" +
@@ -476,12 +522,13 @@ const file_bank_proto_rawDesc = "" +
 	"\tnext_page\x18\a \x01(\x05R\bnextPage\"l\n" +
 	"\x12GetAllBankResponse\x12'\n" +
 	"\x05banks\x18\x01 \x03(\v2\x11.BankService.BankR\x05banks\x12-\n" +
-	"\bmetadata\x18\x02 \x01(\v2\x11.BankService.MetaR\bmetadata2\xab\x01\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x11.BankService.MetaR\bmetadata2\x81\x02\n" +
 	"\vBankService\x12M\n" +
 	"\n" +
 	"GetOneBank\x12\x1e.BankService.GetOneBankRequest\x1a\x1f.BankService.GetOneBankResponse\x12M\n" +
 	"\n" +
-	"GetAllBank\x12\x1e.BankService.GetAllBankRequest\x1a\x1f.BankService.GetAllBankResponseB\bZ\x06./bankb\x06proto3"
+	"GetAllBank\x12\x1e.BankService.GetAllBankRequest\x1a\x1f.BankService.GetAllBankResponse\x12T\n" +
+	"\fGetBankByBIC\x12#.BankService.GetOneBankByBICRequest\x1a\x1f.BankService.GetOneBankResponseB\bZ\x06./bankb\x06proto3"
 
 var (
 	file_bank_proto_rawDescOnce sync.Once
@@ -495,27 +542,30 @@ func file_bank_proto_rawDescGZIP() []byte {
 	return file_bank_proto_rawDescData
 }
 
-var file_bank_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_bank_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_bank_proto_goTypes = []any{
-	(*Bank)(nil),               // 0: BankService.Bank
-	(*Docs)(nil),               // 1: BankService.docs
-	(*GetOneBankRequest)(nil),  // 2: BankService.GetOneBankRequest
-	(*GetAllBankRequest)(nil),  // 3: BankService.GetAllBankRequest
-	(*GetOneBankResponse)(nil), // 4: BankService.GetOneBankResponse
-	(*Meta)(nil),               // 5: BankService.Meta
-	(*GetAllBankResponse)(nil), // 6: BankService.GetAllBankResponse
+	(*Bank)(nil),                   // 0: BankService.Bank
+	(*Docs)(nil),                   // 1: BankService.docs
+	(*GetOneBankRequest)(nil),      // 2: BankService.GetOneBankRequest
+	(*GetOneBankByBICRequest)(nil), // 3: BankService.GetOneBankByBICRequest
+	(*GetAllBankRequest)(nil),      // 4: BankService.GetAllBankRequest
+	(*GetOneBankResponse)(nil),     // 5: BankService.GetOneBankResponse
+	(*Meta)(nil),                   // 6: BankService.Meta
+	(*GetAllBankResponse)(nil),     // 7: BankService.GetAllBankResponse
 }
 var file_bank_proto_depIdxs = []int32{
 	0, // 0: BankService.docs.banks:type_name -> BankService.Bank
 	0, // 1: BankService.GetOneBankResponse.bank:type_name -> BankService.Bank
 	0, // 2: BankService.GetAllBankResponse.banks:type_name -> BankService.Bank
-	5, // 3: BankService.GetAllBankResponse.metadata:type_name -> BankService.Meta
+	6, // 3: BankService.GetAllBankResponse.metadata:type_name -> BankService.Meta
 	2, // 4: BankService.BankService.GetOneBank:input_type -> BankService.GetOneBankRequest
-	3, // 5: BankService.BankService.GetAllBank:input_type -> BankService.GetAllBankRequest
-	4, // 6: BankService.BankService.GetOneBank:output_type -> BankService.GetOneBankResponse
-	6, // 7: BankService.BankService.GetAllBank:output_type -> BankService.GetAllBankResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
+	4, // 5: BankService.BankService.GetAllBank:input_type -> BankService.GetAllBankRequest
+	3, // 6: BankService.BankService.GetBankByBIC:input_type -> BankService.GetOneBankByBICRequest
+	5, // 7: BankService.BankService.GetOneBank:output_type -> BankService.GetOneBankResponse
+	7, // 8: BankService.BankService.GetAllBank:output_type -> BankService.GetAllBankResponse
+	5, // 9: BankService.BankService.GetBankByBIC:output_type -> BankService.GetOneBankResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
 	4, // [4:4] is the sub-list for extension extendee
 	0, // [0:4] is the sub-list for field type_name
@@ -532,7 +582,7 @@ func file_bank_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_bank_proto_rawDesc), len(file_bank_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

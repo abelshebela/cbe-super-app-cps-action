@@ -335,8 +335,8 @@ type WalletService interface {
 	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
 	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
-	GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
+	// GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
+	// GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
 }
 
 type TopupService interface {
@@ -407,6 +407,7 @@ type BankService interface {
 	GetAllBank(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.Bank], error)
 
 	GetOneBank(ctx context.Context, id string) (*model.Bank, error)
+	GetOneBankByBIC(ctx context.Context, bicCode string) (*model.Bank, error)
 
 	CreateOneBank(ctx context.Context, req bank_dto.CreateBankRequest) error
 	UpdateOneBank(ctx context.Context, id string, req bank_dto.UpdateBankRequest) error

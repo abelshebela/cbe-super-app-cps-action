@@ -288,6 +288,7 @@ type BankRepository interface {
 	FindByID(ctx context.Context, id string) (*model.Bank, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error)
 	FindByNameOrBIC(ctx context.Context, bic, name string) (*model.Bank, error)
+	FindByBIC(ctx context.Context, bic string) (*model.Bank, error)
 }
 
 type DepartmentRepository interface {
@@ -480,7 +481,7 @@ type WalletRepository interface {
 	Find(ctx context.Context, key, value string) (*local_model.Wallet, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
 	FindByIDForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
-	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
+	FindAllWithPaginationForGRPC(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
 }
 type TopupRepository interface {
 	Create(ctx context.Context, topup *model.Topup) error

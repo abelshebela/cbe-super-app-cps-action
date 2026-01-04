@@ -232,11 +232,12 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		JobTitle: req.JobTitle,
 		UserCode: userCodeGenerated,
 		// UserName:    req.ImpowerID,
-		PhoneNumber:    req.PhoneNumber,
-		BranchCode:     req.BranchCode,
-		Email:          req.Email,
-		CreatedAt:      now,
-		LastModifiedAt: now,
+		PhoneNumber:      req.PhoneNumber,
+		BranchCode:       req.BranchCode,
+		Email:            req.Email,
+		CreatedAt:        now,
+		LastModifiedAt:   now,
+		FirstPasswordSet: true,
 
 		Enabled: false,
 	}

@@ -56,7 +56,14 @@ func (s *server) GetOneBank(ctx context.Context, req *bankpb.GetOneBankRequest) 
 	}
 	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
 }
-
+func (s *server) GetBankByBIC(ctx context.Context, req *bankpb.GetOneBankByBICRequest) (*bankpb.GetOneBankResponse, error) {
+	data, err := s.bankHandler.GetOneBankByBIC(ctx, req.BicCode)
+	if err != nil {
+		s.logger.Errorf("Failed to get bank by BIC: %v", err)
+		return nil, err
+	}
+	return &bankpb.GetOneBankResponse{Bank: s.bankMapper(data)}, nil
+}
 func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 	return &walletpb.Wallet{
 		Id:          data.ID.Hex(),
@@ -141,12 +148,12 @@ func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletReq
 }
 
 func (s *server) GetWallet(ctx context.Context, req *walletpb.GetWalletRequest) (*walletpb.GetWalletResponse, error) {
-	// data, err := s.walletHandler.GetWallet(ctx, req.Id)
-	// if err != nil {
-	// 	s.logger.Errorf("Failed to get wallet: %v", err)
-	// 	return nil, err
-	// }
-	return &walletpb.GetWalletResponse{}, nil
+	data, err := s.walletHandler.GetWallet(ctx, req.Id)
+	if err != nil {
+		s.logger.Errorf("Failed to get wallet: %v", err)
+		return nil, err
+	}
+	return &walletpb.GetWalletResponse{Wallet: s.walletMapper(data)}, nil
 }
 
 func buildPaginationWallet(meta types.PaginationMeta) *walletpb.Meta {
