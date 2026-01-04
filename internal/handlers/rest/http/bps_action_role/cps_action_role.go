@@ -1,8 +1,8 @@
 package cps_actionrole_handler
 
 import (
-	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
-	cps_actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_action_role"
+	actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/action_role"
+	actionrole_inbound "cbe-super-app-cps-action/internal/constants/interfaces/action_role"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -15,13 +15,13 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 )
 
-type CPSActionRoleHandler struct {
-	service service.CPSActionRoleService
+type BPSActionRoleHandler struct {
+	service service.BPSActionRoleService
 	logger  utils.Logger
 }
 
-func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logger) cps_actionrole_inbound.CPSActionRoleHandler {
-	return &CPSActionRoleHandler{service: svc, logger: logger}
+func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logger) actionrole_inbound.BPSActionRoleHandler {
+	return &BPSActionRoleHandler{service: svc, logger: logger}
 }
 
 // GetAllActionList godoc
@@ -36,8 +36,8 @@ func NewCPSActionRoleHandler(svc service.CPSActionRoleService, logger utils.Logg
 //	@Success	200			{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles/action-list [get]
-func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
+func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllActionListWithPagination(ctx, filter)
@@ -63,8 +63,8 @@ func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 //	@Success	200			{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles [get]
-func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCpsActionRoles", "handler", "cpsActionRole")
+func (h *BPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
 	filter := *local_util.ExtractFilterParams(r)
 	res, err := h.service.FindAllWithPagination(ctx, filter)
@@ -87,7 +87,7 @@ func (h *CPSActionRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 //	@Success	200		{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code} [get]
-func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionRoleByCode", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
@@ -116,14 +116,14 @@ func (h *CPSActionRoleHandler) GetByActionCode(w http.ResponseWriter, r *http.Re
 //	@Success	201		{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles [post]
-func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
-		h.logger.Errorf("[CPSActionRoleHandler] invalid input payload: %v", err)
+		h.logger.Errorf("[BPSActionRoleHandler] invalid input payload: %v", err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
@@ -167,7 +167,7 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 //	@Success	201		{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code} [patch]
-func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
@@ -203,7 +203,7 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 //	@Success	201		{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code}/enable [patch]
-func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
@@ -230,7 +230,7 @@ func (h *CPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 //	@Success	201		{object}	localization.StandardResponse
 //	@Security	BearerAuth
 //	@Router		/action-roles/{code}/disable [patch]
-func (h *CPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
+func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 	code := chi.URLParam(r, "code")
