@@ -331,8 +331,8 @@ type WalletService interface {
 	GetWallet(ctx context.Context, id string) (*local_model.Wallet, error)
 	GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error)
 	Authorize(ctx context.Context, action *model.CPSAction) (*model.CPSAction, error)
-	GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
-	GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
+	// GetWalletForGRPC(ctx context.Context, id string) (*local_model.GRPCWallet, error)
+	// GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error)
 }
 
 type TopupService interface {
