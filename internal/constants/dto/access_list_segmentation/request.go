@@ -12,6 +12,15 @@ type CreateAccessListSegmentationRequest struct {
 	Type            string   `json:"type" bson:"type" validate:"required,oneof=R D C U"`
 }
 
+type EnableDisableAccessListSegmentationRequest struct {
+	AccessListKeys []string `json:"access_list_keys" bson:"access_list_keys" validate:"required"`
+}
+
+type BulkDisableAccessListSegmentationRequest struct {
+	ID   string   `json:"segment_key" bson:"segment_key" validate:"required"`
+	Keys []string `json:"keys" bson:"keys" validate:"required"`
+}
+
 type UpdateAccessListSegmentationRequest struct {
 	ID                string `json:"id" bson:"id"`
 	NewAccessListKey  string `json:"new_access_list_key" bson:"new_access_list_key"`
