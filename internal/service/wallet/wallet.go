@@ -232,11 +232,11 @@ func (s *walletService) GetWallet(ctx context.Context, id string) (*local_model.
 }
 
 func (s *walletService) GetAllWallet(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
-	return s.repo.FindAllWithPagination(ctx, filterParams)
+	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
 // GetAllWalletForGRPC implements service.WalletService.
-func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.GRPCWallet], error) {
+func (s *walletService) GetAllWalletForGRPC(ctx context.Context, filterParams types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 	return s.repo.FindAllWithPaginationForGRPC(ctx, filterParams)
 }
 
