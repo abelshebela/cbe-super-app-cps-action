@@ -25,12 +25,12 @@ type RoleRepository struct {
 	collection *mongo.Collection
 }
 
-func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database, collection string, logger utils.Logger) storage.RoleRepository {
+func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleRepository {
 	return &RoleRepository{
 		client:     client,
-		mongoDal:   dal.NewMongoDal[model.Role, model.Role](client, cfg, database, collection),
+		mongoDal:   dal.NewMongoDal[model.Role, model.Role](client, cfg, database, collection[0]),
 		logger:     logger,
-		collection: client.Database(database).Collection(collection),
+		collection: client.Database(database).Collection(collection[1]),
 	}
 }
 
@@ -50,16 +50,12 @@ func (r *RoleRepository) ExistsMany(ctx context.Context, ids []string) (bool, er
 	if len(ids) == 0 {
 		return true, nil
 	}
-	oids := make([]bson.ObjectID, 0, len(ids))
+	oids := make([]string, 0, len(ids))
 	for _, id := range ids {
-		oid, err := bson.ObjectIDFromHex(id)
-		if err != nil {
-			return false, err
-		}
-		oids = append(oids, oid)
+		oids = append(oids, id)
 	}
 
-	count, err := r.collection.CountDocuments(ctx, bson.M{"_id": bson.M{"$in": oids}})
+	count, err := r.collection.CountDocuments(ctx, bson.M{"code": bson.M{"$in": oids}})
 	if err != nil {
 		return false, err
 	}
