@@ -215,7 +215,7 @@ func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam t
 func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	ctx context.Context,
 	filterParam types.Filter,
-) (*types.PaginatedResponse[[]local_model.GRPCWallet], error) {
+) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
@@ -225,6 +225,7 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 		filter["$or"] = []bson.M{
 			{"name": searchRegex},
 			{"unique_code": searchRegex},
+			{"enabled": true},
 		}
 	}
 
@@ -265,18 +266,73 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 		}}},
 
 		// Output fields
-		{{Key: "$addFields", Value: bson.M{
-			"service_code": "$temp_service.service_code",
-			"service_key":  "$temp_service.service_key",
-			"service_id": bson.M{
-				"$cond": bson.A{
-					bson.M{"$ifNull": bson.A{"$temp_service._id", false}},
-					bson.M{"$toString": "$temp_service._id"},
-					"$service_id_safe",
+		// {{Key: "$addFields", Value: bson.M{
+		// 	"service_code": "$temp_service.service_code",
+		// 	"service_key":  "$temp_service.service_key",
+		// 	"service_id": bson.M{
+		// 		"$cond": bson.A{
+		// 			bson.M{"$ifNull": bson.A{"$temp_service._id", false}},
+		// 			bson.M{"$toString": "$temp_service._id"},
+		// 			"$service_id_safe",
+		// 		},
+		// 	},
+		// }}},
+		{{
+
+			Key: "$addFields", Value: bson.M{
+				"service_code": "$temp_service.service_code",
+				"service_key":  "$temp_service.service_key",
+				"service_id": bson.M{
+					"$cond": bson.A{
+						bson.M{"$ifNull": bson.A{"$temp_service._id", false}},
+						bson.M{"$toString": "$temp_service._id"},
+						"$service_id_safe",
+					},
+				},
+				"created_at": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{bson.M{"$type": "$created_at"}, "string"}},
+						bson.M{
+							"$dateFromString": bson.M{
+								"dateString": "$created_at",
+								"format":     "%Y-%m-%dT%H:%M:%S.%L",
+								"onError":    nil,
+								"onNull":     nil,
+							},
+						},
+						"$created_at",
+					},
+				},
+				"last_modified_at": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{bson.M{"$type": "$last_modified_at"}, "string"}},
+						bson.M{
+							"$dateFromString": bson.M{
+								"dateString": "$last_modified_at",
+								"format":     "%Y-%m-%dT%H:%M:%S.%L",
+								"onError":    nil,
+								"onNull":     nil,
+							},
+						},
+						"$last_modified_at",
+					},
+				},
+				"deleted_at": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{bson.M{"$type": "$deleted_at"}, "string"}},
+						bson.M{
+							"$dateFromString": bson.M{
+								"dateString": "$deleted_at",
+								"format":     "%Y-%m-%dT%H:%M:%S.%L",
+								"onError":    nil,
+								"onNull":     nil,
+							},
+						},
+						"$last_modified_at",
+					},
 				},
 			},
-		}}},
-
+		}},
 		// Cleanup
 		{{Key: "$project", Value: bson.M{
 			"temp_service":   0,
@@ -294,8 +350,8 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 	}
 	defer cursor.Close(ctx)
 
-	var grpcWallets []local_model.GRPCWallet
-	if err := cursor.All(ctx, &grpcWallets); err != nil {
+	var wallets []local_model.Wallet
+	if err := cursor.All(ctx, &wallets); err != nil {
 		w.logger.Errorf("Decode Aggregate results failed: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
 	}
@@ -308,8 +364,8 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
 
-	return &types.PaginatedResponse[[]local_model.GRPCWallet]{
-		Data: grpcWallets,
+	return &types.PaginatedResponse[[]local_model.Wallet]{
+		Data: wallets,
 		Meta: meta,
 	}, nil
 }
