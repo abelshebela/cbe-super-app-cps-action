@@ -440,6 +440,7 @@ const (
 	MsgInvalidEmail                          = "Invalid email format"
 	MsgInvalidPhoneNumber                    = "Invalid phone number format"
 	MsgExistEmail                            = "cps user with this email already exist"
+	MsgBpsUserEmailExist                     = "A BPS user with this email already exists"
 	MsgExistPhoneNumber                      = "user with this  phone Number already exist"
 	MsgInvalidDate                           = "Invalid date format"
 	MsgInvalidAction                         = "Invalid Action"
