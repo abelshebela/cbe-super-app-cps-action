@@ -25,12 +25,12 @@ type RoleRepository struct {
 	collection *mongo.Collection
 }
 
-func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database, collection string, logger utils.Logger) storage.RoleRepository {
+func NewRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.RoleRepository {
 	return &RoleRepository{
 		client:     client,
-		mongoDal:   dal.NewMongoDal[model.Role, model.Role](client, cfg, database, collection),
+		mongoDal:   dal.NewMongoDal[model.Role, model.Role](client, cfg, database, collection[0]),
 		logger:     logger,
-		collection: client.Database(database).Collection(collection),
+		collection: client.Database(database).Collection(collection[1]),
 	}
 }
 
