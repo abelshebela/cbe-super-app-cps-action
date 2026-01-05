@@ -23,7 +23,7 @@ import (
 type CPSActionRoleRepository struct {
 	client        *mongo.Client
 	mongoDal      dal.MongoDal[imodel.CPSActionRole, imodel.CPSActionRole]
-	approverDal   dal.MongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex]
+	approverDal   dal.MongoDal[imodel.CPSActionApproveIndex, imodel.CPSActionApproveIndex]
 	actionListDal dal.MongoDal[imodel.CPSActionList, imodel.CPSActionList]
 	logger        utils.Logger
 	collection    *mongo.Collection
@@ -34,7 +34,7 @@ func NewCPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 		client:        client,
 		mongoDal:      dal.NewMongoDal[imodel.CPSActionRole, imodel.CPSActionRole](client, cfg, database, "cps_action_roles"),
 		actionListDal: dal.NewMongoDal[imodel.CPSActionList, imodel.CPSActionList](client, cfg, database, collection[1]),
-		approverDal:   dal.NewMongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex](client, cfg, database, "cps_action_approver_index"),
+		approverDal:   dal.NewMongoDal[imodel.CPSActionApproveIndex, imodel.CPSActionApproveIndex](client, cfg, database, "cps_action_approver_index"),
 		logger:        logger,
 		collection:    client.Database(database).Collection(collection[0]),
 	}
@@ -829,11 +829,11 @@ func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 	return roleData, nil
 }
 
-func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (model.CPSActionApproveIndex, error) {
+func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.CPSActionApproveIndex, error) {
 	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
 	if err != nil {
 		r.logger.Errorf("error finding approver index: %v", err)
-		return model.CPSActionApproveIndex{}, err
+		return imodel.CPSActionApproveIndex{}, err
 	}
 
 	return *approverModal, nil
