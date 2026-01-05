@@ -3,6 +3,7 @@ package cpsaction
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	"strings"
@@ -26,6 +27,64 @@ type cpsActionService struct {
 	roles      storage.CPSActionRoleRepository
 	logger     utils.Logger
 	dispatcher Dispatcher
+}
+
+// AuditorClaim sets auditor status to INPROGRESS when caller belongs to the active group.
+func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
+	defer span.End()
+	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
+	if err != nil || act == nil {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	// compute active group from record
+	current := int64(0)
+	if act.CurrentAuditorIndex > 0 {
+		current = int64(act.CurrentAuditorIndex)
+	}
+	expected := int64(activeGroup)
+	if current != 0 && current != expected {
+		return errors.New(localization.ErrorOperationNotAllowed.Code)
+	}
+	// idempotent move to INPROGRESS
+	upd := model.CPSAction{ActionCode: actionCode}
+	upd.AuditorStatus = "INPROGRESS"
+	_, err = ca.repo.Update(ctx, actionCode, upd)
+	return err
+}
+
+// AuditorMark records an auditor's mark and advances to the next group or finishes.
+func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorMark", "CPSAction", "AuditorMark")
+	defer span.End()
+	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
+	if err != nil || act == nil {
+		return errors.New(localization.ErrorResourceNotFound.Code)
+	}
+	// prevent multiple marks within the same group (any-one quorum)
+	grp := int(activeGroup)
+	for _, au := range act.AuditorUsers {
+		if int(au.AuditorIndex) == grp {
+			return errors.New(localization.ErrorOperationNotAllowed.Code)
+		}
+	}
+
+	// append this auditor
+	nextUsers := append(act.AuditorUsers, auditor)
+
+	upd := model.CPSAction{ActionCode: actionCode}
+	upd.AuditorUsers = nextUsers
+
+	// advance group or finish
+	if act.AuditorCount > 0 && int32(activeGroup) >= act.AuditorCount {
+		upd.AuditorStatus = "CHECKED"
+		upd.CurrentAuditorIndex = float64(activeGroup)
+	} else {
+		upd.AuditorStatus = "NOTCHECKED"
+		upd.CurrentAuditorIndex = float64(activeGroup + 1)
+	}
+	_, err = ca.repo.Update(ctx, actionCode, upd)
+	return err
 }
 
 func NewCPSActionService(roles storage.CPSActionRoleRepository, repo storage.CPSActionRepository, logger utils.Logger, dispatcher Dispatcher) service.CPSActionService {
@@ -210,16 +269,16 @@ func (ca *cpsActionService) GetActionCountsByDepartemnt(ctx context.Context, dep
 	return count, nil
 }
 
-func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (model.CPSActionApproveIndex, error) {
+func (ca *cpsActionService) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.CPSActionApproveIndex, error) {
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
-	var approverData model.CPSActionApproveIndex
+	var approverData imodel.CPSActionApproveIndex
 
 	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
 		if approver, err := ca.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
 			approverData = approver
 		}
 	} else {
-		return model.CPSActionApproveIndex{}, errors.New(localization.ErrorOperationNotAllowed.Message)
+		return imodel.CPSActionApproveIndex{}, errors.New(localization.ErrorOperationNotAllowed.Message)
 	}
 
 	return approverData, nil

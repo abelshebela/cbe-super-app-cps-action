@@ -559,6 +559,10 @@ const (
 	RequestCreateAccessListSegmentation        RequestAction = "CREATE_ACCESS_LIST_SEGMENTATION"
 	RequestUpdateAccessListSegmentation        RequestAction = "UPDATE_ACCESS_LIST_SEGMENTATION"
 	RequestEnableDisableAccessListSegmentation RequestAction = "ENABLE_DISABLE_ACCESS_LIST_SEGMENTATION"
+
+	RequestCreateCustomerKYC RequestAction = "CREATE_CUSTOMER_KYC"
+	RequestUpdateCustomerKYC RequestAction = "UPDATE_CUSTOMER_KYC"
+	RequestDeleteCustomerKYC RequestAction = "DELETE_CUSTOMER_KYC"
 )
 
 type RegistrationType string
@@ -862,4 +866,5 @@ const (
 	EventFolderName              ImageFolderName = "events"
 	TopupFolderName              ImageFolderName = "topups"
 	VaultGroupCategoryFolderName ImageFolderName = "vault_group_categories"
+	CustomerKYCFolderName        ImageFolderName = "customer_kyc"
 )

@@ -23,7 +23,7 @@ import (
 type CPSActionRoleRepository struct {
 	client        *mongo.Client
 	mongoDal      dal.MongoDal[imodel.CPSActionRole, imodel.CPSActionRole]
-	approverDal   dal.MongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex]
+	approverDal   dal.MongoDal[imodel.CPSActionApproveIndex, imodel.CPSActionApproveIndex]
 	actionListDal dal.MongoDal[imodel.CPSActionList, imodel.CPSActionList]
 	logger        utils.Logger
 	collection    *mongo.Collection
@@ -34,7 +34,7 @@ func NewCPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 		client:        client,
 		mongoDal:      dal.NewMongoDal[imodel.CPSActionRole, imodel.CPSActionRole](client, cfg, database, "cps_action_roles"),
 		actionListDal: dal.NewMongoDal[imodel.CPSActionList, imodel.CPSActionList](client, cfg, database, collection[1]),
-		approverDal:   dal.NewMongoDal[model.CPSActionApproveIndex, model.CPSActionApproveIndex](client, cfg, database, "cps_action_approver_index"),
+		approverDal:   dal.NewMongoDal[imodel.CPSActionApproveIndex, imodel.CPSActionApproveIndex](client, cfg, database, "cps_action_approver_index"),
 		logger:        logger,
 		collection:    client.Database(database).Collection(collection[0]),
 	}
@@ -107,47 +107,265 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 
 	const rolesCollection = "job_roles"
 
+	// pipeline := mongo.Pipeline{
+
+	// 	// 1️⃣ Match action
+	// 	{{Key: "$match", Value: bson.M{
+	// 		"action_code": actionCode,
+	// 	}}},
+
+	// 	// 2️⃣ Normalize arrays (safety)
+	// 	{{Key: "$addFields", Value: bson.M{
+	// 		"assigned_viewers_roles": bson.M{
+	// 			"$cond": bson.A{
+	// 				bson.M{"$isArray": "$assigned_viewers_roles"},
+	// 				"$assigned_viewers_roles",
+	// 				bson.A{},
+	// 			},
+	// 		},
+	// 		"assigned_makers_roles": bson.M{
+	// 			"$cond": bson.A{
+	// 				bson.M{"$isArray": "$assigned_makers_roles"},
+	// 				"$assigned_makers_roles",
+	// 				bson.A{},
+	// 			},
+	// 		},
+	// 		"assigned_checkers_roles": bson.M{
+	// 			"$cond": bson.A{
+	// 				bson.M{"$isArray": "$assigned_checkers_roles"},
+	// 				"$assigned_checkers_roles",
+	// 				bson.A{},
+	// 			},
+	// 		},
+	// 		"assigned_auditor_roles": bson.M{
+	// 			"$cond": bson.A{
+	// 				bson.M{"$isArray": "$assigned_auditor_roles"},
+	// 				"$assigned_auditor_roles",
+	// 				bson.A{},
+	// 			},
+	// 		},
+	// 	}}},
+
+	// 	// 3️⃣ Lookup MAKERS (by code) + FORCE projection
+
+	// 	{{
+	// 		Key: "$lookup",
+	// 		Value: bson.M{
+	// 			"from":         rolesCollection,
+	// 			"localField":   "assigned_viewers_roles",
+	// 			"foreignField": "code",
+	// 			"as":           "assigned_viewers_roles",
+	// 		},
+	// 	}},
+	// 	{{Key: "$addFields", Value: bson.M{
+	// 		"assigned_viewers_roles": bson.M{
+	// 			"$map": bson.M{
+	// 				"input": "$assigned_viewers_roles",
+	// 				"as":    "r",
+	// 				"in": bson.M{
+	// 					"_id":          "$$r._id",
+	// 					"code":         "$$r.code",
+	// 					"name":         "$$r.name",
+	// 					"portal_cards": "$$r.portal_cards",
+	// 					"created_at":   "$$r.created_at",
+	// 					"updated_at":   "$$r.updated_at",
+	// 				},
+	// 			},
+	// 		},
+	// 	}}},
+	// 	// 3️⃣ Lookup MAKERS (by code) + FORCE projection
+
+	// 	{{
+	// 		Key: "$lookup",
+	// 		Value: bson.M{
+	// 			"from":         rolesCollection,
+	// 			"localField":   "assigned_makers_roles",
+	// 			"foreignField": "code",
+	// 			"as":           "assigned_makers_roles",
+	// 		},
+	// 	}},
+	// 	{{Key: "$addFields", Value: bson.M{
+	// 		"assigned_makers_roles": bson.M{
+	// 			"$map": bson.M{
+	// 				"input": "$assigned_makers_roles",
+	// 				"as":    "r",
+	// 				"in": bson.M{
+	// 					"_id":          "$$r._id",
+	// 					"code":         "$$r.code",
+	// 					"name":         "$$r.name",
+	// 					"portal_cards": "$$r.portal_cards",
+	// 					"created_at":   "$$r.created_at",
+	// 					"updated_at":   "$$r.updated_at",
+	// 				},
+	// 			},
+	// 		},
+	// 	}}},
+
+	// 	// 4️⃣ Lookup ALL CHECKER ROLES (flatten by code)
+	// 	{{
+	// 		Key: "$lookup",
+	// 		Value: bson.M{
+	// 			"from": rolesCollection,
+	// 			"let": bson.M{
+	// 				"allCheckerCodes": bson.M{
+	// 					"$reduce": bson.M{
+	// 						"input":        "$assigned_checkers_roles",
+	// 						"initialValue": bson.A{},
+	// 						"in": bson.M{
+	// 							"$concatArrays": bson.A{
+	// 								"$$value",
+	// 								bson.M{
+	// 									"$cond": bson.A{
+	// 										bson.M{"$isArray": "$$this"},
+	// 										"$$this",
+	// 										bson.A{},
+	// 									},
+	// 								},
+	// 							},
+	// 						},
+	// 					},
+	// 				},
+	// 			},
+	// 			"pipeline": mongo.Pipeline{
+	// 				{{Key: "$match", Value: bson.M{
+	// 					"$expr": bson.M{
+	// 						"$in": []interface{}{"$code", "$$allCheckerCodes"},
+	// 					},
+	// 				}}},
+	// 			},
+	// 			"as": "checker_roles_all",
+	// 		},
+	// 	}},
+
+	// 	// 5️⃣ Rebuild CHECKERS [][]JobRole (FORCED projection)
+	// 	{{
+	// 		Key: "$addFields",
+	// 		Value: bson.M{
+	// 			"assigned_checkers_roles": bson.M{
+	// 				"$map": bson.M{
+	// 					"input": "$assigned_checkers_roles",
+	// 					"as":    "level",
+	// 					"in": bson.M{
+	// 						"$cond": bson.A{
+	// 							bson.M{"$isArray": "$$level"},
+	// 							bson.M{
+	// 								"$map": bson.M{
+	// 									"input": "$$level",
+	// 									"as":    "code",
+	// 									"in": bson.M{
+	// 										"$let": bson.M{
+	// 											"vars": bson.M{
+	// 												"role": bson.M{
+	// 													"$first": bson.M{
+	// 														"$filter": bson.M{
+	// 															"input": "$checker_roles_all",
+	// 															"as":    "r",
+	// 															"cond": bson.M{
+	// 																"$eq": []interface{}{"$$r.code", "$$code"},
+	// 															},
+	// 														},
+	// 													},
+	// 												},
+	// 											},
+	// 											"in": bson.M{
+	// 												"_id":          "$$role._id",
+	// 												"code":         "$$role.code",
+	// 												"name":         "$$role.name",
+	// 												"portal_cards": "$$role.portal_cards",
+	// 												"created_at":   "$$role.created_at",
+	// 												"updated_at":   "$$role.updated_at",
+	// 											},
+	// 										},
+	// 									},
+	// 								},
+	// 							},
+	// 							bson.A{},
+	// 						},
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}},
+
+	// 	// 6️⃣ Lookup AUDITORS (by code) + FORCE projection
+	// 	{{
+	// 		Key: "$lookup",
+	// 		Value: bson.M{
+	// 			"from":         rolesCollection,
+	// 			"localField":   "assigned_auditor_roles",
+	// 			"foreignField": "code",
+	// 			"as":           "assigned_auditor_roles",
+	// 		},
+	// 	}},
+	// 	{{Key: "$addFields", Value: bson.M{
+	// 		"assigned_auditor_roles": bson.M{
+	// 			"$map": bson.M{
+	// 				"input": "$assigned_auditor_roles",
+	// 				"as":    "r",
+	// 				"in": bson.M{
+	// 					"_id":          "$$r._id",
+	// 					"code":         "$$r.code",
+	// 					"name":         "$$r.name",
+	// 					"portal_cards": "$$r.portal_cards",
+	// 					"created_at":   "$$r.created_at",
+	// 					"updated_at":   "$$r.updated_at",
+	// 				},
+	// 			},
+	// 		},
+	// 	}}},
+
+	// 	// 7️⃣ Cleanup helper field
+	// 	{{Key: "$project", Value: bson.M{
+	// 		"checker_roles_all": 0,
+	// 	}}},
+	// }
+
 	pipeline := mongo.Pipeline{
 
 		// 1️⃣ Match action
-		{{Key: "$match", Value: bson.M{
-			"action_code": actionCode,
-		}}},
+		{{
+			Key: "$match",
+			Value: bson.M{
+				"action_code": actionCode,
+			},
+		}},
 
-		// 2️⃣ Normalize arrays (safety)
-		{{Key: "$addFields", Value: bson.M{
-			"assigned_viewers_roles": bson.M{
-				"$cond": bson.A{
-					bson.M{"$isArray": "$assigned_viewers_roles"},
-					"$assigned_viewers_roles",
-					bson.A{},
+		// 2️⃣ Normalize arrays (SAFETY)
+		{{
+			Key: "$addFields",
+			Value: bson.M{
+				"assigned_viewers_roles": bson.M{
+					"$cond": bson.A{
+						bson.M{"$isArray": "$assigned_viewers_roles"},
+						"$assigned_viewers_roles",
+						bson.A{},
+					},
+				},
+				"assigned_makers_roles": bson.M{
+					"$cond": bson.A{
+						bson.M{"$isArray": "$assigned_makers_roles"},
+						"$assigned_makers_roles",
+						bson.A{},
+					},
+				},
+				"assigned_checkers_roles": bson.M{
+					"$cond": bson.A{
+						bson.M{"$isArray": "$assigned_checkers_roles"},
+						"$assigned_checkers_roles",
+						bson.A{},
+					},
+				},
+				"assigned_auditor_roles": bson.M{
+					"$cond": bson.A{
+						bson.M{"$isArray": "$assigned_auditor_roles"},
+						"$assigned_auditor_roles",
+						bson.A{},
+					},
 				},
 			},
-			"assigned_makers_roles": bson.M{
-				"$cond": bson.A{
-					bson.M{"$isArray": "$assigned_makers_roles"},
-					"$assigned_makers_roles",
-					bson.A{},
-				},
-			},
-			"assigned_checkers_roles": bson.M{
-				"$cond": bson.A{
-					bson.M{"$isArray": "$assigned_checkers_roles"},
-					"$assigned_checkers_roles",
-					bson.A{},
-				},
-			},
-			"assigned_auditor_roles": bson.M{
-				"$cond": bson.A{
-					bson.M{"$isArray": "$assigned_auditor_roles"},
-					"$assigned_auditor_roles",
-					bson.A{},
-				},
-			},
-		}}},
+		}},
 
-		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
-
+		// 3️⃣ VIEWERS (simple []string)
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -157,24 +375,27 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 				"as":           "assigned_viewers_roles",
 			},
 		}},
-		{{Key: "$addFields", Value: bson.M{
-			"assigned_viewers_roles": bson.M{
-				"$map": bson.M{
-					"input": "$assigned_viewers_roles",
-					"as":    "r",
-					"in": bson.M{
-						"_id":          "$$r._id",
-						"code":         "$$r.code",
-						"name":         "$$r.name",
-						"portal_cards": "$$r.portal_cards",
-						"created_at":   "$$r.created_at",
-						"updated_at":   "$$r.updated_at",
+		{{
+			Key: "$addFields",
+			Value: bson.M{
+				"assigned_viewers_roles": bson.M{
+					"$map": bson.M{
+						"input": "$assigned_viewers_roles",
+						"as":    "r",
+						"in": bson.M{
+							"_id":          "$$r._id",
+							"code":         "$$r.code",
+							"name":         "$$r.name",
+							"portal_cards": "$$r.portal_cards",
+							"created_at":   "$$r.created_at",
+							"updated_at":   "$$r.updated_at",
+						},
 					},
 				},
 			},
-		}}},
-		// 3️⃣ Lookup MAKERS (by code) + FORCE projection
+		}},
 
+		// 4️⃣ MAKERS (simple []string)
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -184,24 +405,27 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 				"as":           "assigned_makers_roles",
 			},
 		}},
-		{{Key: "$addFields", Value: bson.M{
-			"assigned_makers_roles": bson.M{
-				"$map": bson.M{
-					"input": "$assigned_makers_roles",
-					"as":    "r",
-					"in": bson.M{
-						"_id":          "$$r._id",
-						"code":         "$$r.code",
-						"name":         "$$r.name",
-						"portal_cards": "$$r.portal_cards",
-						"created_at":   "$$r.created_at",
-						"updated_at":   "$$r.updated_at",
+		{{
+			Key: "$addFields",
+			Value: bson.M{
+				"assigned_makers_roles": bson.M{
+					"$map": bson.M{
+						"input": "$assigned_makers_roles",
+						"as":    "r",
+						"in": bson.M{
+							"_id":          "$$r._id",
+							"code":         "$$r.code",
+							"name":         "$$r.name",
+							"portal_cards": "$$r.portal_cards",
+							"created_at":   "$$r.created_at",
+							"updated_at":   "$$r.updated_at",
+						},
 					},
 				},
 			},
-		}}},
+		}},
 
-		// 4️⃣ Lookup ALL CHECKER ROLES (flatten by code)
+		// 5️⃣ CHECKERS — flatten [][]string
 		{{
 			Key: "$lookup",
 			Value: bson.M{
@@ -237,7 +461,7 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}},
 
-		// 5️⃣ Rebuild CHECKERS [][]JobRole (FORCED projection)
+		// 6️⃣ REBUILD CHECKERS [][]JobRole
 		{{
 			Key: "$addFields",
 			Value: bson.M{
@@ -287,37 +511,100 @@ func (r *CPSActionRoleRepository) FindByActionCode(
 			},
 		}},
 
-		// 6️⃣ Lookup AUDITORS (by code) + FORCE projection
+		// 7️⃣ AUDITORS — flatten [][]string
 		{{
 			Key: "$lookup",
 			Value: bson.M{
-				"from":         rolesCollection,
-				"localField":   "assigned_auditor_roles",
-				"foreignField": "code",
-				"as":           "assigned_auditor_roles",
+				"from": rolesCollection,
+				"let": bson.M{
+					"allAuditorCodes": bson.M{
+						"$reduce": bson.M{
+							"input":        "$assigned_auditor_roles",
+							"initialValue": bson.A{},
+							"in": bson.M{
+								"$concatArrays": bson.A{
+									"$$value",
+									bson.M{
+										"$cond": bson.A{
+											bson.M{"$isArray": "$$this"},
+											"$$this",
+											bson.A{},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"pipeline": mongo.Pipeline{
+					{{Key: "$match", Value: bson.M{
+						"$expr": bson.M{
+							"$in": []interface{}{"$code", "$$allAuditorCodes"},
+						},
+					}}},
+				},
+				"as": "auditor_roles_all",
 			},
 		}},
-		{{Key: "$addFields", Value: bson.M{
-			"assigned_auditor_roles": bson.M{
-				"$map": bson.M{
-					"input": "$assigned_auditor_roles",
-					"as":    "r",
-					"in": bson.M{
-						"_id":          "$$r._id",
-						"code":         "$$r.code",
-						"name":         "$$r.name",
-						"portal_cards": "$$r.portal_cards",
-						"created_at":   "$$r.created_at",
-						"updated_at":   "$$r.updated_at",
+
+		// 8️⃣ REBUILD AUDITORS [][]JobRole
+		{{
+			Key: "$addFields",
+			Value: bson.M{
+				"assigned_auditor_roles": bson.M{
+					"$map": bson.M{
+						"input": "$assigned_auditor_roles",
+						"as":    "level",
+						"in": bson.M{
+							"$cond": bson.A{
+								bson.M{"$isArray": "$$level"},
+								bson.M{
+									"$map": bson.M{
+										"input": "$$level",
+										"as":    "code",
+										"in": bson.M{
+											"$let": bson.M{
+												"vars": bson.M{
+													"role": bson.M{
+														"$first": bson.M{
+															"$filter": bson.M{
+																"input": "$auditor_roles_all",
+																"as":    "r",
+																"cond": bson.M{
+																	"$eq": []interface{}{"$$r.code", "$$code"},
+																},
+															},
+														},
+													},
+												},
+												"in": bson.M{
+													"_id":          "$$role._id",
+													"code":         "$$role.code",
+													"name":         "$$role.name",
+													"portal_cards": "$$role.portal_cards",
+													"created_at":   "$$role.created_at",
+													"updated_at":   "$$role.updated_at",
+												},
+											},
+										},
+									},
+								},
+								bson.A{},
+							},
+						},
 					},
 				},
 			},
-		}}},
+		}},
 
-		// 7️⃣ Cleanup helper field
-		{{Key: "$project", Value: bson.M{
-			"checker_roles_all": 0,
-		}}},
+		// 9️⃣ CLEANUP
+		{{
+			Key: "$project",
+			Value: bson.M{
+				"checker_roles_all": 0,
+				"auditor_roles_all": 0,
+			},
+		}},
 	}
 
 	cursor, err := r.collection.Aggregate(ctx, pipeline)
@@ -542,11 +829,11 @@ func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 	return roleData, nil
 }
 
-func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (model.CPSActionApproveIndex, error) {
+func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.CPSActionApproveIndex, error) {
 	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
 	if err != nil {
 		r.logger.Errorf("error finding approver index: %v", err)
-		return model.CPSActionApproveIndex{}, err
+		return imodel.CPSActionApproveIndex{}, err
 	}
 
 	return *approverModal, nil

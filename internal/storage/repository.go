@@ -159,7 +159,7 @@ type CPSActionRoleRepository interface {
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*imodel.CPSActionRole, error)
-	FindApproverByActionName(ctx context.Context, actionName, role_code string) (model.CPSActionApproveIndex, error)
+	FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.CPSActionApproveIndex, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.CPSActionRole, error)
 }
 type DeviceVersionControlRepository interface {
@@ -745,4 +745,12 @@ type CPSRolesRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.CPSRoles], error)
 	FindById(ctx context.Context, id string) (*model.CPSRoles, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
+}
+
+type CustomerKYCRepository interface {
+	Create(ctx context.Context, req *imodel.CustomerKYC) error
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerKYC], error)
+	FindByID(ctx context.Context, id string) (*imodel.CustomerKYC, error)
+	UpdateKYCStatus(ctx context.Context, id string, status string) error
+	Delete(ctx context.Context, id string) error
 }

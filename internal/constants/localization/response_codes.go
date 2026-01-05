@@ -5459,6 +5459,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorMissingOrInvalidVideo = ResponseCode{
+		Code:       "ERROR_MISSING_OR_INVALID_VIDEO",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMissingOrInvalidVideo,
+		Type:       "error",
+	}
+
 	ErrorPendingActionExists = ResponseCode{
 		Code:       "ERROR_PENDING_ACTION_EXISTS",
 		StatusCode: StatusInternalServerError,

@@ -387,6 +387,25 @@ func GenerateBPSUserCode() string {
 	return prefix + string(b)
 }
 
+func GenerateCustomerCode() string {
+	const (
+		prefix  = "CUST-"
+		codeLen = 12
+		charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	)
+
+	randomPart := codeLen - len(prefix)
+	b := make([]byte, randomPart)
+
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := range b {
+		b[i] = charset[rnd.Intn(len(charset))]
+	}
+
+	return prefix + string(b)
+}
+
 func ParseDateString(dateStr string) (time.Time, error) {
 	formats := []string{
 		"02/01/2006",                // DD/MM/YYYY

@@ -75,6 +75,36 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 	return allowedMIMETypes[contentType]
 }
 
+func IsValidVideo(fileHeader *multipart.FileHeader) bool {
+	var allowedMIMETypes = map[string]bool{
+		"video/mp4":        true,
+		"video/x-msvideo":  true, // avi
+		"video/quicktime":  true, // mov
+		"video/x-matroska": true, // mkv
+		"video/webm":       true,
+	}
+
+	if fileHeader.Size > 50*1024*1024 { // 50MB limit for video
+		return false
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+
+	buffer := make([]byte, 512)
+	_, err = file.Read(buffer)
+	if err != nil {
+		return false
+	}
+
+	contentType := http.DetectContentType(buffer)
+
+	return allowedMIMETypes[contentType]
+}
+
 func OTPGenerator(length uint8) string {
 	numberic := "0123456789"
 	r := mathrand.New(mathrand.NewSource(time.Now().UnixNano()))
