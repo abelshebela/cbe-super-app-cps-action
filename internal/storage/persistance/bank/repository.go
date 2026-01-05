@@ -176,11 +176,11 @@ func (s *BankStorage) FindByNameOrBIC(
 }
 
 func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Bank], error) {
-	filter := bson.M{"is_deleted": false, "enabled": true}
+	filter := bson.M{"is_deleted": false}
 	searchKeys := bson.M{}
 	allowedKeys := []string{"search", "branch_code", "branch_name", "enabled", "enabled", "is_deleted"}
 
-	if filterParam.Search != "" {
+	if filterParam.Search != "" && filterParam.Search != "enabled" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
 			{"name": searchRegex},
@@ -192,8 +192,9 @@ func (s *BankStorage) FindAllWithPagination(ctx context.Context, filterParam typ
 
 	}
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
-	filter["is_deleted"] = false
-	filter["enabled"] = true
+	if filterParam.Search == "enabled" {
+		filter["enabled"] = true
+	}
 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
