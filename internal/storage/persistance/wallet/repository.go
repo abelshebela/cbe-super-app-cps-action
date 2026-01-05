@@ -143,7 +143,6 @@ func (w *WalletStorage) FindByID(ctx context.Context, id string) (*local_model.W
 func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_model.Wallet, error) {
 	filter := bson.M{
 		"is_deleted": false,
-		"enabled":    true,
 	}
 
 	var orFilters []bson.M
@@ -183,9 +182,7 @@ func (w *WalletStorage) Find(ctx context.Context, code, name string) (*local_mod
 func (e *WalletStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.Wallet], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
-	filter["is_deleted"] = false
-	filter["enabled"] = true
-	if filterParam.Search != "" {
+	if filterParam.Search != "" && filterParam.Search != "enabled" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
 			{"name": searchRegex},
@@ -221,16 +218,16 @@ func (w *WalletStorage) FindAllWithPaginationForGRPC(
 
 	allowedKeys := []string{"name", "code", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowedKeys)
-	filter["is_deleted"] = false
-	filter["enabled"] = true
-	if filterParam.Search != "" {
+	if filterParam.Search != "" && filterParam.Search != "enabled" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		filter["$or"] = []bson.M{
 			{"name": searchRegex},
 			{"unique_code": searchRegex},
 		}
 	}
-
+	if filterParam.Search == "enabled" {
+		filter["enabled"] = true
+	}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 
