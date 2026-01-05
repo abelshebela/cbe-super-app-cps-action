@@ -150,7 +150,7 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing imod
 		}
 	}
 
-	if len(req.Tiers) > 0 {
+	if req.Tiers != nil {
 		existing.Tiers = func() []imodel.Tier {
 			tiers := make([]imodel.Tier, 0, len(req.Tiers))
 			for _, t := range req.Tiers {
@@ -165,7 +165,7 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing imod
 		}()
 	}
 
-	if len(req.ServiceList) > 0 {
+	if req.ServiceList != nil {
 		existing.ServiceList = func() []imodel.ServiceLists {
 			lists := make([]imodel.ServiceLists, 0, len(req.ServiceList))
 			for _, sl := range req.ServiceList {
@@ -200,8 +200,8 @@ func MapToServiceUpdateModel(req service_dto.UpdateServiceRequest, existing imod
 			}
 			return lists
 		}()
+		existing.Enabled = true
 	}
-	existing.Enabled = true
 
 	return existing
 }

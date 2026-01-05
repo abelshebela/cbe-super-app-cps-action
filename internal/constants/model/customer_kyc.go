@@ -1,26 +1,15 @@
 package model
 
-// type CustomerKYC struct {
-// 	ID                   bson.ObjectID       `json:"id" bson:"_id"`
-// 	UserID               string              `json:"user_id" bson:"user_id"`
-// 	KYCData              types.KYCData       `json:"kyc_data" bson:"kyc_data"`
-// 	KYCRejectReasonField map[string]struct{} `json:"kyc_reject_reason_failed" bson:"kyc_reject_reason_failed"`
-// 	KYCStatus            constants.KYCStatus `json:"kyc_status" bson:"kyc_status"`
-// 	KYCRejectReason      string              `json:"kyc_reject_reason" bson:"kyc_reject_reason"`
-// 	KYCApproved          bool                `json:"kyc_approved" bson:"kyc_approved"`
-// 	KYCActivityBy        any                 `json:"kyc_activity_by" bson:"kyc_activity_by"`
-// 	KYCLevel             uint8               `json:"kyc_level" bson:"kyc_level"`
-// 	Enabled              bool                `json:"enabled" bson:"enabled"`
-// 	IsDeleted            bool                `json:"is_deleted" bson:"is_deleted"`
-// 	CreatedAt            time.Time           `json:"created_at" bson:"created_at"`
-// 	LastModifiedAt       time.Time           `json:"last_modified_at" bson:"last_modified_at"`
-// 	DeletedAt            time.Time           `json:"deleted_at" bson:"deleted_at"`
-// }
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type AccountType string
 type CustomerStatus string
-type KYCStatus string
-type MartialStatus string
+type MaritalStatus string
+type EmploymentStatus string
 
 const (
 	CustomerActive  CustomerStatus = "ACTIVE"
@@ -34,41 +23,75 @@ const (
 )
 
 const (
-	KYCApproved KYCStatus = "APPROVED"
-	KYCPending  KYCStatus = "PENDING"
-	KYCRejected KYCStatus = "REJECTED"
+	MaritalMarried  MaritalStatus = "MARRIED"
+	MaritalDivorced MaritalStatus = "DIVORCED"
+	MaritalSingle   MaritalStatus = "SINGLE"
+	MaritalWidowed  MaritalStatus = "WIDOWED"
 )
 
-const ()
+const (
+	EmploymentStatusAgent      EmploymentStatus = "AGENT"
+	EmploymentStatusEmployed   EmploymentStatus = "EMPLOYED"
+	EmploymentStatusForeigner  EmploymentStatus = "FOREIGNER"
+	EmploymentStatusMinor      EmploymentStatus = "MINOR"
+	EmploymentStatusPensioner  EmploymentStatus = "PENSIONER"
+	EmploymentStatusCBEStaff   EmploymentStatus = "STAFF_OF_CBE"
+	EmploymentStatusUnemployed EmploymentStatus = "UNEMPLOYED"
+	EmploymentStatusOther      EmploymentStatus = "OTHER_INDIVIDUALS"
+)
 
 type CustomerInfo struct {
-	FirstName   string
-	MiddleName  string
-	LastName    string
-	PhoneNumber string
-	email       string
-	DateOfBirth string
-	Gender      string
-	MotherName  string
+	FirstName   string `json:"first_name" bson:"first_name"`
+	MiddleName  string `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
+	LastName    string `json:"last_name" bson:"last_name"`
+	PhoneNumber string `json:"phone_number" bson:"phone_number"`
+	Email       string `json:"email" bson:"email"`
+	DateOfBirth string `json:"date_of_birth" bson:"date_of_birth"`
+	Gender      string `json:"gender" bson:"gender"`
+	MotherName  string `json:"mother_name" bson:"mother_name"`
 }
 
 type Address struct {
-	Country     string
-	Region      string
-	City        string
-	SubCity     string
-	Wereda      string
-	Kebele      string
-	HouseNumber string
+	Country     string `json:"country" bson:"country"`
+	Region      string `json:"region" bson:"region"`
+	City        string `json:"city" bson:"city"`
+	SubCity     string `json:"sub_city" bson:"sub_city"`
+	Wereda      string `json:"wereda" bson:"wereda"`
+	Kebele      string `json:"kebele" bson:"kebele"`
+	HouseNumber string `json:"house_number" bson:"house_number"`
+}
+
+type LivenessCheck struct {
+	IDCardFront        string `json:"id_card_front" bson:"id_card_front"`
+	IDCardBack         string `json:"id_card_back" bson:"id_card_back"`
+	LivenessCheckVideo string `json:"liveness_video" bson:"liveness_video"`
+}
+
+type VerificationResult struct {
+	FaceMatchScore             float64 `json:"face_match_score" bson:"face_match_score"`
+	LivenessResult             string  `json:"liveness_result" bson:"liveness_result"`
+	DocumentAuthenticityResult string  `json:"document_authenticity_result" bson:"document_authenticity_result"`
 }
 
 type CustomerKYC struct {
-	ID             string
-	AccountType    AccountType
-	CustomerCode   string
-	CustomerName   CustomerInfo
-	Address        Address
-	MartialStatus  MartialStatus
-	CustomerStatus CustomerStatus
-	KYCStatus      KYCStatus
+	ID                   bson.ObjectID      `json:"id" bson:"_id,omitempty"`
+	CustomerCode         string             `json:"customer_code" bson:"customer_code"`
+	AccountType          AccountType        `json:"account_type" bson:"account_type"`
+	CustomerName         CustomerInfo       `json:"customer_name" bson:"customer_name"`
+	Address              Address            `json:"address" bson:"address"`
+	Nationality          string             `json:"nationality" bson:"nationality"`
+	MaritalStatus        MaritalStatus      `json:"marital_status" bson:"marital_status"`
+	CustomerStatus       CustomerStatus     `json:"customer_status" bson:"customer_status"`
+	EmploymentStatus     EmploymentStatus   `json:"employment_status" bson:"employment_status"`
+	Occupation           string             `json:"occupation" bson:"occupation"`
+	AverageMonthlyIncome string             `json:"average_monthly_income" bson:"average_monthly_income"`
+	EducationStatus      string             `json:"education_status" bson:"education_status"`
+	SourceOfFund         string             `json:"source_of_fund" bson:"source_of_fund"`
+	KYCStatus            string             `json:"kyc_status" bson:"kyc_status"`
+	LivenessCheck        LivenessCheck      `json:"liveness_check" bson:"liveness_check"`
+	VerificationResult   VerificationResult `json:"verification_result" bson:"verification_result"`
+	MoneyLaunderingFree  bool               `json:"money_laundering_free" bson:"money_laundering_free"`
+	TermsAndConditions   string             `json:"terms_and_conditions" bson:"terms_and_conditions"`
+	CreatedAt            time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt            time.Time          `json:"updated_at" bson:"updated_at"`
 }

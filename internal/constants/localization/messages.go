@@ -1028,6 +1028,7 @@ const (
 	MsgCityNotFound           = "City not found"
 	MsgInvalidInputParameters = "Invalid input parameters provided"
 	MsgMissingOrInvalidImage  = "Missing or invalid image"
+	MsgMissingOrInvalidVideo  = "Missing or invalid video"
 	MsgCannotEnableDistrict   = "Cannot enable district, its region is blocked"
 	MsgCannotEnableCity       = "Cannot enable city, its district is blocked"
 	MsgJobTitleExisted        = "Job title already existed"

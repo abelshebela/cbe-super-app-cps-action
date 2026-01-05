@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
 	"image"
-	"image/gif"
 	"image/jpeg"
 	"image/png"
 
@@ -29,10 +28,67 @@ import (
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
+
+func UploadVideoToMinio(
+	ctx context.Context,
+	s3Client *s3.Client,
+	bucketName string,
+	fileHeader *multipart.FileHeader,
+	prefix string,
+	env config.VaultConfig,
+	objectkey string,
+	logger interface {
+		Errorf(format string, args ...any)
+	},
+) (string, error) {
+
+	// 1. Open the file
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.Errorf("failed to open file: %v", err)
+		return "", err
+	}
+	defer file.Close()
+
+	// 2. Create uploader
+	uploader := manager.NewUploader(s3Client)
+
+	// 3. Metadata Preparation
+	genName := fmt.Sprintf("%d-%s", time.Now().UnixNano(), fileHeader.Filename)
+	key := genName
+
+	contentType := fileHeader.Header.Get("Content-Type")
+	if strings.TrimSpace(contentType) == "" {
+		contentType = "video/mp4"
+	}
+
+	// 4. Upload using the manager for multipart
+	putInput := &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(key),
+		Body:        file,
+		ContentType: aws.String(contentType),
+	}
+
+	if _, err := uploader.Upload(ctx, putInput); err != nil {
+		logger.Errorf("failed to upload video %s: %v", key, err)
+		return "", err
+	}
+
+	baseURL := env.MinioPublicEndPoint
+	if strings.HasSuffix(baseURL, "/") {
+		baseURL = strings.TrimSuffix(baseURL, "/")
+	}
+
+	// 5. Build public URL
+	url := fmt.Sprintf("%s/%s", baseURL, strings.TrimPrefix(key, "/"))
+	return url, nil
+}
 
 func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, currentAction any, requestAction, actionType string) model.CPSAction {
 	return model.CPSAction{
@@ -250,7 +306,7 @@ func UploadFileToMinio(
 			enc := png.Encoder{CompressionLevel: png.BestCompression}
 			encodeErr = enc.Encode(buf, img)
 		case "gif":
-			encodeErr = gif.Encode(buf, img, nil)
+
 		default:
 			// No specific compressor for this format?
 			// We do nothing and keep originalBytes
