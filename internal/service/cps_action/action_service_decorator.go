@@ -45,7 +45,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
 
 			var role *imodel.CPSActionRole
-			var approverData model.CPSActionApproveIndex
+			var approverData imodel.CPSActionApproveIndex
 
 			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
 				role = r
@@ -90,7 +90,14 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	return nil
 }
 
-func (s *cpsActionServiceWithRoles) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (model.CPSActionApproveIndex, error) {
+func (s *cpsActionServiceWithRoles) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
+	return nil
+}
+func (s *cpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+	return nil
+}
+
+func (s *cpsActionServiceWithRoles) GetUserAuthorizerIndex(ctx context.Context, requestAction constants.RequestAction) (imodel.CPSActionApproveIndex, error) {
 	return s.base.GetUserAuthorizerIndex(ctx, requestAction)
 }
 func (s *cpsActionServiceWithRoles) GetUserCheckedActions(ctx context.Context, userID string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
