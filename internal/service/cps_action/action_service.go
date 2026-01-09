@@ -29,6 +29,18 @@ type cpsActionService struct {
 	dispatcher Dispatcher
 }
 
+// IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
+func (ca *cpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAction string) (bool, error) {
+	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
+		role, err := ca.roles.FindByActionName(ctx, mod)
+		if err != nil || role == nil {
+			return false, errors.New(localization.ErrorOperationNotAllowed.Code)
+		}
+		return role.IsMakerOnly, nil
+	}
+	return false, errors.New(localization.ErrorOperationNotAllowed.Code)
+}
+
 // AuditorClaim sets auditor status to INPROGRESS when caller belongs to the active group.
 func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
