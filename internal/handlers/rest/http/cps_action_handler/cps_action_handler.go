@@ -3,6 +3,7 @@ package cpsactionhandler
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	cpsactionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
+	cps_actionrole_dto "cbe-super-app-cps-action/internal/constants/dto/cps_action_role"
 	cpsaction "cbe-super-app-cps-action/internal/constants/interfaces/cps_action"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
@@ -12,6 +13,7 @@ import (
 	cpsactionsvc "cbe-super-app-cps-action/internal/service/cps_action"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"strings"
@@ -38,6 +40,91 @@ func InitCPSActionAdapter(cpsActionApplication service.CPSActionService, logger 
 		logger:               logger,
 		cpsActionApplication: cpsActionApplication,
 	}
+}
+
+// AuditorAction handles both claim (start) and mark (complete) for auditor in a single endpoint
+// POST /actions/{action_code}/auditor
+func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "auditorAction", "handler", "cpsAction")
+	defer span.End()
+	actionCode := chi.URLParam(r, string(constants.ActionCode))
+
+	// Load action (to resolve module/request_action)
+	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
+	if err != nil || action == nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, localization.ErrorResourceNotFound.Code)
+		return
+	}
+
+	// Determine caller allocations and active auditor group
+	userData, err := local_util.ParseUserContext(r)
+	if err != nil {
+		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
+		return
+	}
+
+	actionName := ""
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+		actionName = mod
+	}
+	repo := mid.GetCPSActionApproveRepo()
+	if repo == nil || actionName == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if strings.TrimSpace(rawRoleID) == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	UpperCaseAction := strings.ToUpper(actionName)
+	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction)
+	if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
+	// Active group is the integer part of the auditor index (e.g., 1.* -> 1)
+	activeGroup := int(*idxDoc.AuditorIndex)
+
+	// Parse request to decide claim vs mark
+	var reqBody cps_actionrole_dto.AuditorMarkRequest
+	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
+		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+
+	if strings.TrimSpace(reqBody.Mark) == "" {
+		// Claim path -> move status to INPROGRESS when allowed
+		if err := a.cpsActionApplication.AuditorClaim(ctx, actionCode, activeGroup); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		}
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionChecked, nil)
+		return
+	}
+
+	// Mark path -> record auditor mark and advance group/finish
+	auditor := model.Auditor{
+		AuditorID:          userData.UserID,
+		RoleID:             rawRoleID,
+		AuditorIndex:       int32(activeGroup),
+		AuditorName:        userData.FullName,
+		AuditorPhoneNumber: userData.PhoneNumber,
+		AuditorReason:      reqBody.Reason,
+		AuditorMark:        model.AuditorMark(strings.ToUpper(strings.TrimSpace(reqBody.Mark))),
+		ApprovedAt:         time.Now(),
+	}
+	if err := a.cpsActionApplication.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionChecked, nil)
 }
 
 // CancelCPSAction implements cps_action.CPSActionAdapter.

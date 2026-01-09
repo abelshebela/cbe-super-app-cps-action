@@ -144,6 +144,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQBlockTimeUpdateRequestSubmitted,
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+	SuccessCPSActionChecked,
 	//mini app related success response codes
 	SuccessMiniAppDisableRequestSubmitted,
 	SuccessMiniAppEnableRequestSubmitted,
@@ -1108,6 +1109,13 @@ var (
 		Code:       "SUCCESS_CPS_ACTION_AUTHORIZED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionAuthorizedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSActionChecked = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_CHECKED",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionCheckedSuccessfully,
 		Type:       "success",
 	}
 
