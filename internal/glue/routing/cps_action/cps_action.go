@@ -110,6 +110,14 @@ func Init(router chi.Router, handler cpsaction.CPSActionAdapter, authMiddleware 
 			},
 		},
 		{
+			Method:  http.MethodPatch,
+			Path:    "/actions/{action_code}/auditor",
+			Handler: handler.AuditorAction,
+			Middlewares: []func(next http.Handler) http.Handler{
+				authMiddleware.AuthenticateToken,
+			},
+		},
+		{
 			Method:  http.MethodGet,
 			Path:    "/actions/authorizer/index/{request_action}",
 			Handler: handler.GetAuthorizerIndex,

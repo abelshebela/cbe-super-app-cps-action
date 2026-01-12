@@ -30,9 +30,9 @@ type BPSActionRoleRepository struct {
 func NewBPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, database string, collection []string, logger utils.Logger) storage.BPSActionRoleRepository {
 	return &BPSActionRoleRepository{
 		client:        client,
-		mongoDal:      dal.NewMongoDal[imodel.BPSActionRole, imodel.BPSActionRole](client, cfg, database, "cps_action_roles"),
+		mongoDal:      dal.NewMongoDal[imodel.BPSActionRole, imodel.BPSActionRole](client, cfg, database, collection[0]),
 		actionListDal: dal.NewMongoDal[imodel.BPSActionList, imodel.BPSActionList](client, cfg, database, collection[1]),
-		approverDal:   dal.NewMongoDal[imodel.BPSActionApproveIndex, imodel.BPSActionApproveIndex](client, cfg, database, "cps_action_approver_index"),
+		approverDal:   dal.NewMongoDal[imodel.BPSActionApproveIndex, imodel.BPSActionApproveIndex](client, cfg, database, collection[2]),
 		logger:        logger,
 		collection:    client.Database(database).Collection(collection[0]),
 	}
@@ -76,7 +76,13 @@ func (a *BPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 
 func (r *BPSActionRoleRepository) Create(ctx context.Context, actionRole *imodel.BPSActionRole) error {
 	_, err := r.mongoDal.InsertOne(ctx, *actionRole)
-	return err
+	if err != nil {
+		if mongo.IsTimeout(err) {
+			return errors.New(localization.ErrorInternalServerTimeout.Code)
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *BPSActionRoleRepository) UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.BPSActionRole) error {
