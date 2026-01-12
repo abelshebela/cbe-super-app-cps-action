@@ -182,6 +182,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorUsedJobTitleExisting,
 	// Error codes
+	ErrorInternalServerTimeout,
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
 	ErrorDeviceVersionAlreadyDisabled,
@@ -4227,6 +4228,14 @@ var (
 		Message:    MsgInternalServerError,
 		Type:       "error",
 	}
+
+	ErrorInternalServerTimeout = ResponseCode{
+		Code:       "ERROR_INTERNAL_SERVER_TIMEOUT",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgInternalServerTimeout,
+		Type:       "error",
+	}
+
 	ErrorPendingCPSAction = ResponseCode{
 		Code:       "ERROR_PENDING_CPS_ACTION_PRESENT",
 		StatusCode: StatusConflict,

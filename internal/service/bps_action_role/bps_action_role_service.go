@@ -24,6 +24,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type bpsActionRoleService struct {
@@ -414,8 +415,11 @@ func (s *bpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			if err := s.UpdateActionList(ctx, cur.ActionName, false); err != nil {
 				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 				s.logger.Errorf("failed to update action list: %v", err)
+				if mongo.IsTimeout(err) {
+					return nil, errors.New(localization.ErrorInternalServerTimeout.Code)
+				}
+				return nil, errors.New(localization.ErrorInternalServerError.Code)
 			}
-			return nil, err
 		}
 
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
@@ -584,20 +588,34 @@ func (s *bpsActionRoleService) generateIndices(role *imodel.BPSActionRole) []imo
 		}
 	}
 
-	// Makers
+	// Auditor
 	if len(role.AssignedAuditorRoles) > 0 {
-		for j, makerID := range role.AssignedAuditorRoles {
-			idx := float64(j + 1)
-			indices = append(indices, imodel.BPSActionApproveIndex{
-				ID:           bson.NewObjectID(),
-				RoleId:       makerID,
-				ActionName:   role.ActionName,
-				AuditorIndex: &idx,
-				UpdatedAt:    now,
-				CreatedAt:    now,
-			})
-			span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID)))
-			s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID)
+		for k, auditorID := range role.AssignedAuditorRoles {
+			idx := float64(k + 1)
+			found := false
+			for j := range indices {
+				if indices[j].RoleId == auditorID {
+					indices[j].AuditorIndex = &idx
+					found = true
+					break
+				}
+			}
+			if !found {
+				indices = append(indices, imodel.BPSActionApproveIndex{
+					ID:           bson.NewObjectID(),
+					RoleId:       auditorID,
+					ActionName:   role.ActionName,
+					AuditorIndex: &idx,
+					UpdatedAt:    now,
+					CreatedAt:    now,
+				})
+
+				span.AddEvent("viewer index generated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+				s.logger.Infof("generateIndices: Added Viewer index for RoleID %s", auditorID)
+			} else {
+				span.AddEvent("viewer index updated", trace.WithAttributes(attribute.String("role_id", auditorID)))
+				s.logger.Infof("generateIndices: Updated Viewer index for RoleID %s", auditorID)
+			}
 		}
 	}
 

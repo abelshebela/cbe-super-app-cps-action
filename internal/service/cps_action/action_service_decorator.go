@@ -83,7 +83,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				fmt.Printf("CPS Action created with role policy: %+v\n", role)
 				if role.IsMakerOnly {
 					cpsAction.ActionStatus = string(constants.Approved)
-					s.base.ApproveCPSAction(ctx, cpsAction)
+					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
+						return err
+					}
 				}
 
 			}

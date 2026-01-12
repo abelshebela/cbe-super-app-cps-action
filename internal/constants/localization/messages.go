@@ -462,6 +462,7 @@ const (
 
 	// System error messages
 	MsgInternalServerError         = "Internal server error occurred"
+	MsgInternalServerTimeout       = "Internal server timeout occurred"
 	MsgCPSActionWaitPrevious       = "Wait for previous checker approval to be completed"
 	MsgCPSActionApprovedByThisRole = "Action Approval on your role is already completed"
 	MsgServiceUnavailable          = "Service is temporarily unavailable"

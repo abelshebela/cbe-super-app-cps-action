@@ -150,6 +150,9 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		RollErr := ca.RollBack(ctx, action)
+		if err.Error() == localization.ErrorTimeoutError.Code {
+			return err
+		}
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
 			return RollErr

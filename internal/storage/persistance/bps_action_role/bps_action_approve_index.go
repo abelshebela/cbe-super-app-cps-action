@@ -24,7 +24,7 @@ func NewBPSActionApproveIndexRepository(client *mongo.Client, database string, c
 	return &BPSActionApproveIndexRepository{
 		client:     client,
 		logger:     logger,
-		collection: client.Database(database).Collection("cps_action_approver_index"),
+		collection: client.Database(database).Collection(collection),
 	}
 }
 
