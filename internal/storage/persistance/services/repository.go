@@ -215,3 +215,23 @@ func (s *ServicesStorage) FindAllServiceListWithPagination(ctx context.Context, 
 		Meta: meta,
 	}, nil
 }
+
+func (s *ServicesStorage) CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error) {
+	filter := bson.M{
+		"$or": []bson.M{
+			{"service_key": serviceKey},
+			{"service_code": serviceCode},
+			{"service_name": bson.M{"$regex": serviceName, "$options": "i"}},
+			{"service_list.service_key": serviceKey},
+			{"service_list.service_name": bson.M{"$regex": serviceName, "$options": "i"}},
+		},
+	}
+
+	count, err := s.dal.TotalCount(ctx, filter)
+	if err != nil {
+		s.logger.Errorf("failed to check service existence in services: %v", err)
+		return false, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	return count > 0, nil
+}
