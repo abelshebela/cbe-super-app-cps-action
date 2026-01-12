@@ -539,7 +539,7 @@ func (r *BPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 
 	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName}, bson.M{})
 	if err != nil {
-		r.logger.Errorf("error finding role by action name: %v", err)
+		r.logger.Errorf("error finding role by action name: %v error: %v", actionName, err)
 		return nil, err
 	}
 
