@@ -435,6 +435,7 @@ const (
 	MsgValidationFailed                      = "Validation failed"
 	MsgRequiredFieldMissing                  = "Required field is missing"
 	MsgServiceExists                         = "Service already exists"
+	MsgChildServiceExists                    = "Child service already exists"
 	MsgInvalidFormat                         = "Invalid format"
 	MsgInvalidInputParameter                 = "Invalid input parameter"
 	MsgActionNameIsRequired                  = "Action name is required"

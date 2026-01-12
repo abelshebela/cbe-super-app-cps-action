@@ -4,11 +4,8 @@ import (
 	"cbe-super-app-cps-action/internal/constants"
 	service_dto "cbe-super-app-cps-action/internal/constants/dto/services"
 	"cbe-super-app-cps-action/internal/constants/lib"
-	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
-	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
-	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"log"
@@ -41,39 +38,6 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func ValidateCreate(req service_dto.CreateServiceRequest, service storage.ServicesRepository) error {
-	if req.ServiceCode == "" || req.ServiceName == "" {
-		return localization.ErrorRequiredFieldMissing
-	}
-
-	filterCode := types.Filter{
-		Filters: map[string]interface{}{
-			"service_code": req.ServiceCode,
-		},
-	}
-	serviceDocCode, err := service.FindAllWithPagination(context.Background(), filterCode)
-	if err != nil {
-		return err
-	}
-	if len(serviceDocCode.Data) > 0 {
-		return localization.ErrorServiceExists
-	}
-
-	filterName := types.Filter{
-		Filters: map[string]interface{}{
-			"service_name": req.ServiceName,
-		},
-	}
-	serviceDocName, err := service.FindAllWithPagination(context.Background(), filterName)
-	if err != nil {
-		return err
-	}
-	if len(serviceDocName.Data) > 0 {
-		return localization.ErrorServiceExists
-	}
-
-	return nil
-}
 func MapToServiceModel(req service_dto.CreateServiceRequest) imodel.Service {
 	mapped := imodel.Service{
 		ServiceCode:      req.ServiceCode,

@@ -248,6 +248,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorBankUpdateFailed,
 	ErrorValidationFailed,
 	ErrorRequiredFieldMissing,
+	ErrorServiceExists,
+	ErrorChildServiceExists,
 	ErrorBankDeleteRequestFailed,
 	ErrorBankImageMissingOrInvalid,
 	ErrorGetAllBanksFailed,
@@ -4070,6 +4072,12 @@ var (
 		Code:       "ERROR_SERVICE_EXISTS",
 		StatusCode: StatusConflict,
 		Message:    MsgServiceExists,
+		Type:       "error",
+	}
+	ErrorChildServiceExists = ResponseCode{
+		Code:       "ERROR_CHILD_SERVICE_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgChildServiceExists,
 		Type:       "error",
 	}
 
