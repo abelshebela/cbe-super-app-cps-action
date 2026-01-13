@@ -144,6 +144,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQBlockTimeUpdateRequestSubmitted,
 	SuccessHQArchiveTimeUpdateRequestSubmitted,
 	SuccessHQPasswordExpiryUpdateRequestSubmitted,
+	SuccessCPSActionChecked,
 	//mini app related success response codes
 	SuccessMiniAppDisableRequestSubmitted,
 	SuccessMiniAppEnableRequestSubmitted,
@@ -181,6 +182,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorUsedJobTitleExisting,
 	// Error codes
+	ErrorInternalServerTimeout,
 	ErrorDeviceVersionAlreadyExists,
 	ErrorDeviceVersionAlreadyEnabled,
 	ErrorDeviceVersionAlreadyDisabled,
@@ -1110,6 +1112,13 @@ var (
 		Code:       "SUCCESS_CPS_ACTION_AUTHORIZED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionAuthorizedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSActionChecked = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_CHECKED",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionCheckedSuccessfully,
 		Type:       "success",
 	}
 
@@ -4227,6 +4236,14 @@ var (
 		Message:    MsgInternalServerError,
 		Type:       "error",
 	}
+
+	ErrorInternalServerTimeout = ResponseCode{
+		Code:       "ERROR_INTERNAL_SERVER_TIMEOUT",
+		StatusCode: StatusInternalServerError,
+		Message:    MsgInternalServerTimeout,
+		Type:       "error",
+	}
+
 	ErrorPendingCPSAction = ResponseCode{
 		Code:       "ERROR_PENDING_CPS_ACTION_PRESENT",
 		StatusCode: StatusConflict,

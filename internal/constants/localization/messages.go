@@ -110,6 +110,7 @@ const (
 	// CPS Action related success messages
 	MsgCPSActionsRetrievedSuccessfully = "CPS Actions retrieved successfully"
 	MsgCPSActionAuthorizedSuccessfully = "CPS Action authorized successfully"
+	MsgCPSActionCheckedSuccessfully    = "CPS Action checked successfully"
 	MsgCPSActionReversedSuccessfully   = "CPS Action reversed successfully"
 	MsgCPSActionRejectedSuccessfully   = "CPS Action rejected successfully"
 	MsgCPSActionCanceledSuccessfully   = "CPS Action Canceled Successfully"
@@ -462,6 +463,7 @@ const (
 
 	// System error messages
 	MsgInternalServerError         = "Internal server error occurred"
+	MsgInternalServerTimeout       = "Internal server timeout occurred"
 	MsgCPSActionWaitPrevious       = "Wait for previous checker approval to be completed"
 	MsgCPSActionApprovedByThisRole = "Action Approval on your role is already completed"
 	MsgServiceUnavailable          = "Service is temporarily unavailable"
