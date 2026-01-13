@@ -142,7 +142,7 @@ func ExtractFilterParams(r *http.Request) *types.Filter {
 
 	perPage := constants.DefaultPerPage
 	if v := query.Get("per_page"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 && n <= 100 {
 			perPage = n
 		} else {
 			perPage = 10
