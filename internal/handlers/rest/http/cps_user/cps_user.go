@@ -287,7 +287,9 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		h.logger.Infof("[DisableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessCPSUserEnabled, nil)
+		return
 	}
 
 	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
