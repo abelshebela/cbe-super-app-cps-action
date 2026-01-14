@@ -93,11 +93,6 @@ func Init(ctx context.Context) {
 	notificationApi := "https://devcbe.eaglelionsystems.com/api/v1.0/chatbirrapi/ldapnotif/sms/send"
 	// merchantApi := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce/cps/merchant/"
 	// merchantXAPIKey := "0e404061ea76caf9536bc7a38369ca38520aac3c"
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, *clientOrchestrationProducer, cfg, logger)
-	logger.Infof("Persistence initialized")
-
-	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
-	mid.InitCPSActionGuard(persitence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
 
 	redis := InitRedis(cfg, logger)
 	logger.Infof("Initializing redis...")
@@ -105,6 +100,12 @@ func Init(ctx context.Context) {
 	logger.Infof("redis initialized")
 
 	redisRepository := redisStorage.GetRedisRepository()
+
+	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, *clientOrchestrationProducer, redisRepository, cfg, logger)
+	logger.Infof("Persistence initialized")
+
+	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
+	mid.InitCPSActionGuard(persitence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
 
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	logger.Infof("Oracle database initialized")
