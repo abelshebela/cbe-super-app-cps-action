@@ -631,6 +631,7 @@ var ResponseCodesList = []ResponseCode{
 
 	// Access List Segmentation Success Codes
 	SuccessAccessListSegmentationCreated,
+	SuccessAccessListSegmentationCreatedSP,
 	SuccessAccessListSegmentationUpdated,
 	SuccessAccessListSegmentationEnabled,
 	SuccessAccessListSegmentationDisabled,
@@ -6465,6 +6466,13 @@ var (
 		Code:       "ACCESS_LIST_SEGMENTATION_CREATED",
 		StatusCode: StatusOK,
 		Message:    MsgAccessListSegmentationCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessAccessListSegmentationCreatedSP = ResponseCode{
+		Code:       "ACCESS_LIST_SEGMENTATION_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgAccessListSegmentationCreatedSuccessfullySP,
 		Type:       "success",
 	}
 	SuccessAccessListSegmentationUpdated = ResponseCode{

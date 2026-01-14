@@ -1,6 +1,7 @@
 package accesslistsegmentaion
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	access_list_segmentation_dto "cbe-super-app-cps-action/internal/constants/dto/access_list_segmentation"
 	accesslistsegmentation "cbe-super-app-cps-action/internal/constants/interfaces/access_list_segmentation"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -35,6 +36,10 @@ func (a *accessListSegmentation) CreateAccessListSegmentation(w http.ResponseWri
 		a.logger.Errorf("[CreateAccessListSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
 	}
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreated, nil)
 }
