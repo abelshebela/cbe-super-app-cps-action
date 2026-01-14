@@ -83,6 +83,10 @@ func (s *server) walletMapper(data *local_model.Wallet) *walletpb.Wallet {
 			}
 			return keys
 		}(),
+		Cap: &walletpb.Cap{
+			SingleCap:          data.Cap.SingleCap,
+			MinimumTransferCap: data.Cap.MinimumTransferCap,
+		},
 		IsDeleted: data.IsDeleted,
 		Enabled:   data.Enabled,
 		Services: &walletpb.Services{
@@ -139,6 +143,15 @@ func buildPagination(meta types.PaginationMeta) *bankpb.Meta {
 
 // ///////////////////wallet///////////////////
 func (s *server) GetAllWallet(ctx context.Context, req *walletpb.GetAllWalletRequest) (*walletpb.GetAllWalletResponse, error) {
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.PerPage < 1 {
+		req.PerPage = 10
+	}
+	if req.PerPage > 100 {
+		req.PerPage = 100
+	}
 	data, err := s.walletHandler.GetAllWallet(ctx, types.Filter{Page: int(req.Page), PerPage: int(req.PerPage), Search: req.Search})
 	if err != nil {
 		s.logger.Errorf("Failed to get all wallets: %v", err)
