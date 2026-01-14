@@ -14,6 +14,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -83,7 +84,10 @@ func (a *advertAdapter) CreateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertCreatedSP, nil)
+	}
 	a.logger.Infof("[CreateAdvert] request sent successfully for title: %s", req.Title)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertCreateRequestSent, nil)
 
@@ -228,7 +232,10 @@ func (a *advertAdapter) UpdateAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertUpdatedSP, nil)
+	}
 	a.logger.Infof("[UpdateAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertUpdateRequestSent, nil)
 }
@@ -265,6 +272,10 @@ func (a *advertAdapter) DeleteAdvert(w http.ResponseWriter, r *http.Request) {
 		a.logger.Errorf("[DeleteAdvert] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertDeletedSP, nil)
 	}
 	a.logger.Infof("[DeleteAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDeleteRequestSent, nil)
@@ -303,9 +314,13 @@ func (a *advertAdapter) EnableAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertEnabledSP, nil)
+	}
 	a.logger.Infof("[EnableAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertEnableRequestSent, nil)
+
 }
 
 // DisableAdvert godoc
@@ -341,7 +356,11 @@ func (a *advertAdapter) DisableAdvert(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAdvertDisabledSP, nil)
+	}
 	a.logger.Infof("[DisableAdvert] request sent successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAdvertDisableRequestSent, nil)
+
 }

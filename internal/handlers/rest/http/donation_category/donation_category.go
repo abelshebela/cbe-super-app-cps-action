@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_category/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -141,7 +142,10 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreatedSP, nil)
+	}
 	d.logger.Infof("event creation request submitted successfully")
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreateRequestSent, nil)
 }
@@ -199,9 +203,12 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdatedSP, nil)
+	}
 	d.logger.Infof("donation category update request submitted successfully", updatedDonationCategory)
-	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdateRequestSend, nil)
 }
 
 // EnableDonationCategory godoc
@@ -234,6 +241,10 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 		d.logger.Errorf("failed to enable donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnabledSP, nil)
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
 
@@ -269,6 +280,10 @@ func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter,
 		d.logger.Errorf("failed to disable donation category: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisabledSP, nil)
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
 

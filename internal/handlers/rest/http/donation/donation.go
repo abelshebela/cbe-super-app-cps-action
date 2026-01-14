@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -82,7 +83,10 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCreatedSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationCreateRequestSent, nil)
 }
 
@@ -145,7 +149,10 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationUpdatedSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationUpdateRequestSent, nil)
 }
 
@@ -267,7 +274,10 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdatedSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdateRequestSent, nil)
 }
 
@@ -319,7 +329,10 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageDeletedSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationImageDeleteRequestSent, nil)
 }
 
@@ -369,7 +382,10 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageAddedSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationImageAddRequestSent, nil)
 }
 
@@ -404,7 +420,10 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationEnabledSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationEnableRequestSent, nil)
 }
 
@@ -439,6 +458,9 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationDisabledSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationDisableRequestSent, nil)
 }

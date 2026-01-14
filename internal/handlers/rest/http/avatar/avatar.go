@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -67,9 +68,13 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarCreatedSP, nil)
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 
 	a.logger.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
-	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
 }
 
 // DeleteAvatar godoc
@@ -103,8 +108,12 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	a.logger.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarDeletedSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessAvatarDeleted, nil)
+	a.logger.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
 
 }
 
@@ -139,9 +148,12 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	a.logger.Infof("[Enable] avatar enabled successfully for id: %s", id)
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabledSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, nil)
+	a.logger.Infof("[Enable] avatar enabled successfully for id: %s", id)
 }
 
 // Disable godoc
@@ -175,6 +187,11 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarDisabledSP, nil)
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
 
 	a.logger.Infof("[Disable] avatar disabled successfully for id: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
@@ -298,7 +315,11 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarUpdatedSP, nil)
+	}
+	localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
 
 	a.logger.Infof("[UpdateAvatar] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
 }

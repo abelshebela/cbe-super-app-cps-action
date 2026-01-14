@@ -11,6 +11,7 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_company/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -141,7 +142,10 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreatedSP, nil)
+	}
 	d.logger.Infof("donation company creation request submitted successfully")
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
 }
@@ -199,9 +203,12 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedSP, nil)
+	}
 	d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdated, nil)
+	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedRequestSent, nil)
 }
 
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
@@ -256,11 +263,16 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnabledSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
 
 }
 
 // disableDonationCompany godoc
+//
 //	@Summary		Enable a donation company
 //	@Description	Enable a donation company by ID
 //	@Tags			Donation company
@@ -273,7 +285,6 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 //	@Failure		500	{object}	localization.StandardResponse{data=nil}	"Internal server error"
 //	@Security		BearerAuth
 //	@Router			/donation_company/enable/{id} [patch]
-
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
 	defer span.End()
@@ -290,6 +301,10 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 		d.logger.Errorf("failed to disable donation company: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisabledSP, nil)
 	}
 	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
 

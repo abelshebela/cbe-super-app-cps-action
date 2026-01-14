@@ -15,6 +15,7 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"go.opentelemetry.io/otel/attribute"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -126,9 +127,12 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSentSP, nil)
+	}
 	localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
+	a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
 }
 
 // RejectAmountBasedAuth godoc

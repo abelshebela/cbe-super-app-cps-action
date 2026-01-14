@@ -13,6 +13,7 @@ import (
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -72,6 +73,11 @@ func (a *topupAdapter) CreateTopup(w http.ResponseWriter, r *http.Request) {
 		a.logger.Errorf("failed to create topup: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
 	}
 
 	span.AddEvent("Topup creation request submitted")
@@ -137,10 +143,14 @@ func (a *topupAdapter) UpdateTopup(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessTopupUpdatedSP, nil)
+	}
 	span.AddEvent("Topup update request submitted", trace.WithAttributes(attribute.String("id", id)))
 	a.logger.Infof("topup update request submitted successfully, topup ID: %s", id)
 	localization.SendSuccessResponse(w, localization.SuccessTopupUpdateRequestSent, nil)
+
 }
 
 // DeleteTopup godoc
@@ -174,9 +184,13 @@ func (a *topupAdapter) DeleteTopup(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessTopupDeletedSP, nil)
+	}
+	localization.SendSuccessResponse(w, localization.SuccessTopupDeletedRequestSent, nil)
 	span.AddEvent("Topup deleted", trace.WithAttributes(attribute.String("id", id)))
-	localization.SendSuccessResponse(w, localization.SuccessTopupDeleted, nil)
+	localization.SendSuccessResponse(w, localization.SuccessTopupDeletedRequestSent, nil)
 }
 
 // EnableTopup godoc
@@ -210,7 +224,10 @@ func (a *topupAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessTopupEnabledSP, nil)
+	}
 	span.AddEvent("Topup enable request submitted", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTopupEnableRequestSubmitted, nil)
 }
@@ -246,7 +263,10 @@ func (a *topupAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessTopupDisabledSP, nil)
+	}
 	span.AddEvent("Topup disable request submitted", trace.WithAttributes(attribute.String("id", id)))
 	localization.SendSuccessResponse(w, localization.SuccessTopupDisableRequestSubmitted, nil)
 }
