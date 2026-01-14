@@ -143,7 +143,10 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessUnlinkCif, nil)
+		return
 	}
 
 	span.AddEvent("UnlinkUserCif request sent", trace.WithAttributes(attribute.String("user_code", userCode)))

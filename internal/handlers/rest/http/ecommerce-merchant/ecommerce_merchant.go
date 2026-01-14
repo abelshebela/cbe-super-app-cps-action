@@ -78,7 +78,10 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreatedSuccessfully, nil)
@@ -142,7 +145,10 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdatedSuccessfully, nil)
@@ -187,7 +193,10 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 	}
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeleted, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeletedSuccessfully, nil)
@@ -228,7 +237,10 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 	}
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnable, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnableSuccessfully, nil)
@@ -270,7 +282,10 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 	}
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisable, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisableSuccessfully, nil)

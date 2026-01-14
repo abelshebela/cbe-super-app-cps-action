@@ -72,7 +72,10 @@ func (h *handler) CreateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[CreateUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessCpsUserCreated, nil)
+		return
 	}
 
 	h.logger.Infof("[CreateUserRequest] request sent successfully for user_code")
@@ -130,7 +133,10 @@ func (h *handler) UpdateUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[UpdateUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessCpsUserUpdated, nil)
+		return
 	}
 
 	h.logger.Infof("[UpdateUserRequest] request sent successfully for user_code: %s", userCode)
@@ -246,7 +252,10 @@ func (h *handler) DeleteUserRequest(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[DeleteUserRequest] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessCPSUserDeleted, nil)
+		return
 	}
 
 	h.logger.Infof("[DeleteUserRequest] request sent successfully for user_code: %s", userCode)
@@ -287,7 +296,10 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
-		localization.SendSuccessResponse(w, localization.SuccessCPSUserEnabled, nil)
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[DisableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessCPSUserDisable, nil)
+		return
 	}
 
 	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
@@ -328,7 +340,10 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[EnableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessCPSUserDisable, nil)
+		return
 	}
 
 	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)

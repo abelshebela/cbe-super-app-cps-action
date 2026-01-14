@@ -66,7 +66,10 @@ func (h *VaultAmountTierHandler) CreateAmountTier(w http.ResponseWriter, r *http
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[CreateAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
+		return
 	}
 
 	h.logger.Infof("[CreateAmountTier] vault amount tier created request submitted successfully")
@@ -192,7 +195,10 @@ func (h *VaultAmountTierHandler) UpdateAmountTier(w http.ResponseWriter, r *http
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[UpdateAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
+		return
 	}
 
 	h.logger.Infof("[UpdateAmountTier] vault amount tier update request submitted successfully")
@@ -233,7 +239,10 @@ func (h *VaultAmountTierHandler) DeleteAmountTier(w http.ResponseWriter, r *http
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[DeleteAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
+		return
 	}
 
 	h.logger.Infof("[DeleteAmountTier] vault amount tier delete request submitted successfully")
@@ -274,7 +283,10 @@ func (h *VaultAmountTierHandler) DisableAmountTier(w http.ResponseWriter, r *htt
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[DisableAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
+		return
 	}
 
 	h.logger.Infof("[DisableAmountTier] vault amount tier disable request submitted successfully")
@@ -315,7 +327,10 @@ func (h *VaultAmountTierHandler) EnableAmountTier(w http.ResponseWriter, r *http
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[EnableAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
+		return
 	}
 
 	h.logger.Infof("[EnableAmountTier] vault amount tier enable request submitted successfully")

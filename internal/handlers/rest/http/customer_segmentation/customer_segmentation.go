@@ -59,7 +59,10 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[CreateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierCreated, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationCreationSubmittedSuccessfully, nil)
@@ -110,7 +113,10 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[UpdateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierUpdated, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdateSubmittedSuccessfully, nil)
@@ -195,7 +201,10 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[DeleteCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDeleted, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
@@ -227,7 +236,10 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierEnabled, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
@@ -259,7 +271,10 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDisabled, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)

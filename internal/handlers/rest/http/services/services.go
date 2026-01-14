@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants"
 	servicesdto "cbe-super-app-cps-action/internal/constants/dto/services"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/services"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -73,7 +74,16 @@ func (a *servicesAdapter) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceCreated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceCreateRequestSubmitted, nil)
 }
 
 // Update godoc
@@ -117,7 +127,16 @@ func (a *servicesAdapter) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceUpdated, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceUpdateRequestSubmitted, nil)
 }
 
 // Enable godoc
@@ -154,7 +173,16 @@ func (a *servicesAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceEnabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceEnableRequestSubmitted, nil)
 }
 
 // Disable godoc
@@ -191,7 +219,16 @@ func (a *servicesAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionCreated, nil)
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessServiceDisabled, nil)
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessServiceDisableRequestSubmitted, nil)
 }
 
 // GetAll godoc

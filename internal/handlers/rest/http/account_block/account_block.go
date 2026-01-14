@@ -380,7 +380,10 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableBranches] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessBranchEnabled, nil)
+		return
 	}
 
 	a.logger.Infof("[EnableBranches] request sent successfully for %d branches", len(req.BranchIds))
@@ -443,7 +446,10 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableBranches] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessDisableBranches, nil)
+		return
 	}
 
 	a.logger.Infof("[DisableBranches] request sent successfully for %d branches", len(req.BranchIds))
@@ -506,7 +512,10 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableRegions] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEnableRegion, nil)
+		return
 	}
 
 	a.logger.Infof("[EnableRegions] request sent successfully for %d regions", len(req.RegionIds))
@@ -570,7 +579,10 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableRegions] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessDisableRegion, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDisableRegionsRequestSent, nil)
@@ -632,7 +644,10 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableDistricts] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEnableDistricts, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEnableDistrictsRequestSent, nil)
@@ -690,7 +705,10 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableDistricts] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessDisableDistricts, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDisableDistrictsRequestSent, nil)
@@ -748,7 +766,10 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableCities] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEnableCities, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEnableCitiesRequestSent, nil)
@@ -805,7 +826,10 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 	}
 	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
 	if IsMakerOnly && ok {
+		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableCities] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessDisableCities, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDisableCitiesRequestSent, nil)
