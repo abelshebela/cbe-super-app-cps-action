@@ -1143,8 +1143,10 @@ const (
 	MsgLogisticMerchantFetchedSuccessfully  = "logistic merchant fetched successfully"
 
 	// access list segmentation related messages
-	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation created successfully"
-	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation updated successfully"
+	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"
+	MsgAccessListSegmentationCreatedSuccessfullySP  = "Access list segmentation created successfully"
+	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation update request sent successfully"
+	MsgAccessListSegmentationUpdatedSuccessfullySP  = "Access list segmentation updated successfully"
 	MsgAccessListSegmentationEnabledSuccessfully    = "Access list segmentation enabled successfully"
 	MsgAccessListSegmentationDisabledSuccessfully   = "Access list segmentation disabled successfully"
 	MsgAccessListSegmentationsRetrievedSuccessfully = "Access list segmentations retrieved successfully"
