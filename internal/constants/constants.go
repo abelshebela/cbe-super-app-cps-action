@@ -868,3 +868,8 @@ const (
 	VaultGroupCategoryFolderName ImageFolderName = "vault_group_categories"
 	CustomerKYCFolderName        ImageFolderName = "customer_kyc"
 )
+
+// redis key prefixes
+const (
+	RedisCPSUserDeviceIDPrefix = "cps:auth:device"
+)

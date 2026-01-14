@@ -228,7 +228,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			remainTime *= 60
 		}
-		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("cps:auth:device:%s", userPayload.UserID))
+		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
 		if err != nil {
 			a.logger.Warnf("failed to get device id from redis: %v", err)
 			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
