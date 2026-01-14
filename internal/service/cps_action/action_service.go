@@ -54,6 +54,7 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if act.CurrentAuditorIndex > 0 {
 		current = int64(act.CurrentAuditorIndex)
 	}
+
 	expected := int64(activeGroup)
 	if current != 0 && current != expected {
 		return errors.New(localization.ErrorOperationNotAllowed.Code)

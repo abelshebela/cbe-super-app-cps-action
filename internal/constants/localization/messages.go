@@ -214,6 +214,11 @@ const (
 	MsgVaultAmountTierDeleteRequestSubmitted  = "Vault amount tier delete request submitted successfully"
 	MsgVaultAmountTierDisableRequestSubmitted = "Vault amount tier disable request submitted successfully"
 	MsgVaultAmountTierEnableRequestSubmitted  = "Vault amount tier enable request submitted successfully"
+	MsgVaultAmountTierCreatedSuccessfully     = "Vault amount tier created successfully"
+	MsgVaultAmountTierUpdatedSuccessfully     = "Vault amount tier updated successfully"
+	MsgVaultAmountTierDeletedSuccessfully     = "Vault amount tier deleted successfully"
+	MsgVaultAmountTierEnabledSuccessfully     = "Vault amount tier enabled successfully"
+	MsgVaultAmountTierDisabledSuccessfully    = "Vault amount tier disabled successfully"
 	// BPS User related success messages
 	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
 	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully submitted successfully"
@@ -299,6 +304,7 @@ const (
 	// Unlink related success messages
 	MsgUserSuccessfullyRetrieved             = "User successfully retrieved"
 	MsgUnlinkCifRequestSentSuccessfully      = "Unlink CIF request sent successfully"
+	MsgUnlinkCifSuccessfully                 = "Unlink CIF successfully"
 	MsgCPSActionCreatedForUnlinkSuccessfully = "CPS action created for unlink successfully"
 	MsgDocumentHardDeletedSuccessfully       = "Document hard deleted successfully"
 
@@ -328,6 +334,11 @@ const (
 
 	// cps_user related success messages
 	MsgCpsUserCreationRequestSubmitted = "CPS user creation request submitted successfully"
+	MsgCpsUserCreatedSuccessfully      = "CPS user created successfully"
+	MsgCpsUserUpdatedSuccessfully      = "CPS user updated successfully"
+	MsgCPSUserDeletedSuccessfully      = "CPS user deleted successfully"
+	MsgCPSUserEnabledSuccessfully      = "CPS user enabled successfully"
+	MsgCPSUserDisabledSuccessfully     = "CPS user disabled successfully"
 	MsgCpsUserUpdateRequestSubmitted   = "CPS user update request submitted successfully"
 	MsgCpsUserDeletedSuccessfully      = "CPS user deleted request sent successfully"
 	MsgCpsUsersRetrievedSuccessfully   = "CPS users fetched successfully"
@@ -529,7 +540,13 @@ const (
 	MsgDonationInvalidEndDate            = "Invalid end date format"
 
 	// Ecommerce Merchant
-	MsgEcommerceMerchantCreated  = "Ecommerce merchant created request submitted successfully"
+	MsgEcommerceMerchantCreated              = "Ecommerce merchant created request submitted successfully"
+	MsgEcommerceMerchantCreatedSuccessfully  = "Ecommerce merchant created successfully"
+	MsgEcommerceMerchantUpdatedSuccessfylly  = "Ecommerce merchant updated successfully"
+	MsgEcommerceMerchantDeletedSuccessfylly  = "Ecommerce merchant updated successfully"
+	MsgEcommerceMerchantEnabledSuccessfylly  = "Ecommerce merchant updated successfully"
+	MsgEcommerceMerchantDisabledSuccessfylly = "Ecommerce merchant updated successfully"
+
 	MsgEcommerceMerchantUpdated  = "Ecommerce merchant updated request submitted successfully"
 	MsgEcommerceMerchantDeleted  = "Ecommerce merchant delete request submitted successfully"
 	MsgEcommerceMerchantEnable   = "Ecommerce merchant enable request submitted successfully"
@@ -986,6 +1003,8 @@ const (
 	MsgBranchesSuccessfullyEnabled   = "Branches enabled successfully"
 	MsgBranchesSuccessfullyDisabled  = "Branches disabled successfully"
 	MsgEnableBranchesRequestSent     = "Request to enable branches sent successfully"
+	MsgBranchesEnabled               = "Branches enabled successfully"
+	MsgBranchesDisabled              = "Branches disabled successfully"
 	MsgDisableBranchesRequestSent    = "Request to disable branches sent successfully"
 
 	MsgRegionSuccessfullyRetrieved  = "Region retrieved successfully"
@@ -993,6 +1012,8 @@ const (
 	MsgRegionsSuccessfullyEnabled   = "Regions enabled successfully"
 	MsgRegionsSuccessfullyDisabled  = "Regions disabled successfully"
 	MsgEnableRegionsRequestSent     = "Request to enable regions sent successfully"
+	MsgEnableRegions                = "Regions enabled successfully"
+	MsgDisableRegions               = "Regions disabled successfully"
 	MsgDisableRegionsRequestSent    = "Request to disable regions sent successfully"
 
 	MsgDistrictSuccessfullyRetrieved  = "District retrieved successfully"
@@ -1000,6 +1021,8 @@ const (
 	MsgDistrictsSuccessfullyEnabled   = "Districts enabled successfully"
 	MsgDistrictsSuccessfullyDisabled  = "Districts disabled successfully"
 	MsgEnableDistrictsRequestSent     = "Request to enable districts sent successfully"
+	MsgEnableDistricts                = "Districts enabled successfully"
+	MsgDisableDistricts               = "Districts disabled successfully"
 	MsgDisableDistrictsRequestSent    = "Request to disable districts sent successfully"
 
 	MsgCitySuccessfullyRetrieved   = "City retrieved successfully"
@@ -1007,6 +1030,8 @@ const (
 	MsgCitiesSuccessfullyEnabled   = "Cities enabled successfully"
 	MsgCitiesSuccessfullyDisabled  = "Cities disabled successfully"
 	MsgEnableCitiesRequestSent     = "Request to enable cities sent successfully"
+	MsgEnabledCities               = "Cities enabled successfully"
+	MsgDisabledCities              = "Cities disabled successfully"
 	MsgDisableCitiesRequestSent    = "Request to disable cities sent successfully"
 
 	MsgInvalidDistrict                   = "Invalid district"
@@ -1143,8 +1168,10 @@ const (
 	MsgLogisticMerchantFetchedSuccessfully  = "logistic merchant fetched successfully"
 
 	// access list segmentation related messages
-	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation created successfully"
-	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation updated successfully"
+	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"
+	MsgAccessListSegmentationCreatedSuccessfullySP  = "Access list segmentation created successfully"
+	MsgAccessListSegmentationUpdatedSuccessfully    = "Access list segmentation update request sent successfully"
+	MsgAccessListSegmentationUpdatedSuccessfullySP  = "Access list segmentation updated successfully"
 	MsgAccessListSegmentationEnabledSuccessfully    = "Access list segmentation enabled successfully"
 	MsgAccessListSegmentationDisabledSuccessfully   = "Access list segmentation disabled successfully"
 	MsgAccessListSegmentationsRetrievedSuccessfully = "Access list segmentations retrieved successfully"

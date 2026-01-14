@@ -1,6 +1,7 @@
 package customersegmentation
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	cust_seg "cbe-super-app-cps-action/internal/constants/dto/customer_segmentation"
 	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -56,6 +57,11 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierCreated, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationCreationSubmittedSuccessfully, nil)
 }
 
@@ -100,6 +106,11 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 		c.logger.Errorf("[UpdateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierUpdated, nil)
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdateSubmittedSuccessfully, nil)
@@ -182,6 +193,11 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDeleted, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
 }
 
@@ -209,6 +225,11 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierEnabled, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
 }
 
@@ -234,6 +255,11 @@ func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Req
 		c.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDisabled, nil)
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
