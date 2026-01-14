@@ -1,6 +1,7 @@
 package accountblock
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/account_block/core"
 	"cbe-super-app-cps-action/internal/service"
 	"encoding/json"
@@ -377,6 +378,11 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessBranchEnabled, nil)
+	}
+
 	a.logger.Infof("[EnableBranches] request sent successfully for %d branches", len(req.BranchIds))
 	localization.SendSuccessResponse(w, localization.SuccessEnableBranchesRequestSent, nil)
 }
@@ -435,6 +441,11 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDisableBranches, nil)
+	}
+
 	a.logger.Infof("[DisableBranches] request sent successfully for %d branches", len(req.BranchIds))
 	localization.SendSuccessResponse(w, localization.SuccessDisableBranchesRequestSent, nil)
 }
@@ -491,6 +502,11 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		a.logger.Errorf("[EnableRegions] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEnableRegion, nil)
 	}
 
 	a.logger.Infof("[EnableRegions] request sent successfully for %d regions", len(req.RegionIds))
@@ -552,6 +568,11 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDisableRegion, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessDisableRegionsRequestSent, nil)
 }
 
@@ -609,6 +630,11 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEnableDistricts, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessEnableDistrictsRequestSent, nil)
 }
 
@@ -660,6 +686,11 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDisableDistricts, nil)
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDisableDistrictsRequestSent, nil)
@@ -715,6 +746,11 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEnableCities, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessEnableCitiesRequestSent, nil)
 }
 
@@ -766,6 +802,10 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessDisableCities, nil)
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessDisableCitiesRequestSent, nil)

@@ -34,6 +34,7 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationCompanyEnableRequestSent,
 	SuccessDonationCompanyDisableRequestSent,
 	SuccessAccountInfoFetched,
+	SuccessUnlinkCif,
 
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
@@ -56,6 +57,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessWalletRetrieved,
 
 	SuccessEcommerceMerchantCreatedSuccessfully,
+	SuccessEcommerceMerchantCreated,
+	SuccessEcommerceMerchantUpdated,
+	SuccessEcommerceMerchantDeleted,
+	SuccessEcommerceMerchantEnable,
+	SuccessEcommerceMerchantDisable,
 	SuccessEcommerceMerchantUpdatedSuccessfully,
 	SuccessEcommerceMerchantDeletedSuccessfully,
 	SuccessEcommerceMerchantEnableSuccessfully,
@@ -71,6 +77,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessTopupDeleted,
 	SuccessTopupsRetrieved,
 	SuccessTopupRetrieved,
+	SuccessCpsUserCreated,
+	SuccessCpsUserUpdated,
+	SuccessCPSUserDeleted,
+	SuccessCPSUserEnabled,
+	SuccessCPSUserDisable,
 
 	//BPS_USer
 	SuccessBpsUserEnableRequestSent,
@@ -104,6 +115,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessBranchesEnabled,
 	SuccessBranchesDisabled,
 	SuccessEnableBranchesRequestSent,
+	SuccessBranchEnabled,
+	SuccessDisableBranches,
 	SuccessDisableBranchesRequestSent,
 
 	SuccessRegionRetrieved,
@@ -111,6 +124,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessRegionsEnabled,
 	SuccessRegionsDisabled,
 	SuccessEnableRegionsRequestSent,
+	SuccessEnableRegion,
+	SuccessDisableRegion,
 	SuccessDisableRegionsRequestSent,
 
 	SuccessDistrictRetrieved,
@@ -118,6 +133,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDistrictsEnabled,
 	SuccessDistrictsDisabled,
 	SuccessEnableDistrictsRequestSent,
+	SuccessEnableDistricts,
+	SuccessDisableDistricts,
 	SuccessDisableDistrictsRequestSent,
 
 	SuccessCityRetrieved,
@@ -125,6 +142,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessCitiesEnabled,
 	SuccessCitiesDisabled,
 	SuccessEnableCitiesRequestSent,
+	SuccessEnableCities,
+	SuccessDisableCities,
 	SuccessDisableCitiesRequestSent,
 
 	// department related success response
@@ -580,6 +599,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessVaultAmountTierUpdateRequestSubmitted,
 	SuccessVaultAmountTierDeleteRequestSubmitted,
 	SuccessVaultAmountTierDisableRequestSubmitted,
+	SuccessVaultAmountTierCreated,
+	SuccessVaultAmountTierUpdated,
+	SuccessVaultAmountTierDeleted,
+	SuccessVaultAmountTierEnabled,
+	SuccessVaultAmountTierDisabled,
 	ErrorFailedToBeingTransaction,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
@@ -668,6 +692,10 @@ var ResponseCodesList = []ResponseCode{
 	CustomerSegmentationDeleteddSuccessfully,
 	CustomerSegmentationEnableSuccessfully,
 	CustomerSegmentationDisableSuccessfully,
+	CustomerSegmentationCreated,
+	CustomerSegmentationUpdated,
+	CustomerSegmentationEnabled,
+	CustomerSegmentationDisabled,
 
 	ErrorJobTitleAlreadyExists,
 	ErrorRoleAlreadyExists,
@@ -1156,6 +1184,42 @@ var (
 		Message:    MsgCpsUserCreationRequestSubmitted,
 		Type:       "success",
 	}
+
+	SuccessCpsUserCreated = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgCpsUserCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCpsUserUpdated = ResponseCode{
+		Code:       "SUCCESS_CPS_USER_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgCpsUserUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSUserDeleted = ResponseCode{
+		Code:       "CPS_USER_DELETED_SUCCESSFULLY",
+		StatusCode: StatusCreated,
+		Message:    MsgCPSUserDeletedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSUserEnabled = ResponseCode{
+		Code:       "CPS_USER_ENABLED_SUCCESSFULLY",
+		StatusCode: StatusCreated,
+		Message:    MsgCPSUserEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSUserDisable = ResponseCode{
+		Code:       "CPS_USER_DISABLE_SUCCESSFULLY",
+		StatusCode: StatusCreated,
+		Message:    MsgCPSUserDisabledSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessCpsUserUpdateRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_CPS_USER_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
@@ -1557,6 +1621,41 @@ var (
 		Code:       "SUCCESS_VAULT_AMOUNT_TIER_ENABLED",
 		StatusCode: StatusOK,
 		Message:    MsgVaultAmountTierEnableRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessVaultAmountTierCreated = ResponseCode{
+		Code:       "VAULT_AMOUNT_TIER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessVaultAmountTierUpdated = ResponseCode{
+		Code:       "VAULT_AMOUNT_TIER_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessVaultAmountTierDeleted = ResponseCode{
+		Code:       "VAULT_AMOUNT_TIER_DELETED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierDeletedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessVaultAmountTierEnabled = ResponseCode{
+		Code:       "VAULT_AMOUNT_TIER_ENABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessVaultAmountTierDisabled = ResponseCode{
+		Code:       "VAULT_AMOUNT_TIER_DISABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgVaultAmountTierDisabledSuccessfully,
 		Type:       "success",
 	}
 
@@ -2204,6 +2303,42 @@ var (
 		Message:    MsgEcommerceMerchantCreated,
 		Type:       "success",
 	}
+
+	SuccessEcommerceMerchantCreated = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantUpdated = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantUpdatedSuccessfylly,
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantDeleted = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantDeletedSuccessfylly,
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantEnable = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantEnabledSuccessfylly,
+		Type:       "success",
+	}
+
+	SuccessEcommerceMerchantDisable = ResponseCode{
+		Code:       "ECOMMERCE_MERCHANT_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgEcommerceMerchantDisabledSuccessfylly,
+		Type:       "success",
+	}
+
 	SuccessEcommerceMerchantUpdatedSuccessfully = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_UPDATED",
 		StatusCode: StatusOK,
@@ -2736,6 +2871,13 @@ var (
 		Type:       "success",
 	}
 
+	SuccessUnlinkCif = ResponseCode{
+		Code:       "SUCCESS_UNLINK_CIF",
+		StatusCode: StatusOK,
+		Message:    MsgUnlinkCifSuccessfully,
+		Type:       "success",
+	}
+
 	SuccessCPSActionCreatedForUnlink = ResponseCode{
 		Code:       "SUCCESS_CPS_ACTION_CREATED_FOR_UNLINK",
 		StatusCode: StatusCreated,
@@ -3222,6 +3364,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessBranchEnabled = ResponseCode{
+		Code:       "SUCCESS_BRANCH_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesEnabled,
+		Type:       "success",
+	}
+
+	SuccessDisableBranches = ResponseCode{
+		Code:       "SUCCESS_DISABLE_BRANCHES",
+		StatusCode: StatusOK,
+		Message:    MsgBranchesDisabled,
+		Type:       "success",
+	}
+
 	SuccessDisableBranchesRequestSent = ResponseCode{
 		Code:       "SUCCESS_DISABLE_BRANCHES_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -3261,6 +3417,20 @@ var (
 		Code:       "SUCCESS_ENABLE_REGIONS_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgEnableRegionsRequestSent,
+		Type:       "success",
+	}
+
+	SuccessEnableRegion = ResponseCode{
+		Code:       "SUCCESS_ENABLE_REGIONS",
+		StatusCode: StatusOK,
+		Message:    MsgEnableRegions,
+		Type:       "success",
+	}
+
+	SuccessDisableRegion = ResponseCode{
+		Code:       "SUCCESS_DISABLE_REGIONS",
+		StatusCode: StatusOK,
+		Message:    MsgDisableRegions,
 		Type:       "success",
 	}
 
@@ -3306,6 +3476,20 @@ var (
 		Type:       "success",
 	}
 
+	SuccessEnableDistricts = ResponseCode{
+		Code:       "SUCCESS_ENABLE_DISTRICTS",
+		StatusCode: StatusOK,
+		Message:    MsgEnableDistricts,
+		Type:       "success",
+	}
+
+	SuccessDisableDistricts = ResponseCode{
+		Code:       "SUCCESS_DISABLE_DISTRICTS",
+		StatusCode: StatusOK,
+		Message:    MsgDisableDistricts,
+		Type:       "success",
+	}
+
 	SuccessDisableDistrictsRequestSent = ResponseCode{
 		Code:       "SUCCESS_DISABLE_DISTRICTS_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -3343,6 +3527,20 @@ var (
 		Code:       "SUCCESS_ENABLE_CITIES_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgEnableCitiesRequestSent,
+		Type:       "success",
+	}
+
+	SuccessEnableCities = ResponseCode{
+		Code:       "SUCCESS_ENABLE_CITIES",
+		StatusCode: StatusOK,
+		Message:    MsgEnabledCities,
+		Type:       "success",
+	}
+
+	SuccessDisableCities = ResponseCode{
+		Code:       "SUCCESS_DISABLE_CITIES",
+		StatusCode: StatusOK,
+		Message:    MsgDisabledCities,
 		Type:       "success",
 	}
 
@@ -4841,40 +5039,68 @@ var (
 	}
 
 	CustomerSegmentationCreationSubmittedSuccessfully = ResponseCode{
-		Code:       "ERROR_CUSTOMER_SEGMENTATION_CREATION_SUBMITTED",
+		Code:       "SUCCESS_CUSTOMER_SEGMENTATION_CREATION_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentation creation request submitted successfully",
-		Type:       "error",
+		Type:       "success",
 	}
 	CustomerSegmentationUpdateSubmittedSuccessfully = ResponseCode{
-		Code:       "ERROR_CUSTOMER_SEGMENTATION_UPDATE_SUBMITTED",
+		Code:       "SUCCESS_CUSTOMER_SEGMENTATION_UPDATE_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentation update request submitted successfully",
-		Type:       "error",
+		Type:       "success",
 	}
 	CustomerSegmentationFetchedSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATIONS_FETCHED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentations fetched successfully",
-		Type:       "error",
+		Type:       "success",
 	}
 	CustomerSegmentationDeleteddSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATIONS_DELETED_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    "Customer segmentations deleted request submitted successfully",
-		Type:       "error",
+		Type:       "success",
 	}
 	CustomerSegmentationEnableSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATION_ENABLE_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCustomerSegmentationEnableSuccessfully,
-		Type:       "error",
+		Type:       "success",
 	}
 	CustomerSegmentationDisableSuccessfully = ResponseCode{
 		Code:       "CUSTOMER_SEGMENTATION_DISABLE_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCustomerSegmentationDisableSuccessfully,
-		Type:       "error",
+		Type:       "success",
+	}
+
+	CustomerSegmentationCreated = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_CREATED",
+		StatusCode: StatusCreated,
+		Message:    "Customer Segmentation created successfully",
+		Type:       "Success",
+	}
+
+	CustomerSegmentationUpdated = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Customer Segmentation updated successully",
+		Type:       "success",
+	}
+
+	CustomerSegmentationEnabled = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation enabled successfully",
+		Type:       "success",
+	}
+
+	CustomerSegmentationDisabled = ResponseCode{
+		Code:       "CUSTOMER_SEGMENTATION_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Customer segmentation disabled successfully",
+		Type:       "success",
 	}
 
 	// Donation related error response codes

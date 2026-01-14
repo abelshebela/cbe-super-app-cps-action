@@ -1,6 +1,7 @@
 package unlink
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	inbound "cbe-super-app-cps-action/internal/constants/interfaces/unlink"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -139,6 +140,12 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessUnlinkCif, nil)
+	}
+
 	span.AddEvent("UnlinkUserCif request sent", trace.WithAttributes(attribute.String("user_code", userCode)))
 	a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s", userCode)
 	localization.SendSuccessResponse(w, localization.SuccessUnlinkCifRequestSent, nil)
