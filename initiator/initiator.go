@@ -100,12 +100,11 @@ func Init(ctx context.Context) {
 
 	redisRepository := redisStorage.GetRedisRepository()
 
-	persitence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, *clientOrchestrationProducer, redisRepository, cfg, logger)
+	persistence := InitPersistanceLayer(mongoClient, cfg.MongoDBDatabase, coreConfig, notificationApi, *notificationProducer, *clientOrchestrationProducer, redisRepository, cfg, logger)
 	logger.Infof("Persistence initialized")
 
 	// Initialize CPS Action Guard (role_id + action_name authorization with TTL cache)
-	mid.InitCPSActionGuard(persitence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
-
+	mid.InitCPSActionGuard(persistence.CPSActionApproveIndexPersistence, 5*time.Minute, logger)
 	oracleDB := InitOracle(cfg.OracleConnectionString, logger)
 	logger.Infof("Oracle database initialized")
 
