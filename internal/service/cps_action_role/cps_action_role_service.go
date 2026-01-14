@@ -603,6 +603,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 					break
 				}
 			}
+
 			if !found {
 				indices = append(indices, imodel.CPSActionApproveIndex{
 					ID:             bson.NewObjectID(),

@@ -29,6 +29,18 @@ type cpsActionService struct {
 	dispatcher Dispatcher
 }
 
+// IsMakerOnlyForRequest returns true if the module mapped from requestAction is configured as maker-only in CPSActionRole.
+func (ca *cpsActionService) IsMakerOnlyForRequest(ctx context.Context, requestAction string) (bool, error) {
+	if mod, ok := ResolveModuleForRA(RequestAction(requestAction)); ok && ca.roles != nil {
+		role, err := ca.roles.FindByActionName(ctx, mod)
+		if err != nil || role == nil {
+			return false, errors.New(localization.ErrorOperationNotAllowed.Code)
+		}
+		return role.IsMakerOnly, nil
+	}
+	return false, errors.New(localization.ErrorOperationNotAllowed.Code)
+}
+
 // AuditorClaim sets auditor status to INPROGRESS when caller belongs to the active group.
 func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string, activeGroup int) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "AuditorClaim", "CPSAction", "AuditorClaim")
@@ -42,6 +54,7 @@ func (ca *cpsActionService) AuditorClaim(ctx context.Context, actionCode string,
 	if act.CurrentAuditorIndex > 0 {
 		current = int64(act.CurrentAuditorIndex)
 	}
+
 	expected := int64(activeGroup)
 	if current != 0 && current != expected {
 		return errors.New(localization.ErrorOperationNotAllowed.Code)
@@ -138,6 +151,9 @@ func (ca *cpsActionService) ApproveCPSAction(ctx context.Context, action *model.
 	if err != nil && approve == nil {
 		span.AddEvent("failed to authorize cps action", trace.WithAttributes(attribute.String("error", err.Error())))
 		RollErr := ca.RollBack(ctx, action)
+		if err.Error() == localization.ErrorTimeoutError.Code {
+			return err
+		}
 		if RollErr != nil {
 			span.AddEvent("failed to roll back cps action", trace.WithAttributes(attribute.String("error", RollErr.Error())))
 			return RollErr

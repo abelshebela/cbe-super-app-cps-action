@@ -46,6 +46,7 @@ type CPSUser struct {
 	IsDeleted    bool       `json:"is_deleted,omitempty" bson:"is_deleted"`
 	DateJoined   *time.Time `json:"date_joined,omitempty" bson:"date_joined"`
 	LastModified *time.Time `json:"last_modified,omitempty" bson:"last_modified"`
+	CreatedAt    time.Time  `json:"created_at" bson:"created_at"`
 
 	Country string `json:"country,omitempty" bson:"country"`
 	Region  string `json:"region,omitempty" bson:"region"`

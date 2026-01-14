@@ -28,6 +28,10 @@ func WithActionRolePolicy(base service.CPSActionService, roles storage.CPSAction
 	return &cpsActionServiceWithRoles{base: base, roles: roles}
 }
 
+func (s *cpsActionServiceWithRoles) IsMakerOnlyForRequest(ctx context.Context, requestAction string) (bool, error) {
+	return s.base.IsMakerOnlyForRequest(ctx, requestAction)
+}
+
 func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsAction *model.CPSAction) error {
 	actType := strings.ToUpper(strings.TrimSpace(cpsAction.ActionType))
 	req := strings.ToUpper(strings.TrimSpace(cpsAction.RequestAction))
@@ -49,6 +53,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 
 			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
 				role = r
+			}
+			if role == nil {
+				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
 			}
 
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
@@ -79,7 +86,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 				fmt.Printf("CPS Action created with role policy: %+v\n", role)
 				if role.IsMakerOnly {
 					cpsAction.ActionStatus = string(constants.Approved)
-					s.base.ApproveCPSAction(ctx, cpsAction)
+					if err := s.base.ApproveCPSAction(ctx, cpsAction); err != nil {
+						return err
+					}
 				}
 
 			}

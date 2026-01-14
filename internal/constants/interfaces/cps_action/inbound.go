@@ -17,4 +17,5 @@ type CPSActionAdapter interface {
 	GetAuthorizerIndex(w http.ResponseWriter, r *http.Request)
 	GetUserApproverActions(w http.ResponseWriter, r *http.Request)
 	GetUserApproverApprovedActions(w http.ResponseWriter, r *http.Request)
+	AuditorAction(w http.ResponseWriter, r *http.Request)
 }

@@ -31,6 +31,10 @@ type UpdateActionRoleRequest struct {
 	IsViewOnly           bool       `json:"is_view_only" bson:"is_view_only"`
 }
 
+type AuditorMarkRequest struct {
+	Mark   string `json:"mark"`
+	Reason string `json:"reason"`
+}
 type GetActionRoleByActionCodeRes struct {
 	ID                   bson.ObjectID     `json:"_id" bson:"_id"`
 	ActionCode           string            `json:"action_code" bson:"action_code"`

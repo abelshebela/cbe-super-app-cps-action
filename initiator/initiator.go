@@ -2,9 +2,7 @@ package initiator
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"runtime"
 	"time"
 
 	"cbe-super-app-cps-action/cmd/client"
@@ -27,6 +25,7 @@ import (
 func Init(ctx context.Context) {
 	done := make(chan struct{})
 	logger := utils.NewLogger()
+
 	logger.Infof("Initializing configuration...")
 	cfg := InitConfig(logger)
 	logger.Infof("Configuration initialized")
@@ -75,18 +74,18 @@ func Init(ctx context.Context) {
 		if err := http.ListenAndServe(":"+metricsPort, mux); err != nil {
 			logger.Errorf("metrics server failed: %v", err)
 		}
-	}()
+	}() // 5G
 
 	logger.Infof("Initializing MongoDB client...")
-	mongoClient := InitMongo(cfg.MongoDBURI, logger)
+	mongoClient := InitMongo(cfg.MongoDBURI, logger) //23G - 5G = 18G
 	logger.Infof("MongoDB client initialized")
 
 	logger.Infof("Initializing Minio client...")
-	minioClient := InitMinio(*cfg, logger)
+	minioClient := InitMinio(*cfg, logger) // 24G -23G= 1G
 	logger.Infof("Minio client initialized")
 
 	logger.Infof("initializing kafka")
-	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger)
+	notificationProducer, clientOrchestrationProducer := InitKafkaService(cfg, logger) //27G - 24G= 3G
 	logger.Infof("kafka initialized")
 
 	logger.Infof("Initializing persistence...")
@@ -118,16 +117,6 @@ func Init(ctx context.Context) {
 	smsService := lib.InitNotificationStore(logger, cfg, notificationProducer)
 	logger.Infof("SMS service initialized")
 
-	// sessionGRPCClient, clientStore, err := api.NewSessionGRPCClient(cfg.CommonSvcGrpcAddress, logger)
-	// if err != nil {
-	// 	logger.Fatalf("Failed to initialize gRPC session client: %v", err)
-	// }
-	// defer func() {
-	// 	if cerr := clientStore.Close(); cerr != nil {
-	// 		logger.Errorf("error closing client store: %v", cerr)
-	// 	}
-	// }()
-
 	auth_client, err := client.NewAuthGRPCClient(cfg.CPSAuthSvcGrpcAddress, logger)
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for auth: %v", err)
@@ -140,14 +129,11 @@ func Init(ctx context.Context) {
 	if err != nil {
 		logger.Fatalf("Failed to initialize gRPC client for sitota: %v", err)
 	}
-	// if cerr := sitotagRPCClient.Close(); cerr != nil {
-	// 	logger.Errorf("Failed to close sitota RPC client: %v", cerr)
-	// }
 
 	defer local.DisconnectMongo(ctx, mongoClient, logger)
 
 	logger.Infof("initialize service layer")
-	serviceLayer := InitServiceLayer(mongoClient, persitence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
+	serviceLayer := InitServiceLayer(mongoClient, persistence, OraclePersistence, logger, sitotagRPCClient, cfg, minioClient, redisRepository, smsService)
 
 	go func() {
 		if err := InitFeedbackConsumer(serviceLayer.Feedback, cfg, logger); err != nil {
@@ -162,18 +148,8 @@ func Init(ctx context.Context) {
 	// InitRoute(ctx, r, handlerLayer, nil, logger, cfg)
 	InitRoute(ctx, r, handlerLayer, auth_client.Client, redisRepository, logger, cfg)
 
-	// Walker to log all registered routes
-	// chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-	// 	logger.Infof("Route registered: %s %s", method, route)
-	// 	return nil
-	// })
-
 	// wrap the router with OpenTelemetry instrumentation handler
 	otlr := telemetry.WrapHandler(r, "cps-action")
-
-	go func() {
-		fmt.Println("Goroutines: ", runtime.NumGoroutine())
-	}()
 
 	grpcHandlers := server.NewGrpcServer(serviceLayer.Bank, serviceLayer.Wallet, serviceLayer.Services, serviceLayer.Topup, logger)
 	srv := server.NewHTTPServer(cfg, otlr)

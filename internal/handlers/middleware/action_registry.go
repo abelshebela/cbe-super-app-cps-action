@@ -11,8 +11,6 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 )
 
-// cpsActionRegistry maps METHOD + " " + RoutePattern to CPS action name
-// Only write/approval routes should be included here
 var cpsActionRegistry = map[string]string{
 	// Notification
 	"POST notifications":   "NOTIFICATIONS",

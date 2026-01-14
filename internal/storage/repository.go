@@ -48,7 +48,6 @@ type RoleRepository interface {
 	FindByCode(ctx context.Context, code string) (*model.Role, error)
 	FindByRole(ctx context.Context, jobTitle string) (*model.Role, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Role], error)
-
 	FindByFilterKey(ctx context.Context, field string, value string) (*model.Role, error)
 }
 
@@ -76,10 +75,10 @@ type ServicesRepository interface {
 	Update(ctx context.Context, id string, service *imodel.Service) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-
 	FindByID(ctx context.Context, id string) (*imodel.Service, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
 	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
+	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
 }
 
 type OTPRepository interface {
@@ -120,7 +119,6 @@ type AppAccessListRepository interface {
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindByID(ctx context.Context, id string) (*model.APPAccessList, error)
 	FindByKeys(ctx context.Context, keys []string) (map[string]string, error)
-	// FindByKey(ctx context.Context, key string) (string, error)
 	FindAllWithPagination(ctx context.Context, department string, filterParam types.Filter) (*types.PaginatedResponse[[]model.APPAccessList], error)
 	FindAllByKeys(ctx context.Context, keys []string) ([]model.APPAccessList, error)
 }
@@ -392,7 +390,6 @@ type EventRepository interface {
 	Update(ctx context.Context, id string, event *model.Event) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-
 	FindByID(ctx context.Context, id string) (*model.Event, error)
 	Find(ctx context.Context, name string) (*model.Event, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Event], error)
@@ -402,7 +399,6 @@ type FeedbackRepository interface {
 	Create(ctx context.Context, feedback *model.Feedback) error
 	FindByID(ctx context.Context, id string) (*feedback.FeedbackResponse, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponseForFeedback[[]*feedback.FeedbackResponse], error)
-
 	FindAllCustomerFeedbacks(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CustomerFeedback], error)
 	FindCustomerFeedbackByID(ctx context.Context, id string) (*imodel.CustomerFeedback, error)
 }
@@ -599,17 +595,6 @@ type IconRepository interface {
 	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]model.Icon], error)
 }
 
-// type BPSActionRoleRepository interface {
-// 	Create(ctx context.Context, actionRole *imodel.BPSActionRole) error
-// 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.BPSActionRole) error
-// 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
-// 	UpdateActionList(ctx context.Context, actionCode string, status bool) error
-// 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.BPSActionList], error)
-// 	FindByActionCode(ctx context.Context, actionCode string) (*actionrole_dto.GetActionRoleByActionCodeRes, error)
-// 	FindByActionName(ctx context.Context, actionName string) (*imodel.BPSActionRole, error)
-// 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*imodel.BPSActionRoleResposne], error)
-// }
-
 type BPSActionRoleRepository interface {
 	Create(ctx context.Context, actionRole *imodel.BPSActionRole) error
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.BPSActionRole) error
@@ -622,11 +607,6 @@ type BPSActionRoleRepository interface {
 	FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.BPSActionApproveIndex, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.BPSActionRole, error)
 }
-
-// type BPSActionApproveIndexRepository interface {
-// 	SaveIndices(ctx context.Context, indices []imodel.BPSActionApproveIndex) error
-// 	SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.BPSActionApproveIndex) error
-// }
 
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error
@@ -711,7 +691,6 @@ type AccessListSegmentationRepository interface {
 	FindByIDS(ctx context.Context, ids []string, t string) (*local_model.AccessListSegmentation, error)
 	FindByIDAndType(ctx context.Context, ids string, t string) (*local_model.AccessListSegmentation, error)
 	FindBySegmentIDAndAccessListKeys(ctx context.Context, id string, keys []string) (*local_model.AccessListSegmentation, error)
-	// Update(ctx context.Context, id string, accessListSegmentation access_list_segmentation_dto.UpdateAccessListSegmentationRequest) error
 	Update(ctx context.Context, id string, accessListSegmentation local_model.AccessListSegmentation) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllBySegmentIDorSegmentCode(ctx context.Context, segmentIDorCode string) ([]local_model.AccessListSegmentation, error)

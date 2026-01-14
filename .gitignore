@@ -55,3 +55,6 @@ tools
 
 ./cmd/__debug*
 __debug_bin*
+.tools
+.vscode
+.idea
