@@ -82,9 +82,14 @@ func (np *ClientOrchestrationProducer) PublishMessage(ctx context.Context, msg i
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
 
+	if topic == "" {
+		topic = np.config.UserOrchastrator
+	}
+
 	// Create Sarama producer message
 	kafkaMsg := &sarama.ProducerMessage{
-		Topic: np.config.UserOrchastrator,
+		// Topic: np.config.UserOrchastrator,
+		Topic: topic,
 		Value: sarama.StringEncoder(messageBytes),
 		Headers: []sarama.RecordHeader{
 			{Key: []byte("message_id"), Value: []byte(clientOrchestrationMsg.ID)},

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants"
 	ecommerce_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
@@ -67,14 +68,18 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	createdMerchant, err := h.srv.Create(ctx, &reqDTO)
+	_, err := h.srv.Create(ctx, &reqDTO)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("Failed to create merchant: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Debugf("Created merchant: %+v", createdMerchant)
+
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, nil)
+	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreatedSuccessfully, nil)
 }
@@ -135,6 +140,11 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, nil)
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdatedSuccessfully, nil)
 }
 
@@ -175,6 +185,10 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeleted, nil)
+	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeletedSuccessfully, nil)
 }
@@ -211,6 +225,10 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnable, nil)
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnableSuccessfully, nil)
@@ -249,6 +267,10 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
+	}
+	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
+	if IsMakerOnly && ok {
+		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisable, nil)
 	}
 
 	localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisableSuccessfully, nil)
