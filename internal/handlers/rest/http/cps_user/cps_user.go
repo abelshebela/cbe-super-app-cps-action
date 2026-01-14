@@ -292,7 +292,7 @@ func (h *handler) DisableUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
+	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
 	localization.SendSuccessResponse(w, localization.SuccessCpsUserDisabled, nil)
 }
 
