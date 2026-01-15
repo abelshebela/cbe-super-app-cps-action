@@ -6,12 +6,14 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"mime/multipart"
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
 	"cbe-super-app-cps-action/internal/constants"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -47,6 +49,9 @@ func InitAvatarAdapter(avatarApplication service.AvatarService, logger utils.Log
 func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createAvatar", "handler", "avatar")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	req, err := ReqFileParse(r)
 	if err != nil {
 		span.RecordError(err)
@@ -68,13 +73,12 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
+		a.logger.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
 	}
-	localization.SendSuccessResponse(w, localization.SuccessAvatarCreated, nil)
-
-	a.logger.Infof("[CreateAvatar] request sent successfully for label: %s", req.Label)
 }
 
 // DeleteAvatar godoc
@@ -94,6 +98,9 @@ func (a *avatarAdapter) CreateAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteAvatar", "handler", "avatar")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
@@ -108,13 +115,12 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDeletedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarDeleted, nil)
+		a.logger.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
 	}
-	localization.SendSuccessResponse(w, localization.SuccessAvatarDeleted, nil)
-	a.logger.Infof("[DeleteAvatar] request sent successfully for id: %s", id)
-
 }
 
 // Enable godoc
@@ -134,6 +140,9 @@ func (a *avatarAdapter) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableAvatar", "handler", "avatar")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
@@ -148,12 +157,12 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, nil)
+		a.logger.Infof("[Enable] avatar enabled successfully for id: %s", id)
 	}
-	localization.SendSuccessResponse(w, localization.SuccessAvatarEnabled, nil)
-	a.logger.Infof("[Enable] avatar enabled successfully for id: %s", id)
 }
 
 // Disable godoc
@@ -173,6 +182,9 @@ func (a *avatarAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableAvatar", "handler", "avatar")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidID.Message)
@@ -187,14 +199,13 @@ func (a *avatarAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarDisabledSP, nil)
-	}
-	localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
 
-	a.logger.Infof("[Disable] avatar disabled successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessAvatarDisabled, nil)
+		a.logger.Infof("[Disable] avatar disabled successfully for id: %s", id)
+	}
 }
 
 // FetchAvatar godoc
@@ -285,6 +296,9 @@ func (a *avatarAdapter) FetchAvatars(w http.ResponseWriter, r *http.Request) {
 func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateAvatar", "handler", "avatar")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	var inputData *multipart.FileHeader
 	var label string
@@ -315,11 +329,11 @@ func (a *avatarAdapter) UpdateAvatar(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAvatarUpdatedSP, nil)
-	}
-	localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAvatarUpdated, nil)
 
-	a.logger.Infof("[UpdateAvatar] request sent successfully for id: %s", id)
+		a.logger.Infof("[UpdateAvatar] request sent successfully for id: %s", id)
+	}
 }

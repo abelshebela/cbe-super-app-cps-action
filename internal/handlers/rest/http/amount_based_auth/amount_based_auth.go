@@ -1,6 +1,7 @@
 package amount_based_auth
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -83,6 +84,9 @@ func (a *AmountBasedAuthHandler) GetAllAmountBasedAuth(w http.ResponseWriter, r 
 func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_util.TraceLogger(r.Context(), "handler", "updateAmountBasedAuth", "handler", "amountBasedAuth")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	method, ok := common_util.GetParam(r, "method")
 	if !ok {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameters.Code)
@@ -128,12 +132,12 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSentSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
+		a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
 	}
-	localization.SendSuccessResponse(w, localization.SuccessAmountBasedAuthRequestSent, nil)
-	a.logger.Infof("[UpdateAmountBasedAuth] request sent successfully for id: %s, method: %s", id, method)
 }
 
 // RejectAmountBasedAuth godoc

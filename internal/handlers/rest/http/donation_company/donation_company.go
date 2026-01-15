@@ -6,12 +6,14 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_company/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"cbe-super-app-cps-action/internal/constants"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -117,6 +119,9 @@ func (d *donationCompanyAdapter) FetchDonationCompanyByID(w http.ResponseWriter,
 func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
@@ -142,12 +147,12 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreatedSP, nil)
+	} else {
+		d.logger.Infof("donation company creation request submitted successfully")
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
 	}
-	d.logger.Infof("donation company creation request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyCreateRequestSent, nil)
 }
 
 // UpdateDonationCompany godoc
@@ -170,6 +175,9 @@ func (d *donationCompanyAdapter) CreateDonationCompany(w http.ResponseWriter, r 
 func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for update")
@@ -203,12 +211,12 @@ func (d *donationCompanyAdapter) UpdateDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedSP, nil)
+	} else {
+		d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedRequestSent, nil)
 	}
-	d.logger.Infof("donation company update request submitted successfully", updatedDonationCompany)
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyUpdatedRequestSent, nil)
 }
 
 func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Request) {
@@ -249,6 +257,9 @@ func (d *donationCompanyAdapter) AccountLookup(w http.ResponseWriter, r *http.Re
 func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for diable")
@@ -263,12 +274,12 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnabledSP, nil)
-	}
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyEnableRequestSent, nil)
 
+	}
 }
 
 // disableDonationCompany godoc
@@ -288,6 +299,9 @@ func (d *donationCompanyAdapter) EnableDonationCompany(w http.ResponseWriter, r 
 func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCompany", "handler", "donationCompany")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation company ID is required for disable")
@@ -302,10 +316,9 @@ func (d *donationCompanyAdapter) DisableDonationCompany(w http.ResponseWriter, r
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
+	if md.IsMakerOnly {
 		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
 	}
-	localization.SendSuccessResponse(w, localization.SuccessDonationCompanyDisableRequestSent, nil)
-
 }
