@@ -97,8 +97,8 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *imodel
 		ctx,
 		updatedService,
 		string(constants.ClientOrchestrationServicesTopic),
-		string(constants.ClientOrchestrationServicesTopic),
-		"service updated",
+		"cps-service-updated",
+		"service authorized and updated",
 	)
 
 	return nil
