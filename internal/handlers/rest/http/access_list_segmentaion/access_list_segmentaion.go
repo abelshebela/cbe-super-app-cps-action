@@ -77,6 +77,7 @@ func (a *accessListSegmentation) DisableAccessListSegmentation(w http.ResponseWr
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationDisabled, nil)
 }
 
