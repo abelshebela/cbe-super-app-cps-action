@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"cbe-super-app-cps-action/internal/constants"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
 
@@ -98,7 +99,7 @@ func (a *AmountBasedAuthHandler) UpdateAmountBasedAuth(w http.ResponseWriter, r 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("[UpdateAmountBasedAuth] failed to decode request: %v", err)
-		localization.SendBadRequestResponse(w, localization.ErrorUnexpectedError.Code)
+		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
 		return
 	}
 
