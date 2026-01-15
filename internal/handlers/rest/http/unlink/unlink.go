@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"net/http"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
@@ -127,6 +128,8 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "unlink", "unlinkAdapter", "UnlinkUserCif")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		span.AddEvent("Missing user_code param")
@@ -141,10 +144,9 @@ func (a *unlinkAdapter) UnlinkUserCif(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
-		a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[UnlinkUserCif] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessUnlinkCif, nil)
 		return
 	}

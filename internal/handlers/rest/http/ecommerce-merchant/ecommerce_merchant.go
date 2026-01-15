@@ -1,6 +1,7 @@
 package ecommercemerchant
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	ecommerce_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
 	ecommerce_merchant "cbe-super-app-cps-action/internal/constants/interfaces/ecommerce_merchant"
 	"cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
@@ -41,6 +43,10 @@ func NewEcommerceMerchantdapter(srv service.EcommerceMerchantService, logger sha
 func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "createMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var reqDTO ecommerce_merchant_dto.EcommerceMerchant
 
 	if err := json.NewDecoder(r.Body).Decode(&reqDTO); err != nil {
@@ -76,10 +82,9 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Create] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantCreated, nil)
 		return
 	}
@@ -103,6 +108,10 @@ func (h *ecommerceMerchantAdapter) Create(w http.ResponseWriter, r *http.Request
 func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "updateMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
@@ -143,10 +152,9 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Update] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantUpdated, nil)
 		return
 	}
@@ -168,6 +176,10 @@ func (h *ecommerceMerchantAdapter) Update(w http.ResponseWriter, r *http.Request
 func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "deleteMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'id'"))
@@ -191,10 +203,9 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Delete] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDeleted, nil)
 		return
 	}
@@ -216,6 +227,10 @@ func (h *ecommerceMerchantAdapter) Delete(w http.ResponseWriter, r *http.Request
 func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "enableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'id'"))
@@ -235,10 +250,9 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantEnable, nil)
 		return
 	}
@@ -260,6 +274,10 @@ func (h *ecommerceMerchantAdapter) Enable(w http.ResponseWriter, r *http.Request
 func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "", "disableMiniAppMerchant", "handler", "miniAppMerchant")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("missing or invalid parameter 'id'"))
@@ -280,10 +298,9 @@ func (h *ecommerceMerchantAdapter) Disable(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		userCode, _ := r.Context().Value(constants.ContextKey("user_code")).(string)
-		h.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, IsMakerOnly)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
 		localization.SendSuccessResponse(w, localization.SuccessEcommerceMerchantDisable, nil)
 		return
 	}
