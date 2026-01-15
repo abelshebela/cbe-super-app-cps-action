@@ -693,17 +693,28 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// resolve action_names -> request_actions
 	var reqs []string
 	seen := map[string]struct{}{}
+	// Pre-normalize auditor allocations (O(n))
+	normalized := make([]string, 0, len(auditorAllocations))
 	for _, mod := range auditorAllocations {
-		upper := strings.ToUpper(strings.TrimSpace(mod))
-		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
-			for _, ra := range lst {
-				key := string(ra)
-				if _, ok := seen[key]; ok {
-					continue
-				}
-				seen[key] = struct{}{}
-				reqs = append(reqs, key)
+		normalized = append(normalized, strings.ToUpper(strings.TrimSpace(mod)))
+	}
+
+	// Single linear pass
+	for _, upper := range normalized {
+		lst, exists := cpsactionsvc.RequestActionGroups[upper]
+		if !exists {
+			continue
+		}
+
+		for _, ra := range lst {
+			key := string(ra)
+
+			if _, seenBefore := seen[key]; seenBefore {
+				continue
 			}
+
+			seen[key] = struct{}{}
+			reqs = append(reqs, key)
 		}
 	}
 
