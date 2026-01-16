@@ -52,7 +52,6 @@ import (
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 
 	shared_constant "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/constants"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	mini_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/mini_app"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -140,7 +139,7 @@ type NotificationService interface {
 type CustomerService interface {
 	GetCustomersDetail(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
 	GetBlockedCustomer(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]*customer_dto.CustomerListResponse], error)
-	GetCustomerByID(ctx context.Context, id string) (*member.User, error)
+	GetCustomerByID(ctx context.Context, id string) (customer.FindCustomerByIDResponse, error)
 	EnableCustomerByID(ctx context.Context, id string, user_otp string) error
 	DisableCustomerByID(ctx context.Context, id string, payload customer.CustomerDisableDTO) error
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
@@ -325,7 +324,7 @@ type DeviceVersionServiceSrv interface {
 // }
 
 type UnlinkService interface {
-	GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error)
+	GetUserByAccount(ctx context.Context, accNumber string) (customer.FindCustomerByIDResponse, error)
 	GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error)
 	UnlinkUserCif(ctx context.Context, userCode string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
