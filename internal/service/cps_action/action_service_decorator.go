@@ -54,8 +54,9 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
 				role = r
 			}
-			if role == nil {
-				context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
+			if role != nil {
+				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
+				types.SetIsMakerOnly(ctx, role.IsMakerOnly)
 			}
 
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
@@ -124,9 +125,6 @@ func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context,
 	return s.base.GetCPSActionsForAuditor(ctx, RAList, filterParams)
 }
 
-//	func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
-//		return s.base.ReverseCPSAction(ctx, actionCode)
-//	}
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	return s.base.ApproveCPSAction(ctx, action)
 }

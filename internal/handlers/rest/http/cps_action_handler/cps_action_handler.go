@@ -81,7 +81,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	UpperCaseAction := strings.ToUpper(actionName)
-	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction)
+	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction, action.Version)
 	if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
@@ -217,7 +217,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
+		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName), action.Version)
 		if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
@@ -307,7 +307,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 		roleID := rawRoleID
 		UpperCaseAction := strings.ToUpper(actionName)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction, action.Version)
 		if err != nil {
 			span.RecordError(err)
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -693,28 +693,17 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	// resolve action_names -> request_actions
 	var reqs []string
 	seen := map[string]struct{}{}
-	// Pre-normalize auditor allocations (O(n))
-	normalized := make([]string, 0, len(auditorAllocations))
 	for _, mod := range auditorAllocations {
-		normalized = append(normalized, strings.ToUpper(strings.TrimSpace(mod)))
-	}
-
-	// Single linear pass
-	for _, upper := range normalized {
-		lst, exists := cpsactionsvc.RequestActionGroups[upper]
-		if !exists {
-			continue
-		}
-
-		for _, ra := range lst {
-			key := string(ra)
-
-			if _, seenBefore := seen[key]; seenBefore {
-				continue
+		upper := strings.ToUpper(strings.TrimSpace(mod))
+		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+			for _, ra := range lst {
+				key := string(ra)
+				if _, ok := seen[key]; ok {
+					continue
+				}
+				seen[key] = struct{}{}
+				reqs = append(reqs, key)
 			}
-
-			seen[key] = struct{}{}
-			reqs = append(reqs, key)
 		}
 	}
 

@@ -16,6 +16,7 @@ type CPSActionApproveIndex struct {
 	CheckerIndex   *float64      `json:"checker_index" bson:"checker_index"`
 	AuditorIndex   *float64      `json:"auditor_index" bson:"auditor_index"`
 	ApproverCount  int8          `json:"approver_count" bson:"approver_count"`
+	Version        int64         `json:"version" bson:"version"`
 	UpdatedAt      time.Time     `json:"updated_at" bson:"updated_at"`
 	CreatedAt      time.Time     `json:"created_at" bson:"created_at"`
 }

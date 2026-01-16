@@ -19,6 +19,16 @@ func (r ResponseCode) Error() string {
 
 var ResponseCodesList = []ResponseCode{
 	// Success codes
+
+	SuccessServiceCreateRequestSubmitted,
+	SuccessServiceCreated,
+	SuccessServiceUpdateRequestSubmitted,
+	SuccessServiceUpdated,
+	SuccessServiceEnableRequestSubmitted,
+	SuccessServiceEnabled,
+	SuccessServiceDisableRequestSubmitted,
+	SuccessServiceDisabled,
+
 	SuccessUserCreated,
 	SuccessUserUpdated,
 	SuccessUserDeleted,
@@ -2812,6 +2822,63 @@ var (
 		Message:    MsgMaxTotalCapValidatedSuccessfully,
 		Type:       "success",
 	}
+	// Service
+	SuccessServiceCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_CREATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service create request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceCreated = ResponseCode{
+		Code:       "SERVICE_CREATED",
+		StatusCode: StatusOK,
+		Message:    "Service created successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_UPDATE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service update request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceUpdated = ResponseCode{
+		Code:       "SERVICE_UPDATED",
+		StatusCode: StatusOK,
+		Message:    "Service updated successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_ENABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service enable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceEnabled = ResponseCode{
+		Code:       "SERVICE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    "Service enabled successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_SERVICE_DISABLE_REQUEST_SUBMITTED",
+		StatusCode: StatusOK,
+		Message:    "Service disable request submitted successfully",
+		Type:       "success",
+	}
+
+	SuccessServiceDisabled = ResponseCode{
+		Code:       "SERVICE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    "Service disabled successfully",
+		Type:       "success",
+	}
+
 	// Mini App Merchant related success response codes
 	SuccessMiniAppAdded = ResponseCode{
 		Code:       "SUCCESS_MINI_APP_ADDED",

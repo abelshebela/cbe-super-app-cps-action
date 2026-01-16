@@ -736,14 +736,6 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestEnableService,
 		RequestDisableService,
 	},
-	// "ACCOUNTVALIDATION": {
-	// 	RequestUser,
-	// 	RequestUpdateAccountValidation,
-	// 	RequestEnableUser,
-	// 	RequestDisableUser,
-	// 	RequestUpdateUser,
-	// 	RequestArchiveUser,
-	// },
 	"EVENT": {
 		RequestCreateEvent,
 		RequestDeleteEvent,
