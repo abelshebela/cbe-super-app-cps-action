@@ -731,6 +731,43 @@ var ResponseCodesList = []ResponseCode{
 	ErrorRoleAlreadyExists,
 
 	ErrorAccessListSegmentationKeyNotFound,
+
+	SuccessValidationRuleApproved,
+	SuccessValidationRuleApprovedSP,
+
+	SuccessBpsUserEnableRequestSentSP,
+	SuccessBpsUserEnableRequestSent,
+	SuccessBpsUserEnableRequestSentSP,
+	SuccessBpsUserDisableRequestSent,
+	SuccessBpsUserDisableRequestSentSP,
+	SuccessBPSUserCreated,
+	SuccessBPSUserCreatedSP,
+
+	SuccessBudgetCategoryCreatedSP,
+	SuccessBudgetCategoryUpdatedSP,
+	SuccessBudgetCategoryDeletedSP,
+	SuccessBudgetCategoryEnabledSP,
+	SuccessBudgetCategoryDisabledSP,
+
+	//device version
+	SuccessDeviceVersionDisableRequestSubmitted,
+	SuccessDeviceVersionEnableRequestSubmitted,
+	SuccessDeviceVersionFetched,
+	SuccessDeviceVersionsFetched,
+	SuccessDeviceVersionUpdateRequestSubmitted,
+
+	SuccessDeviceVersionCreatedSP,
+	SuccessDeviceVersionUpdatedSP,
+	SuccessDeviceVersionEnabledSP,
+	SuccessDeviceVersionDisabledSP,
+
+	//feedback
+	SuccessFeedbackCreatedSP,
+	SuccessFeedbackCreated,
+
+	SuccessHQPasswordExpiryUpdatedSP,
+	SuccessHQArchiveTimeUpdatedSP,
+	SuccessHQBlockTimeUpdatedSP,
 }
 
 // Success Response Codes
@@ -1428,21 +1465,39 @@ var (
 	}
 
 	SuccessBpsUserEnableRequestSent = ResponseCode{
-		Code:       "SUCCESS_BPS_USER_ENABLED",
+		Code:       "SUCCESS_BPS_USER_ENABLE_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgBpsUserEnabledRequestedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBpsUserEnableRequestSentSP = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserEnabledRequestedSuccessfullySP,
+		Type:       "success",
+	}
 	SuccessBpsUserDisableRequestSent = ResponseCode{
-		Code:       "SUCCESS_BPS_USER_DISABLED",
+		Code:       "SUCCESS_BPS_USER_DISABLE_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgBpsUserDisabledRequestedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBpsUserDisableRequestSentSP = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBpsUserDisabledRequestedSuccessfullySP,
+		Type:       "success",
+	}
 	SuccessBPSUserCreated = ResponseCode{
-		Code:       "SUCCESS_BPS_USER_CREATED",
+		Code:       "SUCCESS_BPS_USER_CREATE_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgBpsUserCreateSuccess,
+		Type:       "success",
+	}
+	SuccessBPSUserCreatedSP = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgBpsUserCreateSuccessSP,
 		Type:       "success",
 	}
 
@@ -2655,7 +2710,7 @@ var (
 	}
 
 	// Budget Category related success response codes
-	SuccessBudgetCategoryRequestSubmittedForApproval = ResponseCode{
+	SuccessBudgetCategoryCreateRequestSubmittedForApproval = ResponseCode{
 		Code:       "SUCCESS_BUDGET_CATEGORY_REQUEST_SUBMITTED_FOR_APPROVAL",
 		StatusCode: StatusCreated,
 		Message:    MsgBudgetCategoryRequestSubmittedForApprovalSuccess,
@@ -2675,6 +2730,40 @@ var (
 		Message:    MsgBudgetCategoryUpdatedSuccessfully,
 		Type:       "success",
 	}
+	SuccessBudgetCategoryCreatedSP = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgBudgetCategoryCreatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessBudgetCategoryUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryUpdatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessBudgetCategoryDeletedSP = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryDeletedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessBudgetCategoryEnabledSP = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryEnabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessBudgetCategoryDisabledSP = ResponseCode{
+		Code:       "SUCCESS_BUDGET_CATEGORY_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgBudgetCategoryDisabledSuccessfullySP,
+		Type:       "success",
+	}
 
 	// BPS User related success response codes
 	SuccessBPSUserApproved = ResponseCode{
@@ -2685,9 +2774,86 @@ var (
 	}
 
 	SuccessBPSUserUpdated = ResponseCode{
-		Code:       "SUCCESS_BPS_USER_UPDATED",
+		Code:       "SUCCESS_BPS_USER_UPDATE_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgBPSUserUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessBPSUserUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_BPS_USER_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgBPSUserUpdatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	//Device version control
+	SuccessDeviceVersionDisableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionDisableRequestSubmittedSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionEnableRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionEnableRequestSubmittedSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionFetched = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionFetchedSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionsFetched = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSIONS_FETCHED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionsFetchedSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionUpdateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionUpdateRequestSubmittedSuccess,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionCreateRequestSubmitted = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_CREATE_REQUEST_CREATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionCreateRequestSubmittedSuccess,
+		Type:       "success",
+	}
+	SuccessDeviceVersionCreatedSP = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgDeviceVersionCreatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionUpdatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionEnabledSP = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionEnabledSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessDeviceVersionDisabledSP = ResponseCode{
+		Code:       "SUCCESS_DEVICE_VERSION_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgDeviceVersionDisabledSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -2775,6 +2941,12 @@ var (
 
 	// Account Validation related success response codes
 	SuccessValidationRuleApproved = ResponseCode{
+		Code:       "SUCCESS_VALIDATION_RULE_REQUEST_SENT",
+		StatusCode: StatusOK,
+		Message:    MsgValidationRuleApprovedSuccessfully,
+		Type:       "success",
+	}
+	SuccessValidationRuleApprovedSP = ResponseCode{
 		Code:       "SUCCESS_VALIDATION_RULE_APPROVED",
 		StatusCode: StatusOK,
 		Message:    MsgValidationRuleApprovedSuccessfully,
@@ -2795,9 +2967,16 @@ var (
 		Type:       "success",
 	}
 	SuccessUpdatePasswordRule = ResponseCode{
-		Code:       "SUCCESS_UPDATE_PASSWORD_RULE",
+		Code:       "SUCCESS_UPDATE_PASSWORD_RULE_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgUpdatePasswordRule,
+		Type:       "success",
+	}
+
+	SuccessUpdatePasswordRuleSP = ResponseCode{
+		Code:       "SUCCESS_UPDATE_PASSWORD_RULE",
+		StatusCode: StatusOK,
+		Message:    MsgUpdatePasswordRuleSP,
 		Type:       "success",
 	}
 
@@ -3386,9 +3565,15 @@ var (
 
 	// Feedback Handler related success response codes
 	SuccessFeedbackCreated = ResponseCode{
-		Code:       "SUCCESS_FEEDBACK_CREATED",
+		Code:       "SUCCESS_FEEDBACK_CREATE_REQIEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgFeedbackCreatedSuccessfully,
+		Type:       "success",
+	}
+	SuccessFeedbackCreatedSP = ResponseCode{
+		Code:       "SUCCESS_FEEDBACK_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgFeedbackCreatedSuccessfullySP,
 		Type:       "success",
 	}
 
@@ -3451,6 +3636,27 @@ var (
 		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
 		Message:    MsgHQPasswordExpiryUpdateRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessHQBlockTimeUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_HQ_BLOCK_TIME_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgHQBlockTimeUpdatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessHQArchiveTimeUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_HQ_ARCHIVE_TIME_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgHQArchiveTimeUpdatedSuccessfullySP,
+		Type:       "success",
+	}
+
+	SuccessHQPasswordExpiryUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_HQ_PASSWORD_EXPIRY_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgHQPasswordExpiryUpdatedSuccessfullySP,
 		Type:       "success",
 	}
 

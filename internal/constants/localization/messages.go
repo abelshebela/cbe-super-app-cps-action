@@ -251,6 +251,11 @@ const (
 	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
 	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
 	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
+	MsgBudgetCategoryCreatedSuccessfullySP        = "Budget category created successfully"
+	MsgBudgetCategoryUpdatedSuccessfullySP        = "Budget category updated successfully"
+	MsgBudgetCategoryDeletedSuccessfullySP        = "Budget category deleted successfully "
+	MsgBudgetCategoryEnabledSuccessfullySP        = "Budget category enabled successfully"
+	MsgBudgetCategoryDisabledSuccessfullySP       = "Budget category disabled successfully"
 
 	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
 	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
@@ -264,11 +269,13 @@ const (
 	MsgVaultAmountTierEnabledSuccessfully     = "Vault amount tier enabled successfully"
 	MsgVaultAmountTierDisabledSuccessfully    = "Vault amount tier disabled successfully"
 	// BPS User related success messages
-	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
-	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully submitted successfully"
+	MsgBPSUserApprovedSuccessfully  = "BPS user approved successfully"
+	MsgBPSUserUpdatedSuccessfully   = "BPS user update successfully submitted"
+	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated successfully submitted"
 
 	// Account Validation related success messages
-	MsgValidationRuleApprovedSuccessfully = "Update request submitted for approval"
+	MsgValidationRuleApprovedSuccessfully   = "account validation Update request submitted for approval"
+	MsgValidationRuleApprovedSuccessfullySP = "account validation Updated successfully"
 
 	// Feedback related success messages
 	MsgFeedbackSavedSuccessfully = "Feedback saved successfully"
@@ -278,6 +285,9 @@ const (
 	MsgHQArchiveTimeUpdateRequestSubmitted    = "Update archive time request submitted for approval"
 	MsgHQPasswordExpiryUpdateRequestSubmitted = "Update password expiry request submitted for approval"
 	MsgHQBlockTimeUpdateRequestSubmitted      = "Update block time request submitted for approval"
+	MsgHQBlockTimeUpdatedSuccessfullySP       = "Block time updated successfully"
+	MsgHQArchiveTimeUpdatedSuccessfullySP     = "Archive time updated successfully"
+	MsgHQPasswordExpiryUpdatedSuccessfullySP  = "Password expiry updated successfully"
 
 	// Mini App related success messages
 	MsgMiniAppDetailsFetchedSuccessfully = "MiniApp details fetched successfully"
@@ -361,6 +371,20 @@ const (
 	MsgPermissionCategoriesFetchedSuccessfully   = "Permission categories fetched successfully"
 	MsgPermissionsFetchedForCategorySuccessfully = "Permissions fetched for category successfully"
 
+	//device version
+
+	MsgDeviceVersionDisableRequestSubmittedSuccess = "Device version disable request submitted"
+	MsgDeviceVersionEnableRequestSubmittedSuccess  = "Device version enable request submitted"
+	MsgDeviceVersionFetchedSuccess                 = "Device version fetched successfully"
+	MsgDeviceVersionsFetchedSuccess                = "Device versions fetched successfully"
+	MsgDeviceVersionUpdateRequestSubmittedSuccess  = "Device version update request submitted"
+	MsgDeviceVersionCreateRequestSubmittedSuccess  = "Device version create request submitted"
+
+	MsgDeviceVersionCreatedSuccessfullySP  = "Device version created successfully"
+	MsgDeviceVersionUpdatedSuccessfullySP  = "Device version updated successfully "
+	MsgDeviceVersionEnabledSuccessfullySP  = "Device version enabled successfully"
+	MsgDeviceVersionDisabledSuccessfullySP = "Device version disabled successfully"
+
 	// Notification related success messages
 	MsgNotificationEnableRequestSubmitted  = "Notification enable request submitted successfully"
 	MsgNotificationDisableRequestSubmitted = "Notification disable request submitted successfully"
@@ -392,9 +416,14 @@ const (
 	MsgCpsUserEnabledSuccessfully      = "CPS user enabled request sent successfully"
 	MsgCpsUserDisabledSuccessfully     = "CPS user disable request sent successfully"
 
-	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
-	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
-	MsgBpsUserCreateSuccess                 = "BPS user create request submitted successfully"
+	MsgBpsUserEnabledRequestedSuccessfully   = "BPS user enabled request sent successfully"
+	MsgBpsUserEnabledRequestedSuccessfullySP = "BPS user enabled successfully"
+
+	MsgBpsUserDisabledRequestedSuccessfully   = "BPS user disable request sent successfully"
+	MsgBpsUserDisabledRequestedSuccessfullySP = "BPS user disabled  successfully"
+
+	MsgBpsUserCreateSuccess   = "BPS user create request submitted successfully"
+	MsgBpsUserCreateSuccessSP = "BPS user created successfully"
 
 	// CPS Roles
 	MsgCpsRoleCreated         = "CPS role create request submitted successfully"
@@ -407,7 +436,9 @@ const (
 	MsgCpsRoleAlreadyDisabled = "CPS role already disabled"
 
 	// Feedback Handler related success messages
-	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
+	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
+	MsgFeedbackCreatedSuccessfully   = "Feedback create request send successfully"
+
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
 
 	// HQ related success messages
@@ -1112,6 +1143,7 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+	MsgUpdatePasswordRuleSP  = "Update request submitted"
 
 	// bank vault
 	MsgCannotDeleteActiveBankVault             = "Cannot delete active bank vault"
