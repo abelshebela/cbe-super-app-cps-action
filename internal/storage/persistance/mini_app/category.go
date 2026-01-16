@@ -14,9 +14,9 @@ import (
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 var (
@@ -29,10 +29,10 @@ type miniAppCategory struct {
 	client             *mongo.Client
 }
 
-func NewMiniAppCategoryRepository(logger shared_utils.Logger, client *mongo.Client,cfg *config.VaultConfig, dbName, collectionName string) storage.MiniAppCategoryRepository {
+func NewMiniAppCategoryRepository(logger shared_utils.Logger, client *mongo.Client, cfg *config.VaultConfig, dbName, collectionName string) storage.MiniAppCategoryRepository {
 	return &miniAppCategory{
 		logger:             logger,
-		miniAppCategoryDal: dal.NewMongoDal[model.MiniAppCategory, model.MiniAppCategory](client,cfg, dbName, collectionName),
+		miniAppCategoryDal: dal.NewMongoDal[model.MiniAppCategory, model.MiniAppCategory](client, cfg, dbName, collectionName),
 		client:             client,
 	}
 }

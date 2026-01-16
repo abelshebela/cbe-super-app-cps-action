@@ -2217,7 +2217,7 @@ var (
 
 	ErrorInvalidID = ResponseCode{
 		Code:       "ERROR_INVALID_ID",
-		StatusCode: 400,
+		StatusCode: StatusBadRequest,
 		Message:    "Invalid ID",
 		Type:       "error",
 	}
