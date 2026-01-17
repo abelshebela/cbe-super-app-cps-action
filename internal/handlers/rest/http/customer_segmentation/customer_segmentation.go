@@ -6,10 +6,12 @@ import (
 	seg "cbe-super-app-cps-action/internal/constants/interfaces/customer_segmentation"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -37,6 +39,12 @@ func NewCustomerSegmentation(svc service.CustomerSegmentationService, logger uti
 //	@Failure		400,401,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations [post]
 func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateCustomerSegmentation", "handler", "customerSegmentation")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req cust_seg.CreateCustomerSegmentationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -51,15 +59,18 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 		return
 	}
 
-	if err := c.svc.Create(r.Context(), req); err != nil {
+	if err := c.svc.Create(ctx, req); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[CreateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierCreated, nil)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[CreateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationCreated, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationCreationSubmittedSuccessfully, nil)
@@ -79,8 +90,11 @@ func (c *CustomerSegmentationAdapter) CreateCustomerSegmentation(w http.Response
 //	@Failure		400,401,404,422,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations/{id}/update [patch]
 func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
-	_, span := local_util.TraceLogger(r.Context(), "handler", "UpdateCustomerSegmentation", "handler", "customerSegmentation")
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "UpdateCustomerSegmentation", "handler", "customerSegmentation")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
@@ -102,15 +116,18 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 		return
 	}
 
-	if err := c.svc.Update(r.Context(), id, req); err != nil {
+	if err := c.svc.Update(ctx, id, req); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[UpdateCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierUpdated, nil)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[UpdateCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdated, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationUpdateSubmittedSuccessfully, nil)
@@ -181,21 +198,30 @@ func (c *CustomerSegmentationAdapter) GetCustomerSegmentation(w http.ResponseWri
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations/{id} [delete]
 func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DeleteCustomerSegmentation", "handler", "customerSegmentation")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		c.logger.Errorf("[DeleteCustomerSegmentation] extractID: %v", err)
 		return
 	}
 
-	if err := c.svc.Delete(r.Context(), id); err != nil {
+	if err := c.svc.Delete(ctx, id); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[DeleteCustomerSegmentation] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDeleted, nil)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[DeleteCustomerSegmentation] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDeleteddSuccessfully, nil)
@@ -213,21 +239,30 @@ func (c *CustomerSegmentationAdapter) DeleteCustomerSegmentation(w http.Response
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations/enable/{id} [patch]
 func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "Enable", "handler", "customerSegmentation")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		c.logger.Errorf("[Enable] extractID: %v", err)
 		return
 	}
 
-	if err := c.svc.EnableOrDisable(r.Context(), id, true); err != nil {
+	if err := c.svc.EnableOrDisable(ctx, id, true); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[Enable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierEnabled, nil)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[Enable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationEnableSuccessfully, nil)
@@ -245,21 +280,30 @@ func (c *CustomerSegmentationAdapter) Enable(w http.ResponseWriter, r *http.Requ
 //	@Failure		400,401,404,500	{object}	localization.StandardResponse{data=nil}
 //	@Router			/customer-segmentations/disable/{id} [patch]
 func (c *CustomerSegmentationAdapter) Disable(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "Disable", "handler", "customerSegmentation")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := local_util.ExtractID(w, r)
 	if err != nil {
 		c.logger.Errorf("[Disable] extractID: %v", err)
 		return
 	}
 
-	if err := c.svc.EnableOrDisable(r.Context(), id, false); err != nil {
+	if err := c.svc.EnableOrDisable(ctx, id, false); err != nil {
+		span.RecordError(err)
 		c.logger.Errorf("[Disable] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	IsMakerOnly, ok := r.Context().Value(constants.ContextKey("is_maker_only")).(bool)
-	if IsMakerOnly && ok {
-		localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierDisabled, nil)
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		c.logger.Infof("[Disable] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)
+		return
 	}
 
 	localization.SendSuccessResponse(w, localization.CustomerSegmentationDisableSuccessfully, nil)

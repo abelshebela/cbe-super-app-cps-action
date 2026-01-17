@@ -60,20 +60,20 @@ func (c *customerService) GetCustomersDetail(ctx context.Context, filterParams *
 	return customers, nil
 }
 
-func (s *customerService) GetCustomerByID(ctx context.Context, id string) (*member.User, error) {
+func (s *customerService) GetCustomerByID(ctx context.Context, id string) (customer.FindCustomerByIDResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCustomerByID", "Customer", "GetCustomerByID")
 	defer span.End()
 
-	customer, err := s.repo.FindByID(ctx, id)
+	cus, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("Failed to fetch customer", trace.WithAttributes(
 			attribute.String("error", err.Error()),
 			attribute.String("id", id),
 		))
-		return nil, err
+		return customer.FindCustomerByIDResponse{}, err
 	}
-
-	return customer, nil
+	response := MapToDto(cus)
+	return response, nil
 }
 
 func (s *customerService) GetLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error) {

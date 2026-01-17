@@ -5,29 +5,40 @@ const (
 	// User related success messages
 	MsgUserCreatedSuccessfully     = "User create request sent  successfully"
 	MsgAvatarCreatedSuccessfully   = "Avatar create request sent successfully"
+	MsgAvatarCreatedSuccessfullySP = "Avatar created successfully"
+
 	MsgAvatarUpdateSuccessfully    = "Avatar update request sent successfully"
+	MsgAvatarUpdatedSuccessfullySP = "Avatar updated successfully"
+
 	MsgAvatarEnabledSuccessfully   = "Avatar enable request sent successfully"
-	MsgAvatarDisabledSuccessfully  = "Avatar diabled request sent successfully"
+	MsgAvatarEnabledSuccessfullySP = "Avatar enabled successfully"
+
+	MsgAvatarDisabledSuccessfully   = "Avatar diabled request sent successfully"
+	MsgAvatarDisabledSuccessfullySP = "Avatar disabled successfully"
+
 	MsgAvatarDeletedSuccessfully   = "Avatar delete request sent successfully"
-	MsgAvatarRetrievedSuccessfully = "Avatar retrieved successfully"
-	MsgUserUpdatedSuccessfully     = "User update request sent successfully"
-	MsgAmountBasedSuccessfullySent = "Amount-based authentication update request sent successfully"
-	MsgUserDeletedSuccessfully     = "User delete request sent successfully"
-	MsgUserRetrievedSuccessfully   = "User retrieved successfully"
-	MsgUserLoginSuccessfully       = "User logged in successfully"
-	MsgUserLogoutSuccessfully      = "User logged out successfully"
-	MsgUserProfileUpdated          = "User profile updated successfully"
-	MsgUserPasswordChanged         = "Password changed successfully"
-	MsgUserPINChanged              = "PIN changed successfully"
-	MsgUserDeviceLinked            = "Device linked successfully"
-	MsgUserDeviceUnlinked          = "Device unlinked successfully"
-	MSGAccountNumberRequired       = "Account Number is required"
-	MsgFeedbackIDRequired          = "Feedback ID is required"
-	MsgInvalidIDFormat             = "Invalid ID format"
-	MSGIncompleteUserInfo          = "Incomplte user info"
-	MsgInvalidJSONPayload          = "Invalid json payload"
-	MSGUserCodeIsRequired          = "User code is required"
-	MsgActionAlreadyExists         = "Action already requested wait for checker approval"
+	MsgAvatarDeletedSuccessfullySP = "Avatar deleted successfully"
+
+	MsgAvatarRetrievedSuccessfully   = "Avatar retrieved successfully"
+	MsgUserUpdatedSuccessfully       = "User update request sent successfully"
+	MsgAmountBasedSuccessfullySent   = "Amount-based authentication update request sent successfully"
+	MsgAmountBasedSuccessfullySentSP = "Amount-based authentication updated successfully"
+	MsgUserDeletedSuccessfully       = "User delete request sent successfully"
+	MsgUserRetrievedSuccessfully     = "User retrieved successfully"
+	MsgUserLoginSuccessfully         = "User logged in successfully"
+	MsgUserLogoutSuccessfully        = "User logged out successfully"
+	MsgUserProfileUpdated            = "User profile updated successfully"
+	MsgUserPasswordChanged           = "Password changed successfully"
+	MsgUserPINChanged                = "PIN changed successfully"
+	MsgUserDeviceLinked              = "Device linked successfully"
+	MsgUserDeviceUnlinked            = "Device unlinked successfully"
+	MSGAccountNumberRequired         = "Account Number is required"
+	MsgFeedbackIDRequired            = "Feedback ID is required"
+	MsgInvalidIDFormat               = "Invalid ID format"
+	MSGIncompleteUserInfo            = "Incomplte user info"
+	MsgInvalidJSONPayload            = "Invalid json payload"
+	MSGUserCodeIsRequired            = "User code is required"
+	MsgActionAlreadyExists           = "Action already requested wait for checker approval"
 	// OTP related success messages
 	MsgOTPSentSuccessfully     = "OTP sent successfully"
 	MsgOTPVerifiedSuccessfully = "OTP verified successfully"
@@ -72,10 +83,11 @@ const (
 	MsgRoleUpdatedRequestSent    = "Rule updated request sent successfully"
 
 	// Donation related success messages
-	MsgDonationCategoryCreateRequestSent     = "Donation category create request submitted successfully"
-	MsgDonationCategoriesFetched             = "Donation categories fetched successfully"
-	MsgDonationCategoryFetched               = "Donation category fetched successfully"
-	MsgDonationCategoryUpdated               = "Donation category update request submitted successfully"
+	MsgDonationCategoryCreateRequestSent = "Donation category create request submitted successfully"
+	MsgDonationCategoriesFetched         = "Donation categories fetched successfully"
+	MsgDonationCategoryFetched           = "Donation category fetched successfully"
+	MsgDonationCategoryUpdated           = "Donation category update request submitted successfully"
+
 	MsgDonationCategoryDisableRequestSent    = "Donation category Disable request submitted successfully"
 	MsgDonationCompanyEnableRequestSent      = "Donation Company Enable request submitted successfully"
 	MsgDonationCompanyDisableRequestSent     = "Donation company Disable request submitted successfully"
@@ -107,6 +119,31 @@ const (
 	MsgSuccessDonationEnableRequestSent      = "Donation enable request sent successfully"
 	MsgSuccessDonationDisableRequestSent     = "Donation disable request sent successfully"
 
+	MsgDonationCategoryCreatedSuccessfullySP  = "Donation category created successfully"
+	MsgDonationCategoryUpdatedSuccessfullySP  = "Donation category updated successfully"
+	MsgDonationCategoryEnabledSuccessfullySP  = "Donation category enabled successfully"
+	MsgDonationCategoryDisabledSuccessfullySP = "Donation category disabled successfully"
+
+	// =======================
+	// Donation Company – Messages
+	// =======================
+	MsgDonationCompanyCreatedSuccessfullySP  = "Donation company created successfully"
+	MsgDonationCompanyUpdatedSuccessfullySP  = "Donation company updated successfully"
+	MsgDonationCompanyEnabledSuccessfullySP  = "Donation company enabled successfully"
+	MsgDonationCompanyDisabledSuccessfullySP = "Donation company disabled successfully"
+
+	MsgDonationCreatedSuccessfullySP = "Donation created successfully"
+	MsgDonationUpdatedSuccessfullySP = "Donation updated successfully"
+
+	// Image actions
+	MsgDonationImageAddedSuccessfullySP   = "Donation image added successfully"
+	MsgDonationImageUpdatedSuccessfullySP = "Donation image updated successfully"
+	MsgDonationImageDeletedSuccessfullySP = "Donation image deleted successfully"
+
+	// State changes
+	MsgDonationEnabledSuccessfullySP  = "Donation enabled successfully"
+	MsgDonationDisabledSuccessfullySP = "Donation disabled successfully"
+
 	// CPS Action related success messages
 	MsgCPSActionsRetrievedSuccessfully = "CPS Actions retrieved successfully"
 	MsgCPSActionAuthorizedSuccessfully = "CPS Action authorized successfully"
@@ -124,12 +161,19 @@ const (
 	MsgWalletsRetrievedSuccessfully = "Wallets retrieved successfully"
 	MsgWalletRetrievedSuccessfully  = "Wallet retrieved successfully"
 	//topup related success messages
-	MsgTopupCreationRequestSent    = "Topup creation request sent successfully"
-	MsgTopupUpdateRequestSent      = "Topup update request sent successfully"
-	MsgTopupDeleteRequestSent      = "Topup delete request sent successfully"
-	MsgTopupDeletedSuccessfully    = "Topup deleted successfully"
-	MsgTopupsRetrievedSuccessfully = "Topups retrieved successfully"
-	MsgTopupRetrievedSuccessfully  = "Topup retrieved successfully"
+	MsgTopupCreationRequestSent     = "Topup creation request sent successfully"
+	MsgTopupCreatedSuccessfullySP   = "Topup created successfully"
+	MsgTopupUpdateRequestSent       = "Topup update request sent successfully"
+	MsgTopupUpdatedSuccessfullySP   = "Topup updated successfully"
+	MsgTopupDeleteRequestSent       = "Topup delete request sent successfully"
+	MsgTopupDeletedSuccessfullySP   = "Topup deleted successfully"
+	MsgTopupsRetrievedSuccessfully  = "Topups retrieved successfully"
+	MsgTopupRetrievedSuccessfully   = "Topup retrieved successfully"
+	MsgTopupEnableRequestSubmitted  = "Topup enable request submitted successfully"
+	MsgTopupEnabledSuccessfullySP   = "Topup enabled successfully"
+	MsgTopupDisableRequestSubmitted = "Topup disable request submitted successfully"
+	MsgTopupDisabledSuccessfullySP  = "Topup disabled successfully"
+
 	// Event related success messages
 	MsgEventCreationRequestSubmitted = "Event creation request submitted successfully"
 	MsgEventUpdateRequestSubmitted   = "Event update request submitted successfully"
@@ -207,6 +251,11 @@ const (
 	MsgVaultGroupCategoryEnableRequestSubmitted   = "Vault group category enabled request submitted successfully"
 	MsgVaultGroupCategoryDisableRequestSubmitted  = "Vault group category disabled request submitted successfully"
 	MsgBudgetCategoryUpdatedSuccessfully          = "Budget category updated successfully"
+	MsgBudgetCategoryCreatedSuccessfullySP        = "Budget category created successfully"
+	MsgBudgetCategoryUpdatedSuccessfullySP        = "Budget category updated successfully"
+	MsgBudgetCategoryDeletedSuccessfullySP        = "Budget category deleted successfully "
+	MsgBudgetCategoryEnabledSuccessfullySP        = "Budget category enabled successfully"
+	MsgBudgetCategoryDisabledSuccessfullySP       = "Budget category disabled successfully"
 
 	MsgVaultAmountTierCreated                 = "Vault amount tier creation request submitted successfully"
 	MsgVaultAmountTierFetchedSuccessfully     = "Vault amount tier retrieved successfully"
@@ -220,11 +269,13 @@ const (
 	MsgVaultAmountTierEnabledSuccessfully     = "Vault amount tier enabled successfully"
 	MsgVaultAmountTierDisabledSuccessfully    = "Vault amount tier disabled successfully"
 	// BPS User related success messages
-	MsgBPSUserApprovedSuccessfully = "BPS user approved successfully"
-	MsgBPSUserUpdatedSuccessfully  = "BPS user updated successfully submitted successfully"
+	MsgBPSUserApprovedSuccessfully  = "BPS user approved successfully"
+	MsgBPSUserUpdatedSuccessfully   = "BPS user update successfully submitted"
+	MsgBPSUserUpdatedSuccessfullySP = "BPS user updated successfully submitted"
 
 	// Account Validation related success messages
-	MsgValidationRuleApprovedSuccessfully = "Update request submitted for approval"
+	MsgValidationRuleApprovedSuccessfully   = "account validation Update request submitted for approval"
+	MsgValidationRuleApprovedSuccessfullySP = "account validation Updated successfully"
 
 	// Feedback related success messages
 	MsgFeedbackSavedSuccessfully = "Feedback saved successfully"
@@ -234,6 +285,9 @@ const (
 	MsgHQArchiveTimeUpdateRequestSubmitted    = "Update archive time request submitted for approval"
 	MsgHQPasswordExpiryUpdateRequestSubmitted = "Update password expiry request submitted for approval"
 	MsgHQBlockTimeUpdateRequestSubmitted      = "Update block time request submitted for approval"
+	MsgHQBlockTimeUpdatedSuccessfullySP       = "Block time updated successfully"
+	MsgHQArchiveTimeUpdatedSuccessfullySP     = "Archive time updated successfully"
+	MsgHQPasswordExpiryUpdatedSuccessfullySP  = "Password expiry updated successfully"
 
 	// Mini App related success messages
 	MsgMiniAppDetailsFetchedSuccessfully = "MiniApp details fetched successfully"
@@ -296,7 +350,9 @@ const (
 	MsgAdvertFetchedSuccessfully     = "Advert fetched successfully"
 	MsgAdvertsFetchedSuccessfully    = "Adverts fetched successfully"
 	MsgAdvertEnableRequestSent       = "Advert enable request sent successfully"
+	MsgAdvertEnabledSuccessfullySP   = "Advert enabled successfully"
 	MsgAdvertDisableRequestSent      = "Advert disable request sent successfully"
+	MsgAdvertDisabledSuccessfullySP  = "Advert disabled successfully"
 
 	// BPS Calls related success messages
 	MsgLinkedAccountFetchedSuccessfully = "Linked account fetched successfully"
@@ -314,6 +370,20 @@ const (
 	MsgPermissionGroupUpdatedSuccessfully        = "Permission group updated successfully"
 	MsgPermissionCategoriesFetchedSuccessfully   = "Permission categories fetched successfully"
 	MsgPermissionsFetchedForCategorySuccessfully = "Permissions fetched for category successfully"
+
+	//device version
+
+	MsgDeviceVersionDisableRequestSubmittedSuccess = "Device version disable request submitted"
+	MsgDeviceVersionEnableRequestSubmittedSuccess  = "Device version enable request submitted"
+	MsgDeviceVersionFetchedSuccess                 = "Device version fetched successfully"
+	MsgDeviceVersionsFetchedSuccess                = "Device versions fetched successfully"
+	MsgDeviceVersionUpdateRequestSubmittedSuccess  = "Device version update request submitted"
+	MsgDeviceVersionCreateRequestSubmittedSuccess  = "Device version create request submitted"
+
+	MsgDeviceVersionCreatedSuccessfullySP  = "Device version created successfully"
+	MsgDeviceVersionUpdatedSuccessfullySP  = "Device version updated successfully "
+	MsgDeviceVersionEnabledSuccessfullySP  = "Device version enabled successfully"
+	MsgDeviceVersionDisabledSuccessfullySP = "Device version disabled successfully"
 
 	// Notification related success messages
 	MsgNotificationEnableRequestSubmitted  = "Notification enable request submitted successfully"
@@ -346,9 +416,14 @@ const (
 	MsgCpsUserEnabledSuccessfully      = "CPS user enabled request sent successfully"
 	MsgCpsUserDisabledSuccessfully     = "CPS user disable request sent successfully"
 
-	MsgBpsUserEnabledRequestedSuccessfully  = "BPS user enabled request sent successfully"
-	MsgBpsUserDisabledRequestedSuccessfully = "BPS user disabled request sent successfully"
-	MsgBpsUserCreateSuccess                 = "BPS user create request submitted successfully"
+	MsgBpsUserEnabledRequestedSuccessfully   = "BPS user enabled request sent successfully"
+	MsgBpsUserEnabledRequestedSuccessfullySP = "BPS user enabled successfully"
+
+	MsgBpsUserDisabledRequestedSuccessfully   = "BPS user disable request sent successfully"
+	MsgBpsUserDisabledRequestedSuccessfullySP = "BPS user disabled  successfully"
+
+	MsgBpsUserCreateSuccess   = "BPS user create request submitted successfully"
+	MsgBpsUserCreateSuccessSP = "BPS user created successfully"
 
 	// CPS Roles
 	MsgCpsRoleCreated         = "CPS role create request submitted successfully"
@@ -361,7 +436,9 @@ const (
 	MsgCpsRoleAlreadyDisabled = "CPS role already disabled"
 
 	// Feedback Handler related success messages
-	MsgFeedbackCreatedSuccessfully = "Feedback created successfully"
+	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
+	MsgFeedbackCreatedSuccessfully   = "Feedback create request send successfully"
+
 	MsgFeedbackFetchedSuccessfully = "Feedback fetched successfully"
 
 	// HQ related success messages
@@ -1066,6 +1143,7 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
+	MsgUpdatePasswordRuleSP  = "Update request submitted"
 
 	// bank vault
 	MsgCannotDeleteActiveBankVault             = "Cannot delete active bank vault"

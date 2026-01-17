@@ -6,9 +6,13 @@ import (
 	"cbe-super-app-cps-action/internal/handlers/rest/http/password_rule/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
+
+	constants "cbe-super-app-cps-action/internal/constants"
+	types "cbe-super-app-cps-action/internal/constants/types"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -75,6 +79,9 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "passwordRule", "passwordRuleHandler", "RequestPasswordRuleUpdate")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	var req dto.PasswordRuleUpdate
 
@@ -106,9 +113,13 @@ func (p *passwordRuleHandler) RequestPasswordRuleUpdate(w http.ResponseWriter, r
 		return
 	}
 
-	span.AddEvent("PasswordRuleUpdate request sent", trace.WithAttributes(attribute.String("id", id)))
-	p.logger.Infof("[RequestPasswordRuleUpdate] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessUpdatePasswordRule, nil)
+	if md.IsMakerOnly {
+		span.AddEvent("PasswordRuleUpdate request sent", trace.WithAttributes(attribute.String("id", id)))
+		p.logger.Infof("[RequestPasswordRuleUpdate] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessUpdatePasswordRuleSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessUpdatePasswordRule, nil)
+	}
 }
 
 // Check Password Rule

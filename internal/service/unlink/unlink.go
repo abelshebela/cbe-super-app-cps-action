@@ -2,6 +2,7 @@ package unlink
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/dto/customer"
 	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -13,7 +14,6 @@ import (
 	"errors"
 	"strings"
 
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -53,7 +53,7 @@ func NewUnlinkService(client *mongo.Client,
 	}
 }
 
-func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (*member.User, error) {
+func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) (customer.FindCustomerByIDResponse, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetUserByAccount", "unlinkService", "unlinkService")
 	defer span.End()
 
@@ -61,18 +61,18 @@ func (u *unlinkService) GetUserByAccount(ctx context.Context, accNumber string) 
 	if err != nil {
 		span.AddEvent("FindByAccountNumber error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("accountNumber", accNumber)))
 		u.logger.Errorf("[GetUserByAccount] failed to find account: %v", err)
-		return nil, err
+		return customer.FindCustomerByIDResponse{}, err
 	}
 
 	user, err := u.userRepo.FindById(ctx, account.UserID.Hex())
 	if err != nil {
 		span.AddEvent("FindById error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("userID", account.UserID.Hex())))
 		u.logger.Errorf("[GetUserByAccount] failed to find user: %v", err)
-		return nil, err
+		return customer.FindCustomerByIDResponse{}, err
 	}
-
+	res := core.MapToDto(user)
 	u.logger.Infof("[GetUserByAccount] user retrieved successfully for account number %s", accNumber)
-	return user, nil
+	return res, nil
 }
 
 func (u *unlinkService) GetAllArchivedUser(ctx context.Context, filterParams *types.Filter) (*types.PaginatedResponse[[]model.ArchivedUser], error) {
