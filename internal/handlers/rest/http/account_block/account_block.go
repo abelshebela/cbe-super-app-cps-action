@@ -1,8 +1,10 @@
 package accountblock
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/handlers/rest/http/account_block/core"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -54,6 +56,11 @@ func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Reque
 		span.AddEvent("missing branch_id param")
 		a.logger.Errorf("Failed to get branch_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
+		return
+	}
+	if err := local_util.ValidateMongoID(branchId); err != nil {
+		a.logger.Errorf("invalid id: %s used", branchId)
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -130,6 +137,11 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
 		return
 	}
+	if err := local_util.ValidateMongoID(regionId); err != nil {
+		a.logger.Errorf("invalid id: %s used", regionId)
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	span.SetAttributes(attribute.String("account_block.region_id", regionId))
 
@@ -201,6 +213,11 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 	if !ok {
 		a.logger.Errorf("Failed to get district_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
+		return
+	}
+	if err := local_util.ValidateMongoID(districtId); err != nil {
+		a.logger.Errorf("invalid id: %s used", districtId)
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -275,6 +292,11 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
 		return
 	}
+	if err := local_util.ValidateMongoID(cityId); err != nil {
+		a.logger.Errorf("invalid id: %s used", cityId)
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	span.SetAttributes(attribute.String("account_block.city_id", cityId))
 
@@ -339,6 +361,8 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableBranches", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -377,6 +401,13 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableBranches] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessBranchEnabled, nil)
+		return
+	}
+
 	a.logger.Infof("[EnableBranches] request sent successfully for %d branches", len(req.BranchIds))
 	localization.SendSuccessResponse(w, localization.SuccessEnableBranchesRequestSent, nil)
 }
@@ -397,6 +428,8 @@ func (a *accountBlockAdapter) EnableBranches(w http.ResponseWriter, r *http.Requ
 func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableBranches", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableBranches
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -435,6 +468,13 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableBranches] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessDisableBranches, nil)
+		return
+	}
+
 	a.logger.Infof("[DisableBranches] request sent successfully for %d branches", len(req.BranchIds))
 	localization.SendSuccessResponse(w, localization.SuccessDisableBranchesRequestSent, nil)
 }
@@ -455,6 +495,8 @@ func (a *accountBlockAdapter) DisableBranches(w http.ResponseWriter, r *http.Req
 func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableRegions", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -493,6 +535,13 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableRegions] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEnableRegion, nil)
+		return
+	}
+
 	a.logger.Infof("[EnableRegions] request sent successfully for %d regions", len(req.RegionIds))
 	localization.SendSuccessResponse(w, localization.SuccessEnableRegionsRequestSent, nil)
 }
@@ -513,6 +562,8 @@ func (a *accountBlockAdapter) EnableRegions(w http.ResponseWriter, r *http.Reque
 func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableRegions", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableRegions
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -552,6 +603,13 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableRegions] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessDisableRegion, nil)
+		return
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessDisableRegionsRequestSent, nil)
 }
 
@@ -571,6 +629,8 @@ func (a *accountBlockAdapter) DisableRegions(w http.ResponseWriter, r *http.Requ
 func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDistricts", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -609,6 +669,13 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableDistricts] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEnableDistricts, nil)
+		return
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessEnableDistrictsRequestSent, nil)
 }
 
@@ -628,6 +695,8 @@ func (a *accountBlockAdapter) EnableDistricts(w http.ResponseWriter, r *http.Req
 func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDistricts", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableDistricts
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -662,6 +731,13 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableDistricts] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessDisableDistricts, nil)
+		return
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessDisableDistrictsRequestSent, nil)
 }
 
@@ -681,6 +757,8 @@ func (a *accountBlockAdapter) DisableDistricts(w http.ResponseWriter, r *http.Re
 func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCities", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -715,6 +793,13 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[EnableCities] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessEnableCities, nil)
+		return
+	}
+
 	localization.SendSuccessResponse(w, localization.SuccessEnableCitiesRequestSent, nil)
 }
 
@@ -734,6 +819,8 @@ func (a *accountBlockAdapter) EnableCities(w http.ResponseWriter, r *http.Reques
 func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCities", "handler", "accountBlock")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req accountblock.EnableOrDisableCities
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -765,6 +852,12 @@ func (a *accountBlockAdapter) DisableCities(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		a.logger.Infof("[DisableCities] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessDisableCities, nil)
 		return
 	}
 

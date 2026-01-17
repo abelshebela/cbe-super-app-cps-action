@@ -6,11 +6,14 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"errors"
 	"net/http"
 
 	"cbe-super-app-cps-action/internal/handlers/rest/http/donation_category/core"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	"cbe-super-app-cps-action/internal/constants"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -118,6 +121,9 @@ func (d *donationCategoryAdapter) FetchDonationCategoryByID(w http.ResponseWrite
 func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonationCategory", "handler", "donationCategory")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
@@ -141,9 +147,12 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	d.logger.Infof("event creation request submitted successfully")
-	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreateRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreatedSP, nil)
+	} else {
+		d.logger.Infof("event creation request submitted successfully")
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryCreateRequestSent, nil)
+	}
 }
 
 // UpdateDonationCategory godoc
@@ -165,6 +174,9 @@ func (d *donationCategoryAdapter) CreateDonationCategory(w http.ResponseWriter, 
 func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationCategory", "handler", "donationCategory")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		d.logger.Errorf("donation category ID is required for update")
@@ -199,9 +211,12 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	d.logger.Infof("donation category update request submitted successfully", updatedDonationCategory)
-	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdatedSP, nil)
+	} else {
+		d.logger.Infof("donation category update request submitted successfully", updatedDonationCategory)
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryUpdateRequestSend, nil)
+	}
 }
 
 // EnableDonationCategory godoc
@@ -221,6 +236,9 @@ func (d *donationCategoryAdapter) UpdateDonationCategory(w http.ResponseWriter, 
 func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonationCategory", "handler", "donationCategory")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("donation category ID is required for diable"))
@@ -235,8 +253,12 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryEnableRequestSent, nil)
 
+	}
 }
 
 // disableDonation godoc
@@ -256,6 +278,9 @@ func (d *donationCategoryAdapter) EnableDonationCategory(w http.ResponseWriter, 
 func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonationCategory", "handler", "donationCategory")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		span.RecordError(errors.New("donation category ID is required for disable"))
@@ -270,6 +295,10 @@ func (d *donationCategoryAdapter) DisableDonationCategory(w http.ResponseWriter,
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
 
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCategoryDisableRequestSent, nil)
+	}
 }

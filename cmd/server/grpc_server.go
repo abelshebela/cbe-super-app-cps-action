@@ -12,8 +12,6 @@ import (
 	"context"
 	"net"
 
-	imodel "cbe-super-app-cps-action/internal/constants/model"
-
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	otelgrpc "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -222,14 +220,14 @@ func buildPaginationService(meta types.PaginationMeta) *servicepb.Meta {
 		HasPrevPage: meta.HasPrevPage,
 	}
 }
-func (s *server) serviceListMapper(data []imodel.Service) []*servicepb.ServiceDetails {
+func (s *server) serviceListMapper(data []model.Service) []*servicepb.ServiceDetails {
 	var services []*servicepb.ServiceDetails
 	for i := range data {
 		services = append(services, s.MapServiceDetails(&data[i]))
 	}
 	return services
 }
-func (s *server) MapServiceDetails(data *imodel.Service) *servicepb.ServiceDetails {
+func (s *server) MapServiceDetails(data *model.Service) *servicepb.ServiceDetails {
 	return &servicepb.ServiceDetails{
 		Id:          data.ID.Hex(),
 		ServiceCode: data.ServiceCode,

@@ -1,12 +1,16 @@
 package vaultamounttier
 
 import (
+	"cbe-super-app-cps-action/internal/constants"
 	amount_tier "cbe-super-app-cps-action/internal/constants/dto/vault_amount_tier"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
+
+	"cbe-super-app-cps-action/internal/constants/types"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -39,6 +43,8 @@ func NewVaultAmountTierHandler(service service.VaultAmountBasedTierService, logg
 func (h *VaultAmountTierHandler) CreateAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "CreateAmountTier", "handler", "CreateAmountTier")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req amount_tier.VaultAmountTierRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,6 +66,13 @@ func (h *VaultAmountTierHandler) CreateAmountTier(w http.ResponseWriter, r *http
 		span.RecordError(err)
 		h.logger.Errorf("[CreateAmountTier] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[CreateAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
 		return
 	}
 
@@ -153,6 +166,8 @@ func (h *VaultAmountTierHandler) GetAmountTier(w http.ResponseWriter, r *http.Re
 func (h *VaultAmountTierHandler) UpdateAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "UpdateAmountTier", "handler", "UpdateAmountTier")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	var req amount_tier.UpdateVaultAmountTierRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -184,6 +199,13 @@ func (h *VaultAmountTierHandler) UpdateAmountTier(w http.ResponseWriter, r *http
 		return
 	}
 
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[UpdateAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
+		return
+	}
+
 	h.logger.Infof("[UpdateAmountTier] vault amount tier update request submitted successfully")
 	localization.SendSuccessResponse(w, localization.SuccessVaultAmountTierUpdateRequestSubmitted, nil)
 }
@@ -204,6 +226,8 @@ func (h *VaultAmountTierHandler) UpdateAmountTier(w http.ResponseWriter, r *http
 func (h *VaultAmountTierHandler) DeleteAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "DeleteAmountTier", "handler", "DeleteAmountTier")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -217,6 +241,13 @@ func (h *VaultAmountTierHandler) DeleteAmountTier(w http.ResponseWriter, r *http
 		span.RecordError(err)
 		h.logger.Errorf("[DeleteAmountTier] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[DeleteAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
 		return
 	}
 
@@ -240,6 +271,8 @@ func (h *VaultAmountTierHandler) DeleteAmountTier(w http.ResponseWriter, r *http
 func (h *VaultAmountTierHandler) DisableAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "DisableAmountTier", "handler", "DisableAmountTier")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -253,6 +286,13 @@ func (h *VaultAmountTierHandler) DisableAmountTier(w http.ResponseWriter, r *htt
 		span.RecordError(err)
 		h.logger.Errorf("[DisableAmountTier] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[DisableAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
 		return
 	}
 
@@ -276,6 +316,8 @@ func (h *VaultAmountTierHandler) DisableAmountTier(w http.ResponseWriter, r *htt
 func (h *VaultAmountTierHandler) EnableAmountTier(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "EnableAmountTier", "handler", "EnableAmountTier")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -289,6 +331,13 @@ func (h *VaultAmountTierHandler) EnableAmountTier(w http.ResponseWriter, r *http
 		span.RecordError(err)
 		h.logger.Errorf("[EnableAmountTier] service: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
+		h.logger.Infof("[EnableAmountTier] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.CustomerSegmentationEnabled, nil)
 		return
 	}
 

@@ -1,10 +1,12 @@
 package bpsmakerhandler
 
 import (
+	constants "cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/bps_user"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -141,6 +143,9 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableBpsUser", "handler", "bpsUser")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
@@ -156,8 +161,13 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
-	localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
+	if md.IsMakerOnly {
+		h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSentSP, map[string]string{})
+
+	}
 }
 
 // EnableUser enables a BPS user
@@ -177,6 +187,8 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableBpsUser", "handler", "bpsUser")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	userCode := chi.URLParam(r, "user_code")
 	if userCode == "" {
 		localization.SendErrorResponse(w, localization.ErrorUserCodeRequired, nil, nil)
@@ -192,9 +204,12 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
-	localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
+	if md.IsMakerOnly {
+		h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSentSP, map[string]string{})
+	}
 }
 
 // CreateBPSUser creates a new BPS user
@@ -211,6 +226,9 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/ [post]
 func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	var req bps_user_dto.BPSUserCreateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, "Invalid request payload")
@@ -226,12 +244,10 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	NewUser := bps_model.BPSUser{
-		// ID:       primitive.NewObjectID(),
-		Username: req.UserID,
-		FullName: req.FullName,
-		JobTitle: req.JobTitle,
-		UserCode: userCodeGenerated,
-		// UserName:    req.ImpowerID,
+		Username:         req.UserID,
+		FullName:         req.FullName,
+		JobTitle:         req.JobTitle,
+		UserCode:         userCodeGenerated,
 		PhoneNumber:      req.PhoneNumber,
 		BranchCode:       req.BranchCode,
 		Email:            req.Email,
@@ -242,14 +258,19 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		Enabled: false,
 	}
 
-	err := h.Service.CreateBPSUser(r.Context(), NewUser)
+	err := h.Service.CreateBPSUser(ctx, NewUser)
 	if err != nil {
 		// span.RecordError(err)
 		h.logger.Errorf("[CreateUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreatedSP, nil)
+
+	}
 }
 
 // UpdateBPSUser updates an existing BPS user
@@ -268,6 +289,9 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 //	@Security		BearerAuth
 //	@Router			/bps_users/{user_code} [put]
 func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendBadRequestResponse(w, "user code required")
@@ -321,11 +345,15 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	// Always update enabled (bool, so default is false if not set)
 	// updatedUser.Enabled = req.Enabled
 
-	err = h.Service.UpdateBPSUser(r.Context(), id, updatedUser)
+	err = h.Service.UpdateBPSUser(ctx, id, updatedUser)
 	if err != nil {
 		h.logger.Errorf("[UpdateBPSUser] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdatedSP, nil)
+	}
 }
