@@ -307,7 +307,7 @@ func (r *CPSUserStorage) GetPopulatedByID(ctx context.Context, userCode string) 
 
 	if !cursor.Next(ctx) {
 		r.logger.Errorf("[GetPopulatedByID] CPS user not found")
-		return nil, errors.New(localization.ErrorFileNotFound.Code)
+		return nil, errors.New(localization.ErrorUserNotFound.Code)
 	}
 
 	var resp cpsuser.CpsUserResponse

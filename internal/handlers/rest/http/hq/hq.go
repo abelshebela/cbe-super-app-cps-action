@@ -1,6 +1,7 @@
 package hqhandler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -11,6 +12,9 @@ import (
 
 	"go.opentelemetry.io/otel/attribute"
 
+	types "cbe-super-app-cps-action/internal/constants/types"
+
+	constants "cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -188,6 +192,9 @@ func (a *hqAdapter) GetPasswordExpiry(w http.ResponseWriter, r *http.Request) {
 func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateHqBlockTime", "handler", "hq")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var request hqDto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
@@ -205,8 +212,14 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessHQBlockTimeUpdatedSP, nil)
 
-	localization.SendSuccessResponse(w, localization.SuccessHQBlockTimeUpdateRequestSubmitted, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessHQBlockTimeUpdateRequestSubmitted, nil)
+
+	}
+
 }
 
 // UpdateArchiveTimeRequest godoc
@@ -225,6 +238,9 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateHqArchiveTime", "handler", "hq")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var request hqDto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
@@ -243,8 +259,13 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessHQArchiveTimeUpdatedSP, nil)
 
-	localization.SendSuccessResponse(w, localization.SuccessHQArchiveTimeUpdateRequestSubmitted, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessHQArchiveTimeUpdateRequestSubmitted, nil)
+	}
+
 }
 
 // UpdatePasswordExpiryRequest godoc
@@ -263,6 +284,9 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateHqPasswordExpiry", "handler", "hq")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var request hqDto.UpdatePasswordExpiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
@@ -281,5 +305,11 @@ func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.R
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessHQPasswordExpiryUpdateRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessHQPasswordExpiryUpdatedSP, nil)
+
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessHQPasswordExpiryUpdateRequestSubmitted, nil)
+
+	}
 }

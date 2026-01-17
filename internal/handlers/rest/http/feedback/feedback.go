@@ -4,11 +4,15 @@ import (
 	"cbe-super-app-cps-action/internal/constants/dto/feedback"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
+	"context"
 	"encoding/json"
 	"net/http"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	types "cbe-super-app-cps-action/internal/constants/types"
+
+	constants "cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -29,6 +33,9 @@ func InitFeedbackAdapter(feedbackApplication service.FeedbackService, logger uti
 func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createFeedback", "handler", "feedback")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req feedback.FeedbackRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -63,9 +70,13 @@ func (f *feedbackAdapter) CreateFeedback(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessFeedbackCreatedSP, nil)
 
-	f.logger.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
-	localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
+	} else {
+		f.logger.Infof("[CreateFeedback] feedback created successfully by user: %s", userID)
+		localization.SendSuccessResponse(w, localization.SuccessFeedbackCreated, nil)
+	}
 }
 
 // GetFeedbacks godoc

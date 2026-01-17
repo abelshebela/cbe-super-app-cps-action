@@ -58,6 +58,11 @@ func (a *accountBlockAdapter) GetBranchById(w http.ResponseWriter, r *http.Reque
 		localization.SendBadRequestResponse(w, localization.ErrorBranchCodeRequired.Code)
 		return
 	}
+	if err := local_util.ValidateMongoID(branchId); err != nil {
+		a.logger.Errorf("invalid id: %s used", branchId)
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	span.SetAttributes(attribute.String("account_block.branch_id", branchId))
 
@@ -130,6 +135,11 @@ func (a *accountBlockAdapter) GetRegionById(w http.ResponseWriter, r *http.Reque
 	if !ok {
 		a.logger.Errorf("Failed to get region_id from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorRegionCodeRequired.Code)
+		return
+	}
+	if err := local_util.ValidateMongoID(regionId); err != nil {
+		a.logger.Errorf("invalid id: %s used", regionId)
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 
@@ -205,6 +215,11 @@ func (a *accountBlockAdapter) GetDistrictById(w http.ResponseWriter, r *http.Req
 		localization.SendBadRequestResponse(w, localization.ErrorDistrictCodeRequired.Code)
 		return
 	}
+	if err := local_util.ValidateMongoID(districtId); err != nil {
+		a.logger.Errorf("invalid id: %s used", districtId)
+		localization.SendBadRequestResponse(w, "invalid object id")
+		return
+	}
 
 	span.SetAttributes(attribute.String("account_block.district_id", districtId))
 
@@ -275,6 +290,11 @@ func (a *accountBlockAdapter) GetCityById(w http.ResponseWriter, r *http.Request
 	if !ok {
 		a.logger.Errorf("Failed to get city_code from the param")
 		localization.SendBadRequestResponse(w, localization.ErrorCityCodeRequired.Code)
+		return
+	}
+	if err := local_util.ValidateMongoID(cityId); err != nil {
+		a.logger.Errorf("invalid id: %s used", cityId)
+		localization.SendBadRequestResponse(w, "invalid object id")
 		return
 	}
 

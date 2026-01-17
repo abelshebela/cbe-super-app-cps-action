@@ -5,9 +5,11 @@ import (
 	"errors"
 	"mime/multipart"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	validation "github.com/go-ozzo/ozzo-validation"
 )
 
 func GetParam(r *http.Request, key string) (string, bool) {
@@ -16,6 +18,16 @@ func GetParam(r *http.Request, key string) (string, bool) {
 		return "", false
 	}
 	return value, true
+}
+
+var mongoIDRegex = regexp.MustCompile(`^[a-fA-F0-9]{24}$`)
+
+func ValidateMongoID(id string) error {
+	return validation.Validate(
+		id,
+		validation.Required,
+		validation.Match(mongoIDRegex).Error("invalid MongoDB ObjectID"),
+	)
 }
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64) (multipart.File, *multipart.FileHeader, error) {
