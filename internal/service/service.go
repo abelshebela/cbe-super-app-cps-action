@@ -14,6 +14,8 @@ import (
 
 	fbdto "cbe-super-app-cps-action/internal/constants/dto/feedback"
 
+	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+
 	amountauthdto "cbe-super-app-cps-action/internal/constants/dto/amount_based_auth"
 	actionDto "cbe-super-app-cps-action/internal/constants/dto/cps_action"
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
@@ -741,6 +743,15 @@ type AccessListSegmentationService interface {
 	EnableDisableAccessListSegmentation(ctx context.Context, id string, enabled bool, keys []string) error
 	CheckALLIdsExist(ctx context.Context, t string, ids []string) error
 	GetAllAccessListSegmentationBySegmentIDorSegmentCode(ctx context.Context, segmentIdentifier string) ([]model.APPAccessList, []local_model.AccessListSegmentation, error)
+}
+
+type UssdMerchantService interface {
+	CreateUssdMerchant(ctx context.Context, req ussd_merchant_dto.CreateUssdMerchantRequest) error
+	FindAllWithPagination(ctx context.Context, filterParam *types.Filter) (*types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
+	GetUssdMerchantByID(ctx context.Context, id string) (*ussd_merchant_dto.UssdMerchantResponse, error)
+	UpdateUssdMerchant(ctx context.Context, id string, req ussd_merchant_dto.UpdateUssdMerchantRequest) error
+	DeleteUssdMerchant(ctx context.Context, id string) error
+	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 }
 
 type CustomerKYCService interface {

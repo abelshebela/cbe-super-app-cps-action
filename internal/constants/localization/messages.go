@@ -1167,6 +1167,17 @@ const (
 	MsgLogisticMerchantDeletedSuccessfully  = "logistic merchant deleted successfully"
 	MsgLogisticMerchantFetchedSuccessfully  = "logistic merchant fetched successfully"
 
+	// ussd merchant request type
+	MsgUssdMerchantFetchedSuccessfully               = "Ussd merchant fetched successfully"
+	MsgUssdMerchantDisableRequestCreatedSuccessfully = "Ussd merchant disable request created successfully"
+	MsgUssdMerchantDisabledSuccessfully              = "Ussd merchant disabled successfully"
+	MsgUssdMerchantEnableRequestCreatedSuccessfully  = "Ussd merchant enable request created successfully"
+	MsgUssdMerchantEnabledSuccessfully               = "Ussd merchant enabled successfully"
+	MsgUssdMerchantUpdateRequestCreatedSuccessfully  = "Ussd merchant update request created successfully"
+	MsgUssdMerchantUpdatedSuccessfully               = "Ussd merchant updated successfully"
+	MsgUssdMerchantCreatedSuccessfully               = "Ussd merchant created successfully"
+	MsgUssdMerchantRequestCreatedSuccessfully        = "Ussd merchant request created successfully"
+
 	// access list segmentation related messages
 	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"
 	MsgAccessListSegmentationCreatedSuccessfullySP  = "Access list segmentation created successfully"

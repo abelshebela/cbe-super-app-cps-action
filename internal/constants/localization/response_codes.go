@@ -3765,6 +3765,70 @@ var (
 		Message:    MsgLogisticMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+
+	//===================== Send Success Response for the USSD MERCHANT ==========
+	SuccessUssdMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantUpdated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantUpdateRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantEnabled = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_ENABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantEnableRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantDisabled = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DISABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantDisableRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantFetched = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_FETCHED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantFetchedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
