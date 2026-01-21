@@ -222,7 +222,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		ctx := a.setUserPayload(r.Context(), userPayload)
 		now := time.Now().Unix()
 
-		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutesRemain)
+		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
 		if err != nil || remainTime == 0 {
 			remainTime = 120
 		} else {
