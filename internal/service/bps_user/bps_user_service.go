@@ -293,27 +293,27 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	return nil
 }
 
-func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, updatedUser bps_model.BPSUser) error {
+func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updatedUser bps_model.BPSUser) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateBPSUser", "BPS User", "UpdateBPSUser")
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
-	b.logger.Infof("[UpdateBPSUser] updating BPS user with user_code: %s", userCode)
+	b.logger.Infof("[UpdateBPSUser] updating BPS user with user_code: %s", userID)
 
 	// Fetch the existing user
-	existingUser, err := b.repo.FindByFilterKey(ctx, "id", userCode)
+	existingUser, err := b.repo.FindByFilterKey(ctx, "id", userID)
 	if err != nil {
 		span.AddEvent("[UpdateBPSUser] failed to fetch BPS user", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_code", userCode),
+			attribute.String("user_code", userID),
 		))
 		b.logger.Errorf("[UpdateBPSUser] failed to fetch BPS user: %v", err)
 		return err
 	}
 
 	if existingUser == nil {
-		span.AddEvent("[UpdateBPSUser] BPS user not found", trace.WithAttributes(attribute.String("user_code", userCode)))
-		b.logger.Errorf("[UpdateBPSUser] BPS user not found: %s", userCode)
+		span.AddEvent("[UpdateBPSUser] BPS user not found", trace.WithAttributes(attribute.String("user_code", userID)))
+		b.logger.Errorf("[UpdateBPSUser] BPS user not found: %s", userID)
 		return errors.New(localization.ErrorUserNotFound.Code)
 	}
 
@@ -339,6 +339,12 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, upd
 		return errors.New(localization.ErrorExistEmail.Code)
 	}
 
+	existingUserByUsername, err := b.repo.FindByFilterKey(ctx, "username", updatedUser.Username)
+	if existingUserByUsername != nil && userID != existingUserByUsername.ID.Hex() {
+		b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
+		return errors.New(localization.ErrorExistUserNameBPS.Code)
+	}
+
 	if roles == nil {
 		return errors.New(localization.ErrorRoleNotExistWithGivenJobTitle.Code)
 	}
@@ -356,12 +362,12 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userCode string, upd
 	if err := b.cpsService.CreateCPSAction(ctx, &cpsActionModel); err != nil {
 		span.AddEvent("[UpdateBPSUser] failed to create CPS action", trace.WithAttributes(
 			attribute.String("error", err.Error()),
-			attribute.String("user_code", userCode),
+			attribute.String("user_code", userID),
 		))
 		b.logger.Errorf("[UpdateBPSUser] failed to create CPS action: %v", err)
 		return err
 	}
 
-	b.logger.Infof("[UpdateBPSUser] CPS action created successfully for user_code: %s", userCode)
+	b.logger.Infof("[UpdateBPSUser] CPS action created successfully for user_code: %s", userID)
 	return nil
 }
