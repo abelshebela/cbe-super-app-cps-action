@@ -235,6 +235,10 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 	// Validate required fields
 	if req.UserID == "" {
 		localization.SendBadRequestResponse(w, "user id requed")
@@ -301,6 +305,11 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	var req bps_user_dto.BPSUserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, "Invalid request payload")
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	objID, err := bson.ObjectIDFromHex(id)
