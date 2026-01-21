@@ -15,6 +15,7 @@ import (
 	types "cbe-super-app-cps-action/internal/constants/types"
 
 	constants "cbe-super-app-cps-action/internal/constants"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -198,7 +199,7 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 	var request hqDto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Message)
 		return
 	}
 
@@ -244,7 +245,7 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 	var request hqDto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Message)
 		return
 	}
 
@@ -290,7 +291,7 @@ func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.R
 	var request hqDto.UpdatePasswordExpiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Message)
 		return
 	}
 
