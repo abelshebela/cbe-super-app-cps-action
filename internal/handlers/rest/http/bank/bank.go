@@ -221,6 +221,19 @@ func (b *bankAdapter) GetAllBank(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	banks, err := b.bankService.GetAllBank(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)

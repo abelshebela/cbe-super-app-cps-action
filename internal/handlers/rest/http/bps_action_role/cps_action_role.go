@@ -39,8 +39,22 @@ func NewBPSActionRoleHandler(svc service.BPSActionRoleService, logger utils.Logg
 func (h *BPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllBpsActionRoles", "handler", "bpsActionRole")
 	defer span.End()
-	filter := *local_util.ExtractFilterParams(r)
-	res, err := h.service.FindAllActionListWithPagination(ctx, filter)
+	filterParams := *local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	res, err := h.service.FindAllActionListWithPagination(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("list action list error: %v", err)
