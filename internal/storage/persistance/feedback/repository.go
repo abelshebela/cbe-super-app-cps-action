@@ -127,7 +127,15 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 				bson.D{{Key: "$skip", Value: skip}},
 				bson.D{{Key: "$limit", Value: limit}},
 				bson.D{{Key: "$addFields", Value: bson.D{
-					{Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+					// {Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+					{Key: "user_id_obj", Value: bson.D{
+						{Key: "$convert", Value: bson.D{
+							{Key: "input", Value: "$user_id"},
+							{Key: "to", Value: "objectId"},
+							{Key: "onError", Value: nil},
+							{Key: "onNull", Value: nil},
+						}},
+					}},
 				}}},
 				bson.D{{Key: "$lookup", Value: bson.D{
 					{Key: "from", Value: "members"},
