@@ -11,10 +11,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	// "time"
 
 	"github.com/go-chi/cors"
+	"google.golang.org/grpc/metadata"
 
 	// "google.golang.org/grpc/metadata"
 
@@ -218,7 +220,7 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		}
 
 		ctx := a.setUserPayload(r.Context(), userPayload)
-		// now := time.Now().Unix()
+		now := time.Now().Unix()
 
 		remainTime, err := strconv.Atoi(a.cfg.JWTAccessExpirationMinutes)
 		if err != nil || remainTime == 0 {
@@ -226,50 +228,50 @@ func (a *authMiddleware) AuthenticateToken(next http.Handler) http.Handler {
 		} else {
 			remainTime *= 60
 		}
-		// deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
-		// if err != nil {
-		// 	a.logger.Warnf("failed to get device id from redis: %v", err)
-		// 	localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-		// 	return
-		// }
+		deviceID, err := a.redisRepository.Get(r.Context(), fmt.Sprintf("%s:%s", constants.RedisCPSUserDeviceIDPrefix, userPayload.UserID))
+		if err != nil {
+			a.logger.Warnf("failed to get device id from redis: %v", err)
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
+		}
 
-		// deviceID = strings.Trim(deviceID, "\"")
-		// if userPayload.SessionExp != 0 && userPayload.DeviceID == deviceID {
-		// 	a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
-		// 	if userPayload.SessionExp < now {
-		// 		a.logger.Warnf("session has expired")
-		// 		localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-		// 		return
-		// 	}
+		deviceID = strings.Trim(deviceID, "\"")
+		if userPayload.SessionExp != 0 && userPayload.DeviceID == deviceID {
+			a.logger.Infof("session expiry found: %d current time:%d", userPayload.SessionExp, now, userPayload.SessionExp-now)
+			if userPayload.SessionExp < now {
+				a.logger.Warnf("session has expired")
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			}
 
-		// 	if userPayload.SessionExp-now <= 0 {
-		// 		localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-		// 		return
-		// 	} else if userPayload.SessionExp-now < int64(remainTime) {
-		// 		// Less than 1 minute left, refresh token
-		// 		a.logger.Infof("session expiring soon, refreshing token")
-		// 		// Inject Bearer token and user_id from context into gRPC metadata
-		// 		md := metadata.New(map[string]string{
-		// 			"authorization": "Bearer " + tokenString,
-		// 		})
+			if userPayload.SessionExp-now <= 0 {
+				localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+				return
+			} else if userPayload.SessionExp-now < int64(remainTime) {
+				// Less than 1 minute left, refresh token
+				a.logger.Infof("session expiring soon, refreshing token")
+				// Inject Bearer token and user_id from context into gRPC metadata
+				md := metadata.New(map[string]string{
+					"authorization": "Bearer " + tokenString,
+				})
 
-		// 		ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
-		// 		refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
-		// 		if err != nil {
-		// 			a.logger.Errorf("failed to refresh token: %v", err)
-		// 		}
-		// 		if refresh_response != nil {
-		// 			w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
-		// 		} else {
-		// 			a.logger.Errorf("refresh token response from grpc is nil")
-		// 		}
-		// 	}
+				ctxWithAuth := metadata.NewOutgoingContext(ctx, md)
+				refresh_response, err := a.client.RefreshToken(ctxWithAuth, &cps_auth.RefreshTokenRequest{})
+				if err != nil {
+					a.logger.Errorf("failed to refresh token: %v", err)
+				}
+				if refresh_response != nil {
+					w.Header().Set("X-Refreshed-Token", refresh_response.AccessToken)
+				} else {
+					a.logger.Errorf("refresh token response from grpc is nil")
+				}
+			}
 
-		// } else {
-		// 	a.logger.Warnf("session has expired")
-		// 	localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
-		// 	return
-		// }
+		} else {
+			a.logger.Warnf("session has expired")
+			localization.SendUnauthorizedResponse(w, localization.ErrorSessionExpired.Message)
+			return
+		}
 
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
