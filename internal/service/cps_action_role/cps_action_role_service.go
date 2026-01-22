@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -189,6 +190,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		AssignedAuditorRoles: auditors,
 		IsMakerOnly:          req.IsMakerOnly || int32(len(checkers)) == 0,
 		IsViweOnly:           req.IsViewOnly,
+		Version:              1,
 		Enabled:              true,
 		ApproverCount:        int32(len(checkers)),
 		AuditorCount:         int32(len(auditors)),
@@ -258,6 +260,10 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		}
 	}
 
+	versionUpdated := old.Version
+	if int32(len(req.AssignedCheckerRoles)) > int32(old.ApproverCount) || int32(len(req.AssignedCheckerRoles)) < int32(old.ApproverCount) {
+		versionUpdated = old.Version + 1
+	}
 	payload := imodel.CPSActionRole{
 		ActionCode:     actionCode,
 		PortalCardName: req.PortalCardName,
@@ -267,6 +273,7 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 		IsViweOnly:     req.IsViewOnly || (int32(len(req.AssignedViewersRoles)) > 0 && len(req.AssignedViewersRoles) == 0 && len(req.AssignedCheckerRoles) == 0),
 		Enabled:        true,
 		ApproverCount:  int32(len(req.AssignedCheckerRoles)),
+		Version:        versionUpdated,
 	}
 
 	if req.AssignedViewersRoles != nil {
@@ -407,6 +414,9 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
 			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to update action list: %v", err)
+			if err.Error() == localization.ErrorResourceNotFound.Code {
+				return nil, errors.New(localization.ErrorActionNotFound.Code)
+			}
 			return nil, err
 		}
 
@@ -424,8 +434,9 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
+		IsVersionChanged := false
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, "", &ar); err != nil {
+		if err := s.syncIndices(ctx, "", &ar, IsVersionChanged); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -458,8 +469,8 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, err
 		}
 
-		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(new.AssignedMakersRoles), len(new.AssignedCheckerRoles), len(new.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, new.ActionCode, new); err != nil {
+		IsVersionChanged := prev.Version != new.Version
+		if err := s.syncIndices(ctx, new.ActionCode, new, IsVersionChanged); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -472,6 +483,14 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
 	err := s.repo.UpdateActionList(ctx, actionCode, status)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			s.logger.Infof("UpdateActionList: Action %s not found in the list", actionCode)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		s.logger.Errorf("UpdateActionList: Failed to update action list: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
 	return err
 }
 
@@ -516,7 +535,7 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 	}
 	return nil
 }
-func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *imodel.CPSActionRole) error {
+func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *imodel.CPSActionRole, isVersionChanged bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "syncIndices", "CPSActionRole", "syncIndices")
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
@@ -527,7 +546,7 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 		return s.indexRepo.SaveIndices(ctx, indices)
 	}
 
-	err := s.indexRepo.SyncIndices(ctx, oldActionName, indices)
+	err := s.indexRepo.SyncIndices(ctx, oldActionName, indices, isVersionChanged)
 	if err != nil {
 		span.AddEvent("failed to sync indices", trace.WithAttributes(attribute.String("error", err.Error())))
 	}
@@ -554,6 +573,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 				MakerIndex:     &idx,
 				UpdatedAt:      now,
 				CreatedAt:      now,
+				Version:        role.Version,
 			})
 			span.AddEvent("maker index generated", trace.WithAttributes(attribute.String("role_id", makerID)))
 			s.logger.Infof("generateIndices: Added Maker index for RoleID %s", makerID)
@@ -579,6 +599,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 					PortalCardName: role.PortalCardName,
 					ActionName:     role.ActionName,
 					ViewerIndex:    &idx,
+					Version:        role.Version,
 					UpdatedAt:      now,
 					CreatedAt:      now,
 				})
@@ -611,6 +632,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 					PortalCardName: role.PortalCardName,
 					ActionName:     role.ActionName,
 					AuditorIndex:   &val,
+					Version:        role.Version,
 					UpdatedAt:      now,
 					CreatedAt:      now,
 				})
@@ -644,6 +666,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 						PortalCardName: role.PortalCardName,
 						ActionName:     role.ActionName,
 						CheckerIndex:   &val,
+						Version:        role.Version,
 						UpdatedAt:      now,
 						CreatedAt:      now,
 					})

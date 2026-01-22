@@ -81,7 +81,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	UpperCaseAction := strings.ToUpper(actionName)
-	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction)
+	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction, action.Version)
 	if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
@@ -217,7 +217,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
+		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName), action.Version)
 		if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
@@ -307,7 +307,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 		roleID := rawRoleID
 		UpperCaseAction := strings.ToUpper(actionName)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction, action.Version)
 		if err != nil {
 			span.RecordError(err)
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)

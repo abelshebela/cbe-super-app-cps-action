@@ -548,6 +548,8 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	if dataType == constants.Password {
 		salt, _ = GenerateSalt(20)
 		signedPass, _ = SignWithHS256(password, salt)
+	} else if dataType == constants.Cred {
+		signedPass, _ = SignWithHS256(password, cfg.JwtSecretKey)
 	} else {
 		signedPass = password
 	}

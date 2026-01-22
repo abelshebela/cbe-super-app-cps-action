@@ -294,6 +294,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorValidationFailed,
 	ErrorRequiredFieldMissing,
 	ErrorServiceExists,
+	ErrorServiceNotFound,
 	ErrorChildServiceExists,
 	ErrorBankDeleteRequestFailed,
 	ErrorBankImageMissingOrInvalid,
@@ -349,6 +350,7 @@ var ResponseCodesList = []ResponseCode{
 
 	ErrorFileParseFailed,
 	ErrorResourceNotFound,
+	ErrorActionListNameNotFound,
 	ErrorActionNameAlreadyExists,
 	ErrorOnDisablingExistingDeviceControl,
 	ErrorInvalidInputParameter,
@@ -357,6 +359,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorMissingOrInvalidImage,
 	ErrorPendingCpsActionExists,
 	ErrorUnexpectedError,
+	ErrorMarchantDataAlready,
 	ErrorExternalServiceError,
 	ErrorFileNotFound,
 	ErrorInvalidID,
@@ -4190,6 +4193,70 @@ var (
 		Message:    MsgLogisticMerchantFetchedSuccessfully,
 		Type:       "success",
 	}
+
+	//===================== Send Success Response for the USSD MERCHANT ==========
+	SuccessUssdMerchantCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantUpdated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantUpdatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantUpdateRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_UPDATE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantUpdateRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantEnabled = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_ENABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantEnabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantEnableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_ENABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantEnableRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantDisabled = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DISABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantDisabledSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantDisableRequestCreated = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantDisableRequestCreatedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessUssdMerchantFetched = ResponseCode{
+		Code:       "SUCCESS_USSD_MERCHANT_FETCHED",
+		StatusCode: StatusCreated,
+		Message:    MsgUssdMerchantFetchedSuccessfully,
+		Type:       "success",
+	}
 )
 
 // Error Response Codes
@@ -4765,6 +4832,14 @@ var (
 		Message:    MsgServiceExists,
 		Type:       "error",
 	}
+
+	ErrorServiceNotFound = ResponseCode{
+		Code:       "ERROR_SERVICE_NOT_FOUND",
+		StatusCode: StatusConflict,
+		Message:    MsgServiceNotFound,
+		Type:       "error",
+	}
+
 	ErrorChildServiceExists = ResponseCode{
 		Code:       "ERROR_CHILD_SERVICE_EXISTS",
 		StatusCode: StatusConflict,
@@ -4996,6 +5071,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorMarchantDataAlready = ResponseCode{
+		Code:       "ERROR_MERCHANT_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMerchantAlreadyExist,
+		Type:       "error",
+	}
+
 	ErrorConfigurationError = ResponseCode{
 		Code:       "ERROR_CONFIGURATION_ERROR",
 		StatusCode: StatusInternalServerError,
@@ -5065,6 +5147,14 @@ var (
 		Message:    MsgResourceNotFound,
 		Type:       "error",
 	}
+
+	ErrorActionListNameNotFound = ResponseCode{
+		Code:       "ERROR_ACTION_LIST_NAME_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgActionNameNotFound,
+		Type:       "error",
+	}
+
 	ErrorActionNameAlreadyExists = ResponseCode{
 		Code:       "ERROR_ACTION_NAME_ALREADY_EXISTS",
 		StatusCode: StatusBadRequest,
