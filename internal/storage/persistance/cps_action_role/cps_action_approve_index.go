@@ -90,7 +90,7 @@ func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldAc
 	// 		return err
 	// 	}
 	// }
-	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version}); err != nil {
+	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName}); err != nil {
 		return err
 	}
 
