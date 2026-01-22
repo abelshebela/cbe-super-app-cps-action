@@ -95,7 +95,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		ctx,
 		updatedService,
 		string(constants.ClientOrchestrationServicesTopic),
-		"cps-service-updated",
+		"inapp-notifications",
 		"service authorized and updated",
 	)
 
