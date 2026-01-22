@@ -15,6 +15,7 @@ type FeedbackResponse struct {
 	ID        bson.ObjectID                    `json:"id" bson:"_id,omitempty"`
 	User      User                             `json:"user" bson:"user,omitempty"`
 	Responses map[string]shared_types.Response `json:"responses" bson:"responses"`
+	Rate      int                              `json:"rate" bson:"rate"`
 	CreatedAt time.Time                        `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time                        `json:"updated_at" bson:"updated_at"`
 }

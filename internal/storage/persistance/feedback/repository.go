@@ -152,6 +152,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 					{Key: "responses", Value: 1},
 					{Key: "created_at", Value: 1},
 					{Key: "updated_at", Value: 1},
+					{Key: "rate", Value: "$responses.user_experience.answer"},
 					{Key: "user", Value: bson.D{
 						{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
 						{Key: "user_code", Value: "$user.user_code"},
