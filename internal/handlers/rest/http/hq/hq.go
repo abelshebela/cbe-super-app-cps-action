@@ -15,6 +15,7 @@ import (
 	types "cbe-super-app-cps-action/internal/constants/types"
 
 	constants "cbe-super-app-cps-action/internal/constants"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 )
@@ -89,8 +90,22 @@ func (a *hqAdapter) GetHQ(w http.ResponseWriter, r *http.Request) {
 func (a *hqAdapter) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllHq", "handler", "hq")
 	defer span.End()
-	filter := local_util.ExtractFilterParams(r)
-	list, err := a.hqApp.GetHQDetail(ctx, *filter)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	list, err := a.hqApp.GetHQDetail(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -198,7 +213,7 @@ func (a *hqAdapter) UpdateBlockTimeRequest(w http.ResponseWriter, r *http.Reques
 	var request hqDto.UpdateBlockTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Message)
 		return
 	}
 
@@ -244,7 +259,7 @@ func (a *hqAdapter) UpdateArchiveTimeRequest(w http.ResponseWriter, r *http.Requ
 	var request hqDto.UpdateArchiveTimeRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Message)
 		return
 	}
 
@@ -290,7 +305,7 @@ func (a *hqAdapter) UpdatePasswordExpiryRequest(w http.ResponseWriter, r *http.R
 	var request hqDto.UpdatePasswordExpiryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		span.RecordError(err)
-		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Code)
+		localization.SendBadRequestResponse(w, localization.ErrorInvalidHQRequest.Message)
 		return
 	}
 

@@ -20,6 +20,9 @@ func (r ResponseCode) Error() string {
 var ResponseCodesList = []ResponseCode{
 	// Success codes
 
+	ErrorExistUserName,
+	ErrorExistUserNameBPS,
+
 	SuccessServiceCreateRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
@@ -82,6 +85,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEcommerceMerchantFetchedSuccessfully,
 	SuccessEcommerceMerchantsFetchedSuccessfully,
 	SuccessEcommerceMerchantLookup,
+
+	SuccessNotificationCreatted,
 
 	SuccessTopupEnableRequestSubmitted,
 	SuccessTopupEnabledSP,
@@ -2640,13 +2645,20 @@ var (
 	SuccessEcommerceMerchantLookup = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
 		StatusCode: StatusOK,
-		Message:    MsgEcommerceMerchantLookup,
+		Message:    "Notification created successfully",
 		Type:       "success",
 	}
 
 	// Notification related success response codes
 	SuccessNotificationCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgNotificationCreationRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessNotificationCreatted = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgNotificationCreationRequestSubmitted,
 		Type:       "success",
@@ -4902,8 +4914,27 @@ var (
 		Message:    MsgExistEmail,
 		Type:       "error",
 	}
+
+	ErrorExistEmailBPSuser = ResponseCode{
+		Code:       "ERROR_EXIST_EMAIL_BPS_USER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistEmailBpsUser,
+		Type:       "error",
+	}
+	ErrorExistUserName = ResponseCode{
+		Code:       "ERROR_EXIST_USERNAME",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistUserName,
+		Type:       "error",
+	}
+	ErrorExistUserNameBPS = ResponseCode{
+		Code:       "ERROR_EXIST_USERNAME_BPS_USER",
+		StatusCode: StatusBadRequest,
+		Message:    MsgExistUserNameBPSUser,
+		Type:       "error",
+	}
 	ErrorExistBpsUserEmail = ResponseCode{
-		Code:       "ERROR_EXIST_EMAIL",
+		Code:       "ERROR_EXIST_EMAIL_BPS_USER",
 		StatusCode: StatusBadRequest,
 		Message:    MsgBpsUserEmailExist,
 		Type:       "error",

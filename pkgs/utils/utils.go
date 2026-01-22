@@ -54,10 +54,6 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 		"image/webp": true,
 	}
 
-	if fileHeader.Size > 10*1024*1024 { // optional size limit
-		return false
-	}
-
 	file, err := fileHeader.Open()
 	if err != nil {
 		return false
@@ -322,6 +318,7 @@ func NoSpecialChars(value any) error {
 }
 
 func FormatPhoneNumber(phoneNumber string) string {
+	// phoneNumber = strings.TrimSpace(phoneNumber)
 	phoneNumber = strings.TrimSpace(phoneNumber)
 
 	// Remove all non-digit and non-plus characters
@@ -347,6 +344,13 @@ func FormatPhoneNumber(phoneNumber string) string {
 	}
 
 	return ""
+	// Acceptable patterns: 2517XXXXXXXX or 2519XXXXXXXX (total 12 digits)
+	// validRe := regexp.MustCompile(`^(251[79]\d{8})$`)
+	// match := validRe.MatchString(phoneNumber)
+	// if match {
+	// 	return phoneNumber
+	// }
+	// return ""
 }
 
 func ThreeNamesMinLength(value interface{}) error {

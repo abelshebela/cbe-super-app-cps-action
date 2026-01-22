@@ -113,6 +113,19 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	users, err := h.Service.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -235,6 +248,10 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
 	// Validate required fields
 	if req.UserID == "" {
 		localization.SendBadRequestResponse(w, "user id requed")
@@ -301,6 +318,11 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	var req bps_user_dto.BPSUserUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		localization.SendBadRequestResponse(w, "Invalid request payload")
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 	objID, err := bson.ObjectIDFromHex(id)

@@ -127,7 +127,15 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 				bson.D{{Key: "$skip", Value: skip}},
 				bson.D{{Key: "$limit", Value: limit}},
 				bson.D{{Key: "$addFields", Value: bson.D{
-					{Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+					// {Key: "user_id_obj", Value: bson.D{{Key: "$toObjectId", Value: "$user_id"}}},
+					{Key: "user_id_obj", Value: bson.D{
+						{Key: "$convert", Value: bson.D{
+							{Key: "input", Value: "$user_id"},
+							{Key: "to", Value: "objectId"},
+							{Key: "onError", Value: nil},
+							{Key: "onNull", Value: nil},
+						}},
+					}},
 				}}},
 				bson.D{{Key: "$lookup", Value: bson.D{
 					{Key: "from", Value: "members"},
@@ -144,6 +152,7 @@ func (f *FeedbackStorage) FindAllWithPagination(ctx context.Context, filterParam
 					{Key: "responses", Value: 1},
 					{Key: "created_at", Value: 1},
 					{Key: "updated_at", Value: 1},
+					{Key: "rate", Value: "$responses.user_experience.answer"},
 					{Key: "user", Value: bson.D{
 						{Key: "_id", Value: bson.M{"$toString": "$user._id"}},
 						{Key: "user_code", Value: "$user.user_code"},

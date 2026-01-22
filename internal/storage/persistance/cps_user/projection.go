@@ -244,7 +244,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 		// 3️⃣ Unwind role_doc
 		bson.D{{Key: "$unwind", Value: bson.M{
 			"path":                       "$role_doc",
-			"preserveNullAndEmptyArrays": false,
+			"preserveNullAndEmptyArrays": true,
 		}}},
 
 		// 4️⃣ Final projection

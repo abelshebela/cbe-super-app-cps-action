@@ -477,18 +477,18 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 		}}},
 
 		// 3. Lookup KYC Data (Returns Array)
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: "customer_kyc"},
-			{Key: "let", Value: bson.D{{Key: "id_str", Value: bson.D{{Key: "$toString", Value: "$_id"}}}}},
-			{Key: "pipeline", Value: mongo.Pipeline{
-				{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$user_id", "$$id_str"}}}}}}},
-			}},
-			{Key: "as", Value: "kyc_root"},
-		}}},
+		// {{Key: "$lookup", Value: bson.D{
+		// 	{Key: "from", Value: "customer_kyc"},
+		// 	{Key: "let", Value: bson.D{{Key: "id_str", Value: bson.D{{Key: "$toString", Value: "$_id"}}}}},
+		// 	{Key: "pipeline", Value: mongo.Pipeline{
+		// 		{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$user_id", "$$id_str"}}}}}}},
+		// 	}},
+		// 	{Key: "as", Value: "kyc_root"},
+		// }}},
 
 		// 4. Flatten the single-match arrays
 		{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$member_info"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
-		{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$kyc_root"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
+		// {{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$kyc_root"}, {Key: "preserveNullAndEmptyArrays", Value: true}}}},
 
 		// 5. Final Projection
 		{{Key: "$project", Value: bson.D{
@@ -506,12 +506,13 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 					{Key: "account_branch_name", Value: "$member_info.account_branch_name"},
 				}},
 			}}}},
+			// member_info was replaced in place of kyc_root because kyc_root is populated only when user submits fayda
 			{Key: "personal_info", Value: bson.D{
 				// Using your double nested path here
-				{Key: "full_name", Value: "$kyc_root.kyc_data.full_name"},
-				{Key: "gender", Value: "$kyc_root.kyc_data.gender"},
-				{Key: "phone_number", Value: "$kyc_root.kyc_data.phone_number"},
-				{Key: "date_of_birth", Value: "$kyc_root.kyc_data.birth_date"},
+				{Key: "full_name", Value: "$member_info.full_name"},       // member_info used to be kyc_root
+				{Key: "gender", Value: "$member_info.gender"},             // member_info used to be kyc_root
+				{Key: "phone_number", Value: "$member_info.phone_number"}, // member_info used to be kyc_root
+				{Key: "date_of_birth", Value: "$member_info.birth_date"},  // member_info used to be kyc_root
 				// Corrected email path (from members collection)
 				{Key: "email", Value: "$member_info.email"},
 				{Key: "customer_number", Value: "$member_info.customer_number"},

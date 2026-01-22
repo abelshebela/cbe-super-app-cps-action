@@ -100,6 +100,19 @@ func (h *VaultAmountTierHandler) FindAllAmountTiers(w http.ResponseWriter, r *ht
 
 	filterParams := common_utils.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	amountTiers, err := h.service.FindAllAmountTiers(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)

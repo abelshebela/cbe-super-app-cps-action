@@ -100,6 +100,19 @@ func (a *accountBlockAdapter) GetAllBranches(w http.ResponseWriter, r *http.Requ
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	branches, err := a.accountBlockApplication.GetAllBranches(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -178,6 +191,19 @@ func (a *accountBlockAdapter) GetAllRegions(w http.ResponseWriter, r *http.Reque
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	regions, err := a.accountBlockApplication.GetAllRegions(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -255,6 +281,19 @@ func (a *accountBlockAdapter) GetAllDistricts(w http.ResponseWriter, r *http.Req
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	districts, err := a.accountBlockApplication.GetAllDistricts(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -331,6 +370,19 @@ func (a *accountBlockAdapter) GetAllCities(w http.ResponseWriter, r *http.Reques
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCities", "handler", "accountBlock")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	cities, err := a.accountBlockApplication.GetAllCities(ctx, filterParams)
 	if err != nil {
