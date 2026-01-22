@@ -10,11 +10,11 @@ import (
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 )
 
 type PasswordRuleStorage struct {
@@ -24,9 +24,9 @@ type PasswordRuleStorage struct {
 	logger     utils.Logger
 }
 
-func NewPasswordRuleRepository(client *mongo.Client,cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.PasswordRuleRepository {
+func NewPasswordRuleRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.PasswordRuleRepository {
 	return &PasswordRuleStorage{
-		dal:        dal.NewMongoDal[local_model.PasswordRule, local_model.PasswordRule](client,cfg, dbName, collection),
+		dal:        dal.NewMongoDal[local_model.PasswordRule, local_model.PasswordRule](client, cfg, dbName, collection),
 		client:     client,
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),

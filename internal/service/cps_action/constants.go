@@ -50,6 +50,12 @@ const (
 	RequestEnableCpsRole  RequestAction = "ENABLE_CPS_ROLE"
 	RequestDisableCpsRole RequestAction = "DISABLE_CPS_ROLE"
 
+	RequestCreateUssdMerchant  RequestAction = "CREATE_USSD_MERCHANT"
+	RequestUpdateUssdMerchant  RequestAction = "UPDATE_USSD_MERCHANT"
+	RequestDeleteUssdMerchant  RequestAction = "DELETE_USSD_MERCHANT"
+	RequestEnableUssdMerchant  RequestAction = "ENABLE_USSD_MERCHANT"
+	RequestDisableUssdMerchant RequestAction = "DISABLE_USSD_MERCHANT"
+	
 	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestEnableCustomerSegmentation  RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
@@ -735,6 +741,13 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestUpdateService,
 		RequestEnableService,
 		RequestDisableService,
+	},
+	"USSDMERCHANT": {
+		RequestCreateUssdMerchant,
+		RequestUpdateUssdMerchant,
+		RequestDeleteUssdMerchant,
+		RequestEnableUssdMerchant,
+		RequestDisableUssdMerchant,
 	},
 	"EVENT": {
 		RequestCreateEvent,

@@ -8,8 +8,11 @@ import (
 	core "cbe-super-app-cps-action/internal/handlers/rest/http/donation/core"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
+
+	"cbe-super-app-cps-action/internal/constants"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -55,6 +58,10 @@ func NewDonationAdapter(donationApp service.DonationService, logger utils.Logger
 func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createDonation", "handler", "donation")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	req, err := core.ParseRequestFromMultipartForm(r, true)
 	if err != nil {
 		span.RecordError(err)
@@ -82,8 +89,11 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDonationCreateRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationCreateRequestSent, nil)
+	}
 }
 
 // UpdateDonation godoc
@@ -114,6 +124,9 @@ func (d *donationAdapter) CreateDonation(w http.ResponseWriter, r *http.Request)
 func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonation", "handler", "donation")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		d.logger.Errorf("donation ID is required")
@@ -145,8 +158,11 @@ func (d *donationAdapter) UpdateDonation(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDonationUpdateRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationUpdateRequestSent, nil)
+	}
 }
 
 // FetchDonation godoc
@@ -239,6 +255,9 @@ func (d *donationAdapter) FetchDonationByID(w http.ResponseWriter, r *http.Reque
 func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateDonationImage", "handler", "donation")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		d.logger.Errorf("donation ID is required")
@@ -268,7 +287,11 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdateRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageUpdateRequestSent, nil)
+	}
 }
 
 // DeleteDonationImage godoc
@@ -288,6 +311,9 @@ func (d *donationAdapter) UpdateDonationImage(w http.ResponseWriter, r *http.Req
 func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "deleteDonationImage", "handler", "donation")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		d.logger.Errorf("donation ID is required")
@@ -319,8 +345,11 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDonationImageDeleteRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageDeletedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageDeleteRequestSent, nil)
+	}
 }
 
 // AddDonationImage godoc
@@ -340,6 +369,10 @@ func (d *donationAdapter) DeleteDonationImage(w http.ResponseWriter, r *http.Req
 func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "addDonationImage", "handler", "donation")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		d.logger.Errorf("donation ID is required")
@@ -369,8 +402,11 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDonationImageAddRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageAddedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationImageAddRequestSent, nil)
+	}
 }
 
 // EnableDonation godoc
@@ -390,6 +426,9 @@ func (d *donationAdapter) AddDonationImage(w http.ResponseWriter, r *http.Reques
 func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableDonation", "handler", "donation")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		d.logger.Errorf("donation ID is required")
@@ -404,8 +443,11 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDonationEnableRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationEnableRequestSent, nil)
+	}
 }
 
 // DisableDonation godoc
@@ -425,6 +467,9 @@ func (d *donationAdapter) EnableDonation(w http.ResponseWriter, r *http.Request)
 func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableDonation", "handler", "donation")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := core.ExtractIDFromURL(r)
 	if id == "" {
 		d.logger.Errorf("donation ID is required")
@@ -439,6 +484,9 @@ func (d *donationAdapter) DisableDonation(w http.ResponseWriter, r *http.Request
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessDonationDisableRequestSent, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessDonationDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDonationDisableRequestSent, nil)
+	}
 }

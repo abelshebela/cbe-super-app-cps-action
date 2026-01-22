@@ -25,7 +25,9 @@ import (
 	job_role_interface "cbe-super-app-cps-action/internal/constants/interfaces/job_role"
 	logistics_merchant_adaptor "cbe-super-app-cps-action/internal/constants/interfaces/logistics_merchant"
 	"cbe-super-app-cps-action/internal/constants/interfaces/transaction"
+	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
 	vaultAmountTierInbound "cbe-super-app-cps-action/internal/constants/interfaces/vault_amount_tier"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant"
 
 	cpsRoleInbound "cbe-super-app-cps-action/internal/constants/interfaces/cps_roles"
 	feedbackinterface "cbe-super-app-cps-action/internal/constants/interfaces/feedback"
@@ -159,6 +161,7 @@ type Handler struct {
 	CustomerSegmentationHandler   customer_seg.CustomerSegmentation
 	CPSRolesHandler               cpsRoleInbound.CPSRolesAdapter
 	CustomerKYCHandler            customerKycInbound.CustomerKYC
+	UssdMerchantHandler           ussd_merchant_interface.UssdMerchantInbound
 }
 
 func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler {
@@ -213,5 +216,6 @@ func InitHandler(serviceLayer service.ServiceLayer, logger utils.Logger) Handler
 		CustomerSegmentationHandler:   customer_hand.NewCustomerSegmentation(serviceLayer.CustomerSegmentation, logger),
 		CPSRolesHandler:               cpsRoleHandler.NewCPSRolesHandler(serviceLayer.CPSRoles, logger),
 		CustomerKYCHandler:            CustomerKYCHandler.NewCustomerKYCAdapter(serviceLayer.CustomerKYC, logger),
+		UssdMerchantHandler:           ussd_merchant.NewUssdMerchantHandler(serviceLayer.UssdMerchantService, logger),
 	}
 }

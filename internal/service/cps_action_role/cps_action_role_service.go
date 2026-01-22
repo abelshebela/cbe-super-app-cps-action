@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"cbe-super-app-cps-action/internal/service"
 	"cbe-super-app-cps-action/internal/storage"
@@ -413,6 +414,9 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
 			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to update action list: %v", err)
+			if err.Error() == localization.ErrorResourceNotFound.Code {
+				return nil, errors.New(localization.ErrorActionNotFound.Code)
+			}
 			return nil, err
 		}
 
@@ -479,6 +483,14 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
 	err := s.repo.UpdateActionList(ctx, actionCode, status)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			s.logger.Infof("UpdateActionList: Action %s not found in the list", actionCode)
+			return errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		s.logger.Errorf("UpdateActionList: Failed to update action list: %v", err)
+		return errors.New(localization.ErrorUnhandledServer.Code)
+	}
 	return err
 }
 

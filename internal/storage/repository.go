@@ -1,6 +1,7 @@
 package storage
 
 import (
+	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
@@ -71,13 +72,13 @@ type UnlinkAccount interface {
 
 // ServicesRepository manages CRUD for Services catalog
 type ServicesRepository interface {
-	Create(ctx context.Context, service *imodel.Service) error
-	Update(ctx context.Context, id string, service *imodel.Service) error
+	Create(ctx context.Context, service *model.Service) error
+	Update(ctx context.Context, id string, service *model.Service) error
 	Delete(ctx context.Context, id string) error
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
-	FindByID(ctx context.Context, id string) (*imodel.Service, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.Service], error)
-	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.ServiceList], error)
+	FindByID(ctx context.Context, id string) (*model.Service, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error)
+	FindAllServiceListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.ServiceList], error)
 	CheckServiceExistence(ctx context.Context, serviceCode, serviceKey, serviceName string) (bool, error)
 }
 
@@ -679,6 +680,15 @@ type LogisticsMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
+}
+
+type UssdMerchantRepository interface {
+	Create(ctx context.Context, data imodel.UssdMerchant) error
+	Update(ctx context.Context, id string, update bson.M) error
+	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
+	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
+	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
 }
 
 type AccessListSegmentationRepository interface {

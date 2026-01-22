@@ -35,7 +35,17 @@ func (t TierRequest) Validate() error {
 			return nil
 		})),
 		validation.Field(&t.FeeType, validation.Required, validation.In("PERCENT", "FLAT").Error("fee type must be either 'PERCENT' or 'FLAT'")),
-		validation.Field(&t.FeeAmount, validation.NotNil, validation.Min(0.0)),
+		validation.Field(
+			&t.FeeAmount,
+			validation.NotNil,
+			validation.Min(0.0),
+			validation.By(func(value interface{}) error {
+				if *t.FeeType == "PERCENT" && t.FeeAmount != nil && *t.FeeAmount > 100 {
+					return fmt.Errorf("fee amount cannot be greater than 100 percent when fee type is PERCENT")
+				}
+				return nil
+			}),
+		),
 	)
 }
 

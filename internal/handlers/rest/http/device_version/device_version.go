@@ -6,10 +6,14 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	common_utils "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
 
+	types "cbe-super-app-cps-action/internal/constants/types"
+
+	constants "cbe-super-app-cps-action/internal/constants"
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -40,6 +44,9 @@ func InitDeviceVersionAdapter(s service.DeviceVersionServiceSrv, logger utils.Lo
 func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	var req dvdto.CreateDeviceVersionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -66,8 +73,14 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[CreateDeviceVersion] request sent successfully for platform: %s", req.Platform)
-	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_CREATE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version create request submitted", Type: "success"}, nil)
+
+	if md.IsMakerOnly {
+		h.logger.Infof("[CreateDeviceVersion] request sent successfully for platform: %s", req.Platform)
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionCreateRequestSubmitted, nil)
+
+	}
 }
 
 // UpdateDeviceVersion
@@ -87,6 +100,10 @@ func (h *deviceVersionAdapter) CreateDeviceVersion(w http.ResponseWriter, r *htt
 func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -118,8 +135,14 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[UpdateDeviceVersion] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_UPDATE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version update request submitted", Type: "success"}, nil)
+
+	if md.IsMakerOnly {
+		h.logger.Infof("[UpdateDeviceVersion] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionUpdateRequestSubmitted, nil)
+
+	}
 }
 
 // GetAllDeviceVersions
@@ -159,7 +182,8 @@ func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *ht
 	}
 	span.SetAttributes(attribute.Int("device_version.count", len(res.Data)))
 	h.logger.Infof("[GetAllDeviceVersions] retrieved %d device versions", len(res.Data))
-	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSIONS_FETCHED", StatusCode: localization.StatusOK, Message: "Device versions fetched", Type: "success"}, res)
+	localization.SendSuccessResponse(w, localization.SuccessDeviceVersionsFetched, res)
+
 }
 
 // GetDeviceVersionByID
@@ -193,7 +217,8 @@ func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *ht
 		return
 	}
 	h.logger.Infof("[GetDeviceVersionByID] device version retrieved successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_FETCHED", StatusCode: localization.StatusOK, Message: "Device version fetched", Type: "success"}, res)
+	localization.SendSuccessResponse(w, localization.SuccessDeviceVersionFetched, res)
+
 }
 
 // Enable
@@ -213,6 +238,8 @@ func (h *deviceVersionAdapter) GetDeviceVersionByID(w http.ResponseWriter, r *ht
 func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -225,8 +252,13 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[Enable] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_ENABLE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version enable request submitted", Type: "success"}, nil)
+	if md.IsMakerOnly {
+		h.logger.Infof("[Enable] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionEnableRequestSubmitted, nil)
+
+	}
 }
 
 // Disable
@@ -246,6 +278,9 @@ func (h *deviceVersionAdapter) Enable(w http.ResponseWriter, r *http.Request) {
 func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableDeviceVersion", "handler", "deviceVersion")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if id == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -258,6 +293,11 @@ func (h *deviceVersionAdapter) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[Disable] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.ResponseCode{Code: "SUCCESS_DEVICE_VERSION_DISABLE_REQUEST_CREATED", StatusCode: localization.StatusOK, Message: "Device version disable request submitted", Type: "success"}, nil)
+	if md.IsMakerOnly {
+		h.logger.Infof("[Disable] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessDeviceVersionDisableRequestSubmitted, nil)
+
+	}
 }
