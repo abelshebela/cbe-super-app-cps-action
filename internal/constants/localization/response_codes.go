@@ -86,6 +86,8 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEcommerceMerchantsFetchedSuccessfully,
 	SuccessEcommerceMerchantLookup,
 
+	SuccessNotificationCreatted,
+
 	SuccessTopupEnableRequestSubmitted,
 	SuccessTopupEnabledSP,
 	SuccessTopupDisableRequestSubmitted,
@@ -2640,13 +2642,20 @@ var (
 	SuccessEcommerceMerchantLookup = ResponseCode{
 		Code:       "SUCCESS_ECOMMERCE_MERCHANT_LOOKUP",
 		StatusCode: StatusOK,
-		Message:    MsgEcommerceMerchantLookup,
+		Message:    "Notification created successfully",
 		Type:       "success",
 	}
 
 	// Notification related success response codes
 	SuccessNotificationCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATION_REQUEST_SUBMITTED",
+		StatusCode: StatusCreated,
+		Message:    MsgNotificationCreationRequestSubmitted,
+		Type:       "success",
+	}
+
+	SuccessNotificationCreatted = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgNotificationCreationRequestSubmitted,
 		Type:       "success",

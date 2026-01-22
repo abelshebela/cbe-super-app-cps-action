@@ -45,7 +45,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	n.kafkaProducer.PublishMessage(ctx, newNotification, string(constants.ClientOrchestrationNotificationTopic), string(constants.ClientOrchestrationNotificationTopic), "new notification created")
+	n.kafkaProducer.PublishMessage(ctx, newNotification, "new_notification_created", "new_notification_created", "new notification created")
 	return nil
 }
 
@@ -112,7 +112,7 @@ func (n *NotificationStorage) FindByID(ctx context.Context, id string) (*model.N
 
 func (n *NotificationStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Notification], error) {
 	searchKeys := bson.M{}
-	allowedKeys := []string{"is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
+	allowedKeys := []string{"search", "is_public", "notification_type", "notification_code", "for", "seen", "enabled", "title"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}

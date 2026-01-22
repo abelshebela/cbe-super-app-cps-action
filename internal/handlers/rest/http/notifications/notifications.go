@@ -1,8 +1,10 @@
 package notifications
 
 import (
+	"context"
 	"net/http"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/dto/notification"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
@@ -42,6 +44,10 @@ func InitNotificationHandler(svc service.NotificationService, logger utils.Logge
 func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "createNotification", "handler", "notification")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	req, ok := core.ParseAndValidateNotificationRequest(w, r, true)
 	if !ok {
 		return
@@ -66,6 +72,12 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
+		return
+	}
+
 	h.logger.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
 	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 }
