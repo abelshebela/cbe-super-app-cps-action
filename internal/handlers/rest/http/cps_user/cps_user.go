@@ -213,6 +213,19 @@ func (h *handler) GetAllCPSUsers(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	filterParasm := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	users, err := h.svc.GetAllCPSUsers(ctx, filterParasm)
 	if err != nil {
 		span.RecordError(err)

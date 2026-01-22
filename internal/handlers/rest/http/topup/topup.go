@@ -342,10 +342,24 @@ func (a *topupAdapter) GetTopup(w http.ResponseWriter, r *http.Request) {
 func (a *topupAdapter) GetAllTopup(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "topup", "topupAdapter", "GetAllTopup")
 	defer span.End()
-	filter := local_util.ExtractFilterParams(r)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	a.logger.Infof("fetching topups with filter: %+v", filter)
 
-	list, err := a.topupApp.GetAllTopup(ctx, *filter)
+	list, err := a.topupApp.GetAllTopup(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))
 		a.logger.Errorf("failed to fetch topups: %v", err)

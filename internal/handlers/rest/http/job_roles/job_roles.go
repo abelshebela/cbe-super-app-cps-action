@@ -31,8 +31,22 @@ func NewJobRoleHandler(service service.JobRoleService, logger utils.Logger) inbo
 }
 
 func (j *JobRoleHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	filter := common_utils.ExtractFilterParams(r)
-	resp, err := j.service.FindAllWithPagination(r.Context(), *filter)
+	filterParams := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	resp, err := j.service.FindAllWithPagination(r.Context(), *filterParams)
 	if err != nil {
 		j.logger.Errorf("[Roles][GetAll] service error: %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())

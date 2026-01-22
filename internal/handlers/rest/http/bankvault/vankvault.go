@@ -96,6 +96,20 @@ func (h *handler) FindAllBankVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "findAllBankVaults", "handler", "bankVault")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	result, err := h.service.FindAllBankVaults(ctx, params)
 	if err != nil {
 		span.RecordError(err)
@@ -381,6 +395,20 @@ func (h *handler) GetAllLockedBankVaults(w http.ResponseWriter, r *http.Request)
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllLockedBankVaults", "handler", "bankVault")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	result, err := h.service.FindAllBankLockedVaultsWithPagination(ctx, params)
 	if err != nil {
 		span.RecordError(err)
@@ -437,6 +465,20 @@ func (h *handler) GetAllGroupVaults(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllGroupVaults", "handler", "bankVault")
 	defer span.End()
 	params := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	results, err := h.service.FindAllGroupVaultsWithPagination(ctx, params)
 	if err != nil {
 		span.RecordError(err)

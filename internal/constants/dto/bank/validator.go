@@ -52,8 +52,8 @@ func validateLogo(value interface{}) error {
 		return errors.New(localization.ErrorBankImageMissingOrInvalid.Code)
 	}
 
-	if file.Size > (15 << 20) {
-		return validation.NewError("logo", localization.MsgFileTooLarge)
+	if file.Size > (10 << 20) {
+		return validation.NewError("logo", "file size exceeds 10MB limit")
 	}
 
 	return nil
