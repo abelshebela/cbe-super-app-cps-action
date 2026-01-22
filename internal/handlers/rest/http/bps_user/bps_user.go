@@ -324,20 +324,20 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Populate fields if not empty
-	if req.FullName != "" {
-		updatedUser.FullName = req.FullName
+	if req.FullName != nil {
+		updatedUser.FullName = *req.FullName
 	}
-	if req.PhoneNumber != "" {
-		updatedUser.PhoneNumber = req.PhoneNumber
+	if req.PhoneNumber != nil {
+		updatedUser.PhoneNumber = *req.PhoneNumber
 	}
-	if req.JobTitle != "" {
-		updatedUser.JobTitle = req.JobTitle
+	if req.JobTitle != nil {
+		updatedUser.JobTitle = *req.JobTitle
 	}
-	if req.UserID != "" {
-		updatedUser.Username = req.UserID
+	if req.UserID != nil {
+		updatedUser.Username = *req.UserID
 	}
-	if req.Email != "" {
-		updatedUser.Email = req.Email
+	if req.Email != nil {
+		updatedUser.Email = *req.Email
 	}
 	// if req.Role != "" {
 	// 	updatedUser.Role = req.Role

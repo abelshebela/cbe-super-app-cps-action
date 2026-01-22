@@ -120,7 +120,7 @@ func (s *DonationCategoryStorage) FindAllWithPagination(ctx context.Context, fil
 	// 3. Add search (if provided)
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{{"category_name": searchRegex, "enabled": searchRegex}}
+		searchKeys["$or"] = []bson.M{{"category_name": searchRegex}}
 	}
 
 	projection := bson.M{}
