@@ -45,7 +45,7 @@ func (n *NotificationStorage) Create(ctx context.Context, notification *model.No
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	n.kafkaProducer.PublishMessage(ctx, newNotification, "new_notification_created", "new_notification_created", "new notification created")
+	n.kafkaProducer.PublishMessage(ctx, newNotification, "new_notification_created", "inapp-notifications", "new notification created")
 	return nil
 }
 
