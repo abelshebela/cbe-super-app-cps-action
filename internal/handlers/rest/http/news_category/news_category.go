@@ -113,6 +113,20 @@ func (n NewsCategoryHandler) DeleteNewsCategory(w http.ResponseWriter, r *http.R
 //	@Router			/news/category [get]
 func (n NewsCategoryHandler) FetchNewsCategories(w http.ResponseWriter, r *http.Request) {
 	filterPtr := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	ftr := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(ftr); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	filter := *filterPtr
 
 	if filter.Page < 0 || filter.PerPage < 0 {

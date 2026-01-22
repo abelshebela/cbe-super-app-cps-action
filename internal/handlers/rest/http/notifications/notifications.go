@@ -296,6 +296,20 @@ func (h *handler) FetchNotifications(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	// Assuming a utility to parse query into types.Filter exists; pass empty for now
 	filterParams := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	data, err := h.service.FetchNotifications(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)

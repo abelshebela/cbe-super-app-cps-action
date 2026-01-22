@@ -12,6 +12,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/types"
 
 	constants "cbe-super-app-cps-action/internal/constants"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -216,6 +217,19 @@ func (b *budgetCategoryAdapter) GetAllBudgetCategories(w http.ResponseWriter, r 
 	ctx, span := common_util.TraceLogger(r.Context(), "handler", "getAllBudgetCategories", "handler", "budgetCategory")
 	defer span.End()
 	filterParams := common_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	budgetCategories, err := b.budgetCategoryApplication.FetchBudgetCategory(ctx, filterParams)
 	if err != nil {

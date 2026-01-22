@@ -86,6 +86,20 @@ func (c *customerKYCAdapter) GetAllKYCRequests(w http.ResponseWriter, r *http.Re
 	defer span.End()
 
 	filterParam := util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	res, err := c.svc.FindAllWithPagination(ctx, filterParam)
 	if err != nil {
 		c.logger.Errorf("[GetAllKYCRequests] failed to fetch KYC requests: %v", err)

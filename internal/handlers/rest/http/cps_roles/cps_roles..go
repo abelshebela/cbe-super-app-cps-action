@@ -75,6 +75,19 @@ func (c *cpsRolesHandler) UpdateCPSRole(w http.ResponseWriter, r *http.Request) 
 func (c *cpsRolesHandler) GetAllCPSRoles(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	roles, err := c.svc.FindAllWithPagination(r.Context(), filterParams)
 	if err != nil {
 		c.logger.Errorf("[GetAllCPSRoles] service error: %v", err)

@@ -49,6 +49,19 @@ func (p *passwordRuleHandler) GetPasswordRule(w http.ResponseWriter, r *http.Req
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	passwordRules, err := p.service.GetAllPasswordRules(ctx, *filterParams)
 	if err != nil {
 		span.AddEvent("Service error", trace.WithAttributes(attribute.String("error", err.Error())))

@@ -328,10 +328,24 @@ func (a *eventAdapter) FetchEventByID(w http.ResponseWriter, r *http.Request) {
 func (a *eventAdapter) FetchEvents(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "fetchEvents", "handler", "event")
 	defer span.End()
-	filter := local_util.ExtractFilterParams(r)
-	a.logger.Infof("fetching events with filter: %+v", filter)
+	filterParams := local_util.ExtractFilterParams(r)
 
-	list, err := a.eventApp.FetchEvent(ctx, *filter)
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	a.logger.Infof("fetching events with filter: %+v", filterParams)
+
+	list, err := a.eventApp.FetchEvent(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
 		a.logger.Errorf("failed to fetch events: %v", err)
