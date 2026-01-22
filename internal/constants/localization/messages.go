@@ -13,6 +13,7 @@ const (
 	MsgAvatarEnabledSuccessfully   = "Avatar enable request sent successfully"
 	MsgAvatarEnabledSuccessfullySP = "Avatar enabled successfully"
 
+	MsgServiceNotFound              = "Service not found"
 	MsgAvatarDisabledSuccessfully   = "Avatar diabled request sent successfully"
 	MsgAvatarDisabledSuccessfullySP = "Avatar disabled successfully"
 
@@ -530,7 +531,7 @@ const (
 	MsgInvalidEmail                 = "Invalid email format"
 	MsgInvalidPhoneNumber           = "Invalid phone number format"
 	MsgExistEmail                   = "BPS user with this email already exist"
-	MsgExistUser                    = "BPS user with this email already exist"
+	MsgExistUser                    = "BPS user with this already exist"
 
 	MsgExistEmailBpsUser = "BPS user with this email already exist"
 
@@ -566,6 +567,7 @@ const (
 	MsgNetworkError                = "Network error occurred"
 	MsgTimeoutError                = "Request timeout occurred"
 	MsgUnexpectedError             = "An unexpected error occurred"
+	MsgMerchantAlreadyExist        = "Merchant data already exist"
 	MsgConfigurationError          = "Configuration error"
 	MsgExternalServiceError        = "External service error"
 
@@ -653,7 +655,7 @@ const (
 
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
-	MsgCPSActionNotFound             = "CPS action not found"
+	MsgCPSActionNotFound             = "action name not found"
 	MsgBpsUserAlreadyEnabled         = "User already enabled"
 	MsgBpsUserAlreadyDisabled        = "User already disabled"
 	MsgCPSActionNotPending           = "Action is not in pending status"
@@ -838,6 +840,7 @@ const (
 	MsgInvalidInput                     = "Invalid input provided"
 	MsgMissingRequiredFields            = "Missing required fields"
 	MsgResourceNotFound                 = "Resource not found"
+	MsgActionNameNotFound               = "Action list name not found"
 	MsgActionNameAlreadyExists          = "Action name already exists"
 	MsgOnDisablingExistingDeviceControl = "Failed to disable existing device control"
 	MsgResourceAlreadyExists            = "Resource already exists"
@@ -1251,6 +1254,17 @@ const (
 	MsgLogisticMerchantUpdatedSuccessfully  = "logistic merchant updated successfully"
 	MsgLogisticMerchantDeletedSuccessfully  = "logistic merchant deleted successfully"
 	MsgLogisticMerchantFetchedSuccessfully  = "logistic merchant fetched successfully"
+
+	// ussd merchant request type
+	MsgUssdMerchantFetchedSuccessfully               = "Ussd merchant fetched successfully"
+	MsgUssdMerchantDisableRequestCreatedSuccessfully = "Ussd merchant disable request created successfully"
+	MsgUssdMerchantDisabledSuccessfully              = "Ussd merchant disabled successfully"
+	MsgUssdMerchantEnableRequestCreatedSuccessfully  = "Ussd merchant enable request created successfully"
+	MsgUssdMerchantEnabledSuccessfully               = "Ussd merchant enabled successfully"
+	MsgUssdMerchantUpdateRequestCreatedSuccessfully  = "Ussd merchant update request created successfully"
+	MsgUssdMerchantUpdatedSuccessfully               = "Ussd merchant updated successfully"
+	MsgUssdMerchantCreatedSuccessfully               = "Ussd merchant created successfully"
+	MsgUssdMerchantRequestCreatedSuccessfully        = "Ussd merchant request created successfully"
 
 	// access list segmentation related messages
 	MsgAccessListSegmentationCreatedSuccessfully    = "Access list segmentation create request sent successfully"

@@ -27,6 +27,7 @@ type CPSAction struct {
 	ActionStatus        string        `bson:"action_status" json:"action_status,omitempty"`
 	ActionType          string        `bson:"action_type" json:"action_type,omitempty"`
 	IsDeleted           bool          `bson:"is_deleted" json:"is_deleted,omitempty"`
+	Version             int64         `json:"version" bson:"version"`
 	RequestAction       string        `bson:"request_action" json:"request_action"`
 	ReversedByRoleID    string        `bson:"reversed_by_role_id" json:"reversed_by_role_id,omitempty"`
 	ReversedByID        string        `bson:"reversed_by_id" json:"reversed_by_id,omitempty"`
