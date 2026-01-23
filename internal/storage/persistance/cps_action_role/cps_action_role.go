@@ -420,13 +420,14 @@ func (r *CPSActionRoleRepository) FindAllWithPagination(
 	// Build search filter
 	// ----------------------------------
 	searchKeys := bson.M{}
-	allowedKeys := []string{"action_code", "action_name", "enabled"}
+	allowedKeys := []string{"action_code", "action_name", "portal_card_name", "enabled"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"action_code": searchRegex},
-			{"action_name": searchRegex},
+			{"action_code": searchRegex, "$options": "i"},
+			{"action_name": searchRegex, "$options": "i"},
+			{"portal_card_name": searchRegex, "$options": "i"},
 		}
 	}
 
