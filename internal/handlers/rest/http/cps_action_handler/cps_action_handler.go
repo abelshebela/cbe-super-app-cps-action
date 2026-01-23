@@ -15,6 +15,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"strings"
 	"time"
@@ -717,7 +718,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 
 func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-
+	var allocation []string
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -759,10 +760,16 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		return
 	}
 
+	for _, v := range auditorAllocations {
+		if slices.Contains(allocation, v) {
+			continue
+		}
+		allocation = append(allocation, v)
+	}
 	// resolve action_names -> request_actions
 	var reqs []string
 	seen := map[string]struct{}{}
-	for _, mod := range auditorAllocations {
+	for _, mod := range allocation {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
 			for _, ra := range lst {

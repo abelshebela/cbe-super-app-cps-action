@@ -616,6 +616,17 @@ func (r *CPSActionRoleRepository) FindByActionName(ctx context.Context, actionNa
 	return roleData, nil
 }
 
+func (r *CPSActionRoleRepository) FindByActionNameAndPortalCard(ctx context.Context, actionName, portalCard string) (*imodel.CPSActionRole, error) {
+
+	roleData, err := r.mongoDal.FindOne(ctx, bson.M{"action_name": actionName, "portal_card_name": portalCard}, bson.M{})
+	if err != nil {
+		r.logger.Errorf("error finding role by action name: %v error: %v", actionName, err)
+		return nil, err
+	}
+
+	return roleData, nil
+}
+
 func (r *CPSActionRoleRepository) FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.CPSActionApproveIndex, error) {
 	approverModal, err := r.approverDal.FindOne(ctx, bson.M{"action_name": actionName, "role_id": role_code}, bson.M{})
 	if err != nil {
