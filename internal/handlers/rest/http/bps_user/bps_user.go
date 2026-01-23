@@ -256,7 +256,6 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		Email:            req.Email,
 		FirstPasswordSet: true,
 		Enabled:          false,
-		IsFirstTimeLogin: true,
 	}
 
 	err := h.Service.CreateBPSUser(ctx, NewUser)

@@ -120,6 +120,7 @@ func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) erro
 	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
 	req.CreatedAt = time.Now()
 	req.LastModifiedAt = time.Now()
+	req.IsFirstTimeLogin = true
 	// Save the new user
 	_, err := b.dal.InsertOne(ctx, req)
 	if err != nil {
