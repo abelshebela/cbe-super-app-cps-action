@@ -66,6 +66,7 @@ import (
 	cps_roles "cbe-super-app-cps-action/internal/storage/persistance/cps_roles"
 	"cbe-super-app-cps-action/internal/storage/persistance/customer"
 	persistence_kyc "cbe-super-app-cps-action/internal/storage/persistance/customer_kyc"
+	ussd_merchant_repo "cbe-super-app-cps-action/internal/storage/persistance/ussd_merchant"
 
 	"github.com/hugokessem/coreio/core"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
@@ -144,6 +145,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		CPSRoles:                          cps_roles.NewCPSRolesStorage(client, cfg, dbName, CPSRolesCollection, logger),
 		LogisticsMerchantPersistence:      logistics_merchant_repository.NewLogisticsMerchantRepository(client, cfg, dbName, LogisticsMerchantsCollection, logger),
 		CustomerKYCPersistence:            persistence_kyc.NewCustomerKYCRepository(client, cfg, dbName, FaydaKYCollection, logger),
+		UssdMerchantPersistence:           ussd_merchant_repo.NewUssdMerchant(*client, dbName, UssdMerchantCollection, cfg, logger),
 	}
 
 	return data

@@ -1,0 +1,236 @@
+package ussd_merchant
+
+import (
+	"cbe-super-app-cps-action/internal/constants"
+	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
+	ussd_merchant_interface "cbe-super-app-cps-action/internal/constants/interfaces/ussd_merchant"
+	localization "cbe-super-app-cps-action/internal/constants/localization"
+	"cbe-super-app-cps-action/internal/constants/types"
+	"cbe-super-app-cps-action/internal/handlers/rest/http/ussd_merchant/core"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
+	"mime/multipart"
+
+	"cbe-super-app-cps-action/internal/service"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
+)
+
+type UssdMerchantHandler struct {
+	UssdMerchantService service.UssdMerchantService
+	Logger              utils.Logger
+}
+
+func NewUssdMerchantHandler(ussdMerchantService service.UssdMerchantService, logger utils.Logger) ussd_merchant_interface.UssdMerchantInbound {
+	return &UssdMerchantHandler{
+		UssdMerchantService: ussdMerchantService,
+		Logger:              logger,
+	}
+}
+
+func (u *UssdMerchantHandler) CreateUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "CreateUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	var CreateDto ussd_merchant_dto.CreateUssdMerchantRequest
+	file, fileHeader, err := core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
+	if err != nil {
+		span.RecordError(err)
+		u.Logger.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+		return
+	}
+	defer file.Close()
+
+	CreateDto.SettlementMethod = r.FormValue("settlement_method")
+	CreateDto.Name = r.FormValue("name")
+	CreateDto.PhoneNumber = local_util.FormatPhoneNumber(r.FormValue("phone_number"))
+	CreateDto.Service = r.FormValue("service")
+	CreateDto.Email = r.FormValue("email")
+	CreateDto.AccountNumber = r.FormValue("account_number")
+	CreateDto.Logo = fileHeader
+
+	if err := CreateDto.Validate(); err != nil {
+		u.Logger.Errorf("[CreateUssdMerchantHandler] validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	if err := u.UssdMerchantService.CreateUssdMerchant(ctx, CreateDto); err != nil {
+		u.Logger.Errorf("[CreateUssdMerchantHandler] failed to create ussd merchant error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		u.Logger.Infof("[CreateUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantCreated, nil)
+		return
+	}
+
+	u.Logger.Infof("[CreateUssdMerchantHandler] successfully created ussd merchant")
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantRequestCreated, "Ussd merchant created successfully")
+}
+
+func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+	var fileHeader *multipart.FileHeader
+	var file multipart.File
+	var err error
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		u.Logger.Errorf("[UpdateUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	var req ussd_merchant_dto.UpdateUssdMerchantRequest
+	if req.Logo != nil {
+		file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
+		if err != nil {
+			span.RecordError(err)
+			u.Logger.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
+			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+			return
+		}
+		defer file.Close()
+	}
+
+	req.SettlementMethod = r.FormValue("settlement_method")
+	req.Name = r.FormValue("name")
+	req.PhoneNumber = local_util.FormatPhoneNumber(r.FormValue("phone_number"))
+	req.Service = r.FormValue("service")
+	req.Email = r.FormValue("email")
+	req.AccountNumber = r.FormValue("account_number")
+	if req.Logo != nil {
+		req.Logo = fileHeader
+	}
+
+	// Handle optional logo via multipart if present and validate
+
+	if err := req.Validate(); err != nil {
+		u.Logger.Errorf("[UpdateUssdMerchantHandler] validation failed: %v", err)
+		localization.SendBadRequestResponse(w, err.Error())
+		return
+	}
+
+	if req.PhoneNumber != "" {
+		req.PhoneNumber = local_util.FormatPhoneNumber(req.PhoneNumber)
+	}
+
+	if err := u.UssdMerchantService.UpdateUssdMerchant(ctx, id, req); err != nil {
+		u.Logger.Errorf("[UpdateUssdMerchantHandler] failed to update ussd merchant: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		u.Logger.Infof("[UpdateUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantUpdated, nil)
+		return
+	}
+
+	u.Logger.Infof("[UpdateUssdMerchantHandler] successfully updated ussd merchant")
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantUpdateRequestCreated, nil)
+}
+func (u *UssdMerchantHandler) EnableUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "EnableUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		u.Logger.Errorf("[EnableUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	if err := u.UssdMerchantService.EnableUssdMerchant(ctx, id); err != nil {
+		u.Logger.Errorf("[EnableUssdMerchantHandler] failed to enable ussd merchant: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		u.Logger.Infof("[EnableUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnabled, nil)
+		return
+	}
+
+	u.Logger.Infof("[EnableUssdMerchantHandler] successfully updated ussd merchant")
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantEnableRequestCreated, nil)
+}
+func (u *UssdMerchantHandler) DisableUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "DisableUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		u.Logger.Errorf("[DisableUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidInputParameters.Code)
+		return
+	}
+
+	if err := u.UssdMerchantService.DisableUssdMerchant(ctx, id); err != nil {
+		u.Logger.Errorf("[DisableUssdMerchantHandler] failed to enable ussd merchant: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if md.IsMakerOnly {
+		u.Logger.Infof("[DisableUssdMerchantHandler] request sent successfully: is_maker_only: %v", md.IsMakerOnly)
+		localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDisabled, nil)
+		return
+	}
+
+	u.Logger.Infof("[DisableUssdMerchantHandler] successfully updated ussd merchant")
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantDisableRequestCreated, nil)
+}
+func (u *UssdMerchantHandler) GetUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		u.Logger.Errorf("[GetUssdMerchantHandler] missing id parameter in request path")
+		localization.SendErrorByCodeResponse(w, localization.ErrorInvalidID.Code)
+		return
+	}
+
+	result, err := u.UssdMerchantService.GetUssdMerchantByID(ctx, id)
+	if err != nil {
+		u.Logger.Errorf("[GetUssdMerchantHandler] failed to fetch ussd merchant: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantFetched, result)
+}
+func (u *UssdMerchantHandler) GetAllUssdMerchant(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "GetAllUssdMerchantHandler", "handler", "ussdMerchant")
+	defer span.End()
+
+	filter := local_util.ExtractFilterParams(r)
+	result, err := u.UssdMerchantService.FindAllWithPagination(ctx, filter)
+	if err != nil {
+		u.Logger.Errorf("[GetAllUssdMerchantHandler] failed to list ussd merchants: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessUssdMerchantFetched, result)
+}
