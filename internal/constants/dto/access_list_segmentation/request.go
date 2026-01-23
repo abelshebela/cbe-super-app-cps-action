@@ -3,13 +3,13 @@ package access_list_segmentation_dto
 import "time"
 
 type CreateAccessListSegmentationRequest struct {
-	AccessListKeys  []string `json:"access_list_keys" bson:"access_list_keys" validate:"required"`
-	SegmentType     string   `json:"segment_type" bson:"segment_type" validate:"required,oneof=R D C U B"`
-	SegmentCode     string   `json:"segment_code" bson:"segment_code" validate:"required"`
-	SegmentName     string   `json:"segment_name" bson:"segment_name" validate:"required"`
-	AccessListNames []string `json:"access_list_names" bson:"access_list_names" validate:"required"`
-	SegmentedID     string   `json:"segmented_id" bson:"segmented_id" validate:"required"`
-	Type            string   `json:"type" bson:"type" validate:"required,oneof=R D C U"`
+	AccessListKeys  []string `json:"access_list_keys" bson:"access_list_keys" validate:"required"`   //the service which is being segmented NB: we actually work on a separate collection called access_list_segmentation rather than services
+	AccessListNames []string `json:"access_list_names" bson:"access_list_names" validate:"required"` //the service names which is being segmented
+	SegmentCode     string   `json:"segment_code" bson:"segment_code" validate:"required"`           //for type account or by account type
+	SegmentName     string   `json:"segment_name" bson:"segment_name" validate:"required"`           //for type account or by account type
+	SegmentedID     string   `json:"segmented_id" bson:"segmented_id" validate:"required"`           //id of the region, district, country,branch
+	SegmentType     string   `json:"segment_type" bson:"segment_type" validate:"required,oneof=Account Block"`
+	Type            string   `json:"type" bson:"type" validate:"required,oneof=R D C B"`
 }
 
 type EnableDisableAccessListSegmentationRequest struct {
