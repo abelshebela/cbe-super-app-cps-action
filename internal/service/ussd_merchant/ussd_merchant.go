@@ -193,6 +193,7 @@ func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string,
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateUssdMerchantService", "UssdMerchant", "Update")
 	defer span.End()
 	var URL string
+	var existing imodel.UssdMerchant
 
 	makerData := local_util.ExtractUserFromContext(ctx)
 	if local_util.IsIncomplete(makerData) {
@@ -206,10 +207,16 @@ func (s *ussdMerchantService) UpdateUssdMerchant(ctx context.Context, id string,
 		return err
 	}
 
-	existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
-	if err != nil {
-		s.logger.Errorf("[CreateUssdMerchant] error whil checking existing information error: %v", err)
-		return err
+	if req.PhoneNumber != "" || req.Email != "" || req.AccountNumber != "" {
+		existing, err := s.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.AccountNumber)
+		if err != nil {
+			s.logger.Errorf("[UpdateUssdMerchantService] error whil checking existing information error: %v", err)
+			return err
+		}
+		if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
+			s.logger.Infof("[UpdateUssdMerchantService] the entered data is already existed error: %v", err)
+			return err
+		}
 	}
 
 	if req.Service != "" && !strings.EqualFold(req.Service, prevMerchant.Service) {

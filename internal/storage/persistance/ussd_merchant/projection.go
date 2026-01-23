@@ -14,7 +14,7 @@ func ResponseMapper(data imodel.UssdMerchant) ussd_merchant_dto.UssdMerchantResp
 		Service:          data.Service,
 		AccountNumber:    data.AccountNumber,
 		Logo:             data.Logo,
-		SettlementMethod: data.SettlementMethod,
+		SettlementMethod: string(data.SettlementMethod),
 		Enabled:          data.Enabled,
 		CreatedAt:        data.CreatedAt,
 	}
