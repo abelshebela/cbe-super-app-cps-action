@@ -3,9 +3,11 @@ package bpsuser
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // type FullName struct {
@@ -106,3 +108,40 @@ func (r *BPSUserUpdateRequest) Validate() error {
 // 		validation.Field(&r.BranchCode, validation.Required),
 // 	)
 // }
+
+type BPSUserResposenDTO struct {
+	ID                bson.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserCode          string        `json:"user_code" bson:"user_code"` // generated
+	FullName          string        `json:"full_name" bson:"full_name"`
+	Username          string        `json:"username" bson:"username"`
+	Email             string        `json:"email" bson:"email"`
+	PhoneNumber       string        `json:"phone_number" bson:"phone_number"`
+	BranchCode        []string      `json:"branch_code" bson:"branch_code"` // enum: IFB, CB
+	BranchName        string        `json:"branch_name" bson:"branch_name"`
+	HomeBranch        string        `json:"home_branch" bson:"home_branch"`
+	Role              string        `json:"role" bson:"role"`   // enum: Maker, Checker, Aduditer
+	Realm             string        `json:"realm" bson:"realm"` // default: bank
+	LoginAttemptCount uint8         `json:"login_attempt_count" bson:"login_attempt_count"`
+	FirstPasswordSet  bool          `json:"first_password_set" bson:"first_password_set"`
+	Enabled           bool          `json:"enabled" bson:"enabled"`
+	IsDeleted         bool          `json:"is_deleted" bson:"is_deleted"`
+	OTPVerifyCount    uint8         `json:"otp_verfy_count" bson:"otp_verify_count"`
+	OTPLastTriedAt    time.Time     `json:"otp_last_tried_at" bson:"otp_last_tried_at"`
+	JobTitle          string        `json:"job_title" bson:"job_title"`
+	OTPLastVerifiedAt time.Time     `json:"otp_last_verified_at" bson:"otp_last_verified_at"`
+	Password          Password      `json:"login_password" bson:"login_password"`
+	IsFirstTimeLogin  bool          `json:"is_first_time_login" bson:"is_first_time_login"`
+	LastLoginAttempt  time.Time     `json:"last_login_attempt" bson:"last_login_attempt"`
+	NextLoginAttempt  time.Time     `json:"next_login_attempt" bson:"next_login_attempt"`
+	LastLogin         time.Time     `json:"last_login" bson:"last_login"`
+	CreatedAt         time.Time     `json:"created_at" bson:"created_at,omitempty"`
+	LastModifiedAt    time.Time     `json:"last_modifed_at" bson:"last_modifed_at,omitempty"`
+	UserRole          string        `json:"user_role" bson:"user_role"`
+}
+
+type Password struct {
+	Salt             string    `json:"salt" bson:"salt"`
+	CurrentPassword  string    `json:"current_password" bson:"current_password"`
+	OldPassword      [4]string `json:"old_password" bson:"old_password,omitempty"`
+	PasswordChangeAt time.Time `json:"password_changed_at" bson:"password_changed_at"`
+}

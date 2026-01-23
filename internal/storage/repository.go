@@ -35,6 +35,7 @@ import (
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 
+	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -200,7 +201,7 @@ type AvatarRepository interface {
 // BPSUser persistence
 type BPSUserRepository interface {
 	GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_user_dto.BPSUserResposenDTO], error)
 	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
 	Create(ctx context.Context, BpsUser bps_model.BPSUser) error
 	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
