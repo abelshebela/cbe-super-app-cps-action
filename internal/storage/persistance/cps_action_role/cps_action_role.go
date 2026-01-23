@@ -49,8 +49,12 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["action_name"] = searchRegex
-		searchKeys["action_code"] = searchRegex
+
+		searchKeys["$or"] = []bson.M{
+			{"action_name": searchRegex, "$options": "i"},
+			{"action_code": searchRegex, "$options": "i"},
+			{"portal_card_name": searchRegex, "$options": "i"},
+		}
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
