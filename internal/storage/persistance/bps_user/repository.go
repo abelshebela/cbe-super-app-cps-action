@@ -7,6 +7,9 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
+
+	// "time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/local_model"
 
@@ -110,11 +113,13 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 }
 
 func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) error {
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
 	defer span.End()
 
 	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
-
+	req.CreatedAt = time.Now()
+	req.LastModifiedAt = time.Now()
 	// Save the new user
 	_, err := b.dal.InsertOne(ctx, req)
 	if err != nil {

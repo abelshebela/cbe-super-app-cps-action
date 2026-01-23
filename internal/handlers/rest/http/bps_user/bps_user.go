@@ -246,7 +246,6 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userCodeGenerated := local_utils.RandomGenerator(8)
 
-	now := time.Now()
 	NewUser := bps_model.BPSUser{
 		Username:         req.UserID,
 		FullName:         req.FullName,
@@ -255,11 +254,9 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber:      req.PhoneNumber,
 		BranchCode:       req.BranchCode,
 		Email:            req.Email,
-		CreatedAt:        now,
-		LastModifiedAt:   now,
 		FirstPasswordSet: true,
-
-		Enabled: false,
+		Enabled:          false,
+		IsFirstTimeLogin: true,
 	}
 
 	err := h.Service.CreateBPSUser(ctx, NewUser)
