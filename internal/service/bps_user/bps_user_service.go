@@ -318,36 +318,52 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 	}
 
 	// Optionally, check for unique constraints (e.g., phone number)
-	if updatedUser.PhoneNumber != "" && updatedUser.PhoneNumber != existingUser.PhoneNumber {
-		phoneUser, err := b.repo.FindByFilterKey(ctx, "phone_number", updatedUser.PhoneNumber)
-		if err == nil && phoneUser != nil {
-			b.logger.Errorf("[UpdateBPSUser] phone number already exists: %s", updatedUser.PhoneNumber)
-			return errors.New(localization.ErrorExistPhoneNumber.Code)
+	if updatedUser.PhoneNumber != "" {
+		if updatedUser.PhoneNumber != "" && updatedUser.PhoneNumber != existingUser.PhoneNumber {
+			phoneUser, err := b.repo.FindByFilterKey(ctx, "phone_number", updatedUser.PhoneNumber)
+			if err != nil {
+				b.logger.Errorf("[updateBPSUser]error while looking user by phone:%s", err)
+				return errors.New(localization.ErrorInternalServerError.Code)
+			} else if phoneUser != nil {
+				b.logger.Errorf("[UpdateBPSUser] phone number already exists: %s", updatedUser.PhoneNumber)
+				return errors.New(localization.ErrorExistPhoneNumber.Code)
+			}
 		}
 	}
 
-	roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.JobTitle)
-	// Build CPS action model for updateroles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.HomeBranch)
-	if err != nil {
-		b.logger.Errorf("[UpdateBPSUser] error finding role for job_title: %s, err: %v", updatedUser.HomeBranch, err)
-		return errors.New(localization.ErrorRoleNotFound.Code)
+	if updatedUser.JobTitle != "" {
+		roles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.JobTitle)
+		// Build CPS action model for updateroles, err := b.roles_repo.FindByFilterKey(ctx, "job_title", updatedUser.HomeBranch)
+		if err != nil {
+			b.logger.Errorf("[UpdateBPSUser] error finding role for job_title: %s, err: %v", updatedUser.HomeBranch, err)
+			return errors.New(localization.ErrorRoleNotFound.Code)
+		} else if roles == nil {
+			b.logger.Errorf("[UpdateBPSUser] no role find by given job_title : %s", updatedUser.JobTitle)
+			return errors.New(localization.ErrorRoleNotExistWithGivenJobTitle.Code)
+
+		}
+	}
+	if updatedUser.Email != "" {
+		existingUserByEmail, err := b.repo.FindByFilterKey(ctx, "email", updatedUser.Email)
+		if err != nil {
+			b.logger.Errorf("[updateBPSUser] err finding bps user by email: %s : error : %s", updatedUser.Email, err)
+			return errors.New(localization.ErrorInternalServerError.Code)
+		} else if existingUserByEmail != nil {
+			b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
+			return errors.New(localization.ErrorExistEmail.Code)
+		}
 	}
 
-	existingUserByEmail, err := b.repo.FindByFilterKey(ctx, "email", updatedUser.Email)
-	if existingUserByEmail != nil {
-		b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
-		return errors.New(localization.ErrorExistEmail.Code)
+	if updatedUser.Username != "" {
+		existingUserByUsername, err := b.repo.FindByFilterKey(ctx, "username", updatedUser.Username)
+		if err != nil {
+			b.logger.Errorf("[UpdateBPSUser] error while looking BPS user with given Username : %s : error: %s", updatedUser.Username, err)
+		} else if existingUserByUsername != nil && userID != existingUserByUsername.ID.Hex() {
+			b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
+			return errors.New(localization.ErrorExistUserNameBPS.Code)
+		}
 	}
 
-	existingUserByUsername, err := b.repo.FindByFilterKey(ctx, "username", updatedUser.Username)
-	if existingUserByUsername != nil && userID != existingUserByUsername.ID.Hex() {
-		b.logger.Errorf("[UpdateBPSUser] existing user with given user name: %s", updatedUser.Email)
-		return errors.New(localization.ErrorExistUserNameBPS.Code)
-	}
-
-	if roles == nil {
-		return errors.New(localization.ErrorRoleNotExistWithGivenJobTitle.Code)
-	}
 	// updatedUser.Role = roles.Role
 	cpsActionModel := lib.CpsModelBuilder(
 		existingUser.ID.Hex(),                  // unique id
