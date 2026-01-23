@@ -318,6 +318,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 			{"action_type": searchRegex},
 			{"request_action": searchRegex},
 		}
+
 	}
 
 	dynamicFilter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
@@ -328,9 +329,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	}
 	delete(dynamicFilter, "created_at")
 	filter := dynamicFilter
-	filter["request_action"] = bson.M{"$in": RAList}
-	filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 
+	if RAList != nil {
+		RAList = local_utils.RemoveDuplicates(RAList)
+	} else {
+		RAList = []string{}
+	}
+	filter["request_action"] = bson.M{"$in": RAList}
+
+	filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
 	pipeline := mongo.Pipeline{
 		{{Key: "$match", Value: filter}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},

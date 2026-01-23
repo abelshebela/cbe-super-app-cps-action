@@ -113,6 +113,19 @@ func (h BPSUserHandler) GetAllBPSUsers(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	filterParams := common_utils.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	users, err := h.Service.GetAllBPSUsers(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
@@ -246,7 +259,6 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userCodeGenerated := local_utils.RandomGenerator(8)
 
-	now := time.Now()
 	NewUser := bps_model.BPSUser{
 		Username:         req.UserID,
 		FullName:         req.FullName,
@@ -255,11 +267,8 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber:      req.PhoneNumber,
 		BranchCode:       req.BranchCode,
 		Email:            req.Email,
-		CreatedAt:        now,
-		LastModifiedAt:   now,
 		FirstPasswordSet: true,
-
-		Enabled: false,
+		Enabled:          true,
 	}
 
 	err := h.Service.CreateBPSUser(ctx, NewUser)
@@ -324,20 +333,20 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Populate fields if not empty
-	if req.FullName != "" {
-		updatedUser.FullName = req.FullName
+	if req.FullName != nil {
+		updatedUser.FullName = *req.FullName
 	}
-	if req.PhoneNumber != "" {
-		updatedUser.PhoneNumber = req.PhoneNumber
+	if req.PhoneNumber != nil {
+		updatedUser.PhoneNumber = *req.PhoneNumber
 	}
-	if req.JobTitle != "" {
-		updatedUser.JobTitle = req.JobTitle
+	if req.JobTitle != nil {
+		updatedUser.JobTitle = *req.JobTitle
 	}
-	if req.UserID != "" {
-		updatedUser.Username = req.UserID
+	if req.UserID != nil {
+		updatedUser.Username = *req.UserID
 	}
-	if req.Email != "" {
-		updatedUser.Email = req.Email
+	if req.Email != nil {
+		updatedUser.Email = *req.Email
 	}
 	// if req.Role != "" {
 	// 	updatedUser.Role = req.Role

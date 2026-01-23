@@ -15,12 +15,6 @@ import (
 )
 
 func ParseMultipartFormFile(r *http.Request, key string, maxMemory int64, action string, logger utils.Logger) (multipart.File, *multipart.FileHeader, error) {
-	// if !strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-	// 	return nil, nil, fmt.Errorf("%s", localization.MsgFileNotFound)
-	// }
-	// if err := r.ParseMultipartForm(maxMemory); err != nil {
-	// 	return nil, nil, fmt.Errorf("failed to parse multipart form: %w", err)
-	// }
 
 	file, fileHeader, err := local_util.ParseMultipartFormFile(r, "logo", int64(constants.MaxMemoryForUpload))
 	if err != nil {

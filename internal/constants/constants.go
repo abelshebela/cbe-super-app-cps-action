@@ -8,8 +8,18 @@ import (
 
 type ContextKey string
 type Platform string
+type SettlementMethod string
 
 const (
+	SettlementMethodDirect       SettlementMethod = "DIRECT"
+	SettlementMethodGL           SettlementMethod = "GL"
+	SettlementMethodMultiAccount SettlementMethod = "MULTI_ACCOUNT"
+)
+
+const (
+	// Unique Separator
+
+	UssdMerchant = "USSDM_"
 	// MESSAGE GROUP
 	UpdateApp           = "Update your app"
 	DeviceFound         = "Device Successfuly Found"
@@ -26,6 +36,7 @@ const (
 	OTPLength                           = 6
 	DEV                                 = "dev"
 	UAT                                 = "uat"
+	Cred                                = "Credential"
 	Password                            = "PASSWORD"
 	Login                               = "LOGIN"
 	Change                              = "CHANGE"
@@ -250,6 +261,13 @@ const (
 	RequestDeleteRole  string = "DELETE_ROLE"
 	RequestEnableRole  string = "ENABLE_ROLE"
 	RequestDisableRole string = "DISABLE_ROLE"
+
+	// USSD
+	RequestCreateUssdMerchant  string = "CREATE_USSD_MERCHANT"
+	RequestUpdateUssdMerchant  string = "UPDATE_USSD_MERCHANT"
+	RequestDeleteUssdMerchant  string = "DELETE_USSD_MERCHANT"
+	RequestEnableUssdMerchant  string = "ENABLE_USSD_MERCHANT"
+	RequestDisableUssdMerchant string = "DISABLE_USSD_MERCHANT"
 
 	// Ecommerce
 	RequestCreateEcommerceMerchant  RequestAction = "CREATE_ECOMMERCE_MERCHANT"
@@ -857,6 +875,7 @@ type ImageFolderName string
 
 const (
 	BankFolderName               ImageFolderName = "banks"
+	UssdMerchantFolderName       ImageFolderName = "ussd_merchant"
 	WalletFolderName             ImageFolderName = "wallets"
 	AdFolderName                 ImageFolderName = "ads"
 	AvatarFolderName             ImageFolderName = "avatars"

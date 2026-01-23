@@ -54,10 +54,6 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 		"image/webp": true,
 	}
 
-	if fileHeader.Size > 10*1024*1024 { // optional size limit
-		return false
-	}
-
 	file, err := fileHeader.Open()
 	if err != nil {
 		return false
@@ -322,15 +318,39 @@ func NoSpecialChars(value any) error {
 }
 
 func FormatPhoneNumber(phoneNumber string) string {
+	// phoneNumber = strings.TrimSpace(phoneNumber)
 	phoneNumber = strings.TrimSpace(phoneNumber)
 
-	// Acceptable patterns: 2517XXXXXXXX or 2519XXXXXXXX (total 12 digits)
-	validRe := regexp.MustCompile(`^(251[79]\d{8})$`)
-	match := validRe.MatchString(phoneNumber)
-	if match {
+	// Remove all non-digit and non-plus characters
+	re := regexp.MustCompile(`[^\d\+]`)
+	phoneNumber = re.ReplaceAllString(phoneNumber, "")
+
+	if strings.HasPrefix(phoneNumber, "+2510") {
+		phoneNumber = "+251" + phoneNumber[5:]
+	} else if strings.HasPrefix(phoneNumber, "2510") {
+		phoneNumber = "+251" + phoneNumber[4:]
+	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
+		phoneNumber = "+251" + phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
+		phoneNumber = "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
+		phoneNumber = "+251" + phoneNumber
+	} else if strings.HasPrefix(phoneNumber, "251") {
+		phoneNumber = "+" + phoneNumber
+	}
+
+	if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
 		return phoneNumber
 	}
+
 	return ""
+	// Acceptable patterns: 2517XXXXXXXX or 2519XXXXXXXX (total 12 digits)
+	// validRe := regexp.MustCompile(`^(251[79]\d{8})$`)
+	// match := validRe.MatchString(phoneNumber)
+	// if match {
+	// 	return phoneNumber
+	// }
+	// return ""
 }
 
 func ThreeNamesMinLength(value interface{}) error {
@@ -528,6 +548,8 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	if dataType == constants.Password {
 		salt, _ = GenerateSalt(20)
 		signedPass, _ = SignWithHS256(password, salt)
+	} else if dataType == constants.Cred {
+		signedPass, _ = SignWithHS256(password, cfg.JwtSecretKey)
 	} else {
 		signedPass = password
 	}

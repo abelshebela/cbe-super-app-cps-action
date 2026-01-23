@@ -14,6 +14,7 @@ import (
 	types "cbe-super-app-cps-action/internal/constants/types"
 
 	constants "cbe-super-app-cps-action/internal/constants"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -172,8 +173,22 @@ func (h *deviceVersionAdapter) UpdateDeviceVersion(w http.ResponseWriter, r *htt
 func (h *deviceVersionAdapter) GetAllDeviceVersions(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "getAllDeviceVersions", "handler", "deviceVersion")
 	defer span.End()
-	filter := common_utils.ExtractFilterParams(r)
-	res, err := h.svc.GetAllDeviceVersions(ctx, filter)
+	filterParams := common_utils.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := common_utils.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := common_utils.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	res, err := h.svc.GetAllDeviceVersions(ctx, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		h.logger.Errorf("[GetAllDeviceVersions] service error: %v", err)

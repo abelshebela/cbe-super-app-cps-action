@@ -118,6 +118,19 @@ func (a *accessListSegmentation) GetAccessListSegmentationByID(w http.ResponseWr
 func (a *accessListSegmentation) GetAllAccessListSegmentation(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	accessListSegmentations, err := a.service.GetAllAccessListSegmentation(r.Context(), *filterParams)
 	if err != nil {
 		a.logger.Errorf("[GetAllAccessListSegmentation] service error: %v", err)

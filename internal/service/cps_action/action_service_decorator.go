@@ -124,9 +124,6 @@ func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context,
 	return s.base.GetCPSActionsForAuditor(ctx, RAList, filterParams)
 }
 
-//	func (s *cpsActionServiceWithRoles) ReverseCPSAction(ctx context.Context, actionCode string) error {
-//		return s.base.ReverseCPSAction(ctx, actionCode)
-//	}
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	return s.base.ApproveCPSAction(ctx, action)
 }
