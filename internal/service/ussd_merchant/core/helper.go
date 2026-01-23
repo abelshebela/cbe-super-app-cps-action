@@ -77,7 +77,7 @@ func UssdMerchant(req ussd_merchant_dto.CreateUssdMerchantRequest) imodel.UssdMe
 	return imodel.UssdMerchant{
 		MerchantCode:     local_util.UniqueIdGenerator(),
 		Name:             req.Name,
-		SettlementMethod: req.SettlementMethod,
+		SettlementMethod: constants.SettlementMethod(req.SettlementMethod),
 		PhoneNumber:      req.PhoneNumber,
 		AccountNumber:    req.AccountNumber,
 		Email:            req.Email,
@@ -90,7 +90,7 @@ func UssdMerchantUpdate(req ussd_merchant_dto.UpdateUssdMerchantRequest, ussdMer
 	return imodel.UssdMerchant{
 		MerchantCode:     local_util.UniqueIdGenerator(),
 		Name:             req.Name,
-		SettlementMethod: req.SettlementMethod,
+		SettlementMethod: constants.SettlementMethod(req.SettlementMethod),
 		PhoneNumber:      req.PhoneNumber,
 		Email:            req.Email,
 		Service:          req.Service,
