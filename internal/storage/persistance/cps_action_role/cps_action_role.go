@@ -51,9 +51,9 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 
 		searchKeys["$or"] = []bson.M{
-			{"action_name": searchRegex, "$options": "i"},
-			{"action_code": searchRegex, "$options": "i"},
-			{"portal_card_name": searchRegex, "$options": "i"},
+			{"action_name": searchRegex},
+			{"action_code": searchRegex},
+			{"portal_card_name": searchRegex},
 		}
 	}
 
