@@ -86,4 +86,5 @@ type Persistence struct {
 	CPSRoles                          storage.CPSRolesRepository
 	LogisticsMerchantPersistence      storage.LogisticsMerchantRepository
 	CustomerKYCPersistence            storage.CustomerKYCRepository
+	UssdMerchantPersistence           storage.UssdMerchantRepository
 }

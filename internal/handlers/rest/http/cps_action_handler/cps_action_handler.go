@@ -15,6 +15,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"strings"
 	"time"
@@ -81,7 +82,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	}
 
 	UpperCaseAction := strings.ToUpper(actionName)
-	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction)
+	idxDoc, err := repo.FindByRoleAndAction(ctx, rawRoleID, UpperCaseAction, action.Version)
 	if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
@@ -217,7 +218,7 @@ func (a *cpsActionAdapter) ReverseCPSAction(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName))
+		idxDoc, err := repo.FindByRoleAndAction(ctx, roleID, strings.ToUpper(actionName), action.Version)
 		if err != nil || idxDoc == nil || idxDoc.AuditorIndex == nil {
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
@@ -307,7 +308,7 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 		roleID := rawRoleID
 		UpperCaseAction := strings.ToUpper(actionName)
-		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction, action.Version)
 		if err != nil {
 			span.RecordError(err)
 			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -717,7 +718,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 
 func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
-
+	var allocation []string
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
@@ -747,6 +748,7 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
+
 	_, _, auditorAllocations, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
@@ -759,10 +761,16 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		return
 	}
 
+	for _, v := range auditorAllocations {
+		if slices.Contains(allocation, v) {
+			continue
+		}
+		allocation = append(allocation, v)
+	}
 	// resolve action_names -> request_actions
 	var reqs []string
 	seen := map[string]struct{}{}
-	for _, mod := range auditorAllocations {
+	for _, mod := range allocation {
 		upper := strings.ToUpper(strings.TrimSpace(mod))
 		if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
 			for _, ra := range lst {

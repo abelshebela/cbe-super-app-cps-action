@@ -1,6 +1,7 @@
 package storage
 
 import (
+	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
 	"context"
 	"time"
@@ -34,6 +35,7 @@ import (
 
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 
+	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -153,10 +155,11 @@ type CPSActionRoleRepository interface {
 	UpdateByActionCode(ctx context.Context, actionCode string, actionRole *imodel.CPSActionRole) error
 	EnableOrDisableByActionCode(ctx context.Context, actionCode string, enable bool) error
 	FindByActionCode(ctx context.Context, actionCode string) (*cps_actionrole_dto.GetActionRoleByActionCodeRes, error)
-	UpdateActionList(ctx context.Context, actionCode string, status bool) error
+	UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error
 	FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]*model.CPSActionRoleResposne], error)
 	FindByActionName(ctx context.Context, actionName string) (*imodel.CPSActionRole, error)
+	FindByActionNameAndPortalCard(ctx context.Context, actionName, portalCard string) (*imodel.CPSActionRole, error)
 	FindApproverByActionName(ctx context.Context, actionName, role_code string) (imodel.CPSActionApproveIndex, error)
 	FindByActionCodeOne(ctx context.Context, actionCode string) (*imodel.CPSActionRole, error)
 }
@@ -198,7 +201,7 @@ type AvatarRepository interface {
 // BPSUser persistence
 type BPSUserRepository interface {
 	GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error)
-	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_user_dto.BPSUserResposenDTO], error)
 	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
 	Create(ctx context.Context, BpsUser bps_model.BPSUser) error
 	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
@@ -610,13 +613,13 @@ type BPSActionRoleRepository interface {
 
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.CPSActionApproveIndex) error
+	SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
 	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
 	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
 	FindAuditorAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
 	PopulateUserApproverAllocations(ctx context.Context, role_id string) ([]string, []string, []string, []string, error)
-	FindByRoleAndAction(ctx context.Context, roleID string, actionName string) (*imodel.CPSActionApproveIndex, error)
+	FindByRoleAndAction(ctx context.Context, roleID string, actionName string, version int64) (*imodel.CPSActionApproveIndex, error)
 	DeleteMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	InsertMany(ctx context.Context, makerIndex []bson.ObjectID, checkerIndex [][]bson.ObjectID, auditorIndex []bson.ObjectID, roleCode string) error
 	DeleteAll(ctx context.Context, prev imodel.CPSActionRoleResposne) error
@@ -679,6 +682,15 @@ type LogisticsMerchantRepository interface {
 	FindByID(ctx context.Context, id string) (*local_model.LogisticsMerchant, error)
 	EnableOrDisable(ctx context.Context, id string, enable bool) error
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]local_model.LogisticsMerchant], error)
+}
+
+type UssdMerchantRepository interface {
+	Create(ctx context.Context, data imodel.UssdMerchant) error
+	Update(ctx context.Context, id string, update bson.M) error
+	FindById(ctx context.Context, id string) (ussd_merchant_dto.UssdMerchantResponse, error)
+	FindByOr(ctx context.Context, phone, email, account_number string) (imodel.UssdMerchant, error)
+	Find(ctx context.Context, filter bson.M) (ussd_merchant_dto.UssdMerchantResponse, error)
+	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]ussd_merchant_dto.UssdMerchantResponse], error)
 }
 
 type AccessListSegmentationRepository interface {

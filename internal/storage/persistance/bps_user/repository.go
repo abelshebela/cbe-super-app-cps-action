@@ -1,16 +1,21 @@
 package bps_user
 
 import (
-	"cbe-super-app-cps-action/internal/constants/lib"
+	// "cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"time"
+
+	// "time"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/local_model"
 
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+
+	bpsUserDto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/dal"
@@ -21,16 +26,18 @@ import (
 )
 
 type BPSUserStorage struct {
-	dal    dal.MongoDal[bps_model.BPSUser, bps_model.BPSUser]
-	client *mongo.Client
-	logger utils.Logger
+	dal        dal.MongoDal[bps_model.BPSUser, bps_model.BPSUser]
+	client     *mongo.Client
+	logger     utils.Logger
+	collection *mongo.Collection
 }
 
 func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName string, collection string, logger utils.Logger) storage.BPSUserRepository {
 	return &BPSUserStorage{
-		dal:    dal.NewMongoDal[bps_model.BPSUser, bps_model.BPSUser](client, cfg, dbName, collection),
-		client: client,
-		logger: logger,
+		dal:        dal.NewMongoDal[bps_model.BPSUser, bps_model.BPSUser](client, cfg, dbName, collection),
+		client:     client,
+		logger:     logger,
+		collection: client.Database(dbName).Collection(collection),
 	}
 }
 
@@ -46,51 +53,143 @@ func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*b
 	return result, nil
 }
 
-func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error) {
-	// 1. Base filter (only active records)
-	filter := bson.M{"is_deleted": false}
-	searchKeys := bson.M{}
+func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO], error) {
+	// Base match: only active users
+	match := bson.M{"is_deleted": false}
 
-	// 2. Allowed filterable/searchable fields
-	allowedKeys := []string{"branch_code", "branch_name", "enabled", "role", "first_password_set", "full_name", "user_code", "phone_number", "username", "branch_code"}
-
-	// 3. Add search (if provided)
+	// Search filters
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["$or"] = []bson.M{
+		match["$or"] = []bson.M{
 			{"full_name": searchRegex},
 			{"username": searchRegex},
 			{"user_code": searchRegex},
 			{"phone_number": searchRegex},
 		}
 	}
-	// 4. Build filter, skip, limit
-	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
-	// 5. Fetch data
-	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
+	pipeline := mongo.Pipeline{
+		// Match stage
+		bson.D{{Key: "$match", Value: match}},
+
+		// Lookup stage
+		bson.D{{
+			Key: "$lookup",
+			Value: bson.D{
+				{Key: "from", Value: "roles"},
+				{Key: "localField", Value: "job_title"},
+				{Key: "foreignField", Value: "job_title"},
+				{Key: "as", Value: "roles"},
+			},
+		}},
+
+		// Unwind roles
+		bson.D{{
+			Key: "$unwind",
+			Value: bson.D{
+				{Key: "path", Value: "$roles"},
+				{Key: "preserveNullAndEmptyArrays", Value: true},
+			},
+		}},
+
+		// Add role_name field
+		bson.D{{
+			Key: "$addFields",
+			Value: bson.D{
+				{Key: "user_role", Value: "$roles.role"},
+			},
+		}},
+
+		// Remove roles array
+		bson.D{{
+			Key: "$project",
+			Value: bson.D{
+				{Key: "roles", Value: 0},
+			},
+		}},
+
+		// Pagination
+		bson.D{{Key: "$skip", Value: filterParam.PerPage * (filterParam.Page - 1)}},
+		bson.D{{Key: "$limit", Value: filterParam.PerPage}},
+	}
+
+	//  Execute aggregation
+	cursor, err := s.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to fetch BPS users: %v", err)
+		s.logger.Errorf("[FindAllWithPagination] failed aggregation: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+	}
+	defer cursor.Close(ctx)
+
+	var users []bpsUserDto.BPSUserResposenDTO
+	if err := cursor.All(ctx, &users); err != nil {
+		s.logger.Errorf("[FindAllWithPagination] failed to decode users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 6. Count total
-	total, err := s.dal.TotalCount(ctx, filter)
+	// Count total documents (for pagination metadata)
+	total, err := s.collection.CountDocuments(ctx, match)
 	if err != nil {
-		s.logger.Errorf("[FindAllWithPagination] failed to count BPS users: %v", err)
+		s.logger.Errorf("[FindAllWithPagination] failed to count users: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
 	}
 
-	// 7. Build pagination metadata
+	//  Build pagination metadata
 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
-	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
+	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(users))
 
-	// 8. Return standard paginated response
-	return &types.PaginatedResponse[[]bps_model.BPSUser]{
-		Data: data,
+	//  Return paginated response
+	return &types.PaginatedResponse[[]bpsUserDto.BPSUserResposenDTO]{
+		Data: users,
 		Meta: meta,
 	}, nil
 }
+
+// func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]bps_model.BPSUser], error) {
+// 	// 1. Base filter (only active records)
+// 	filter := bson.M{"is_deleted": false}
+// 	searchKeys := bson.M{}
+
+// 	// 2. Allowed filterable/searchable fields
+// 	allowedKeys := []string{"branch_code", "branch_name", "enabled", "role", "first_password_set", "full_name", "user_code", "phone_number", "username", "branch_code"}
+
+// 	// 3. Add search (if provided)
+// 	if filterParam.Search != "" {
+// 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
+// 		searchKeys["$or"] = []bson.M{
+// 			{"full_name": searchRegex},
+// 			{"username": searchRegex},
+// 			{"user_code": searchRegex},
+// 			{"phone_number": searchRegex},
+// 		}
+// 	}
+// 	// 4. Build filter, skip, limit
+// 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
+
+// 	// 5. Fetch data
+// 	data, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
+// 	if err != nil {
+// 		s.logger.Errorf("[FindAllWithPagination] failed to fetch BPS users: %v", err)
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+// 	}
+
+// 	// 6. Count total
+// 	total, err := s.dal.TotalCount(ctx, filter)
+// 	if err != nil {
+// 		s.logger.Errorf("[FindAllWithPagination] failed to count BPS users: %v", err)
+// 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
+// 	}
+
+// 	// 7. Build pagination metadata
+// 	meta := local_util.BuildPaginationMeta(total, filterParam.Page, filterParam.PerPage)
+// 	s.logger.Infof("[FindAllWithPagination] retrieved %d BPS users", len(data))
+
+// 	// 8. Return standard paginated response
+// 	return &types.PaginatedResponse[[]bps_model.BPSUser]{
+// 		Data: data,
+// 		Meta: meta,
+// 	}, nil
+// }
 
 func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser) error {
 	b.logger.Infof("[Update] updating BPS user")
@@ -110,11 +209,14 @@ func (b *BPSUserStorage) Update(ctx context.Context, BpsUser *bps_model.BPSUser)
 }
 
 func (b *BPSUserStorage) Create(ctx context.Context, req bps_model.BPSUser) error {
+
 	ctx, span := local_util.TraceLogger(ctx, "service", "CreateBPSUser", "BPS User", "CreateBPSUser")
 	defer span.End()
 
 	b.logger.Infof("[CreateBPSUser] creating BPS user with user_code: %s", req.UserCode)
-
+	req.CreatedAt = time.Now()
+	req.LastModifiedAt = time.Now()
+	req.IsFirstTimeLogin = true
 	// Save the new user
 	_, err := b.dal.InsertOne(ctx, req)
 	if err != nil {
