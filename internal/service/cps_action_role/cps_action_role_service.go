@@ -412,7 +412,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 			return nil, errors.New(localization.ErrorInvalidActionFormat.Code)
 		}
 
-		if err := s.UpdateActionList(ctx, cur.ActionName, true); err != nil {
+		if err := s.UpdateActionList(ctx, cur.ActionName, cur.PortalCardName, true); err != nil {
 			span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 			s.logger.Errorf("failed to update action list: %v", err)
 			if err.Error() == localization.ErrorResourceNotFound.Code {
@@ -428,7 +428,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 		if err := s.repo.Create(ctx, &ar); err != nil {
 			span.AddEvent("failed to create action role", trace.WithAttributes(attribute.String("error", err.Error())))
-			if err := s.UpdateActionList(ctx, cur.ActionName, false); err != nil {
+			if err := s.UpdateActionList(ctx, cur.ActionName, cur.PortalCardName, false); err != nil {
 				span.AddEvent("failed to update action list", trace.WithAttributes(attribute.String("error", err.Error())))
 				s.logger.Errorf("failed to update action list: %v", err)
 			}
@@ -482,8 +482,8 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 	}
 }
 
-func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
-	err := s.repo.UpdateActionList(ctx, actionCode, status)
+func (s *cpsActionRoleService) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
+	err := s.repo.UpdateActionList(ctx, actionCode, portalCard, status)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			s.logger.Infof("UpdateActionList: Action %s not found in the list", actionCode)
