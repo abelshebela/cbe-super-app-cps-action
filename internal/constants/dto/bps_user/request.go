@@ -28,11 +28,11 @@ type BPSUserCreateRequest struct {
 }
 
 type BPSUserUpdateRequest struct {
-	UserID      string `json:"user_id"`
-	FullName    string `json:"full_name"`
-	PhoneNumber string `json:"phone_number"`
-	Email       string `json:"email"`
-	JobTitle    string `json:"job_title"`
+	UserID      *string `json:"user_id"`
+	FullName    *string `json:"full_name"`
+	PhoneNumber *string `json:"phone_number"`
+	Email       *string `json:"email"`
+	JobTitle    *string `json:"job_title"`
 	// Role        string   `json:"role"`
 	BranchCode []string `json:"branch_code"`
 	// HomeBranch  string   `json:"home_branch"`
@@ -51,29 +51,58 @@ func (r *BPSUserCreateRequest) Validate() error {
 	r.JobTitle = strings.TrimSpace(r.JobTitle)
 
 	return validation.ValidateStruct(r,
-		validation.Field(&r.UserID, validation.Required),
+		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
 		validation.Field(&r.FullName, validation.Required),
 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email),
+		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
 		validation.Field(&r.JobTitle, validation.Required),
 		validation.Field(&r.BranchCode, validation.Required),
 	)
 }
 
 func (r *BPSUserUpdateRequest) Validate() error {
-	// Trim spaces
-	r.UserID = strings.TrimSpace(r.UserID)
-	r.FullName = strings.TrimSpace(r.FullName)
-	r.PhoneNumber = strings.TrimSpace(r.PhoneNumber)
-	r.Email = strings.TrimSpace(r.Email)
-	r.JobTitle = strings.TrimSpace(r.JobTitle)
+	// Trim spaces for non-nil pointers
+	if r.UserID != nil {
+		*r.UserID = strings.TrimSpace(*r.UserID)
+	}
+	if r.FullName != nil {
+		*r.FullName = strings.TrimSpace(*r.FullName)
+	}
+	if r.PhoneNumber != nil {
+		*r.PhoneNumber = strings.TrimSpace(*r.PhoneNumber)
+	}
+	if r.Email != nil {
+		*r.Email = strings.TrimSpace(*r.Email)
+	}
+	if r.JobTitle != nil {
+		*r.JobTitle = strings.TrimSpace(*r.JobTitle)
+	}
 
 	return validation.ValidateStruct(r,
-		validation.Field(&r.UserID, validation.Required),
+		validation.Field(&r.UserID, validation.Required, validation.Length(3, 10)),
 		validation.Field(&r.FullName, validation.Required),
 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
-		validation.Field(&r.Email, validation.Required, is.Email),
+		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
 		validation.Field(&r.JobTitle, validation.Required),
 		validation.Field(&r.BranchCode, validation.Required),
 	)
 }
+
+//before pointer
+// func (r *BPSUserUpdateRequest) Validate() error {
+// 	// Trim spaces
+// 	r.UserID = strings.TrimSpace(r.UserID)
+// 	r.FullName = strings.TrimSpace(r.FullName)
+// 	r.PhoneNumber = strings.TrimSpace(r.PhoneNumber)
+// 	r.Email = strings.TrimSpace(r.Email)
+// 	r.JobTitle = strings.TrimSpace(r.JobTitle)
+
+// 	return validation.ValidateStruct(r,
+// 		validation.Field(&r.UserID, validation.Required),
+// 		validation.Field(&r.FullName, validation.Required),
+// 		validation.Field(&r.PhoneNumber, validation.Required, validation.Match(phoneRegex).Error("must be a valid Ethiopian phone number (+2519xxxxxxxx or +2517xxxxxxxx)")),
+// 		validation.Field(&r.Email, validation.Required, is.Email, validation.Match(regexp.MustCompile(`^[A-Za-z0-9._%+-]+@cbe\.com\.et$`)).Error("must be a valid @cbe.com.et email")),
+// 		validation.Field(&r.JobTitle, validation.Required),
+// 		validation.Field(&r.BranchCode, validation.Required),
+// 	)
+// }
