@@ -40,8 +40,8 @@ func NewCPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 	}
 }
 
-func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
-	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"is_configured": status})
+func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
+	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode, "portal_card_name": portalCard}, bson.M{"is_configured": status})
 	return err
 }
 func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
