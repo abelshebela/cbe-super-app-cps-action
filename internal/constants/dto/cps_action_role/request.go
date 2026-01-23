@@ -45,6 +45,7 @@ type GetActionRoleByActionCodeRes struct {
 	AssignedAuditorRoles [][]model.JobRole `json:"assigned_auditor_roles" bson:"assigned_auditor_roles"`
 	ApproverCount        int64             `json:"approver_count" bson:"approver_count"`
 	IsMakerOnly          bool              `json:"is_maker_only" bson:"is_maker_only"`
+	Version              int64             `json:"version" bson:"version"`
 	Enabled              bool              `json:"enabled" bson:"enabled"`
 	UpdatedAt            time.Time         `json:"updated_at" bson:"updated_at"`
 	CreatedAt            time.Time         `json:"created_at" bson:"created_at"`

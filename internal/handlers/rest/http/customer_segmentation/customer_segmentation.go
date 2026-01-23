@@ -148,6 +148,19 @@ func (c *CustomerSegmentationAdapter) UpdateCustomerSegmentation(w http.Response
 func (c *CustomerSegmentationAdapter) GetAllCustomerSegmentations(w http.ResponseWriter, r *http.Request) {
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	segs, err := c.svc.FindAllWithPagination(r.Context(), filterParams)
 	if err != nil {
 		c.logger.Errorf("[GetAllCustomerSegmentations] service error: %v", err)

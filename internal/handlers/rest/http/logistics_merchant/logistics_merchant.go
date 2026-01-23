@@ -95,8 +95,22 @@ func (e *LogisticsMerchantHandler) GetLogisticMerchantByID(w http.ResponseWriter
 }
 
 func (e *LogisticsMerchantHandler) GetLogisticMerchants(w http.ResponseWriter, r *http.Request) {
-	filter := local_util.ExtractFilterParams(r)
-	result, err := e.service.FindAllWithPagination(r.Context(), *filter)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	result, err := e.service.FindAllWithPagination(r.Context(), *filterParams)
 	if err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return

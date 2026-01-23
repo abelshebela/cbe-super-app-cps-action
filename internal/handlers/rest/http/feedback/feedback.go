@@ -13,6 +13,7 @@ import (
 	types "cbe-super-app-cps-action/internal/constants/types"
 
 	constants "cbe-super-app-cps-action/internal/constants"
+
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
@@ -104,6 +105,19 @@ func (f *feedbackAdapter) GetFeedbacks(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
 
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
 	// Enhanced pagination validation
 	if filterParams.Page < 1 {
 		filterParams.Page = 1
@@ -190,6 +204,19 @@ func (f *feedbackAdapter) GetAllCustomerFeedbacks(w http.ResponseWriter, r *http
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllCustomerFeedbacks", "handler", "feedback")
 	defer span.End()
 	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	feedbacks, err := f.feedbackApplication.GetAllCustomerFeedbacks(ctx, filterParams)
 	if err != nil {

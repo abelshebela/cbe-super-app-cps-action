@@ -54,10 +54,6 @@ func IsValidImage(fileHeader *multipart.FileHeader) bool {
 		"image/webp": true,
 	}
 
-	if fileHeader.Size > 10*1024*1024 { // optional size limit
-		return false
-	}
-
 	file, err := fileHeader.Open()
 	if err != nil {
 		return false
@@ -323,7 +319,7 @@ func NoSpecialChars(value any) error {
 
 func FormatPhoneNumber(phoneNumber string) string {
 	// phoneNumber = strings.TrimSpace(phoneNumber)
-phoneNumber = strings.TrimSpace(phoneNumber)
+	phoneNumber = strings.TrimSpace(phoneNumber)
 
 	// Remove all non-digit and non-plus characters
 	re := regexp.MustCompile(`[^\d\+]`)
@@ -552,6 +548,8 @@ func LocalEncryptPassword(password string, dataType string, userSalt string, act
 	if dataType == constants.Password {
 		salt, _ = GenerateSalt(20)
 		signedPass, _ = SignWithHS256(password, salt)
+	} else if dataType == constants.Cred {
+		signedPass, _ = SignWithHS256(password, cfg.JwtSecretKey)
 	} else {
 		signedPass = password
 	}

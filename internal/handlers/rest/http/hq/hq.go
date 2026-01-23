@@ -90,8 +90,22 @@ func (a *hqAdapter) GetHQ(w http.ResponseWriter, r *http.Request) {
 func (a *hqAdapter) GetAllHQ(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getAllHq", "handler", "hq")
 	defer span.End()
-	filter := local_util.ExtractFilterParams(r)
-	list, err := a.hqApp.GetHQDetail(ctx, *filter)
+	filterParams := local_util.ExtractFilterParams(r)
+
+	search := r.URL.Query().Get("search")
+	filter := r.URL.Query().Get("filter")
+
+	if err := local_util.NoSpecialChars(search); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	if err := local_util.NoSpecialChars(filter); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+
+	list, err := a.hqApp.GetHQDetail(ctx, *filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())

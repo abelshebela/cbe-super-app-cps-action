@@ -98,8 +98,8 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "NOTIFICATION"):
 		return d.app.NotificationService.Authorize(ctx, cpsAction)
 
-	// case IsActionInGroup(RequestAction(action), "PRODUCTCODE"):
-	// 	return d.app.ProductCodeService.Authorize(ctx, cpsAction)
+	case IsActionInGroup(RequestAction(action), "USSDMERCHANT"):
+		return d.app.UssdMerchantContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "BPSUSER"):
 		return d.app.BPSUserContainer.Authorize(ctx, cpsAction)
