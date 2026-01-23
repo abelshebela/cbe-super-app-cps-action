@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	imodel "cbe-super-app-cps-action/internal/constants/model"
 	"cbe-super-app-cps-action/internal/constants/types"
+
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"cbe-super-app-cps-action/internal/service"
@@ -114,7 +115,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		return errors.New(localization.ErrorUserUnauthorized.Code)
 	}
 
-	existing, err := s.repo.FindByActionName(ctx, req.ActionName)
+	existing, err := s.repo.FindByActionNameAndPortalCard(ctx, req.ActionName, req.PortalCardName)
 	if err == nil && existing != nil {
 		span.AddEvent("action name already exists", trace.WithAttributes(attribute.String("error", "action name already exists")))
 		return errors.New(localization.ErrorActionNameAlreadyExists.Code)

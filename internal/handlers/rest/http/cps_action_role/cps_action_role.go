@@ -61,6 +61,7 @@ func (h *CPSActionRoleHandler) GetAllActionList(w http.ResponseWriter, r *http.R
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
+
 	span.SetAttributes(attribute.Int("cps_action_role.count", len(res.Data)))
 	localization.SendSuccessResponse(w, localization.SuccessActionRolesFetched, res)
 }

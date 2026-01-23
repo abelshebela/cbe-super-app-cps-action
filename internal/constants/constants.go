@@ -8,6 +8,13 @@ import (
 
 type ContextKey string
 type Platform string
+type SettlementMethod string
+
+const (
+	SettlementMethodDirect       SettlementMethod = "DIRECT"
+	SettlementMethodGL           SettlementMethod = "GL"
+	SettlementMethodMultiAccount SettlementMethod = "MULTI_ACCOUNT"
+)
 
 const (
 	// Unique Separator

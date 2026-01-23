@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/pkgs/utils"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -54,6 +55,20 @@ func (r CreateUssdMerchantRequest) Validate() error {
 		}
 	}
 
+	if err := validation.Validate(
+		strings.ToUpper(strings.TrimSpace(r.SettlementMethod)),
+		validation.In(
+			string(constants.SettlementMethodDirect),
+			string(constants.SettlementMethodGL),
+			string(constants.SettlementMethodMultiAccount),
+		),
+	); err != nil {
+		errs["settlement_method"] = validation.NewError(
+			"settlement_method",
+			"invalid settlement_method; must be one of DIRECT, GL, MULTI_ACCOUNT",
+		)
+	}
+
 	// Logo required on create and must be a valid image (<= 15MB)
 	if r.Logo == nil {
 		errs["logo"] = validation.NewError("logo", "logo is required")
@@ -76,7 +91,7 @@ func (r UpdateUssdMerchantRequest) Validate() error {
 
 	// When settlement method or account number is provided, enforce the conditional
 	if r.SettlementMethod != "" || r.AccountNumber != "" {
-		if strings.EqualFold(strings.TrimSpace(r.SettlementMethod), settlementDirectTransfer) {
+		if strings.EqualFold(strings.TrimSpace(r.SettlementMethod), string(constants.SettlementMethodDirect)) {
 			if strings.TrimSpace(r.AccountNumber) == "" {
 				errs["account_number"] = validation.NewError("account_number", "Account number is required when Settlement method is Direct Transfer")
 			}
@@ -85,6 +100,21 @@ func (r UpdateUssdMerchantRequest) Validate() error {
 				errs["account_number"] = validation.NewError("account_number", "Account number must be empty when settlement method is not Direct Transfer")
 			}
 		}
+
+		if err := validation.Validate(
+			strings.ToUpper(strings.TrimSpace(r.SettlementMethod)),
+			validation.In(
+				string(constants.SettlementMethodDirect),
+				string(constants.SettlementMethodGL),
+				string(constants.SettlementMethodMultiAccount),
+			),
+		); err != nil {
+			errs["settlement_method"] = validation.NewError(
+				"settlement_method",
+				"invalid settlement_method; must be one of DIRECT, GL, MULTI_ACCOUNT",
+			)
+		}
+
 	}
 
 	// Optional email validation when provided

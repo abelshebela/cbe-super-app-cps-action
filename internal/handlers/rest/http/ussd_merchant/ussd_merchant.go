@@ -94,16 +94,15 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	}
 
 	var req ussd_merchant_dto.UpdateUssdMerchantRequest
-	if req.Logo != nil {
-		file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
-		if err != nil {
-			span.RecordError(err)
-			u.Logger.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
-			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-			return
-		}
-		defer file.Close()
+
+	file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
+	if err != nil {
+		span.RecordError(err)
+		u.Logger.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
+		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+		return
 	}
+	defer file.Close()
 
 	req.SettlementMethod = r.FormValue("settlement_method")
 	req.Name = r.FormValue("name")
@@ -111,7 +110,7 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 	req.Service = r.FormValue("service")
 	req.Email = r.FormValue("email")
 	req.AccountNumber = r.FormValue("account_number")
-	if req.Logo != nil {
+	if fileHeader != nil {
 		req.Logo = fileHeader
 	}
 

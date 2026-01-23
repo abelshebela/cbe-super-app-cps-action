@@ -20,7 +20,7 @@ func (r *CPSActionApproveIndexRepository) FindByRoleAndAction(ctx context.Contex
 	filter := bson.M{
 		"role_id":     roleID,
 		"action_name": strings.ToUpper(strings.TrimSpace(actionName)),
-		// "version":     version,
+		"version":     version,
 		// "maker_index": bson.M{"$exists": true, "$ne": nil},
 	}
 	var res imodel.CPSActionApproveIndex
