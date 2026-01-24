@@ -291,7 +291,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 		}
 
 	case string(constants.RequestEnableDonationCategory):
-		err := d.DonationCategoryRepo.Update(ctx, action.UniqueId, donationCPS)
+		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, true)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation category: %v", err)
 			span.AddEvent("Failed to enable donation category", trace.WithAttributes(
@@ -301,7 +301,7 @@ func (d *DonationCategory) Authorize(ctx context.Context, action *model.CPSActio
 			return nil, err
 		}
 	case string(constants.RequestDisableDonationCategory):
-		err := d.DonationCategoryRepo.Update(ctx, action.UniqueId, donationCPS)
+		err := d.DonationCategoryRepo.EnableDisable(ctx, action.UniqueId, false)
 		if err != nil {
 			d.logger.Errorf("Failed to update donation category: %v", err)
 			span.AddEvent("Failed to disable donation category", trace.WithAttributes(
