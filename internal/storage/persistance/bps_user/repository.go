@@ -7,6 +7,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage"
 	"context"
 	"errors"
+	"regexp"
 	"time"
 
 	// "time"
@@ -39,6 +40,42 @@ func NewBPSUserRepository(client *mongo.Client, cfg *config.VaultConfig, dbName 
 		logger:     logger,
 		collection: client.Database(dbName).Collection(collection),
 	}
+}
+
+func (b *BPSUserStorage) FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error) {
+
+	// Build conditions dynamically, only for non-empty parameters
+	conditions := []bson.M{}
+
+	if phone != "" {
+		conditions = append(conditions, bson.M{
+			"phone_number": bson.M{"$regex": "^" + regexp.QuoteMeta(phone) + "$", "$options": "i"},
+		})
+	}
+
+	if username != "" {
+		conditions = append(conditions, bson.M{
+			"username": bson.M{"$regex": "^" + regexp.QuoteMeta(username) + "$", "$options": "i"},
+		})
+	}
+
+	if email != "" {
+		conditions = append(conditions, bson.M{
+			"email": bson.M{"$regex": "^" + regexp.QuoteMeta(email) + "$", "$options": "i"},
+		})
+	}
+
+	filter := bson.M{"$or": conditions}
+	data, err := b.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Infof("[FindByOr] no bps user found matching the criteria")
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		b.logger.Errorf("[FindByOr] failed to find bps user: %v", err)
+		return nil, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return data, nil
 }
 
 func (b *BPSUserStorage) GetByUserCode(ctx context.Context, userCode string) (*bps_model.BPSUser, error) {

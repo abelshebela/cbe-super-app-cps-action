@@ -5799,6 +5799,14 @@ var (
 		Message:    MsgPhonenumberAlreadyExists,
 		Type:       "error",
 	}
+
+	ErrorUsernameAlreadyExist = ResponseCode{
+		Code:       "ERROR_USERNAME_ALREADY_EXIST",
+		StatusCode: StatusBadRequest,
+		Message:    MsgUsernameAlreadyExists,
+		Type:       "error",
+	}
+
 	ErrorCodeAlreadyExist = ResponseCode{
 		Code:       "ERROR_CODE_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,

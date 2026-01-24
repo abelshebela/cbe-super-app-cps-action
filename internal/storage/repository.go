@@ -206,6 +206,7 @@ type BPSUserRepository interface {
 	Update(ctx context.Context, BpsUser *bps_model.BPSUser) error
 	Create(ctx context.Context, BpsUser bps_model.BPSUser) error
 	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
+	FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error)
 }
 
 type BudgetCategoryRepository interface {
