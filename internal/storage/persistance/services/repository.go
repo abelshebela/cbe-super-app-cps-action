@@ -95,7 +95,7 @@ func (s *ServicesStorage) Update(ctx context.Context, id string, service *model.
 		ctx,
 		updatedService,
 		string(constants.ClientOrchestrationServicesTopic),
-		"inapp-notifications",
+		"cps-service-updated",
 		"service authorized and updated",
 	)
 
@@ -159,12 +159,37 @@ func (s *ServicesStorage) FindByID(ctx context.Context, id string) (*model.Servi
 }
 
 func (s *ServicesStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Service], error) {
-	allowed := []string{"search", "service_name", "service_code", "service_type", "enabled"}
+	allowed := []string{"service_name", "service_code", "service_key", "enabled"}
 	filter, skip, limit := lib.FilterBuilder(filterParam, bson.M{}, allowed)
 	if filterParam.Search != "" {
 		q := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		filter["$or"] = []bson.M{{"service_name": q}, {"service_code": q}, {"service_type": q}}
+		filter["$or"] = []bson.M{
+			{"service_name": q},
+			{"service_code": q},
+			{"service_key": q},
+			{"service_list.service_name": q},
+			{"service_list.service_key": q},
+		}
 	}
+	// if filterParam.Search != "" {
+	// 	q := bson.M{"$regex": filterParam.Search, "$options": "i"}
+
+	// 	filter["$or"] = []bson.M{
+	// 		{"service_name": q},
+	// 		{"service_code": q},
+	// 		{"service_key": q},
+	// 		{
+	// 			"service_list": bson.M{
+	// 				"$elemMatch": bson.M{
+	// 					"$or": []bson.M{
+	// 						{"service_name": q},
+	// 						{"service_key": q},
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	}
+	// }
 
 	items, err := s.dal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {

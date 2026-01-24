@@ -40,8 +40,8 @@ func NewCPSActionRoleRepository(client *mongo.Client, cfg *config.VaultConfig, d
 	}
 }
 
-func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode string, status bool) error {
-	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, bson.M{"is_configured": status})
+func (a *CPSActionRoleRepository) UpdateActionList(ctx context.Context, actionCode, portalCard string, status bool) error {
+	_, err := a.actionListDal.UpdateOne(ctx, bson.M{"action_code": actionCode, "portal_card_name": portalCard}, bson.M{"is_configured": status})
 	return err
 }
 func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]imodel.CPSActionList], error) {
@@ -49,8 +49,12 @@ func (a *CPSActionRoleRepository) FindAllAccessListWithPagination(ctx context.Co
 	allowedKeys := []string{"action_name", "action_code"}
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
-		searchKeys["action_name"] = searchRegex
-		searchKeys["action_code"] = searchRegex
+
+		searchKeys["$or"] = []bson.M{
+			{"action_name": searchRegex},
+			{"action_code": searchRegex},
+			{"portal_card_name": searchRegex},
+		}
 	}
 
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
