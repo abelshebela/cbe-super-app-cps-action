@@ -43,12 +43,13 @@ func NewFeedbackRepository(client *mongo.Client, cfg *config.VaultConfig, dbName
 
 func (f *FeedbackStorage) Create(ctx context.Context, feedback *model.Feedback) error {
 	f.logger.Infof("[Create] creating feedback")
-	_, err := f.dal.InsertOne(ctx, *feedback)
+	feed, err := f.dal.InsertOne(ctx, *feedback)
 	if err != nil {
 		f.logger.Errorf("[Create] failed to create feedback: %v", err)
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-	f.logger.Infof("[Create] feedback created successfully")
+	f.logger.Infof("[Create] feedback created successfully", feed, feed.UserID)
+
 	return nil
 }
 

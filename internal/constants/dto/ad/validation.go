@@ -14,7 +14,7 @@ func (c AdvertRequest) Validate(isUpdate bool) error {
 	err := validation.ValidateStruct(&c,
 		validation.Field(&c.Title,
 			validation.When(!isUpdate, validation.Required.Error("title is required")),
-			validation.Length(3, 20).Error(localization.ErrorTitleLength3To20.Code),
+			validation.Length(3, 20).Error(localization.ErrorTitleLength3To20.Message),
 		),
 		validation.Field(&c.AdvertFor,
 			validation.When(!isUpdate, validation.Required.Error("advert for is required")),

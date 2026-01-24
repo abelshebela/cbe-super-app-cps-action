@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"cbe-super-app-cps-action/pkgs/utils"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -17,7 +18,7 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 		fieldRules = []*validation.FieldRules{
 			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required")),
 			validation.Field(&r.NotificationBody, validation.Required.Error("notification_body is required")),
-			validation.Field(&r.Title, validation.Required.Error("title is required")),
+			validation.Field(&r.Title, validation.Required.Error("title is required"), validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.For,
 				validation.Required.Error("for is required"),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
