@@ -36,6 +36,7 @@ import (
 	bps_model "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 
 	bps_user_dto "cbe-super-app-cps-action/internal/constants/dto/bps_user"
+
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/grpc"
 )
@@ -364,6 +365,7 @@ type DonationRepository interface {
 type DonationCategoryRepository interface {
 	Create(ctx context.Context, donationCategory *model.DonationCategory) error
 	Update(ctx context.Context, id string, donationCategory *model.DonationCategory) error
+	EnableDisable(ctx context.Context, id string, enable bool) error
 	Delete(ctx context.Context, id string) error
 	FindByID(ctx context.Context, id string) (*donation_category.DonationCategoryListResponse, error)
 	FindByName(ctx context.Context, name string) (*donation_category.DonationCategoryListResponse, error)
