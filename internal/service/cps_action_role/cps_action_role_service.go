@@ -620,7 +620,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 			found := false
 			for j := range indices {
 				if indices[j].RoleId == auditorID {
-					indices[j].CheckerIndex = &val
+					indices[j].AuditorIndex = &val
 					found = true
 					break
 				}
