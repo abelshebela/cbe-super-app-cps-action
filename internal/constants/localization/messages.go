@@ -1155,7 +1155,7 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
-	MsgUpdatePasswordRuleSP  = "Update request submitted"
+	MsgUpdatePasswordRuleSP  = "Password rule updated successfully"
 
 	// bank vault
 	MsgCannotDeleteActiveBankVault             = "Cannot delete active bank vault"

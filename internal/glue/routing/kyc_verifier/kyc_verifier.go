@@ -3,7 +3,6 @@ package kyc_verifier
 import (
 	"net/http"
 
-	role "cbe-super-app-cps-action/internal/constants"
 	"cbe-super-app-cps-action/internal/constants/interfaces/kyc_verifier"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler kyc_verifier.KYCVerifierAdapter, authMiddle
 			Handler: handler.GetKYCList,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler kyc_verifier.KYCVerifierAdapter, authMiddle
 			Handler: handler.GetKYCByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker, role.Checker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler kyc_verifier.KYCVerifierAdapter, authMiddle
 			Handler: handler.UpdateKYC,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler kyc_verifier.KYCVerifierAdapter, authMiddle
 			Handler: handler.ApproveKYC,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{role.Maker, role.IFBMaker}),
 			},
 		},
 	}

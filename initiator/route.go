@@ -64,6 +64,7 @@ import (
 	customeMiddleware "cbe-super-app-cps-action/internal/handlers/middleware"
 
 	ussd_merchant_rout "cbe-super-app-cps-action/internal/glue/routing/ussd_merchant"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
@@ -166,7 +167,7 @@ func InitRoute(ctx context.Context, router *chi.Mux, handlerLayer Handler, clien
 		r.Get("/", handlerLayer.PasswordHandler.GetPasswordRule)
 		r.Group(func(r chi.Router) {
 			r.Use(authMiddleware.AuthenticateToken)
-			r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
+			// r.Use(customeMiddleware.CPSActionRouteGuard([]string{}))
 			r.Patch("/{id}", handlerLayer.PasswordHandler.RequestPasswordRuleUpdate)
 		})
 	})
