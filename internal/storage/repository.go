@@ -615,7 +615,7 @@ type BPSActionRoleRepository interface {
 
 type CPSActionApproveIndexRepository interface {
 	SaveIndices(ctx context.Context, indices []imodel.CPSActionApproveIndex) error
-	SyncIndices(ctx context.Context, oldActionName string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error
+	SyncIndices(ctx context.Context, oldActionName string, portalCardName string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error
 	ExistsByRoleAndAction(ctx context.Context, roleID string, actionName string) (bool, error)
 	FindMakerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
 	FindCheckerAllocationsByRoleID(ctx context.Context, roleID bson.ObjectID) ([]imodel.CPSActionApproveIndex, error)
