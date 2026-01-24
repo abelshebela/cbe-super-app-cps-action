@@ -69,6 +69,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
+
 	repo := mid.GetCPSActionApproveRepo()
 	if repo == nil || actionName == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
