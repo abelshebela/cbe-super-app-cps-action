@@ -1,7 +1,6 @@
 package eventmerchant
 
 import (
-	"cbe-super-app-cps-action/internal/constants"
 	event_merchant_port "cbe-super-app-cps-action/internal/constants/interfaces/event_merchant"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.CreateEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.UpdateEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.EnableEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.DisableEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -55,7 +50,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.DeleteEventMerchant,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -64,7 +58,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.GetEventMerchantByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -73,7 +66,6 @@ func Init(router chi.Router, handler event_merchant_port.EventMerchantInboundAda
 			Handler: handler.GetEventMerchants,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Checker, constants.IFBChecker, constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}
