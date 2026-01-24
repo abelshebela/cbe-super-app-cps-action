@@ -11,6 +11,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 	"context"
 	"errors"
+	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -167,5 +168,29 @@ func (s *DonationCategoryStorage) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	s.logger.Infof("[Delete] donation category deleted successfully")
+	return nil
+}
+
+func (s *DonationCategoryStorage) EnableDisable(ctx context.Context, id string, enable bool) error {
+	s.logger.Infof("[EnableDisable] updating donation category for id: %s", id)
+	objID, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		s.logger.Errorf("[EnableDisable] invalid object id: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	filter := bson.M{"_id": objID, "is_deleted": false}
+	updatedDonationCategory, err := s.dal.UpdateOne(ctx, filter, bson.M{"enabled": enable, "last_modified_at": time.Now()})
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			s.logger.Errorf("[EnableDisable] donation category not found")
+			return errors.New(localization.ErrorFileNotFound.Code)
+		}
+		s.logger.Errorf("[EnableDisable] failed to update donation category: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	s.kafkaProducer.PublishMessage(ctx, updatedDonationCategory, string(constants.ClientOrchestrationDonationCategoryTopic), string(constants.ClientOrchestrationDonationCategoryTopic), "new donation category updated")
+
+	s.logger.Infof("[EnableDisable] donation category updated successfully")
 	return nil
 }
