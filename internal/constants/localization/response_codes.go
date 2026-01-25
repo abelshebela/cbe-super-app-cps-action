@@ -563,6 +563,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorCompanyNameAlreadyExists,
 	ErrorCompanyCodeAlreadyExists,
 	ErrorAccountNumberAlreadyExists,
+	ErrorMerchantCodeAlreadyExists,
 	ErrorEmailAlreadyExist,
 	ErrorPhonenumberAlreadyExist,
 	ErrorCodeAlreadyExist,
@@ -5787,6 +5788,14 @@ var (
 		Message:    MsgAccountNumberAlreadyExists,
 		Type:       "error",
 	}
+
+	ErrorMerchantCodeAlreadyExists = ResponseCode{
+		Code:       "ERROR_MERCHANT_CODE_ALREADY_EXISTS",
+		StatusCode: StatusBadRequest,
+		Message:    MsgMerchantCodeAlreadyExists,
+		Type:       "error",
+	}
+
 	ErrorEmailAlreadyExist = ResponseCode{
 		Code:       "ERROR_EMAIL_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
