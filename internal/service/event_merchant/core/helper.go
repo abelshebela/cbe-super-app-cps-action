@@ -70,7 +70,10 @@ func CheckMerchantExists(
 	var conditions []bson.M
 
 	if data.BankAccountNumber != "" {
-		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber})
+		conditions = append(conditions, bson.M{"bank_account_number": data.BankAccountNumber, "merchant_id": data.MerchantCode})
+	}
+	if data.MerchantCode != "" {
+		conditions = append(conditions, bson.M{"merchant_id": data.MerchantCode})
 	}
 	if data.Email != "" {
 		conditions = append(conditions, bson.M{"email": data.Email})

@@ -142,6 +142,7 @@ func (e *EventMerchantService) Create(ctx context.Context, eventMerchant model.E
 
 	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMiniAppMerchant{
 		BankAccountNumber: eventMerchant.BankAccountNumber,
+		MerchantCode:      eventMerchant.MerchantID,
 		Email:             eventMerchant.Email,
 		PhoneNumber:       eventMerchant.PhoneNumber,
 	}, nil)

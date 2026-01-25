@@ -611,6 +611,7 @@ const (
 	MsgCompanyCodeAlreadyExists          = "Company code already exists"
 	MsgDonationTitleAlreadyExists        = "Donation title already exists"
 	MsgAccountNumberAlreadyExists        = "company with this account number already exists"
+	MsgMerchantCodeAlreadyExists         = "Merchant code already exist"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
 	MsgUsernameAlreadyExists             = "Username already exists"
 	MsgEmailAlreadyExists                = "this email already exist"
