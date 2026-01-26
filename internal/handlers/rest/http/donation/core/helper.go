@@ -78,7 +78,8 @@ func ParseRequestFromMultipartForm(r *http.Request, isCreate bool) (donation.Don
 	}
 
 	if enabledStr := r.FormValue("enabled"); enabledStr != "" {
-		req.Enabled = enabledStr == "true"
+		tempval := enabledStr == "true"
+		req.Enabled = &tempval
 	}
 
 	var endDate, startDate time.Time
