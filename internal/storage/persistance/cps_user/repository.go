@@ -167,7 +167,7 @@ func (r *CPSUserStorage) FindByID(ctx context.Context, id string) (*imodel.CPSUs
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			r.logger.Errorf("[FindByID] CPS user not found")
-			return nil, errors.New(localization.ErrorFileNotFound.Code)
+			return nil, errors.New(localization.ErrorResourceNotFound.Code)
 		}
 		r.logger.Errorf("[FindByID] failed to find CPS user: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
