@@ -289,7 +289,7 @@ func RandomGenerator(length uint8) string {
 	return string(result)
 }
 
-var allowedChars = "a-zA-Z0-9\\s._-"
+var allowedChars = "a-zA-Z0-9\\s._@-"
 
 func NoSpecialChars(value any) error {
 	var str string
