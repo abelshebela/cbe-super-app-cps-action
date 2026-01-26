@@ -234,8 +234,10 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 
 	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
 	if err != nil {
-		b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
+		}
 	}
 
 	if err := bps_user_core.ExistingIdentifier(existing, req); err != nil {
@@ -285,8 +287,10 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 
 	existing, err := b.repo.FindByOr(ctx, updatedUser.PhoneNumber, updatedUser.Email, updatedUser.Username)
 	if err != nil {
-		b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
+		}
 	}
 
 	if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {
