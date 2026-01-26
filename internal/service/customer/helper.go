@@ -3,6 +3,7 @@ package customer
 import (
 	"cbe-super-app-cps-action/internal/constants/dto/customer"
 
+	bps "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/bps"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/member"
 )
 
@@ -49,4 +50,21 @@ func MapToDto(cus *member.User) customer.FindCustomerByIDResponse {
 		FirstPinSet:          cus.FirstPinSet,
 		IsActivated:          cus.IsActivated,
 	}
+}
+func MapBpsActionToCustomerLog(action []bps.BPSAction) []customer.CustomerActionLogResponse {
+	response := make([]customer.CustomerActionLogResponse, 0)
+	for _, action := range action {
+		res := customer.CustomerActionLogResponse{
+			ActionCode:     action.ActionCode,
+			MakerName:      action.MakerName,
+			ActionReason:   action.ActionReason,
+			RequestAction:  string(action.RequestAction),
+			ServiceName:    action.ServiceName,
+			Status:         string(action.Status),
+			CreatedAt:      action.CreatedAt,
+			LastModifiedAt: action.LastModifiedAt,
+		}
+		response = append(response, res)
+	}
+	return response
 }

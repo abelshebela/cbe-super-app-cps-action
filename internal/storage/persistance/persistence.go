@@ -87,4 +87,5 @@ type Persistence struct {
 	LogisticsMerchantPersistence      storage.LogisticsMerchantRepository
 	CustomerKYCPersistence            storage.CustomerKYCRepository
 	UssdMerchantPersistence           storage.UssdMerchantRepository
+	BpsActionPersistence              storage.BPSActionRepository
 }

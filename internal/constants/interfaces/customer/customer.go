@@ -13,4 +13,5 @@ type CustomerDetail interface {
 	GetLinkedAccount(w http.ResponseWriter, r *http.Request)
 	SearchCustomerByCIForAccountNumber(w http.ResponseWriter, r *http.Request)
 	GetCustomerDetailByID(w http.ResponseWriter, r *http.Request)
+	GetCustomerActionLogByID(w http.ResponseWriter, r *http.Request)
 }
