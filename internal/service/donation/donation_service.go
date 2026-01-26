@@ -198,6 +198,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 
 	donationCode := core.GenerateDonationCode()
 	d.logger.Infof("Creating CPS request with target: %d, donation images count: %d", donation.Target, len(donationImages))
+	tempval := false
 	result := dto.DonationCPSRequest{
 		DonationCode: donationCode,
 		Company: dto.Company{
@@ -221,7 +222,7 @@ func (d *Donation) CreateDonation(ctx context.Context, donation dto.DonationRequ
 		CoverImage:          coverImageURL,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
-		Enabled:             false,
+		Enabled:             &tempval,
 	}
 	d.logger.Infof("CPS request created with target: %d, donation images count: %d", result.Target, len(result.DonationImages))
 
@@ -780,8 +781,8 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 
 		updateRequest := dto.DonationRequest{
-			CompanyID:           donationCPS.CompanyID,
-			CategoryID:          donationCPS.CategoryID,
+			CompanyID:           donationCPS.Company.ID,
+			CategoryID:          donationCPS.Category.ID,
 			Title:               donationCPS.Title,
 			IsFeatured:          donationCPS.IsFeatured,
 			Target:              donationCPS.Target,
@@ -1066,9 +1067,10 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			))
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
 		}
+		tempval := true
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
 		updateRequest := dto.DonationRequest{
-			Enabled: true,
+			Enabled: &tempval,
 		}
 		updateData := core.MapDonationUpdate(
 			action.UniqueId,
@@ -1110,8 +1112,9 @@ func (d *Donation) Authorize(ctx context.Context, action *model.CPSAction) (*mod
 			return nil, errors.New(localization.ErrorFileNotFound.Code)
 		}
 		existingModel := core.ConvertDonationListResponseToModel(existingDonation)
+		tempval := false
 		updateRequest := dto.DonationRequest{
-			Enabled: false,
+			Enabled: &tempval,
 		}
 		updateData := core.MapDonationUpdate(
 			action.UniqueId,

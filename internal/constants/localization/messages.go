@@ -714,14 +714,15 @@ const (
 	MsgWalletTransactionAlreadyExists = "Wallet transaction already exists"
 
 	// Event related error messages
-	MsgEventNameAlreadyExists = "Event name already exists"
-	MsgEventNotFound          = "Event not found"
-	MsgEventCreationFailed    = "Failed to create event"
-	MsgEventUpdateFailed      = "Failed to update event"
-	MsgEventDeletionFailed    = "Failed to delete event"
-	MsgEventEnableFailed      = "Failed to enable event"
-	MsgEventDisableFailed     = "Failed to disable event"
-	MsgEventFetchFailed       = "Failed to fetch event"
+	MsgEventNameAlreadyExists  = "Event name already exists"
+	MsgEventNotFound           = "Event not found"
+	MsgEventCreationFailed     = "Failed to create event"
+	MsgEventUpdateFailed       = "Failed to update event"
+	MsgEventDeletionFailed     = "Failed to delete event"
+	MsgEventEnableFailed       = "Failed to enable event"
+	MsgEventDisableFailed      = "Failed to disable event"
+	MsgEventFetchFailed        = "Failed to fetch event"
+	MsgMerchantIDAlreadyExists = "Merchant with this ID already exists"
 
 	// Product Code related error messages
 	MsgProductCodeNotFound        = "Product code not found"
