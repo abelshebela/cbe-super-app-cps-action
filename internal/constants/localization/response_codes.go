@@ -2662,7 +2662,7 @@ var (
 	SuccessNotificationCreatted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgNotificationCreationRequestSubmitted,
+		Message:    "Notification created successfully",
 		Type:       "success",
 	}
 
