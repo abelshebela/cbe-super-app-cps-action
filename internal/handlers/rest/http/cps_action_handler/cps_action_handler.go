@@ -69,6 +69,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
 		actionName = mod
 	}
+
 	repo := mid.GetCPSActionApproveRepo()
 	if repo == nil || actionName == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
@@ -717,6 +718,9 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 }
 
 func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.Request) {
+	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
+	defer span.End()
+
 	filterParams := local_util.ExtractFilterParams(r)
 	var allocation []string
 	search := r.URL.Query().Get("search")
@@ -731,9 +735,6 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getUserApproverPendingActions", "handler", "cpsAction")
-	defer span.End()
 
 	// roleCode from context
 	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
@@ -784,12 +785,6 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 		}
 	}
 
-	if filterParams == nil {
-		filterParams = &types.Filter{}
-	}
-	if filterParams.Filters == nil {
-		filterParams.Filters = map[string]interface{}{}
-	}
 	// do not force action_status; let API-provided filters decide
 	res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, filterParams)
 	if err != nil {

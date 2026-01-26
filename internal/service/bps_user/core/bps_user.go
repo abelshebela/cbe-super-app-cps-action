@@ -1,9 +1,13 @@
 package bps_user_core
 
 import (
+	"errors"
+	"strings"
 	"time"
 
+	"cbe-super-app-cps-action/internal/constants/localization"
 	local_model "cbe-super-app-cps-action/internal/constants/model"
+	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
@@ -14,6 +18,62 @@ import (
 	// local_model "cbe-super-app-cps-action/internal/constants/model"
 )
 
+func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) error {
+	if existing == nil {
+		return nil
+	}
+
+	normalizedEmail := strings.TrimSpace(strings.ToLower(req.Email))
+	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
+	normalizedUsername := strings.TrimSpace(req.Username)
+
+	// Email duplicate
+	if normalizedEmail != "" && strings.EqualFold(strings.TrimSpace(existing.Email), normalizedEmail) {
+		return errors.New(localization.ErrorEmailAlreadyExist.Code)
+	}
+	// Phone duplicate
+	if normalizedPhone != "" {
+		// Normalize stored phone too, just in case
+		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
+		if storedPhone == normalizedPhone {
+			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+		}
+	}
+	// Account number duplicate
+	if strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) {
+		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
+	}
+	return nil
+}
+
+func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_model.BPSUser) error {
+	if &existing == nil {
+		return nil
+	}
+
+	normalizedEmail := strings.TrimSpace(strings.ToLower(req.Email))
+	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
+	normalizedUsername := strings.TrimSpace(req.Username)
+
+	existingID := local_util.FirstHex24(existing.ID.String())
+	// Email duplicate
+	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
+		return errors.New(localization.ErrorEmailAlreadyExist.Code)
+	}
+	// Phone duplicate
+	if normalizedPhone != "" && existingID != id {
+		// Normalize stored phone too, just in case
+		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
+		if storedPhone == normalizedPhone {
+			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+		}
+	}
+	// Account number duplicate
+	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
+		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
+	}
+	return nil
+}
 func BPSUser_mapper(action map[string]interface{}) bps_model.BPSUser {
 	var user bps_model.BPSUser
 

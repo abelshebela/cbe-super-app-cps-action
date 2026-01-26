@@ -611,8 +611,11 @@ const (
 	MsgCompanyCodeAlreadyExists          = "Company code already exists"
 	MsgDonationTitleAlreadyExists        = "Donation title already exists"
 	MsgAccountNumberAlreadyExists        = "company with this account number already exists"
-	MsgEmailAlreadyExists                = "Email already exists"
+	MsgMerchantCodeAlreadyExists         = "Merchant code already exist"
 	MsgPhonenumberAlreadyExists          = "Phone number already exists"
+	MsgUsernameAlreadyExists             = "Username already exists"
+	MsgEmailAlreadyExists                = "this email already exist"
+	MsgPhoneAlreadyExists                = "this phone number already exist"
 	MsgCodeAlreadyExists                 = "Ecommerce merchant with this code/id already exists"
 	MsgLogoIsRequired                    = "Company logo is required"
 	MsgAccountNumberValidationFailed     = "Account number validation failed"
@@ -1153,7 +1156,7 @@ const (
 	// Password Rule
 	MsgFetchAllPasswordRules = "Password Rules Successfully Fetched"
 	MsgUpdatePasswordRule    = "Update request submitted for approval"
-	MsgUpdatePasswordRuleSP  = "Update request submitted"
+	MsgUpdatePasswordRuleSP  = "Password rule updated successfully"
 
 	// bank vault
 	MsgCannotDeleteActiveBankVault             = "Cannot delete active bank vault"

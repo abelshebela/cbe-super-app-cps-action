@@ -3,7 +3,6 @@ package deviceversion
 import (
 	"net/http"
 
-	"cbe-super-app-cps-action/internal/constants"
 	dviface "cbe-super-app-cps-action/internal/constants/interfaces/device_version"
 	"cbe-super-app-cps-action/internal/glue"
 	"cbe-super-app-cps-action/internal/handlers/middleware"
@@ -19,7 +18,6 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 			Handler: handler.CreateDeviceVersion,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -28,7 +26,6 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 			Handler: handler.UpdateDeviceVersion,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -37,7 +34,6 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 			Handler: handler.GetAllDeviceVersions,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -46,7 +42,6 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 			Handler: handler.GetDeviceVersionByID,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker, constants.Checker, constants.IFBChecker}),
 			},
 		},
 		{
@@ -55,7 +50,6 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 			Handler: handler.Enable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 		{
@@ -64,7 +58,6 @@ func Init(router chi.Router, handler dviface.DeviceVersionHandler, authMiddlewar
 			Handler: handler.Disable,
 			Middlewares: []func(next http.Handler) http.Handler{
 				authMiddleware.AuthenticateToken,
-				authMiddleware.AccessControl([]string{constants.Maker, constants.IFBMaker}),
 			},
 		},
 	}

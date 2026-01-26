@@ -437,7 +437,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 
 		IsVersionChanged := false
 		s.logger.Infof("Authorize: Syncing indices for Create. Makers: %d, Checkers: %d, Auditors: %d", len(ar.AssignedMakersRoles), len(ar.AssignedCheckerRoles), len(ar.AssignedAuditorRoles))
-		if err := s.syncIndices(ctx, "", &ar, IsVersionChanged); err != nil {
+		if err := s.syncIndices(ctx, "", ar.PortalCardName, &ar, IsVersionChanged); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -471,7 +471,7 @@ func (s *cpsActionRoleService) Authorize(ctx context.Context, action *model.CPSA
 		}
 
 		IsVersionChanged := prev.Version != new.Version
-		if err := s.syncIndices(ctx, new.ActionCode, new, IsVersionChanged); err != nil {
+		if err := s.syncIndices(ctx, new.ActionCode, new.PortalCardName, new, IsVersionChanged); err != nil {
 			span.AddEvent("failed to sync indices for create", trace.WithAttributes(attribute.String("error", err.Error())))
 			return nil, err
 		}
@@ -536,7 +536,7 @@ func (s *cpsActionRoleService) validateUniqueIDsInGroups(groups [][]string) erro
 	}
 	return nil
 }
-func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, role *imodel.CPSActionRole, isVersionChanged bool) error {
+func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName string, portalCardName string, role *imodel.CPSActionRole, isVersionChanged bool) error {
 	ctx, span := local_util.TraceLogger(ctx, "service", "syncIndices", "CPSActionRole", "syncIndices")
 	defer span.End()
 	span.SetAttributes(attribute.String("old_action_name", oldActionName))
@@ -547,7 +547,7 @@ func (s *cpsActionRoleService) syncIndices(ctx context.Context, oldActionName st
 		return s.indexRepo.SaveIndices(ctx, indices)
 	}
 
-	err := s.indexRepo.SyncIndices(ctx, oldActionName, indices, isVersionChanged)
+	err := s.indexRepo.SyncIndices(ctx, oldActionName, portalCardName, indices, isVersionChanged)
 	if err != nil {
 		span.AddEvent("failed to sync indices", trace.WithAttributes(attribute.String("error", err.Error())))
 	}
@@ -620,7 +620,7 @@ func (s *cpsActionRoleService) generateIndices(role *imodel.CPSActionRole) []imo
 			found := false
 			for j := range indices {
 				if indices[j].RoleId == auditorID {
-					indices[j].CheckerIndex = &val
+					indices[j].AuditorIndex = &val
 					found = true
 					break
 				}

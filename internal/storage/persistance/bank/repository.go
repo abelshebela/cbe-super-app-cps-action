@@ -158,7 +158,7 @@ func (s *BankStorage) FindByNameOrBIC(
 
 	if bic != "" {
 		conditions = append(conditions, bson.M{
-			"bic": bson.M{"$regex": "^" + regexp.QuoteMeta(bic) + "$", "$options": "i"},
+			"bic_code": bson.M{"$regex": "^" + regexp.QuoteMeta(bic) + "$", "$options": "i"},
 		})
 	}
 

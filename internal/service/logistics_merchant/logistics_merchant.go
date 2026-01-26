@@ -155,6 +155,7 @@ func (e *LogisticsMerchantService) Create(ctx context.Context, LogisticsMerchant
 
 	exist, err := core.CheckMerchantExists(ctx, e.repo, &types.CheckMiniAppMerchant{
 		BankAccountNumber: LogisticsMerchant.BankAccountNumber,
+		MerchantCode:      LogisticsMerchant.MerchantID,
 	}, nil)
 	if err != nil && err.Error() != localization.ErrorLogisticMerchantNotFound.Code {
 		e.logger.Errorf("Failed to check merchant existence: %v", err)

@@ -17,7 +17,7 @@ func DonationCategoryMapper(data model.DonationCategory) bson.M {
 	if data.Icon != "" {
 		result["donation_icon"] = data.Icon
 	}
-	result["enabled"] = data.Enabled
+	// result["enabled"] = data.Enabled
 	result["last_modified_at"] = data.LastModifiedAt
 
 	return result
