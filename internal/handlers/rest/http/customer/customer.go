@@ -27,6 +27,29 @@ type customerAdapter struct {
 	logger          utils.Logger
 }
 
+// GetCustomerActionLogByID implements [customer.CustomerDetail].
+func (c *customerAdapter) GetCustomerActionLogByID(w http.ResponseWriter, r *http.Request) {
+	ctx, span := util.TraceLogger(r.Context(), "handler", "getCustomerActionLogByID", "handler", "customer")
+	defer span.End()
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		c.logger.Errorf("id not set on param")
+		localization.SendBadRequestResponse(w, localization.ErrorIdNotSetOnQueryParam.Code)
+		return
+	}
+	filterParams := util.ExtractFilterParams(r)
+
+	span.SetAttributes(attribute.String("customer.id", id))
+	actionLogs, err := c.customerService.GetCustomerActionLogByID(ctx, id, *filterParams)
+	if err != nil {
+		span.RecordError(err)
+		c.logger.Errorf("[GetCustomerActionLogByID] service error: %v", err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
+	localization.SendSuccessResponse(w, localization.CustomerActionLogRetrievedSuccessfully, actionLogs)
+}
+
 func InitCustomerAdapter(customer service.CustomerService, logger utils.Logger) customer.CustomerDetail {
 	return &customerAdapter{
 		logger:          logger,
