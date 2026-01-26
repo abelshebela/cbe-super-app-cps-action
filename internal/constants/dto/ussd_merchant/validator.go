@@ -33,16 +33,6 @@ func (r CreateUssdMerchantRequest) Validate() error {
 		errs["service"] = validation.NewError("service", "service is required")
 	}
 
-	if strings.EqualFold(strings.TrimSpace(r.SettlementMethod), settlementDirectTransfer) {
-		if strings.TrimSpace(r.AccountNumber) == "" {
-			errs["account_number"] = validation.NewError("account_number", "Account number is required when settlement method is Direct Transfer")
-		}
-	} else {
-		if strings.TrimSpace(r.AccountNumber) != "" {
-			errs["account_number"] = validation.NewError("account_number", "Account number must be empty when settlement method is not Direct Transfer")
-		}
-	}
-
 	if r.Email != "" {
 		if err := validation.Validate(r.Email, validation.By(func(value interface{}) error {
 			s, _ := value.(string)
@@ -91,15 +81,6 @@ func (r UpdateUssdMerchantRequest) Validate() error {
 
 	// When settlement method or account number is provided, enforce the conditional
 	if r.SettlementMethod != "" || r.AccountNumber != "" {
-		if strings.EqualFold(strings.TrimSpace(r.SettlementMethod), string(constants.SettlementMethodDirect)) {
-			if strings.TrimSpace(r.AccountNumber) == "" {
-				errs["account_number"] = validation.NewError("account_number", "Account number is required when Settlement method is Direct Transfer")
-			}
-		} else if r.SettlementMethod != "" { // only enforce emptiness if method is provided and not Direct Transfer
-			if strings.TrimSpace(r.AccountNumber) != "" {
-				errs["account_number"] = validation.NewError("account_number", "Account number must be empty when settlement method is not Direct Transfer")
-			}
-		}
 
 		if err := validation.Validate(
 			strings.ToUpper(strings.TrimSpace(r.SettlementMethod)),
