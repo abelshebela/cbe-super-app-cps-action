@@ -74,7 +74,7 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationCreatted, nil)
 		return
 	}
 

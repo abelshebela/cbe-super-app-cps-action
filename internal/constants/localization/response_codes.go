@@ -691,6 +691,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidBankAccountNumber,
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
+	ErrorMerchantIDAlreadyExists,
 
 	// Access List Segmentation Success Codes
 	SuccessAccessListSegmentationCreated,
@@ -2661,7 +2662,7 @@ var (
 	SuccessNotificationCreatted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATED",
 		StatusCode: StatusCreated,
-		Message:    MsgNotificationCreationRequestSubmitted,
+		Message:    "Notification created successfully",
 		Type:       "success",
 	}
 
@@ -5808,7 +5809,12 @@ var (
 		Message:    MsgPhonenumberAlreadyExists,
 		Type:       "error",
 	}
-
+	ErrorMerchantIDAlreadyExists = ResponseCode{
+		Code:       "ERROR_MERCHANT_ID_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgMerchantIDAlreadyExists,
+		Type:       "error",
+	}
 	ErrorUsernameAlreadyExist = ResponseCode{
 		Code:       "ERROR_USERNAME_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
