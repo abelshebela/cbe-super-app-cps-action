@@ -1,6 +1,7 @@
 package roles
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -17,6 +18,9 @@ import (
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	"github.com/go-chi/chi/v5"
+
+	constants "cbe-super-app-cps-action/internal/constants"
+	"cbe-super-app-cps-action/internal/constants/types"
 )
 
 type RoleHandler struct {
@@ -72,6 +76,10 @@ func (j *RoleHandler) FindById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
+
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	var body roles_dto.CreateJobRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -90,14 +98,22 @@ func (j *RoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:   time.Now(),
 	}
 
-	if err := j.service.Create(r.Context(), role); err != nil {
+	if err := j.service.Create(ctx, role); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessRoleCreatedRequestSent, nil)
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessRoleCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessRoleCreatedRequestSent, nil)
+	}
 }
 
 func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
+	md := &types.ContextMetadata{}
+	ctx := context.WithValue(r.Context(), constants.ContextKeyMetadata, md)
+
 	id := chi.URLParam(r, "id")
 	if strings.TrimSpace(id) == "" {
 		localization.SendErrorResponse(w, localization.ErrorRequiredFieldMissing, nil, nil)
@@ -129,9 +145,15 @@ func (j *RoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		updated.PortalCards = body.PortalCards
 	}
 
-	if err := j.service.Update(r.Context(), id, updated); err != nil {
+	if err := j.service.Update(ctx, id, updated); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessRoleUpdatedRequestSent, nil)
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessRoleUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessRoleUpdatedRequestSent, nil)
+
+	}
 }
