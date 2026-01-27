@@ -7,3 +7,11 @@ func (r FeedbackRequest) Validate() error {
 		validation.Field(&r.Responses, validation.Required.Error("responses is required")),
 	)
 }
+
+func (r SurveyFeedbackReq) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.UserID, validation.Required.Error("user_id is required")),
+		validation.Field(&r.FeedbackID, validation.Required.Error("feedback_id is required")),
+		validation.Field(&r.StarRating, validation.Required.Error("star_rating is required")),
+	)
+}
