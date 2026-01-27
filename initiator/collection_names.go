@@ -66,6 +66,7 @@ var (
 	FaydaKYCollection                = "fayda_kyc"
 	UssdMerchantCollection           = "ussd_merchants"
 	BPSActionsCollection             = "bps_actions"
+	SurveyFeedbackCollection         = "survey_feedbacks"
 )
 
 // Minio Bucket Names

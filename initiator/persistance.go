@@ -112,7 +112,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		DonationCompanyPersistence:        donation_company.NewDonationCompanyRepository(client, cfg, dbName, DonationCompaniesCollection, clientOrchestrationProducer, logger),
 		EventPersistence:                  event.NewEventRepository(client, cfg, dbName, EventsCollection, logger),
 		PasswordRulePersistent:            password.NewPasswordRuleRepository(client, cfg, dbName, PasswordRulesCollection, logger),
-		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, logger),
+		FeedbackPersistence:               feedback.NewFeedbackRepository(client, cfg, dbName, FeedbackCollection, CustomerFeedbackCollection, SurveyFeedbackCollection, logger),
 		IconPersistence:                   icon.NewIconRepository(client, cfg, dbName, IconsCollection, logger),
 		LinkedAccountPersistence:          linked_account.NewLinkedAccountRepository(client, cfg, dbName, LinkedAccountsCollection, clientOrchestrationProducer, logger),
 		EcommerceMerchantPersistence:      ecommerce_merchant.NewEcommerceMerchantRepository(client, cfg, dbName, EcommerceMerchantCollection, logger),

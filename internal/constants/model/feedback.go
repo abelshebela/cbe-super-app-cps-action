@@ -80,3 +80,12 @@ type CustomerFeedback struct {
 	SentAt        time.Time     `json:"sent_at" bson:"sent_at"`
 	CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
 }
+
+type SurveyFeedback struct {
+	ID         bson.ObjectID          `json:"id" bson:"_id,omitempty"`
+	UserID     string                 `json:"user_id"`
+	StarRating int                    `json:"star_rating"`
+	Comment    string                 `json:"comment"`
+	CreatedAt  time.Time              `json:"created_at"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+}
