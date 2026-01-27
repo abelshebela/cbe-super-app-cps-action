@@ -118,9 +118,9 @@ func (a *AccountBlockStorage) FindAllBranchesWithPagination(ctx context.Context,
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		searchKeys["$or"] = []bson.M{
-			{"name": searchRegex},
+			{"name": bson.M{"$regex": "^" + filterParam.Search + "$", "$options": "i"}},
 			{"code": searchRegex},
-			{"address": searchRegex},
+			// {"address": searchRegex},
 			{"city_id": searchRegex},
 			{"district_id": searchRegex},
 			{"region_id": searchRegex},
