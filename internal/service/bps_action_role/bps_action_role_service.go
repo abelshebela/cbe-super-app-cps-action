@@ -231,7 +231,9 @@ func (s *bpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	if req.AssignedViewersRoles != nil {
 		if err := s.validateUniqueIDs(req.AssignedViewersRoles); err != nil {
 			span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				return err
+			}
 		}
 	}
 

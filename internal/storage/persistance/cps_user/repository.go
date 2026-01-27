@@ -215,29 +215,26 @@ func (r *CPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 		}}},
 
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from":         "department",
-			"localField":   "department",
-			"foreignField": "_id",
-			"as":           "department_info",
+			"from":         "roles",
+			"localField":   "job_title",
+			"foreignField": "job_title",
+			"as":           "role_info",
 			"pipeline": mongo.Pipeline{
 				bson.D{{Key: "$project", Value: bson.M{
-					"_id":        1,
-					"department": 1,
+					"_id":  1,
+					"role": 1,
 				}}},
 			},
 		}}},
 		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$department_info",
+			"path":                       "$role_info",
 			"preserveNullAndEmptyArrays": true,
 		}}},
 		bson.D{{Key: "$addFields", Value: bson.M{
-			"department": bson.M{
-				"id":   "$department_info._id",
-				"name": "$department_info.department",
-			},
+			"role": "$role_info.role",
 		}}},
 		bson.D{{Key: "$project", Value: bson.M{
-			"department_info": 0,
+			"role_info": 0,
 		}}},
 
 		// Use $facet for concurrent data fetching and counting

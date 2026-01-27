@@ -237,8 +237,10 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 
 	if req.AssignedViewersRoles != nil {
 		if err := s.validateUniqueIDs(req.AssignedViewersRoles); err != nil {
-			span.AddEvent("failed to validate unique maker IDs", trace.WithAttributes(attribute.String("error", err.Error())))
-			return err
+			span.AddEvent("failed to validate unique viewer IDs", trace.WithAttributes(attribute.String("error", err.Error())))
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				return err
+			}
 		}
 	}
 
