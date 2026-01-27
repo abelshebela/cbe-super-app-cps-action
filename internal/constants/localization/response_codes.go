@@ -654,6 +654,8 @@ var ResponseCodesList = []ResponseCode{
 	ErrorOperationNotAllowed,
 	ErrorAuditorAlreadyChecked,
 	ErrorAuditorActionOnThisRoleCompleted,
+	ErrorAuditorActionOnThisActionCompleted,
+	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
 	ErrorGroupVaultNotFound,
@@ -5309,6 +5311,13 @@ var (
 		Code:       "ERROR_AUDITOR_ACTION_ON_THIS_ACTION_COMPLETED",
 		StatusCode: StatusForbidden,
 		Message:    MsgAuditorActionOnThisActionCompleted,
+		Type:       "error",
+	}
+
+	ErrorAuditorActionWaitForPreviousAuditor = ResponseCode{
+		Code:       "ERROR_AUDITOR_ACTION_WAIT_FOR_PREVIOUS_ACTION",
+		StatusCode: StatusForbidden,
+		Message:    MsgAuditorActionWaitForPreviousAuditor,
 		Type:       "error",
 	}
 

@@ -66,6 +66,11 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionOnThisActionCompleted.Message)
 		return
 	}
+
+	if action.ActionStatus == string(constants.Pending) || action.ActionStatus == string(constants.Canceled) || action.AuditorCount == 0 {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
 	// Determine caller allocations and active auditor group
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -101,6 +106,11 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	activeGroup := int(*idxDoc.AuditorIndex)
 	if action.CurrentAuditorIndex >= float64(activeGroup) {
 		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionOnThisRoleCompleted.Message)
+		return
+	}
+
+	if (action.CurrentAuditorIndex + 1) > float64(activeGroup) {
+		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionWaitForPreviousAuditor.Message)
 		return
 	}
 
