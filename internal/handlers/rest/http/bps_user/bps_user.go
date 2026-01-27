@@ -268,6 +268,7 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		BranchCode:       req.BranchCode,
 		Email:            req.Email,
 		FirstPasswordSet: true,
+		IsFirstTimeLogin: true,
 		Enabled:          true,
 	}
 
