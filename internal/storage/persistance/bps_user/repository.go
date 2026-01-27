@@ -95,6 +95,10 @@ func (s *BPSUserStorage) FindAllWithPagination(ctx context.Context, filterParam 
 	match := bson.M{"is_deleted": false}
 
 	// Search filters
+	if enabledVal, ok := filterParam.Filters["enabled"]; ok {
+		match["enabled"] = enabledVal
+	}
+
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
 		match["$or"] = []bson.M{
