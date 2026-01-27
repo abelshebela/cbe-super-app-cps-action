@@ -56,6 +56,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
+				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)
 				types.SetIsMakerOnly(ctx, role.IsMakerOnly)
 			}
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {
