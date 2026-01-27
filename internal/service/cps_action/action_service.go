@@ -116,7 +116,7 @@ func (ca *cpsActionService) CreateCPSAction(ctx context.Context, cpsAction *mode
 
 	roleCode := ctx.Value(constants.ContextKey("role_code")).(string)
 	existing, err := ca.GetCPSActionByUniqueID(ctx, cpsAction.RequestAction, roleCode)
-	if err != nil && err.Error() != localization.ErrorResourceNotFound.Code {
+	if err != nil && err.Error() != localization.ErrorActionNotFound.Code {
 		span.AddEvent("failed to get cps action by unique id", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
