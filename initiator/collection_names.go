@@ -65,6 +65,7 @@ var (
 	CustomerFeedbackCollection       = "customer_feedbacks"
 	FaydaKYCollection                = "fayda_kyc"
 	UssdMerchantCollection           = "ussd_merchants"
+	BPSActionsCollection             = "bps_actions"
 )
 
 // Minio Bucket Names

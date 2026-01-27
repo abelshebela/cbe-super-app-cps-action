@@ -176,9 +176,9 @@ func (h BPSUserHandler) DisableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		h.logger.Infof("[DisableUser] request sent successfully for user_code: %s", userCode)
-		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSentSP, map[string]string{})
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserDisableRequestSent, map[string]string{})
 
 	}
 }
@@ -219,9 +219,9 @@ func (h BPSUserHandler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	}
 	if md.IsMakerOnly {
 		h.logger.Infof("[EnableUser] request sent successfully for user_code: %s", userCode)
-		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSentSP, map[string]string{})
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBpsUserEnableRequestSent, map[string]string{})
 	}
 }
 
@@ -279,9 +279,9 @@ func (h BPSUserHandler) CreateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBPSUserCreated, nil)
 
 	}
 }
@@ -370,8 +370,8 @@ func (h BPSUserHandler) UpdateBPSUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
-	} else {
 		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessBPSUserUpdated, nil)
 	}
 }

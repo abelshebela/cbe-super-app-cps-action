@@ -6,6 +6,7 @@ import (
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/service"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -13,6 +14,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 	"go.opentelemetry.io/otel/attribute"
+
+	constants "cbe-super-app-cps-action/internal/constants"
+	types "cbe-super-app-cps-action/internal/constants/types"
 )
 
 type BPSActionRoleHandler struct {
@@ -134,6 +138,8 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "createCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
 	var req actionrole_dto.CreateActionRoleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
@@ -166,8 +172,11 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-
-	localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleCreateRequestCreated, nil)
+	}
 }
 
 // Update godoc
@@ -184,6 +193,10 @@ func (h *BPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "updateCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -205,7 +218,12 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
+
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdatedSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleUpdateRequestCreated, nil)
+	}
 }
 
 // Enable godoc
@@ -220,6 +238,10 @@ func (h *BPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "enableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -232,7 +254,11 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleEnableRequestCreated, nil)
+	}
 }
 
 // Disable godoc
@@ -247,6 +273,10 @@ func (h *BPSActionRoleHandler) Enable(w http.ResponseWriter, r *http.Request) {
 func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "disableCpsActionRole", "handler", "cpsActionRole")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	code := chi.URLParam(r, "code")
 	if code == "" {
 		localization.SendBadRequestResponse(w, localization.ErrorInvalidInputParameter.Message)
@@ -259,5 +289,9 @@ func (h *BPSActionRoleHandler) Disable(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisabledSP, nil)
+	} else {
+		localization.SendSuccessResponse(w, localization.SuccessActionRoleDisableRequestCreated, nil)
+	}
 }

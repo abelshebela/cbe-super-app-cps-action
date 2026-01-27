@@ -232,10 +232,15 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
 	if err != nil {
-		b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
+		}
 	}
 
 	if err := bps_user_core.ExistingIdentifier(existing, req); err != nil {
@@ -273,7 +278,11 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] failed to create CPS action: %v", err)
 		return err
 	}
+	if md.IsMakerOnly {
 
+	} else {
+
+	}
 	b.logger.Infof("[CreateBPSUser] CPS action created successfully for user_code: %s", req.UserCode)
 	return nil
 }
@@ -285,8 +294,10 @@ func (b *bpsUserService) UpdateBPSUser(ctx context.Context, userID string, updat
 
 	existing, err := b.repo.FindByOr(ctx, updatedUser.PhoneNumber, updatedUser.Email, updatedUser.Username)
 	if err != nil {
-		b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
-		return err
+		if err.Error() != localization.ErrorResourceNotFound.Code {
+			b.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			return err
+		}
 	}
 
 	if err := bps_user_core.ExistingIdentifierForUpdate(*existing, userID, updatedUser); err != nil {

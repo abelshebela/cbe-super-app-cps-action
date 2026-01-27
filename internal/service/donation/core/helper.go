@@ -76,7 +76,7 @@ func MapToDonationCPSRequest(donation *imodel.Donation) *donation_dto.DonationCP
 		CoverImage:          donation.CoverImage,
 		EndDate:             donation.EndDate.Format(time.RFC3339),
 		StartDate:           donation.StartDate.Format(time.RFC3339),
-		Enabled:             donation.Enabled,
+		Enabled:             &donation.Enabled,
 	}
 }
 
@@ -145,7 +145,7 @@ func IsDataSimilar(request donation_dto.DonationRequest, existing *imodel.Donati
 	if request.IsFeatured != &existing.IsFeatured {
 		return false
 	}
-	if request.Enabled != existing.Enabled {
+	if *request.Enabled != existing.Enabled {
 		return false
 	}
 	if !request.StartDate.IsZero() && !request.StartDate.Equal(existing.StartDate) {
@@ -217,7 +217,7 @@ func MapToDonationModel(cpsRequest *donation_dto.DonationCPSRequest) *imodel.Don
 		CoverImage:          cpsRequest.CoverImage,
 		EndDate:             endTime,
 		StartDate:           startTime,
-		Enabled:             cpsRequest.Enabled,
+		Enabled:             *cpsRequest.Enabled,
 		IsDeleted:           false,
 		CreatedAt:           time.Now(),
 		LastModifiedAt:      time.Now(),
@@ -317,7 +317,7 @@ func MapDonationUpdate(
 	category donation_dto.Category,
 ) donation_dto.DonationCPSRequest {
 	isFeatured := nonEmptyBool(update.IsFeatured, existing.IsFeatured)
-	isEnabled := nonEmptyBool(&update.Enabled, existing.Enabled)
+	isEnabled := nonEmptyBool(update.Enabled, existing.Enabled)
 
 	return donation_dto.DonationCPSRequest{
 		ID:           id,
@@ -340,6 +340,6 @@ func MapDonationUpdate(
 		CoverImage:          coverImageURL,
 		StartDate:           GetTimeValueOrDefault(update.StartDate, existing.StartDate).Format(time.RFC3339),
 		EndDate:             GetTimeValueOrDefault(update.EndDate, existing.EndDate).Format(time.RFC3339),
-		Enabled:             isEnabled,
+		Enabled:             &isEnabled,
 	}
 }
