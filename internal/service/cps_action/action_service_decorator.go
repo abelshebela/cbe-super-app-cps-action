@@ -38,7 +38,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 	roleCode, _ := ctx.Value(constants.ContextKey("role_code")).(string)
 
 	if actType == string(constants.ActionCreate) || actType == string(constants.ActionUpdate) || actType == string(constants.ActionDelete) ||
-		strings.Contains(req, "ENABLE") || strings.Contains(req, "DISABLE") {
+		strings.Contains(req, constants.ENABLE) || strings.Contains(req, constants.DISABLE) {
 
 		if cpsAction.CheckerUsers == nil {
 			cpsAction.CheckerUsers = []model.Checker{}
@@ -56,6 +56,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			}
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
+				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)
 				types.SetIsMakerOnly(ctx, role.IsMakerOnly)
 			}
 			if approver, err := s.roles.FindApproverByActionName(ctx, strings.ToUpper(mod), roleCode); err == nil {

@@ -89,6 +89,7 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 	update := bson.M{
 		"action_name":             actionRole.ActionName,
 		"assigned_makers_roles":   actionRole.AssignedMakersRoles,
+		"assigned_viewers_roles":  actionRole.AssignedViewersRoles,
 		"assigned_checkers_roles": actionRole.AssignedCheckerRoles,
 		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
 		"approver_count":          actionRole.ApproverCount,
