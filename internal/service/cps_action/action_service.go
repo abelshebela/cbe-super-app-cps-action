@@ -72,7 +72,8 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	defer span.End()
 	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil || act == nil {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		ca.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return errors.New(localization.ErrorActionNotFound.Code)
 	}
 	// prevent multiple marks within the same group (any-one quorum)
 	grp := int(activeGroup)

@@ -397,7 +397,7 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	// Handle empty cursor
 	if cur == nil || !cur.Next(ctx) {
-		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 
 	var result model.CPSAction

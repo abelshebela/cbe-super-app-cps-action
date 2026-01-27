@@ -572,11 +572,14 @@ const (
 	MsgExternalServiceError        = "External service error"
 
 	// Business logic error messages
-	MsgInsufficientBalance = "Insufficient balance"
-	MsgTransactionFailed   = "Transaction failed"
-	MsgLimitExceeded       = "Limit exceeded"
-	MsgOperationNotAllowed = "Operation not allowed"
-	MsgMaintenanceMode     = "System is in maintenance mode"
+	MsgInsufficientBalance                = "Insufficient balance"
+	MsgTransactionFailed                  = "Transaction failed"
+	MsgLimitExceeded                      = "Limit exceeded"
+	MsgOperationNotAllowed                = "Operation not allowed"
+	MsgAuditorAlreadyChecked              = "Auditor already checked this action"
+	MsgAuditorActionOnThisRoleCompleted   = "Action Auditing on this role is already completed"
+	MsgAuditorActionOnThisActionCompleted = "Action Auditing on this action is already completed"
+	MsgMaintenanceMode                    = "System is in maintenance mode"
 
 	// Bank related error messages
 	MsgAmountTierNotFound        = "Vault's amount tier not found"
@@ -659,6 +662,7 @@ const (
 	// CPS Action related error messages
 	MsgPendingCPSActionExists        = "Pending CPS action already exists"
 	MsgCPSActionNotFound             = "action name not found"
+	MsgCPSActionDataNotFound         = "action data not found"
 	MsgBpsUserAlreadyEnabled         = "User already enabled"
 	MsgBpsUserAlreadyDisabled        = "User already disabled"
 	MsgCPSActionNotPending           = "Action is not in pending status"

@@ -103,6 +103,9 @@ func (s *cpsActionServiceWithRoles) AuditorClaim(ctx context.Context, actionCode
 	return nil
 }
 func (s *cpsActionServiceWithRoles) AuditorMark(ctx context.Context, actionCode string, auditor model.Auditor, activeGroup int) error {
+	if err := s.base.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
+		return err
+	}
 	return nil
 }
 

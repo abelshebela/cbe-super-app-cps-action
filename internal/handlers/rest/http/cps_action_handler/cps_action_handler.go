@@ -54,10 +54,18 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil || action == nil {
 		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorResourceNotFound.Code)
+		if err.Error() == localization.ErrorActionNotFound.Code {
+			localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
+			return
+		}
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
+	if action.AuditorStatus == model.AuditorStatus(constants.AUDITORCHECKED) {
+		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionOnThisActionCompleted.Message)
+		return
+	}
 	// Determine caller allocations and active auditor group
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -91,6 +99,10 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 
 	// Active group is the integer part of the auditor index (e.g., 1.* -> 1)
 	activeGroup := int(*idxDoc.AuditorIndex)
+	if action.CurrentAuditorIndex >= float64(activeGroup) {
+		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionOnThisRoleCompleted.Message)
+		return
+	}
 
 	// Parse request to decide claim vs mark
 	var reqBody cps_actionrole_dto.AuditorMarkRequest
@@ -121,6 +133,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		AuditorMark:        model.AuditorMark(strings.ToUpper(strings.TrimSpace(reqBody.Mark))),
 		ApprovedAt:         time.Now(),
 	}
+
 	if err := a.cpsActionApplication.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
