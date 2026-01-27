@@ -10,6 +10,8 @@ import (
 	advert "cbe-super-app-cps-action/internal/service/ad"
 	amount_based_auth "cbe-super-app-cps-action/internal/service/amount_based_auth"
 	bankService "cbe-super-app-cps-action/internal/service/bank"
+	bps_action_service "cbe-super-app-cps-action/internal/service/bps_action"
+	bpsuser "cbe-super-app-cps-action/internal/service/bps_user"
 	event_merchant_service "cbe-super-app-cps-action/internal/service/event_merchant"
 	logistics_merchant_service "cbe-super-app-cps-action/internal/service/logistics_merchant"
 	"cbe-super-app-cps-action/internal/service/media"
@@ -23,7 +25,6 @@ import (
 	vaultGroupCategory "cbe-super-app-cps-action/internal/service/vaultgroup_category"
 
 	bps_action_role_service "cbe-super-app-cps-action/internal/service/bps_action_role"
-	bpsService "cbe-super-app-cps-action/internal/service/bps_user"
 	budgetCategorySvc "cbe-super-app-cps-action/internal/service/budget_category"
 	bulk_service "cbe-super-app-cps-action/internal/service/bulk"
 	cpsaction "cbe-super-app-cps-action/internal/service/cps_action"
@@ -88,9 +89,10 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	bulkService := bulk_service.NewBulkService(persistence.BulkService, nil, logger)
 	ussdMerchant := ussd_merchant.NewUssdMerchantService(persistence.UssdMerchantPersistence, persistence.ServicesPersistence, minioClient, nil, cfg.S3BucketName, *cfg, logger)
 
-	customerService := customer.NewCustomerService(persistence.CustomerService, nil, nil, nil, nil, logger)
+	customerService := customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, nil, nil, nil, nil, logger)
 	bank_service := bankService.NewBankService(logger, persistence.BankPersistence, nil, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	walletService := wallet.NewWalletService(persistence.WalletPersistence, nil, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
+	bpsActionService := bps_action_service.NewBPSActionService(persistence.BpsActionPersistence, logger, cfg)
 	topupService := topup.NewTopupService(persistence.TopupPersistence, nil, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	accountBlockService := accountblock.NewAccountService(persistence.AccountBlockPersistence, nil, logger)
 	departmentService := department.NewDepartmentService(persistence.DepartmentPersistence, nil, persistence.PortalCardPersistence, persistence.PermissionPersistence, logger)
@@ -114,7 +116,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	notificationsvc := notification.InitNotificationService(persistence.NotificationPersistence, logger, nil, smsService)
 	amountBased := amount_based_auth.NewAmountBasedAuthService(persistence.AmountBasedAuthPersistence, nil, cfg, logger)
 	unlinkService := unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, nil, logger)
-	bpsUserService := bpsService.NewBPSUserService(persistence.BPSUserPersistence, persistence.RolePersistence, nil, logger)
+	bpsUserService := bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.RolePersistence, nil, logger)
 	articleService := media.NewMediaService(persistence.ArticlePersistence, redis, logger)
 	articleCategoryService := media.NewMediaCategoryService(persistence.ArticleCategoryPersistence, logger)
 	ShortVideoService := media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
@@ -215,7 +217,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	// cpsActionService := cpsaction.NewCPSActionService(persistence.CPSAction, persistence, logger, *dispatcher)
 	eventService = event.NewEventService(persistence.EventPersistence, cpsActionService, ecommerceMerchantService, persistence.UserPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	bulkService = bulk_service.NewBulkService(persistence.BulkService, cpsActionService, logger)
-	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
+	customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, cfg, logger)
 	bank_service = bankService.NewBankService(logger, persistence.BankPersistence, cpsActionService, minioClient, minioPubUrl, cfg, cfg.S3BucketName)
 	walletService = wallet.NewWalletService(persistence.WalletPersistence, cpsActionService, persistence.ServicesPersistence, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
 	topupService = topup.NewTopupService(persistence.TopupPersistence, cpsActionService, minioClient, minioPubUrl, cfg.S3BucketName, cfg, logger)
@@ -243,7 +245,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.DeviceVersionContainer = deviceVersionService
 	budgetCategoryService = budgetCategorySvc.NewBudgetCategoryService(persistence.BudgetCategoryPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, cfg, minioPubUrl)
 	serviceContainer.UnlinkContainer = unlink.NewUnlinkService(mongoClient, persistence.UserPersistence, persistence.ArchivedUserPersistence, persistence.LinkedAccountPersistence, persistence.ArchivedLinkedAccountPersistence, persistence.AccountBlockPersistence, cpsActionService, logger)
-	bpsUserService = bpsService.NewBPSUserService(persistence.BPSUserPersistence, persistence.RolePersistence, cpsActionService, logger)
+	bpsUserService = bpsuser.NewBPSUserService(persistence.BPSUserPersistence, persistence.RolePersistence, cpsActionService, logger)
 	serviceContainer.BPSUserContainer = bpsUserService
 	serviceContainer.AdContainer = advert.NewAdvertService(persistence.AdvertRepositoryPersistence, cpsActionService, minioClient, cfg.S3BucketName, cfg, logger)
 	serviceContainer.AvatarDomian = avatar.NewAvatarService(persistence.AvatarPersistence, cpsActionService, logger, minioClient, cfg.S3BucketName, minioPubUrl, *cfg)
@@ -275,7 +277,7 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 	serviceContainer.ArticleCategoryContainer = articleCategoryService
 	ShortVideoService = media.NewShortVideoService(persistence.ShortVideoPersistence, redis, mediaProducer, logger)
 	serviceContainer.ShortVideoServiceContainer = ShortVideoService
-	customerService = customer.NewCustomerService(persistence.CustomerService, cpsActionService, redis, smsService, cfg, logger)
+	customerService = customer.NewCustomerService(persistence.CustomerService, persistence.BpsActionPersistence, cpsActionService, redis, smsService, cfg, logger)
 
 	kycService = kycsvc.NewKYCVerifierService(mongoClient, persistence.KYCVerifierPersistence, persistence.UserPersistence, accountLookupAdapter, cpsActionService, persistence.LinkedAccountPersistence, *cfg, logger)
 	sitotaService = sitota_service.NewSitotaTransactionService(oracle.Sitota, logger)
@@ -361,5 +363,6 @@ func InitServiceLayer(mongoClient *mongo.Client, persistence persistance.Persist
 		CPSRoles:                      CPSRolesService,
 		CustomerKYC:                   customerKYCService,
 		UssdMerchantService:           ussdMerchant,
+		BPSActionService:              bpsActionService,
 	}
 }
