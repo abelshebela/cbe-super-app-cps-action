@@ -508,6 +508,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorKeyRequiredForBulkService,
 	SuccessCustomerDetailSuccessfullyFetched,
 	CustomerEnableRequestSessionCreatedSuccessfully,
+	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
@@ -6860,6 +6861,12 @@ var (
 		Code:       "SUCCESS_CUSTOMER_ENABLE_REQUEST_SESSION_CREATED",
 		StatusCode: StatusOK,
 		Message:    "Customer Enable request session created Successfully, Verify Otp to continue",
+		Type:       "success",
+	}
+	CustomerActionLogRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_ACTION_LOG_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Customer action log retrieved successfully",
 		Type:       "success",
 	}
 

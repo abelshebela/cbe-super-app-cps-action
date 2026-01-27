@@ -149,6 +149,7 @@ type CustomerService interface {
 	ApproveFaydaCustomer(ctx context.Context, id string, req customer.FaydaApproveRequest) error
 	GetLinkedAccount(ctx context.Context, id string) ([]model.LinkedAccount, error)
 	CreateEnableCustomerSession(ctx context.Context, id string) (string, error)
+	GetCustomerActionLogByID(ctx context.Context, id string, filterParams types.Filter) (types.PaginatedResponse[[]customer_dto.CustomerActionLogResponse], error)
 	SearchCustomerByCIForAccountNumber(ctx context.Context, number string) (*customer_dto.CustomerListResponse, error)
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
 	GetCustomerDetailByID(ctx context.Context, id string) (*customer_dto.CustomerDetailResponse, error)
@@ -559,6 +560,7 @@ type ServiceLayer struct {
 	CPSRoles                      CPSRolesService
 	CustomerKYC                   CustomerKYCService
 	UssdMerchantService           UssdMerchantService
+	BPSActionService              BPSActionService
 }
 
 type ServiceContainer struct {
@@ -626,6 +628,7 @@ type ServiceContainer struct {
 	CPSRolesContainer                  CPSRolesService
 	CustomerKYCContainer               CustomerKYCService
 	UssdMerchantContainer              UssdMerchantService
+	BPSActionContainer                 BPSActionService
 }
 
 type BPSActionRoleService interface {
@@ -765,4 +768,6 @@ type CustomerKYCService interface {
 	UpdateKYCStatus(ctx context.Context, id, status string) error
 	Delete(ctx context.Context, id string) error
 	Authorize(ctx context.Context, cpsAction *model.CPSAction) (*model.CPSAction, error)
+}
+type BPSActionService interface {
 }

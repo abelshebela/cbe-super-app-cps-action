@@ -17,6 +17,7 @@ import (
 	"cbe-super-app-cps-action/internal/storage/persistance/auth_tier"
 	"cbe-super-app-cps-action/internal/storage/persistance/avatar"
 	"cbe-super-app-cps-action/internal/storage/persistance/bank"
+	"cbe-super-app-cps-action/internal/storage/persistance/bps_action"
 	actionrole_repo "cbe-super-app-cps-action/internal/storage/persistance/bps_action_role"
 	"cbe-super-app-cps-action/internal/storage/persistance/bps_user"
 	"cbe-super-app-cps-action/internal/storage/persistance/cps_action"
@@ -120,6 +121,7 @@ func InitPersistanceLayer(client *mongo.Client, dbName string, coreConfig core.C
 		ServicesPersistence:               services_repo.NewServicesRepository(client, cfg, dbName, ServicesCollection, clientOrchestrationProducer, logger),
 		ValidationRulePersistence:         accountvalidation.NewAccountValidationStore(client, cfg, dbName, ValidationRulesCollection, clientOrchestrationProducer, logger),
 		WalletPersistence:                 wallet.NewWalletRepository(client, cfg, dbName, WalletsCollection, ServicesCollection, logger),
+		BpsActionPersistence:              bps_action.NewBPSActionRepository(client, dbName, BPSActionsCollection, logger, cfg),
 		TopupPersistence:                  Topup.NewTopupRepository(client, cfg, dbName, TopUpsCollection, logger),
 		DepartmentPersistence:             department.NewDepartmentRepository(client, cfg, dbName, DepartmentsCollection, logger),
 		FaydaPersistence:                  fayda.InitFaydaAccountPersistence(client, cfg, dbName, MembersCollection, logger),
