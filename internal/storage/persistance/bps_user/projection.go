@@ -42,6 +42,6 @@ func BPSUserMapper(data bps_model.BPSUser) bson.M {
 	}
 
 	// result["role"] = data.Role
-	// result["enabled"] = data.Enabled
+	result["enabled"] = data.Enabled
 	return result
 }

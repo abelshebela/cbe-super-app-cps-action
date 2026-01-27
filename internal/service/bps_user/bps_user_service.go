@@ -232,6 +232,9 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 	defer span.End()
 	makerData := local_util.ExtractUserFromContext(ctx)
 
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	existing, err := b.repo.FindByOr(ctx, req.PhoneNumber, req.Email, req.Username)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
@@ -275,7 +278,11 @@ func (b *bpsUserService) CreateBPSUser(ctx context.Context, req bps_model.BPSUse
 		b.logger.Errorf("[CreateBPSUser] failed to create CPS action: %v", err)
 		return err
 	}
+	if md.IsMakerOnly {
 
+	} else {
+
+	}
 	b.logger.Infof("[CreateBPSUser] CPS action created successfully for user_code: %s", req.UserCode)
 	return nil
 }

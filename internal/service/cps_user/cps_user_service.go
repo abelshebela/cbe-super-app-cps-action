@@ -267,7 +267,7 @@ func (s *cpsUserService) DisableUser(ctx context.Context, userCode string) error
 		return errors.New(localization.ErrorUserAlreadyDisabled.Code)
 	}
 
-	updated := prev
+	updated := *prev
 	updated.Enabled = false
 	updated.PasswordDisable = true
 

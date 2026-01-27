@@ -52,7 +52,6 @@ var ResponseCodesList = []ResponseCode{
 	SuccessDonationImageUploaded,
 	SuccessDonationImagesUpdated,
 	SuccessNotificationConstructed,
-	SuccessNotificationUpdated,
 	SuccessFeedbackSavedToDatabase,
 	SuccessAvatarCreated,
 	SuccessAvatarCreatedSP,
@@ -86,7 +85,9 @@ var ResponseCodesList = []ResponseCode{
 	SuccessEcommerceMerchantsFetchedSuccessfully,
 	SuccessEcommerceMerchantLookup,
 
-	SuccessNotificationCreatted,
+	SuccessNotificationCreatedSP,
+	SuccessNotificationUpdatedSP,
+	SuccessNotificationDeletedSP,
 
 	SuccessTopupEnableRequestSubmitted,
 	SuccessTopupEnabledSP,
@@ -217,6 +218,10 @@ var ResponseCodesList = []ResponseCode{
 	SuccessActionRoleEnableRequestCreated,
 	SuccessActionRoleDisableRequestCreated,
 
+	SuccessActionRoleCreatedSP,
+	SuccessActionRoleUpdatedSP,
+	SuccessActionRoleEnabledSP,
+	SuccessActionRoleDisabledSP,
 	// event merchant success response codes
 	SuccessEventMerchantCreated,
 	SuccessEventMerchantDisabled,
@@ -504,6 +509,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorKeyRequiredForBulkService,
 	SuccessCustomerDetailSuccessfullyFetched,
 	CustomerEnableRequestSessionCreatedSuccessfully,
+	CustomerActionLogRetrievedSuccessfully,
 	CustomerDisableRequestCreatedSuccessfully,
 	CustomerEnableRequestCreatedSuccessfully,
 	ErrorCustomerAlreadyDisabled,
@@ -695,6 +701,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorEventMerchantInvalidBankAccountNumber,
 	ErrorEventMerchantInvalidEmail,
 	ErrorEventMerchantInvalidPhoneNumber,
+	ErrorMerchantIDAlreadyExists,
 
 	// Access List Segmentation Success Codes
 	SuccessAccessListSegmentationCreated,
@@ -781,6 +788,25 @@ var ResponseCodesList = []ResponseCode{
 	SuccessHQPasswordExpiryUpdatedSP,
 	SuccessHQArchiveTimeUpdatedSP,
 	SuccessHQBlockTimeUpdatedSP,
+
+	SuccessJobRolesFetchedSuccessfully,
+	SuccessJobRoleFetchedSuccessfully,
+
+	SuccessJobRoleCreatedSP,
+	SuccessJobRoleUpdatedSP,
+
+	SuccessRoleUpdatedSP,
+	SuccessRoleCreatedSP,
+
+	SuccessNotificationEnabledSP,
+	SuccessNotificationDisabledSP,
+
+	SuccessKYCUpdatedSP,
+
+	SuccessCPSRoleDisabledSP,
+	SuccessCPSRoleEnabledSP,
+	SuccessCPSRoleUpdatedSP,
+	SuccessCPSRoleCreatedSP,
 }
 
 // Success Response Codes
@@ -989,6 +1015,12 @@ var (
 		Message:    MsgRoleCreatedRequestSent,
 		Type:       "success",
 	}
+	SuccessRoleCreatedSP = ResponseCode{
+		Code:       "SUCCESS_Role_CREATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgRoleCreatedSP,
+		Type:       "success",
+	}
 
 	SuccessRoleUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
@@ -997,16 +1029,48 @@ var (
 		Type:       "success",
 	}
 
+	SuccessRoleUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_Role_UPDATED_REQUEST_SENT",
+		StatusCode: StatusCreated,
+		Message:    MsgRoleUpdatedSP,
+		Type:       "success",
+	}
+	SuccessJobRolesFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRolesFetchedSuccess,
+		Type:       "success",
+	}
+	SuccessJobRoleFetchedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLRS_FETCHED_SUCCEESSFULLY",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRoleFetchedSuccess,
+		Type:       "success",
+	}
 	SuccessJobRoleCreatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLE_CREATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgJobRoleCreatedRequestSent,
 		Type:       "success",
 	}
+
 	SuccessJobRoleUpdatedRequestSent = ResponseCode{
 		Code:       "SUCCESS_JOB_ROLE_UPDATED_REQUEST_SENT",
 		StatusCode: StatusCreated,
 		Message:    MsgJobRoleUpdateRequestSent,
+		Type:       "success",
+	}
+	SuccessJobRoleCreatedSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRoleCreatedSP,
+		Type:       "success",
+	}
+
+	SuccessJobRoleUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_JOB_ROLE_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgJobRoleUpdatedSP,
 		Type:       "success",
 	}
 
@@ -1235,6 +1299,12 @@ var (
 		Code:       "SUCCESS_KYC_UPDATED_REQUEST_SENT",
 		StatusCode: StatusOK,
 		Message:    MsgKYCUpdatedRequestSent,
+		Type:       "success",
+	}
+	SuccessKYCUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_KYC_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgKYCUpdatedRequestSentSP,
 		Type:       "success",
 	}
 
@@ -1516,13 +1586,13 @@ var (
 
 	// CPS Roles
 	SuccessCPSRoleCreated = ResponseCode{
-		Code:       "SUCCESS_CPS_ROLE",
+		Code:       "SUCCESS_CPS_ROLE_CREATE_REQUEST_SEND_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCpsRoleCreated,
 		Type:       "success",
 	}
 	SuccessCPSRoleUpdated = ResponseCode{
-		Code:       "SUCCESS_CPS_ROLE",
+		Code:       "SUCCESS_CPS_ROLE_UPDATE_REQUEST_SEND_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCpsRoleUpdated,
 		Type:       "success",
@@ -1540,15 +1610,43 @@ var (
 		Type:       "success",
 	}
 	SuccessCPSRoleEnabled = ResponseCode{
-		Code:       "SUCCESS_CPS_ROLE_ENABLED",
+		Code:       "SUCCESS_CPS_ROLE_ENABLED_REQUEST_SEND_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCpsRoleEnabled,
 		Type:       "success",
 	}
 	SuccessCPSRoleDisabled = ResponseCode{
-		Code:       "SUCCESS_CPS_ROLE_DISABLED",
+		Code:       "SUCCESS_CPS_ROLE_DISABLE_REQUEST_SEND_SUCCESSFULLY",
 		StatusCode: StatusOK,
 		Message:    MsgCpsRoleDisabled,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleCreatedSP = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_CREATE",
+		StatusCode: StatusCreated,
+		Message:    MsgCpsRoleCreatedSP,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleUpdatedSP,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleEnabledSP = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleEnabledSP,
+		Type:       "success",
+	}
+
+	SuccessCPSRoleDisabledSP = ResponseCode{
+		Code:       "SUCCESS_CPS_ROLE_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgCpsRoleDisabledSP,
 		Type:       "success",
 	}
 
@@ -2655,20 +2753,33 @@ var (
 	}
 
 	// Notification related success response codes
+
+	SuccessNotificationCreatedSP = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgNotificationCreated,
+		Type:       "success",
+	}
+
+	SuccessNotificationUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_UPDATED",
+		StatusCode: StatusOK,
+		Message:    MsgNotificationUpdated,
+		Type:       "success",
+	}
+	SuccessNotificationDeletedSP = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_DELETED",
+		StatusCode: StatusOK,
+		Message:    MsgNotificationDeleted,
+		Type:       "success",
+	}
+
 	SuccessNotificationCreationRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_CREATION_REQUEST_SUBMITTED",
 		StatusCode: StatusCreated,
-		Message:    MsgNotificationCreationRequestSubmitted,
+		Message:    "Notification created successfully",
 		Type:       "success",
 	}
-
-	SuccessNotificationCreatted = ResponseCode{
-		Code:       "SUCCESS_NOTIFICATION_CREATED",
-		StatusCode: StatusCreated,
-		Message:    MsgNotificationCreationRequestSubmitted,
-		Type:       "success",
-	}
-
 	SuccessNotificationUpdateRequestSubmitted = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_UPDATE_REQUEST_SUBMITTED",
 		StatusCode: StatusOK,
@@ -3380,6 +3491,19 @@ var (
 		Message:    MsgNotificationDisableRequestSubmitted,
 		Type:       "success",
 	}
+	SuccessNotificationEnabledSP = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_ENABLED",
+		StatusCode: StatusOK,
+		Message:    MsgNotificationEnabled,
+		Type:       "success",
+	}
+
+	SuccessNotificationDisabledSP = ResponseCode{
+		Code:       "SUCCESS_NOTIFICATION_DISABLED",
+		StatusCode: StatusOK,
+		Message:    MsgNotificationDisabled,
+		Type:       "success",
+	}
 
 	SuccessNotificationRetrieved = ResponseCode{
 		Code:       "SUCCESS_NOTIFICATION_RETRIEVED",
@@ -3815,13 +3939,6 @@ var (
 		Type:       "success",
 	}
 
-	SuccessNotificationUpdated = ResponseCode{
-		Code:       "SUCCESS_NOTIFICATION_UPDATED",
-		StatusCode: StatusOK,
-		Message:    MsgNotificationUpdateSuccess,
-		Type:       "success",
-	}
-
 	// Feedback Kafka related success response codes
 	SuccessFeedbackSavedToDatabase = ResponseCode{
 		Code:       "SUCCESS_FEEDBACK_SAVED_TO_DATABASE",
@@ -4124,6 +4241,33 @@ var (
 		Code:       "SUCCESS_ACTION_ROLE_DISABLE_REQUEST_CREATED",
 		StatusCode: StatusCreated,
 		Message:    MsgActionRoleDisableRequestCreated,
+		Type:       "success",
+	}
+	SuccessActionRoleCreatedSP = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleCreatedSP,
+		Type:       "success",
+	}
+
+	SuccessActionRoleUpdatedSP = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_UPDATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleUpdatedSP,
+		Type:       "success",
+	}
+
+	SuccessActionRoleEnabledSP = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_ENABLED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleEnabledSP,
+		Type:       "success",
+	}
+
+	SuccessActionRoleDisabledSP = ResponseCode{
+		Code:       "SUCCESS_ACTION_ROLE_DISABLE_REQUEST_CREATED",
+		StatusCode: StatusCreated,
+		Message:    MsgActionRoleDisabledSP,
 		Type:       "success",
 	}
 
@@ -5841,7 +5985,12 @@ var (
 		Message:    MsgPhonenumberAlreadyExists,
 		Type:       "error",
 	}
-
+	ErrorMerchantIDAlreadyExists = ResponseCode{
+		Code:       "ERROR_MERCHANT_ID_ALREADY_EXISTS",
+		StatusCode: StatusConflict,
+		Message:    MsgMerchantIDAlreadyExists,
+		Type:       "error",
+	}
 	ErrorUsernameAlreadyExist = ResponseCode{
 		Code:       "ERROR_USERNAME_ALREADY_EXIST",
 		StatusCode: StatusBadRequest,
@@ -6745,6 +6894,12 @@ var (
 		Code:       "SUCCESS_CUSTOMER_ENABLE_REQUEST_SESSION_CREATED",
 		StatusCode: StatusOK,
 		Message:    "Customer Enable request session created Successfully, Verify Otp to continue",
+		Type:       "success",
+	}
+	CustomerActionLogRetrievedSuccessfully = ResponseCode{
+		Code:       "SUCCESS_CUSTOMER_ACTION_LOG_RETRIEVED",
+		StatusCode: StatusOK,
+		Message:    "Customer action log retrieved successfully",
 		Type:       "success",
 	}
 

@@ -74,12 +74,11 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if md.IsMakerOnly {
-		localization.SendSuccessResponse(w, localization.SuccessAccessListSegmentationCreatedSP, nil)
-		return
+		localization.SendSuccessResponse(w, localization.SuccessNotificationCreatedSP, nil)
+	} else {
+		h.logger.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 	}
-
-	h.logger.Infof("[CreateNotification] request sent successfully by user: %s", maker.UserID)
-	localization.SendSuccessResponse(w, localization.SuccessNotificationCreationRequestSubmitted, nil)
 }
 
 // UpdateNotification godoc
@@ -100,6 +99,10 @@ func (h *handler) CreateNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "updateNotification", "handler", "notification")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
 		return
@@ -124,8 +127,13 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[UpdateNotification] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		h.logger.Infof("[UpdateNotification] Updated successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationUpdatedSP, nil)
+	} else {
+		h.logger.Infof("[UpdateNotification] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationUpdateRequestSubmitted, nil)
+	}
 }
 
 // DeleteNotification godoc
@@ -145,6 +153,10 @@ func (h *handler) UpdateNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "deleteNotification", "handler", "notification")
 	defer span.End()
+
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
 		return
@@ -162,8 +174,12 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[DeleteNotification] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessNotificationDeletedSP, nil)
+	} else {
+		h.logger.Infof("[DeleteNotification] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationDeleteRequestSubmitted, nil)
+	}
 }
 
 // EnableNotification godoc
@@ -183,6 +199,9 @@ func (h *handler) DeleteNotification(w http.ResponseWriter, r *http.Request) {
 func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "enableNotification", "handler", "notification")
 	defer span.End()
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
 		span.RecordError(err)
@@ -202,8 +221,13 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[EnableNotification] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessNotificationEnabledSP, nil)
+	} else {
+		h.logger.Infof("[EnableNotification] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationEnableRequestSubmitted, nil)
+	}
+
 }
 
 // DisableNotification godoc
@@ -222,6 +246,9 @@ func (h *handler) EnableNotification(w http.ResponseWriter, r *http.Request) {
 //	@Router			/notifications/disable/{id} [patch]
 func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 	ctx, span := common_utils.TraceLogger(r.Context(), "handler", "disableNotification", "handler", "notification")
+	md := &types.ContextMetadata{}
+	ctx = context.WithValue(ctx, constants.ContextKeyMetadata, md)
+
 	defer span.End()
 	id, err := common_utils.ExtractID(w, r)
 	if err != nil {
@@ -242,8 +269,13 @@ func (h *handler) DisableNotification(w http.ResponseWriter, r *http.Request) {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
-	h.logger.Infof("[DisableNotification] request sent successfully for id: %s", id)
-	localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
+	if md.IsMakerOnly {
+		localization.SendSuccessResponse(w, localization.SuccessNotificationDisabledSP, nil)
+	} else {
+		h.logger.Infof("[DisableNotification] request sent successfully for id: %s", id)
+		localization.SendSuccessResponse(w, localization.SuccessNotificationDisableRequestSubmitted, nil)
+	}
+
 }
 
 // FetchNotificationByID godoc

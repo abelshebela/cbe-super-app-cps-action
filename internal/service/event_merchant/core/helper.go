@@ -114,11 +114,8 @@ func CheckMerchantExists(
 	if res.BankAccountNumber == data.BankAccountNumber {
 		return false, errors.New(localization.ErrorAccountNumberAlreadyExists.Code)
 	}
-	if res.Email == data.Email {
-		return false, errors.New(localization.ErrorEmailAlreadyExist.Code)
-	}
-	if res.PhoneNumber == data.PhoneNumber {
-		return false, errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
+	if res.MerchantID == data.MerchantCode {
+		return false, errors.New(localization.ErrorMerchantIDAlreadyExists.Code)
 	}
 
 	return true, nil

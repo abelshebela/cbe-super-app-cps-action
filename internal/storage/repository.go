@@ -208,6 +208,9 @@ type BPSUserRepository interface {
 	FindByFilterKey(ctx context.Context, field, value string) (*bps_model.BPSUser, error)
 	FindByOr(ctx context.Context, phone, email, username string) (*bps_model.BPSUser, error)
 }
+type BPSActionRepository interface {
+	GetBPSActionByUserID(ctx context.Context, userID string, filter types.Filter) (types.PaginatedResponse[[]bps_model.BPSAction], error)
+}
 
 type BudgetCategoryRepository interface {
 	CreateBudgetCategory(ctx context.Context, budgetCategory *model.BudgetCategory) error

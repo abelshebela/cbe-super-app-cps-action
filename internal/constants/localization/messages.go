@@ -78,10 +78,18 @@ const (
 	MsgBankEnableRequestSent      = "Bank enable request sent successfully"
 	MsgBankLogoUpdatedRequestSent = "Bank logo updated request sent successfully"
 
+	MsgJobRolesFetchedSuccess = "Job roles fetched successfully"
+	MsgJobRoleFetchedSuccess  = "Job role fetched successfully"
+
 	MsgJobRoleCreatedRequestSent = "Job role created request sent successfully"
 	MsgJobRoleUpdateRequestSent  = "Job role updated request sent successfully"
-	MsgRoleCreatedRequestSent    = "Rule created    request sent successfully"
+	MsgJobRoleCreatedSP          = "Job role created successfully"
+	MsgJobRoleUpdatedSP          = "Job role updated successfully"
+	MsgRoleCreatedRequestSent    = "Rule created request sent successfully"
 	MsgRoleUpdatedRequestSent    = "Rule updated request sent successfully"
+
+	MsgRoleCreatedSP = "Rule created request sent successfully"
+	MsgRoleUpdatedSP = "Rule updated request sent successfully"
 
 	// Donation related success messages
 	MsgDonationCategoryCreateRequestSent = "Donation category create request submitted successfully"
@@ -89,18 +97,20 @@ const (
 	MsgDonationCategoryFetched           = "Donation category fetched successfully"
 	MsgDonationCategoryUpdated           = "Donation category update request submitted successfully"
 
-	MsgDonationCategoryDisableRequestSent    = "Donation category Disable request submitted successfully"
-	MsgDonationCompanyEnableRequestSent      = "Donation Company Enable request submitted successfully"
-	MsgDonationCompanyDisableRequestSent     = "Donation company Disable request submitted successfully"
-	MsgDonationCategoryEnableRequestSent     = "Donation category Enable request submitted successfully"
-	MsgDonationCompanyCreateRequestSent      = "Donation company create request submitted successfully"
-	MsgDonationCompaniesFetched              = "Donation companies fetched successfully"
-	MsgDonationCompanyFetched                = "Donation company fetched successfully"
-	MsgAccountInfoFetched                    = "Account info fetched successfully"
-	MsgDonationCompanyUpdatedRequestSent     = "Donation company updated request sent successfully"
-	MsgSuccessDonationCompanyUpdated         = "Donation company updated request submitted successfully"
-	MsgKYCApproved                           = "KYC approve request sent successfully"
-	MsgKYCUpdatedRequestSent                 = "KYC updated request sent successfully"
+	MsgDonationCategoryDisableRequestSent = "Donation category Disable request submitted successfully"
+	MsgDonationCompanyEnableRequestSent   = "Donation Company Enable request submitted successfully"
+	MsgDonationCompanyDisableRequestSent  = "Donation company Disable request submitted successfully"
+	MsgDonationCategoryEnableRequestSent  = "Donation category Enable request submitted successfully"
+	MsgDonationCompanyCreateRequestSent   = "Donation company create request submitted successfully"
+	MsgDonationCompaniesFetched           = "Donation companies fetched successfully"
+	MsgDonationCompanyFetched             = "Donation company fetched successfully"
+	MsgAccountInfoFetched                 = "Account info fetched successfully"
+	MsgDonationCompanyUpdatedRequestSent  = "Donation company updated request sent successfully"
+	MsgSuccessDonationCompanyUpdated      = "Donation company updated request submitted successfully"
+	MsgKYCApproved                        = "KYC approve request sent successfully"
+	MsgKYCUpdatedRequestSent              = "KYC updated request sent successfully"
+	MsgKYCUpdatedRequestSentSP            = "KYC updated successfully"
+
 	MsgKYCFetched                            = "KYC fetched successfully"
 	MsgDonationCreateRequestSent             = "Donation create request submitted successfully"
 	MsgDonationsFetched                      = "Donations fetched successfully"
@@ -223,6 +233,10 @@ const (
 	MsgNotificationCreationRequestSubmitted = "Notification creation request submitted successfully"
 	MsgNotificationUpdateRequestSubmitted   = "Notification update request submitted successfully"
 	MsgNotificationDeleteRequestSubmitted   = "Notification delete request submitted successfully"
+
+	MsgNotificationCreated = "Notification created successfully"
+	MsgNotificationUpdated = "Notification updated successfully"
+	MsgNotificationDeleted = "Notification deleted successfully"
 
 	// Department related success messages
 	MsgDepartmentCreateRequestedSuccessfully  = "Department create requested successfully"
@@ -389,8 +403,11 @@ const (
 	// Notification related success messages
 	MsgNotificationEnableRequestSubmitted  = "Notification enable request submitted successfully"
 	MsgNotificationDisableRequestSubmitted = "Notification disable request submitted successfully"
-	MsgNotificationSuccessfullyRetrieved   = "Notification successfully retrieved"
-	MsgNotificationsSuccessfullyRetrieved  = "Notifications successfully retrieved"
+	MsgNotificationEnabled                 = "Notification enabled successfully"
+	MsgNotificationDisabled                = "Notification disabled successfully"
+
+	MsgNotificationSuccessfullyRetrieved  = "Notification successfully retrieved"
+	MsgNotificationsSuccessfullyRetrieved = "Notifications successfully retrieved"
 
 	// Mini App Handler related success messages
 
@@ -435,6 +452,11 @@ const (
 	MsgCpsRoleDisabled        = "CPS role disable request submitted successfully"
 	MsgCpsRoleAlreadyEnabled  = "CPS role already enabled"
 	MsgCpsRoleAlreadyDisabled = "CPS role already disabled"
+
+	MsgCpsRoleCreatedSP  = "CPS role created successfully"
+	MsgCpsRoleUpdatedSP  = "CPS role updated successfully"
+	MsgCpsRoleEnabledSP  = "CPS role enabled successfully"
+	MsgCpsRoleDisabledSP = "CPS role disabled successfully"
 
 	// Feedback Handler related success messages
 	MsgFeedbackCreatedSuccessfullySP = "Feedback created successfully"
@@ -696,14 +718,15 @@ const (
 	MsgWalletTransactionAlreadyExists = "Wallet transaction already exists"
 
 	// Event related error messages
-	MsgEventNameAlreadyExists = "Event name already exists"
-	MsgEventNotFound          = "Event not found"
-	MsgEventCreationFailed    = "Failed to create event"
-	MsgEventUpdateFailed      = "Failed to update event"
-	MsgEventDeletionFailed    = "Failed to delete event"
-	MsgEventEnableFailed      = "Failed to enable event"
-	MsgEventDisableFailed     = "Failed to disable event"
-	MsgEventFetchFailed       = "Failed to fetch event"
+	MsgEventNameAlreadyExists  = "Event name already exists"
+	MsgEventNotFound           = "Event not found"
+	MsgEventCreationFailed     = "Failed to create event"
+	MsgEventUpdateFailed       = "Failed to update event"
+	MsgEventDeletionFailed     = "Failed to delete event"
+	MsgEventEnableFailed       = "Failed to enable event"
+	MsgEventDisableFailed      = "Failed to disable event"
+	MsgEventFetchFailed        = "Failed to fetch event"
+	MsgMerchantIDAlreadyExists = "Merchant with this ID already exists"
 
 	// Product Code related error messages
 	MsgProductCodeNotFound        = "Product code not found"
@@ -1205,6 +1228,11 @@ const (
 	MsgActionRoleUpdateRequestCreated  = "Action role update request sent successfully"
 	MsgActionRoleEnableRequestCreated  = "Action role enable request sent successfully"
 	MsgActionRoleDisableRequestCreated = "Action role disable request sent successfully"
+
+	MsgActionRoleCreatedSP  = "Action role created successfully"
+	MsgActionRoleUpdatedSP  = "Action role updated successfully"
+	MsgActionRoleEnabledSP  = "Action role enabled successfully"
+	MsgActionRoleDisabledSP = "Action role disabled successfully"
 
 	// Sitota related
 	MsgAllSitotasRetrievedSuccess = "All sistotas retrieved successfully"
