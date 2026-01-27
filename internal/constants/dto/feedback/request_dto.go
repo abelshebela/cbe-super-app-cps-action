@@ -26,3 +26,11 @@ type User struct {
 	FullName    string `json:"full_name" bson:"full_name,omitempty"`
 	PhoneNumber string `json:"phone_number" bson:"phone_number"`
 }
+type SurveyFeedbackReq struct {
+	UserID     string                 `json:"user_id"`
+	FeedbackID string                 `json:"feedback_id"`
+	StarRating int                    `json:"star_rating"`
+	Comment    string                 `json:"comment"`
+	CreatedAt  time.Time              `json:"created_at"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+}

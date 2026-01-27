@@ -516,6 +516,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 				// Corrected email path (from members collection)
 				{Key: "email", Value: "$member_info.email"},
 				{Key: "customer_number", Value: "$member_info.customer_number"},
+				{Key: "kyc_level", Value: "$member_info.kyc_level"},
 			}},
 		}}},
 	}
@@ -542,6 +543,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			PhoneNumber    string `bson:"phone_number"`
 			Email          string `bson:"email"`
 			CustomerNumber string `bson:"customer_number"`
+			KYCLevel       int    `bson:"kyc_level"`
 			DateOfBirth    string `bson:"date_of_birth"`
 		} `bson:"personal_info"`
 	}
@@ -579,6 +581,7 @@ func (p *CustomerRepository) FindCustomerDetailByID(ctx context.Context, id stri
 			PhoneNumber:    res.PersonalInfo.PhoneNumber,
 			Email:          res.PersonalInfo.Email,
 			CustomerNumber: res.PersonalInfo.CustomerNumber,
+			KycLevel:       res.PersonalInfo.KYCLevel,
 			DateOfBirth:    res.PersonalInfo.DateOfBirth,
 		},
 	}
