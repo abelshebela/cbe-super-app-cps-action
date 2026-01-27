@@ -9,7 +9,19 @@ import (
 type ContextKey string
 type Platform string
 type SettlementMethod string
+type AuditorStatus string
+type AuditorMark string
 
+const (
+	MARKEDASRIGHT AuditorMark = "MARKEDASRIGHT"
+	MARKEDASWRONG AuditorMark = "MARKEDASWRONG"
+)
+
+const (
+	AUDITORNOTCHECKED AuditorStatus = "NOTCHECKED"
+	AUDITORINPROGRESS AuditorStatus = "INPROGRESS"
+	AUDITORCHECKED    AuditorStatus = "CHECKED"
+)
 const (
 	SettlementMethodDirect       SettlementMethod = "DIRECT"
 	SettlementMethodGL           SettlementMethod = "GL"

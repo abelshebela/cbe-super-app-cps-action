@@ -72,7 +72,8 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 	defer span.End()
 	act, err := ca.repo.SanitizedFindOne(ctx, bson.M{"action_code": actionCode})
 	if err != nil || act == nil {
-		return errors.New(localization.ErrorResourceNotFound.Code)
+		ca.logger.Errorf("failed to find action", trace.WithAttributes(attribute.String("error", err.Error())))
+		return errors.New(localization.ErrorActionNotFound.Code)
 	}
 	// prevent multiple marks within the same group (any-one quorum)
 	grp := int(activeGroup)
@@ -90,13 +91,13 @@ func (ca *cpsActionService) AuditorMark(ctx context.Context, actionCode string, 
 
 	// advance group or finish
 	if act.AuditorCount > 0 && int32(activeGroup) >= act.AuditorCount {
-		upd.AuditorStatus = "CHECKED"
+		upd.AuditorStatus = model.AuditorStatus(constants.AUDITORCHECKED)
 		upd.CurrentAuditorIndex = float64(activeGroup)
 	} else {
-		upd.AuditorStatus = "NOTCHECKED"
+		upd.AuditorStatus = model.AuditorStatus(constants.AUDITORINPROGRESS)
 		upd.CurrentAuditorIndex = float64(activeGroup + 1)
 	}
-	_, err = ca.repo.Update(ctx, actionCode, upd)
+	_, err = ca.repo.UpdateByActionCode(ctx, actionCode, upd)
 	return err
 }
 

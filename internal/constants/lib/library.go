@@ -98,6 +98,7 @@ func CpsModelBuilder(unique string, makerUser types.UserContext, prevAction, cur
 		MakerName:        makerUser.FullName,
 		MakerPhoneNumber: makerUser.PhoneNumber,
 		PreviousAction:   prevAction,
+		AuditorStatus:    model.AuditorStatus(constants.AUDITORNOTCHECKED),
 		CurrentAction:    currentAction,
 		ActionStatus:     string(constants.Pending),
 		ActionType:       actionType,

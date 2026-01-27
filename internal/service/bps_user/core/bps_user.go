@@ -27,19 +27,16 @@ func ExistingIdentifier(existing *bps_model.BPSUser, req bps_model.BPSUser) erro
 	normalizedPhone := local_util.FormatPhoneNumber(req.PhoneNumber)
 	normalizedUsername := strings.TrimSpace(req.Username)
 
-	// Email duplicate
 	if normalizedEmail != "" && strings.EqualFold(strings.TrimSpace(existing.Email), normalizedEmail) {
 		return errors.New(localization.ErrorEmailAlreadyExist.Code)
 	}
-	// Phone duplicate
+
 	if normalizedPhone != "" {
-		// Normalize stored phone too, just in case
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
 			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 		}
 	}
-	// Account number duplicate
 	if strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) {
 		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
 	}
@@ -56,19 +53,17 @@ func ExistingIdentifierForUpdate(existing bps_model.BPSUser, id string, req bps_
 	normalizedUsername := strings.TrimSpace(req.Username)
 
 	existingID := local_util.FirstHex24(existing.ID.String())
-	// Email duplicate
 	if normalizedEmail != "" && strings.EqualFold(existing.Email, normalizedEmail) && existingID != id {
 		return errors.New(localization.ErrorEmailAlreadyExist.Code)
 	}
-	// Phone duplicate
+
 	if normalizedPhone != "" && existingID != id {
-		// Normalize stored phone too, just in case
 		storedPhone := local_util.FormatPhoneNumber(existing.PhoneNumber)
 		if storedPhone == normalizedPhone {
 			return errors.New(localization.ErrorPhonenumberAlreadyExist.Code)
 		}
 	}
-	// Account number duplicate
+
 	if normalizedUsername != "" && strings.EqualFold(strings.TrimSpace(existing.Username), normalizedUsername) && existingID != id {
 		return errors.New(localization.ErrorUsernameAlreadyExist.Code)
 	}
