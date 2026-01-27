@@ -371,7 +371,7 @@ func (h *handler) EnableUser(w http.ResponseWriter, r *http.Request) {
 	if md.IsMakerOnly {
 		userCode, _ := ctx.Value(constants.ContextKey("user_code")).(string)
 		h.logger.Infof("[EnableUser] request sent successfully for user_code: %s is_maker_only: %v", userCode, md.IsMakerOnly)
-		localization.SendSuccessResponse(w, localization.SuccessCPSUserDisable, nil)
+		localization.SendSuccessResponse(w, localization.SuccessCPSUserEnabled, nil)
 		return
 	}
 

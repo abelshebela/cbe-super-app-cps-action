@@ -30,11 +30,7 @@ func HandleCPSAction(ctx context.Context, cpsService service.CPSActionService, u
 	return nil
 }
 
-func PasswordRuleDtoToModel(
-	existing local_model.PasswordRule,
-	dto passwordrule.PasswordRuleUpdate,
-) local_model.PasswordRule {
-
+func PasswordRuleDtoToModel(existing local_model.PasswordRule, dto passwordrule.PasswordRuleUpdate) local_model.PasswordRule {
 	if dto.Rule.Name != "" {
 		existing.Name = dto.Rule.Name
 	}
