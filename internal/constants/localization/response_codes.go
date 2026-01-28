@@ -23,6 +23,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
 
+	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
@@ -1420,6 +1421,13 @@ var (
 		Code:       "SUCCESS_CPS_ACTIONS_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSActionCount = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_COUNT",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionCountSuccessfully,
 		Type:       "success",
 	}
 
