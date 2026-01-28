@@ -22,6 +22,7 @@ const (
 	AUDITORINPROGRESS AuditorStatus = "INPROGRESS"
 	AUDITORCHECKED    AuditorStatus = "CHECKED"
 )
+
 const (
 	SettlementMethodDirect       SettlementMethod = "DIRECT"
 	SettlementMethodGL           SettlementMethod = "GL"
