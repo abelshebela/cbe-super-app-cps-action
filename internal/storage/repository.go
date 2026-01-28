@@ -166,7 +166,8 @@ type CPSActionRoleRepository interface {
 }
 type DeviceVersionControlRepository interface {
 	Save(ctx context.Context, deviceVersionControl model.DeviceVersionControl) error
-	FindOne(ctx context.Context, filter bson.M) (model.DeviceVersionControl, error)
+	FindOne(ctx context.Context, platform, deviceVersion string) (model.DeviceVersionControl, error)
+	FindByID(ctx context.Context, id string) (model.DeviceVersionControl, error)
 	FindAllWithPagination(ctx context.Context, filterParam types.Filter) (types.PaginatedResponse[[]model.DeviceVersionControl], error)
 	Update(ctx context.Context, id string, update bson.M) error
 	Delete(ctx context.Context, id string) error

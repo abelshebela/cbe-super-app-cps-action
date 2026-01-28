@@ -19,7 +19,6 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -134,7 +133,7 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 		return fmt.Errorf(constants.IncompleteUserInfo)
 	}
 
-	_, err := d.deviceVersionRepo.FindOne(ctx, bson.M{"platform": deviceVersion.Platform, "latest_version": deviceVersion.LatestVersion})
+	device, err := d.deviceVersionRepo.FindOne(ctx, deviceVersion.Platform, deviceVersion.LatestVersion)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
 			span.AddEvent("Failed to check existing device version", trace.WithAttributes(
@@ -143,6 +142,8 @@ func (d *DeviceVersionService) CreateDeviceVersion(ctx context.Context, deviceVe
 			))
 			return err
 		}
+	} else if !device.ID.IsZero() {
+		return fmt.Errorf("device version control with version %s and platform %s already exists", deviceVersion.LatestVersion, deviceVersion.Platform)
 	}
 
 	new_device_version := model.DeviceVersionControl{
@@ -182,17 +183,7 @@ func (d *DeviceVersionService) EnableDisableDeviceVersion(ctx context.Context, i
 		))
 		return errors.New(constants.IncompleteUserInfo)
 	}
-	objID, err := core.IdProvider(ctx, id)
-	if err != nil {
-		d.logger.Errorf("[EnableDisableDeviceVersion] failed to parse id: %v", err)
-		span.AddEvent("Failed to parse id", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		return err
-	}
-	filter := bson.M{"_id": objID}
-	deviceVersion, err := d.deviceVersionRepo.FindOne(ctx, filter)
+	deviceVersion, err := d.deviceVersionRepo.FindByID(ctx, id)
 	if err != nil {
 		d.logger.Errorf("[EnableDisableDeviceVersion] failed to find device version: %v", err)
 		span.AddEvent("Failed to find device version", trace.WithAttributes(
@@ -259,17 +250,7 @@ func (d *DeviceVersionService) GetDeviceVersionByID(ctx context.Context, id stri
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetDeviceVersionByID", "DeviceVersion", "GetDeviceVersionByID")
 	defer span.End()
 
-	objID, err := core.IdProvider(ctx, id)
-	if err != nil {
-		d.logger.Errorf("[GetDeviceVersionByID] failed to parse id: %v", err)
-		span.AddEvent("Failed to parse id", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		return model.DeviceVersionControl{}, err
-	}
-	filter := bson.M{"_id": objID}
-	dv, err := d.deviceVersionRepo.FindOne(ctx, filter)
+	dv, err := d.deviceVersionRepo.FindByID(ctx, id)
 	if err != nil {
 		d.logger.Errorf("[GetDeviceVersionByID] failed to find device version: %v", err)
 		span.AddEvent("Failed to find device version", trace.WithAttributes(
@@ -297,18 +278,7 @@ func (d *DeviceVersionService) UpdateDeviceVersion(ctx context.Context, id strin
 		))
 		return errors.New(constants.IncompleteUserInfo)
 	}
-	// fetch existing
-	objID, err := core.IdProvider(ctx, id)
-	if err != nil {
-		d.logger.Errorf("[UpdateDeviceVersion] failed to parse id: %v", err)
-		span.AddEvent("Failed to parse id", trace.WithAttributes(
-			attribute.String("error", err.Error()),
-			attribute.String("id", id),
-		))
-		return err
-	}
-	filter := bson.M{"_id": objID}
-	existing, err := d.deviceVersionRepo.FindOne(ctx, filter)
+	existing, err := d.deviceVersionRepo.FindByID(ctx, id)
 	if err != nil {
 		d.logger.Errorf("[UpdateDeviceVersion] failed to find device version: %v", err)
 		span.AddEvent("Failed to find device version", trace.WithAttributes(
@@ -355,8 +325,7 @@ func (d *DeviceVersionService) DisableExistingDeviceVersion(ctx context.Context,
 	defer span.End()
 
 	d.logger.Infof("[DisableExistingDeviceVersion] disabling existing device version for platform: %s", platform)
-	filter := bson.M{"enabled": true, "platform": platform}
-	existing, err := d.deviceVersionRepo.FindOne(ctx, filter)
+	existing, err := d.deviceVersionRepo.FindOne(ctx, platform, "")
 	if err != nil {
 		if err.Error() == localization.ErrorResourceNotFound.Code {
 			d.logger.Infof("[DisableExistingDeviceVersion] no existing enabled device version found for platform: %s", platform)
