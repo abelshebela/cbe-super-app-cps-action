@@ -905,6 +905,8 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	requestedRole := r.URL.Query().Get("role_code")
+
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {
 		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
@@ -934,7 +936,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	// resolve action_names -> request_actions (same as GetUserApproverActions)
 	var reqs []string
 
-	if makerActions != nil {
+	if makerActions != nil && requestedRole == "maker" {
 		seen := map[string]struct{}{}
 		for _, mod := range makerActions {
 			upper := strings.ToUpper(strings.TrimSpace(mod))
@@ -952,7 +954,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	}
 
-	if checkerActions != nil {
+	if checkerActions != nil && requestedRole == "checker" {
 		seen := map[string]struct{}{}
 		for _, mod := range checkerActions {
 			upper := strings.ToUpper(strings.TrimSpace(mod))
@@ -969,7 +971,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	if auditorActions != nil {
+	if auditorActions != nil && requestedRole == "auditor" {
 		seen := map[string]struct{}{}
 		for _, mod := range auditorActions {
 			upper := strings.ToUpper(strings.TrimSpace(mod))
@@ -1011,7 +1013,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		f.Filters[string(constants.ActionStatus)] = status
 
 		if auditorStatus != "" {
-			f.Filters[string(constants.AuditorStatus)] = auditorStatus
+			f.Filters[string(constants.AuditorStatusDBFieldName)] = auditorStatus
 		}
 		return f
 	}
