@@ -85,13 +85,14 @@ func (r *CPSActionApproveIndexRepository) SaveIndices(ctx context.Context, indic
 func (r *CPSActionApproveIndexRepository) SyncIndices(ctx context.Context, oldActionName, portalCard string, newIndices []imodel.CPSActionApproveIndex, isVersionChanged bool) error {
 	r.logger.Infof("SyncIndices: Syncing %d indices for oldActionName: %s", len(newIndices), oldActionName)
 
-	// if !isVersionChanged && len(newIndices) > 0 {
-	// 	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version}); err != nil {
-	// 		return err
-	// 	}
-	// }
-	if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
-		return err
+	if !isVersionChanged && len(newIndices) > 0 {
+		if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "version": newIndices[0].Version, "portal_card_name": portalCard}); err != nil {
+			return err
+		}
+	} else {
+		if _, err := r.collection.DeleteMany(ctx, bson.M{"action_name": oldActionName, "portal_card_name": portalCard}); err != nil {
+			return err
+		}
 	}
 
 	if err := r.SaveIndices(ctx, newIndices); err != nil {
