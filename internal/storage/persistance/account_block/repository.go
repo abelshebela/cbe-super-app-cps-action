@@ -183,8 +183,17 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return nil
+	updatedBranches, err := a.GetBranchesByIds(ctx, ids)
 
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedBranches,
+		string(constants.ClientOrchestrationServicesTopic),
+		"account-block-updated",
+		"account block enable status updated",
+	)
+
+	return nil
 }
 
 func (a *AccountBlockStorage) GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {

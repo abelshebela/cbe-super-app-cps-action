@@ -84,6 +84,7 @@ const (
 	BudgetCategoryIcon                  = "budget_category_icon"
 	ActionID                            = "action_id"
 	ActionStatus                        = "action_status"
+	AuditorStatusDBFieldName            = "auditor_status"
 	IncompleteUserInfo                  = "incomplete user info"
 	Approved                            = "APPROVED"
 	Rejected                            = "REJECTED"
