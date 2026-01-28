@@ -94,7 +94,10 @@ func (r *CPSActionRoleRepository) UpdateByActionCode(ctx context.Context, action
 		"assigned_auditor_roles":  actionRole.AssignedAuditorRoles,
 		"approver_count":          actionRole.ApproverCount,
 		"is_maker_only":           actionRole.IsMakerOnly,
+		"portal_card_name":        actionRole.PortalCardName,
+		"is_view_only":            actionRole.IsViweOnly,
 		"enabled":                 actionRole.Enabled,
+		"version":                 actionRole.Version,
 		"updated_at":              actionRole.UpdatedAt,
 	}
 	_, err := r.mongoDal.UpdateOne(ctx, bson.M{"action_code": actionCode}, update)

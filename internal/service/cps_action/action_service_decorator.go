@@ -44,6 +44,10 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			cpsAction.CheckerUsers = []model.Checker{}
 		}
 
+		if cpsAction.AuditorUsers == nil {
+			cpsAction.AuditorUsers = []model.Auditor{}
+		}
+
 		cpsAction.CurrentCheckerIndex = 0.0
 
 		if mod, ok := ResolveModuleForRA(RequestAction(cpsAction.RequestAction)); ok && s.roles != nil {
@@ -54,6 +58,7 @@ func (s *cpsActionServiceWithRoles) CreateCPSAction(ctx context.Context, cpsActi
 			if r, err := s.roles.FindByActionName(ctx, mod); err == nil && r != nil {
 				role = r
 			}
+
 			if role != nil {
 				ctx = context.WithValue(ctx, constants.ContextKey("is_maker_only"), role.IsMakerOnly)
 				ctx = context.WithValue(ctx, constants.ContextKey("action_name"), mod)
