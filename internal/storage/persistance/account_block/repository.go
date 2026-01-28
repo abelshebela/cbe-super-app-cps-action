@@ -183,8 +183,24 @@ func (a *AccountBlockStorage) EnableOrDisableBranches(ctx context.Context, ids [
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
 
-	return nil
+	var updatedResponse []*model.AccountBlock
+	for _, id := range objIDs {
+		updatedResponse = append(updatedResponse, &model.AccountBlock{
+			ID:        id,
+			Type:      "B",
+			IsEnabled: enabled,
+		})
+	}
 
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedResponse,
+		string(constants.ClientOrchestrationServicesTopic),
+		"account-block-updated",
+		"account block enable status updated",
+	)
+
+	return nil
 }
 
 func (a *AccountBlockStorage) GetBranchesByIds(ctx context.Context, ids []string) ([]*model.AccountBlock, error) {
@@ -306,6 +322,23 @@ func (a *AccountBlockStorage) EnableOrDisableRegions(ctx context.Context, ids []
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	var updatedResponse []*model.AccountBlock
+	for _, id := range objIDs {
+		updatedResponse = append(updatedResponse, &model.AccountBlock{
+			ID:        id,
+			Type:      "R",
+			IsEnabled: enabled,
+		})
+	}
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedResponse,
+		string(constants.ClientOrchestrationServicesTopic),
+		"account-block-updated",
+		"account block enable status updated",
+	)
 
 	return nil
 }
@@ -438,6 +471,23 @@ func (a *AccountBlockStorage) EnableOrDisableDistricts(ctx context.Context, ids 
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	var updatedResponse []*model.AccountBlock
+	for _, id := range objIDs {
+		updatedResponse = append(updatedResponse, &model.AccountBlock{
+			ID:        id,
+			Type:      "D",
+			IsEnabled: enabled,
+		})
+	}
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedResponse,
+		string(constants.ClientOrchestrationServicesTopic),
+		"account-block-updated",
+		"account block enable status updated",
+	)
 
 	return nil
 }
@@ -572,6 +622,23 @@ func (a *AccountBlockStorage) EnableOrDisableCities(ctx context.Context, ids []s
 	if err != nil {
 		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+
+	var updatedResponse []*model.AccountBlock
+	for _, id := range objIDs {
+		updatedResponse = append(updatedResponse, &model.AccountBlock{
+			ID:        id,
+			Type:      "C",
+			IsEnabled: enabled,
+		})
+	}
+
+	a.kafkaProducer.PublishMessage(
+		ctx,
+		updatedResponse,
+		string(constants.ClientOrchestrationServicesTopic),
+		"account-block-updated",
+		"account block enable status updated",
+	)
 
 	return nil
 }
