@@ -134,6 +134,20 @@ func (r *CPSActionStorage) Update(ctx context.Context, actionCode string, update
 	return &data, nil
 }
 
+func (r *CPSActionStorage) UpdateByActionCode(ctx context.Context, actionCode string, update model.CPSAction) (*model.CPSAction, error) {
+	r.logger.Infof("[UpdateByActionCode] updating CPS action for action code: %s", actionCode)
+	updateMap := BuildCPSActionUpdateMap(update)
+	filterMap := bson.M{"action_code": actionCode}
+	data, err := r.dal.UpdateOne(ctx, filterMap, updateMap)
+	if err != nil {
+		r.logger.Errorf("[UpdateByActionCode] failed to update CPS action: %v", err)
+		code, _ := local_utils.HandleMongoError(err)
+		return nil, errors.New(code)
+	}
+	r.logger.Infof("[UpdateByActionCode] CPS action updated successfully")
+	return &data, nil
+}
+
 func (r *CPSActionStorage) UpdateCustome(ctx context.Context, filter, update bson.M) error {
 	r.logger.Infof("[UpdateCustome] updating CPS action")
 
@@ -397,7 +411,7 @@ func (r *CPSActionStorage) SanitizedFindOne(ctx context.Context, filter bson.M) 
 
 	// Handle empty cursor
 	if cur == nil || !cur.Next(ctx) {
-		return nil, errors.New(localization.ErrorResourceNotFound.Code)
+		return nil, errors.New(localization.ErrorActionNotFound.Code)
 	}
 
 	var result model.CPSAction
@@ -427,6 +441,9 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 			{Key: "Rejected", Value: bson.D{
 				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "REJECTED"}}}, 1, 0}}}},
 			}},
+			{Key: "Canceled", Value: bson.D{
+				{Key: "$sum", Value: bson.D{{Key: "$cond", Value: bson.A{bson.D{{Key: "$eq", Value: bson.A{"$action_status", "CANCELED"}}}, 1, 0}}}},
+			}},
 		}}},
 	}
 
@@ -449,6 +466,7 @@ func (r *CPSActionStorage) GetCountByDepartment(ctx context.Context, department 
 			Pending:  0,
 			Approved: 0,
 			Rejected: 0,
+			Canceled: 0,
 		}, nil
 	}
 

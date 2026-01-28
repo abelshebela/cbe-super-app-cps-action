@@ -23,6 +23,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorExistUserName,
 	ErrorExistUserNameBPS,
 
+	SuccessCPSActionCount,
 	SuccessServiceCreateRequestSubmitted,
 	SuccessServiceCreated,
 	SuccessServiceUpdateRequestSubmitted,
@@ -291,6 +292,7 @@ var ResponseCodesList = []ResponseCode{
 	ErrorAccountNumberRequired,
 
 	ErrorActionNotFound,
+	ErrorActionDataNotFound,
 	ErrorPendingCpsActionExists,
 	ErrorUserAlreadyEnabled,
 	ErrorUserAlreadyDisabled,
@@ -650,6 +652,11 @@ var ResponseCodesList = []ResponseCode{
 	SuccessVaultAmountTierEnabled,
 	SuccessVaultAmountTierDisabled,
 	ErrorFailedToBeingTransaction,
+	ErrorOperationNotAllowed,
+	ErrorAuditorAlreadyChecked,
+	ErrorAuditorActionOnThisRoleCompleted,
+	ErrorAuditorActionOnThisActionCompleted,
+	ErrorAuditorActionWaitForPreviousAuditor,
 	ErrorDuplicateBankProduct,
 	ErrorVaultGroupCategoryNotFound,
 	ErrorGroupVaultNotFound,
@@ -1420,6 +1427,13 @@ var (
 		Code:       "SUCCESS_CPS_ACTIONS_RETRIEVED",
 		StatusCode: StatusOK,
 		Message:    MsgCPSActionsRetrievedSuccessfully,
+		Type:       "success",
+	}
+
+	SuccessCPSActionCount = ResponseCode{
+		Code:       "SUCCESS_CPS_ACTION_COUNT",
+		StatusCode: StatusOK,
+		Message:    MsgCPSActionCountSuccessfully,
 		Type:       "success",
 	}
 
@@ -3093,6 +3107,7 @@ var (
 		Message:    MsgFetchAllPasswordRules,
 		Type:       "success",
 	}
+
 	SuccessUpdatePasswordRule = ResponseCode{
 		Code:       "SUCCESS_UPDATE_PASSWORD_RULE_REQUEST_SENT",
 		StatusCode: StatusOK,
@@ -4591,6 +4606,13 @@ var (
 		Type:       "error",
 	}
 
+	ErrorActionDataNotFound = ResponseCode{
+		Code:       "ERROR_ACTION_DATA_NOT_FOUND",
+		StatusCode: StatusNotFound,
+		Message:    MsgCPSActionDataNotFound,
+		Type:       "error",
+	}
+
 	ErrorPendingCpsActionExists = ResponseCode{
 		Code:       "ERROR_PENDING_CPS_ACTION_EXISTS",
 		StatusCode: StatusConflict,
@@ -5276,6 +5298,34 @@ var (
 		Code:       "ERROR_OPERATION_NOT_ALLOWED",
 		StatusCode: StatusForbidden,
 		Message:    MsgOperationNotAllowed,
+		Type:       "error",
+	}
+
+	ErrorAuditorAlreadyChecked = ResponseCode{
+		Code:       "ERROR_AUDITOR_ALREADY_CHECKED",
+		StatusCode: StatusForbidden,
+		Message:    MsgAuditorAlreadyChecked,
+		Type:       "error",
+	}
+
+	ErrorAuditorActionOnThisRoleCompleted = ResponseCode{
+		Code:       "ERROR_AUDITOR_ACTION_ON_THIS_ROLE_COMPLETED",
+		StatusCode: StatusForbidden,
+		Message:    MsgAuditorActionOnThisRoleCompleted,
+		Type:       "error",
+	}
+
+	ErrorAuditorActionOnThisActionCompleted = ResponseCode{
+		Code:       "ERROR_AUDITOR_ACTION_ON_THIS_ACTION_COMPLETED",
+		StatusCode: StatusForbidden,
+		Message:    MsgAuditorActionOnThisActionCompleted,
+		Type:       "error",
+	}
+
+	ErrorAuditorActionWaitForPreviousAuditor = ResponseCode{
+		Code:       "ERROR_AUDITOR_ACTION_WAIT_FOR_PREVIOUS_ACTION",
+		StatusCode: StatusForbidden,
+		Message:    MsgAuditorActionWaitForPreviousAuditor,
 		Type:       "error",
 	}
 

@@ -163,10 +163,12 @@ func (h *CPSActionRoleHandler) Create(w http.ResponseWriter, r *http.Request) {
 		localization.SendBadRequestResponse(w, localization.MsgInvalidInput)
 		return
 	}
-	if req.ActionName == "" {
-		localization.SendBadRequestResponse(w, localization.ErrorActionNameIsRequired.Message)
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
+
 	span.SetAttributes(attribute.String("cps_action_role.code", req.ActionCode))
 	action_role := actionrole_dto.CreateActionRoleRequest{
 		ActionName:           strings.ToUpper(strings.TrimSpace(req.ActionName)),
@@ -224,6 +226,11 @@ func (h *CPSActionRoleHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		span.RecordError(err)
 		localization.SendBadRequestResponse(w, localization.MsgInvalidJSONPayload)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		localization.SendBadRequestResponse(w, err.Error())
 		return
 	}
 

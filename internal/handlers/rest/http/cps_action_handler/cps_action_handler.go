@@ -54,10 +54,23 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	action, err := a.cpsActionApplication.GetCPSActionByActionCode(ctx, actionCode, "")
 	if err != nil || action == nil {
 		span.RecordError(err)
-		localization.SendErrorByCodeResponse(w, localization.ErrorResourceNotFound.Code)
+		if err.Error() == localization.ErrorActionNotFound.Code {
+			localization.SendErrorByCodeResponse(w, localization.ErrorActionDataNotFound.Code)
+			return
+		}
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
 		return
 	}
 
+	if action.AuditorStatus == model.AuditorStatus(constants.AUDITORCHECKED) {
+		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionOnThisActionCompleted.Message)
+		return
+	}
+
+	if action.ActionStatus == string(constants.Pending) || action.ActionStatus == string(constants.Canceled) || action.AuditorCount == 0 {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
 	// Determine caller allocations and active auditor group
 	userData, err := local_util.ParseUserContext(r)
 	if err != nil {
@@ -91,6 +104,15 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 
 	// Active group is the integer part of the auditor index (e.g., 1.* -> 1)
 	activeGroup := int(*idxDoc.AuditorIndex)
+	if action.CurrentAuditorIndex >= float64(activeGroup) {
+		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionOnThisRoleCompleted.Message)
+		return
+	}
+
+	if (action.CurrentAuditorIndex + 1) > float64(activeGroup) {
+		localization.SendBadRequestResponse(w, localization.ErrorAuditorActionWaitForPreviousAuditor.Message)
+		return
+	}
 
 	// Parse request to decide claim vs mark
 	var reqBody cps_actionrole_dto.AuditorMarkRequest
@@ -121,6 +143,7 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		AuditorMark:        model.AuditorMark(strings.ToUpper(strings.TrimSpace(reqBody.Mark))),
 		ApprovedAt:         time.Now(),
 	}
+
 	if err := a.cpsActionApplication.AuditorMark(ctx, actionCode, auditor, activeGroup); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -871,23 +894,217 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Request) {
 	ctx, span := local_util.TraceLogger(r.Context(), "handler", "getCpsActionCounts", "handler", "cpsAction")
 	defer span.End()
-	userData, err := local_util.ParseUserContext(r)
-	if err != nil {
+	if _, err := local_util.ParseUserContext(r); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorUserForbidden, nil, nil)
 		return
 	}
 
-	span.SetAttributes(attribute.String("cps_action.department", userData.Department))
+	rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+	if strings.TrimSpace(rawRoleID) == "" {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
 
-	actions, err := a.cpsActionApplication.GetActionCountsByDepartemnt(ctx, userData.Department)
+	requestedRole := r.URL.Query().Get("role_code")
+
+	idxRepo := mid.GetCPSActionApproveRepo()
+	if idxRepo == nil {
+		localization.SendErrorByCodeResponse(w, localization.ErrorUnexpectedError.Code)
+		return
+	}
+
+	makerActions, checkerActions, auditorActions, _, err := idxRepo.PopulateUserApproverAllocations(ctx, rawRoleID)
 	if err != nil {
 		span.RecordError(err)
-		a.logger.Errorf("[CPSAction.GetActionCounts] service failed %v", err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
 	}
 
-	localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, actions)
+	if makerActions == nil && checkerActions == nil && auditorActions == nil {
+		resp := &cpsactionDto.CPSActionCountResponse{
+			Pending:    0,
+			Approved:   0,
+			Rejected:   0,
+			Canceled:   0,
+			Inprogress: 0,
+			Completed:  0,
+		}
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+		return
+	}
+
+	// resolve action_names -> request_actions (same as GetUserApproverActions)
+	var reqs []string
+
+	if makerActions != nil && requestedRole == "maker" {
+		seen := map[string]struct{}{}
+		for _, mod := range makerActions {
+			upper := strings.ToUpper(strings.TrimSpace(mod))
+			if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+					seen[key] = struct{}{}
+					reqs = append(reqs, key)
+				}
+			}
+		}
+
+	}
+
+	if checkerActions != nil && requestedRole == "checker" {
+		seen := map[string]struct{}{}
+		for _, mod := range checkerActions {
+			upper := strings.ToUpper(strings.TrimSpace(mod))
+			if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+					seen[key] = struct{}{}
+					reqs = append(reqs, key)
+				}
+			}
+		}
+	}
+
+	if auditorActions != nil && requestedRole == "auditor" {
+		seen := map[string]struct{}{}
+		for _, mod := range auditorActions {
+			upper := strings.ToUpper(strings.TrimSpace(mod))
+			if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
+				for _, ra := range lst {
+					key := string(ra)
+					if _, ok := seen[key]; ok {
+						continue
+					}
+					seen[key] = struct{}{}
+					reqs = append(reqs, key)
+				}
+			}
+		}
+	}
+
+	// If no mapped request actions, return zero counts
+	if len(reqs) == 0 {
+		resp := &cpsactionDto.CPSActionCountResponse{
+			Pending:    0,
+			Approved:   0,
+			Rejected:   0,
+			Canceled:   0,
+			Inprogress: 0,
+			Completed:  0,
+		}
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+		return
+	}
+
+	// Helper to compute counts per status using pagination meta totals
+	buildFilter := func(status, auditorStatus string) *types.Filter {
+		f := &types.Filter{
+			Page:    constants.DefaultPage,
+			PerPage: 1,
+			Search:  "",
+			Filters: map[string]interface{}{},
+		}
+		f.Filters[string(constants.ActionStatus)] = status
+
+		if auditorStatus != "" {
+			f.Filters[string(constants.AuditorStatusDBFieldName)] = auditorStatus
+		}
+		return f
+	}
+
+	var pendingCount, approvedCount, rejectedCount, canceledCount, inprogressAuditCount, completedAuditCount int
+
+	// Pending
+	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		pendingCount = int(res.Meta.TotalDocs)
+	}
+
+	// Approved
+	if auditorActions != nil {
+		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Approved), string(model.AUDITORNOTCHECKED))); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			approvedCount = int(res.Meta.TotalDocs)
+		}
+	} else {
+		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Approved), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			approvedCount = int(res.Meta.TotalDocs)
+		}
+
+	}
+
+	// Rejected
+	if auditorActions != nil {
+		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			rejectedCount = int(res.Meta.TotalDocs)
+		}
+	} else {
+		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
+			span.RecordError(err)
+			localization.SendErrorByCodeResponse(w, err.Error())
+			return
+		} else if res != nil && res.Meta.TotalDocs > 0 {
+			rejectedCount = int(res.Meta.TotalDocs)
+		}
+	}
+
+	// Canceled
+	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		canceledCount = int(res.Meta.TotalDocs)
+	}
+
+	// Audior's Inprogress Count
+	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		inprogressAuditCount = int(res.Meta.TotalDocs)
+	}
+
+	// Audior's Completed Count
+	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(model.AUDITORNOTCHECKED), "")); err != nil {
+		span.RecordError(err)
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	} else if res != nil && res.Meta.TotalDocs > 0 {
+		completedAuditCount = int(res.Meta.TotalDocs)
+	}
+
+	resp := &cpsactionDto.CPSActionCountResponse{
+		Pending:    pendingCount,
+		Approved:   approvedCount,
+		Rejected:   rejectedCount,
+		Canceled:   canceledCount,
+		Inprogress: inprogressAuditCount,
+		Completed:  completedAuditCount,
+	}
+
+	localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
 }
 
 func (a *cpsActionAdapter) GetAuthorizerIndex(w http.ResponseWriter, r *http.Request) {

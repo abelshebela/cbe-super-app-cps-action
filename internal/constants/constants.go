@@ -9,6 +9,19 @@ import (
 type ContextKey string
 type Platform string
 type SettlementMethod string
+type AuditorStatus string
+type AuditorMark string
+
+const (
+	MARKEDASRIGHT AuditorMark = "MARKEDASRIGHT"
+	MARKEDASWRONG AuditorMark = "MARKEDASWRONG"
+)
+
+const (
+	AUDITORNOTCHECKED AuditorStatus = "NOTCHECKED"
+	AUDITORINPROGRESS AuditorStatus = "INPROGRESS"
+	AUDITORCHECKED    AuditorStatus = "CHECKED"
+)
 
 const (
 	SettlementMethodDirect       SettlementMethod = "DIRECT"
@@ -71,6 +84,7 @@ const (
 	BudgetCategoryIcon                  = "budget_category_icon"
 	ActionID                            = "action_id"
 	ActionStatus                        = "action_status"
+	AuditorStatusDBFieldName            = "auditor_status"
 	IncompleteUserInfo                  = "incomplete user info"
 	Approved                            = "APPROVED"
 	Rejected                            = "REJECTED"
@@ -236,9 +250,11 @@ const (
 )
 
 const (
-	UPDATE = "UPDATE"
-	DELETE = "DELETE"
-	CREATE = "CREATE"
+	UPDATE  = "UPDATE"
+	ENABLE  = "ENABLE"
+	DISABLE = "DISABLE"
+	DELETE  = "DELETE"
+	CREATE  = "CREATE"
 )
 
 type RequestAction string
