@@ -935,9 +935,9 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	// resolve action_names -> request_actions (same as GetUserApproverActions)
 	var reqs []string
+	seen := map[string]struct{}{}
 
 	if makerActions != nil && requestedRole == "maker" {
-		seen := map[string]struct{}{}
 		for _, mod := range makerActions {
 			upper := strings.ToUpper(strings.TrimSpace(mod))
 			if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
@@ -955,7 +955,6 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	if checkerActions != nil && requestedRole == "checker" {
-		seen := map[string]struct{}{}
 		for _, mod := range checkerActions {
 			upper := strings.ToUpper(strings.TrimSpace(mod))
 			if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
@@ -972,7 +971,6 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	if auditorActions != nil && requestedRole == "auditor" {
-		seen := map[string]struct{}{}
 		for _, mod := range auditorActions {
 			upper := strings.ToUpper(strings.TrimSpace(mod))
 			if lst, ok := cpsactionsvc.RequestActionGroups[upper]; ok {
@@ -1020,8 +1018,8 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	var pendingCount, approvedCount, rejectedCount, canceledCount, inprogressAuditCount, completedAuditCount int
 
-	// Pending
-	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+	// Pending``
+	if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(constants.Pending), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1031,7 +1029,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	// Approved
 	if auditorActions != nil {
-		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Approved), string(model.AUDITORNOTCHECKED))); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(constants.Approved), string(model.AUDITORNOTCHECKED))); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1039,7 +1037,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			approvedCount = int(res.Meta.TotalDocs)
 		}
 	} else {
-		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Approved), "")); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(constants.Approved), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1051,7 +1049,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	// Rejected
 	if auditorActions != nil {
-		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1059,7 +1057,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			rejectedCount = int(res.Meta.TotalDocs)
 		}
 	} else {
-		if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1069,7 +1067,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Canceled
-	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
+	if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1078,7 +1076,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Audior's Inprogress Count
-	if res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
+	if res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
