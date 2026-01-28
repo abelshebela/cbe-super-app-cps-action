@@ -161,7 +161,7 @@ func (d *DeviceVersionControlRepository) FindAllWithPagination(ctx context.Conte
 	filter, skip, limit := lib.FilterBuilder(filterParam, searchKeys, allowedKeys)
 
 	// 5. Fetch data
-	data, err := d.deviceDal.FindAllWithPaginationN(ctx, filter, bson.M{}, skip, limit)
+	data, err := d.deviceDal.FindAllWithPaginationE(ctx, filter, bson.M{}, skip, limit)
 	if err != nil {
 		d.logger.Errorf("[FindAllWithPagination] failed to fetch device version controls: %v", err)
 		return types.PaginatedResponse[[]model.DeviceVersionControl]{}, errors.New(localization.ErrorUnexpectedError.Message)

@@ -645,6 +645,13 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "as", Value: "accounts"},
 		}}},
 
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "members"},
+			{Key: "localField", Value: "_id"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "member_info"},
+		}}},
+
 		// 2. MULTI-FIELD MATCH
 		// This stage checks the current member document AND the joined 'accounts' array simultaneously.
 		{{Key: "$match", Value: bson.D{
@@ -652,6 +659,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 				bson.M{"phone_number": number},             // Search in 'members'
 				bson.M{"accounts.customer_number": number}, // Search in joined 'linked_account' array
 				bson.M{"accounts.account_number": number},  // Search in joined 'linked_account' array
+				bson.M{"member_info.user_code": number},    // Search in joined 'linked_account' array
 			}},
 		}}},
 
