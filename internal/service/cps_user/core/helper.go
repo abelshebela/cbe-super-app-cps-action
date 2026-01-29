@@ -91,6 +91,7 @@ func ConvertToResponseDTO(portalCard []string, user *cpsuser.CpsUserPopulatedRes
 			Code: user.Role.Code,
 			Name: user.Role.Name,
 		},
+		RoleCode:           user.RoleCode,
 		Gender:             user.Gender,
 		PhoneNumber:        user.PhoneNumber,
 		Email:              user.Email,
