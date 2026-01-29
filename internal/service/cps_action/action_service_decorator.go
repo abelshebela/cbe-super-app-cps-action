@@ -135,6 +135,10 @@ func (s *cpsActionServiceWithRoles) GetCPSActionsForAuditor(ctx context.Context,
 	return s.base.GetCPSActionsForAuditor(ctx, RAList, filterParams)
 }
 
+func (s *cpsActionServiceWithRoles) GetCPSActions(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	return s.base.GetCPSActions(ctx, userID, RAList, filterParams)
+}
+
 func (s *cpsActionServiceWithRoles) ApproveCPSAction(ctx context.Context, action *model.CPSAction) error {
 	return s.base.ApproveCPSAction(ctx, action)
 }
