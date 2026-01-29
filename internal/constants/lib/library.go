@@ -3,11 +3,14 @@ package lib
 import (
 	"bytes"
 	"cbe-super-app-cps-action/internal/constants"
+	"encoding/json"
 	"image"
 	"image/jpeg"
 	"image/png"
+	"net/http"
 
 	// "cbe-super-app-cps-action/internal/constants/localization"
+	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
@@ -24,6 +27,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
 
 	// "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 
@@ -457,4 +461,51 @@ func FallbackModuleForRA(action constants.RequestAction) (string, bool) {
 		return "CpsActionRole", true
 	}
 	return "", false
+}
+
+func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, body erp_merchant_update_dto.ERPUpdateRequest, merchantID string, logger utils.Logger) error {
+	ctx, span := local_util.TraceLogger(ctx, "core", "UpdateERP", "LogisticsMerchant", "UpdateERP")
+	defer span.End()
+
+	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
+	if cfg != nil && cfg.OddoEcommerceBaseUrl != "" {
+		base = cfg.OddoEcommerceBaseUrl
+	} else {
+		logger.Debugf("env url for publish not found using hardcoded")
+	}
+	base += "/cps/merchant/update/" + merchantID
+	apiKey := ""
+	if cfg != nil && cfg.ApiKey != "" {
+		apiKey = cfg.ApiKey
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		logger.Errorf("Failed to marshal ERP update body: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, base, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		logger.Errorf("Failed to build ERP update request: %v", err)
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-api-key", apiKey)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("ERP update request failed: %v", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		logger.Errorf("ERP update failed: %s", string(bodyBytes))
+		return errors.New("ERP update failed")
+	}
+
+	return nil
 }

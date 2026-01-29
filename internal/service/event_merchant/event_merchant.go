@@ -2,6 +2,8 @@ package event_merchant_service
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
+	"cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -54,13 +56,19 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			))
 			return nil, err
 		}
-		if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
-			e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
+		enabled := true
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			MainAccountNumber: merchant.BankAccountNumber,
+			CpsEnabled:        &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to update ERP after creating event merchant: %v", err)
 			span.AddEvent("Failed to update ERP", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			// return nil, err
+
 		}
 	case string(constants.RequestUpdateEventMerchant):
 		err = e.repo.Update(ctx, cpsAction.UniqueId, *merchant)
@@ -81,8 +89,11 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 			return nil, errors.New(localization.ErrorServiceUnhandledServerError.Code)
 		}
 		if prevMerchant.BankAccountNumber != merchant.BankAccountNumber {
-			if err := core.UpdateERP(ctx, e.cfg, merchant.BankAccountNumber, merchant.MerchantID, e.logger); err != nil {
-				e.logger.Errorf("Failed to update ERP after creating logistics merchant: %v", err)
+			dto := erp_merchant_update_dto.ERPUpdateRequest{
+				MainAccountNumber: merchant.BankAccountNumber,
+			}
+			if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+				e.logger.Errorf("Failed to update ERP after creating event merchant: %v", err)
 				span.AddEvent("Failed to update ERP", trace.WithAttributes(
 					attribute.String("error", err.Error()),
 					attribute.String("unique_id", cpsAction.UniqueId),
@@ -94,29 +105,68 @@ func (e *EventMerchantService) Authorize(ctx context.Context, cpsAction *model.C
 	case string(constants.RequestDeleteEventMerchant):
 		err = e.repo.Delete(ctx, cpsAction.UniqueId)
 		if err != nil {
-			span.AddEvent("Failed to delete mini app merchant", trace.WithAttributes(
+			span.AddEvent("Failed to delete event merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
+		}
+		enabled := false
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			CpsEnabled: &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to update ERP after deleting event merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			// return nil, err
+
 		}
 	case string(constants.RequestEnableEventMerchant):
 		err = e.repo.EnableOrDisable(ctx, cpsAction.UniqueId, true)
 		if err != nil {
-			span.AddEvent("Failed to enable mini app merchant", trace.WithAttributes(
+			span.AddEvent("Failed to enable event merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
 		}
+		enabled := true
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			CpsEnabled: &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to update ERP after enable request for event merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			// return nil, err
+
+		}
 	case string(constants.RequestDisableEventMerchant):
 		err = e.repo.EnableOrDisable(ctx, cpsAction.UniqueId, false)
 		if err != nil {
-			span.AddEvent("Failed to disable mini app merchant", trace.WithAttributes(
+			span.AddEvent("Failed to disable event merchant", trace.WithAttributes(
 				attribute.String("error", err.Error()),
 				attribute.String("unique_id", cpsAction.UniqueId),
 			))
 			return nil, err
+		}
+		enabled := false
+		dto := erp_merchant_update_dto.ERPUpdateRequest{
+			CpsEnabled: &enabled,
+		}
+		if err := lib.PublishMerchantChangeToERP(ctx, e.cfg, dto, merchant.MerchantID, e.logger); err != nil {
+			e.logger.Errorf("Failed to update ERP after disable request for event merchant: %v", err)
+			span.AddEvent("Failed to update ERP", trace.WithAttributes(
+				attribute.String("error", err.Error()),
+				attribute.String("unique_id", cpsAction.UniqueId),
+			))
+			// return nil, err
+
 		}
 	default:
 		e.logger.Errorf("Unsupported action requested, action: %s", cpsAction.RequestAction)
