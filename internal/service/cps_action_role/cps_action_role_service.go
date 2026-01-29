@@ -264,9 +264,10 @@ func (s *cpsActionRoleService) Update(ctx context.Context, actionCode string, re
 	}
 
 	versionUpdated := old.Version
-	if int32(len(req.AssignedCheckerRoles)) > int32(old.ApproverCount) || int32(len(req.AssignedCheckerRoles)) < int32(old.ApproverCount) {
+	if int32(len(req.AssignedCheckerRoles)) != int32(old.ApproverCount) {
 		versionUpdated = old.Version + 1
 	}
+
 	payload := imodel.CPSActionRole{
 		ActionCode:     actionCode,
 		PortalCardName: req.PortalCardName,
