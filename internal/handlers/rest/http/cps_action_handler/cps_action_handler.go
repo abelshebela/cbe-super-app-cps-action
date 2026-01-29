@@ -905,7 +905,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	requestedRole := r.URL.Query().Get("role_code")
+	requestedRole := r.URL.Query().Get("role")
 
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {
