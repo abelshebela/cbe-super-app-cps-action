@@ -157,7 +157,7 @@ const (
 
 	// CPS Action related success messages
 	MsgCPSActionsRetrievedSuccessfully = "CPS Actions retrieved successfully"
-	MsgCPSActionCountSuccessfully      = "CPS Action counts retrieved successfully"
+	MsgCPSActionCountSuccessfully      = "CPS Actions count retrieved successfully"
 	MsgCPSActionAuthorizedSuccessfully = "CPS Action authorized successfully"
 	MsgCPSActionCheckedSuccessfully    = "CPS Action checked successfully"
 	MsgCPSActionReversedSuccessfully   = "CPS Action reversed successfully"

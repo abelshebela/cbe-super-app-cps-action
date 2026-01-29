@@ -964,7 +964,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			Inprogress: 0,
 			Completed:  0,
 		}
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
 		return
 	}
 
@@ -1031,7 +1031,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			Inprogress: 0,
 			Completed:  0,
 		}
-		localization.SendSuccessResponse(w, localization.SuccessCPSActionsRetrieved, resp)
+		localization.SendSuccessResponse(w, localization.SuccessCPSActionCount, resp)
 		return
 	}
 
