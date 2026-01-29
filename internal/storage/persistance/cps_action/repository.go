@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 
@@ -395,13 +396,22 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	r.logger.Infof("Finding all CPSActions with pagination for User: %s. Department: %s, Filter: %+v", userID, RAList, filterParam)
 
+	if strings.TrimSpace(userID) == "" {
+		meta := local_utils.BuildPaginationMeta(0, filterParam.Page, filterParam.PerPage)
+		return &types.PaginatedResponse[[]*model.CPSAction]{
+			Data: []*model.CPSAction{},
+			Meta: meta,
+		}, nil
+	}
+
 	baseFilter := bson.M{
 		"is_deleted": false,
 	}
 
 	searchKeys := bson.M{}
 
-	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "maker_id", "checker_name", "checker_phone_number", "checker_id", "auditor_status"}
+	// Exclude maker_id and checker_id from allowedKeys so request cannot override userFilter
+	allowedKeys := []string{"action_status", "action_type", "request_action", "maker_phone_number", "checker_phone_number", "maker_name", "checker_name", "checker_phone_number", "auditor_status"}
 
 	if filterParam.Search != "" {
 		searchRegex := bson.M{"$regex": filterParam.Search, "$options": "i"}
@@ -431,10 +441,11 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	}
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	if filter["action_status"] == "" || filter["action_status"] == constants.Pending {
-		filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
-	}
-	// filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+	// Only default to APPROVED/REJECTED when action_status is not explicitly set (nil or empty)
+	// Do NOT overwrite when user explicitly requested PENDING or other status
+	// if filter["action_status"] == nil || filter["action_status"] == "" {
+	// 	filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
+	// }
 
 	userFilter := bson.M{
 		"$or": []bson.M{
@@ -443,15 +454,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 		},
 	}
 
-	finalFilter := bson.M{
+	finalMatch := bson.M{
 		"$and": []bson.M{
-			userFilter,
 			filter,
+			userFilter,
 		},
 	}
 
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: finalFilter}},
+		{{Key: "$match", Value: finalMatch}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
@@ -469,7 +480,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	if err := cur.All(ctx, &results); err != nil {
 		return nil, err
 	}
-	total, err := r.dal.TotalCount(ctx, filter)
+	total, err := r.dal.TotalCount(ctx, finalMatch)
 	if err != nil {
 		r.logger.Errorf("Error counting total CPSActions: %v", err)
 		return nil, errors.New(localization.ErrorUnexpectedError.Message)
