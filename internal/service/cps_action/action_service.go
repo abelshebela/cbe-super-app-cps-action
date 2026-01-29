@@ -227,6 +227,19 @@ func (ca *cpsActionService) GetCPSActionsForAuditor(ctx context.Context, RAList 
 	return result, nil
 }
 
+func (ca *cpsActionService) GetCPSActions(ctx context.Context, userID string, RAList []string, filterParams *types.Filter) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActions", "CPSAction", "GetCPSActions")
+	defer span.End()
+
+	result, err := ca.repo.SanitizedFindAllWithPaginationCPSActions(ctx, userID, *filterParams, RAList)
+	if err != nil {
+		span.AddEvent("failed to find all with pagination", trace.WithAttributes(attribute.String("error", err.Error())))
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (ca *cpsActionService) GetCPSActionByID(ctx context.Context, id, department string) (*model.CPSAction, error) {
 	ctx, span := local_util.TraceLogger(ctx, "service", "GetCPSActionByID", "CPSAction", "GetCPSActionByID")
 	defer span.End()
