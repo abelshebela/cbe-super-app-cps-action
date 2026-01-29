@@ -441,12 +441,6 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	}
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	// Only default to APPROVED/REJECTED when action_status is not explicitly set (nil or empty)
-	// Do NOT overwrite when user explicitly requested PENDING or other status
-	// if filter["action_status"] == nil || filter["action_status"] == "" {
-	// 	filter["action_status"] = bson.M{"$in": []string{string(constants.Approved), string(constants.Rejected)}}
-	// }
-
 	userFilter := bson.M{
 		"$or": []bson.M{
 			{"maker_id": userID},
