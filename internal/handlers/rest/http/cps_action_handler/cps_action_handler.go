@@ -1083,7 +1083,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Rejected
-	if auditorActions != nil {
+	if auditorActions != nil && requestedRole == "auditor" {
 		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
