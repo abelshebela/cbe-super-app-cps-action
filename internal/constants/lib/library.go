@@ -470,6 +470,8 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
 	if cfg != nil && cfg.OddoEcommerceBaseUrl != "" {
 		base = cfg.OddoEcommerceBaseUrl
+	} else {
+		logger.Debugf("env url for publish not found using hardcoded")
 	}
 	base += "/cps/merchant/update/" + merchantID
 	apiKey := ""
