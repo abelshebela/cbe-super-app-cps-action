@@ -235,6 +235,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 				bson.D{{Key: "$project", Value: bson.M{
 					"_id":     0,
 					"role_id": "$job_role._id",
+					"code":    "$job_role.code",
 					"name":    "$job_role.name", // Assuming 'name' is the field in job_roles
 				}}},
 			},
@@ -252,7 +253,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 			"_id":       1,
 			"user_code": 1,
 			"role": bson.M{
-				"code": "$role",          // Role code from user
+				"code": "$role_doc.code", // Role code from user
 				"name": "$role_doc.name", // Role name from job_roles via role_doc
 			},
 			"role_code":    "$role_doc.code",
