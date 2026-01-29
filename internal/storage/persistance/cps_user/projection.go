@@ -255,6 +255,7 @@ func PipelineBuilderWithRole(userCode, departmentColl, rolesColl, jobRolesColl s
 				"code": "$role",          // Role code from user
 				"name": "$role_doc.name", // Role name from job_roles via role_doc
 			},
+			"role_code":    "$role_doc.code",
 			"full_name":    1,
 			"username":     1,
 			"email":        1,

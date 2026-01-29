@@ -115,7 +115,8 @@ type CpsUserPopulatedResponse struct {
 	ID                 bson.ObjectID             `json:"id" bson:"_id"` // use primitive.ObjectID instead of bson.ObjectID
 	UserCode           string                    `json:"user_code" bson:"user_code"`
 	FullName           string                    `json:"full_name" bson:"full_name"`
-	Role               RoleResponse              `json:"role,omitempty" bson:"role"`   // optional, can keep empty
+	Role               RoleResponse              `json:"role,omitempty" bson:"role"` // optional, can keep empty
+	RoleCode           string                    `json:"role_code" bson:"role_code"`
 	Department         *DepartmentResponse       `json:"department" bson:"department"` // populated via $lookup
 	JobTitle           string                    `json:"job_title" bson:"job_title"`
 	Gender             string                    `json:"gender" bson:"gender"`
