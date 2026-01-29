@@ -679,7 +679,7 @@ func (p *CustomerRepository) SearchCustomerByCIForAccountNumber(ctx context.Cont
 			{Key: "_id", Value: 1},
 			{Key: "user_id", Value: bson.M{"$toString": "$_id"}},
 			{Key: "user_code", Value: 1},
-			{Key: "customer_number", Value: "member_info.customer_number"},
+			{Key: "customer_number", Value: "$member_info.customer_number"},
 			{Key: "full_name", Value: 1},
 			{Key: "phone_number", Value: 1},
 			{Key: "branch_code", Value: 1},
