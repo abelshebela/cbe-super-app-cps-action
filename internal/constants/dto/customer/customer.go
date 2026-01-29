@@ -72,7 +72,7 @@ type PersonalInfo struct {
 	PhoneNumber    string `json:"phone_number" bson:"phone_number"`       //customer_kyc.kyc_data
 	Email          string `json:"email " bson:"email"`                    // members
 	CustomerNumber string `json:"customer_number" bson:"customer_number"` // members
-	KycLevel       int    `json:"kyc_level" bson:"kyc_level"`             // customer_kyc.kyc_level
+	IsActivated    bool   `json:"is_activated" bson:"is_activated"`       // customer_kyc.is_activated
 	DateOfBirth    string `json:"date_of_birth" bson:"date_of_birth"`     // customer_kyc.kyc_data
 }
 

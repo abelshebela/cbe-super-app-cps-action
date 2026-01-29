@@ -434,6 +434,38 @@ func (a *cpsActionAdapter) RejectCPSAction(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	//---------------------------------------------------
+	// Validate approver role's checker_index via cps_action_approver_index (grouped: 0.* -> 1.*, 1.* -> 2.*)
+	actionName := ""
+	var idxDoc *imodel.CPSActionApproveIndex
+	if mod, ok := cpsactionsvc.ResolveModuleForRA(cpsactionsvc.RequestAction(action.RequestAction)); ok {
+		actionName = mod
+	}
+
+	if repo := mid.GetCPSActionApproveRepo(); repo != nil && actionName != "" {
+		rawRoleID, _ := r.Context().Value(constants.ContextKey("role_code")).(string)
+		if rawRoleID == "" {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		roleID := rawRoleID
+		UpperCaseAction := strings.ToUpper(actionName)
+		idxDoc, err = repo.FindByRoleAndAction(ctx, roleID, UpperCaseAction, action.Version)
+		if err != nil {
+			span.RecordError(err)
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+		if idxDoc == nil || idxDoc.CheckerIndex == nil {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+			return
+		}
+
+	}
+	//---------------------------------------------------
+
 	// Prevent rejecting an action that is already finalized
 	if action.ActionStatus == string(constants.Approved) {
 		localization.SendBadRequestResponse(w, localization.MsgCPSActionAlreadyApproved)
