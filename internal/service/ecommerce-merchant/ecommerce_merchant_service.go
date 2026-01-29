@@ -2,6 +2,7 @@ package miniappmerchant
 
 import (
 	"cbe-super-app-cps-action/internal/constants"
+	constant_lib "cbe-super-app-cps-action/internal/constants/lib"
 	"cbe-super-app-cps-action/internal/constants/localization"
 	"cbe-super-app-cps-action/internal/constants/types"
 	"cbe-super-app-cps-action/internal/service"
@@ -15,6 +16,7 @@ import (
 	local_util "cbe-super-app-cps-action/pkgs/utils"
 
 	merchantDto "cbe-super-app-cps-action/internal/constants/dto/ecommerce-merchant"
+	erp_merchant_update_dto "cbe-super-app-cps-action/internal/constants/dto/erp_merchant_update"
 	"cbe-super-app-cps-action/internal/storage/external_call/account_lookup"
 	"cbe-super-app-cps-action/internal/storage/external_call/merchant_lookup"
 
@@ -335,12 +337,28 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 		return nil, errors.New(localization.ErrorInvalidActionData.Code)
 	}
 
+	erpBranches := make([]erp_merchant_update_dto.ERPBranch, len(merchant.Branches))
+	for i, b := range merchant.Branches {
+		erpBranches[i] = erp_merchant_update_dto.ERPBranch{
+			Merchant:         b.BranchCode,
+			CPSAccountNumber: b.BranchAccountNumber,
+			CpsEnabled:       nil,
+		}
+	}
+	ERPUpdate := erp_merchant_update_dto.ERPUpdateRequest{
+		MainAccountNumber: merchant.BankAccountNumber,
+		Branches:          erpBranches,
+		CpsEnabled:        &merchant.Enabled,
+	}
+
 	switch cpsAction.RequestAction {
 	case string(constants.RequestCreateEcommerceMerchant):
-		err = m.updateERP(ctx, merchant)
-		if err != nil {
-			m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
-		}
+		// err = m.updateERP(ctx, merchant)
+		// if err != nil {
+		// 	m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
+		// }
+		// Convert []model.BranchInformation to []erp_merchant_update_dto.ERPBranch
+		constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
 
 		_, err = m.repo.Create(ctx, merchant)
 		if err != nil {
@@ -351,10 +369,11 @@ func (m *miniAppMerchantService) Authorize(ctx context.Context, cpsAction *model
 			return nil, err
 		}
 	case string(constants.RequestUpdateEcommerceMerchant):
-		err = m.updateERP(ctx, merchant)
-		if err != nil {
-			m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
-		}
+		// err = m.updateERP(ctx, merchant)
+		// if err != nil {
+		// 	m.logger.Errorf("Failed to update ERP for merchant creation: %v", err)
+		// }
+		constant_lib.PublishMerchantChangeToERP(ctx, &m.cfg, ERPUpdate, merchant.ID.Hex(), m.logger)
 
 		err = m.repo.Update(ctx, cpsAction.UniqueId, merchant)
 		if err != nil {
