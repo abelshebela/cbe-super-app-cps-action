@@ -455,6 +455,7 @@ func (d *customerService) SearchCustomerByCIForAccountNumber(ctx context.Context
 	defer span.End()
 	d.logger.Infof("[SearchCustomerByCIForAccountNumber] searching customer by value: %s", number)
 
+	number = local_util.NormalizePhoneNumberOrReturnInput(number)
 	customer, err := d.repo.SearchCustomerByCIForAccountNumber(ctx, number)
 	if err != nil {
 		span.AddEvent("Failed to fetch customer by CI", trace.WithAttributes(

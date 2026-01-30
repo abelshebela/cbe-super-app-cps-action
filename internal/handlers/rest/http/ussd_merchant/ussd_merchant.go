@@ -95,14 +95,26 @@ func (u *UssdMerchantHandler) UpdateUssdMerchant(w http.ResponseWriter, r *http.
 
 	var req ussd_merchant_dto.UpdateUssdMerchantRequest
 
-	file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
-	if err != nil {
-		span.RecordError(err)
-		u.Logger.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
-		localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
-		return
+	_, logo, _ := r.FormFile("logo")
+	if &logo != nil {
+		file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
+		if err != nil {
+			span.RecordError(err)
+			u.Logger.Errorf("[UpdateUssdMerchantHandler] error parsing file: %v", err)
+			localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+			return
+		}
+		defer file.Close()
+		req.Logo = fileHeader
 	}
-	defer file.Close()
+	// file, fileHeader, err = core.ParseMultipartFormFile(r, "logo", 10<<20, string(constants.CREATE), u.Logger)
+	// if err != nil {
+	// 	span.RecordError(err)
+	// 	u.Logger.Errorf("[CreateUssdMerchantRequestHandler] error parsing file: %v", err)
+	// 	localization.SendErrorResponse(w, localization.ErrorBankImageMissingOrInvalid, nil, nil)
+	// 	return
+	// }
+	// defer file.Close()
 
 	req.SettlementMethod = r.FormValue("settlement_method")
 	req.Name = r.FormValue("name")

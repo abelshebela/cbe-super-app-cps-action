@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -118,6 +119,11 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 	var reqBody cps_actionrole_dto.AuditorMarkRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		localization.SendErrorResponse(w, localization.ErrorInvalidRequest, nil, nil)
+		return
+	}
+
+	if action.MakerID == userData.UserID {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 		return
 	}
 
@@ -356,6 +362,11 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 		if int64(currentIndex)+1 < int64(Current_role_level) {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+			return
+		}
+
+		if action.MakerID == userData.UserID {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
 
@@ -696,6 +707,8 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	search := r.URL.Query().Get("search")
 	filter := r.URL.Query().Get("filter")
 
+	userID := local_util.ExtractUserContext(r).UserID
+
 	if err := local_util.NoSpecialChars(search); err != nil {
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -761,7 +774,24 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 	if len(reqs) > 0 {
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
-	// do not force action_status; let API-provided filters decide
+
+	userFilter := bson.M{
+		"$or": []bson.M{
+			{"maker_id": userID},
+			{"checker_users.checker_id": userID},
+		},
+	}
+
+	if len(filterParams.Filters) > 0 {
+		filterParams.Filters = bson.M{
+			"$and": []bson.M{
+				userFilter,
+				filterParams.Filters,
+			},
+		}
+	} else {
+		filterParams.Filters = userFilter
+	}
 
 	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
 	if err != nil {
