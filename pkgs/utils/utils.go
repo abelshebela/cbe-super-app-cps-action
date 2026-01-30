@@ -327,6 +327,8 @@ func FormatPhoneNumber(phoneNumber string) string {
 		phoneNumber = "251" + phoneNumber[1:]
 	} else if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
 		phoneNumber = "251" + phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 12 {
+		phoneNumber = "251" + phoneNumber[1:]
 	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
 		phoneNumber = "251" + phoneNumber
 	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
