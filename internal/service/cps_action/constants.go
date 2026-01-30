@@ -55,7 +55,7 @@ const (
 	RequestDeleteUssdMerchant  RequestAction = "DELETE_USSD_MERCHANT"
 	RequestEnableUssdMerchant  RequestAction = "ENABLE_USSD_MERCHANT"
 	RequestDisableUssdMerchant RequestAction = "DISABLE_USSD_MERCHANT"
-	
+
 	RequestCreateCustomerSegmentation  RequestAction = "CREATE_CUSTOMER_SEGMENTATION"
 	RequestUpdateCustomerSegmentation  RequestAction = "UPDATE_CUSTOMER_SEGMENTATION"
 	RequestEnableCustomerSegmentation  RequestAction = "ENABLE_CUSTOMER_SEGMENTATION"
@@ -940,7 +940,7 @@ var RequestActionGroups = map[string][]RequestAction{
 		RequestCpsUserEnable,
 		RequestCpsUserDisable,
 	},
-	"BULKSERVICE": {
+	"BULKSERVICEALLUSER": {
 		RequestBulkServiceEnable,
 		RequestBulkServiceDisable,
 	},
