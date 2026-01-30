@@ -73,6 +73,7 @@ func (r CreateUssdMerchantRequest) Validate() error {
 	if len(errs) > 0 {
 		return errs
 	}
+
 	return nil
 }
 
