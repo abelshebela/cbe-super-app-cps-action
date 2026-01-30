@@ -325,9 +325,9 @@ func FormatPhoneNumber(phoneNumber string) string {
 	re := regexp.MustCompile(`[^\d\+]`)
 	phoneNumber = re.ReplaceAllString(phoneNumber, "")
 
-	if strings.HasPrefix(phoneNumber, "+2510") {
+	if strings.HasPrefix(phoneNumber, "+251") {
 		phoneNumber = "+251" + phoneNumber[5:]
-	} else if strings.HasPrefix(phoneNumber, "2510") {
+	} else if strings.HasPrefix(phoneNumber, "251") {
 		phoneNumber = "+251" + phoneNumber[4:]
 	} else if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
 		phoneNumber = "+251" + phoneNumber[1:]
@@ -344,7 +344,7 @@ func FormatPhoneNumber(phoneNumber string) string {
 	}
 
 	return ""
-	
+
 }
 
 func ThreeNamesMinLength(value interface{}) error {
