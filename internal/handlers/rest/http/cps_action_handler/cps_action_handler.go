@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
-	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/go-chi/chi/v5"
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/utils"
@@ -775,25 +774,7 @@ func (a *cpsActionAdapter) GetUserApproverActions(w http.ResponseWriter, r *http
 		filterParams.Filters["request_action"] = map[string]interface{}{"$in": reqs}
 	}
 
-	userFilter := bson.M{
-		"$or": []bson.M{
-			{"maker_id": userID},
-			{"checker_users.checker_id": userID},
-		},
-	}
-
-	if len(filterParams.Filters) > 0 {
-		filterParams.Filters = bson.M{
-			"$and": []bson.M{
-				userFilter,
-				filterParams.Filters,
-			},
-		}
-	} else {
-		filterParams.Filters = userFilter
-	}
-
-	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
+	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
@@ -944,7 +925,8 @@ func (a *cpsActionAdapter) GetUserApproverApprovedActions(w http.ResponseWriter,
 	}
 	// do not force action_status; let API-provided filters decide
 
-	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, reqs, filterParams)
+	userID := local_util.ExtractUserContext(r).UserID
+	res, err := a.cpsActionApplication.GetCPSActionsForApprover(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
