@@ -475,9 +475,11 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	}
 	base += "/cps/merchant/update/" + merchantID
 	apiKey := ""
-	if cfg != nil && cfg.ApiKey != "" {
-		apiKey = cfg.ApiKey
+	if cfg == nil && cfg.ApiKey == "" {
+		logger.Debugf("env api key for publish not found using hardcoded")
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
+	apiKey = cfg.ApiKey
 
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
@@ -503,7 +505,8 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		logger.Errorf("ERP update failed: %s", string(bodyBytes))
+		logger.Errorf("ERP update failed body: %s", string(bodyBytes))
+		logger.Errorf("ERP update failed header: %s", resp.Header)
 		return errors.New("ERP update failed")
 	}
 
