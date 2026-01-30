@@ -393,7 +393,7 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationForAuditor(ctx context.
 	}, nil
 }
 
-func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
+func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.Context, userID, role string, filterParam types.Filter, RAList []string) (*types.PaginatedResponse[[]*model.CPSAction], error) {
 	r.logger.Infof("Finding all CPSActions with pagination for User: %s. Department: %s, Filter: %+v", userID, RAList, filterParam)
 
 	if strings.TrimSpace(userID) == "" {
@@ -441,11 +441,15 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 	}
 	filter["request_action"] = bson.M{"$in": RAList}
 
-	userFilter := bson.M{
-		"$or": []bson.M{
-			{"maker_id": userID},
-			{"checker_users.checker_id": userID},
-		},
+	var userFilter bson.M
+	if role == "maker" {
+		userFilter = bson.M{"maker_id": userID}
+	}
+	if role == "checker" {
+		userFilter = bson.M{"checker_users.checker_id": userID}
+	}
+	if role == "auditor" {
+		userFilter = bson.M{"auditor_users.auditor_id": userID}
 	}
 
 	finalMatch := bson.M{
