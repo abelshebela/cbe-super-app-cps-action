@@ -16,20 +16,26 @@ func (r NotificationRequest) Validate(isCreate bool) error {
 
 	if isCreate {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required")),
-			validation.Field(&r.NotificationBody, validation.Required.Error("notification_body is required")),
+			validation.Field(&r.NotificationType, validation.Required.Error("notification_type is required"), validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.NotificationBody,
+				validation.Required.Error("notification_body is required"),
+				validation.By(utils.NoSpecialChars),
+				validation.Length(1, 50),
+			),
 			validation.Field(&r.Title, validation.Required.Error("title is required"), validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.For,
 				validation.Required.Error("for is required"),
+				validation.By(utils.NoSpecialChars),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
 			),
 		}
 	} else {
 		fieldRules = []*validation.FieldRules{
-			validation.Field(&r.NotificationType),
-			validation.Field(&r.NotificationBody),
-			validation.Field(&r.Title),
+			validation.Field(&r.NotificationType, validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.NotificationBody, validation.By(utils.NoSpecialChars)),
+			validation.Field(&r.Title, validation.By(utils.NoSpecialChars)),
 			validation.Field(&r.For,
+				validation.By(utils.NoSpecialChars),
 				validation.In(enumValues...).Error("invalid value for 'for'"),
 			),
 		}
