@@ -89,7 +89,7 @@ func (d *Dispatcher) Authorize(ctx context.Context, cpsAction *model.CPSAction) 
 	case IsActionInGroup(RequestAction(action), "AMOUNTBASEDAUTH"):
 		return d.app.AmountBasedAuthContainer.Authorize(ctx, cpsAction)
 
-	case IsActionInGroup(RequestAction(action), "BULKSERVICE"):
+	case IsActionInGroup(RequestAction(action), "BULKSERVICEALLUSER"):
 		return d.app.BulkServiceContainer.Authorize(ctx, cpsAction)
 
 	case IsActionInGroup(RequestAction(action), "EVENT"):
