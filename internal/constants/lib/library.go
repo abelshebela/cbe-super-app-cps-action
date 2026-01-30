@@ -509,6 +509,8 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		logger.Errorf("ERP update failed body: %s", string(bodyBytes))
 		logger.Errorf("ERP update failed header: %s", resp.Header)
+		logger.Errorf("ERP UPDATE Used URL %s", base)
+		logger.Errorf("ERP update failed api key: %s", cfg.ODOOApiKey)
 		return errors.New("ERP update failed")
 	}
 

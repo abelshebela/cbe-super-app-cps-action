@@ -317,6 +317,31 @@ func NoSpecialChars(value any) error {
 	return nil
 }
 
+func NormalizePhoneNumberOrReturnInput(input string) string {
+	phone := strings.TrimSpace(input)
+
+	re := regexp.MustCompile(`\D`)
+	phone = re.ReplaceAllString(phone, "")
+
+	switch {
+	case len(phone) == 10 && phone[0] == '0':
+		phone = "251" + phone[1:]
+	case len(phone) == 9 && (phone[0] == '9' || phone[0] == '7'):
+		phone = "251" + phone
+	case len(phone) == 12 && strings.HasPrefix(phone, "251"):
+	case len(phone) == 13 && strings.HasPrefix(phone, "2510"):
+		phone = "251" + phone[4:]
+	default:
+		return input
+	}
+
+	if len(phone) != 12 || !strings.HasPrefix(phone, "251") {
+		return input
+	}
+
+	return phone
+}
+
 func FormatPhoneNumber(phone string) string {
 	phone = strings.TrimSpace(phone)
 
