@@ -3,9 +3,10 @@ package core
 import (
 	"cbe-super-app-cps-action/internal/constants"
 	"errors"
+	"strings"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/config"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"strings"
 
 	ussd_merchant_dto "cbe-super-app-cps-action/internal/constants/dto/ussd_merchant"
 	localization "cbe-super-app-cps-action/internal/constants/localization"
@@ -92,6 +93,7 @@ func UssdMerchantUpdate(req ussd_merchant_dto.UpdateUssdMerchantRequest, ussdMer
 		Name:             req.Name,
 		SettlementMethod: constants.SettlementMethod(req.SettlementMethod),
 		PhoneNumber:      req.PhoneNumber,
+		AccountNumber:    req.AccountNumber,
 		Email:            req.Email,
 		Service:          req.Service,
 	}
