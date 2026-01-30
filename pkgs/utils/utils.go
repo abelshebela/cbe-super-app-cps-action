@@ -339,7 +339,7 @@ func FormatPhoneNumber(phone string) string {
 		return ""
 	}
 
-	return "+" + phone
+	return phone
 }
 
 func ThreeNamesMinLength(value interface{}) error {
