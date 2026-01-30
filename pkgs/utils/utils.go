@@ -318,33 +318,28 @@ func NoSpecialChars(value any) error {
 }
 
 func FormatPhoneNumber(phoneNumber string) string {
-	// phoneNumber = strings.TrimSpace(phoneNumber)
 	phoneNumber = strings.TrimSpace(phoneNumber)
 
-	// Remove all non-digit and non-plus characters
 	re := regexp.MustCompile(`[^\d\+]`)
 	phoneNumber = re.ReplaceAllString(phoneNumber, "")
 
 	if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
 		phoneNumber = "251" + phoneNumber[1:]
+	} else if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
+		phoneNumber = strings.TrimPrefix(phoneNumber, "+")
+	} else if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 12 {
+		phoneNumber = phoneNumber
 	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
 		phoneNumber = "251" + phoneNumber
 	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
 		phoneNumber = "251" + phoneNumber
 	}
 
-	if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 13 {
+	if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 12 {
 		return phoneNumber
 	}
 
 	return ""
-	// Acceptable patterns: 2517XXXXXXXX or 2519XXXXXXXX (total 12 digits)
-	// validRe := regexp.MustCompile(`^(251[79]\d{8})$`)
-	// match := validRe.MatchString(phoneNumber)
-	// if match {
-	// 	return phoneNumber
-	// }
-	// return ""
 }
 
 func ThreeNamesMinLength(value interface{}) error {
@@ -367,7 +362,7 @@ func ThreeNamesMinLength(value interface{}) error {
 	}
 
 	for _, p := range parts {
-		if len(p) <= 3 {
+		if len(p) < 3 {
 			return errors.New("each of first, middle, and last name must be longer than 3 characters")
 		}
 	}
