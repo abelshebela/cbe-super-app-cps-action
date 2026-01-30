@@ -941,6 +941,10 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	requestedRole := r.URL.Query().Get("role")
+	if err := local_util.NoSpecialChars(requestedRole); err != nil {
+		localization.SendErrorByCodeResponse(w, err.Error())
+		return
+	}
 
 	idxRepo := mid.GetCPSActionApproveRepo()
 	if idxRepo == nil {
@@ -1054,7 +1058,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	var pendingCount, approvedCount, rejectedCount, canceledCount, inprogressAuditCount, completedAuditCount int
 
 	// Pending
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Pending), "")); err != nil {
+	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Pending), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1064,7 +1068,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	// Approved
 	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Approved), string(model.AUDITORNOTCHECKED))); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Approved), string(model.AUDITORNOTCHECKED))); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1072,7 +1076,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			approvedCount = int(res.Meta.TotalDocs)
 		}
 	} else {
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Approved), "")); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Approved), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1084,7 +1088,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 
 	// Rejected
 	if auditorActions != nil && requestedRole == "auditor" {
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Rejected), string(model.AUDITORNOTCHECKED))); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1092,7 +1096,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 			rejectedCount = int(res.Meta.TotalDocs)
 		}
 	} else {
-		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
+		if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Rejected), "")); err != nil {
 			span.RecordError(err)
 			localization.SendErrorByCodeResponse(w, err.Error())
 			return
@@ -1102,7 +1106,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Canceled
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
+	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(constants.Canceled), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1111,7 +1115,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Audior's Inprogress Count
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
+	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORINPROGRESS), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
@@ -1120,7 +1124,7 @@ func (a *cpsActionAdapter) GetActionCounts(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Audior's Completed Count
-	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, reqs, buildFilter(string(model.AUDITORNOTCHECKED), "")); err != nil {
+	if res, err := a.cpsActionApplication.GetCPSActions(ctx, userID, requestedRole, reqs, buildFilter(string(model.AUDITORNOTCHECKED), "")); err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
 		return
