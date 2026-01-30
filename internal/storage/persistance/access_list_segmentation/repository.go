@@ -102,7 +102,7 @@ func (a *AccessListSegmentation) FindByIDS(ctx context.Context, ids []string, t 
 
 func (a *AccessListSegmentation) CreateAccountSegment(ctx context.Context, accessListSegmentation access_list_segmentation_dto.CreateAccessListSegmentationRequest) error {
 	docs := []local_model.AccessListSegmentation{}
-	for i, idStr := range accessListSegmentation.AccessListNames {
+	for i, idStr := range accessListSegmentation.AccessListKeys {
 		doc := local_model.AccessListSegmentation{
 			ID:               bson.NewObjectID(),
 			Type:             accessListSegmentation.Type,
