@@ -446,7 +446,12 @@ func (r *CPSActionStorage) SanitizedFindAllWithPaginationCPSActions(ctx context.
 		userFilter = bson.M{"maker_id": userID}
 	}
 	if role == "checker" {
-		userFilter = bson.M{"checker_users.checker_id": userID}
+		userFilter = bson.M{
+			"$or": []bson.M{
+				{"maker_id": userID},
+				{"checker_users.checker_id": userID},
+			},
+		}
 	}
 	if role == "auditor" {
 		userFilter = bson.M{"auditor_users.auditor_id": userID}
