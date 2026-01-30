@@ -18,6 +18,8 @@ func (r CreateActionRoleRequest) Validate() error {
 		validation.Field(&r.PortalCardName,
 			validation.Required.Error("Portal card name is required"),
 			validation.By(utils.TrimWhiteSpace),
+			validation.By(utils.NoSpecialChars),
+			validation.Length(0, 50).Error("Portal card name must not exceed 50 characters"),
 		),
 	)
 	if err != nil {
