@@ -508,7 +508,8 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		logger.Errorf("ERP update failed body: %s", string(bodyBytes))
-		logger.Errorf("ERP update failed header: %s", resp.Header)
+		logger.Errorf("ERP update failed request header: %s", req.Header)
+		logger.Errorf("ERP update failed response header: %s", resp.Header)
 		logger.Errorf("ERP update failed json body: %s", jsonBody)
 		logger.Errorf("ERP UPDATE Used URL %s", base)
 		logger.Errorf("ERP update failed api key: %s", cfg.ApiKey)
