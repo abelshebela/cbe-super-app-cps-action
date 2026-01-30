@@ -44,7 +44,7 @@ var modulePriority = []string{
 	"WALLET",
 	"TOPUP",
 	"AMOUNTBASEDAUTH",
-	"BULKSERVICE",
+	"BULKSERVICEALLUSER",
 	"EVENT",
 	"NOTIFICATION",
 	"PRODUCTCODE",
