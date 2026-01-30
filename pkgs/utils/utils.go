@@ -326,16 +326,16 @@ func FormatPhoneNumber(phoneNumber string) string {
 	if strings.HasPrefix(phoneNumber, "0") && len(phoneNumber) == 10 {
 		phoneNumber = "251" + phoneNumber[1:]
 	} else if strings.HasPrefix(phoneNumber, "+251") && len(phoneNumber) == 13 {
-		phoneNumber = "251" + phoneNumber[1:]
+		phoneNumber = strings.TrimPrefix(phoneNumber, "+")
 	} else if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 12 {
-		phoneNumber = "251" + phoneNumber[1:]
+		phoneNumber = phoneNumber
 	} else if strings.HasPrefix(phoneNumber, "9") && len(phoneNumber) == 9 {
 		phoneNumber = "251" + phoneNumber
 	} else if strings.HasPrefix(phoneNumber, "7") && len(phoneNumber) == 9 {
 		phoneNumber = "251" + phoneNumber
 	}
 
-	if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 13 {
+	if strings.HasPrefix(phoneNumber, "251") && len(phoneNumber) == 12 {
 		return phoneNumber
 	}
 
