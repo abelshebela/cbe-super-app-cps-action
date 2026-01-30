@@ -2,14 +2,13 @@ package initiator
 
 // MongoDB Collection Names
 var (
-	DeviceVersionControllCollection = "device_version_control"
-	MembersCollection               = "members"
-	HQCollection                    = "hq"
-	OTPsCollection                  = "otps"
-	MemberDevicesHistoryCollection  = "member_device_histories"
-	PINResetsCollection             = "pin_reset_sessions"
-	// CPSActionsCollection             = "cps_actions"
-	CPSActionsCollection             = "cps_actions_qa"
+	DeviceVersionControllCollection  = "device_version_control"
+	MembersCollection                = "members"
+	HQCollection                     = "hq"
+	OTPsCollection                   = "otps"
+	MemberDevicesHistoryCollection   = "member_device_histories"
+	PINResetsCollection              = "pin_reset_sessions"
+	CPSActionsCollection             = "cps_actions"
 	AuthTierCollection               = "auth_tier"
 	AccountBlockCollection           = "account_block"
 	CardsCollection                  = "portal_cards"
