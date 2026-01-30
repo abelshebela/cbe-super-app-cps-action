@@ -468,17 +468,21 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 	defer span.End()
 
 	base := "https://qaapisuperapp.cbe.com.et/api/v1/cbesuperapp/ecommerce"
-	if cfg != nil && cfg.OddoEcommerceBaseUrl != "" {
+	if cfg == nil {
+		logger.Debugf("env config is nil, using hardcoded base url and cannot proceed without api key")
+		return errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	if cfg.OddoEcommerceBaseUrl != "" {
 		base = cfg.OddoEcommerceBaseUrl
 	} else {
 		logger.Debugf("env url for publish not found using hardcoded")
 	}
 	base += "/cps/merchant/update/" + merchantID
-	apiKey := ""
-	if cfg != nil && cfg.ApiKey != "" {
-		apiKey = cfg.ApiKey
+	if cfg.ODOOApiKey == "" {
+		logger.Debugf("env api key for publish not found using hardcoded")
+		return errors.New(localization.ErrorUnexpectedError.Code)
 	}
-
+	apiKey := cfg.ODOOApiKey
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		logger.Errorf("Failed to marshal ERP update body: %v", err)
@@ -503,7 +507,8 @@ func PublishMerchantChangeToERP(ctx context.Context, cfg *config.VaultConfig, bo
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		logger.Errorf("ERP update failed: %s", string(bodyBytes))
+		logger.Errorf("ERP update failed body: %s", string(bodyBytes))
+		logger.Errorf("ERP update failed header: %s", resp.Header)
 		return errors.New("ERP update failed")
 	}
 
