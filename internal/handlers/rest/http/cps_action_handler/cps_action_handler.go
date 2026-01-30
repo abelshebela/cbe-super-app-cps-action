@@ -121,6 +121,11 @@ func (a *cpsActionAdapter) AuditorAction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if action.MakerID == userData.UserID {
+		localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
+		return
+	}
+
 	if strings.TrimSpace(reqBody.Mark) == "" {
 		// Claim path -> move status to INPROGRESS when allowed
 		if err := a.cpsActionApplication.AuditorClaim(ctx, actionCode, activeGroup); err != nil {
@@ -356,6 +361,11 @@ func (a *cpsActionAdapter) ApproveCPSAction(w http.ResponseWriter, r *http.Reque
 
 		if int64(currentIndex)+1 < int64(Current_role_level) {
 			localization.SendBadRequestResponse(w, localization.MsgCPSActionWaitPrevious)
+			return
+		}
+
+		if action.MakerID == userData.UserID {
+			localization.SendBadRequestResponse(w, localization.ErrorOperationNotAllowed.Message)
 			return
 		}
 
