@@ -55,9 +55,15 @@ func MapBpsActionToCustomerLog(action []bps.BPSAction) []customer.CustomerAction
 	response := make([]customer.CustomerActionLogResponse, 0)
 	for _, action := range action {
 		res := customer.CustomerActionLogResponse{
-			ActionCode:     action.ActionCode,
-			MakerName:      action.MakerName,
-			ActionReason:   action.ActionReason,
+			ActionCode: action.ActionCode,
+			MakerName:  action.MakerName,
+			ActionReason: struct {
+				ActionType string "json:\"action_type\" bson:\"action_type\""
+				ActionNote string "json:\"action_note\" bson:\"action_note\""
+			}{
+				ActionType: action.ActionReason.ActionType,
+				ActionNote: action.ActionReason.ActionNote,
+			},
 			RequestAction:  string(action.RequestAction),
 			ServiceName:    action.ServiceName,
 			Status:         string(action.Status),
