@@ -118,44 +118,60 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 		return errors.New(localization.ErrorTopupNotFound.Code)
 	}
 
-	if req.Name != "" {
-		exist, err := s.repo.Find(ctx, req.Code, req.Name)
-		if err != nil {
-			span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		// existingStringID := exist.ID.Hex()
-		if exist != nil && exist.ID.Hex() != id {
-			if exist != nil && strings.EqualFold(exist.Name, req.Name) {
-				span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-				return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
-			}
-
-			// if exist != nil && strings.EqualFold(exist.Code, req.Code) {
-			// 	span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
-			// 	return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
-			// }
-		}
+	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	if err != nil {
+		span.AddEvent("Repo find error", trace.WithAttributes(attribute.String("error", err.Error())))
+		return errors.New(localization.ErrorUnhandledServer.Code)
 	}
 
-	if req.Code != "" {
-		// code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
-		// if err != nil {
-		// 	span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
-		// 	return errors.New(localization.ErrorUnhandledServer.Code)
-		// }
-		// req.Code = code
-
-		exist, err := s.repo.FindByKeyValue(ctx, "code", req.Code)
-		if err != nil {
-			span.AddEvent("Repo find by code error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", req.Code)))
-			return errors.New(localization.ErrorUnhandledServer.Code)
-		}
-		if exist != nil && exist.ID.Hex() != id {
-			span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
-			return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
-		}
+	if exist != nil && strings.EqualFold(exist.Name, req.Name) && exist.ID.Hex() != id {
+		span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 	}
+
+	if exist != nil && strings.EqualFold(exist.Code, req.Code) && exist.Code != req.Code {
+		span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
+		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	}
+	//
+	// if req.Name != "" {
+	// 	exist, err := s.repo.Find(ctx, req.Code, req.Name)
+	// 	if err != nil {
+	// 		span.AddEvent("Repo find by name error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("name", req.Name)))
+	// 		return errors.New(localization.ErrorUnhandledServer.Code)
+	// 	}
+	// 	// existingStringID := exist.ID.Hex()
+	// 	if exist != nil && exist.ID.Hex() != id {
+	// 		if exist != nil && strings.EqualFold(exist.Name, req.Name) {
+	// 			span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+	// 			return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+	// 		}
+
+	// 		// if exist != nil && strings.EqualFold(exist.Code, req.Code) {
+	// 		// 	span.AddEvent("Topup name already exists", trace.WithAttributes(attribute.String("name", req.Name)))
+	// 		// 	return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	// 		// }
+	// 	}
+	// }
+
+	// if req.Code != "" {
+	// 	// code, err := core.GeneratePrefixedName("TOP", req.Code, s.logger)
+	// 	// if err != nil {
+	// 	// 	span.AddEvent("GeneratePrefixedName error", trace.WithAttributes(attribute.String("error", err.Error())))
+	// 	// 	return errors.New(localization.ErrorUnhandledServer.Code)
+	// 	// }
+	// 	// req.Code = code
+
+	// 	exist, err := s.repo.FindByKeyValue(ctx, "code", req.Code)
+	// 	if err != nil {
+	// 		span.AddEvent("Repo find by code error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("code", req.Code)))
+	// 		return errors.New(localization.ErrorUnhandledServer.Code)
+	// 	}
+	// 	if exist != nil && exist.ID.Hex() != id {
+	// 		span.AddEvent("Topup code already exists", trace.WithAttributes(attribute.String("code", req.Code)))
+	// 		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	// 	}
+	// }
 
 	var avatarURL string
 	if req.Avatar != nil {

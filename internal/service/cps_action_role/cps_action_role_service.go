@@ -135,6 +135,7 @@ func (s *cpsActionRoleService) Create(ctx context.Context, req actionrole_dto.Cr
 		span.AddEvent("failed to validate unique checker IDs in groups", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
 	}
+
 	if err := s.validateUniqueIDsInGroups(req.AssignedAuditorRoles); err != nil {
 		span.AddEvent("failed to validate unique auditor IDs", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
