@@ -190,10 +190,10 @@ func (b *TopupStorage) FindByOr(ctx context.Context, name, code string) (model.T
 	data, err := b.dal.FindOne(ctx, filter, nil)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			b.logger.Infof("[FindByOr] no bps user found matching the criteria")
+			b.logger.Infof("[FindByOr] no topup found matching the criteria")
 			return model.Topup{}, errors.New(localization.ErrorResourceNotFound.Code)
 		}
-		b.logger.Errorf("[FindByOr] failed to find bps user: %v", err)
+		b.logger.Errorf("[FindByOr] failed to find topup: %v", err)
 		return model.Topup{}, errors.New(localization.ErrorUnexpectedError.Code)
 	}
 	return *data, nil
