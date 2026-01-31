@@ -60,11 +60,14 @@ func ExistingIdentifierForUpdate(existing model.Topup, id string, req topupDto.T
 	normalizedCode := strings.TrimSpace(req.Code)
 
 	existingID := local_util.FirstHex24(existing.ID.String())
-	if normalizedName != "" && strings.EqualFold(existing.Name, normalizedName) && existingID != id {
+	if normalizedName != "" && existing.Name == normalizedName && existingID != id {
 		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 	}
 
-	if normalizedCode != "" && strings.EqualFold(existing.Code, normalizedCode) && existingID != id {
+	fmt.Println(normalizedCode)
+	fmt.Println("*******************normalizedName")
+	fmt.Println(normalizedName)
+	if normalizedCode != "" && existing.Code == normalizedCode && existingID != id {
 		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 	}
 	return nil
