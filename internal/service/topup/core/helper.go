@@ -15,6 +15,8 @@ import (
 	"log"
 	"strings"
 
+	topupDto "cbe-super-app-cps-action/internal/constants/dto/topup"
+
 	"gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/model"
 	shared_types "gitlab.com/bersufekadgetachew/cbe-super-app-shared/shared/entities/types"
 
@@ -47,6 +49,25 @@ func GeneratePrefixedName(prefix, value string, logger shared_utils.Logger) (str
 	logger.Infof("Successfully generated prefixed name", "result", result)
 	return result, nil
 
+}
+
+func ExistingIdentifierForUpdate(existing model.Topup, id string, req topupDto.TopupRequest) error {
+	if &existing == nil {
+		return nil
+	}
+
+	normalizedName := strings.TrimSpace(req.Name)
+	normalizedCode := strings.TrimSpace(req.Code)
+
+	existingID := local_util.FirstHex24(existing.ID.String())
+	if normalizedName != "" && strings.EqualFold(existing.Name, normalizedName) && existingID != id {
+		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
+	}
+
+	if normalizedCode != "" && strings.EqualFold(existing.Code, normalizedCode) && existingID != id {
+		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
+	}
+	return nil
 }
 
 func ToCreateTopupDoc(name, code, URL string, self, other, agent bool) *model.Topup {

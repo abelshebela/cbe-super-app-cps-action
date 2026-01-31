@@ -3,6 +3,7 @@ package Topup
 import (
 	"context"
 	"errors"
+	"regexp"
 	"time"
 
 	"cbe-super-app-cps-action/internal/constants/lib"
@@ -168,44 +169,35 @@ func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topu
 
 	return doc, nil
 }
+func (b *TopupStorage) FindByOr(ctx context.Context, name, code string) (model.Topup, error) {
 
-// func (w *TopupStorage) Find(ctx context.Context, code, name string) (*model.Topup, error) {
-// 	filter := bson.M{
-// 		"is_deleted": false,
-// 	}
+	// Build conditions dynamically, only for non-empty parameters
+	conditions := []bson.M{}
 
-// 	var orFilters []bson.M
+	if name != "" {
+		conditions = append(conditions, bson.M{
+			"name": bson.M{"$regex": "^" + regexp.QuoteMeta(name) + "$", "$options": "i"},
+		})
+	}
 
-// 	if code != "" {
-// 		orFilters = append(orFilters, bson.M{
-// 			"code": code,
-// 		})
-// 	}
+	if code != "" {
+		conditions = append(conditions, bson.M{
+			"code": bson.M{"$regex": "^" + regexp.QuoteMeta(code) + "$", "$options": "i"},
+		})
+	}
 
-// 	if name != "" {
-// 		orFilters = append(orFilters, bson.M{
-// 			"name": bson.M{
-// 				"$regex":   name,
-// 				"$options": "i",
-// 			},
-// 		})
-// 	}
-
-// 	if len(orFilters) > 0 {
-// 		filter["$or"] = orFilters
-// 	}
-
-// 	doc, err := w.dal.FindOne(ctx, filter, nil)
-// 	if err != nil {
-// 		if errors.Is(err, mongo.ErrNoDocuments) {
-// 			w.logger.Warnf("No Topup found with %s: %s", code, name)
-// 			return nil, nil
-// 		}
-// 		return nil, errors.New(localization.ErrorUnexpectedError.Code)
-// 	}
-
-// 	return doc, nil
-// }
+	filter := bson.M{"$or": conditions}
+	data, err := b.dal.FindOne(ctx, filter, nil)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			b.logger.Infof("[FindByOr] no bps user found matching the criteria")
+			return model.Topup{}, errors.New(localization.ErrorResourceNotFound.Code)
+		}
+		b.logger.Errorf("[FindByOr] failed to find bps user: %v", err)
+		return model.Topup{}, errors.New(localization.ErrorUnexpectedError.Code)
+	}
+	return *data, nil
+}
 
 func (e *TopupStorage) FindAllWithPagination(ctx context.Context, filterParam types.Filter) (*types.PaginatedResponse[[]model.Topup], error) {
 	allowedKeys := []string{"name", "code", "enabled"}
