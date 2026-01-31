@@ -852,7 +852,8 @@ func (a *cpsActionAdapter) GetUserAuditorActions(w http.ResponseWriter, r *http.
 	}
 
 	// do not force action_status; let API-provided filters decide
-	res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, reqs, filterParams)
+	userID := local_util.ExtractUserContext(r).UserID
+	res, err := a.cpsActionApplication.GetCPSActionsForAuditor(ctx, userID, reqs, filterParams)
 	if err != nil {
 		span.RecordError(err)
 		localization.SendErrorByCodeResponse(w, err.Error())
