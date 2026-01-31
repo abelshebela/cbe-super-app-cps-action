@@ -189,6 +189,7 @@ func (s *accountBlockService) EnableOrDisableBranches(ctx context.Context, branc
 			ID:      branch.ID.Hex(),
 			Name:    branch.Name,
 			Enabled: enabled,
+			Reason:  reason,
 		})
 	}
 
@@ -261,6 +262,7 @@ func (s *accountBlockService) EnableOrDisableRegions(ctx context.Context, region
 			ID:      region.ID.Hex(),
 			Name:    region.Name,
 			Enabled: enabled,
+			Reason:  reason,
 		})
 	}
 
@@ -356,6 +358,7 @@ func (s *accountBlockService) EnableOrDisableDistricts(ctx context.Context, dist
 			ID:      district.ID.Hex(),
 			Name:    district.Name,
 			Enabled: enabled,
+			Reason:  reason,
 		})
 	}
 
@@ -450,6 +453,7 @@ func (s *accountBlockService) EnableOrDisableCities(ctx context.Context, ids []s
 			ID:      city.ID.Hex(),
 			Name:    city.Name,
 			Enabled: enabled,
+			Reason:  reason,
 		})
 	}
 
