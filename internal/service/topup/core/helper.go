@@ -64,13 +64,6 @@ func ExistingIdentifierForUpdate(existing model.Topup, id string, req topupDto.T
 		return errors.New(localization.ErrorTopupNameAlreadyExists.Code)
 	}
 
-	fmt.Println(normalizedCode)
-	fmt.Println(existingID != id)
-	fmt.Println(existingID)
-	fmt.Println("*******************normalizedName")
-	fmt.Println(id)
-	fmt.Println(normalizedName)
-	fmt.Println(existing.Name)
 	if normalizedCode != "" && existing.Code == normalizedCode && existingID != id {
 		return errors.New(localization.ErrorTopupCodeAlreadyExists.Code)
 	}

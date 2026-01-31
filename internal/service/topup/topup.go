@@ -10,10 +10,10 @@ import (
 	"cbe-super-app-cps-action/internal/service/topup/core"
 	"cbe-super-app-cps-action/internal/storage"
 	local_util "cbe-super-app-cps-action/pkgs/utils"
-	"fmt"
 	"path"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -112,24 +112,33 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	ctx, span := local_util.TraceLogger(ctx, "service", "UpdateTopup", "topupService", "topupService")
 	defer span.End()
 	s.logger.Infof("Updatetopup called", "topup_id", id)
-
+	var existing model.Topup
+	var err error
 	prevtopup, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		span.AddEvent("FindByID error", trace.WithAttributes(attribute.String("error", err.Error()), attribute.String("id", id)))
 		return errors.New(localization.ErrorTopupNotFound.Code)
 	}
 
-	existing, err := s.repo.FindByOr(ctx, req.Name, req.Code)
-	if err != nil {
-		if err.Error() != localization.ErrorResourceNotFound.Code {
-			s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
-			return err
+	if req.Name != "" {
+		existing, err = s.repo.FindByOr(ctx, bson.M{"name": req.Name})
+		if err != nil {
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
+				return err
+			}
 		}
 	}
 
-	fmt.Println("****************existing")
-	fmt.Println(existing)
-	fmt.Println("****************existing")
+	if req.Code != "" {
+		existing, err = s.repo.FindByOr(ctx, bson.M{"code": req.Code})
+		if err != nil {
+			if err.Error() != localization.ErrorResourceNotFound.Code {
+				s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
+				return err
+			}
+		}
+	}
 
 	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
 		s.logger.Infof("[Updateopup] the entered data is already existed error: %v", err)
