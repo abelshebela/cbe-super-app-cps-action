@@ -121,13 +121,13 @@ func (s *topupService) UpdateTopup(ctx context.Context, id string, req topupDto.
 	existing, err := s.repo.FindByOr(ctx, req.Name, req.Code)
 	if err != nil {
 		if err.Error() != localization.ErrorResourceNotFound.Code {
-			s.logger.Errorf("[UpdateBPSUser] error whil checking existing information error: %v", err)
+			s.logger.Errorf("[UpdateTopup] error whil checking existing information error: %v", err)
 			return err
 		}
 	}
 
 	if err := core.ExistingIdentifierForUpdate(existing, id, req); err != nil {
-		s.logger.Infof("[UpdateBPSUser] the entered data is already existed error: %v", err)
+		s.logger.Infof("[Updateopup] the entered data is already existed error: %v", err)
 		return err
 	}
 
